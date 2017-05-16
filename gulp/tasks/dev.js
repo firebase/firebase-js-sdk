@@ -22,7 +22,7 @@ require('./test');
 function watchDevFiles() {
   const stream = gulp.watch([
     `${config.root}/src/**/*.ts`,
-    `${config.root}/tests/unit/**/*`,
+    config.paths.test.unit
   ], gulp.parallel('test:unit'));
 
   stream.on('error', () => {});
