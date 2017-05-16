@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "lib": [
+      "es5",
+      "es2015",
+      "es2015.promise",
+      "dom"
+    ],
+    "module": "es2015",
+    "noImplicitAny": false,
+    "outDir": "dist/es2015",
+    "rootDir": "src",
+    "sourceMap": true,
+    "target": "es2015",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}
