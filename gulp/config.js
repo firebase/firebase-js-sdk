@@ -29,6 +29,7 @@ module.exports = {
       unit: [
         'tests/**/*.test.ts',
         '!tests/**/browser/**/*.test.ts',
+        '!tests/**/binary/**/*.test.ts',
       ],
       binary: [
         'tests/**/binary/**/*.test.ts',
