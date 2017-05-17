@@ -1,0 +1,23 @@
+sudo: required
+dist: trusty
+language: node_js
+node_js: stable
+env:
+  - CXX=g++-4.8
+cache: yarn
+addons:
+  firefox: latest
+  apt:
+    sources:
+      - google-chrome
+      - ubuntu-toolchain-r-test
+    packages:
+      - google-chrome-stable
+      - g++-4.8
+before_script:
+  - "export DISPLAY=:99.0"
+script:
+  - xvfb-run npm test
+branches:
+  only:
+    - master
