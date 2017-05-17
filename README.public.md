@@ -1,5 +1,6 @@
-# Firebase - App success made simple
+[![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
 
+# Firebase - App success made simple
 
 ## Overview
 
