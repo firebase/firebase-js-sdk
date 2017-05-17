@@ -3,7 +3,7 @@
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
 
-- CDN (`<script src="https://www.gstatic.com/firebasejs/3.6.4/firebase.js"></script>`)
+- CDN (`<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>`)
 - [npm package](https://www.npmjs.com/package/firebase)
 - [Bower package](https://github.com/firebase/firebase-bower)
 
