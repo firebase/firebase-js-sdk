@@ -221,6 +221,10 @@ let LocalPromise = local.Promise as typeof Promise;
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
+// An array to capture listeners before the true auth functions
+// exist
+let tokenListeners = [];
+
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
@@ -235,7 +239,8 @@ class FirebaseAppImpl implements FirebaseApp {
   private services_: {
     [name: string]: FirebaseService
   } = {};
-  public INTERNAL: FirebaseAppInternals;
+
+  public INTERNAL;
 
   constructor(options: FirebaseOptions,
               name: string,
@@ -298,7 +303,17 @@ class FirebaseAppImpl implements FirebaseApp {
    * of service instance creation.
    */
   private extendApp(props: {[name: string]: any}): void {
-    deepExtend(this, props);
+    // Copy the object onto the FirebaseAppImpl prototype
+    deepExtend(FirebaseAppImpl.prototype, props);
+
+    // If the app has overwritten the addAuthTokenListener stub, forward
+    // the active token listeners on to the true fxn.
+    if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
+      tokenListeners.forEach(listener => {
+        this.INTERNAL.addAuthTokenListener(listener);
+      });
+      tokenListeners = [];
+    }
   }
 
   /**
@@ -311,6 +326,19 @@ class FirebaseAppImpl implements FirebaseApp {
     }
   }
 };
+
+FirebaseAppImpl.prototype.INTERNAL = {
+  'getUid': () => null,
+  'getToken': () => LocalPromise.resolve(null),
+  'addAuthTokenListener': (callback: (token: string|null) => void) => {
+    tokenListeners.push(callback);
+    // Make sure callback is called, asynchronously, in the absence of the auth module
+    setTimeout(() => callback(null), 0);
+  },
+  'removeAuthTokenListener': (callback) => {
+    tokenListeners = tokenListeners.filter(listener => listener !== callback);
+  },
+}
 
 // Prevent dead-code elimination of these methods w/o invalid property
 // copying.
@@ -416,22 +444,6 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     apps_[name!] = app;
     callAppHooks(app, 'create');
 
-    // Ensure that getUid, getToken, addAuthListener and removeAuthListener
-    // have a default implementation if no service has patched the App
-    // (i.e., Auth is not present).
-    if (app.INTERNAL == undefined || app.INTERNAL.getToken == undefined) {
-      deepExtend(app, {
-        INTERNAL: {
-          'getUid': () => null,
-          'getToken': () => LocalPromise.resolve(null),
-          'addAuthTokenListener': (callback: (token: string|null) => void) => {
-            // Make sure callback is called, asynchronously, in the absence of the auth module
-            setTimeout(() => callback(null), 0);
-          },
-          'removeAuthTokenListener': () => { /*_*/ },
-        }
-      });
-    }
     return app;
   }
 
