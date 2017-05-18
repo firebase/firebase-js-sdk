@@ -229,8 +229,12 @@ class FirebaseAppImpl implements FirebaseApp {
   private options_: FirebaseOptions;
   private name_: string;
   private isDeleted_ = false;
-  private services_: {[name: string]:
-                          {[instance: string]: FirebaseService}} = {};
+  private _registeredServices: {
+    [name: string]: boolean
+  } = {};
+  private services_: {
+    [name: string]: FirebaseService
+  } = {};
   public INTERNAL: FirebaseAppInternals;
 
   constructor(options: FirebaseOptions,
@@ -238,18 +242,6 @@ class FirebaseAppImpl implements FirebaseApp {
               private firebase_: FirebaseNamespace) {
     this.name_ = name;
     this.options_ = deepCopy<FirebaseOptions>(options);
-
-    Object.keys(firebase_.INTERNAL.factories).forEach((serviceName) => {
-      // Ignore virtual services
-      let factoryName = firebase_.INTERNAL.useAsService(this, serviceName);
-      if (factoryName === null) {
-        return;
-      }
-
-      // Defer calling createService until service is accessed.
-      let getService = this.getService.bind(this, factoryName);
-      patchProperty(this, serviceName, getService);
-    });
   }
 
   get name(): string {
@@ -288,24 +280,17 @@ class FirebaseAppImpl implements FirebaseApp {
   /**
    * Return the service instance associated with this app (creating it
    * on demand).
+   * @internal
    */
-  private getService(name: string, instanceString?: string): FirebaseService
-      |null {
+  _getService(name: string): FirebaseService {
     this.checkDestroyed_();
 
-    if (typeof this.services_[name] === 'undefined') {
-      this.services_[name] = {};
+    if (!this.services_[name]) {
+      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this));
+      this.services_[name] = service;
     }
 
-    let instanceSpecifier = instanceString || DEFAULT_ENTRY_NAME;
-    if (typeof this.services_[name]![instanceSpecifier] === 'undefined') {
-      let firebaseService = this.firebase_.INTERNAL.factories[name](
-          this, this.extendApp.bind(this), instanceString);
-      this.services_[name]![instanceSpecifier] = firebaseService;
-      return firebaseService;
-    } else {
-      return this.services_[name]![instanceSpecifier] as FirebaseService | null;
-    }
+    return this.services_[name];
   }
 
   /**
@@ -425,8 +410,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     if (apps_[name!] !== undefined) {
       error('duplicate-app', {'name': name});
     }
-    let app = new FirebaseAppImpl(options, name!,
-                                  ((namespace as any) as FirebaseNamespace));
+
+    let app = new FirebaseAppImpl(options, name!, namespace as FirebaseNamespace);
+
     apps_[name!] = app;
     callAppHooks(app, 'create');
 
@@ -474,36 +460,27 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     if (factories[name]) {
       error('duplicate-service', {'name': name});
     }
-    if (!!allowMultipleInstances) {
-      // Check if the service allows multiple instances per app
-      factories[name] = createService;
-    } else {
-      // If not, always return the same instance when a service is instantiated
-      // with an instanceString different than the default.
-      factories[name] =
-          (app: FirebaseApp, extendApp?: (props: {[prop: string]: any}) => void,
-           instanceString?: string) => {
-            // If a new instance is requested for a service that does not allow
-            // multiple instances, return the default instance
-            return createService(app, extendApp, DEFAULT_ENTRY_NAME);
-          };
-    }
+
+    /**
+     * If multiple instances are allowed, return the true create service
+     * otherwise, return a proxied reference to the same service
+     */
+    factories[name] = allowMultipleInstances ? createService :
+      (...args) => createService.apply(this, args);
+    
+    // Capture the appHook, if passed
     if (appHook) {
       appHooks[name] = appHook;
     }
 
-    let serviceNamespace: FirebaseServiceNamespace<FirebaseService>;
-
     // The Service namespace is an accessor function ...
-    serviceNamespace = (appArg?: FirebaseApp) => {
-      if (appArg === undefined) {
-        appArg = app();
-      }
+    const serviceNamespace = (appArg: FirebaseApp = app()) => {
       if (typeof(appArg as any)[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
         error('invalid-app-argument', {'name': name});
       }
+
       // Forward service instance lookup to the FirebaseApp.
       return (appArg as any)[name]();
     };
@@ -515,6 +492,11 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 
     // Monkey-patch the serviceNamespace onto the firebase namespace
     (namespace as any)[name] = serviceNamespace;
+
+    // Patch the FirebaseAppImpl prototype
+    FirebaseAppImpl.prototype[name] = function() {
+      return this._getService(name);
+    }
 
     return serviceNamespace;
   }

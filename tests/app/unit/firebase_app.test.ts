@@ -166,6 +166,46 @@ describe("Firebase App Class", () => {
     assert.equal(registrations, 2);
   });
 
+  it("Can lazy load a service", () => {
+    let registrations = 0;
+
+    const app1 = firebase.initializeApp({});
+    assert.isUndefined((app1 as any).lazyService);
+
+    firebase.INTERNAL.registerService('lazyService', (app: FirebaseApp) => {
+      registrations += 1;
+      return new TestService(app);
+    });
+
+    assert.isDefined((app1 as any).lazyService);    
+
+    // Initial service registration happens on first invocation
+    assert.equal(registrations, 0);
+
+    // Verify service has been registered
+    (firebase as any).lazyService();
+    assert.equal(registrations, 1);
+
+    // Service should only be created once
+    (firebase as any).lazyService();
+    assert.equal(registrations, 1);
+
+    // Service should only be created once... regardless of how you invoke the function
+    (firebase as any).lazyService(app1);
+    assert.equal(registrations, 1);
+
+    // Service should already be defined for the second app
+    const app2 = firebase.initializeApp({}, 'second');
+    assert.isDefined((app1 as any).lazyService);
+    
+    // Service still should not have registered for the second app
+    assert.equal(registrations, 1);
+
+    // Service should initialize once called
+    (app2 as any).lazyService();
+    assert.equal(registrations, 2);
+  });
+
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];
     for (let data of tests) {
