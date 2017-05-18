@@ -206,6 +206,28 @@ describe("Firebase App Class", () => {
     assert.equal(registrations, 2);
   });
 
+  it("Can lazy register App Hook", (done) => {
+    let events = ['create', 'delete'];
+    let hookEvents = 0;
+    const app = firebase.initializeApp({});
+    firebase.INTERNAL.registerService(
+      'lazyServiceWithHook',
+      (app: FirebaseApp) => {
+        return new TestService(app);
+      },
+      undefined,
+      (event: string, app: FirebaseApp) => {
+        assert.equal(event, events[hookEvents]);
+        hookEvents += 1;
+        if (hookEvents === events.length) {
+          done();
+        }
+      });
+    // Ensure the hook is called synchronously
+    assert.equal(hookEvents, 1);
+    app.delete();
+  });
+
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];
     for (let data of tests) {

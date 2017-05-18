@@ -471,6 +471,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     // Capture the appHook, if passed
     if (appHook) {
       appHooks[name] = appHook;
+      getApps().forEach(app => {
+        appHook('create', app);
+      });
     }
 
     // The Service namespace is an accessor function ...
