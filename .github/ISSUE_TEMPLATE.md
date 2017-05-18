@@ -21,12 +21,15 @@
 ### [REQUIRED] Step 3: Describe the problem
 
 #### Steps to reproduce:
-
-What happened? How can we make the problem occur?
-This could be a description, log/console output, etc.
-
+<!--
+  What happened? How can we make the problem occur?
+  This could be a description, log/console output, etc.
+-->
 #### Relevant Code:
 
-```
+<!-- Fork this JSBin, provide your own URL, or a simple code snippet below -->
+http://jsbin.com/rinilu/edit?js,console
+
+```javascript
 // TODO(you): code here to reproduce the problem
 ```
