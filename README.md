@@ -117,5 +117,5 @@ Once these files are migrated, the associated build process, will be removed.
 
 ## Contributing
 
-See [Contributing](.github/CONTRIBUTING.md) for more information on contributing to the Firebase
+See [Contributing](./CONTRIBUTING.md) for more information on contributing to the Firebase
 JavaScript SDK.
