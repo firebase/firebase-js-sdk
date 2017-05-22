@@ -306,8 +306,15 @@ class FirebaseAppImpl implements FirebaseApp {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(FirebaseAppImpl.prototype, props);
 
-    // If the app has overwritten the addAuthTokenListener stub, forward
-    // the active token listeners on to the true fxn.
+    /**
+     * If the app has overwritten the addAuthTokenListener stub, forward
+     * the active token listeners on to the true fxn.
+     * 
+     * TODO: This function is required due to our current module
+     * structure. Once we are able to rely strictly upon a single module
+     * implementation, this code should be refactored and Auth should 
+     * provide these stubs and the upgrade logic
+     */
     if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
       tokenListeners.forEach(listener => {
         this.INTERNAL.addAuthTokenListener(listener);
