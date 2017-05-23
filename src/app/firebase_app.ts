@@ -233,11 +233,10 @@ class FirebaseAppImpl implements FirebaseApp {
   private options_: FirebaseOptions;
   private name_: string;
   private isDeleted_ = false;
-  private _registeredServices: {
-    [name: string]: boolean
-  } = {};
   private services_: {
-    [name: string]: FirebaseService
+    [name: string]: {
+      [serviceName: string]: FirebaseService
+    }
   } = {};
 
   public INTERNAL;
@@ -283,19 +282,32 @@ class FirebaseAppImpl implements FirebaseApp {
   }
 
   /**
-   * Return the service instance associated with this app (creating it
-   * on demand).
+   * Return a service instance associated with this app (creating it
+   * on demand), identified by the passed instanceIdentifier.
+   * 
+   * NOTE: Currently storage is the only one that is leveraging this
+   * functionality. They invoke it by calling:
+   * 
+   * ```javascript
+   * firebase.app().storage('STORAGE BUCKET ID')
+   * ```
+   * 
+   * The service name is passed to this already
    * @internal
    */
-  _getService(name: string): FirebaseService {
+  _getService(name: string, instanceIdentifier: string = DEFAULT_ENTRY_NAME): FirebaseService {
     this.checkDestroyed_();
 
     if (!this.services_[name]) {
-      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this));
-      this.services_[name] = service;
+      this.services_[name] = {};
     }
 
-    return this.services_[name];
+    if (!this.services_[name][instanceIdentifier]) {
+      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this));
+      this.services_[name][instanceIdentifier] = service;
+    }
+
+    return this.services_[name][instanceIdentifier];
   }
 
   /**
