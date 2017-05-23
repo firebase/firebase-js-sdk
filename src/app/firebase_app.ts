@@ -528,8 +528,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     (namespace as any)[name] = serviceNamespace;
 
     // Patch the FirebaseAppImpl prototype
-    FirebaseAppImpl.prototype[name] = function() {
-      return this._getService(name);
+    FirebaseAppImpl.prototype[name] = function(...args) {
+      const serviceFxn = this._getService.bind(this, name);
+      return serviceFxn.apply(this, allowMultipleInstances ? args : []);
     }
 
     return serviceNamespace;

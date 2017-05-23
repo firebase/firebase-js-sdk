@@ -228,6 +228,51 @@ describe("Firebase App Class", () => {
     app.delete();
   });
 
+  it('Can register multiple instances of some services', () => {
+    // Register Multi Instance Service
+    firebase.INTERNAL.registerService(
+      'multiInstance',
+      app => new TestService(app),
+      null,
+      null,
+      true
+    );
+    firebase.initializeApp({});
+
+    // Capture a given service ref
+    const service = (firebase.app() as any).multiInstance();
+    assert.strictEqual(service, (firebase.app() as any).multiInstance());
+
+    // Capture a custom instance service ref
+    const serviceIdentifier = 'custom instance identifier';
+    const service2 = (firebase.app() as any).multiInstance(serviceIdentifier);
+    assert.strictEqual(service2, (firebase.app() as any).multiInstance(serviceIdentifier));
+
+    // Ensure that the two services **are not equal**
+    assert.notStrictEqual(service, service2);
+    assert.notStrictEqual((firebase.app() as any).multiInstance(), (firebase.app() as any).multiInstance(serviceIdentifier));
+  });
+
+  it(`Should return the same instance of a service if a service doesn't support multi instance`, () => {
+    // Register Multi Instance Service
+    firebase.INTERNAL.registerService(
+      'singleInstance',
+      app => new TestService(app),
+      null,
+      null,
+      false // <-- multi instance flag
+    );
+    firebase.initializeApp({});
+
+    // Capture a given service ref
+    const serviceIdentifier = 'custom instance identifier';
+    const service = (firebase.app() as any).singleInstance();
+    const service2 = (firebase.app() as any).singleInstance(serviceIdentifier);
+
+    // Ensure that the two services **are equal**
+    assert.strictEqual(service, service2);
+  });
+
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];
     for (let data of tests) {
