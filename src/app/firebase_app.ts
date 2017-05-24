@@ -488,20 +488,19 @@ export function createFirebaseNamespace(): FirebaseNamespace {
       appHook?: AppHook,
       allowMultipleInstances?: boolean):
       FirebaseServiceNamespace<FirebaseService> {
+    // Cannot re-register a service that already exists
     if (factories[name]) {
       error('duplicate-service', {'name': name});
     }
 
-    /**
-     * If multiple instances are allowed, return the true create service
-     * otherwise, return a proxied reference to the same service
-     */
-    factories[name] = allowMultipleInstances ? createService :
-      (...args) => createService.apply(this, args);
+    // Capture the service factory for later service instantiation
+    factories[name] = createService;
     
     // Capture the appHook, if passed
     if (appHook) {
       appHooks[name] = appHook;
+
+      // Run the **new** app hook on all existing apps
       getApps().forEach(app => {
         appHook('create', app);
       });
