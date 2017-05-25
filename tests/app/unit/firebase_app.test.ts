@@ -166,6 +166,121 @@ describe("Firebase App Class", () => {
     assert.equal(registrations, 2);
   });
 
+  it("Can lazy load a service", () => {
+    let registrations = 0;
+
+    const app1 = firebase.initializeApp({});
+    assert.isUndefined((app1 as any).lazyService);
+
+    firebase.INTERNAL.registerService('lazyService', (app: FirebaseApp) => {
+      registrations += 1;
+      return new TestService(app);
+    });
+
+    assert.isDefined((app1 as any).lazyService);    
+
+    // Initial service registration happens on first invocation
+    assert.equal(registrations, 0);
+
+    // Verify service has been registered
+    (firebase as any).lazyService();
+    assert.equal(registrations, 1);
+
+    // Service should only be created once
+    (firebase as any).lazyService();
+    assert.equal(registrations, 1);
+
+    // Service should only be created once... regardless of how you invoke the function
+    (firebase as any).lazyService(app1);
+    assert.equal(registrations, 1);
+
+    // Service should already be defined for the second app
+    const app2 = firebase.initializeApp({}, 'second');
+    assert.isDefined((app1 as any).lazyService);
+    
+    // Service still should not have registered for the second app
+    assert.equal(registrations, 1);
+
+    // Service should initialize once called
+    (app2 as any).lazyService();
+    assert.equal(registrations, 2);
+  });
+
+  it("Can lazy register App Hook", (done) => {
+    let events = ['create', 'delete'];
+    let hookEvents = 0;
+    const app = firebase.initializeApp({});
+    firebase.INTERNAL.registerService(
+      'lazyServiceWithHook',
+      (app: FirebaseApp) => {
+        return new TestService(app);
+      },
+      undefined,
+      (event: string, app: FirebaseApp) => {
+        assert.equal(event, events[hookEvents]);
+        hookEvents += 1;
+        if (hookEvents === events.length) {
+          done();
+        }
+      });
+    // Ensure the hook is called synchronously
+    assert.equal(hookEvents, 1);
+    app.delete();
+  });
+
+  it('Can register multiple instances of some services', () => {
+    // Register Multi Instance Service
+    firebase.INTERNAL.registerService(
+      'multiInstance',
+      (...args) => {
+        const [app,,instanceIdentifier] = args;
+        return new TestService(app, instanceIdentifier);
+      },
+      null,
+      null,
+      true
+    );
+    firebase.initializeApp({});
+
+    // Capture a given service ref
+    const service = (firebase.app() as any).multiInstance();
+    assert.strictEqual(service, (firebase.app() as any).multiInstance());
+
+    // Capture a custom instance service ref
+    const serviceIdentifier = 'custom instance identifier';
+    const service2 = (firebase.app() as any).multiInstance(serviceIdentifier);
+    assert.strictEqual(service2, (firebase.app() as any).multiInstance(serviceIdentifier));
+
+    // Ensure that the two services **are not equal**
+    assert.notStrictEqual(service.instanceIdentifier, service2.instanceIdentifier, '`instanceIdentifier` is not being set correctly');
+    assert.notStrictEqual(service, service2);
+    assert.notStrictEqual((firebase.app() as any).multiInstance(), (firebase.app() as any).multiInstance(serviceIdentifier));
+  });
+
+  it(`Should return the same instance of a service if a service doesn't support multi instance`, () => {
+    // Register Multi Instance Service
+    firebase.INTERNAL.registerService(
+      'singleInstance',
+      (...args) => {
+        const [app,,instanceIdentifier] = args;
+        return new TestService(app, instanceIdentifier)
+      },
+      null,
+      null,
+      false // <-- multi instance flag
+    );
+    firebase.initializeApp({});
+
+    // Capture a given service ref
+    const serviceIdentifier = 'custom instance identifier';
+    const service = (firebase.app() as any).singleInstance();
+    const service2 = (firebase.app() as any).singleInstance(serviceIdentifier);
+
+    // Ensure that the two services **are equal**
+    assert.strictEqual(service.instanceIdentifier, service2.instanceIdentifier, '`instanceIdentifier` is not being set correctly');
+    assert.strictEqual(service, service2);
+  });
+
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];
     for (let data of tests) {
@@ -179,9 +294,7 @@ describe("Firebase App Class", () => {
 });
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp) {
-    // empty
-  }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?

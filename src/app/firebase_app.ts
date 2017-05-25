@@ -221,6 +221,10 @@ let LocalPromise = local.Promise as typeof Promise;
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
+// An array to capture listeners before the true auth functions
+// exist
+let tokenListeners = [];
+
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
@@ -229,27 +233,19 @@ class FirebaseAppImpl implements FirebaseApp {
   private options_: FirebaseOptions;
   private name_: string;
   private isDeleted_ = false;
-  private services_: {[name: string]:
-                          {[instance: string]: FirebaseService}} = {};
-  public INTERNAL: FirebaseAppInternals;
+  private services_: {
+    [name: string]: {
+      [serviceName: string]: FirebaseService
+    }
+  } = {};
+
+  public INTERNAL;
 
   constructor(options: FirebaseOptions,
               name: string,
               private firebase_: FirebaseNamespace) {
     this.name_ = name;
     this.options_ = deepCopy<FirebaseOptions>(options);
-
-    Object.keys(firebase_.INTERNAL.factories).forEach((serviceName) => {
-      // Ignore virtual services
-      let factoryName = firebase_.INTERNAL.useAsService(this, serviceName);
-      if (factoryName === null) {
-        return;
-      }
-
-      // Defer calling createService until service is accessed.
-      let getService = this.getService.bind(this, factoryName);
-      patchProperty(this, serviceName, getService);
-    });
   }
 
   get name(): string {
@@ -286,26 +282,32 @@ class FirebaseAppImpl implements FirebaseApp {
   }
 
   /**
-   * Return the service instance associated with this app (creating it
-   * on demand).
+   * Return a service instance associated with this app (creating it
+   * on demand), identified by the passed instanceIdentifier.
+   * 
+   * NOTE: Currently storage is the only one that is leveraging this
+   * functionality. They invoke it by calling:
+   * 
+   * ```javascript
+   * firebase.app().storage('STORAGE BUCKET ID')
+   * ```
+   * 
+   * The service name is passed to this already
+   * @internal
    */
-  private getService(name: string, instanceString?: string): FirebaseService
-      |null {
+  _getService(name: string, instanceIdentifier: string = DEFAULT_ENTRY_NAME): FirebaseService {
     this.checkDestroyed_();
 
-    if (typeof this.services_[name] === 'undefined') {
+    if (!this.services_[name]) {
       this.services_[name] = {};
     }
 
-    let instanceSpecifier = instanceString || DEFAULT_ENTRY_NAME;
-    if (typeof this.services_[name]![instanceSpecifier] === 'undefined') {
-      let firebaseService = this.firebase_.INTERNAL.factories[name](
-          this, this.extendApp.bind(this), instanceString);
-      this.services_[name]![instanceSpecifier] = firebaseService;
-      return firebaseService;
-    } else {
-      return this.services_[name]![instanceSpecifier] as FirebaseService | null;
+    if (!this.services_[name][instanceIdentifier]) {
+      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this), instanceIdentifier);
+      this.services_[name][instanceIdentifier] = service;
     }
+
+    return this.services_[name][instanceIdentifier];
   }
 
   /**
@@ -313,7 +315,24 @@ class FirebaseAppImpl implements FirebaseApp {
    * of service instance creation.
    */
   private extendApp(props: {[name: string]: any}): void {
-    deepExtend(this, props);
+    // Copy the object onto the FirebaseAppImpl prototype
+    deepExtend(FirebaseAppImpl.prototype, props);
+
+    /**
+     * If the app has overwritten the addAuthTokenListener stub, forward
+     * the active token listeners on to the true fxn.
+     * 
+     * TODO: This function is required due to our current module
+     * structure. Once we are able to rely strictly upon a single module
+     * implementation, this code should be refactored and Auth should 
+     * provide these stubs and the upgrade logic
+     */
+    if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
+      tokenListeners.forEach(listener => {
+        this.INTERNAL.addAuthTokenListener(listener);
+      });
+      tokenListeners = [];
+    }
   }
 
   /**
@@ -326,6 +345,19 @@ class FirebaseAppImpl implements FirebaseApp {
     }
   }
 };
+
+FirebaseAppImpl.prototype.INTERNAL = {
+  'getUid': () => null,
+  'getToken': () => LocalPromise.resolve(null),
+  'addAuthTokenListener': (callback: (token: string|null) => void) => {
+    tokenListeners.push(callback);
+    // Make sure callback is called, asynchronously, in the absence of the auth module
+    setTimeout(() => callback(null), 0);
+  },
+  'removeAuthTokenListener': (callback) => {
+    tokenListeners = tokenListeners.filter(listener => listener !== callback);
+  },
+}
 
 // Prevent dead-code elimination of these methods w/o invalid property
 // copying.
@@ -425,27 +457,12 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     if (apps_[name!] !== undefined) {
       error('duplicate-app', {'name': name});
     }
-    let app = new FirebaseAppImpl(options, name!,
-                                  ((namespace as any) as FirebaseNamespace));
+
+    let app = new FirebaseAppImpl(options, name!, namespace as FirebaseNamespace);
+
     apps_[name!] = app;
     callAppHooks(app, 'create');
 
-    // Ensure that getUid, getToken, addAuthListener and removeAuthListener
-    // have a default implementation if no service has patched the App
-    // (i.e., Auth is not present).
-    if (app.INTERNAL == undefined || app.INTERNAL.getToken == undefined) {
-      deepExtend(app, {
-        INTERNAL: {
-          'getUid': () => null,
-          'getToken': () => LocalPromise.resolve(null),
-          'addAuthTokenListener': (callback: (token: string|null) => void) => {
-            // Make sure callback is called, asynchronously, in the absence of the auth module
-            setTimeout(() => callback(null), 0);
-          },
-          'removeAuthTokenListener': () => { /*_*/ },
-        }
-      });
-    }
     return app;
   }
 
@@ -471,39 +488,32 @@ export function createFirebaseNamespace(): FirebaseNamespace {
       appHook?: AppHook,
       allowMultipleInstances?: boolean):
       FirebaseServiceNamespace<FirebaseService> {
+    // Cannot re-register a service that already exists
     if (factories[name]) {
       error('duplicate-service', {'name': name});
     }
-    if (!!allowMultipleInstances) {
-      // Check if the service allows multiple instances per app
-      factories[name] = createService;
-    } else {
-      // If not, always return the same instance when a service is instantiated
-      // with an instanceString different than the default.
-      factories[name] =
-          (app: FirebaseApp, extendApp?: (props: {[prop: string]: any}) => void,
-           instanceString?: string) => {
-            // If a new instance is requested for a service that does not allow
-            // multiple instances, return the default instance
-            return createService(app, extendApp, DEFAULT_ENTRY_NAME);
-          };
-    }
+
+    // Capture the service factory for later service instantiation
+    factories[name] = createService;
+    
+    // Capture the appHook, if passed
     if (appHook) {
       appHooks[name] = appHook;
+
+      // Run the **new** app hook on all existing apps
+      getApps().forEach(app => {
+        appHook('create', app);
+      });
     }
 
-    let serviceNamespace: FirebaseServiceNamespace<FirebaseService>;
-
     // The Service namespace is an accessor function ...
-    serviceNamespace = (appArg?: FirebaseApp) => {
-      if (appArg === undefined) {
-        appArg = app();
-      }
+    const serviceNamespace = (appArg: FirebaseApp = app()) => {
       if (typeof(appArg as any)[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
         error('invalid-app-argument', {'name': name});
       }
+
       // Forward service instance lookup to the FirebaseApp.
       return (appArg as any)[name]();
     };
@@ -515,6 +525,12 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 
     // Monkey-patch the serviceNamespace onto the firebase namespace
     (namespace as any)[name] = serviceNamespace;
+
+    // Patch the FirebaseAppImpl prototype
+    FirebaseAppImpl.prototype[name] = function(...args) {
+      const serviceFxn = this._getService.bind(this, name);
+      return serviceFxn.apply(this, allowMultipleInstances ? args : []);
+    }
 
     return serviceNamespace;
   }
