@@ -232,7 +232,10 @@ describe("Firebase App Class", () => {
     // Register Multi Instance Service
     firebase.INTERNAL.registerService(
       'multiInstance',
-      app => new TestService(app),
+      (...args) => {
+        const [app,,instanceIdentifier] = args;
+        return new TestService(app, instanceIdentifier);
+      },
       null,
       null,
       true
@@ -249,6 +252,7 @@ describe("Firebase App Class", () => {
     assert.strictEqual(service2, (firebase.app() as any).multiInstance(serviceIdentifier));
 
     // Ensure that the two services **are not equal**
+    assert.notStrictEqual(service.instanceIdentifier, service2.instanceIdentifier, '`instanceIdentifier` is not being set correctly');
     assert.notStrictEqual(service, service2);
     assert.notStrictEqual((firebase.app() as any).multiInstance(), (firebase.app() as any).multiInstance(serviceIdentifier));
   });
@@ -257,7 +261,10 @@ describe("Firebase App Class", () => {
     // Register Multi Instance Service
     firebase.INTERNAL.registerService(
       'singleInstance',
-      app => new TestService(app),
+      (...args) => {
+        const [app,,instanceIdentifier] = args;
+        return new TestService(app, instanceIdentifier)
+      },
       null,
       null,
       false // <-- multi instance flag
@@ -270,6 +277,7 @@ describe("Firebase App Class", () => {
     const service2 = (firebase.app() as any).singleInstance(serviceIdentifier);
 
     // Ensure that the two services **are equal**
+    assert.strictEqual(service.instanceIdentifier, service2.instanceIdentifier, '`instanceIdentifier` is not being set correctly');
     assert.strictEqual(service, service2);
   });
 
@@ -286,9 +294,7 @@ describe("Firebase App Class", () => {
 });
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp) {
-    // empty
-  }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?

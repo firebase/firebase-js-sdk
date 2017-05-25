@@ -48,7 +48,7 @@ function compileTypescript() {
 function compileWebpack() {
   return gulp.src('tests-integration/bundlers/**/*.test.js')
     .pipe(named())
-    .pipe(webpackStream())
+    .pipe(webpackStream({}, webpack))
     .pipe(rename(path => {
       const rawPath = path.basename.replace('.test', '');
       path.basename = `${rawPath}.webpack.test`;

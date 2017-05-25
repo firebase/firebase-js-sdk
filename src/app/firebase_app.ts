@@ -303,7 +303,7 @@ class FirebaseAppImpl implements FirebaseApp {
     }
 
     if (!this.services_[name][instanceIdentifier]) {
-      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this));
+      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this), instanceIdentifier);
       this.services_[name][instanceIdentifier] = service;
     }
 
