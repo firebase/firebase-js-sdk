@@ -13,17 +13,17 @@ Are you in the right place?
     [Firebase support channel](https://firebase.google.com/support/).
 -->
 
-<!-- Step 2 [REQUIRED] -->
+<!-- Step 2 -->
 
-### Describe your environment
+### [REQUIRED] Describe your environment
 
   * Operating System version: _____
   * Firebase SDK version: _____
   * Firebase Product: _____ (auth, database, storage, etc)
 
-<!-- Step 3 [REQUIRED] -->
+<!-- Step 3 -->
 
-### Describe the problem
+### [REQUIRED] Describe the problem
 
 #### Steps to reproduce:
 <!--
