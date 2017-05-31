@@ -280,6 +280,19 @@ describe("Firebase App Class", () => {
     assert.strictEqual(service.instanceIdentifier, service2.instanceIdentifier, '`instanceIdentifier` is not being set correctly');
     assert.strictEqual(service, service2);
   });
+  it(`Should pass null to the factory method if using default instance`, () => {
+    // Register Multi Instance Service
+    firebase.INTERNAL.registerService('testService', (...args) => {
+      const [app,,instanceIdentifier] = args;
+      assert.isUndefined(instanceIdentifier, '`instanceIdentifier` is not `undefined`');
+      return new TestService(app, instanceIdentifier);
+    });
+    firebase.initializeApp({});
+
+    // Capture a given service ref
+    const serviceIdentifier = 'custom instance identifier';
+    const service = (firebase.app() as any).testService();
+  });
 
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];

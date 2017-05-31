@@ -303,7 +303,12 @@ class FirebaseAppImpl implements FirebaseApp {
     }
 
     if (!this.services_[name][instanceIdentifier]) {
-      let service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this), instanceIdentifier);
+      /**
+       * If a custom instance has been defined (i.e. not '[DEFAULT]')
+       * then we will pass that instance on, otherwise we pass `null`
+       */
+      const instanceSpecifier = instanceIdentifier !== DEFAULT_ENTRY_NAME ? instanceIdentifier : undefined;
+      const service = this.firebase_.INTERNAL.factories[name](this, this.extendApp.bind(this), instanceSpecifier);
       this.services_[name][instanceIdentifier] = service;
     }
 
