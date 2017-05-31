@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
