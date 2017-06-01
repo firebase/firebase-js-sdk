@@ -52,7 +52,7 @@ function cleanDist(dir) {
 
 function compileTypescriptToES2015() {
   const stream = tsProject.src()
-    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(tsProject());
   return merge([
     stream.dts
@@ -65,7 +65,7 @@ function compileTypescriptToES2015() {
 
 function compileES2015ToCJS() {
   return gulp.src('dist/es2015/**/*.js')
-    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(babel(config.babel))
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(`${config.paths.outDir}/cjs`))
@@ -115,30 +115,46 @@ function compileIndvES2015ModulesToBrowser() {
     return pathObj.name === 'firebase-app';
   };
 
-  // Webpack config for compiling indv modules
+  const babelLoader = {
+    loader: 'babel-loader',
+    options: config.babel
+  };
+
+  const tsLoader = {
+    loader: 'ts-loader',
+    options: {
+      compilerOptions: {
+        declaration: false
+      }
+    }
+  };
+
   const webpackConfig = {
+    devtool: 'source-map',
     entry: {
-      'firebase-app': './dist/es2015/app.js',
-      'firebase-storage': './dist/es2015/storage.js',
-      'firebase-messaging': './dist/es2015/messaging.js',
+      'firebase-app': './src/app.ts',
+      'firebase-storage': './src/storage.ts',
+      'firebase-messaging': './src/messaging.ts',
     },
     output: {
-      filename: '[name].js',
+      path: path.resolve(__dirname, './dist/browser'),
+      filename: '[name].js'
     },
     module: {
-      rules: [
-        {
-          test: /\.js$/,
-          exclude: /(node_modules|bower_components)/,
-          use: {
-            loader: 'babel-loader',
-            options: {
-              presets: config.babel.presets,
-              plugins: config.babel.plugins
-            }
-          }
-        }
-      ]
+      rules: [{
+        test: /\.ts(x?)$/,
+        exclude: /node_modules/,
+        use: [
+          babelLoader,
+          tsLoader
+        ]
+      }, {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: [
+          babelLoader
+        ]
+      }]
     },
     plugins: [
       new webpack.optimize.CommonsChunkPlugin({
@@ -147,7 +163,7 @@ function compileIndvES2015ModulesToBrowser() {
       new WrapperPlugin({
         header: fileName => {
           return isFirebaseApp(fileName) ? `var firebase = (function() {
-          var window = typeof window === 'undefined' ? self : window;
+            var window = typeof window === 'undefined' ? self : window;
           return ` : `try {
           `;
         },
@@ -162,20 +178,17 @@ function compileIndvES2015ModulesToBrowser() {
           }`        
         }
       }),
-      new webpack.optimize.UglifyJsPlugin()
-    ]
-  };
-  return gulp.src('./dist/es2015/firebase.js')
+      new webpack.optimize.UglifyJsPlugin({
+        sourceMap: true
+      })
+    ],
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js']
+    },
+  }
+
+  return gulp.src('src/**/*.ts')
     .pipe(webpackStream(webpackConfig, webpack))
-    .pipe(sourcemaps.init({loadMaps: true}))
-    .pipe(through.obj(function(file, enc, cb) {
-      // Dont pipe through any source map files as it will be handled
-      // by gulp-sourcemaps
-      var isSourceMap = /\.map$/.test(file.path);
-      if (!isSourceMap) this.push(file);
-      cb();
-    }))
-    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(`${config.paths.outDir}/browser`));
 }
 
@@ -188,7 +201,7 @@ function compileSDKES2015ToBrowser() {
         })
       ]
     }, webpack))
-    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(through.obj(function(file, enc, cb) {
       // Dont pipe through any source map files as it will be handled
       // by gulp-sourcemaps
@@ -202,7 +215,9 @@ function compileSDKES2015ToBrowser() {
 
 function buildBrowserFirebaseJs() {
   return gulp.src('./dist/browser/*.js')
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(concat('firebase.js'))
+    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(`${config.paths.outDir}/browser`));
 }
 
@@ -223,7 +238,7 @@ function buildAltEnvFirebaseJs() {
       ]
     });
     return gulp.src('./dist/es2015/firebase.js')
-      .pipe(sourcemaps.init({loadMaps: true}))
+      .pipe(sourcemaps.init({ loadMaps: true }))
       .pipe(babel(babelConfig))
       .pipe(rename({
         suffix: `-${env}`
