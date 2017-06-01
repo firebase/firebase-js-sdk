@@ -1,7 +1,7 @@
 sudo: required
 dist: trusty
 language: node_js
-node_js: stable
+node_js: "6"
 env:
   - CXX=g++-4.8
 cache: yarn
