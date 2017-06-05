@@ -14,7 +14,10 @@
 * limitations under the License.
 */
 const gulp = require('gulp');
+const gutil = require('gulp-util');
 const config = require('../config');
+const webpack = require('webpack');
+const WebpackDevServer = require('webpack-dev-server');
 
 // Ensure that the test tasks get set up
 require('./test');
@@ -28,6 +31,55 @@ function watchDevFiles() {
   stream.on('error', () => {});
   return stream;
 }
+
+function runDevServer(callback) {
+  const config = {
+    entry: './src/browser-dev.ts',
+    output: {
+      filename: 'bundle.js',
+      path: __dirname
+    },
+    module: {
+      rules: [
+        {
+          enforce: 'pre',
+          test: /\.tsx?$/,
+          use: "source-map-loader"
+        },
+        {
+          test: /\.tsx?$/,
+          loader: 'ts-loader',
+          exclude: /node_modules/,
+          options: {
+            compilerOptions: {
+              target: 'es5'
+            }
+          }
+        }
+      ]
+    },
+    resolve: {
+      extensions: [".tsx", ".ts", ".js"]
+    },
+    devtool: 'inline-source-map',
+  };
+  // Start a webpack-dev-server
+  const compiler = webpack(config);
+
+  const server = new WebpackDevServer(compiler, {
+    stats: { 
+      colors: true 
+    }
+  });
+
+  server.listen(8080, "localhost", function(err) {
+    if(err) throw new gutil.PluginError("webpack-dev-server", err);
+    // Server listening
+    gutil.log("[webpack-dev-server]", "http://localhost:8080/webpack-dev-server/index.html");
+  });
+}
+
+gulp.task('dev:server', runDevServer);
 
 gulp.task('dev', gulp.parallel([
   'test:unit',
