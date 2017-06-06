@@ -17,7 +17,7 @@
 import { Query } from './Query';
 import { Path } from "./core/Path";
 import { OnDisconnect } from "./OnDisconnect";
-import { nextPushId } from "./utils/nextPushId";
+import { nextPushId } from "./utils/libs/nextPushId";
 import { Promise } from "../utils/classes/Promise";
 import { Deferred } from "../utils/classes/Deferred";
 import { Repo } from "./core/Repo";
@@ -33,6 +33,7 @@ import {
   validateBoolean,
   validateFirebaseMergeDataArg
 } from "../utils/libs/validation";
+import { QueryParams } from "./utils/classes/QueryParams";
 
 export interface TransactionResult {
   committed: any,
@@ -44,7 +45,7 @@ export class Reference extends Query {
   public then: Function;
   public catch: Function;
   constructor(public repo: Repo, rawPath: string | Path) {
-    super(repo, rawPath);
+    super(repo, rawPath, QueryParams.DEFAULT, false);
   }
 
   child(pathString) {

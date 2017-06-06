@@ -81,6 +81,15 @@ export function isValidPathString(pathString) {
   return typeof pathString === 'string' && pathString.length && !INVALID_PATH_REGEX.test(pathString);
 }
 
+export function isValidRootPathString(pathString) {
+  if (pathString) {
+    // Allow '/.info/' at the beginning.
+    pathString = pathString.replace(/^\/*\.info(\/|$)/, '/');
+  }
+
+  return isValidPathString(pathString);
+}
+
 export function validateWritablePath(fnName, path) {
   if (path.getFront() === '.info') {
     throw new Error(`${fnName} failed: Can't modify data under .info`);
@@ -244,4 +253,25 @@ export function validateFirebaseMergePaths(errorPrefix, mergePaths) {
     }
     prevPath = curPath;
   }
+}
+
+export function validateUrl(fnName, argumentNumber, parsedUrl) {
+  // TODO: Validate server better.
+  var pathString = parsedUrl.path.toString();
+  if (typeof parsedUrl.repoInfo.host !== 'string' || parsedUrl.repoInfo.host.length === 0 ||
+      !isValidKey(parsedUrl.repoInfo.namespace) ||
+      (pathString.length !== 0 && !isValidRootPathString(pathString))) {
+    throw new Error(errorPrefix(fnName, argumentNumber, false) +
+                    'must be a valid firebase URL and ' +
+                    'the path can\'t contain ".", "#", "$", "[", or "]".');
+  }
+}
+
+export function validateKey(fnName, argumentNumber, key, optional) {
+  if (optional && key === undefined) return;
+  if (!isValidKey(key))
+    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+                    'was an invalid key: "' + key +
+                    '".  Firebase keys must be non-empty strings and ' +
+                    'can\'t contain ".", "#", "$", "/", "[", or "]").');
 }

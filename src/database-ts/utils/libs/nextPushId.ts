@@ -1,4 +1,4 @@
-import { assert } from "../../utils/libs/assert";
+import { assert } from "../../../utils/libs/assert";
 
 /**
  * Fancy ID generator that creates 20-character string identifiers with the

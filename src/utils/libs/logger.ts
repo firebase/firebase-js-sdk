@@ -73,7 +73,7 @@ export function log(...args) {
 }
 
 /**
- * @param {...*} var_args
+ * @param {...*} args
  */
 export function warn(...args) {
   if (typeof console !== 'undefined') {
@@ -84,6 +84,14 @@ export function warn(...args) {
       console.log(message);
     }
   }
+};
+
+/**
+ * @param {...string} args
+ */
+export function fatal(...args) {
+  const message = _buildLogMessage.apply(null, args);
+  throw new Error('FIREBASE FATAL ERROR: ' + message);
 };
 
 /**
