@@ -1,6 +1,6 @@
-import { Path } from "../core/Path";
-import { RepoInfo } from "../core/RepoInfo";
-import { fatal, warn } from "../../utils/libs/logger";
+import { Path } from "../../core/Path";
+import { RepoInfo } from "../../core/RepoInfo";
+import { fatal, warn } from "../../../utils/libs/logger";
 
 function urlDecode(str) {
   return decodeURIComponent(str.replace(/\+/g, " "));

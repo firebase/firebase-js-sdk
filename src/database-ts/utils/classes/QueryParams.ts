@@ -38,5 +38,11 @@ export class QueryParams {
   private startSet = false;
   private viewFrom = '';
   endAt(indexValue, key): QueryParams { return new QueryParams(); }
+  getIndex() {}
   hasEnd() {}
+  hasLimit() {}
+  hasStart() {}
+  limitToFirst(limit): QueryParams { return new QueryParams(); }
+  limitToLast(limit): QueryParams { return new QueryParams(); }
+  startAt(indexValue, key): QueryParams { return new QueryParams(); }
 }

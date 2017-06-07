@@ -27,7 +27,7 @@ const INVALID_KEY_REGEX = /[\[\].#$\/\u0000-\u001F\u007F]/;
  */
 const MAX_LEAF_SIZE = 10 * 1024 * 1024;
 
-function errorPrefix(fnName, argumentNumber, optional) {
+export function errorPrefix(fnName, argumentNumber, optional) {
   let argName;
   switch (argumentNumber) {
     case 1:
@@ -274,4 +274,31 @@ export function validateKey(fnName, argumentNumber, key, optional) {
                     'was an invalid key: "' + key +
                     '".  Firebase keys must be non-empty strings and ' +
                     'can\'t contain ".", "#", "$", "/", "[", or "]").');
+}
+
+export function validateContextObject(fnName, argumentNumber, context, optional) {
+  if (optional && context === undefined)
+    return;
+  if (!isObject(context) || context === null)
+    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+      'must be a valid context object.');
+};
+
+export function validateEventType(fnName, argumentNumber, eventType, optional) {
+  if (optional && eventType === undefined)
+    return;
+
+  switch (eventType) {
+    case 'value':
+    case 'child_added':
+    case 'child_removed':
+    case 'child_changed':
+    case 'child_moved':
+      break;
+    default:
+      throw new Error(
+          errorPrefix(fnName, argumentNumber, optional) +
+              'must be a valid event type: "value", "child_added", "child_removed", ' +
+              '"child_changed", or "child_moved".');
+  }
 }

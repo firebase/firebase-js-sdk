@@ -19,6 +19,10 @@ export function contains(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
+export function containsKey(obj, key) {
+  return key in obj;
+}
+
 export function get(obj, key) {
   if (Object.prototype.hasOwnProperty.call(obj, key))
     return obj[key];
@@ -78,4 +82,27 @@ export function isNonNullObject(obj) {
 export function isObject(obj) {
   var type = typeof obj;
   return type == "object" && obj != null || type == "function";
+}
+
+export function getCount(obj) {
+  var rv = 0;
+  for (var key in obj) {
+    rv++;
+  }
+  return rv;
+}
+
+export function getAnyKey(obj) {
+  for (var key in obj) {
+    return key;
+  }
+}
+
+export function every(obj, f, opt_obj?) {
+  for (var key in obj) {
+    if (!f.call(opt_obj, obj[key], key, obj)) {
+      return false;
+    }
+  }
+  return true;
 }

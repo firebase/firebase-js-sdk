@@ -19,12 +19,13 @@ import { Database } from "./database-ts/Database";
 import { Query } from "./database-ts/Query";
 import { Reference } from "./database-ts/Reference";
 import { enableLogging } from "./utils/libs/logger";
+import { RepoManager } from "./database-ts/core/RepoManager";
 
 export function registerDatabase(instance) {
   // Register the Database Service with the 'firebase' namespace.
   firebase.INTERNAL.registerService(
     'database',
-    app => ({ app }),
+    app => RepoManager.getInstance().databaseFromApp(app),
     // firebase.database namespace properties
     {
       Reference,

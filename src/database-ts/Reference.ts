@@ -44,7 +44,7 @@ export class Reference extends Query {
   public path: Path;
   public then: Function;
   public catch: Function;
-  constructor(public repo: Repo, rawPath: string | Path) {
+  constructor(public repo: Repo, rawPath: Path) {
     super(repo, rawPath, QueryParams.DEFAULT, false);
   }
 
