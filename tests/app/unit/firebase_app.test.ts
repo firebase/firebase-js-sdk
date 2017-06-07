@@ -294,6 +294,41 @@ describe("Firebase App Class", () => {
     const service = (firebase.app() as any).testService();
   });
 
+  it(`Should extend INTERNAL per app instance`, () => {
+    let counter: number = 0;
+    firebase.INTERNAL.registerService(
+      'test',
+      (app: FirebaseApp, extendApp: any) => {
+        const service = new TestService(app);
+        (service as any).token = 'tokenFor' + counter++;
+        extendApp({
+          'INTERNAL': {
+            getToken: () => {
+              return Promise.resolve({
+                accessToken: (service as any).token,
+              });
+            },
+          },
+        }); 
+        return service;
+      });
+    // Initialize 2 apps and their corresponding services.
+    const app = firebase.initializeApp({});
+    (app as any).test();
+    const app2 = firebase.initializeApp({}, 'app2');
+    (app2 as any).test();
+    // Confirm extended INTERNAL getToken resolve with the corresponding
+    // service's value.
+    return app.INTERNAL.getToken()
+      .then(token => {
+        assert.equal('tokenFor0', token.accessToken);
+        return app2.INTERNAL.getToken();
+      })
+      .then(token => {
+        assert.equal('tokenFor1', token.accessToken);
+      });
+  });
+
   describe("Check for bad app names", () => {
     let tests = ["", 123, false, null];
     for (let data of tests) {

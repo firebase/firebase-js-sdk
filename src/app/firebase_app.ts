@@ -246,6 +246,18 @@ class FirebaseAppImpl implements FirebaseApp {
               private firebase_: FirebaseNamespace) {
     this.name_ = name;
     this.options_ = deepCopy<FirebaseOptions>(options);
+    this.INTERNAL = {
+      'getUid': () => null,
+      'getToken': () => LocalPromise.resolve(null),
+      'addAuthTokenListener': (callback: (token: string|null) => void) => {
+        tokenListeners.push(callback);
+        // Make sure callback is called, asynchronously, in the absence of the auth module
+        setTimeout(() => callback(null), 0);
+      },
+      'removeAuthTokenListener': (callback) => {
+        tokenListeners = tokenListeners.filter(listener => listener !== callback);
+      },
+    };
   }
 
   get name(): string {
@@ -321,8 +333,8 @@ class FirebaseAppImpl implements FirebaseApp {
    */
   private extendApp(props: {[name: string]: any}): void {
     // Copy the object onto the FirebaseAppImpl prototype
-    deepExtend(FirebaseAppImpl.prototype, props);
-
+    deepExtend(this, props);
+    
     /**
      * If the app has overwritten the addAuthTokenListener stub, forward
      * the active token listeners on to the true fxn.
@@ -350,7 +362,7 @@ class FirebaseAppImpl implements FirebaseApp {
     }
   }
 };
-
+/*
 FirebaseAppImpl.prototype.INTERNAL = {
   'getUid': () => null,
   'getToken': () => LocalPromise.resolve(null),
@@ -363,7 +375,7 @@ FirebaseAppImpl.prototype.INTERNAL = {
     tokenListeners = tokenListeners.filter(listener => listener !== callback);
   },
 }
-
+*/
 // Prevent dead-code elimination of these methods w/o invalid property
 // copying.
 FirebaseAppImpl.prototype.name &&
