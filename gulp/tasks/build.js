@@ -138,7 +138,8 @@ function compileIndvES2015ModulesToBrowser() {
     },
     output: {
       path: path.resolve(__dirname, './dist/browser'),
-      filename: '[name].js'
+      filename: '[name].js',
+      jsonpFunction: 'webpackJsonpFirebase'
     },
     module: {
       rules: [{
