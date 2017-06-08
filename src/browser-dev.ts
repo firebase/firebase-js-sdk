@@ -18,7 +18,7 @@ declare const TARGET_ENVIRONMENT;
 
 import firebase from "./app";
 // import './auth'; // <-- uncomment this line when auth is in TS
-import './database';
+import './database-ts';
 import './storage';
 import './messaging';
 
