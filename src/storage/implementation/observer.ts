@@ -46,10 +46,14 @@ export class Observer<T> {
       this.error = opt_error || null;
       this.complete = opt_complete || null;
     } else {
-      const observer = nextOrObserver as {[name: string]: null};
-      this.next = observer['next'] as (NextFn<T> | null);
-      this.error = observer['error'] as (ErrorFn | null);
-      this.complete = observer['complete'] as (CompleteFn | null);
+      const observer = nextOrObserver as {
+        next?: NextFn<T> | null;
+        error?: ErrorFn | null;
+        complete?: CompleteFn | null;
+      };
+      this.next = observer.next || null;
+      this.error = observer.error || null;
+      this.complete = observer.complete || null;
     }
   }
 }

@@ -231,6 +231,18 @@ describe("Firebase Storage > Upload Task", () => {
           });
     });
   });
+  it("Works properly with an observer missing the 'next' method", () => {
+    const authWrapper = authWrapperWithHandler(fakeServerHandler());
+    const task = new UploadTask(
+        {} as Reference, authWrapper, testLocation, mappings, smallBlob);
+    return fbsPromise.make<void>((resolve, reject) => {
+      task.on(
+          TaskEvent.STATE_CHANGED, {
+            error: err => { assert.fail('Unexpected upload failure'); },
+            complete: () => { resolve(null); }
+          });
+      });
+  });
 
   function runNormalUploadTest(blob: FbsBlob): Promise<void> {
     const authWrapper = authWrapperWithHandler(fakeServerHandler());
