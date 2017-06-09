@@ -24,15 +24,17 @@ import { Repo } from "../core/Repo";
 import { warn } from "../../utils/libs/logger";
 import { 
   validateArgCount,
+  validateCallback,
+} from "../../utils/libs/validation";
+import { 
+  validateBoolean,
+  validateFirebaseDataArg,
+  validateFirebaseMergeDataArg,
   validatePathString,
+  validatePriority,
   validateRootPathString,
   validateWritablePath,
-  validateCallback,
-  validateFirebaseDataArg,
-  validatePriority,
-  validateBoolean,
-  validateFirebaseMergeDataArg
-} from "../../utils/libs/validation";
+} from "../core/util/validation";
 import { QueryParams } from "../core/view/QueryParams";
 
 export interface TransactionResult {

@@ -36,7 +36,7 @@ export function get(obj, key) {
  * @param {!function(K, V)} fn Function to call for each key and value.
  * @template K,V
  */
-export function foreach(obj, fn) {
+export function forEach(obj, fn) {
   for (var key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       fn(key, obj[key]);
@@ -51,7 +51,7 @@ export function foreach(obj, fn) {
  * @return {!Object} objTo
  */
 export function extend(objTo, objFrom) {
-  foreach(objFrom, function(key, value) {
+  forEach(objFrom, function(key, value) {
     objTo[key] = value;
   });
   return objTo;

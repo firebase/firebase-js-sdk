@@ -21,12 +21,14 @@ import { QueryParams } from "../core/view/QueryParams";
 import { 
   errorPrefix,
   validateArgCount,
-  validateEventType,
   validateCallback,
   validateContextObject,
+} from "../../utils/libs/validation";
+import { 
+  validateEventType, 
   validateFirebaseDataArg,
   validateKey,
-} from "../../utils/libs/validation";
+} from "../core/util/validation";
 import { Deferred } from "../../utils/classes/Deferred";
 import { 
   ChildEventRegistration,

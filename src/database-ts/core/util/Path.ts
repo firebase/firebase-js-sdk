@@ -56,3 +56,7 @@ export class Path {
     return pathString || '/';
   }
 }
+
+export class ValidationPath {
+  constructor(path, errorPrefix) {}
+}

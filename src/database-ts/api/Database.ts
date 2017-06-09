@@ -20,10 +20,8 @@ import { Promise } from "../../utils/classes/Promise";
 import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
 import { parseRepoInfo } from "../core/util/util";
-import { 
-  validateArgCount,
-  validateUrl
-} from "../../utils/libs/validation";
+import { validateArgCount } from "../../utils/libs/validation";
+import { validateUrl } from "../core/util/validation";
 
 export class Database {
   static get ServerValue() {

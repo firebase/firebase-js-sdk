@@ -2,10 +2,29 @@ import { Path } from "./Path";
 import { RepoInfo } from "../../core/RepoInfo";
 import { fatal, warn } from "../../../utils/libs/logger";
 
+/**
+ * Minimum key name. Invalid for actual data, used as a marker to sort before any valid names
+ * @type {!string}
+ */
+export const MIN_NAME = '[MIN_NAME]';
+
+
+/**
+ * Maximum key name. Invalid for actual data, used as a marker to sort above any valid names
+ * @type {!string}
+ */
+export const MAX_NAME = '[MAX_NAME]';
+
+/**
+ * Used to test for integer-looking strings
+ * @type {RegExp}
+ * @private
+ */
+export const INTEGER_REGEXP = new RegExp('^-?\\d{1,10}$');
+
 function urlDecode(str) {
   return decodeURIComponent(str.replace(/\+/g, " "));
 }
-
 
 /**
  * Logs a warning if the containing page uses https. Called when a call to new Firebase
@@ -169,4 +188,51 @@ export function setTimeoutNonBlocking(fn, time) {
     timeout['unref']();
   }
   return timeout;
+};
+
+
+/**
+ * Compares valid Firebase key names, plus min and max name
+ * @param {!string} a
+ * @param {!string} b
+ * @return {!number}
+ */
+export function nameCompare(a, b) {
+  if (a === b) {
+    return 0;
+  } else if (a === MIN_NAME || b === MAX_NAME) {
+    return -1;
+  } else if (b === MIN_NAME || a === MAX_NAME) {
+    return 1;
+  } else {
+    var aAsInt = fb.core.util.tryParseInt(a),
+        bAsInt = fb.core.util.tryParseInt(b);
+
+    if (aAsInt !== null) {
+      if (bAsInt !== null) {
+        return (aAsInt - bAsInt) == 0 ? (a.length - b.length) : (aAsInt - bAsInt);
+      } else {
+        return -1;
+      }
+    } else if (bAsInt !== null) {
+      return 1;
+    } else {
+      return (a < b) ? -1 : 1;
+    }
+  }
+};
+
+/**
+ * If the string contains a 32-bit integer, return it.  Else return null.
+ * @param {!string} str
+ * @return {?number}
+ */
+export function tryParseInt(str) {
+  if (INTEGER_REGEXP.test(str)) {
+    var intVal = Number(str);
+    if (intVal >= -2147483648 && intVal <= 2147483647) {
+      return intVal;
+    }
+  }
+  return null;
 };

@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { foreach } from "./object";
+import { forEach } from "./object";
 
 /**
  * Returns a querystring-formatted string (e.g. &arg=val&arg2=val2) from a params
@@ -26,7 +26,7 @@ import { foreach } from "./object";
  */
 export function encodeQuerystring(querystringParams) {
   var params = [];
-  foreach(querystringParams, function(key, value) {
+  forEach(querystringParams, function(key, value) {
     if (Array.isArray(value)) {
       value.forEach(function(arrayVal) {
         params.push(encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal));

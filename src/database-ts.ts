@@ -15,9 +15,9 @@
 */
 
 import firebase from './app';
-import { Database } from "./database-ts/Database";
-import { Query } from "./database-ts/Query";
-import { Reference } from "./database-ts/Reference";
+import { Database } from "./database-ts/api/Database";
+import { Query } from "./database-ts/api/Query";
+import { Reference } from "./database-ts/api/Reference";
 import { enableLogging } from "./utils/libs/logger";
 import { RepoManager } from "./database-ts/core/RepoManager";
 
