@@ -15,9 +15,9 @@
 */
 
 import { Reference } from "./Reference";
-import { Repo } from "./core/Repo";
-import { Path } from "./core/Path";
-import { QueryParams } from "./utils/classes/QueryParams";
+import { Repo } from "../core/Repo";
+import { Path } from "../core/util/Path";
+import { QueryParams } from "../core/view/QueryParams";
 import { 
   errorPrefix,
   validateArgCount,
@@ -26,12 +26,12 @@ import {
   validateContextObject,
   validateFirebaseDataArg,
   validateKey,
-} from "../utils/libs/validation";
-import { Deferred } from "../utils/classes/Deferred";
+} from "../../utils/libs/validation";
+import { Deferred } from "../../utils/classes/Deferred";
 import { 
   ChildEventRegistration,
   ValueEventRegistration 
-} from "./utils/classes/event/EventRegistration";
+} from "../core/view/EventRegistration";
 
 export class Query {
   constructor(public repo: Repo, public path: Path, private queryParams: QueryParams, private orderByCalled: boolean) {}

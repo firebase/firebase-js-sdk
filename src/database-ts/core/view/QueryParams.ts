@@ -1,4 +1,4 @@
-import { PriorityIndex } from "./indexes/PriorityIndex";
+import { PriorityIndex } from "../snap/Index";
 
 const WIRE_PROTOCOL_CONSTANTS = {
   INDEX_START_VALUE: 'sp',

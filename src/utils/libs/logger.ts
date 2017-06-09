@@ -72,6 +72,12 @@ export function log(...args) {
   }
 }
 
+export function logWrapper(prefix) {
+  return function(...args) {
+    log(prefix, args);
+  };
+}
+
 /**
  * @param {...*} args
  */

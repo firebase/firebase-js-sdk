@@ -14,16 +14,16 @@
 * limitations under the License.
 */
 
-import { fatal } from "../utils/libs/logger";
-import { Path } from "./core/Path";
-import { Promise } from "../utils/classes/Promise";
+import { fatal } from "../../utils/libs/logger";
+import { Path } from "../core/util/Path";
+import { Promise } from "../../utils/classes/Promise";
 import { Reference } from "./Reference";
-import { Repo } from "./core/Repo";
-import { parseRepoInfo } from "./utils/libs/common";
+import { Repo } from "../core/Repo";
+import { parseRepoInfo } from "../core/util/util";
 import { 
   validateArgCount,
   validateUrl
-} from "../utils/libs/validation";
+} from "../../utils/libs/validation";
 
 export class Database {
   static get ServerValue() {

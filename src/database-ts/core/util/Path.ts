@@ -23,9 +23,25 @@ export class Path {
     }
   }
   child(childPath): Path { return new Path([]); }
+  contains(other: Path) {
+    var i = this.pieceNum;
+    var j = other.pieceNum;
+    if (this.getLength() > other.getLength()) {
+      return false;
+    }
+    while (i < this.pieces.length) {
+      if (this.pieces[i] !== other.pieces[j]) {
+        return false;
+      }
+      ++i;
+      ++j;
+    }
+    return true;
+  }
   equals(path: Path) {}
   getBack(): string {return '';}
   getFront() {}
+  getLength() {}
   isEmpty() {
     return this.pieceNum >= this.pieces.length;
   }

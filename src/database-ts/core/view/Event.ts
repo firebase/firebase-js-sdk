@@ -1,4 +1,4 @@
-import { Path } from "../../../core/Path";
+import { Path } from "../util/Path";
 
 export interface EventInterface {
   getPath(): Path

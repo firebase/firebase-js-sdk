@@ -1,18 +1,18 @@
-import { assert } from "../../../../utils/libs/assert";
+import { assert } from "../../../utils/libs/assert";
 import { 
   containsKey,
   every,
   getAnyKey,
   getCount
-} from "../../../../utils/libs/object";
+} from "../../../utils/libs/object";
 import { 
   EventInterface,
   CancelEvent,
   DataEvent
 } from "./Event";
-import { DataSnapshot } from "../../../DataSnapshot";
-import { Path } from "../../../core/Path";
-import { Query } from "../../../Query";
+import { DataSnapshot } from "../../api/DataSnapshot";
+import { Path } from "../util/Path";
+import { Query } from "../../api/Query";
 
 /**
  * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback

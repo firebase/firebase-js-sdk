@@ -15,13 +15,13 @@
 */
 
 import { Query } from './Query';
-import { Path } from "./core/Path";
+import { Path } from "../core/util/Path";
 import { OnDisconnect } from "./OnDisconnect";
-import { nextPushId } from "./utils/libs/nextPushId";
-import { Promise } from "../utils/classes/Promise";
-import { Deferred } from "../utils/classes/Deferred";
-import { Repo } from "./core/Repo";
-import { warn } from "../utils/libs/logger";
+import { nextPushId } from "../core/util//nextPushId";
+import { Promise } from "../../utils/classes/Promise";
+import { Deferred } from "../../utils/classes/Deferred";
+import { Repo } from "../core/Repo";
+import { warn } from "../../utils/libs/logger";
 import { 
   validateArgCount,
   validatePathString,
@@ -32,8 +32,8 @@ import {
   validatePriority,
   validateBoolean,
   validateFirebaseMergeDataArg
-} from "../utils/libs/validation";
-import { QueryParams } from "./utils/classes/QueryParams";
+} from "../../utils/libs/validation";
+import { QueryParams } from "../core/view/QueryParams";
 
 export interface TransactionResult {
   committed: any,

@@ -1,7 +1,7 @@
 import { Repo } from "./Repo";
 import { fatal } from "../../utils/libs/logger";
 import { validateUrl } from "../../utils/libs/validation";
-import { parseRepoInfo } from "../utils/libs/common";
+import { parseRepoInfo } from "./util/util";
 import { FirebaseApp } from "../../app/firebase_app";
 const DATABASE_URL_OPTION = 'databaseURL';
 

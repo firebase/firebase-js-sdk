@@ -1,4 +1,4 @@
-import { Path } from "../../core/Path";
+import { Path } from "./Path";
 import { RepoInfo } from "../../core/RepoInfo";
 import { fatal, warn } from "../../../utils/libs/logger";
 
@@ -127,4 +127,46 @@ export function decodePath(pathString) {
     }
   }
   return pathStringDecoded;
+};
+
+/**
+ * Helper to run some code but catch any exceptions and re-throw them later.
+ * Useful for preventing user callbacks from breaking internal code.
+ *
+ * Re-throwing the exception from a setTimeout is a little evil, but it's very
+ * convenient (we don't have to try to figure out when is a safe point to
+ * re-throw it), and the behavior seems reasonable:
+ *
+ * * If you aren't pausing on exceptions, you get an error in the console with
+ *   the correct stack trace.
+ * * If you're pausing on all exceptions, the debugger will pause on your
+ *   exception and then again when we rethrow it.
+ * * If you're only pausing on uncaught exceptions, the debugger will only pause
+ *   on us re-throwing it.
+ *
+ * @param {!function()} fn The code to guard.
+ */
+export function exceptionGuard(fn) {
+  try {
+    fn();
+  } catch (e) {
+    // Re-throw exception when it's safe.
+    setTimeout(function() {
+      // It used to be that "throw e" would result in a good console error with
+      // relevant context, but as of Chrome 39, you just get the firebase.js
+      // file/line number where we re-throw it, which is useless. So we log
+      // e.stack explicitly.
+      var stack = e.stack || '';
+      warn('Exception was thrown by user callback.', stack);
+      throw e;
+    }, Math.floor(0));
+  }
+};
+
+export function setTimeoutNonBlocking(fn, time) {
+  var timeout = setTimeout(fn, time);
+  if (typeof timeout === 'object' && timeout['unref']) {
+    timeout['unref']();
+  }
+  return timeout;
 };
