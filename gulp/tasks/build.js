@@ -42,7 +42,6 @@ const glob = require('glob');
 const fs = require('fs');
 const gzipSize = require('gzip-size');
 const WrapperPlugin = require('wrapper-webpack-plugin');
-const legacyBuild = require('./build.legacy');
 
 function cleanDist(dir) { 
   return function cleanDistDirectory(done) {
@@ -135,6 +134,7 @@ function compileIndvES2015ModulesToBrowser() {
       'firebase-app': './src/app.ts',
       'firebase-storage': './src/storage.ts',
       'firebase-messaging': './src/messaging.ts',
+      'firebase-database': './src/database.ts',
     },
     output: {
       path: path.resolve(__dirname, './dist/browser'),
@@ -428,8 +428,7 @@ gulp.task('build:cjs', gulp.parallel([
     compileTypescriptToES2015,
     gulp.parallel(compileES2015ToCJS, buildAltEnvFirebaseJs)
   ]),
-  processPrebuiltFilesForCJS,
-  legacyBuild.compileDatabaseForCJS
+  processPrebuiltFilesForCJS
 ]));
 
 gulp.task('process:prebuilt', gulp.parallel([
@@ -444,8 +443,6 @@ const compileSourceAssets = gulp.series([
   gulp.parallel([
     compileIndvES2015ModulesToBrowser, 
     compileES2015ToCJS,
-    legacyBuild.compileDatabaseForBrowser,
-    legacyBuild.compileDatabaseForCJS
   ])
 ]);
 
@@ -455,7 +452,6 @@ gulp.task('build:browser', gulp.series([
   gulp.parallel([
     compileSourceAssets,
     processPrebuiltFilesForBrowser,
-    legacyBuild.compileDatabaseForBrowser
   ]),
   buildBrowserFirebaseJs
 ]));
