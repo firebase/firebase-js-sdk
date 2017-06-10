@@ -1,4 +1,4 @@
-import { base64Decode } from "../database-ts/core/util/util";
+import { base64Decode } from "../database/core/util/util";
 import { jsonEval } from "./json";
 
 /**

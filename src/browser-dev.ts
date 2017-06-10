@@ -16,7 +16,7 @@
 
 import firebase from "./app";
 // import './auth'; // <-- uncomment this line when auth is in TS
-import './database-ts';
+import './database';
 import './storage';
 import './messaging';
 
