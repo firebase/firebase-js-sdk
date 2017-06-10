@@ -1,4 +1,4 @@
-import { clone } from "../../../utils/libs/object";
+import { clone } from "../../../utils/obj";
 
 /**
  * Returns the delta from the previous call to get stats.
@@ -7,19 +7,25 @@ import { clone } from "../../../utils/libs/object";
  * @constructor
  */
 export class StatsListener {
-  private last = null;
-  constructor(private collection) {};
+  collection_;
+  last_;
+  
+  constructor(collection) {
+    this.collection_ = collection;
+    this.last_ = null;
+  }
   get() {
-    var newStats = this.collection.get();
+    var newStats = this.collection_.get();
 
     var delta = clone(newStats);
-    if (this.last) {
-      for (var stat in this.last) {
-        delta[stat] = delta[stat] - this.last[stat];
+    if (this.last_) {
+      for (var stat in this.last_) {
+        delta[stat] = delta[stat] - this.last_[stat];
       }
     }
-    this.last = newStats;
+    this.last_ = newStats;
 
     return delta;
   }
 }
+

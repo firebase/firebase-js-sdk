@@ -1,29 +1,24 @@
-/**
-* Copyright 2017 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-import { fatal } from "../../utils/libs/logger";
+import { fatal } from "../core/util/util";
+import { parseRepoInfo } from "../core/util/libs/parser";
 import { Path } from "../core/util/Path";
-import { Promise } from "../../utils/classes/Promise";
+import { PromiseImpl } from "../../utils/promise";
 import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
-import { parseRepoInfo } from "../core/util/util";
-import { validateArgCount } from "../../utils/libs/validation";
+import { RepoManager } from "../core/RepoManager";
+import { validateArgCount } from "../../utils/validation";
 import { validateUrl } from "../core/util/validation";
 
+/**
+ * Class representing a firebase database.
+ * @implements {firebase.Service}
+ */
 export class Database {
+  /** @type {Repo} */
+  repo_;
+  /** @type {Firebase} */
+  root_;
+  INTERNAL;
+
   static get ServerValue() {
     return {
       'TIMESTAMP': {
@@ -31,58 +26,122 @@ export class Database {
       }
     }
   }
-  public app;
-  private root: Reference;
-  constructor(private repo: Repo) {
+
+  /**
+   * The constructor should not be called by users of our public API.
+   * @param {!Repo} repo
+   */
+  constructor(repo) {
     if (!(repo instanceof Repo)) {
-      fatal(`Don't call new Database() directly - please use firebase.database().`);
+      fatal("Don't call new Database() directly - please use firebase.database().");
     }
-    this.root = new Reference(repo, Path.Empty);
-    this.app = repo.app;
+
+    /** @type {Repo} */
+    this.repo_ = repo;
+
+    /** @type {Firebase} */
+    this.root_ = new Reference(repo, Path.Empty);
+
+    this.INTERNAL = new DatabaseInternals(this);
   }
-  get INTERNAL() {
-    return {
-      delete: () => {
-        this.repo = null;
-        this.root = null;
-        return Promise.resolve();
-      }
-    }
-  }
-  private checkDeleted(apiName) {
-    if (this.repo === null) {
-      fatal(`Cannot call ${apiName} on a deleted database.`);
-    }
-  }
-  ref(pathString?): Reference {
-    this.checkDeleted('ref');
+
+  app: null
+
+  /**
+   * Returns a reference to the root or the path specified in opt_pathString.
+   * @param {string=} opt_pathString
+   * @return {!Firebase} Firebase reference.
+   */
+  ref(opt_pathString) {
+    this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 
-    return pathString ? this.root.child(pathString) : this.root;
+    return opt_pathString !== undefined ? this.root_.child(opt_pathString) :
+        /** @type {!Firebase} */ (this.root_);
   }
-  refFromURL(url: string) {
+
+  /**
+   * Returns a reference to the root or the path specified in url.
+   * We throw a exception if the url is not in the same domain as the
+   * current repo.
+   * @param {string} url
+   * @return {!Firebase} Firebase reference.
+   */
+  refFromURL(url) {
+    /** @const {string} */
     var apiName = 'database.refFromURL';
-    this.checkDeleted(apiName);
+    this.checkDeleted_(apiName);
     validateArgCount(apiName, 1, 1, arguments.length);
     var parsedURL = parseRepoInfo(url);
     validateUrl(apiName, 1, parsedURL);
 
     var repoInfo = parsedURL.repoInfo;
-    if (repoInfo.host !== this.repo.repoInfo.host) {
+    if (repoInfo.host !== this.repo_.repoInfo_.host) {
       fatal(apiName + ": Host name does not match the current database: " +
-                         "(found " + repoInfo.host + " but expected " + this.repo.repoInfo.host + ")");
+                         "(found " + repoInfo.host + " but expected " + this.repo_.repoInfo_.host + ")");
     }
 
     return this.ref(parsedURL.path.toString());
   }
+
+  /**
+   * @param {string} apiName
+   * @private
+   */
+  checkDeleted_(apiName) {
+    if (this.repo_ === null) {
+      fatal("Cannot call " + apiName + " on a deleted database.");
+    }
+  }
+
+  // Make individual repo go offline.
   goOffline() {
     validateArgCount('database.goOffline', 0, 0, arguments.length);
-    this.checkDeleted('goOffline');
-    this.repo.interrupt();
+    this.checkDeleted_('goOffline');
+    this.repo_.interrupt();
   }
-  goOnline() {
+
+  goOnline () {
     validateArgCount('database.goOnline', 0, 0, arguments.length);
-    this.checkDeleted('goOnline');
-    this.repo.resume();
+    this.checkDeleted_('goOnline');
+    this.repo_.resume();
   }
-}
+};
+
+// Note: This is an un-minfied property of the Database only.
+Object.defineProperty(Database.prototype, 'app', {
+  /**
+   * @this {!Database}
+   * @return {!firebase.app.App}
+   */
+  get() {
+    return this.repo_.app;
+  }
+});
+
+Object.defineProperty(Repo.prototype, 'database', {
+  get() {
+    return this.__database || (this.__database = new Database(this));
+  }
+});
+
+class DatabaseInternals {
+  database
+  /** @param {!Database} database */
+  constructor(database) {
+    this.database = database;
+  }
+
+  /** @return {firebase.Promise<void>} */
+  delete() {
+    this.database.checkDeleted_('delete');
+    RepoManager.getInstance().deleteRepo(/** @type {!Repo} */ (this.database.repo_));
+
+    this.database.repo_ = null;
+    this.database.root_ = null;
+    this.database.INTERNAL = null;
+    this.database = null;
+    return PromiseImpl.resolve();
+  }
+};
+

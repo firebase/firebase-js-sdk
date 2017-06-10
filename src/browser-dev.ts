@@ -13,8 +13,6 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-// Declare build time variable
-declare const TARGET_ENVIRONMENT;
 
 import firebase from "./app";
 // import './auth'; // <-- uncomment this line when auth is in TS

@@ -1,15 +1,26 @@
-import { Query } from "../api/Query";
+/**
+ * Interface defining the set of actions that can be performed against the Firebase server
+ * (basically corresponds to our wire protocol).
+ *
+ * @interface
+ */
+export class ServerActions {
 
-export abstract class ServerActions {
-  abstract listen(query: Query, 
-                  currentHashFn: () => string, 
-                  tag: number, 
-                  onComplete: (status: string, data: any) => void): void
+  /**
+   * @param {!fb.api.Query} query
+   * @param {function():string} currentHashFn
+   * @param {?number} tag
+   * @param {function(string, *)} onComplete
+   */
+  listen() {}
 
   /**
    * Remove a listen.
+   *
+   * @param {!fb.api.Query} query
+   * @param {?number} tag
    */
-  abstract unlisten(query: Query, tag: number): void
+  unlisten() {}
 
   /**
    * @param {string} pathString
@@ -17,7 +28,7 @@ export abstract class ServerActions {
    * @param {function(string, string)=} opt_onComplete
    * @param {string=} opt_hash
    */
-  put(pathString: string, data: any, onComplete?, hash?) {}
+  put() {}
 
   /**
    * @param {string} pathString
@@ -25,19 +36,37 @@ export abstract class ServerActions {
    * @param {function(string, ?string)} onComplete
    * @param {string=} opt_hash
    */
-  merge(pathString: string, data: any, onComplete, hash?: string) {}
+  merge() {}
 
   /**
    * Refreshes the auth token for the current connection.
    * @param {string} token The authentication token
    */
-  refreshAuthToken(token: string) {}
+  refreshAuthToken() {}
 
-  onDisconnectPut(pathString: string, data: any, onComplete?) {}
+  /**
+   * @param {string} pathString
+   * @param {*} data
+   * @param {function(string, string)=} opt_onComplete
+   */
+  onDisconnectPut() {}
 
-  onDisconnectMerge(pathString: string, data: any, onComplete?) {}
+  /**
+   * @param {string} pathString
+   * @param {*} data
+   * @param {function(string, string)=} opt_onComplete
+   */
+  onDisconnectMerge() {}
 
-  onDisconnectCancel(pathString: string, onComplete?) {}
+  /**
+   * @param {string} pathString
+   * @param {function(string, string)=} opt_onComplete
+   */
+  onDisconnectCancel() {}
 
-  reportStats(stats) {}
-}
+  /**
+   * @param {Object.<string, *>} stats
+   */
+  reportStats() {}
+
+}; // fb.core.ServerActions

@@ -1,65 +1,75 @@
-/**
-* Copyright 2017 Google Inc.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*   http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
-
-import { logWrapper, warn } from "../../utils/libs/logger";
-import { assert } from "../../utils/libs/assert";
-import { encodeQuerystring } from "../../utils/libs/querystring";
-import { ServerActions } from "./ServerActions";
+import { assert } from "../../utils/assert";
+import { logWrapper, warn } from "./util/util";
+import { jsonEval } from "../../utils/json";
+import { querystring } from "../../utils/util";
 
 /**
  * An implementation of ServerActions that communicates with the server via REST requests.
  * This is mostly useful for compatibility with crawlers, where we don't want to spin up a full
  * persistent connection (using WebSockets or long-polling)
  */
-export class ReadonlyRestClient extends ServerActions {
+export class ReadonlyRestClient {
+  /** @private {function(...[*])} */
+  private log_;
+
+  /** @private {!RepoInfo} */
+  private repoInfo_;
+
+  /** @private {function(string, *, boolean, ?number)} */
+  private onDataUpdate_;
+
+  /** @private {!AuthTokenProvider} */
+  private authTokenProvider_;
+
   /**
-   * @param {!fb.api.Query} query
+   * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
+   * that's been removed. :-/
+   *
+   * @private {!Object.<string, !Object>}
+   */
+  private listens_;
+  
+  /**
+   * @param {!Query} query
    * @param {?number=} opt_tag
    * @return {string}
    * @private
    */
-  static getListenId(query, tag?) {
-    if (tag !== undefined) {
-      return 'tag$' + tag;
+  static getListenId_(query, opt_tag) {
+    if (opt_tag !== undefined) {
+      return 'tag$' + opt_tag;
     } else {
       assert(query.getQueryParams().isDefault(), "should have a tag if it's not a default query.");
       return query.path.toString();
     }
   }
-
-  private log = logWrapper('p:rest:');
-  private listens = {};
-
-  constructor(private repoInfo, private onDataUpdate, private authTokenProvider) {
-    super();
+  /**
+   * @param {!RepoInfo} repoInfo Data about the namespace we are connecting to
+   * @param {function(string, *, boolean, ?number)} onDataUpdate A callback for new data from the server
+   * @implements {ServerActions}
+   */
+  constructor(repoInfo, onDataUpdate, authTokenProvider) {
+    this.log_ = logWrapper('p:rest:');
+    this.repoInfo_ = repoInfo;
+    this.onDataUpdate_ = onDataUpdate;
+    this.authTokenProvider_ = authTokenProvider;
+    this.listens_ = { };
   }
 
   /** @inheritDoc */
   listen(query, currentHashFn, tag, onComplete) {
     var pathString = query.path.toString();
-    this.log('Listen called for ' + pathString + ' ' + query.queryIdentifier());
+    this.log_('Listen called for ' + pathString + ' ' + query.queryIdentifier());
 
     // Mark this listener so we can tell if it's removed.
-    var listenId = ReadonlyRestClient.getListenId(query, tag);
+    var listenId = ReadonlyRestClient.getListenId_(query, tag);
     var thisListen = new Object();
-    this.listens[listenId] = thisListen;
+    this.listens_[listenId] = thisListen;
 
     var queryStringParamaters = query.getQueryParams().toRestQueryStringParameters();
 
-    this.restRequest(pathString + '.json', queryStringParamaters, (error, result) => {
+    var self = this;
+    this.restRequest_(pathString + '.json', queryStringParamaters, function(error, result) {
       var data = result;
 
       if (error === 404) {
@@ -68,10 +78,10 @@ export class ReadonlyRestClient extends ServerActions {
       }
 
       if (error === null) {
-        this.onDataUpdate(pathString, data, /*isMerge=*/false, tag);
+        self.onDataUpdate_(pathString, data, /*isMerge=*/false, tag);
       }
 
-      if (this.listens[listenId] === thisListen) {
+      if (self.listens_[listenId] === thisListen) {
         var status;
         if (!error) {
           status = 'ok';
@@ -86,10 +96,34 @@ export class ReadonlyRestClient extends ServerActions {
     });
   }
 
+  /** @inheritDoc */
   unlisten(query, tag) {
-    var listenId = ReadonlyRestClient.getListenId(query, tag);
-    delete this.listens[listenId];
+    var listenId = ReadonlyRestClient.getListenId_(query, tag);
+    delete this.listens_[listenId];
   }
+
+  /** @inheritDoc */
+  refreshAuthToken(token) {
+    // no-op since we just always call getToken.
+  }
+
+  /** @inheritDoc */
+  onDisconnectPut(pathString, data, opt_onComplete) { }
+
+  /** @inheritDoc */
+  onDisconnectMerge(pathString, data, opt_onComplete) { }
+
+  /** @inheritDoc */
+  onDisconnectCancel(pathString, opt_onComplete) { }
+
+  /** @inheritDoc */
+  put(pathString, data, opt_onComplete, opt_hash) { }
+
+  /** @inheritDoc */
+  merge(pathString, data, onComplete, opt_hash) { }
+
+  /** @inheritDoc */
+  reportStats(stats) { }
 
   /**
    * Performs a REST request to the given path, with the provided query string parameters,
@@ -100,34 +134,34 @@ export class ReadonlyRestClient extends ServerActions {
    * @param {?function(?number, *=)} callback
    * @private
    */
-  private restRequest(pathString, queryStringParameters, callback) {
+  restRequest_(pathString, queryStringParameters, callback) {
     queryStringParameters = queryStringParameters || { };
 
     queryStringParameters['format'] = 'export';
 
     var self = this;
 
-    this.authTokenProvider.getToken(/*forceRefresh=*/false).then(function(authTokenData) {
+    this.authTokenProvider_.getToken(/*forceRefresh=*/false).then(function(authTokenData) {
       var authToken = authTokenData && authTokenData.accessToken;
       if (authToken) {
         queryStringParameters['auth'] = authToken;
       }
 
-      var url = (self.repoInfo.secure ? 'https://' : 'http://') +
-        self.repoInfo.host +
+      var url = (self.repoInfo_.secure ? 'https://' : 'http://') +
+        self.repoInfo_.host +
         pathString +
         '?' +
-        encodeQuerystring(queryStringParameters);
+        querystring(queryStringParameters);
 
-      self.log('Sending REST request for ' + url);
+      self.log_('Sending REST request for ' + url);
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function () {
         if (callback && xhr.readyState === 4) {
-          self.log('REST Response for ' + url + ' received. status:', xhr.status, 'response:', xhr.responseText);
+          self.log_('REST Response for ' + url + ' received. status:', xhr.status, 'response:', xhr.responseText);
           var res = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
-              res = JSON.parse(xhr.responseText);
+              res = jsonEval(xhr.responseText);
             } catch (e) {
               warn('Failed to parse JSON response for ' + url + ': ' + xhr.responseText);
             }
@@ -147,4 +181,4 @@ export class ReadonlyRestClient extends ServerActions {
       xhr.send();
     });
   }
-}
+}; // end ReadonlyRestClient

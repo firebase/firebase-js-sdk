@@ -1,20 +1,22 @@
-import { RepoInfo } from "../RepoInfo";
 import { StatsCollection } from "./StatsCollection";
 
 export const StatsManager = {
-  getCollection(repoInfo: RepoInfo) {
-    const hashString = repoInfo.toString();
-    if (!StatsCollection.collections[hashString]) {
-      StatsCollection.collections[hashString] = new StatsCollection();
+  collections_:{ },
+  reporters_:{ },
+  getCollection:function(repoInfo) {
+    var hashString = repoInfo.toString();
+    if (!this.collections_[hashString]) {
+      this.collections_[hashString] = new StatsCollection();
     }
-    return StatsCollection.collections[hashString];
+    return this.collections_[hashString];
   },
-  getOrCreateReporter(repoInfo: RepoInfo, creatorFunction) {
-    const hashString = repoInfo.toString();
-    if (!StatsCollection.reporters[hashString]) {
-      StatsCollection.reporters[hashString] = creatorFunction();
+  getOrCreateReporter:function(repoInfo, creatorFunction) {
+    var hashString = repoInfo.toString();
+    if (!this.reporters_[hashString]) {
+      this.reporters_[hashString] = creatorFunction();
     }
 
-    return StatsCollection.reporters[hashString];
+    return this.reporters_[hashString];
   }
-}
+};
+

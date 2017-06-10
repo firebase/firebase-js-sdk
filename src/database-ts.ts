@@ -18,7 +18,7 @@ import firebase from './app';
 import { Database } from "./database-ts/api/Database";
 import { Query } from "./database-ts/api/Query";
 import { Reference } from "./database-ts/api/Reference";
-import { enableLogging } from "./utils/libs/logger";
+import { enableLogging } from "./database-ts/core/util/util";
 import { RepoManager } from "./database-ts/core/RepoManager";
 
 export function registerDatabase(instance) {

@@ -1,48 +1,58 @@
-import { Repo } from "./Repo";
-import { fatal } from "../../utils/libs/logger";
-import { validateUrl } from "./util/validation";
-import { parseRepoInfo } from "./util/util";
 import { FirebaseApp } from "../../app/firebase_app";
-const DATABASE_URL_OPTION = 'databaseURL';
+import { Repo } from "./Repo";
+import { fatal } from "./util/util";
+import { parseRepoInfo } from "./util/libs/parser";
+import { validateUrl } from "./util/validation";
+import "./Repo_transaction";
 
+/** @const {string} */
+var DATABASE_URL_OPTION = 'databaseURL';
+
+/**
+ * Creates and caches Repo instances.
+ */
 export class RepoManager {
+  /**
+   * @private {!Object.<string, !Repo>}
+   */
+  private repos_;
+
+  /**
+   * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
+   * @private {boolean}
+   */
+  private useRestClient_;
+
   static getInstance() {
     return new RepoManager();
   }
-  private repos: {
-    [name: string]: Repo
-  } = {};
-  private useRestClient = false;
-  interrupt() {
-    for (let repo in this.repos) {
-      this.repos[repo].interrupt();
-    }
-  }
-  resume() {
-    for (let repo in this.repos) {
-      this.repos[repo].resume();
-    }
-  }
-  createRepo(repoInfo, app) {
-    var repo = this.repos[app.name];
-    if (repo) {
-      fatal('FIREBASE INTERNAL ERROR: Database initialized multiple times.');
-    }
-    repo = new Repo(repoInfo, this.useRestClient, app);
-    this.repos[app.name] = repo;
 
-    return repo;
+  constructor() {
+    this.repos_ = { };
+    this.useRestClient_ = false;
   }
-  deleteRepo(repo: Repo) {
-    // This should never happen...
-    if (this.repos[repo.app.name] !== repo) {
-      fatal("Database " + repo.app.name + " has already been deleted.");
+
+  // TODO(koss): Remove these functions unless used in tests?
+  interrupt() {
+    for (var repo in this.repos_) {
+      this.repos_[repo].interrupt();
     }
-    repo.interrupt();
-    delete this.repos[repo.app.name];
   }
+
+  resume() {
+    for (var repo in this.repos_) {
+      this.repos_[repo].resume();
+    }
+  }
+
+  /**
+   * This function should only ever be called to CREATE a new database instance.
+   *
+   * @param {!App} app
+   * @return {!Database}
+   */
   databaseFromApp(app: FirebaseApp) {
-    var dbUrl = app.options[DATABASE_URL_OPTION];
+    var dbUrl: string = app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal("Can't determine Firebase Database URL.  Be sure to include " +
                          DATABASE_URL_OPTION +
@@ -62,7 +72,45 @@ export class RepoManager {
 
     return repo.database;
   }
-  forceRestClient(forceRestClient) {
-    this.useRestClient = forceRestClient;
+
+  /**
+   * Remove the repo and make sure it is disconnected.
+   *
+   * @param {!Repo} repo
+   */
+  deleteRepo(repo) {
+    // This should never happen...
+    if (this.repos_[repo.app.name] !== repo) {
+      fatal("Database " + repo.app.name + " has already been deleted.");
+    }
+    repo.interrupt();
+    delete this.repos_[repo.app.name];
   }
-}
+
+  /**
+   * Ensures a repo doesn't already exist and then creates one using the
+   * provided app.
+   *
+   * @param {!RepoInfo} repoInfo The metadata about the Repo
+   * @param {!FirebaseApp} app
+   * @return {!Repo} The Repo object for the specified server / repoName.
+   */
+  createRepo(repoInfo, app: FirebaseApp): Repo {
+    var repo = this.repos_[app.name];
+    if (repo) {
+      fatal('FIREBASE INTERNAL ERROR: Database initialized multiple times.');
+    }
+    repo = new Repo(repoInfo, this.useRestClient_, app);
+    this.repos_[app.name] = repo;
+
+    return repo;
+  }
+
+  /**
+   * Forces us to use ReadonlyRestClient instead of PersistentConnection for new Repos.
+   * @param {boolean} forceRestClient
+   */
+  forceRestClient(forceRestClient) {
+    this.useRestClient_ = forceRestClient;
+  }
+}; // end RepoManager
