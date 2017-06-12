@@ -110,14 +110,14 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  set(newVal, opt_onComplete) {
+  set(newVal, onComplete?): Promise<any> {
     validateArgCount('Firebase.set', 1, 2, arguments.length);
     validateWritablePath('Firebase.set', this.path);
     validateFirebaseDataArg('Firebase.set', 1, newVal, this.path, false);
-    validateCallback('Firebase.set', 2, opt_onComplete, true);
+    validateCallback('Firebase.set', 2, onComplete, true);
 
     var deferred = new Deferred();
-    this.repo.setWithPriority(this.path, newVal, /*priority=*/ null, deferred.wrapCallback(opt_onComplete));
+    this.repo.setWithPriority(this.path, newVal, /*priority=*/ null, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 

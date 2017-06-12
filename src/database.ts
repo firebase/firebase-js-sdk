@@ -15,6 +15,7 @@
 */
 
 import firebase from './app';
+import { FirebaseApp, FirebaseNamespace } from "./app/firebase_app";
 import { Database } from "./database/api/Database";
 import { Query } from "./database/api/Query";
 import { Reference } from "./database/api/Reference";
@@ -35,6 +36,21 @@ export function registerDatabase(instance) {
       ServerValue: Database.ServerValue,
     }
   );
+}
+
+/**
+ * Extensions to the FirebaseApp and FirebaseNamespaces interfaces
+ */
+declare module './app/firebase_app' {
+  interface FirebaseApp {
+    database(): Database
+  }
+}
+
+declare module './app/firebase_app' {
+  interface FirebaseNamespace {
+    database(app: FirebaseApp): Database
+  }
 }
 
 registerDatabase(firebase);
