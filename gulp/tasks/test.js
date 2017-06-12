@@ -20,6 +20,7 @@ const karma = require('karma');
 const config = require('../config');
 const buildTasks = require('./build');
 const integrationTests = require('./test.integration');
+const globalKarmaConf = require('../../karma.conf.js')
 
 /**
  * Runs all of the node unit tests
@@ -34,6 +35,38 @@ function runNodeUnitTests() {
       reporter: 'spec',
       compilers: 'ts:ts-node/register'
     }));
+}
+
+/**
+ * Runs all of the browser unit tests in karma
+ */
+function runBrowserUnitTests(dev = false) {
+  return done => {
+    const karmaConfig = Object.assign({}, globalKarmaConf, {
+      // list of files / patterns to load in the browser
+      files: [
+        './+(src|tests)/**/*.ts'
+      ],
+      
+      // list of files to exclude from the included globs above
+      exclude: [
+        // we don't want this file as it references files that only exist once compiled
+        `./src/firebase.ts`,
+
+        // Don't include node test files
+        './tests/**/node/**/*.test.ts',
+
+        // Don't include binary test files
+        './tests/**/binary/**/*.test.ts',
+      ],
+
+      browsers: dev ? [ 'ChromeHeadless' ] : globalKarmaConf.browsers
+    });
+    new karma.Server(karmaConfig, exitCode => {
+      if (dev) return done();
+      done(exitCode);
+    }).start();
+  };
 }
 
 /**
@@ -52,35 +85,10 @@ function runNodeBinaryTests() {
 }
 
 /**
- * Runs all of the browser unit tests in karma
- */
-function runBrowserUnitTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
-    // list of files / patterns to load in the browser
-    files: [
-      './+(src|tests)/**/*.ts'
-    ],
-    
-    // list of files to exclude from the included globs above
-    exclude: [
-      // we don't want this file as it references files that only exist once compiled
-      `./src/firebase.ts`,
-
-      // Don't include node test files
-      './tests/**/node/**/*.test.ts',
-
-      // Don't include binary test files
-      './tests/**/binary/**/*.test.ts',
-    ],
-  });
-  new karma.Server(karmaConfig, done).start();
-}
-
-/**
  * Runs all of the browser binary tests in karma
  */
 function runBrowserBinaryTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
+  const karmaConfig = Object.assign({}, globalKarmaConf, {
     // list of files / patterns to load in the browser
     files: [
       './dist/browser/firebase.js',
@@ -101,7 +109,7 @@ function runBrowserBinaryTests(done) {
  * Runs both the unit and binary tests in karma
  */
 function runAllKarmaTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
+  const karmaConfig = Object.assign({}, globalKarmaConf, {
     // list of files / patterns to load in the browser
     files: [
       './dist/browser/firebase.js',
@@ -121,9 +129,9 @@ function runAllKarmaTests(done) {
 }
 
 gulp.task('test:unit:node', runNodeUnitTests);
-gulp.task('test:unit:browser', runBrowserUnitTests);
+gulp.task('test:unit:browser', runBrowserUnitTests());
 
-const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests);
+const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests());
 gulp.task('test:unit', unitTestSuite);
 
 gulp.task('test:binary:browser', runBrowserBinaryTests);
@@ -137,3 +145,5 @@ gulp.task('test', gulp.parallel([
   runNodeBinaryTests,
   runAllKarmaTests
 ]));
+
+exports.runBrowserUnitTests = runBrowserUnitTests;

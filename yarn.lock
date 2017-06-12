@@ -323,7 +323,7 @@ async@1.x, async@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/async/-/async-1.0.0.tgz#f8fc04ca3a13784ade9e1641af98578cfbd647a9"
 
-async@^0.9.0:
+async@^0.9.0, async@~0.9.0:
   version "0.9.2"
   resolved "https://registry.yarnpkg.com/async/-/async-0.9.2.tgz#aea74d5e61c1f899613bf64bda66d4c78f2fd17d"
 
@@ -3738,6 +3738,16 @@ karma-typescript@^3.0.1:
     util "~0.10.1"
     vm-browserify "~0.0.1"
 
+karma-webpack@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/karma-webpack/-/karma-webpack-2.0.3.tgz#39cebf5ca2580139b27f9ae69b78816b9c82fae6"
+  dependencies:
+    async "~0.9.0"
+    loader-utils "^0.2.5"
+    lodash "^3.8.0"
+    source-map "^0.1.41"
+    webpack-dev-middleware "^1.0.11"
+
 karma@^1.7.0:
   version "1.7.0"
   resolved "https://registry.yarnpkg.com/karma/-/karma-1.7.0.tgz#6f7a1a406446fa2e187ec95398698f4cee476269"
@@ -3847,7 +3857,7 @@ loader-runner@^2.3.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/loader-runner/-/loader-runner-2.3.0.tgz#f482aea82d543e07921700d5a46ef26fdac6b8a2"
 
-loader-utils@^0.2.11, loader-utils@^0.2.16, loader-utils@~0.2.2:
+loader-utils@^0.2.11, loader-utils@^0.2.16, loader-utils@^0.2.5, loader-utils@~0.2.2:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-0.2.17.tgz#f86e6374d43205a6e6c60e9196f17c0299bfb348"
   dependencies:
@@ -5647,7 +5657,7 @@ source-map@0.X, source-map@>=0.5.6, source-map@^0.5.0, source-map@^0.5.1, source
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.6.tgz#75ce38f52bf0733c5a7f0c118d81334a2bb5f412"
 
-source-map@^0.1.38, source-map@~0.1.30, source-map@~0.1.31, source-map@~0.1.33, source-map@~0.1.7:
+source-map@^0.1.38, source-map@^0.1.41, source-map@~0.1.30, source-map@~0.1.31, source-map@~0.1.33, source-map@~0.1.7:
   version "0.1.43"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.1.43.tgz#c24bc146ca517c1471f5dacbe2571b2b7f9e3346"
   dependencies:
@@ -6486,7 +6496,7 @@ webpack-core@^0.6.8, webpack-core@~0.6.9:
     source-list-map "~0.1.7"
     source-map "~0.4.1"
 
-webpack-dev-middleware@^1.10.2:
+webpack-dev-middleware@^1.0.11, webpack-dev-middleware@^1.10.2:
   version "1.10.2"
   resolved "https://registry.yarnpkg.com/webpack-dev-middleware/-/webpack-dev-middleware-1.10.2.tgz#2e252ce1dfb020dbda1ccb37df26f30ab014dbd1"
   dependencies:

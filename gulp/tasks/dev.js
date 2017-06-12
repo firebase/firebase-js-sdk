@@ -17,16 +17,19 @@ const gulp = require('gulp');
 const gutil = require('gulp-util');
 const config = require('../config');
 const webpack = require('webpack');
+const merge = require('merge2');
 const WebpackDevServer = require('webpack-dev-server');
 
 // Ensure that the test tasks get set up
-require('./test');
+const testFxns = require('./test');
 
 function watchDevFiles() {
   const stream = gulp.watch([
     `${config.root}/src/**/*.ts`,
     config.paths.test.unit
-  ], gulp.parallel('test:unit'));
+  ], gulp.parallel([
+    testFxns.runBrowserUnitTests(true)
+  ]));
 
   stream.on('error', () => {});
   return stream;
@@ -82,6 +85,7 @@ function runDevServer(callback) {
 gulp.task('dev:server', runDevServer);
 
 gulp.task('dev', gulp.parallel([
-  'test:unit',
-  watchDevFiles
+  testFxns.runBrowserUnitTests(true),
+  watchDevFiles,
+  runDevServer,
 ]));

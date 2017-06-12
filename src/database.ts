@@ -43,13 +43,13 @@ export function registerDatabase(instance) {
  */
 declare module './app/firebase_app' {
   interface FirebaseApp {
-    database(): Database
+    database?(): Database
   }
 }
 
 declare module './app/firebase_app' {
   interface FirebaseNamespace {
-    database(app: FirebaseApp): Database
+    database?(app: FirebaseApp): Database
   }
 }
 
