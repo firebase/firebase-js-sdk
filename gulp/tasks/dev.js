@@ -19,6 +19,7 @@ const config = require('../config');
 const webpack = require('webpack');
 const merge = require('merge2');
 const WebpackDevServer = require('webpack-dev-server');
+const CircularDependencyPlugin = require('circular-dependency-plugin');
 
 // Ensure that the test tasks get set up
 const testFxns = require('./test');
@@ -64,6 +65,14 @@ function runDevServer(callback) {
     resolve: {
       extensions: [".tsx", ".ts", ".js"]
     },
+    plugins: [
+      new CircularDependencyPlugin({
+        // exclude detection of files based on a RegExp
+        exclude: /node_modules/,
+        // add errors to webpack instead of warnings
+        failOnError: true
+      })
+    ],
     devtool: 'inline-source-map',
   };
   // Start a webpack-dev-server
