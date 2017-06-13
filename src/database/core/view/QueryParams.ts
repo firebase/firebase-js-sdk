@@ -3,11 +3,9 @@ import {
   MIN_NAME,
   MAX_NAME
 } from "../util/util";
-import { 
-  KeyIndex,
-  PriorityIndex,
-  ValueIndex,
-} from "../snap/IndexFactory";
+import { KEY_INDEX } from "../snap/indexes/KeyIndex";
+import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
+import { VALUE_INDEX } from "../snap/indexes/ValueIndex";
 import { PathIndex } from "../snap/indexes/PathIndex";
 import { IndexedFilter } from "./filter/IndexedFilter";
 import { LimitedFilter } from "./filter/LimitedFilter";
@@ -49,7 +47,7 @@ export class QueryParams {
     this.indexEndValue_ = null;
     this.indexEndName_ = '';
 
-    this.index_ = PriorityIndex;
+    this.index_ = PRIORITY_INDEX;
   };
   /**
    * Wire Protocol Constants
@@ -340,7 +338,7 @@ export class QueryParams {
       obj[WIRE_PROTOCOL_CONSTANTS.VIEW_FROM] = viewFrom;
     }
     // For now, priority index is the default, so we only specify if it's some other index
-    if (this.index_ !== PriorityIndex) {
+    if (this.index_ !== PRIORITY_INDEX) {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX] = this.index_.toString();
     }
     return obj;
@@ -357,7 +355,7 @@ export class QueryParams {
    * @return {boolean}
    */
   isDefault() {
-    return this.loadsAllData() && this.index_ == PriorityIndex;
+    return this.loadsAllData() && this.index_ == PRIORITY_INDEX;
   };
 
   /**
@@ -388,11 +386,11 @@ export class QueryParams {
     }
 
     var orderBy;
-    if (this.index_ === PriorityIndex) {
+    if (this.index_ === PRIORITY_INDEX) {
       orderBy = REST_CONSTANTS.PRIORITY_INDEX;
-    } else if (this.index_ === ValueIndex) {
+    } else if (this.index_ === VALUE_INDEX) {
       orderBy = REST_CONSTANTS.VALUE_INDEX;
-    } else if (this.index_ === KeyIndex) {
+    } else if (this.index_ === KEY_INDEX) {
       orderBy = REST_CONSTANTS.KEY_INDEX;
     } else {
       assert(this.index_ instanceof PathIndex, 'Unrecognized index type!');

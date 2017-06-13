@@ -7,7 +7,7 @@ import { EventGenerator } from "./EventGenerator";
 import { assert } from "../../../utils/assert";
 import { OperationType } from "../operation/Operation";
 import { Change } from "./Change";
-import { PriorityIndex } from "../snap/IndexFactory";
+import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
 import { Query } from "../../api/Query";
 
 /**
@@ -198,7 +198,7 @@ export class View {
     var initialChanges = [];
     if (!eventSnap.getNode().isLeafNode()) {
       var eventNode = /** @type {!fb.core.snap.ChildrenNode} */ (eventSnap.getNode());
-      eventNode.forEachChild(PriorityIndex, function(key, childNode) {
+      eventNode.forEachChild(PRIORITY_INDEX, function(key, childNode) {
         initialChanges.push(Change.childAddedChange(key, childNode));
       });
     }

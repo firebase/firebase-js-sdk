@@ -2,7 +2,7 @@ import { findKey, forEach } from "../../utils/obj";
 import { assert, assertionError } from "../../utils/assert";
 import { Path } from "./util/Path";
 import { CompoundWrite } from "./CompoundWrite";
-import { PriorityIndex } from "./snap/IndexFactory";
+import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
 import { ChildrenNode } from "./snap/ChildrenNode";
 
 /**
@@ -247,7 +247,7 @@ export class WriteTree {
     if (topLevelSet) {
       if (!topLevelSet.isLeafNode()) {
         // we're shadowing everything. Return the children.
-        topLevelSet.forEachChild(PriorityIndex, function(childName, childSnap) {
+        topLevelSet.forEachChild(PRIORITY_INDEX, function(childName, childSnap) {
           completeChildren = completeChildren.updateImmediateChild(childName, childSnap);
         });
       }
@@ -256,7 +256,7 @@ export class WriteTree {
       // Layer any children we have on top of this
       // We know we don't have a top-level set, so just enumerate existing children
       var merge = this.visibleWrites_.childCompoundWrite(treePath);
-      completeServerChildren.forEachChild(PriorityIndex, function(childName, childNode) {
+      completeServerChildren.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
         var node = merge.childCompoundWrite(new Path(childName)).apply(childNode);
         completeChildren = completeChildren.updateImmediateChild(childName, node);
       });

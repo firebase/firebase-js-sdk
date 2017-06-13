@@ -80,3 +80,5 @@ export class PriorityIndex extends Index {
     return '.priority';
   };
 };
+
+export const PRIORITY_INDEX = new PriorityIndex();

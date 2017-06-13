@@ -2,7 +2,9 @@ import { assert } from "../../../utils/assert";
 import { buildChildSet } from "./childSet";
 import { contains, clone, map } from "../../../utils/obj";
 import { NamedNode } from "./Node";
-import { PriorityIndex, KeyIndex, Fallback } from "./IndexFactory";
+import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
+import { KEY_INDEX } from "./indexes/KeyIndex";
+import { Fallback } from "./indexes/Index";
 
 /**
  *
@@ -19,7 +21,7 @@ export class IndexMap {
    * @type {!IndexMap}
    * @const
    */
-  static Default = new IndexMap(Fallback, PriorityIndex);
+  static Default = new IndexMap(Fallback, PRIORITY_INDEX);
 
   constructor(indexes, indexSet) {
     this.indexes_ = indexes;
@@ -57,7 +59,7 @@ export class IndexMap {
    * @return {!IndexMap}
    */
   addIndex(indexDefinition, existingChildren) {
-    assert(indexDefinition !== KeyIndex,
+    assert(indexDefinition !== KEY_INDEX,
         "KeyIndex always exists and isn't meant to be added to the IndexMap.");
     var childList = [];
     var sawIndexedValue = false;

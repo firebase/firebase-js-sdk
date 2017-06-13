@@ -3,7 +3,7 @@ import { assert, assertionError } from "../../../utils/assert";
 import { ChildChangeAccumulator } from "./ChildChangeAccumulator";
 import { Change } from "./Change";
 import { ChildrenNode } from "../snap/ChildrenNode";
-import { KeyIndex } from "../snap/IndexFactory";
+import { KEY_INDEX } from "../snap/indexes/KeyIndex";
 import { ImmutableTree } from "../util/ImmutableTree";
 import { Path } from "../util/Path";
 import { WriteTreeCompleteChildSource, NO_COMPLETE_CHILD_SOURCE } from "./CompleteChildSource";
@@ -467,7 +467,7 @@ export class ViewProcessor {
         // should just re-apply whatever we have in our cache as a merge.
         var changedChildren = /** @type {ImmutableTree<!fb.core.snap.Node>} */
             (ImmutableTree.Empty);
-        serverCache.getNode().forEachChild(KeyIndex, function(name, node) {
+        serverCache.getNode().forEachChild(KEY_INDEX, function(name, node) {
           changedChildren = changedChildren.set(new Path(name), node);
         });
         return this.applyServerMerge_(viewCache, ackPath, changedChildren, writesCache, optCompleteCache,

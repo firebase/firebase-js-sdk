@@ -1,5 +1,7 @@
 import { assert } from '../../utils/assert';
-import { KeyIndex, PriorityIndex, ValueIndex } from "../core/snap/IndexFactory";
+import { KEY_INDEX } from "../core/snap/indexes/KeyIndex";
+import { PRIORITY_INDEX } from "../core/snap/indexes/PriorityIndex";
+import { VALUE_INDEX } from "../core/snap/indexes/ValueIndex";
 import { PathIndex } from "../core/snap/indexes/PathIndex";
 import { MIN_NAME,MAX_NAME,ObjectToUniqueKey } from "../core/util/util";
 import { Path } from "../core/util/Path";
@@ -15,6 +17,7 @@ import { ValueEventRegistration, ChildEventRegistration } from "../core/view/Eve
 import { Deferred, attachDummyErrorHandler } from "../../utils/promise";
 import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
+import { QueryParams } from "../core/view/QueryParams";
 
 /**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
@@ -23,23 +26,8 @@ import { Repo } from "../core/Repo";
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query {
-  repo: Repo;
-  path;
-  queryParams_;
-  orderByCalled_;
 
-  /**
-   * @param {!Repo} repo
-   * @param {!Path} path
-   * @param {!QueryParams} queryParams
-   * @param {!boolean} orderByCalled
-   */
-  constructor(repo, path, queryParams, orderByCalled) {
-    this.repo = repo;
-    this.path = path;
-    this.queryParams_ = queryParams;
-    this.orderByCalled_ = orderByCalled;
-  }
+  constructor(public repo: Repo, public path: Path, private queryParams_: QueryParams, private orderByCalled_: boolean) {}
 
   /**
    * Validates start/end values for queries.
@@ -56,7 +44,7 @@ export class Query {
       endNode = params.getIndexEndValue();
     }
 
-    if (params.getIndex() === KeyIndex) {
+    if (params.getIndex() === KEY_INDEX) {
       var tooManyArgsError = 'Query: When ordering by key, you may only pass one argument to ' +
           'startAt(), endAt(), or equalTo().';
       var wrongArgTypeError = 'Query: When ordering by key, the argument passed to startAt(), endAt(),' +
@@ -78,7 +66,7 @@ export class Query {
         }
       }
     }
-    else if (params.getIndex() === PriorityIndex) {
+    else if (params.getIndex() === PRIORITY_INDEX) {
       if ((startNode != null && !isValidPriority(startNode)) ||
           (endNode != null && !isValidPriority(endNode))) {
         throw new Error('Query: When ordering by priority, the first argument passed to startAt(), ' +
@@ -86,7 +74,7 @@ export class Query {
       }
     } else {
       assert((params.getIndex() instanceof PathIndex) ||
-                          (params.getIndex() === ValueIndex), 'unknown index type.');
+                          (params.getIndex() === VALUE_INDEX), 'unknown index type.');
       if ((startNode != null && typeof startNode === 'object') ||
           (endNode != null && typeof endNode === 'object')) {
         throw new Error('Query: First argument passed to startAt(), endAt(), or equalTo() cannot be ' +
@@ -324,7 +312,7 @@ export class Query {
   orderByKey() {
     validateArgCount('Query.orderByKey', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByKey');
-    var newParams = this.queryParams_.orderBy(KeyIndex);
+    var newParams = this.queryParams_.orderBy(KEY_INDEX);
     this.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/true);
   }
@@ -336,7 +324,7 @@ export class Query {
   orderByPriority() {
     validateArgCount('Query.orderByPriority', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByPriority');
-    var newParams = this.queryParams_.orderBy(PriorityIndex);
+    var newParams = this.queryParams_.orderBy(PRIORITY_INDEX);
     this.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/true);
   }
@@ -348,7 +336,7 @@ export class Query {
   orderByValue() {
     validateArgCount('Query.orderByValue', 0, 0, arguments.length);
     this.validateNoPreviousOrderByCall_('Query.orderByValue');
-    var newParams = this.queryParams_.orderBy(ValueIndex);
+    var newParams = this.queryParams_.orderBy(VALUE_INDEX);
     this.validateQueryEndpoints_(newParams);
     return new Query(this.repo, this.path, newParams, /*orderByCalled=*/true);
   }

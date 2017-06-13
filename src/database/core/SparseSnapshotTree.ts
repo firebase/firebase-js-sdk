@@ -1,5 +1,5 @@
 import { Path } from "./util/Path";
-import { PriorityIndex } from "./snap/IndexFactory";
+import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
 import { CountedSet } from "./util/CountedSet";
 
 /**
@@ -98,7 +98,7 @@ export class SparseSnapshotTree {
           this.value_ = null;
 
           var self = this;
-          value.forEachChild(PriorityIndex, function(key, tree) {
+          value.forEachChild(PRIORITY_INDEX, function(key, tree) {
             self.remember(new Path(key), tree);
           });
 

@@ -1,5 +1,5 @@
 import { IndexedFilter } from "./IndexedFilter";
-import { PriorityIndex } from "../../../core/snap/IndexFactory";
+import { PRIORITY_INDEX } from "../../../core/snap/indexes/PriorityIndex";
 import { NamedNode } from "../../../core/snap/Node";
 import { ChildrenNode } from "../../../core/snap/ChildrenNode";
 /**
@@ -89,7 +89,7 @@ export class RangedFilter {
     // Don't support priorities on queries
     filtered = filtered.updatePriority(ChildrenNode.EMPTY_NODE);
     var self = this;
-    newSnap.forEachChild(PriorityIndex, function(key, childNode) {
+    newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
       if (!self.matches(new NamedNode(key, childNode))) {
         filtered = filtered.updateImmediateChild(key, ChildrenNode.EMPTY_NODE);
       }

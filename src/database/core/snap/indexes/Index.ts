@@ -76,3 +76,5 @@ export abstract class Index {
    */
   abstract toString(): string;
 };
+
+export const Fallback = {};

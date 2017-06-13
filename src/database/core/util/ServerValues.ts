@@ -3,7 +3,7 @@ import { Path } from "./Path";
 import { SparseSnapshotTree } from "../SparseSnapshotTree";
 import { LeafNode } from "../snap/LeafNode";
 import { nodeFromJSON } from "../snap/nodeFromJSON";
-import { PriorityIndex } from "../snap/IndexFactory";
+import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
 /**
  * Generate placeholders for deferred values.
  * @param {?Object} values
@@ -76,7 +76,7 @@ export const resolveDeferredValueSnapshot = function(node, serverValues) {
     if (priority !== childrenNode.getPriority().val()) {
       newNode = newNode.updatePriority(new LeafNode(priority));
     }
-    childrenNode.forEachChild(PriorityIndex, function(childName, childNode) {
+    childrenNode.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
       var newChildNode = resolveDeferredValueSnapshot(childNode, serverValues);
       if (newChildNode !== childNode) {
         newNode = newNode.updateImmediateChild(childName, newChildNode);

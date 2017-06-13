@@ -71,3 +71,5 @@ export class KeyIndex extends Index {
     return '.key';
   };
 };
+
+export const KEY_INDEX = new KeyIndex();

@@ -10,7 +10,8 @@ import {
   validatePriorityNode, 
   priorityHashText,
 } from "./snap";
-import { PriorityIndex, KeyIndex } from "./IndexFactory";
+import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
+import { KEY_INDEX } from "./indexes/KeyIndex";
 import { IndexMap } from "./IndexMap";
 import { NAME_COMPARATOR } from "./comparators";
 
@@ -185,7 +186,7 @@ export class ChildrenNode implements Node {
 
     var obj = { };
     var numKeys = 0, maxKey = 0, allIntegerKeys = true;
-    this.forEachChild(PriorityIndex, function(key, childNode) {
+    this.forEachChild(PRIORITY_INDEX, function(key, childNode) {
       obj[key] = childNode.val(opt_exportFormat);
 
       numKeys++;
@@ -220,7 +221,7 @@ export class ChildrenNode implements Node {
         toHash += 'priority:' + priorityHashText(
             /**@type {(!string|!number)} */ (this.getPriority().val())) + ':';
 
-      this.forEachChild(PriorityIndex, function(key, childNode) {
+      this.forEachChild(PRIORITY_INDEX, function(key, childNode) {
         var childHash = childNode.hash();
         if (childHash !== '')
           toHash += ':' + key + ':' + childHash;
@@ -394,7 +395,7 @@ export class ChildrenNode implements Node {
    * @inheritDoc
    */
   withIndex(indexDefinition) {
-    if (indexDefinition === KeyIndex || this.indexMap_.hasIndex(indexDefinition)) {
+    if (indexDefinition === KEY_INDEX || this.indexMap_.hasIndex(indexDefinition)) {
       return this;
     } else {
       var newIndexMap = this.indexMap_.addIndex(indexDefinition, this.children_);
@@ -406,7 +407,7 @@ export class ChildrenNode implements Node {
    * @inheritDoc
    */
   isIndexed(index) {
-    return index === KeyIndex || this.indexMap_.hasIndex(index);
+    return index === KEY_INDEX || this.indexMap_.hasIndex(index);
   };
 
   /**
@@ -423,8 +424,8 @@ export class ChildrenNode implements Node {
       if (!this.getPriority().equals(otherChildrenNode.getPriority())) {
         return false;
       } else if (this.children_.count() === otherChildrenNode.children_.count()) {
-        var thisIter = this.getIterator(PriorityIndex);
-        var otherIter = otherChildrenNode.getIterator(PriorityIndex);
+        var thisIter = this.getIterator(PRIORITY_INDEX);
+        var otherIter = otherChildrenNode.getIterator(PRIORITY_INDEX);
         var thisCurrent = thisIter.getNext();
         var otherCurrent = otherIter.getNext();
         while (thisCurrent && otherCurrent) {
@@ -451,7 +452,7 @@ export class ChildrenNode implements Node {
    * @return {?SortedMap.<NamedNode, Node>}
    */
   resolveIndex_(indexDefinition) {
-    if (indexDefinition === KeyIndex) {
+    if (indexDefinition === KEY_INDEX) {
       return null;
     } else {
       return this.indexMap_.get(indexDefinition.toString());
@@ -480,7 +481,7 @@ export class MaxNode extends ChildrenNode {
 
 
   equals(other) {
-    // Not that we every compare it, but MAX_NODE_ is only ever equal to itself
+    // Not that we every compare it, but MAX_NODE is only ever equal to itself
     return other === this;
   };
 
@@ -502,10 +503,26 @@ export class MaxNode extends ChildrenNode {
 
 /**
  * Marker that will sort higher than any other snapshot.
- * @type {!MAX_NODE_}
+ * @type {!MAX_NODE}
  * @const
  */
 export const MAX_NODE = new MaxNode();
 
-(NamedNode as any).MIN = new NamedNode(MIN_NAME, ChildrenNode.EMPTY_NODE);
-(NamedNode as any).MAX = new NamedNode(MAX_NAME, MAX_NODE);
+/**
+ * Document NamedNode extensions
+ */
+declare module './Node' {
+  interface NamedNode {
+    MIN: NamedNode,
+    MAX: NamedNode
+  }
+}
+
+Object.defineProperties(NamedNode, {
+  MIN: {
+    value: new NamedNode(MIN_NAME, ChildrenNode.EMPTY_NODE)
+  },
+  MAX: {
+    value: new NamedNode(MAX_NAME, MAX_NODE)
+  }
+});

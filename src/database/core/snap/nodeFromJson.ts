@@ -6,7 +6,7 @@ import { assert } from "../../../utils/assert";
 import { buildChildSet } from "./childSet";
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from "./comparators";
 import { IndexMap } from "./IndexMap";
-import { PriorityIndex } from "./IndexFactory";
+import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
 
 const USE_HINZE = true;
 
@@ -69,9 +69,9 @@ export const nodeFromJSON = function(json, opt_priority?) {
       NAME_COMPARATOR
     ));
     if (childrenHavePriority) {
-      var sortedChildSet = buildChildSet(children, PriorityIndex.getCompare());
+      var sortedChildSet = buildChildSet(children, PRIORITY_INDEX.getCompare());
       return new ChildrenNode(childSet, nodeFromJSON(priority),
-        new IndexMap({'.priority': sortedChildSet}, {'.priority': PriorityIndex}));
+        new IndexMap({'.priority': sortedChildSet}, {'.priority': PRIORITY_INDEX}));
     } else {
       return new ChildrenNode(childSet, nodeFromJSON(priority),
           IndexMap.Default);

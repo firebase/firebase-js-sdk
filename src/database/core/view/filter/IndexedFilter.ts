@@ -1,7 +1,7 @@
 import { assert } from "../../../../utils/assert";
 import { Change } from "../Change";
 import { ChildrenNode } from "../../snap/ChildrenNode";
-import { PriorityIndex } from "../../snap/IndexFactory";
+import { PRIORITY_INDEX } from "../../snap/indexes/PriorityIndex";
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes
@@ -65,14 +65,14 @@ export class IndexedFilter {
   updateFullNode(oldSnap, newSnap, optChangeAccumulator) {
     if (optChangeAccumulator != null) {
       if (!oldSnap.isLeafNode()) {
-        oldSnap.forEachChild(PriorityIndex, function(key, childNode) {
+        oldSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
           if (!newSnap.hasChild(key)) {
             optChangeAccumulator.trackChildChange(Change.childRemovedChange(key, childNode));
           }
         });
       }
       if (!newSnap.isLeafNode()) {
-        newSnap.forEachChild(PriorityIndex, function(key, childNode) {
+        newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
           if (oldSnap.hasChild(key)) {
             var oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {

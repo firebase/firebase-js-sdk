@@ -22,7 +22,8 @@ import {
 import { Deferred, attachDummyErrorHandler, PromiseImpl } from "../../utils/promise";
 
 export class Reference extends Query {
-  then;
+  public then;
+  public catch;
   /**
    * Call options:
    *   new Reference(Repo, Path) or
@@ -34,23 +35,13 @@ export class Reference extends Query {
    * @param {(!Path)} path
    * @extends {Query}
    */
-  constructor(repo, path) {
+  constructor(repo: Repo, path: Path) {
     if (!(repo instanceof Repo)) {
       throw new Error("new Reference() no longer supported - use app.database().");
     }
 
     // call Query's constructor, passing in the repo and path.
-    super(repo, path, QueryParams.DEFAULT, /*orderByCalled=*/false);
-
-    /**
-     * When defined is the then function for the promise + Firebase hybrid
-     * returned by push() When then is defined, catch will be as well, though
-     * it's created using some hackery to get around conflicting ES3 and Closure
-     * Compiler limitations.
-     * @type {Function|undefined}
-     */
-    this.then = void 0;
-    /** @type {letMeUseMapAccessors} */ (this)['catch'] = void 0;
+    super(repo, path, QueryParams.DEFAULT, false);
   }
 
   /** @return {?string} */

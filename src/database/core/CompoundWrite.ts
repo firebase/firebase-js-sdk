@@ -2,7 +2,7 @@ import { ImmutableTree } from "./util/ImmutableTree";
 import { Path } from "./util/Path";
 import { forEach } from "../../utils/obj";
 import { NamedNode } from "./snap/Node";
-import { PriorityIndex } from "./snap/IndexFactory";
+import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
 import { assert } from "../../utils/assert";
 
 /**
@@ -121,7 +121,7 @@ export class CompoundWrite {
       // If it's a leaf node, it has no children; so nothing to do.
       if (!node.isLeafNode()) {
         node = /** @type {!ChildrenNode} */ (node);
-        node.forEachChild(PriorityIndex, function(childName, childNode) {
+        node.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
           children.push(new NamedNode(childName, childNode));
         });
       }

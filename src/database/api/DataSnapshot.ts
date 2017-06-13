@@ -2,7 +2,7 @@ import { validateArgCount, validateCallback } from "../../utils/validation";
 import { validatePathString } from "../core/util/validation";
 import { Path } from "../core/util/Path";
 import { exportPropGetter } from "../core/util/util";
-import { PriorityIndex } from "../core/snap/IndexFactory";
+import { PRIORITY_INDEX } from "../core/snap/indexes/PriorityIndex";
 
 /**
  * Class representing a firebase data snapshot.  It wraps a SnapshotNode and
@@ -90,7 +90,7 @@ DataSnapshot.prototype.child = function(childPathString) {
 
   var childPath = new Path(childPathString);
   var childRef = this.query_.child(childPath);
-  return new DataSnapshot(this.node_.getChild(childPath), childRef, PriorityIndex);
+  return new DataSnapshot(this.node_.getChild(childPath), childRef, PRIORITY_INDEX);
 };
 
 /**
@@ -138,7 +138,7 @@ DataSnapshot.prototype.forEach = function(action) {
   var self = this;
   // Sanitize the return value to a boolean. ChildrenNode.forEachChild has a weird return type...
   return !!childrenNode.forEachChild(this.index_, function(key, node) {
-    return action(new DataSnapshot(node, self.query_.child(key), PriorityIndex));
+    return action(new DataSnapshot(node, self.query_.child(key), PRIORITY_INDEX));
   });
 };
 

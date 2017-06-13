@@ -70,3 +70,5 @@ export class ValueIndex extends Index {
     return '.value';
   };
 };
+
+export const VALUE_INDEX = new ValueIndex();

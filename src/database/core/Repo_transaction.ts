@@ -3,7 +3,7 @@ import { Reference } from "../api/Reference";
 import { DataSnapshot } from "../api/DataSnapshot";
 import { Path } from "./util/Path";
 import { Tree } from "./util/Tree";
-import { PriorityIndex } from "./snap/IndexFactory";
+import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
 import { 
   LUIDGenerator,
   warn,
@@ -157,7 +157,7 @@ declare module './Repo' {
     if (transaction.onComplete) {
       // We just set the input snapshot, so this cast should be safe
       var snapshot = new DataSnapshot(/** @type {!Node} */ (transaction.currentInputSnapshot),
-        new Reference(this, transaction.path), PriorityIndex);
+        new Reference(this, transaction.path), PRIORITY_INDEX);
       transaction.onComplete(/*error=*/null, /*committed=*/false, snapshot);
     }
   } else {
@@ -294,7 +294,7 @@ declare module './Repo' {
           // We never unset the output snapshot, and given that this transaction is complete, it should be set
           var node = /** @type {!Node} */ (queue[i].currentOutputSnapshotResolved);
           var ref = new Reference(self, queue[i].path);
-          var snapshot = new DataSnapshot(node, ref, PriorityIndex);
+          var snapshot = new DataSnapshot(node, ref, PRIORITY_INDEX);
           callbacks.push(queue[i].onComplete.bind(null, null, true, snapshot));
         }
         queue[i].unwatcher();
@@ -443,7 +443,7 @@ declare module './Repo' {
           var ref = new Reference(this, queue[i].path);
           // We set this field immediately, so it's safe to cast to an actual snapshot
           var lastInput = /** @type {!Node} */ (queue[i].currentInputSnapshot);
-          var snapshot = new DataSnapshot(lastInput, ref, PriorityIndex);
+          var snapshot = new DataSnapshot(lastInput, ref, PRIORITY_INDEX);
           callbacks.push(queue[i].onComplete.bind(null, null, false, snapshot));
         } else {
           callbacks.push(queue[i].onComplete.bind(null, new Error(abortReason), false, null));
