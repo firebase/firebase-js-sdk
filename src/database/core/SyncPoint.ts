@@ -55,7 +55,7 @@ export class SyncPoint {
     } else {
       var events = [];
 
-      forEach(this.views_, function(view) {
+      forEach(this.views_, function(key, view) {
         events = events.concat(view.applyOperation(operation, writesCache, optCompleteServerCache));
       });
 
@@ -122,7 +122,7 @@ export class SyncPoint {
     if (queryId === 'default') {
       // When you do ref.off(...), we search all views for the registration to remove.
       var self = this;
-      forEach(this.views_, function(view, viewQueryId) {
+      forEach(this.views_, function(viewQueryId, view) {
         cancelEvents = cancelEvents.concat(view.removeEventRegistration(eventRegistration, cancelError));
         if (view.isEmpty()) {
           delete self.views_[viewQueryId];
@@ -175,7 +175,7 @@ export class SyncPoint {
    */
   getCompleteServerCache(path) {
     var serverCache = null;
-    forEach(this.views_, function(view) {
+    forEach(this.views_, (key, view) => {
       serverCache = serverCache || view.getCompleteServerCache(path);
     });
     return serverCache;

@@ -72,6 +72,7 @@
     "karma-spec-reporter": "^0.0.30",
     "karma-typescript": "^3.0.1",
     "karma-webpack": "^2.0.3",
+    "lodash": "^4.17.4",
     "merge2": "^1.0.3",
     "mkdirp": "^0.5.1",
     "require-dir": "^0.3.1",

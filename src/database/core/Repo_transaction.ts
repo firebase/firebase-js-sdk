@@ -88,6 +88,12 @@ export const TransactionStatus = {
   this.transactionQueueTree_ = new Tree();
 };
 
+declare module './Repo' {
+  interface Repo {
+    startTransaction(path: Path, transactionUpdate, onComplete, applyLocally): void
+  }
+}
+
 /**
  * Creates a new transaction, adds it to the transactions we're tracking, and sends it to the server if possible.
  *

@@ -126,7 +126,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  update(objectToMerge, opt_onComplete) {
+  update(objectToMerge, onComplete?) {
     validateArgCount('Firebase.update', 1, 2, arguments.length);
     validateWritablePath('Firebase.update', this.path);
 
@@ -143,9 +143,9 @@ export class Reference extends Query {
       );
     }
     validateFirebaseMergeDataArg('Firebase.update', 1, objectToMerge, this.path, false);
-    validateCallback('Firebase.update', 2, opt_onComplete, true);
+    validateCallback('Firebase.update', 2, onComplete, true);
     var deferred = new Deferred();
-    this.repo.update(this.path, objectToMerge, deferred.wrapCallback(opt_onComplete));
+    this.repo.update(this.path, objectToMerge, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
@@ -155,18 +155,18 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  setWithPriority(newVal, newPriority, opt_onComplete) {
+  setWithPriority(newVal, newPriority, onComplete?) {
     validateArgCount('Firebase.setWithPriority', 2, 3, arguments.length);
     validateWritablePath('Firebase.setWithPriority', this.path);
     validateFirebaseDataArg('Firebase.setWithPriority', 1, newVal, this.path, false);
     validatePriority('Firebase.setWithPriority', 2, newPriority, false);
-    validateCallback('Firebase.setWithPriority', 3, opt_onComplete, true);
+    validateCallback('Firebase.setWithPriority', 3, onComplete, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
       throw 'Firebase.setWithPriority failed: ' + this.getKey() + ' is a read-only object.';
 
     var deferred = new Deferred();
-    this.repo.setWithPriority(this.path, newVal, newPriority, deferred.wrapCallback(opt_onComplete));
+    this.repo.setWithPriority(this.path, newVal, newPriority, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
@@ -174,12 +174,12 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  remove(opt_onComplete) {
+  remove(onComplete?) {
     validateArgCount('Firebase.remove', 0, 1, arguments.length);
     validateWritablePath('Firebase.remove', this.path);
-    validateCallback('Firebase.remove', 1, opt_onComplete, true);
+    validateCallback('Firebase.remove', 1, onComplete, true);
 
-    return this.set(null, opt_onComplete);
+    return this.set(null, onComplete);
   }
 
   /**
@@ -228,14 +228,14 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  setPriority(priority, opt_onComplete) {
+  setPriority(priority, onComplete?) {
     validateArgCount('Firebase.setPriority', 1, 2, arguments.length);
     validateWritablePath('Firebase.setPriority', this.path);
     validatePriority('Firebase.setPriority', 1, priority, false);
-    validateCallback('Firebase.setPriority', 2, opt_onComplete, true);
+    validateCallback('Firebase.setPriority', 2, onComplete, true);
 
     var deferred = new Deferred();
-    this.repo.setWithPriority(this.path.child('.priority'), priority, null, deferred.wrapCallback(opt_onComplete));
+    this.repo.setWithPriority(this.path.child('.priority'), priority, null, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
@@ -244,11 +244,11 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!Firebase}
    */
-  push(opt_value, opt_onComplete) {
+  push(value?, onComplete?) {
     validateArgCount('Firebase.push', 0, 2, arguments.length);
     validateWritablePath('Firebase.push', this.path);
-    validateFirebaseDataArg('Firebase.push', 1, opt_value, this.path, true);
-    validateCallback('Firebase.push', 2, opt_onComplete, true);
+    validateFirebaseDataArg('Firebase.push', 1, value, this.path, true);
+    validateCallback('Firebase.push', 2, onComplete, true);
 
     var now = this.repo.serverTime();
     var name = nextPushId(now);
@@ -262,8 +262,8 @@ export class Reference extends Query {
     var pushRef = this.child(name);
 
     var promise;
-    if (opt_value != null) {
-      promise = thennablePushRef.set(opt_value, opt_onComplete).then(function () { return pushRef; });
+    if (value != null) {
+      promise = thennablePushRef.set(value, onComplete).then(function () { return pushRef; });
     } else {
       promise = PromiseImpl.resolve(pushRef);
     }
@@ -271,7 +271,7 @@ export class Reference extends Query {
     thennablePushRef.then = promise.then.bind(promise);
     /** @type {letMeUseMapAccessors} */ (thennablePushRef)["catch"] = promise.then.bind(promise, undefined);
 
-    if (typeof opt_onComplete === 'function') {
+    if (typeof onComplete === 'function') {
       attachDummyErrorHandler(promise);
     }
 
@@ -285,6 +285,22 @@ export class Reference extends Query {
     validateWritablePath('Firebase.onDisconnect', this.path);
     return new OnDisconnect(this.repo, this.path);
   }
+
+  get database() {
+    return this.databaseProp();
+  }
+
+  get key() {
+    return this.getKey();
+  }
+
+  get parent() {
+    return this.getParent();
+  }
+
+  get root() {
+    return this.getRoot();
+  }
 }
 
 Object.defineProperty(Query.prototype, 'getRef', {
@@ -295,12 +311,4 @@ Object.defineProperty(Query.prototype, 'getRef', {
     // method gets called.
     return new Reference(this.repo, this.path);
   }
-})
-
-// Internal code should NOT use these exported properties - because when they are
-// minified, they will refernce the minified name.  We could fix this by including
-// our our externs file for all our exposed symbols.
-exportPropGetter(Reference.prototype, 'database', Reference.prototype.databaseProp);
-exportPropGetter(Reference.prototype, 'key', Reference.prototype.getKey);
-exportPropGetter(Reference.prototype, 'parent', Reference.prototype.getParent);
-exportPropGetter(Reference.prototype, 'root', Reference.prototype.getRoot);
+});

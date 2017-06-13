@@ -60,7 +60,7 @@ function runBrowserUnitTests(dev = false) {
         './tests/**/binary/**/*.test.ts',
       ],
 
-      browsers: dev ? [ 'ChromeHeadless' ] : globalKarmaConf.browsers
+      browsers: dev ? [ 'Chrome' ] : globalKarmaConf.browsers
     });
     new karma.Server(karmaConfig, exitCode => {
       if (dev) return done();

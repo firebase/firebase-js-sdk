@@ -32,7 +32,7 @@ export class Repo {
   statsListener_;
   eventQueue_;
   nextWriteId_;
-  persistentConnection_;
+  persistentConnection_ : PersistentConnection | null;
   server_;
   statsReporter_;
   transactions_init_;

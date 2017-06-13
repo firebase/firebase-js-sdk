@@ -22,7 +22,6 @@ export class IndexedFilter {
   }
 
   updateChild(snap, key, newChild, affectedPath, source, optChangeAccumulator) {
-    var Change = Change;
     assert(snap.isIndexed(this.index_), 'A node must be indexed if only a child is updated');
     var oldChild = snap.getImmediateChild(key);
     // Check if anything actually changed.
@@ -64,7 +63,6 @@ export class IndexedFilter {
    * @inheritDoc
    */
   updateFullNode(oldSnap, newSnap, optChangeAccumulator) {
-    var Change = Change;
     if (optChangeAccumulator != null) {
       if (!oldSnap.isLeafNode()) {
         oldSnap.forEachChild(PriorityIndex, function(key, childNode) {

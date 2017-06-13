@@ -13,6 +13,8 @@ import {
 import { errorPrefix, validateArgCount, validateCallback, validateContextObject } from "../../utils/validation";
 import { ValueEventRegistration, ChildEventRegistration } from "../core/view/EventRegistration";
 import { Deferred, attachDummyErrorHandler } from "../../utils/promise";
+import { Reference } from "./Reference";
+import { Repo } from "../core/Repo";
 
 /**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
@@ -21,7 +23,7 @@ import { Deferred, attachDummyErrorHandler } from "../../utils/promise";
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query {
-  repo;
+  repo: Repo;
   path;
   queryParams_;
   orderByCalled_;
@@ -125,6 +127,17 @@ export class Query {
   }
 
   /**
+   * @return {!Firebase}
+   */
+  getRef() {
+    validateArgCount('Query.ref', 0, 0, arguments.length);
+    // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
+    // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
+    // method gets called.
+    return new Reference(this.repo, this.path);
+  }
+
+  /**
    * @param {!string} eventType
    * @param {!function(DataSnapshot, string=)} callback
    * @param {(function(Error)|Object)=} opt_cancelCallbackOrContext
@@ -201,12 +214,12 @@ export class Query {
    * @param {!function(!DataSnapshot, string=)} userCallback
    * @return {!firebase.Promise}
    */
-  once(eventType, userCallback) {
+  once(eventType, userCallback?, cancelOrContext?, context?) {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
 
-    var ret = this.getCancelAndContextArgs_('Query.once', arguments[2], arguments[3]);
+    var ret = this.getCancelAndContextArgs_('Query.once', cancelOrContext, context);
 
     // TODO: Implement this more efficiently (in particular, use 'get' wire protocol for 'value' event)
     // TODO: consider actually wiring the callbacks into the promise. We cannot do this without a breaking change
@@ -245,7 +258,7 @@ export class Query {
    * @param {!number} limit
    * @return {!Query}
    */
-  limitToFirst(limit) {
+  limitToFirst(limit): Query {
     validateArgCount('Query.limitToFirst', 1, 1, arguments.length);
     if (typeof limit !== 'number' || Math.floor(limit) !== limit || limit <= 0) {
       throw new Error('Query.limitToFirst: First argument must be a positive integer.');
@@ -263,7 +276,7 @@ export class Query {
    * @param {!number} limit
    * @return {!Query}
    */
-  limitToLast(limit) {
+  limitToLast(limit?): Query {
     validateArgCount('Query.limitToLast', 1, 1, arguments.length);
     if (typeof limit !== 'number' || Math.floor(limit) !== limit || limit <= 0) {
       throw new Error('Query.limitToLast: First argument must be a positive integer.');
@@ -345,12 +358,12 @@ export class Query {
    * @param {?string=} opt_name
    * @return {!Query}
    */
-  startAt(value, opt_name) {
+  startAt(value = null, name?) {
     validateArgCount('Query.startAt', 0, 2, arguments.length);
     validateFirebaseDataArg('Query.startAt', 1, value, this.path, true);
-    validateKey('Query.startAt', 2, opt_name, true);
+    validateKey('Query.startAt', 2, name, true);
 
-    var newParams = this.queryParams_.startAt(value, opt_name);
+    var newParams = this.queryParams_.startAt(value, name);
     this.validateLimit_(newParams);
     this.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasStart()) {
@@ -361,7 +374,7 @@ export class Query {
     // Calling with no params tells us to start at the beginning.
     if (value == null) {
       value = null;
-      opt_name = null;
+      name = null;
     }
     return new Query(this.repo, this.path, newParams, this.orderByCalled_);
   }
@@ -371,12 +384,12 @@ export class Query {
    * @param {?string=} opt_name
    * @return {!Query}
    */
-  endAt(value, opt_name) {
+  endAt(value = null, name?) {
     validateArgCount('Query.endAt', 0, 2, arguments.length);
     validateFirebaseDataArg('Query.endAt', 1, value, this.path, true);
-    validateKey('Query.endAt', 2, opt_name, true);
+    validateKey('Query.endAt', 2, name, true);
 
-    var newParams = this.queryParams_.endAt(value, opt_name);
+    var newParams = this.queryParams_.endAt(value, name);
     this.validateLimit_(newParams);
     this.validateQueryEndpoints_(newParams);
     if (this.queryParams_.hasEnd()) {
@@ -394,10 +407,10 @@ export class Query {
    * @param {string=} opt_name
    * @return {!Query}
    */
-  equalTo(value, opt_name) {
+  equalTo(value, name?) {
     validateArgCount('Query.equalTo', 1, 2, arguments.length);
     validateFirebaseDataArg('Query.equalTo', 1, value, this.path, false);
-    validateKey('Query.equalTo', 2, opt_name, true);
+    validateKey('Query.equalTo', 2, name, true);
     if (this.queryParams_.hasStart()) {
       throw new Error('Query.equalTo: Starting point was already set (by another call to startAt or ' +
           'equalTo).');
@@ -406,7 +419,7 @@ export class Query {
       throw new Error('Query.equalTo: Ending point was already set (by another call to endAt or ' +
           'equalTo).');
     }
-    return this.startAt(value, opt_name).endAt(value, opt_name);
+    return this.startAt(value, name).endAt(value, name);
   }
 
   /**
@@ -448,7 +461,7 @@ export class Query {
    * @param {Query} other
    * @return {boolean}
    */
-  isEqual(other) {
+  isEqual(other?) {
     validateArgCount('Query.isEqual', 1, 1, arguments.length);
     if (!(other instanceof Query)) {
       var error = 'Query.isEqual failed: First argument must be an instance of firebase.database.Query.';
@@ -489,5 +502,9 @@ export class Query {
       }
     }
     return ret;
+  }
+
+  get ref() {
+    return this.getRef();
   }
 }; // end Query

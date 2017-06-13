@@ -6,7 +6,7 @@ import { NamedNode } from "../../src/database/core/snap/Node";
 import { nodeFromJSON } from "../../src/database/core/snap/nodeFromJSON";
 import { Path } from "../../src/database/core/util/Path";
 
-describe.only('CompoundWrite Tests', function() {
+describe('CompoundWrite Tests', function() {
   var LEAF_NODE = nodeFromJSON('leaf-node');
   var PRIO_NODE = nodeFromJSON('prio');
   var CHILDREN_NODE = nodeFromJSON({ 'child-1': 'value-1', 'child-2': 'value-2' });

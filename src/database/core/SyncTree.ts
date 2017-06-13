@@ -11,6 +11,7 @@ import { Overwrite } from "./operation/Overwrite";
 import { Path } from "./util/Path";
 import { SyncPoint } from "./SyncPoint";
 import { WriteTree } from "./WriteTree";
+import { Query } from "../api/Query";
 
 /**
  * @typedef {{
@@ -439,7 +440,7 @@ export class SyncTree {
         if (maybeChildSyncPoint) {
           views = maybeChildSyncPoint.getQueryViews();
         }
-        childMap.forEach(function(childViews) {
+        forEach(childMap, function(key, childViews) {
           views = views.concat(childViews);
         });
         return views;
@@ -471,7 +472,7 @@ export class SyncTree {
    * @return {!Query} The normalized query
    * @private
    */
-  queryForListening_(query) {
+  queryForListening_(query: Query) {
     if (query.getQueryParams().loadsAllData() && !query.getQueryParams().isDefault()) {
       // We treat queries that load all data as default queries
       // Cast is necessary because ref() technically returns Firebase which is actually fb.api.Firebase which inherits

@@ -33,7 +33,7 @@ export class SortedMapIterator {
   /** @private
    * @type {Array.<!LLRBNode>}
    */
-  nodeStack_;
+  nodeStack_: Array<LLRBNode>;
 
   /**
    * @template K, V, T
@@ -119,11 +119,11 @@ export class SortedMapIterator {
     if (this.nodeStack_.length === 0)
       return null;
 
-    var node = this.nodeStack_[this.nodeStack_ - 1];
+    var node = this.nodeStack_[this.nodeStack_.length - 1];
     if (this.resultGenerator_) {
       return this.resultGenerator_(node.key, node.value);
     } else {
-      return {key: node.key, value: node.value};
+      return { key: node.key, value: node.value };
     }
   }
 }; // end SortedMapIterator
