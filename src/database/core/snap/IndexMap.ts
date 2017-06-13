@@ -4,16 +4,6 @@ import { contains, clone, map } from "../../../utils/obj";
 import { NamedNode } from "./Node";
 import { PriorityIndex, KeyIndex, Fallback } from "./IndexFactory";
 
-const defaultParams = [{},{}];
-
-Object.defineProperty(defaultParams[0], '.priority', {
-  get: () => Fallback
-});
-
-Object.defineProperty(defaultParams[1], '.priority', {
-  get: () => PriorityIndex
-})
-
 /**
  *
  * @param {Object.<string, FallbackType|SortedMap.<NamedNode, Node>>} indexes
@@ -29,7 +19,7 @@ export class IndexMap {
    * @type {!IndexMap}
    * @const
    */
-  static Default = new IndexMap(defaultParams[0], defaultParams[1]);
+  static Default = new IndexMap(Fallback, PriorityIndex);
 
   constructor(indexes, indexSet) {
     this.indexes_ = indexes;
