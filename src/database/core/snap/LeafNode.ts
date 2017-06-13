@@ -8,6 +8,7 @@ import {
   validatePriorityNode
 } from "./snap";
 import { ChildrenNode } from "./ChildrenNode";
+import { Node } from "./Node";
 
 
 /**
@@ -15,7 +16,7 @@ import { ChildrenNode } from "./ChildrenNode";
  * implements Node and stores the value of the node (a string,
  * number, or boolean) accessible via getValue().
  */
-export class LeafNode {
+export class LeafNode implements Node {
   value_;
   priorityNode_;
   lazyHash_;
@@ -128,9 +129,7 @@ export class LeafNode {
       assert(front !== '.priority' || path.getLength() === 1,
           '.priority must be the last token in a path');
 
-      return this.updateImmediateChild(front,
-                                       ChildrenNode.EMPTY_NODE.updateChild(path.popFront(),
-                                                                           newChildNode));
+      return this.updateImmediateChild(front, ChildrenNode.EMPTY_NODE.updateChild(path.popFront(), newChildNode));
     }
   }
 

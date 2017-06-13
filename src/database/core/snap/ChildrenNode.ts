@@ -5,7 +5,7 @@ import {
   MIN_NAME
 } from "../util/util";
 import { SortedMap } from "../util/SortedMap";
-import { NamedNode } from "./Node";
+import { Node, NamedNode } from "./Node";
 import { 
   validatePriorityNode, 
   priorityHashText,
@@ -30,7 +30,7 @@ let EMPTY_NODE;
  * @param {?Node} priorityNode The priority of this node (as a snapshot node).
  * @param {!IndexMap} indexMap
  */
-export class ChildrenNode {
+export class ChildrenNode implements Node {
   children_;
   priorityNode_;
   indexMap_;
@@ -491,7 +491,7 @@ export class MaxNode extends ChildrenNode {
 
 
   getImmediateChild(childName) {
-    ChildrenNode.EMPTY_NODE;
+    return ChildrenNode.EMPTY_NODE;
   };
 
 
