@@ -145,9 +145,9 @@ export class Reference extends Query {
    * @param {*} newVal
    * @param {string|number|null} newPriority
    * @param {function(?Error)=} opt_onComplete
-   * @return {!firebase.Promise}
+   * @return {!Promise}
    */
-  setWithPriority(newVal, newPriority, onComplete?) {
+  setWithPriority(newVal, newPriority, onComplete?): Promise<any> {
     validateArgCount('Firebase.setWithPriority', 2, 3, arguments.length);
     validateWritablePath('Firebase.setWithPriority', this.path);
     validateFirebaseDataArg('Firebase.setWithPriority', 1, newVal, this.path, false);
@@ -220,7 +220,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} opt_onComplete
    * @return {!firebase.Promise}
    */
-  setPriority(priority, onComplete?) {
+  setPriority(priority, onComplete?): Promise<any> {
     validateArgCount('Firebase.setPriority', 1, 2, arguments.length);
     validateWritablePath('Firebase.setPriority', this.path);
     validatePriority('Firebase.setPriority', 1, priority, false);

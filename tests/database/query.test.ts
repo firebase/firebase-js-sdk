@@ -15,7 +15,7 @@ const _ = require('lodash');
 
 type TaskList = [Query, any][];
 
-describe.only('Query Tests', function() {
+describe('Query Tests', function() {
 
   // Little helper class for testing event callbacks w/ contexts.
   var EventReceiver = function() {
@@ -467,6 +467,7 @@ describe.only('Query Tests', function() {
     });
 
     expect(expected).to.equal(10);
+    return;
   });
 
   it('Set various limits, ensure resulting data is correct.', async function() {
@@ -588,36 +589,28 @@ describe.only('Query Tests', function() {
     expect(removed).to.equal('b ');
   });
 
-  // it('Set limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
-  //   var node = getRandomNode();
+  it('Set limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
+    var node = <Reference>getRandomNode();
 
-  //   await node.set({a: 1, b: 2, c: 3});
+    var added = '', removed = '';
+    node.limitToLast(2).on('child_added', function(snap) { 
+      added += snap.key + ' '; 
+    });
+    node.limitToLast(2).on('child_removed', function(snap) { 
+      removed += snap.key + ' '
+    });
 
-  //   var added = '', removed = '';
-  //   runs(function() {
-  //     count = 0;
-  //     node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '; count++; });
-  //     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   });
+    await node.set({a: 1, b: 2, c: 3});
 
-  //   waitsFor(function() { return count === 2; }, 'Two events', TEST_TIMEOUT);
+    expect(added).to.equal('b c ');
+    expect(removed).to.equal('');
 
-  //   runs(function() {
-  //     expect(added).to.equal('b c ');
-  //     expect(removed).to.equal('');
+    added = '';
+    await node.child('d').set(4);
 
-  //     added = '';
-  //     done = false;
-  //     node.child('d').set(4, function() { done = true; });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Second set', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(added).to.equal('d ');
-  //     expect(removed).to.equal('b ');
-  //   });
-  // });
+    expect(added).to.equal('d ');
+    expect(removed).to.equal('b ');
+  });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit.', function() {
     var node = <Reference>getRandomNode();
@@ -635,42 +628,29 @@ describe.only('Query Tests', function() {
     expect(removed).to.equal('b ');
   });
 
-  // it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
-  //   var node = getRandomNode(),
-  //       done, count;
+  it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
+    var node = <Reference>getRandomNode()
 
-  //   var added = '', removed = '';
-  //   runs(function() {
-  //     done = false;
-  //     node.set({a: 1, b: 2, c: 3}, function() { done = true; });
-  //   });
+    var added = '', removed = '';
 
-  //   waitsFor(function() { return done; }, 'Finished setting', TEST_TIMEOUT);
+    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { 
+      added += snap.key + ' '; 
+    });
+    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { 
+      removed += snap.key + ' '
+    });
+    
+    await node.set({a: 1, b: 2, c: 3});
 
-  //   runs(function() {
-  //     count = 0;
-  //     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { added += snap.key + ' '; count++; });
-  //     node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   });
+    expect(added).to.equal('a b ');
+    expect(removed).to.equal('');
 
-  //   waitsFor(function() { return count === 2; }, 'Two events', TEST_TIMEOUT);
+    added = '';
+    await node.child('aa').set(4);
 
-  //   runs(function() {
-  //     expect(added).to.equal('a b ');
-  //     expect(removed).to.equal('');
-
-  //     added = '';
-  //     done = false;
-  //     node.child('aa').set(4, function() { done = true; });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Second set', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(added).to.equal('aa ');
-  //     expect(removed).to.equal('b ');
-  //   });
-  // });
+    expect(added).to.equal('aa ');
+    expect(removed).to.equal('b ');
+  });
 
   it("Set start and limit, ensure child_added events are fired when limit isn't hit yet.", function() {
     var node = <Reference>getRandomNode();
@@ -688,94 +668,72 @@ describe.only('Query Tests', function() {
     expect(removed).to.equal('');
   });
 
-  // it("Set start and limit, ensure child_added events are fired when limit isn't hit yet, using server data", async function() {
-  //   var node = getRandomNode(),
-  //       done, added, removed;
+  it("Set start and limit, ensure child_added events are fired when limit isn't hit yet, using server data", async function() {
+    var node = <Reference>getRandomNode();
 
-  //   runs(function() {
-  //     done = false;
-  //     node.set({c: 3}, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Finished setting', TEST_TIMEOUT);
+    let added = '';
+    let removed = '';
+    
+    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { 
+      added += snap.key + ' '
+    });
+    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { 
+      removed += snap.key + ' '
+    });
+    
+    await node.set({c: 3});
 
-  //   runs(function() {
-  //     added = '';
-  //     removed = '';
-  //     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { added += snap.key + ' '});
-  //     node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   });
-  //   waitsFor(function() { return added !== ''; }, 'First add', TEST_TIMEOUT);
+    expect(added).to.equal('c ');
+    expect(removed).to.equal('');
 
-  //   runs(function() {
-  //     expect(added).to.equal('c ');
-  //     expect(removed).to.equal('');
+    added = '';
+    await node.child('b').set(4);
 
-  //     added = '';
-  //     done = false;
-  //     node.child('b').set(4, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Finished second set', TEST_TIMEOUT);
+    expect(added).to.equal('b ');
+    expect(removed).to.equal('');
+  });
 
-  //   runs(function() {
-  //     expect(added).to.equal('b ');
-  //     expect(removed).to.equal('');
-  //   });
-  // });
+  it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item.', async function() {
+    var node = <Reference>getRandomNode();
 
-  // it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item.', async function() {
-  //   var node = <Reference>getRandomNode();
+    var added = '', removed = '';
+    node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '});
+    node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
+    
+    await node.set({a: 1, b: 2, c: 3});
+    
+    expect(added).to.equal('b c ');
+    expect(removed).to.equal('');
 
-  //   var added = '', removed = '';
-  //   node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '});
-  //   node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   node.set({a: 1, b: 2, c: 3});
-  //   expect(added).to.equal('b c ');
-  //   expect(removed).to.equal('');
+    added = '';
+    
+    await node.child('b').remove();
+    
+    expect(removed).to.equal('b ');
+  });
 
-  //   added = '';
-  //   node.child('b').remove();
-  //   expect(removed).to.equal('b ');
+  it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item. Using server data', async function() {
+    var node = <Reference>getRandomNode();
 
-  //   waitsFor(function() { return added === 'a '; }, 'a to be added', TEST_TIMEOUT);
-  // });
+    var added = '', removed = '';
+    node.limitToLast(2).on('child_added', function(snap) { 
+      added += snap.key + ' '; 
+    });
+    node.limitToLast(2).on('child_removed', function(snap) { 
+      removed += snap.key + ' '
+    });
+    
+    await node.set({a: 1, b: 2, c: 3});
 
-  // it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item. Using server data', async function() {
-  //   var node = getRandomNode(),
-  //       done, count;
+    expect(added).to.equal('b c ');
+    expect(removed).to.equal('');
 
-  //   var added = '', removed = '';
-  //   runs(function() {
-  //     done = false;
-  //     node.set({a: 1, b: 2, c: 3}, function() { done = true; });
-  //   });
+    added = '';
+    
+    await node.child('b').remove();
 
-  //   waitsFor(function() { return done; }, 'Finished setting', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     count = 0;
-  //     node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '; count++; });
-  //     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   });
-
-  //   waitsFor(function() { return count === 2; }, 'First two events', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(added).to.equal('b c ');
-  //     expect(removed).to.equal('');
-
-  //     added = '';
-  //     done = false;
-  //     node.child('b').remove(function() { done = true; });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Finished remove', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(removed).to.equal('b ');
-  //   });
-
-  //   waitsFor(function() { return added === 'a '; }, 'a to be added', TEST_TIMEOUT);
-  // });
+    expect(removed).to.equal('b ');
+  });
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more.', function() {
     var node = <Reference>getRandomNode();
@@ -795,40 +753,31 @@ describe.only('Query Tests', function() {
     expect(removed).to.equal('b c ');
   });
 
-  // it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more. Using server data', async function() {
-  //   var node = getRandomNode(),
-  //       done, added, removed, count;
+  it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more. Using server data', async function() {
+    var node = <Reference>getRandomNode();
 
-  //   runs(function() {
-  //     added = '';
-  //     removed = '';
-  //     done = false;
-  //     node.set({b: 2, c: 3}, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Finished setting', TEST_TIMEOUT);
+    let added = '';
+    let removed = '';
 
-  //   runs(function() {
-  //     count = 0;
-  //     node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '; count++; });
-  //     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
-  //   });
-  //   waitsFor(function() { return count === 2; }, 'First two events', TEST_TIMEOUT);
+    node.limitToLast(2).on('child_added', function(snap) { 
+      added += snap.key + ' ';
+    });
+    node.limitToLast(2).on('child_removed', function(snap) { 
+      removed += snap.key + ' '
+    });
 
-  //   runs(function() {
-  //     expect(added).to.equal('b c ');
-  //     expect(removed).to.equal('');
+    await node.set({b: 2, c: 3});
 
-  //     added = '';
-  //     done = false;
-  //     node.child('b').remove(function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Finished remove', TEST_TIMEOUT);
+    expect(added).to.equal('b c ');
+    expect(removed).to.equal('');
 
-  //   runs(function() {
-  //     expect(added).to.equal('');
-  //     expect(removed).to.equal('b ');
-  //   });
-  // });
+    added = '';
+    
+    await node.child('b').remove();
+
+    expect(added).to.equal('');
+    expect(removed).to.equal('b ');
+  });
 
   it('Ensure startAt / endAt with priority works.', async function() {
     var node = <Reference>getRandomNode();
@@ -984,57 +933,36 @@ describe.only('Query Tests', function() {
     expect(added).to.equal('d c, ');
   });
 
-  // it('Set a limit, add some nodes, ensure prevName works correctly. With server data', function() {
-  //   var node = getRandomNode(),
-  //       added, done;
+  it('Set a limit, add some nodes, ensure prevName works correctly. With server data', async function() {
+    var node = <Reference>getRandomNode();
 
-  //   runs(function() {
-  //     added = '';
-  //     done = false;
-  //     node.child('a').set(1, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Initial set', TEST_TIMEOUT);
+    let added = '';
 
-  //   runs(function() {
-  //     node.limitToLast(2).on('child_added', function(snap, prevName) {
-  //       added += snap.key + ' ' + prevName + ', ';
-  //     });
-  //   });
-  //   waitsFor(function() { return added !== ''; }, 'First child', TEST_TIMEOUT);
+    node.limitToLast(2).on('child_added', function(snap, prevName) {
+      added += snap.key + ' ' + prevName + ', ';
+    });
 
-  //   runs(function() {
-  //     expect(added).to.equal('a null, ');
+    await node.child('a').set(1);
 
-  //     added = '';
-  //     done = false;
-  //     node.child('c').set(3, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'second set', TEST_TIMEOUT);
+    expect(added).to.equal('a null, ');
 
-  //   runs(function() {
-  //     expect(added).to.equal('c a, ');
+    added = '';
+    await node.child('c').set(3);
 
-  //     added = '';
-  //     done = false;
-  //     node.child('b').set(2, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'third set', TEST_TIMEOUT);
+    expect(added).to.equal('c a, ');
 
-  //   runs(function() {
-  //     expect(added).to.equal('b null, ');
+    added = '';
+    await node.child('b').set(2);
 
-  //     added = '';
-  //     done = false;
-  //     node.child('d').set(4, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'third set', TEST_TIMEOUT);
+    expect(added).to.equal('b null, ');
 
-  //   runs(function() {
-  //     expect(added).to.equal('d c, ');
-  //   });
-  // });
+    added = '';
+    await node.child('d').set(4);
 
-  it('Set a limit, move some nodes, ensure prevName works correctly.', function() {
+    expect(added).to.equal('d c, ');
+  });
+
+  it('Set a limit, move some nodes, ensure prevName works correctly.', async function() {
     var node = <Reference>getRandomNode();
     
     var moved = '';
@@ -1042,12 +970,14 @@ describe.only('Query Tests', function() {
       moved += snap.key + ' ' + prevName + ', ';
     });
 
-    node.child('a').setWithPriority('a', 10);
-    node.child('b').setWithPriority('b', 20);
-    node.child('c').setWithPriority('c', 30);
-    node.child('d').setWithPriority('d', 40);
+    await Promise.all([
+      node.child('a').setWithPriority('a', 10),
+      node.child('b').setWithPriority('b', 20),
+      node.child('c').setWithPriority('c', 30),
+      node.child('d').setWithPriority('d', 40),
+      node.child('c').setPriority(50),
+    ]);
 
-    node.child('c').setPriority(50);
     expect(moved).to.equal('c d, ');
 
     moved = '';
@@ -1059,56 +989,36 @@ describe.only('Query Tests', function() {
     expect(moved).to.equal('');
   });
 
-  // it('Set a limit, move some nodes, ensure prevName works correctly, with server data', function() {
-  //   var node = <Reference>getRandomNode();
-  //   var moved = '', done;
+  it('Set a limit, move some nodes, ensure prevName works correctly, with server data', async function() {
+    var node = <Reference>getRandomNode();
+    var moved = '';
 
-  //   runs(function() {
-  //     done = false;
-  //     node.child('a').setWithPriority('a', 10);
-  //     node.child('b').setWithPriority('b', 20);
-  //     node.child('c').setWithPriority('c', 30);
-  //     node.child('d').setWithPriority('d', 40, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'Initial setup', TEST_TIMEOUT);
+    node.limitToLast(2).on('child_moved', async function(snap, prevName) {
+      moved += snap.key + ' ' + prevName + ', ';
+    });
 
-  //   runs(function() {
-  //     done = false;
-  //     node.limitToLast(2).on('child_moved', function(snap, prevName) {
-  //       moved += snap.key + ' ' + prevName + ', ';
-  //     });
-  //     // Need to load the data before the set so we'll see the move
-  //     node.limitToLast(2).once('value', function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, "First load", TEST_TIMEOUT);
+    // Need to load the data before the set so we'll see the move
+    await node.limitToLast(2).once('value');
 
-  //   runs(function() {
-  //     var done = false;
-  //     node.child('c').setPriority(50, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'First move', TEST_TIMEOUT);
+    await Promise.all([
+      node.child('a').setWithPriority('a', 10),
+      node.child('b').setWithPriority('b', 20),
+      node.child('c').setWithPriority('c', 30),
+      node.child('d').setWithPriority('d', 40),
+      node.child('c').setPriority(50),
+    ]);
+  
+    expect(moved).to.equal('c d, ');
 
-  //   runs(function() {
-  //     expect(moved).to.equal('c d, ');
-
-  //     moved = '';
-  //     done = false;
-  //     node.child('c').setPriority(35, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'Second move', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(moved).to.equal('c null, ');
-  //     moved = '';
-  //     done = false;
-  //     node.child('b').setPriority(33, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'Third move', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(moved).to.equal('');
-  //   });
-  // });
+    moved = '';
+    await node.child('c').setPriority(35);
+  
+    expect(moved).to.equal('c null, ');
+    moved = '';
+    await node.child('b').setPriority(33);
+  
+    expect(moved).to.equal('');
+  });
 
   it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly.', function() {
     var node = <Reference>getRandomNode();
@@ -1127,39 +1037,27 @@ describe.only('Query Tests', function() {
     expect(moved).to.equal('c d, ');
   });
 
-  // it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly. With server data', function() {
-  //   var node = getRandomNode(),
-  //       done, moved = '';
+  it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly. With server data', async function() {
+    var node = <Reference>getRandomNode();
+    let moved = '';
 
-  //   runs(function() {
-  //     done = false;
-  //     node.child('a').setWithPriority('a', 1);
-  //     node.child('b').setWithPriority('b', 2);
-  //     node.child('c').setWithPriority('c', 3);
-  //     node.child('d').setWithPriority('d', 4, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'Initial setup', TEST_TIMEOUT);
+    node.limitToLast(2).on('child_moved', function(snap, prevName) {
+      moved += snap.key + ' ' + prevName + ', ';
+    });
 
-  //   runs(function() {
-  //     done = false;
-  //     node.limitToLast(2).on('child_moved', function(snap, prevName) {
-  //       moved += snap.key + ' ' + prevName + ', ';
-  //     });
-  //     // Need to load the data before the set so we'll see the move
-  //     node.limitToLast(2).once('value', function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'First load', TEST_TIMEOUT);
+    // Need to load the data before the set so we'll see the move
+    await node.limitToLast(2).once('value');
 
-  //   runs(function() {
-  //     var done = false;
-  //     node.child('c').setPriority(10, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done;}, 'First move', TEST_TIMEOUT);
+    await Promise.all([
+      node.child('a').setWithPriority('a', 1),
+      node.child('b').setWithPriority('b', 2),
+      node.child('c').setWithPriority('c', 3),
+      node.child('d').setWithPriority('d', 4),
+      node.child('c').setPriority(10),
+    ]);
 
-  //   runs(function() {
-  //     expect(moved).to.equal('c d, ');
-  //   });
-  // });
+    expect(moved).to.equal('c d, ');
+  });
 
   it('Set a limit, add a bunch of nodes, ensure local events are correct.', function() {
     var node = <Reference>getRandomNode();
@@ -1181,31 +1079,28 @@ describe.only('Query Tests', function() {
     expect(eventHistory).to.equal('0 added, 1 added, 0 removed, 2 added, 1 removed, 3 added, 2 removed, 4 added, ');
   });
 
-  // it('Set a limit, add a bunch of nodes, ensure remote events are correct.', function() {
-  //   var nodePair = getRandomNode(2);
-  //   var writeNode = nodePair[0];
-  //   var readNode = nodePair[1];
+  it('Set a limit, add a bunch of nodes, ensure remote events are correct.', async function() {
+    var nodePair = getRandomNode(2);
+    var writeNode = nodePair[0];
+    var readNode = nodePair[1];
 
-  //   var eventHistory = '';
+    var eventHistory = '';
 
-  //   readNode.limitToLast(2).on('child_added', function(snap) {
-  //     eventHistory = eventHistory + snap.val() + ' added, ';
-  //   });
-  //   readNode.limitToLast(2).on('child_removed', function(snap) {
-  //     eventHistory = eventHistory.replace(snap.val() + ' added, ', '');
-  //   });
+    readNode.limitToLast(2).on('child_added', function(snap) {
+      eventHistory = eventHistory + snap.val() + ' added, ';
+    });
+    readNode.limitToLast(2).on('child_removed', function(snap) {
+      eventHistory = eventHistory.replace(snap.val() + ' added, ', '');
+    });
 
-  //   for (var i = 0; i < 5; i++) {
-  //     var n = writeNode.push();
-  //     n.set(i);
-  //   }
+    const promises = [];
+    for (var i = 0; i < 5; i++) {
+      var n = writeNode.push();
+      promises.push(n.set(i));
+    }
 
-  //   waitsFor(
-  //       function() {
-  //         return eventHistory === '3 added, 4 added, ';
-  //       },
-  //       'Got remote events.', 5000);
-  // });
+    await Promise.all(promises);
+  });
 
   it('Ensure on() returns callback function.', function() {
     var node = <Reference>getRandomNode();
@@ -1214,77 +1109,61 @@ describe.only('Query Tests', function() {
     expect(ret).to.equal(callback);
   });
 
-  // it("Limit on unsynced node fires 'value'.", function() {
-  //   var f = <Reference>getRandomNode();
-  //   var done = false;
-  //   f.limitToLast(1).on('value', function() { done = true; });
-  //   waitsFor(function() { return done;}, 'value to fire.', TEST_TIMEOUT);
-  // });
+  it("Limit on unsynced node fires 'value'.", function(done) {
+    var f = <Reference>getRandomNode();
+    f.limitToLast(1).on('value', function() {
+      done();
+    });
+  });
 
-  // it('Filtering to only null priorities works.', function() {
-  //   var f = <Reference>getRandomNode();
-  //   var connected = false;
-  //   runs(function() {
-  //     f.root.child('.info/connected').on('value', function(snap) {
-  //       connected = snap.val();
-  //     });
-  //   });
+  it('Filtering to only null priorities works.', async function() {
+    var f = <Reference>getRandomNode();
+    var connected = false;
+    f.root.child('.info/connected').on('value', function(snap) {
+      connected = snap.val();
+    });
 
-  //   waitsFor(function() { return connected; }, 'Test fails if disconnected due to listen re-ordering', TEST_TIMEOUT);
+    await f.set({
+      a: {'.priority': null, '.value': 0},
+      b: {'.priority': null, '.value': 1},
+      c: {'.priority': '2', '.value': 2},
+      d: {'.priority': 3, '.value': 3},
+      e: {'.priority': 'hi', '.value': 4}
+    });
 
-  //   var done;
-  //   runs(function() {
-  //     f.set({
-  //       a: {'.priority': null, '.value': 0},
-  //       b: {'.priority': null, '.value': 1},
-  //       c: {'.priority': '2', '.value': 2},
-  //       d: {'.priority': 3, '.value': 3},
-  //       e: {'.priority': 'hi', '.value': 4}
-  //     });
+    const snap = await f.startAt(null).endAt(null).once('value');
+    expect(snap.val()).to.deep.equal({a: 0, b: 1});
+  });
 
-  //     f.startAt(null).endAt(null).on('value', function(snap) {
-  //       expect(snap.val()).to.equal({a: 0, b: 1});
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'value to fire', TEST_TIMEOUT);
-  // });
+  it('null priorities included in endAt(2).', async function() {
+    var f = <Reference>getRandomNode();
+    
+    await f.set({
+      a: {'.priority': null, '.value': 0},
+      b: {'.priority': null, '.value': 1},
+      c: {'.priority': 2, '.value': 2},
+      d: {'.priority': 3, '.value': 3},
+      e: {'.priority': 'hi', '.value': 4}
+    });
 
-  // it('null priorities included in endAt(2).', function() {
-  //   var f = <Reference>getRandomNode();
-  //   f.set({
-  //     a: {'.priority': null, '.value': 0},
-  //     b: {'.priority': null, '.value': 1},
-  //     c: {'.priority': 2, '.value': 2},
-  //     d: {'.priority': 3, '.value': 3},
-  //     e: {'.priority': 'hi', '.value': 4}
-  //   });
+    const snap = await f.endAt(2).once('value');
+    expect(snap.val()).to.deep.equal({a: 0, b: 1, c: 2});
+  });
 
-  //   var done;
-  //   f.endAt(2).on('value', function(snap) {
-  //     expect(snap.val()).to.equal({a: 0, b: 1, c: 2});
-  //     done = true;
-  //   });
-  //   waitsFor(function() { return done; }, 'value to fire', TEST_TIMEOUT);
-  // });
+  it('null priorities not included in startAt(2).', async function() {
+    var f = <Reference>getRandomNode();
+    
+    await f.set({
+      a: {'.priority': null, '.value': 0},
+      b: {'.priority': null, '.value': 1},
+      c: {'.priority': 2, '.value': 2},
+      d: {'.priority': 3, '.value': 3},
+      e: {'.priority': 'hi', '.value': 4}
+    });
 
-  // it('null priorities not included in startAt(2).', function() {
-  //   var f = <Reference>getRandomNode();
-  //   f.set({
-  //     a: {'.priority': null, '.value': 0},
-  //     b: {'.priority': null, '.value': 1},
-  //     c: {'.priority': 2, '.value': 2},
-  //     d: {'.priority': 3, '.value': 3},
-  //     e: {'.priority': 'hi', '.value': 4}
-  //   });
-
-  //   var done;
-  //   f.startAt(2).on('value', function(snap) {
-  //     expect(snap.val()).to.equal({c: 2, d: 3, e: 4});
-  //     done = true;
-  //   });
-  //   waitsFor(function() { return done; }, 'value to fire', TEST_TIMEOUT);
-  // });
+    const snap = await f.startAt(2).once('value');
+    expect(snap.val()).to.deep.equal({c: 2, d: 3, e: 4});
+  });
 
   function dumpListens(node: Query) {
     var listens = node.repo.persistentConnection_.listens_;
@@ -1431,37 +1310,26 @@ describe.only('Query Tests', function() {
     expect(children.join(',')).to.equal('Sally,James,Andrew,Mike,Vikrum');
   });
 
-  // it('Limit with mix of null and non-null priorities using server data', function() {
-  //   var node = getRandomNode(),
-  //       done, count;
+  it('Limit with mix of null and non-null priorities using server data', async function() {
+    var node = <Reference>getRandomNode(),
+        done, count;
 
-  //   var children = [];
-  //   runs(function() {
-  //     done = false;
-  //     node.set({
-  //       'Vikrum': {'.priority': 1000, 'score': 1000, 'name': 'Vikrum'},
-  //       'Mike': {'.priority': 500, 'score': 500, 'name': 'Mike'},
-  //       'Andrew': {'.priority': 50, 'score': 50, 'name': 'Andrew'},
-  //       'James': {'.priority': 7, 'score': 7, 'name': 'James'},
-  //       'Sally': {'.priority': -7, 'score': -7, 'name': 'Sally'},
-  //       'Fred': {'score': 0, 'name': 'Fred'}
-  //     }, function() { done = true; });
-  //   });
-  //   waitsFor(function() { return done; }, 'Initial setup', TEST_TIMEOUT);
+    var children = [];
+    node.limitToLast(5).on('child_added', function(childSnap) {
+      children.push(childSnap.key);
+    });
 
-  //   runs(function() {
-  //     count = 0;
-  //     node.limitToLast(5).on('child_added', function(childSnap) {
-  //       children.push(childSnap.key);
-  //       count++;
-  //     });
-  //   });
-  //   waitsFor(function() { return count === 5; }, 'Get all children', TEST_TIMEOUT);
+    await node.set({
+      'Vikrum': {'.priority': 1000, 'score': 1000, 'name': 'Vikrum'},
+      'Mike': {'.priority': 500, 'score': 500, 'name': 'Mike'},
+      'Andrew': {'.priority': 50, 'score': 50, 'name': 'Andrew'},
+      'James': {'.priority': 7, 'score': 7, 'name': 'James'},
+      'Sally': {'.priority': -7, 'score': -7, 'name': 'Sally'},
+      'Fred': {'score': 0, 'name': 'Fred'}
+    });
 
-  //   runs(function() {
-  //     expect(children.join(',')).to.equal('Sally,James,Andrew,Mike,Vikrum');
-  //   });
-  // });
+    expect(children.join(',')).to.equal('Sally,James,Andrew,Mike,Vikrum');
+  });
 
   it('.on() with a context works.', function() {
     var ref = <Reference>getRandomNode();
@@ -1522,9 +1390,9 @@ describe.only('Query Tests', function() {
     });
 
     expect(snaps.length).to.equal(2);
-    expect(snaps[0]).to.equal({b: 2, c: 3});
+    expect(snaps[0]).to.deep.equal({b: 2, c: 3});
     // The original set is still outstanding (synchronous API), so we have a full cache to re-window against
-    expect(snaps[1]).to.equal({a: 1});
+    expect(snaps[1]).to.deep.equal({a: 1});
   });
 
   it('handles an out-of-view query on a child', function() {
@@ -1541,11 +1409,11 @@ describe.only('Query Tests', function() {
     });
 
     ref.set({a: 1, b: 2});
-    expect(parent).to.equal({b: 2});
+    expect(parent).to.deep.equal({b: 2});
     expect(child).to.equal(1);
 
     ref.update({c: 3});
-    expect(parent).to.equal({c: 3});
+    expect(parent).to.deep.equal({c: 3});
     expect(child).to.equal(1);
   });
 
@@ -1563,13 +1431,13 @@ describe.only('Query Tests', function() {
     });
 
     ref.set({a: 1});
-    expect(parent).to.equal({a: 1});
+    expect(parent).to.deep.equal({a: 1});
     expect(child).to.equal(1);
     ref.child('b').set(2);
-    expect(parent).to.equal({b: 2});
+    expect(parent).to.deep.equal({b: 2});
     expect(child).to.equal(1);
     ref.child('b').remove();
-    expect(parent).to.equal({a: 1});
+    expect(parent).to.deep.equal({a: 1});
     expect(child).to.equal(1);
   });
 
@@ -1587,591 +1455,477 @@ describe.only('Query Tests', function() {
     });
 
     ref.set({a: 1, b: 2, c: 3});
-    expect(c).to.equal({c: 3});
-    expect(d).to.equal({c: 3});
+    expect(c).to.deep.equal({c: 3});
+    expect(d).to.deep.equal({c: 3});
     ref.child('d').set(4);
-    expect(c).to.equal({c: 3});
-    expect(d).to.equal({d: 4});
+    expect(c).to.deep.equal({c: 3});
+    expect(d).to.deep.equal({d: 4});
   });
 
-  // it('handles removing a queried element', function() {
-  //   var ref = <Reference>getRandomNode();
+  it('handles removing a queried element', async function() {
+    var ref = <Reference>getRandomNode();
 
-  //   var val;
-  //   ref.limitToLast(1).on('child_added', function(snap) {
-  //     val = snap.val();
-  //   });
+    var val;
+    ref.limitToLast(1).on('child_added', function(snap) {
+      val = snap.val();
+    });
 
-  //   ref.set({a: 1, b: 2});
-  //   expect(val).to.equal(2);
+    await ref.set({a: 1, b: 2});
+    expect(val).to.equal(2);
 
-  //   ref.child('b').remove();
-  //   waitsFor(function() {
-  //     return val == 1;
-  //   }, 'Get the next element in the window', TEST_TIMEOUT);
-  // });
+    return ref.child('b').remove();
+  });
 
-  // it('.startAt().limitToFirst(1) works.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   ref.set({a: 1, b: 2});
+  it('.startAt().limitToFirst(1) works.', async function() {
+    var ref = <Reference>getRandomNode();
+    var val;
+    ref.startAt().limitToFirst(1).on('child_added', function(snap) {
+      val = snap.val();
+    });
+    await ref.set({a: 1, b: 2});
+  });
 
-  //   var val;
-  //   ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-  //     val = snap.val();
-  //   });
+  it('.startAt().limitToFirst(1) and then remove first child (case 1664).', async function() {
+    var ref = <Reference>getRandomNode();
 
-  //   waitsFor(function() { return val === 1; }, 'got first child', TEST_TIMEOUT);
-  // });
+    var val;
+    ref.startAt().limitToFirst(1).on('child_added', function(snap) {
+      val = snap.val();
+    });
 
-  // it('.startAt().limitToFirst(1) and then remove first child (case 1664).', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   ref.set({a: 1, b: 2});
+    await ref.set({a: 1, b: 2});
 
-  //   var val;
-  //   ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-  //     val = snap.val();
-  //   });
+    return ref.child('a').remove();
+  });
 
-  //   waitsFor(function() { return val === 1; }, 'got first child', TEST_TIMEOUT);
+  it('.startAt() with two arguments works properly (case 1169).', async function() {
+    var ref = <Reference>getRandomNode();
+    await ref.set({ 'Walker': { name: 'Walker', score: 20, '.priority': 20 }, 'Michael': { name: 'Michael', score: 100, '.priority': 100 } });
+    const s = await ref.startAt(20, 'Walker').limitToFirst(2).once('value');
+    var childNames = [];
+    s.forEach(function(node) { childNames.push(node.key); });
+    expect(childNames).to.deep.equal(['Walker', 'Michael']);
+  });
 
-  //   runs(function() {
-  //     ref.child('a').remove();
-  //   });
-  //   waitsFor(function() { return val === 2; }, 'got first child after remove', TEST_TIMEOUT);
-  // });
+  it('handles multiple queries on the same node', async function() {
+    var ref = <Reference>getRandomNode();
 
-  // it('.startAt() with two arguments works properly.  Case 1169.', function() {
-  //   var ref = getRandomNode(), done = false;
-  //   ref.set({ 'Walker': { name: 'Walker', score: 20, '.priority': 20 }, 'Michael': { name: 'Michael', score: 100, '.priority': 100 } }, function() {
-  //     ref.startAt(20, 'Walker').limitToFirst(2).on('value', function(s) {
-  //       var childNames = [];
-  //       s.forEach(function(node) { childNames.push(node.key); });
-  //       expect(childNames).to.equal(['Walker', 'Michael']);
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Got correct data back.', TEST_TIMEOUT);
-  // });
+    var firstListen = false
+    
+    ref.limitToLast(2).on('value', function(snap) {
+      // This shouldn't get called twice, we don't update the values here
+      expect(firstListen).to.be.false;
+      firstListen = true;
+    });
 
-  // it('handles multiple queries on the same node', function() {
-  //   var ref = getRandomNode(),
-  //       ready, done;
+    await ref.set({
+      a: 1,
+      b: 2,
+      c: 3,
+      d: 4,
+      e: 5,
+      f: 6
+    });
 
-  //   runs(function() {
-  //     ready = false
-  //     ref.set({
-  //       a: 1,
-  //       b: 2,
-  //       c: 3,
-  //       d: 4,
-  //       e: 5,
-  //       f: 6
-  //     }, function() { ready = true; });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Set initial data', TEST_TIMEOUT);
+    // now do consecutive once calls
+    await ref.limitToLast(1).once('value');
+    const snap = await ref.limitToLast(1).once('value');
+    var val = snap.val();
+    expect(val).to.deep.equal({f: 6});
+  });
 
-  //   runs(function() {
-  //     // do first listen
-  //     ready = false;
-  //     ref.limitToLast(2).on('value', function(snap) {
-  //       // This shouldn't get called twice, we don't update the values here
-  //       expect(ready).to.be.false;
-  //       ready = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Get initial data', TEST_TIMEOUT);
+  it('handles once called on a node with a default listener', async function() {
+    var ref = <Reference>getRandomNode();
 
-  //   runs(function() {
-  //     // now do the nested once calls
-  //     done = false;
-  //     ref.limitToLast(1).once('value', function(snap) {
-  //       ref.limitToLast(1).once('value', function(snap) {
-  //         var val = snap.val();
-  //         expect(val).to.equal({f: 6});
-  //         done = true;
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Get nested once response', TEST_TIMEOUT);
-  // });
+    // Setup value listener
+    ref.on('value', function(snap) {});
 
-  // it('handles once called on a node with a default listener', function() {
-  //   var ref = getRandomNode(),
-  //       ready, done;
+    await ref.set({
+      a: 1,
+      b: 2,
+      c: 3,
+      d: 4,
+      e: 5,
+      f: 6
+    });
 
-  //   runs(function() {
-  //     ready = false;
-  //     ref.set({
-  //       a: 1,
-  //       b: 2,
-  //       c: 3,
-  //       d: 4,
-  //       e: 5,
-  //       f: 6
-  //     }, function() { ready = true; });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Set initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     // do first listen
-  //     ready = false;
-  //     ref.on('value', function(snap) {
-  //       ready = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Get initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     // now do the once call
-  //     done = false;
-  //     ref.limitToLast(1).once('child_added', function(snap) {
-  //       var val = snap.val();
-  //       expect(val).to.equal(6);
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Get once response', TEST_TIMEOUT);
-  // });
+    // now do the once call
+    const snap = await ref.limitToLast(1).once('child_added');
+    var val = snap.val();
+    expect(val).to.equal(6);
+  });
 
 
-  // it('handles once called on a node with a default listener and non-complete limit', function() {
-  //   var ref = getRandomNode(),
-  //       ready, done;
+  it('handles once called on a node with a default listener and non-complete limit', async function() {
+    var ref = <Reference>getRandomNode(),
+        ready, done;
+    
+    ref.on('value', function(snap) {});
+      
+    await ref.set({
+      a: 1,
+      b: 2,
+      c: 3
+    });
 
-  //   runs(function() {
-  //     ready = false;
-  //     ref.set({
-  //       a: 1,
-  //       b: 2,
-  //       c: 3
-  //     }, function() { ready = true; });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Set initial data', TEST_TIMEOUT);
+    // now do the once call
+    const snap = await ref.limitToLast(5).once('value');
+    var val = snap.val();
+    expect(val).to.deep.equal({a: 1, b: 2, c: 3});
+  });
 
-  //   runs(function() {
-  //     // do first listen
-  //     ready = false;
-  //     ref.on('value', function(snap) {
-  //       ready = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return ready; }, 'Get initial data', TEST_TIMEOUT);
+  it('Remote remove triggers events.', function(done) {
+    var refPair = getRandomNode(2), writeRef = refPair[0], readRef = refPair[1];
 
-  //   runs(function() {
-  //     // now do the once call
-  //     done = false;
-  //     ref.limitToLast(5).once('value', function(snap) {
-  //       var val = snap.val();
-  //       expect(val).to.equal({a: 1, b: 2, c: 3});
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Get once response', TEST_TIMEOUT);
-  // });
+    writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, function() {
 
-  // it('Remote remove triggers events.', function() {
-  //   var refPair = getRandomNode(2), writeRef = refPair[0], readRef = refPair[1];
+      // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
+      var count = 0;
+      readRef.limitToLast(5).on('value', function(s) {
+        count++;
+        if (count == 1) {
+          expect(s.val()).to.deep.equal({a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' });
+          writeRef.child('c').remove();
+        } else {
+          expect(count).to.equal(2);
+          expect(s.val()).to.deep.equal({a: 'a', b: 'b', d: 'd', e: 'e' });
+          done();
+        }
+      });
+    });
+  });
 
-  //   var done = false;
-  //   writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, function() {
+  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", function(done) {
+    var ref = <Reference>getRandomNode();
+    ref.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' }, function() {
+      ref.endAt(null, 'f').limitToLast(5).on('value', function(s) {
+        expect(s.val()).to.deep.equal({b: 'b', c: 'c', d: 'd', e: 'e', f: 'f' });
+        done();
+      });
+    });
+  });
 
-  //     // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
-  //     var count = 0;
-  //     readRef.limitToLast(5).on('value', function(s) {
-  //       count++;
-  //       if (count == 1) {
-  //         expect(s.val()).to.equal({a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' });
-  //         writeRef.child('c').remove();
-  //       } else {
-  //         expect(count).to.equal(2);
-  //         expect(s.val()).to.equal({a: 'a', b: 'b', d: 'd', e: 'e' });
-  //         done = true;
-  //       }
-  //     });
-  //   });
+  it('complex update() at query root raises correct value event', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //   waitsFor(function() { return done; }, "'value' received after remote delete.", TEST_TIMEOUT);
-  // });
+    var readerLoaded = false, numEventsReceived = 0;
+    writer.child('foo').set({a: 1, b: 2, c: 3, d: 4, e: 5}, function(error, dummy) {
+      reader.child('foo').startAt().limitToFirst(4).on('value', function(snapshot) {
+        var val = snapshot.val();
+        if (!readerLoaded) {
+          readerLoaded = true;
+          expect(val).to.deep.equal({a: 1, b: 2, c: 3, d: 4});
 
-  // it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", function() {
-  //   var ref = getRandomNode(), done = false;
-  //   ref.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' }, function() {
-  //     ref.endAt(null, 'f').limitToLast(5).on('value', function(s) {
-  //       expect(s.val()).to.equal({b: 'b', c: 'c', d: 'd', e: 'e', f: 'f' });
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'test to finish.', TEST_TIMEOUT);
-  // });
+          // This update causes the following to happen:
+          // 1. An in-view child is set to null (b)
+          // 2. An in-view child has its value changed (c)
+          // 3. An in-view child is changed and bumped out-of-view (d)
+          // We expect to get null values for b and d, along with the new children and updated value for c
+          writer.child('foo').update({b: null, c: 'a', cc: 'new', cd: 'new2', d: 'gone'});
+        } else {
+          done();
+          expect(val).to.deep.equal({a: 1, c: 'a', cc: 'new', cd: 'new2'});
+        }
+      });
+    });
+  });
 
-  // it('complex update() at query root raises correct value event', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('update() at query root raises correct value event', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var readerLoaded = false, numEventsReceived = 0;
-  //     writer.child('foo').set({a: 1, b: 2, c: 3, d: 4, e: 5}, function(error, dummy) {
-  //       reader.child('foo').startAt().limitToFirst(4).on('value', function(snapshot) {
-  //         var val = snapshot.val();
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
-  //           expect(val).to.equal({a: 1, b: 2, c: 3, d: 4});
+    var readerLoaded = false, numEventsReceived = 0;
+    writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
+      reader.child('foo').limitToLast(10).on('value', function(snapshot) {
+        var val = snapshot.val();
+        if (!readerLoaded) {
+          readerLoaded = true;
+          expect(val.bar).to.equal('a');
+          expect(val.baz).to.equal('b');
+          expect(val.bam).to.equal('c');
+          writer.child('foo').update({ 'bar': 'd', 'bam': null, 'bat': 'e' });
+        } else {
+          expect(val.bar).to.equal('d');
+          expect(val.baz).to.equal('b');
+          expect(val.bat).to.equal('e');
+          expect(val.bam).to.equal(undefined);
+          done();
+        }
+      });
+    });
+  });
 
-  //           // This update causes the following to happen:
-  //           // 1. An in-view child is set to null (b)
-  //           // 2. An in-view child has its value changed (c)
-  //           // 3. An in-view child is changed and bumped out-of-view (d)
-  //           // We expect to get null values for b and d, along with the new children and updated value for c
-  //           writer.child('foo').update({b: null, c: 'a', cc: 'new', cd: 'new2', d: 'gone'});
-  //         } else {
-  //           done = true;
-  //           expect(val).to.equal({a: 1, c: 'a', cc: 'new', cd: 'new2'});
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The disconnect should fire one value event', TEST_TIMEOUT);
-  // });
+  it('set() at query root raises correct value event', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  // it('update() at query root raises correct value event', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
-
-  //     var readerLoaded = false, numEventsReceived = 0;
-  //     writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
-  //       reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-  //         var val = snapshot.val();
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
-  //           expect(val.bar).to.equal('a');
-  //           expect(val.baz).to.equal('b');
-  //           expect(val.bam).to.equal('c');
-  //           writer.child('foo').update({ 'bar': 'd', 'bam': null, 'bat': 'e' });
-  //         } else {
-  //           done = true;
-  //           expect(val.bar).to.equal('d');
-  //           expect(val.baz).to.equal('b');
-  //           expect(val.bat).to.equal('e');
-  //           expect(val.bam).to.equal(undefined);
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The disconnect should fire one value event', TEST_TIMEOUT);
-  // });
-
-  // it('set() at query root raises correct value event', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
-
-  //     var readerLoaded = false, numEventsReceived = 0;
-  //     writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
-  //       reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-  //         var val = snapshot.val();
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
-  //           expect(val.bar).to.equal('a');
-  //           expect(val.baz).to.equal('b');
-  //           expect(val.bam).to.equal('c');
-  //           writer.child('foo').set({ 'bar': 'd', 'baz': 'b', 'bat': 'e' });
-  //         } else {
-  //           done = true;
-  //           expect(val.bar).to.equal('d');
-  //           expect(val.baz).to.equal('b');
-  //           expect(val.bat).to.equal('e');
-  //           expect(val.bam).to.equal(undefined);
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The disconnect should fire one value event', TEST_TIMEOUT);
-  // });
+    var readerLoaded = false, numEventsReceived = 0;
+    writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
+      reader.child('foo').limitToLast(10).on('value', function(snapshot) {
+        var val = snapshot.val();
+        if (!readerLoaded) {
+          readerLoaded = true;
+          expect(val.bar).to.equal('a');
+          expect(val.baz).to.equal('b');
+          expect(val.bam).to.equal('c');
+          writer.child('foo').set({ 'bar': 'd', 'baz': 'b', 'bat': 'e' });
+        } else {
+          expect(val.bar).to.equal('d');
+          expect(val.baz).to.equal('b');
+          expect(val.bat).to.equal('e');
+          expect(val.bam).to.equal(undefined);
+          done();
+        }
+      });
+    });
+  });
 
 
-  // it('listen for child_added events with limit and different types fires properly', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('listen for child_added events with limit and different types fires properly', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var numEventsReceived = 0, gotA = false, gotB = false, gotC = false;
-  //     writer.child('a').set(1, function(error, dummy) {
-  //       writer.child('b').set('b', function(error, dummy) {
-  //         writer.child('c').set({ 'deep': 'path', 'of': { 'stuff': true }}, function(error, dummy) {
-  //           reader.limitToLast(3).on('child_added', function(snap) {
-  //             var val = snap.val();
-  //             switch (snap.key) {
-  //               case 'a':
-  //                 gotA = true;
-  //                 expect(val).to.equal(1);
-  //                 break;
-  //               case 'b':
-  //                 gotB = true;
-  //                 expect(val).to.equal('b');
-  //                 break;
-  //               case 'c':
-  //                 gotC = true;
-  //                 expect(val.deep).to.equal('path');
-  //                 expect(val.of.stuff).to.be.true;
-  //                 break;
-  //               default:
-  //                 expect(false).to.be.true;
-  //             }
-  //             numEventsReceived += 1;
-  //             expect(numEventsReceived).toBeLessThan(4);
-  //             done = gotA && gotB && gotC;
-  //           });
-  //         });
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The reader should receive three child_added events', TEST_TIMEOUT);
-  // });
+    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false;
+    writer.child('a').set(1, function(error, dummy) {
+      writer.child('b').set('b', function(error, dummy) {
+        writer.child('c').set({ 'deep': 'path', 'of': { 'stuff': true }}, function(error, dummy) {
+          reader.limitToLast(3).on('child_added', function(snap) {
+            var val = snap.val();
+            switch (snap.key) {
+              case 'a':
+                gotA = true;
+                expect(val).to.equal(1);
+                break;
+              case 'b':
+                gotB = true;
+                expect(val).to.equal('b');
+                break;
+              case 'c':
+                gotC = true;
+                expect(val.deep).to.equal('path');
+                expect(val.of.stuff).to.be.true;
+                break;
+              default:
+                expect(false).to.be.true;
+            }
+            numEventsReceived += 1;
+            expect(numEventsReceived).to.be.lessThan(4);
+            if (gotA && gotB && gotC) done();
+          });
+        });
+      });
+    });
+  });
 
-  // it('listen for child_changed events with limit and different types fires properly', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('listen for child_changed events with limit and different types fires properly', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
-  //     writer.set({ a: 'something', b: "we'll", c: 'overwrite '}, function(error, dummy) {
-  //       reader.limitToLast(3).on('value', function(snapshot) {
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
-  //           // Set up listener for upcoming change events
-  //           reader.limitToLast(3).on('child_changed', function(snap) {
-  //             var val = snap.val();
-  //             switch (snap.key) {
-  //               case 'a':
-  //                 gotA = true;
-  //                 expect(val).to.equal(1);
-  //                 break;
-  //               case 'b':
-  //                 gotB = true;
-  //                 expect(val).to.equal('b');
-  //                 break;
-  //               case 'c':
-  //                 gotC = true;
-  //                 expect(val.deep).to.equal('path');
-  //                 expect(val.of.stuff).to.be.true;
-  //                 break;
-  //               default:
-  //                 expect(false).to.be.true;
-  //             }
-  //             numEventsReceived += 1;
-  //             expect(numEventsReceived).toBeLessThan(4);
-  //             done = gotA && gotB && gotC;
-  //           });
+    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    writer.set({ a: 'something', b: "we'll", c: 'overwrite '}, function(error, dummy) {
+      reader.limitToLast(3).on('value', function(snapshot) {
+        if (!readerLoaded) {
+          readerLoaded = true;
+          // Set up listener for upcoming change events
+          reader.limitToLast(3).on('child_changed', function(snap) {
+            var val = snap.val();
+            switch (snap.key) {
+              case 'a':
+                gotA = true;
+                expect(val).to.equal(1);
+                break;
+              case 'b':
+                gotB = true;
+                expect(val).to.equal('b');
+                break;
+              case 'c':
+                gotC = true;
+                expect(val.deep).to.equal('path');
+                expect(val.of.stuff).to.be.true;
+                break;
+              default:
+                expect(false).to.be.true;
+            }
+            numEventsReceived += 1;
+            expect(numEventsReceived).to.be.lessThan(4);
+            if (gotA && gotB && gotC) done();
+          });
 
-  //           // Begin changing every key
-  //           writer.child('a').set(1);
-  //           writer.child('b').set('b');
-  //           writer.child('c').set({ 'deep': 'path', 'of': { 'stuff': true }});
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The reader should receive three child_changed events', TEST_TIMEOUT);
-  // });
+          // Begin changing every key
+          writer.child('a').set(1);
+          writer.child('b').set('b');
+          writer.child('c').set({ 'deep': 'path', 'of': { 'stuff': true }});
+        }
+      });
+    });
+  });
 
-  // it('listen for child_remove events with limit and different types fires properly', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('listen for child_remove events with limit and different types fires properly', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
-  //     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
-  //       reader.limitToLast(3).on('value', function(snapshot) {
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
+    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
+      reader.limitToLast(3).on('value', function(snapshot) {
+        if (!readerLoaded) {
+          readerLoaded = true;
 
-  //           // Set up listener for upcoming change events
-  //           reader.limitToLast(3).on('child_removed', function(snap) {
-  //             var val = snap.val();
-  //             switch (snap.key) {
-  //               case 'a':
-  //                 gotA = true;
-  //                 expect(val).to.equal(1);
-  //                 break;
-  //               case 'b':
-  //                 gotB = true;
-  //                 expect(val).to.equal('b');
-  //                 break;
-  //               case 'c':
-  //                 gotC = true;
-  //                 expect(val.deep).to.equal('path');
-  //                 expect(val.of.stuff).to.be.true;
-  //                 break;
-  //               default:
-  //                 expect(false).to.be.true;
-  //             }
-  //             numEventsReceived += 1;
-  //             expect(numEventsReceived).toBeLessThan(4);
-  //             done = gotA && gotB && gotC;
-  //           });
+          // Set up listener for upcoming change events
+          reader.limitToLast(3).on('child_removed', function(snap) {
+            var val = snap.val();
+            switch (snap.key) {
+              case 'a':
+                gotA = true;
+                expect(val).to.equal(1);
+                break;
+              case 'b':
+                gotB = true;
+                expect(val).to.equal('b');
+                break;
+              case 'c':
+                gotC = true;
+                expect(val.deep).to.equal('path');
+                expect(val.of.stuff).to.be.true;
+                break;
+              default:
+                expect(false).to.be.true;
+            }
+            numEventsReceived += 1;
+            expect(numEventsReceived).to.be.lessThan(4);
+            if (gotA && gotB && gotC) done();
+          });
 
-  //           // Begin removing every key
-  //           writer.child('a').remove();
-  //           writer.child('b').remove();
-  //           writer.child('c').remove();
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The reader should receive three child_removed events', 3 * TEST_TIMEOUT);
-  // });
+          // Begin removing every key
+          writer.child('a').remove();
+          writer.child('b').remove();
+          writer.child('c').remove();
+        }
+      });
+    });
+  });
 
-  // it('listen for child_remove events when parent removed', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('listen for child_remove events when parent removed', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
-  //     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
+    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
 
-  //       reader.limitToLast(3).on('value', function(snapshot) {
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
+      reader.limitToLast(3).on('value', function(snapshot) {
+        if (!readerLoaded) {
+          readerLoaded = true;
 
-  //           // Set up listener for upcoming change events
-  //           reader.limitToLast(3).on('child_removed', function(snap) {
-  //             var val = snap.val();
-  //             switch (snap.key) {
-  //               case 'a':
-  //                 gotA = true;
-  //                 expect(val).to.equal(1);
-  //                 break;
-  //               case 'b':
-  //                 gotB = true;
-  //                 expect(val).to.equal('b');
-  //                 break;
-  //               case 'c':
-  //                 gotC = true;
-  //                 expect(val.deep).to.equal('path');
-  //                 expect(val.of.stuff).to.be.true;
-  //                 break;
-  //               default:
-  //                 expect(false).to.be.true;
-  //             }
-  //             numEventsReceived += 1;
-  //             expect(numEventsReceived).toBeLessThan(4);
-  //             done = gotA && gotB && gotC;
-  //           });
+          // Set up listener for upcoming change events
+          reader.limitToLast(3).on('child_removed', function(snap) {
+            var val = snap.val();
+            switch (snap.key) {
+              case 'a':
+                gotA = true;
+                expect(val).to.equal(1);
+                break;
+              case 'b':
+                gotB = true;
+                expect(val).to.equal('b');
+                break;
+              case 'c':
+                gotC = true;
+                expect(val.deep).to.equal('path');
+                expect(val.of.stuff).to.be.true;
+                break;
+              default:
+                expect(false).to.be.true;
+            }
+            numEventsReceived += 1;
+            expect(numEventsReceived).to.be.lessThan(4);
+            if (gotA && gotB && gotC) done();
+          });
 
-  //           // Remove the query parent
-  //           writer.remove();
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The reader should receive three child_removed events', 3 * TEST_TIMEOUT);
-  // });
+          // Remove the query parent
+          writer.remove();
+        }
+      });
+    });
+  });
 
-  // it('listen for child_remove events when parent set to scalar', function() {
-  //   var done = false;
-  //   runs(function() {
-  //     var nodePair = getRandomNode(2);
-  //     var writer = nodePair[0];
-  //     var reader = nodePair[1];
+  it('listen for child_remove events when parent set to scalar', function(done) {
+    var nodePair = getRandomNode(2);
+    var writer = nodePair[0];
+    var reader = nodePair[1];
 
-  //     var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
-  //     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
+    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
 
-  //       reader.limitToLast(3).on('value', function(snapshot) {
-  //         if (!readerLoaded) {
-  //           readerLoaded = true;
+      reader.limitToLast(3).on('value', function(snapshot) {
+        if (!readerLoaded) {
+          readerLoaded = true;
 
-  //           // Set up listener for upcoming change events
-  //           reader.limitToLast(3).on('child_removed', function(snap) {
-  //             var val = snap.val();
-  //             switch (snap.key) {
-  //               case 'a':
-  //                 gotA = true;
-  //                 expect(val).to.equal(1);
-  //                 break;
-  //               case 'b':
-  //                 gotB = true;
-  //                 expect(val).to.equal('b');
-  //                 break;
-  //               case 'c':
-  //                 gotC = true;
-  //                 expect(val.deep).to.equal('path');
-  //                 expect(val.of.stuff).to.be.true;
-  //                 break;
-  //               default:
-  //                 expect(false).to.be.true;
-  //             }
-  //             numEventsReceived += 1;
-  //             expect(numEventsReceived).toBeLessThan(4);
-  //             done = gotA && gotB && gotC;
-  //           });
+          // Set up listener for upcoming change events
+          reader.limitToLast(3).on('child_removed', function(snap) {
+            var val = snap.val();
+            switch (snap.key) {
+              case 'a':
+                gotA = true;
+                expect(val).to.equal(1);
+                break;
+              case 'b':
+                gotB = true;
+                expect(val).to.equal('b');
+                break;
+              case 'c':
+                gotC = true;
+                expect(val.deep).to.equal('path');
+                expect(val.of.stuff).to.be.true;
+                break;
+              default:
+                expect(false).to.be.true;
+            }
+            numEventsReceived += 1;
+            expect(numEventsReceived).to.be.lessThan(4);
+            if (gotA && gotB && gotC) done();
+          });
 
-  //           // Set the parent to a scalar
-  //           writer.set('scalar');
-  //         }
-  //       });
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'The reader should receive three child_removed events', 3 * TEST_TIMEOUT);
-  // });
+          // Set the parent to a scalar
+          writer.set('scalar');
+        }
+      });
+    });
+  });
 
 
-  // it('Queries behave wrong after .once().', function() {
-  //   var refPair = getRandomNode(2),
-  //       writeRef = refPair[0],
-  //       readRef = refPair[1],
-  //       done, startAtCount, defaultCount;
+  it('Queries behave wrong after .once().', async function() {
+    var refPair = getRandomNode(2),
+        writeRef = refPair[0],
+        readRef = refPair[1],
+        done, startAtCount, defaultCount;
 
-  //   runs(function() {
-  //     done = false;
-  //     writeRef.set({a: 1, b: 2, c: 3, d: 4 }, function() {
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'wrote some initial data', TEST_TIMEOUT);
+    await writeRef.set({a: 1, b: 2, c: 3, d: 4 });
 
-  //   runs(function() {
-  //     done = false;
-  //     readRef.once('value', function() {
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Read data with .once.', TEST_TIMEOUT);
+    await readRef.once('value');
 
-  //   runs(function() {
-  //     startAtCount = 0;
-  //     readRef.startAt(null, 'd').on('child_added', function() {
-  //       startAtCount++;
-  //     });
-  //     expect(startAtCount).to.equal(0);
+    startAtCount = 0;
+    readRef.startAt(null, 'd').on('child_added', function() {
+      startAtCount++;
+    });
+    expect(startAtCount).to.equal(0);
 
-  //     defaultCount = 0;
-  //     readRef.on('child_added', function() {
-  //       defaultCount++;
-  //     });
-  //     expect(defaultCount).to.equal(0);
+    defaultCount = 0;
+    readRef.on('child_added', function() {
+      defaultCount++;
+    });
+    expect(defaultCount).to.equal(0);
 
-  //     readRef.on('child_removed', function() {
-  //       expect(false).to.be.true;
-  //     });
-  //   });
-  //   waitsFor(function() { return startAtCount === 1 && defaultCount === 4; }, 'Got child_added events for queries.', TEST_TIMEOUT);
-  // });
+    readRef.on('child_removed', function() {
+      expect(false).to.be.true;
+    });
+  });
 
   it('Case 2003: Correctly get events for startAt/endAt queries when priority changes.', function() {
     var ref = <Reference>getRandomNode();
@@ -2182,549 +1936,450 @@ describe.only('Query Tests', function() {
     ref.startAt(10).endAt(20).on('child_removed', function(snap) { removedSecond.push(snap.key); });
 
     ref.child('a').setWithPriority('a', 5);
-    expect(addedFirst).to.equal(['a']);
+    expect(addedFirst).to.deep.equal(['a']);
     ref.child('a').setWithPriority('a', 15);
-    expect(removedFirst).to.equal(['a']);
-    expect(addedSecond).to.equal(['a']);
+    expect(removedFirst).to.deep.equal(['a']);
+    expect(addedSecond).to.deep.equal(['a']);
 
     ref.child('a').setWithPriority('a', 10);
-    expect(addedFirst).to.equal(['a', 'a']);
+    expect(addedFirst).to.deep.equal(['a', 'a']);
 
     ref.child('a').setWithPriority('a', 5);
-    expect(removedSecond).to.equal(['a']);
+    expect(removedSecond).to.deep.equal(['a']);
   });
 
-  // it('Behaves with diverging queries', function() {
-  //   var refs = getRandomNode(2);
-  //   var writer = refs[0];
-  //   var reader = refs[1];
-
-  //   var written = false;
-  //   var ready = false;
-  //   var done = false;
-  //   runs(function() {
-  //     writer.set({
-  //       a: {b: 1, c: 2},
-  //       e: 3
-  //     }, function() {
-  //       written = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return written; }, 'Initial write', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     var childCount = 0;
-  //     reader.child('a/b').on('value', function(snap) {
-  //       var val = snap.val();
-  //       childCount++;
-  //       if (childCount == 1) {
-  //         expect(val).to.equal(1);
-  //       } else {
-  //         // fail this, nothing should have changed
-  //         expect(true).to.be.false;
-  //       }
-  //     });
-
-  //     var count = 0;
-  //     reader.limitToLast(2).on('value', function(snap) {
-  //       var val = snap.val();
-  //       count++;
-  //       if (count == 1) {
-  //         expect(val).to.equal({a: {b: 1, c: 2}, e: 3});
-  //         ready = true;
-  //       } else if (count == 2) {
-  //         expect(val).to.equal({d: 4, e: 3});
-  //         done = true;
-  //       }
-  //     });
-  //   });
-
-  //   waitsFor(function() { return ready; }, 'Initial data loaded', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writer.child('d').set(4);
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Got updates', TEST_TIMEOUT);
-  // });
-
-  // it('Priority-only updates are processed correctly by server.', function() {
-  //   var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
-
-  //   var readVal;
-  //   readRef.limitToLast(2).on('value', function(s) {
-  //     readVal = s.val();
-  //   });
-  //   writeRef.set(
-  //       { a: { '.priority': 10, '.value': 1},
-  //         b: { '.priority': 20, '.value': 2},
-  //         c: { '.priority': 30, '.value': 3}
-  //     });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { b: 2, c: 3 }); }, 'correct initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writeRef.child('a').setPriority(25);
-  //   });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { a: 1, c: 3 }); }, 'correct data after priority update', TEST_TIMEOUT);
-  // });
-
-  // it('Server: Test re-listen', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-  //   ref.set({
-  //     a: 'a',
-  //     b: 'b',
-  //     c: 'c',
-  //     d: 'd',
-  //     e: 'e',
-  //     f: 'f',
-  //     g: 'g'
-  //   });
-
-  //   var before;
-  //   ref.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
-  //     before = b.val();
-  //   });
-
-  //   var done;
-  //   ref.child('aa').set('aa', function() {
-  //     ref2.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
-  //       expect(b.val()).to.equal(before);
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; });
-  // });
-
-  // it('Server: Test re-listen 2', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-  //   ref.set({
-  //     a: 'a',
-  //     b: 'b',
-  //     c: 'c',
-  //     d: 'd',
-  //     e: 'e',
-  //     f: 'f',
-  //     g: 'g'
-  //   });
-
-  //   var before;
-  //   ref.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
-  //     before = b.val();
-  //   });
-
-  //   var done;
-  //   ref.child('aa').update({ 'a': 5, 'aa': 4, 'b': 7, 'c': 4, 'd': 4, 'dd': 3 }, function() {
-  //     ref2.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
-  //       expect(b.val()).to.equal(before);
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; });
-  // });
-
-  // it('Server: Test re-listen 3', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-  //   ref.set({
-  //     a: 'a',
-  //     b: 'b',
-  //     c: 'c',
-  //     d: 'd',
-  //     e: 'e',
-  //     f: 'f',
-  //     g: 'g'
-  //   });
-
-  //   var before;
-  //   ref.limitToLast(3).on('value', function(b) {
-  //     before = b.val();
-  //   });
-
-  //   var done;
-  //   ref.child('h').set('h', function() {
-  //     ref2.limitToLast(3).on('value', function(b) {
-  //       expect(b.val()).to.equal(before);
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; });
-  // });
-
-  // it('Server limit below limit works properly.', function() {
-  //   var refPair = getRandomNode(2),
-  //       readRef = refPair[0],
-  //       writeRef = refPair[1],
-  //       childData;
-
-  //   writeRef.set({
-  //     a: {
-  //       aa: {'.priority': 1, '.value': 1 },
-  //       ab: {'.priority': 1, '.value': 1 }
-  //     } }, function() {
-  //     readRef.limitToLast(1).on('value', function(s) {
-  //       expect(s.val()).to.equal({a: { aa: 1, ab: 1}});
-  //     });
-
-  //     readRef.child('a').startAt(1).endAt(1).on('value', function(s) {
-  //       childData = s.val();
-  //     });
-  //   });
-  //   waitsFor(function() { return TESTS.equals(childData, { aa: 1, ab: 1 }); }, 'initial child data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     // This should remove an item from the child query, but *not* the parent query.
-  //     writeRef.child('a/ab').setWithPriority(1, 2);
-  //   });
-  //   waitsFor(function() { return TESTS.equals(childData, { aa: 1 }); }, 'updated child data', TEST_TIMEOUT);
-  // });
-
-  // it('Server: Setting grandchild of item in limit works.', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-
-  //   ref.set({ a: {
-  //     name: 'Mike'
-  //   }});
-
-  //   var snaps = [];
-  //   ref2.limitToLast(1).on('value', function(s) {
-  //     var val = s.val();
-  //     if (val !== null) {
-  //       snaps.push(val);
-  //     }
-  //   });
-  //   waitsFor(function() { return TESTS.equals(snaps, [{ a: { name: 'Mike' } }]); }, 'initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     ref.child('a/name').set('Fred');
-  //   });
-  //   waitsFor(function() { return TESTS.equals(snaps, [{ a: { name: 'Mike' } }, { a: { name: 'Fred' } }]); }, 'updated data', TEST_TIMEOUT);
-  // });
-
-  // it('Server: Updating grandchildren of item in limit works.', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-
-  //   ref.set({ a: {
-  //     name: 'Mike'
-  //   }});
-
-  //   var snaps = [];
-  //   ref2.limitToLast(1).on('value', function(s) {
-  //     var val = s.val();
-  //     if (val !== null) {
-  //       snaps.push(val);
-  //     }
-  //   });
-  //   waitsFor(function() { return TESTS.equals(snaps, [{ a: { name: 'Mike' } }]); }, 'initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     ref.child('a').update({ name: null, Name: 'Fred' });
-  //   });
-  //   waitsFor(function() { return TESTS.equals(snaps, [{ a: { name: 'Mike' } }, { a: { Name: 'Fred' } }]); },
-  //     'updated data', TEST_TIMEOUT);
-  // });
-
-  // it('Server: New child at end of limit shows up.', function() {
-  //   var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
-
-  //   var snap;
-  //   ref2.limitToLast(1).on('value', function(s) {
-  //     snap = s.val();
-  //   });
-
-  //   waitsFor(function() { return snap === null }, 'initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     ref.child('a').set('new child');
-  //   });
-  //   waitsFor(function() { return TESTS.equals(snap, { a: 'new child' }); }, 'updated data', TEST_TIMEOUT);
-  // });
-
-  // it('Server: Priority-only updates are processed correctly by server (1).', function() {
-  //   var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
-
-  //   var readVal;
-  //   readRef.limitToLast(2).on('value', function(s) {
-  //     readVal = s.val();
-  //   });
-  //   writeRef.set(
-  //       { a: { '.priority': 10, '.value': 1},
-  //         b: { '.priority': 20, '.value': 2},
-  //         c: { '.priority': 30, '.value': 3}
-  //       });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { b: 2, c: 3 }); }, 'correct initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writeRef.child('a').setPriority(25);
-  //   });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { a: 1, c: 3 }); }, 'correct data after priority update', TEST_TIMEOUT);
-  // });
-
-  // // Same as above but with an endAt() so we hit CompoundQueryView instead of SimpleLimitView.
-  // it('Server: Priority-only updates are processed correctly by server (2).', function() {
-  //   var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
-
-  //   var readVal;
-  //   readRef.endAt(50).limitToLast(2).on('value', function(s) {
-  //     readVal = s.val();
-  //   });
-  //   writeRef.set(
-  //       { a: { '.priority': 10, '.value': 1},
-  //         b: { '.priority': 20, '.value': 2},
-  //         c: { '.priority': 30, '.value': 3}
-  //       });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { b: 2, c: 3 }); }, 'correct initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writeRef.child('a').setPriority(25);
-  //   });
-
-  //   waitsFor(function() { return TESTS.equals(readVal, { a: 1, c: 3 }); }, 'correct data after priority update', TEST_TIMEOUT);
-  // });
-
-  // it('Latency compensation works with limit and pushed object.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var events = [];
-  //   ref.limitToLast(3).on('child_added', function(s) { events.push(s.val()); });
-
-  //   // If you change this to ref.push('foo') it works.
-  //   ref.push({a: 'foo'});
-
-  //   // Should have synchronously gotten an event.
-  //   expect(events.length).to.equal(1);
-  // });
-
-  // it("Cache doesn't remove items that have fallen out of view.", function() {
-  //   var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
-
-  //   var readVal;
-  //   readRef.limitToLast(2).on('value', function(s) {
-  //     readVal = s.val();
-  //   });
-  //   waitsFor(function() { return readVal === null; }, 'initial data', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     for (var i = 0; i < 4; i++) {
-  //       writeRef.child('k' + i).set(i);
-  //     }
-  //   });
-  //   waitsFor(function() { return TESTS.equals(readVal, {'k2': 2, 'k3': 3}); }, 'correct data after sets.', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writeRef.remove();
-  //   });
-  //   waitsFor(function() { return readVal === null; }, 'correct data after clear.', TEST_TIMEOUT);
-  // });
-
-  // it('handles an update that moves another child that has a deeper listener out of view', function() {
-  //   var refs = getRandomNode(2);
-  //   var reader = refs[0];
-  //   var writer = refs[1];
-
-  //   var done = false;
-  //   runs(function() {
-  //     writer.set({ a: { '.priority': 10, '.value': 1},
-  //       b: { '.priority': 20, d: 4},
-  //       c: { '.priority': 30, '.value': 3}
-  //     }, function() { done = true; });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Set initial data', TEST_TIMEOUT);
-
-  //   var loaded = false;
-
-  //   runs(function() {
-  //     done = false;
-  //     reader.child('b/d').on('value', function(snap) {
-  //       expect(snap.val()).to.equal(4);
-  //     });
-  //     reader.limitToLast(2).on('value', function(snap) {
-  //       var val = snap.val();
-  //       if (TESTS.equals(val, {b: {d: 4}, c: 3})) {
-  //         loaded = true;
-  //       } else if (TESTS.equals(val, {c: 3, a: 1})) {
-  //         done = true;
-  //       }
-  //     });
-  //   });
-
-  //   waitsFor(function() { return loaded; }, 'Wait for limit to load', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     writer.child('a').setWithPriority(1, 40);
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Wait for limit to be updated', TEST_TIMEOUT);
-  // });
-
-  // it('Integer keys behave numerically 1.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done;
-  //   ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
-  //     ref.startAt(null, '80').once('value', function(s) {
-  //       expect(s.val()).to.equal({80: true, 550: true, 600: true });
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Query to return', TEST_TIMEOUT);
-  // });
-
-  // it('Integer keys behave numerically 2.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done;
-  //   ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
-  //     ref.endAt(null, '50').once('value', function(s) {
-  //       expect(s.val()).to.equal({1: true, 6: true, 8: true, 50: true });
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Query to return', TEST_TIMEOUT);
-  // });
-
-  // it('Integer keys behave numerically 3.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done;
-  //   ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true}, function() {
-  //     ref.startAt(null, '50').endAt(null, '80').once('value', function(s) {
-  //       expect(s.val()).to.equal({50: true, 70: true, 80: true });
-  //       done = true;
-  //     });
-  //   });
-  //   waitsFor(function() { return done; }, 'Query to return', TEST_TIMEOUT);
-  // });
-
-  // it('.limitToLast() on node with priority.', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done = false;
-  //   runs(function() {
-  //     ref.set({'a': 'blah', '.priority': 'priority'}, function() {
-  //       ref.limitToLast(2).once('value', function(s) {
-  //         expect(s.exportVal()).to.equal({a: 'blah' });
-  //         done = true;
-  //       });
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Once() to finish', TEST_TIMEOUT);
-  // });
-
-  // it('.equalTo works', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done = false;
-
-  //   runs(function() {
-  //     ref.set({
-  //       a: 1,
-  //       b: {'.priority': 2, '.value': 2},
-  //       c: {'.priority': '3', '.value': 3}
-  //     }, function(error) {
-  //       expect(error).toBeNull();
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Initial data set', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     done = false;
-  //     ref.equalTo(2).once('value', function(snap) {
-  //       var val = snap.exportVal();
-  //       expect(val).to.equal({b: {'.priority': 2, '.value': 2}});
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Got snapshot', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     done = false;
-  //     ref.equalTo('3', 'c').once('value', function(snap) {
-  //       var val = snap.exportVal();
-  //       expect(val).to.equal({c: {'.priority': '3', '.value': 3}});
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Got snapshot', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     done = false;
-  //     ref.equalTo(null, 'c').once('value', function(snap) {
-  //       var val = snap.exportVal();
-  //       expect(val).toBeNull();
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Got snapshot', TEST_TIMEOUT);
-  // });
-
-  // it('Handles fallback for orderBy', function() {
-  //   var ref = <Reference>getRandomNode();
-  //   var done = false;
-
-  //   runs(function() {
-  //     // Set initial data
-  //     ref.set({
-  //       a: {foo: 3},
-  //       b: {foo: 1},
-  //       c: {foo: 2}
-  //     }, function() {
-  //       done = true;
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Set initial data', TEST_TIMEOUT);
-
-  //   var children = [];
-  //   runs(function() {
-  //     done = false;
-  //     ref.orderByChild('foo').on('child_added', function(snap) {
-  //       children.push(snap.key);
-  //       done = (children.length === 3);
-  //     });
-  //   });
-
-  //   waitsFor(function() { return done; }, 'Get all the children', TEST_TIMEOUT);
-
-  //   runs(function() {
-  //     expect(children).to.equal(['b', 'c', 'a']);
-  //   });
-  // });
-
-  // it("Get notified of deletes that happen while offline.", function() {
-  //   var refPair = getRandomNode(2);
-  //   var queryRef = refPair[0];
-  //   var writerRef = refPair[1];
-  //   var readSnapshot = null;
-
-  //   // Write 3 children and then start our limit query.
-  //   writerRef.set({a: 1, b: 2, c: 3}, function() {
-  //     queryRef.limitToLast(3).on('value', function(s) { readSnapshot = s; });
-  //   });
-
-  //   // Wait for us to read the 3 children.
-  //   waitsFor(function() { return readSnapshot != null; }, "initial data", TEST_TIMEOUT);
-  //   runs(function() {
-  //     expect(readSnapshot.val()).to.equal({a: 1, b: 2, c: 3 });
-
-  //     queryRef.database.goOffline();
-
-  //     // Delete an item in the query and then bring our connection back up.
-  //     writerRef.child('b').remove(function() {
-  //       queryRef.database.goOnline();
-  //     });
-
-  //     // Now wait for us to get notified that b is deleted.
-  //   });
-  //   waitsFor(function() { return readSnapshot.child('b').val() == null; }, "b to be deleted", TEST_TIMEOUT);
-  // });
+  it('Behaves with diverging queries', async function() {
+    var refs = getRandomNode(2);
+    var writer = refs[0];
+    var reader = refs[1];
+
+    var written = false;
+    var ready = false;
+    var done = false;
+
+    var childCount = 0;
+    reader.child('a/b').on('value', function(snap) {
+      var val = snap.val();
+      childCount++;
+      if (childCount == 1) {
+        expect(val).to.equal(1);
+      } else {
+        // fail this, nothing should have changed
+        expect(true).to.be.false;
+      }
+    });
+
+    var count = 0;
+    reader.limitToLast(2).on('value', function(snap) {
+      var val = snap.val();
+      count++;
+      if (count == 1) {
+        expect(val).to.deep.equal({a: {b: 1, c: 2}, e: 3});
+      } else if (count == 2) {
+        expect(val).to.deep.equal({d: 4, e: 3});
+      }
+    });
+
+    await writer.set({
+      a: {b: 1, c: 2},
+      e: 3
+    });
+    await writer.child('d').set(4);
+  });
+
+  it('Priority-only updates are processed correctly by server.', async function() {
+    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+
+    var readVal;
+    readRef.limitToLast(2).on('value', function(s) {
+      readVal = s.val();
+    });
+    
+    await writeRef.set({ 
+      a: { '.priority': 10, '.value': 1},
+      b: { '.priority': 20, '.value': 2},
+      c: { '.priority': 30, '.value': 3}
+    })
+
+    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+
+    await writeRef.child('a').setPriority(25);
+
+    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+  });
+
+  it('Server: Test re-listen', function(done) {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    ref.set({
+      a: 'a',
+      b: 'b',
+      c: 'c',
+      d: 'd',
+      e: 'e',
+      f: 'f',
+      g: 'g'
+    });
+
+    var before;
+    ref.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
+      before = b.val();
+    });
+
+    ref.child('aa').set('aa', function() {
+      ref2.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
+        expect(b.val()).to.equal(before);
+        done();
+      });
+    });
+  });
+
+  it('Server: Test re-listen 2', function(done) {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    ref.set({
+      a: 'a',
+      b: 'b',
+      c: 'c',
+      d: 'd',
+      e: 'e',
+      f: 'f',
+      g: 'g'
+    });
+
+    var before;
+    ref.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
+      before = b.val();
+    });
+
+    ref.child('aa').update({ 'a': 5, 'aa': 4, 'b': 7, 'c': 4, 'd': 4, 'dd': 3 }, function() {
+      ref2.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
+        expect(b.val()).to.equal(before);
+        done();
+      });
+    });
+  });
+
+  it('Server: Test re-listen 3', function(done) {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    ref.set({
+      a: 'a',
+      b: 'b',
+      c: 'c',
+      d: 'd',
+      e: 'e',
+      f: 'f',
+      g: 'g'
+    });
+
+    var before;
+    ref.limitToLast(3).on('value', function(b) {
+      before = b.val();
+    });
+
+    ref.child('h').set('h', function() {
+      ref2.limitToLast(3).on('value', function(b) {
+        expect(b.val()).to.equal(before);
+        done();
+      });
+    });
+  });
+
+  it('Server limit below limit works properly.', async function() {
+    var refPair = getRandomNode(2),
+        readRef = refPair[0],
+        writeRef = refPair[1],
+        childData;
+
+    readRef.limitToLast(1).on('value', function(s) {
+      expect(s.val()).to.deep.equal({a: { aa: 1, ab: 1}});
+    });
+
+    readRef.child('a').startAt(1).endAt(1).on('value', function(s) {
+      childData = s.val();
+    });
+    
+    await writeRef.set({
+      a: {
+        aa: {'.priority': 1, '.value': 1 },
+        ab: {'.priority': 1, '.value': 1 }
+      } 
+    });
+
+    expect(childData).to.deep.equal({ aa: 1, ab: 1 });
+
+    // This should remove an item from the child query, but *not* the parent query.
+    await writeRef.child('a/ab').setWithPriority(1, 2);
+
+    expect(childData).to.deep.equal({ aa: 1 });    
+  });
+
+  it('Server: Setting grandchild of item in limit works.', async function() {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+
+    var snaps = [];
+    ref2.limitToLast(1).on('value', function(s) {
+      var val = s.val();
+      if (val !== null) {
+        snaps.push(val);
+      }
+    });
+
+    await ref.set({ a: {
+      name: 'Mike'
+    }});
+
+    expect(snaps).to.deep.equal( [{ a: { name: 'Mike' } }])
+
+    await ref.child('a/name').set('Fred');
+
+    expect(snaps).to.deep.equal([{ a: { name: 'Mike' } }, { a: { name: 'Fred' } }])
+  });
+
+  it('Server: Updating grandchildren of item in limit works.', async function() {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+
+    var snaps = [];
+    ref2.limitToLast(1).on('value', function(s) {
+      var val = s.val();
+      if (val !== null) {
+        snaps.push(val);
+      }
+    });
+
+    await ref.set({ a: {
+      name: 'Mike'
+    }});
+
+    expect(snaps).to.deep.equal( [{ a: { name: 'Mike' } }]);
+
+    await ref.child('a').update({ name: null, Name: 'Fred' });
+    expect(snaps).to.deep.equal([{ a: { name: 'Mike' } }, { a: { Name: 'Fred' } }]);
+  });
+
+  it('Server: New child at end of limit shows up.', async function() {
+    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+
+    var snap;
+    ref2.limitToLast(1).on('value', function(s) {
+      snap = s.val();
+    });
+
+    await ref.child('a').set('new child');
+
+    expect(snap).to.deep.equal({ a: 'new child' });
+  });
+
+  it('Server: Priority-only updates are processed correctly by server (1).', async function() {
+    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+
+    var readVal;
+    readRef.limitToLast(2).on('value', function(s) {
+      readVal = s.val();
+    });
+
+    await writeRef.set({ 
+      a: { '.priority': 10, '.value': 1},
+      b: { '.priority': 20, '.value': 2},
+      c: { '.priority': 30, '.value': 3}
+    });
+
+    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+    
+    await writeRef.child('a').setPriority(25);
+
+    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+  });
+
+  // Same as above but with an endAt() so we hit CompoundQueryView instead of SimpleLimitView.
+  it('Server: Priority-only updates are processed correctly by server (2).', async function() {
+    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+
+    var readVal;
+    readRef.endAt(50).limitToLast(2).on('value', function(s) {
+      readVal = s.val();
+    });
+    
+    await writeRef.set({ 
+      a: { '.priority': 10, '.value': 1},
+      b: { '.priority': 20, '.value': 2},
+      c: { '.priority': 30, '.value': 3}
+    });
+
+    expect(readVal).to.deep.equal({ b: 2, c: 3 });
+
+    await writeRef.child('a').setPriority(25);
+
+    expect(readVal).to.deep.equal({ a: 1, c: 3 });
+  });
+
+  it('Latency compensation works with limit and pushed object.', function() {
+    var ref = <Reference>getRandomNode();
+    var events = [];
+    ref.limitToLast(3).on('child_added', function(s) { events.push(s.val()); });
+
+    // If you change this to ref.push('foo') it works.
+    ref.push({a: 'foo'});
+
+    // Should have synchronously gotten an event.
+    expect(events.length).to.equal(1);
+  });
+
+  it("Cache doesn't remove items that have fallen out of view.", async function() {
+    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+
+    var readVal;
+    readRef.limitToLast(2).on('value', function(s) {
+      readVal = s.val();
+    });
+
+
+    const writePromises = [];
+    for (var i = 0; i < 4; i++) {
+      writePromises.push(writeRef.child('k' + i).set(i));
+    }
+
+    await Promise.all(writePromises);
+
+    expect(readVal).to.deep.equal({'k2': 2, 'k3': 3});
+    
+    await writeRef.remove();
+
+    expect(readVal).to.be.null;
+  });
+
+  it('handles an update that moves another child that has a deeper listener out of view', async function() {
+    var refs = getRandomNode(2);
+    var reader = refs[0];
+    var writer = refs[1];
+
+    reader.child('b/d').on('value', function(snap) {
+      expect(snap.val()).to.equal(4);
+    });
+
+    var val;
+    reader.limitToLast(2).on('value', function(snap) {
+      val = snap.val();
+    });
+
+    await writer.set({ 
+      a: { '.priority': 10, '.value': 1},
+      b: { '.priority': 20, d: 4 },
+      c: { '.priority': 30, '.value': 3}
+    });
+
+    expect(val).to.deep.equal({b: {d: 4}, c: 3});
+
+    await writer.child('a').setWithPriority(1, 40);
+
+    expect(val).to.deep.equal({c: 3, a: 1});
+  });
+
+  it('Integer keys behave numerically 1.', function(done) {
+    var ref = <Reference>getRandomNode();
+    ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
+      ref.startAt(null, '80').once('value', function(s) {
+        expect(s.val()).to.deep.equal({80: true, 550: true, 600: true });
+        done();
+      });
+    });
+  });
+
+  it('Integer keys behave numerically 2.', function(done) {
+    var ref = <Reference>getRandomNode();
+    ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
+      ref.endAt(null, '50').once('value', function(s) {
+        expect(s.val()).to.deep.equal({1: true, 6: true, 8: true, 50: true });
+        done();
+      });
+    });
+  });
+
+  it('Integer keys behave numerically 3.', function(done) {
+    var ref = <Reference>getRandomNode();
+    ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true}, function() {
+      ref.startAt(null, '50').endAt(null, '80').once('value', function(s) {
+        expect(s.val()).to.deep.equal({50: true, 70: true, 80: true });
+        done();
+      });
+    });
+  });
+
+  it('.limitToLast() on node with priority.', function(done) {
+    var ref = <Reference>getRandomNode();
+    ref.set({'a': 'blah', '.priority': 'priority'}, function() {
+      ref.limitToLast(2).once('value', function(s) {
+        expect(s.exportVal()).to.deep.equal({a: 'blah' });
+        done();
+      });
+    });
+  });
+
+  it('.equalTo works', async function() {
+    var ref = <Reference>getRandomNode();
+    var done = false;
+
+    await ref.set({
+      a: 1,
+      b: {'.priority': 2, '.value': 2},
+      c: {'.priority': '3', '.value': 3}
+    });
+
+    const snap1 = await ref.equalTo(2).once('value');
+    var val1 = snap1.exportVal();
+    expect(val1).to.deep.equal({b: {'.priority': 2, '.value': 2}});
+
+    const snap2 = await ref.equalTo('3', 'c').once('value');
+    
+    var val2 = snap2.exportVal();
+    expect(val2).to.deep.equal({c: {'.priority': '3', '.value': 3}});
+
+    const snap3 = await ref.equalTo(null, 'c').once('value');
+    var val3 = snap3.exportVal();
+    expect(val3).to.be.null;
+  });
+
+  it('Handles fallback for orderBy', async function() {
+    var ref = <Reference>getRandomNode();
+
+    const children = [];
+    
+    ref.orderByChild('foo').on('child_added', function(snap) {
+      children.push(snap.key);
+    });
+
+    // Set initial data
+    await ref.set({
+      a: {foo: 3},
+      b: {foo: 1},
+      c: {foo: 2}
+    });
+
+    expect(children).to.deep.equal(['b', 'c', 'a']);
+  });
+
+  it("Get notified of deletes that happen while offline.", async function() {
+    var refPair = getRandomNode(2);
+    var queryRef = refPair[0];
+    var writerRef = refPair[1];
+    var readSnapshot = null;
+
+    queryRef.limitToLast(3).on('value', function(s) { 
+      readSnapshot = s; 
+    });
+    
+    // Write 3 children and then start our limit query.
+    await writerRef.set({a: 1, b: 2, c: 3});
+
+    // Wait for us to read the 3 children.
+    expect(readSnapshot.val()).to.deep.equal({a: 1, b: 2, c: 3 });
+
+    queryRef.database.goOffline();
+
+    // Delete an item in the query and then bring our connection back up.
+    await writerRef.child('b').remove();
+    queryRef.database.goOnline();
+
+    expect(readSnapshot.child('b').val()).to.be.null;
+  });
 
   it('Snapshot children respect default ordering', function(done) {
     var refPair = getRandomNode(2);
@@ -2759,7 +2414,7 @@ describe.only('Query Tests', function() {
         snap.child('b').forEach(function(childSnap) {
           orderedKeys.push(childSnap.key);
         });
-        expect(orderedKeys).to.equal(expectedKeys);
+        expect(orderedKeys).to.deep.equal(expectedKeys);
 
         // Validate that snap.forEach() resets ordering to default for child snaps
         var orderedNames = [];
@@ -2769,9 +2424,9 @@ describe.only('Query Tests', function() {
           childSnap.forEach(function(grandchildSnap) {
             orderedKeys.push(grandchildSnap.key);
           });
-          expect(orderedKeys).to.equal(['thisvaluefirst', 'name', 'thisvaluelast']);
+          expect(orderedKeys).to.deep.equal(['thisvaluefirst', 'name', 'thisvaluelast']);
         });
-        expect(orderedNames).to.equal(expectedNames);
+        expect(orderedNames).to.deep.equal(expectedNames);
         done();
       });
     });
