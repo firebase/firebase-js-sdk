@@ -447,7 +447,13 @@ export const each = function(obj, fn) {
       fn(i, obj[i]);
     }
   } else {
-    forEach(obj, fn);
+    /**
+     * in the conversion of code we removed the goog.object.forEach
+     * function which did a value,key callback. We standardized on
+     * a single impl that does a key, value callback. So we invert
+     * to not have to touch the `each` code points
+     */
+    forEach(obj, (key, val) => fn(val, key));
   }
 };
 

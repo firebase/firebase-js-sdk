@@ -113,7 +113,7 @@ export class Tree {
    */
   forEachChild(action) {
     var self = this;
-    forEach(this.node_.children, function(childTree, child) {
+    forEach(this.node_.children, function(child, childTree) {
       action(new Tree(child, self, childTree));
     });
   }

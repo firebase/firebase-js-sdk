@@ -30,7 +30,7 @@ export class ImmutableTree {
    */
   static fromObject(obj) {
     var tree = ImmutableTree.Empty;
-    forEach(obj, function(childSnap, childPath) {
+    forEach(obj, function(childPath, childSnap) {
       tree = tree.set(new Path(childPath), childSnap);
     });
     return tree;
@@ -75,7 +75,7 @@ export class ImmutableTree {
    *   node
    * @return {?{path:!Path, value:!T}}
    */
-  findRootMostMatchingPathAndValue(relativePath, predicate) {
+  findRootMostMatchingPathAndValue(relativePath: Path, predicate) {
     if (this.value != null && predicate(this.value)) {
       return {path: Path.Empty, value: this.value};
     } else {
@@ -89,8 +89,7 @@ export class ImmutableTree {
               child.findRootMostMatchingPathAndValue(relativePath.popFront(),
                                                      predicate);
           if (childExistingPathAndValue != null) {
-            var fullPath = new Path(front)
-                .child(childExistingPathAndValue.path);
+            var fullPath = new Path(front).child(childExistingPathAndValue.path);
             return {path: fullPath, value: childExistingPathAndValue.value};
           } else {
             return null;

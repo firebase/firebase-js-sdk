@@ -1,7 +1,7 @@
 import { Path, ValidationPath } from "./Path";
 import { forEach, contains } from "../../../utils/obj";
 import { isInvalidJSONNumber } from "./util";
-import { errorPrefix } from "../../../utils/validation";
+import { errorPrefix as errorPrefixFxn } from "../../../utils/validation";
 import { stringLength } from "../../../utils/utf8";
 
 /**
@@ -83,7 +83,7 @@ export const validateFirebaseDataArg = function(fnName, argumentNumber, data, pa
     return;
 
   validateFirebaseData(
-      errorPrefix(fnName, argumentNumber, optional),
+      errorPrefixFxn(fnName, argumentNumber, optional),
       data, path
   );
 }
@@ -204,7 +204,7 @@ export const validateFirebaseMergeDataArg = function(fnName, argumentNumber, dat
   if (optional && data === undefined)
     return;
 
-  var errorPrefix = errorPrefix(fnName, argumentNumber, optional);
+  var errorPrefix = errorPrefixFxn(fnName, argumentNumber, optional);
 
   if (!(data && typeof data === 'object') || Array.isArray(data)) {
     throw new Error(errorPrefix + ' must be an object containing the children to replace.');
@@ -231,14 +231,14 @@ export const validatePriority = function(fnName, argumentNumber, priority, optio
     return;
   if (isInvalidJSONNumber(priority))
     throw new Error(
-        errorPrefix(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentNumber, optional) +
             'is ' + priority.toString() +
             ', but must be a valid Firebase priority (a string, finite number, ' +
             'server value, or null).');
   // Special case to allow importing data with a .sv.
   if (!isValidPriority(priority))
     throw new Error(
-        errorPrefix(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentNumber, optional) +
             'must be a valid Firebase priority ' +
             '(a string, finite number, server value, or null).');
 }
@@ -256,7 +256,7 @@ export const validateEventType = function(fnName, argumentNumber, eventType, opt
       break;
     default:
       throw new Error(
-          errorPrefix(fnName, argumentNumber, optional) +
+          errorPrefixFxn(fnName, argumentNumber, optional) +
               'must be a valid event type = "value", "child_added", "child_removed", ' +
               '"child_changed", or "child_moved".');
   }
@@ -266,7 +266,7 @@ export const validateKey = function(fnName, argumentNumber, key, optional) {
   if (optional && key === undefined)
     return;
   if (!isValidKey(key))
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+    throw new Error(errorPrefixFxn(fnName, argumentNumber, optional) +
                     'was an invalid key = "' + key +
                     '".  Firebase keys must be non-empty strings and ' +
                     'can\'t contain ".", "#", "$", "/", "[", or "]").');
@@ -277,7 +277,7 @@ export const validatePathString = function(fnName, argumentNumber, pathString, o
     return;
 
   if (!isValidPathString(pathString))
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+    throw new Error(errorPrefixFxn(fnName, argumentNumber, optional) +
                     'was an invalid path = "' +
                     pathString +
                     '". Paths must be non-empty strings and ' +
@@ -305,7 +305,7 @@ export const validateUrl = function(fnName, argumentNumber, parsedUrl) {
   if (!(typeof parsedUrl.repoInfo.host === 'string') || parsedUrl.repoInfo.host.length === 0 ||
       !isValidKey(parsedUrl.repoInfo.namespace) ||
       (pathString.length !== 0 && !isValidRootPathString(pathString))) {
-    throw new Error(errorPrefix(fnName, argumentNumber, false) +
+    throw new Error(errorPrefixFxn(fnName, argumentNumber, false) +
                     'must be a valid firebase URL and ' +
                     'the path can\'t contain ".", "#", "$", "[", or "]".');
   }
@@ -316,7 +316,7 @@ export const validateCredential = function(fnName, argumentNumber, cred, optiona
     return;
   if (!(typeof cred === 'string'))
     throw new Error(
-        errorPrefix(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentNumber, optional) +
             'must be a valid credential (a string).');
 }
 
@@ -324,7 +324,7 @@ export const validateBoolean = function(fnName, argumentNumber, bool, optional) 
   if (optional && bool === undefined)
     return;
   if (typeof bool !== 'boolean')
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+    throw new Error(errorPrefixFxn(fnName, argumentNumber, optional) +
                     'must be a boolean.');
 }
 
@@ -333,7 +333,7 @@ export const validateString = function(fnName, argumentNumber, string, optional)
     return;
   if (!(typeof string === 'string')) {
     throw new Error(
-        errorPrefix(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentNumber, optional) +
             'must be a valid string.');
   }
 }
@@ -343,7 +343,7 @@ export const validateObject = function(fnName, argumentNumber, obj, optional) {
     return;
   if (!(obj && typeof obj === 'object') || obj === null) {
     throw new Error(
-        errorPrefix(fnName, argumentNumber, optional) +
+        errorPrefixFxn(fnName, argumentNumber, optional) +
             'must be a valid object.');
   }
 }
@@ -356,7 +356,7 @@ export const validateObjectContainsKey = function(fnName, argumentNumber, obj, k
       return;
     } else {
       throw new Error(
-          errorPrefix(fnName, argumentNumber, optional) +
+          errorPrefixFxn(fnName, argumentNumber, optional) +
               'must contain the key "' + key + '"');
     }
   }
@@ -369,10 +369,10 @@ export const validateObjectContainsKey = function(fnName, argumentNumber, obj, k
         (opt_type === 'function' && !(typeof val === 'function')) ||
         (opt_type === 'object' && !(typeof val === 'object') && val)) {
       if (optional) {
-        throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+        throw new Error(errorPrefixFxn(fnName, argumentNumber, optional) +
                       'contains invalid value for key "' + key + '" (must be of type "' + opt_type + '")');
       } else {
-        throw new Error(errorPrefix(fnName, argumentNumber, optional) +
+        throw new Error(errorPrefixFxn(fnName, argumentNumber, optional) +
                       'must contain the key "' + key + '" with type "' + opt_type + '"');
       }
     }

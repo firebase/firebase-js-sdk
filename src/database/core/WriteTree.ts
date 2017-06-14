@@ -164,7 +164,7 @@ export class WriteTree {
       } else {
         var children = writeToRemove.children;
         var self = this;
-        forEach(children, function(childSnap, childName) {
+        forEach(children, function(childName, childSnap) {
           self.visibleWrites_ = self.visibleWrites_.removeWrite(writeToRemove.path.child(childName));
         });
       }

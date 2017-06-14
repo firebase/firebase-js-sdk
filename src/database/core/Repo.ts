@@ -327,18 +327,17 @@ export class Repo {
    * @param {!Object} childrenToMerge
    * @param {?function(?Error, *=)} onComplete
    */
-  update(path, childrenToMerge, onComplete) {
+  update(path: Path, childrenToMerge, onComplete) {
     this.log_('update', {path: path.toString(), value: childrenToMerge});
 
     // Start with our existing data and merge each child into it.
     var empty = true;
     var serverValues = this.generateServerValues();
     var changedChildren = {};
-    forEach(childrenToMerge, function(changedValue, changedKey) {
+    forEach(childrenToMerge, function(changedKey, changedValue) {
       empty = false;
       var newNodeUnresolved = nodeFromJSON(changedValue);
-      changedChildren[changedKey] =
-        resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
+      changedChildren[changedKey] = resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
     });
 
     if (!empty) {
@@ -361,7 +360,7 @@ export class Repo {
         self.callOnCompleteCallback(onComplete, status, errorReason);
       });
 
-      forEach(childrenToMerge, function(changedValue, changedPath) {
+      forEach(childrenToMerge, function(changedPath, changedValue) {
         var affectedPath = self.abortTransactions_(path.child(changedPath));
         self.rerunTransactions_(affectedPath);
       });

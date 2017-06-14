@@ -520,7 +520,7 @@ export class SyncTree {
                 })
             );
           }
-          forEach(childMap, function(childQueries) {
+          forEach(childMap, function(key, childQueries) {
             queries = queries.concat(childQueries);
           });
           return queries;

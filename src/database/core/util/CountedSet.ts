@@ -72,7 +72,7 @@ export class CountedSet {
    * @param {function(K, V)} fn
    */
   each(fn) {
-    forEach(this.set, function(v, k) {
+    forEach(this.set, function(k, v) {
       fn(k, v);
     });
   }
@@ -83,7 +83,7 @@ export class CountedSet {
    */
   keys() {
     var keys = [];
-    forEach(this.set, function(v, k) {
+    forEach(this.set, function(k, v) {
       keys.push(k);
     });
     return keys;

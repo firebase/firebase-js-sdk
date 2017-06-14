@@ -23,9 +23,9 @@ export class Path {
    *      or another path, or the raw tokens array
    * @param {number=} opt_pieceNum
    */
-  constructor(pathOrString, opt_pieceNum?) {
+  constructor(pathOrString: string|string[], opt_pieceNum?) {
     if (arguments.length == 1) {
-      this.pieces_ = pathOrString.split('/');
+      this.pieces_ = (<string>pathOrString).split('/');
 
       // Remove empty pieces.
       var copyTo = 0;

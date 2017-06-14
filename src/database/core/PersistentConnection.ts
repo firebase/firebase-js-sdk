@@ -834,8 +834,8 @@ export class PersistentConnection {
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.
     var self = this;
-    forEach(this.listens_, function(queries, pathString) {
-      forEach(queries, function(listenSpec) {
+    forEach(this.listens_, function(pathString, queries) {
+      forEach(queries, function(key, listenSpec) {
         self.sendListen_(listenSpec);
       });
     });
