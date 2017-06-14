@@ -2,9 +2,14 @@ import { assert } from '../../../utils/assert';
 import { 
   doubleToIEEE754String,
 } from "../util/util";
-import { ChildrenNode, MAX_NODE } from "./ChildrenNode";
 import { contains } from "../../../utils/obj";
 import { NamedNode } from "./Node";
+
+let MAX_NODE;
+
+export function setMaxNode(val) {
+  MAX_NODE = val;
+}
 
 /**
  * @param {(!string|!number)} priority

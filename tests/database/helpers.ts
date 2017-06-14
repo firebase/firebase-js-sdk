@@ -1,4 +1,5 @@
 import firebase from "../../src/app";
+import '../../src/database';
 import { Reference } from "../../src/database/api/Reference";
 import { Query } from "../../src/database/api/Query";
 import { expect } from "chai";
@@ -61,7 +62,7 @@ function getRootNode(i?, ref?) {
     app = firebase.initializeApp({ databaseURL: TEST_PROJECT.databaseURL }, "TEST-" + i);
     patchFakeAuthFunctions(app);
   }
-  db = /** @type {fb.api.Database} */ (app['database']());
+  db = app.database();
   return db.ref(ref);
 };
 

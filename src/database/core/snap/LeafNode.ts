@@ -7,9 +7,9 @@ import {
   priorityHashText,
   validatePriorityNode
 } from "./snap";
-import { ChildrenNode } from "./ChildrenNode";
 import { Node } from "./Node";
 
+let __childrenNodeConstructor;
 
 /**
  * LeafNode is a class for storing leaf nodes in a DataSnapshot.  It
@@ -17,6 +17,13 @@ import { Node } from "./Node";
  * number, or boolean) accessible via getValue().
  */
 export class LeafNode implements Node {
+  static set __childrenNodeConstructor(val) {
+    __childrenNodeConstructor = val;
+  }
+  static get __childrenNodeConstructor() {
+    return __childrenNodeConstructor;
+  }
+
   value_;
   priorityNode_;
   lazyHash_;
@@ -41,7 +48,7 @@ export class LeafNode implements Node {
      * @const
      * @type {!Node}
      */
-    this.priorityNode_ = opt_priorityNode || ChildrenNode.EMPTY_NODE;
+    this.priorityNode_ = opt_priorityNode || LeafNode.__childrenNodeConstructor.EMPTY_NODE;
     validatePriorityNode(this.priorityNode_);
 
     this.lazyHash_ = null;
@@ -78,7 +85,7 @@ export class LeafNode implements Node {
     if (childName === '.priority') {
       return this.priorityNode_;
     } else {
-      return ChildrenNode.EMPTY_NODE;
+      return LeafNode.__childrenNodeConstructor.EMPTY_NODE;
     }
   }
 
@@ -89,7 +96,7 @@ export class LeafNode implements Node {
     } else if (path.getFront() === '.priority') {
       return this.priorityNode_;
     } else {
-      return ChildrenNode.EMPTY_NODE;
+      return LeafNode.__childrenNodeConstructor.EMPTY_NODE;
     }
   }
 
@@ -112,7 +119,7 @@ export class LeafNode implements Node {
     } else if (newChildNode.isEmpty() && childName !== '.priority') {
       return this;
     } else {
-      return ChildrenNode.EMPTY_NODE
+      return LeafNode.__childrenNodeConstructor.EMPTY_NODE
           .updateImmediateChild(childName, newChildNode)
           .updatePriority(this.priorityNode_);
     }
@@ -129,7 +136,7 @@ export class LeafNode implements Node {
       assert(front !== '.priority' || path.getLength() === 1,
           '.priority must be the last token in a path');
 
-      return this.updateImmediateChild(front, ChildrenNode.EMPTY_NODE.updateChild(path.popFront(), newChildNode));
+      return this.updateImmediateChild(front, LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateChild(path.popFront(), newChildNode));
     }
   }
 
@@ -190,9 +197,9 @@ export class LeafNode implements Node {
    * @inheritDoc
    */
   compareTo(other) {
-    if (other === ChildrenNode.EMPTY_NODE) {
+    if (other === LeafNode.__childrenNodeConstructor.EMPTY_NODE) {
       return 1;
-    } else if (other instanceof ChildrenNode) {
+    } else if (other instanceof LeafNode.__childrenNodeConstructor) {
       return -1;
     } else {
       assert(other.isLeafNode(), 'Unknown node type');

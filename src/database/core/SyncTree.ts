@@ -322,7 +322,7 @@ export class SyncTree {
    * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
    * @return {!Array.<!Event>} Cancel events, if cancelError was provided.
    */
-  removeEventRegistration(query, eventRegistration, cancelError) {
+  removeEventRegistration(query, eventRegistration, cancelError?) {
     // Find the syncPoint first. Then deal with whether or not it has matching listeners
     var path = query.path;
     var maybeSyncPoint = this.syncPointTree_.get(path);

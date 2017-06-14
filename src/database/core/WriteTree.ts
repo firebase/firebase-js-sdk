@@ -57,7 +57,7 @@ export class WriteTree {
    * @param {!Path} path
    * @return {!WriteTreeRef}
    */
-  childWrites(path) {
+  childWrites(path): WriteTreeRef {
     return new WriteTreeRef(path, this);
   };
 

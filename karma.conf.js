@@ -54,6 +54,9 @@ module.exports = {
   
   // karma-typescript config
   karmaTypescriptConfig: {
-    tsconfig: `./tsconfig.test.json`
+    tsconfig: `./tsconfig.test.json`,
+    coverageOptions: {
+      instrumentation: false
+    }
   }
 }

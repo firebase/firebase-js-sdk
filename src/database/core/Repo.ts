@@ -37,7 +37,7 @@ export class Repo {
   statsReporter_;
   transactions_init_;
   infoData_;
-  infoSyncTree_;
+  infoSyncTree_: SyncTree;
   onDisconnect_;
   abortTransactions_;
   rerunTransactions_;
@@ -46,7 +46,7 @@ export class Repo {
   database;
   dataUpdateCount;
   interceptServerDataCallback_;
-  serverSyncTree_;
+  serverSyncTree_: SyncTree;
   
   /**
    * @param {!RepoInfo} repoInfo

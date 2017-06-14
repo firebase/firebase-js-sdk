@@ -1,4 +1,4 @@
-import { Path } from "../util/path";
+import { Path } from "../util/Path";
 import { Index } from "./indexes/Index";
 
 /**

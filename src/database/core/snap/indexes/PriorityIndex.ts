@@ -2,8 +2,18 @@ import { Index } from './Index';
 import { nameCompare, MAX_NAME } from "../../util/util";
 import { NamedNode } from "../Node";
 import { LeafNode } from "../LeafNode";
-import { MAX_NODE } from "../ChildrenNode";
-import { nodeFromJSON } from "../nodeFromJSON";
+
+let nodeFromJSON;
+let MAX_NODE;
+
+export function setNodeFromJSON(val) {
+  nodeFromJSON = val;
+}
+
+export function setMaxNode(val) {
+  MAX_NODE = val;
+}
+
 
 /**
  * @constructor
@@ -11,6 +21,7 @@ import { nodeFromJSON } from "../nodeFromJSON";
  * @private
  */
 export class PriorityIndex extends Index {
+
   constructor() {
     super();
   }

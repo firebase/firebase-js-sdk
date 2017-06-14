@@ -20,6 +20,7 @@ import {
   validateCallback,
 } from "../../utils/validation";
 import { Deferred, attachDummyErrorHandler, PromiseImpl } from "../../utils/promise";
+import { SyncPoint } from "../core/SyncPoint";
 
 export class Reference extends Query {
   public then;
@@ -294,12 +295,11 @@ export class Reference extends Query {
   }
 }
 
-Object.defineProperty(Query.prototype, 'getRef', {
-  value: function() {
-    validateArgCount('Query.ref', 0, 0, arguments.length);
-    // This is a slight hack. We cannot goog.require('Firebase'), since Firebase requires Query.
-    // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
-    // method gets called.
-    return new Reference(this.repo, this.path);
-  }
-});
+/**
+ * Define reference constructor in various modules
+ * 
+ * We are doing this here to avoid several circular
+ * dependency issues
+ */
+Query.__referenceConstructor = Reference;
+SyncPoint.__referenceConstructor = Reference;

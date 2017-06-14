@@ -1,8 +1,8 @@
 import { expect } from "chai";
-import _ from "lodash";
 import firebase from '../../src/app';
-import { Query } from "../../src/database/api/Query";
 import { Reference } from "../../src/database/api/Reference";
+import { Query } from "../../src/database/api/Query";
+import "../../src/database/core/snap/ChildrenNode";
 import { 
   getQueryValue,
   getRandomNode,
@@ -10,6 +10,8 @@ import {
   runs,
   waitsFor
 } from "./helpers";
+
+const _ = require('lodash');
 
 type TaskList = [Query, any][];
 

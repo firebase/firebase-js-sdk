@@ -46,14 +46,14 @@ export const base64 = {
    * @type {Object}
    * @private
    */
-  byteToCharMap_: Object,
+  byteToCharMap_: null,
   
   /**
    * Maps characters to bytes.
    * @type {Object}
    * @private
    */
-  charToByteMap_: Object,
+  charToByteMap_: null,
 
   /**
    * Maps bytes to websafe characters.
@@ -105,7 +105,7 @@ export const base64 = {
    *
    * @type {boolean}
    */
-  HAS_NATIVE_SUPPORT: !!globalScope.atob,
+  HAS_NATIVE_SUPPORT: typeof globalScope.atob === 'function',
   
   /**
    * Base64-encode an array of bytes.

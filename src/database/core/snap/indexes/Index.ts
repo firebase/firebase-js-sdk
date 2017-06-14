@@ -7,11 +7,6 @@ import { MIN_NAME, MAX_NAME } from "../../util/util";
  */
 export abstract class Index {
   /**
-   * @typedef {!Object}
-   */
-  static FallbackType;
-
-  /**
    * @param {!NamedNode} a
    * @param {!NamedNode} b
    * @return {number}
@@ -76,5 +71,3 @@ export abstract class Index {
    */
   abstract toString(): string;
 };
-
-export const Fallback = {};

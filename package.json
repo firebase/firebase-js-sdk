@@ -40,6 +40,7 @@
     "chai": "^3.5.0",
     "child-process-promise": "^2.2.1",
     "circular-dependency-plugin": "^3.0.0",
+    "cross-env": "^5.0.1",
     "cz-customizable": "^5.0.0",
     "filesize": "^3.5.6",
     "git-rev-sync": "^1.9.0",

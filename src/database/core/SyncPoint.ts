@@ -1,10 +1,11 @@
-import { Reference } from "../api/Reference";
 import { CacheNode } from "./view/CacheNode";
 import { ChildrenNode } from "./snap/ChildrenNode";
 import { assert } from "../../utils/assert";
 import { isEmpty, forEach, findValue } from "../../utils/obj";
 import { ViewCache } from "./view/ViewCache";
 import { View } from "./view/View";
+
+let __referenceConstructor;
 
 /**
  * SyncPoint represents a single location in a SyncTree with 1 or more event registrations, meaning we need to
@@ -15,10 +16,17 @@ import { View } from "./view/View";
  *  - Maintaining the set of 1 or more views necessary at this location (a SyncPoint with 0 views should be removed).
  *  - Proxying user / server operations to the views as appropriate (i.e. applyServerOverwrite,
  *    applyUserOverwrite, etc.)
- *
- * @constructor
  */
 export class SyncPoint {
+  static set __referenceConstructor(val) {
+    assert(!__referenceConstructor, '__referenceConstructor has already been defined');    
+    __referenceConstructor = val;
+  }
+  static get __referenceConstructor() {
+    assert(__referenceConstructor, 'Reference.ts has not been loaded');
+    return __referenceConstructor;
+  }
+
   views_: object;
   constructor() {
     /**
@@ -73,8 +81,7 @@ export class SyncPoint {
    * @param {boolean} serverCacheComplete
    * @return {!Array.<!Event>} Events to raise.
    */
-  addEventRegistration(query, eventRegistration, writesCache, serverCache,
-                                                    serverCacheComplete) {
+  addEventRegistration(query, eventRegistration, writesCache, serverCache, serverCacheComplete) {
     var queryId = query.queryIdentifier();
     var view = this.views_[queryId];
     if (!view) {
@@ -151,7 +158,7 @@ export class SyncPoint {
 
     if (hadCompleteView && !this.hasCompleteView()) {
       // We removed our last complete view.
-      removed.push(new Reference(query.repo, query.path));
+      removed.push(new SyncPoint.__referenceConstructor(query.repo, query.path));
     }
 
     return {removed: removed, events: cancelEvents};

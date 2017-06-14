@@ -4,7 +4,15 @@ import { nameCompare, MAX_NAME } from "../../util/util";
 import { assert, assertionError } from "../../../../utils/assert";
 import { ChildrenNode } from "../ChildrenNode";
 
+let __EMPTY_NODE;
+
 export class KeyIndex extends Index {
+  static get __EMPTY_NODE() {
+    return __EMPTY_NODE;
+  }
+  static set __EMPTY_NODE(val) {
+    __EMPTY_NODE = val;
+  }
   constructor() {
     super();
   }
@@ -48,7 +56,7 @@ export class KeyIndex extends Index {
   maxPost() {
     // TODO: This should really be created once and cached in a static property, but
     // NamedNode isn't defined yet, so I can't use it in a static.  Bleh.
-    return new NamedNode(MAX_NAME, ChildrenNode.EMPTY_NODE);
+    return new NamedNode(MAX_NAME, __EMPTY_NODE);
   };
 
 
@@ -60,7 +68,7 @@ export class KeyIndex extends Index {
   makePost(indexValue, name) {
     assert(typeof indexValue === 'string', 'KeyIndex indexValue must always be a string.');
     // We just use empty node, but it'll never be compared, since our comparator only looks at name.
-    return new NamedNode(/** @type {!string} */ (indexValue), ChildrenNode.EMPTY_NODE);
+    return new NamedNode(indexValue, __EMPTY_NODE);
   };
 
 

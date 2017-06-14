@@ -9,11 +9,14 @@ import { Node, NamedNode } from "./Node";
 import { 
   validatePriorityNode, 
   priorityHashText,
+  setMaxNode
 } from "./snap";
-import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
-import { KEY_INDEX } from "./indexes/KeyIndex";
+import { PRIORITY_INDEX, setMaxNode as setPriorityMaxNode } from "./indexes/PriorityIndex";
+import { KEY_INDEX, KeyIndex } from "./indexes/KeyIndex";
 import { IndexMap } from "./IndexMap";
+import { LeafNode } from "./LeafNode";
 import { NAME_COMPARATOR } from "./comparators";
+import "./indexes/Index";
 
 // TODO: For memory savings, don't store priorityNode_ if it's empty.
 
@@ -526,3 +529,11 @@ Object.defineProperties(NamedNode, {
     value: new NamedNode(MAX_NAME, MAX_NODE)
   }
 });
+
+/**
+ * Reference Extensions
+ */
+KeyIndex.__EMPTY_NODE = ChildrenNode.EMPTY_NODE;
+LeafNode.__childrenNodeConstructor = ChildrenNode;
+setMaxNode(MAX_NODE);
+setPriorityMaxNode(MAX_NODE);

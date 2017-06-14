@@ -4,7 +4,9 @@ import { contains, clone, map } from "../../../utils/obj";
 import { NamedNode } from "./Node";
 import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
 import { KEY_INDEX } from "./indexes/KeyIndex";
-import { Fallback } from "./indexes/Index";
+let _defaultIndexMap;
+
+const fallbackObject = {};
 
 /**
  *
@@ -21,7 +23,14 @@ export class IndexMap {
    * @type {!IndexMap}
    * @const
    */
-  static Default = new IndexMap(Fallback, PRIORITY_INDEX);
+  static get Default() {
+    assert(fallbackObject && PRIORITY_INDEX, 'ChildrenNode.ts has not been loaded');
+    _defaultIndexMap = _defaultIndexMap || new IndexMap(
+      { '.priority': fallbackObject }, 
+      { '.priority': PRIORITY_INDEX }
+    );
+    return _defaultIndexMap;
+  }
 
   constructor(indexes, indexSet) {
     this.indexes_ = indexes;
@@ -36,7 +45,7 @@ export class IndexMap {
     var sortedMap = this.indexes_[indexKey];
     if (!sortedMap) throw new Error('No index defined for ' + indexKey);
 
-    if (sortedMap === Fallback) {
+    if (sortedMap === fallbackObject) {
       // The index exists, but it falls back to just name comparison. Return null so that the calling code uses the
       // regular child map
       return null;
@@ -74,7 +83,7 @@ export class IndexMap {
     if (sawIndexedValue) {
       newIndex = buildChildSet(childList, indexDefinition.getCompare());
     } else {
-      newIndex = Fallback;
+      newIndex = fallbackObject;
     }
     var indexName = indexDefinition.toString();
     var newIndexSet = clone(this.indexSet_);
@@ -96,7 +105,7 @@ export class IndexMap {
     var newIndexes = map(this.indexes_, function(indexedChildren, indexName) {
       var index = self.indexSet_[indexName];
       assert(index, 'Missing index implementation for ' + indexName);
-      if (indexedChildren === Fallback) {
+      if (indexedChildren === fallbackObject) {
         // Check to see if we need to index everything
         if (index.isDefinedOn(namedNode.node)) {
           // We need to build this index
@@ -113,7 +122,7 @@ export class IndexMap {
           return buildChildSet(childList, index.getCompare());
         } else {
           // No change, this remains a fallback
-          return Fallback;
+          return fallbackObject;
         }
       } else {
         var existingSnap = existingChildren.get(namedNode.name);
@@ -135,7 +144,7 @@ export class IndexMap {
    */
   removeFromIndexes(namedNode, existingChildren) {
     var newIndexes = map(this.indexes_, function(indexedChildren) {
-      if (indexedChildren === Fallback) {
+      if (indexedChildren === fallbackObject) {
         // This is the fallback. Just return it, nothing to do in this case
         return indexedChildren;
       } else {

@@ -6,7 +6,7 @@ import { assert } from "../../../utils/assert";
 import { buildChildSet } from "./childSet";
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from "./comparators";
 import { IndexMap } from "./IndexMap";
-import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
+import { PRIORITY_INDEX, setNodeFromJSON } from "./indexes/PriorityIndex";
 
 const USE_HINZE = true;
 
@@ -17,7 +17,7 @@ const USE_HINZE = true;
  * passed JSON contains a .priority property.
  * @return {!Node}
  */
-export const nodeFromJSON = function(json, opt_priority?) {
+export function nodeFromJSON(json, priority?) {
   if (json === null) {
     return ChildrenNode.EMPTY_NODE;
   }
@@ -25,8 +25,8 @@ export const nodeFromJSON = function(json, opt_priority?) {
   var priority = null;
   if (typeof json === 'object' && '.priority' in json) {
     priority = json['.priority'];
-  } else if (typeof opt_priority !== 'undefined') {
-    priority = opt_priority;
+  } else if (typeof priority !== 'undefined') {
+    priority = priority;
   }
   assert(
       priority === null ||
@@ -92,3 +92,5 @@ export const nodeFromJSON = function(json, opt_priority?) {
     return node.updatePriority(nodeFromJSON(priority));
   }
 };
+
+setNodeFromJSON(nodeFromJSON);

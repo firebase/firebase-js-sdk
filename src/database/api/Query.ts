@@ -15,9 +15,10 @@ import {
 import { errorPrefix, validateArgCount, validateCallback, validateContextObject } from "../../utils/validation";
 import { ValueEventRegistration, ChildEventRegistration } from "../core/view/EventRegistration";
 import { Deferred, attachDummyErrorHandler } from "../../utils/promise";
-import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
 import { QueryParams } from "../core/view/QueryParams";
+
+let __referenceConstructor: new(repo: Repo, path: Path) => Query;
 
 /**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
@@ -26,7 +27,13 @@ import { QueryParams } from "../core/view/QueryParams";
  * Since every Firebase reference is a query, Firebase inherits from this object.
  */
 export class Query {
-
+  static set __referenceConstructor(val) {
+    __referenceConstructor = val;
+  }
+  static get __referenceConstructor() {
+    assert(__referenceConstructor, 'Reference.ts has not been loaded');
+    return __referenceConstructor;
+  }
   constructor(public repo: Repo, public path: Path, private queryParams_: QueryParams, private orderByCalled_: boolean) {}
 
   /**
@@ -122,7 +129,7 @@ export class Query {
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
     // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
     // method gets called.
-    return new Reference(this.repo, this.path);
+    return new Query.__referenceConstructor(this.repo, this.path);
   }
 
   /**
