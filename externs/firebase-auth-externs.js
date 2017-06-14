@@ -1811,7 +1811,7 @@ firebase.auth.PhoneAuthProvider.PROVIDER_ID;
  *     {@link firebase.auth.PhoneAuthProvider#verifyPhoneNumber}.
  * @param {string} verificationCode The verification code sent to the user's
  *     mobile device.
- * @return {!firebase.Promise<!firebase.auth.AuthCredential>}
+ * @return {!firebase.auth.AuthCredential} The auth provider credential.
  */
 firebase.auth.PhoneAuthProvider.credential =
     function(verificationId, verificationCode) {};

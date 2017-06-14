@@ -196,7 +196,7 @@ declare namespace firebase.auth {
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID : string ;
-    static credential (verificationId : string , verificationCode : string ) : firebase.Promise < any > ;
+    static credential (verificationId : string , verificationCode : string ) : firebase.auth.AuthCredential ;
   }
   class PhoneAuthProvider_Instance implements firebase.auth.AuthProvider {
     constructor (auth ? : firebase.auth.Auth | null ) ;
