@@ -1,4 +1,4 @@
-import { findKey, forEach } from "../../utils/obj";
+import { findKey, forEach, safeGet } from "../../utils/obj";
 import { assert, assertionError } from "../../utils/assert";
 import { Path } from "./util/Path";
 import { CompoundWrite } from "./CompoundWrite";
@@ -483,7 +483,7 @@ export class WriteTree {
             if (relativePath.isEmpty()) {
               compoundWrite = compoundWrite.addWrites(Path.Empty, write.children);
             } else {
-              var child = write.children[relativePath.getFront()];
+              var child = safeGet(write.children, relativePath.getFront());
               if (child) {
                 // There exists a child in this node that matches the root path
                 var deepNode = child.getChild(relativePath.popFront());

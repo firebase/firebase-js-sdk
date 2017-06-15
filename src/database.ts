@@ -24,7 +24,7 @@ import { RepoManager } from "./database/core/RepoManager";
 
 export function registerDatabase(instance) {
   // Register the Database Service with the 'firebase' namespace.
-  firebase.INTERNAL.registerService(
+  instance.INTERNAL.registerService(
     'database',
     app => RepoManager.getInstance().databaseFromApp(app),
     // firebase.database namespace properties

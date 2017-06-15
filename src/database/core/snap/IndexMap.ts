@@ -1,6 +1,6 @@
 import { assert } from "../../../utils/assert";
 import { buildChildSet } from "./childSet";
-import { contains, clone, map } from "../../../utils/obj";
+import { contains, clone, map, safeGet } from "../../../utils/obj";
 import { NamedNode } from "./Node";
 import { PRIORITY_INDEX } from "./indexes/PriorityIndex";
 import { KEY_INDEX } from "./indexes/KeyIndex";
@@ -42,7 +42,7 @@ export class IndexMap {
    * @return {?SortedMap.<NamedNode, Node>}
    */
   get(indexKey) {
-    var sortedMap = this.indexes_[indexKey];
+    var sortedMap = safeGet(this.indexes_, indexKey);
     if (!sortedMap) throw new Error('No index defined for ' + indexKey);
 
     if (sortedMap === fallbackObject) {
@@ -103,7 +103,7 @@ export class IndexMap {
   addToIndexes(namedNode, existingChildren) {
     var self = this;
     var newIndexes = map(this.indexes_, function(indexedChildren, indexName) {
-      var index = self.indexSet_[indexName];
+      var index = safeGet(self.indexSet_, indexName);
       assert(index, 'Missing index implementation for ' + indexName);
       if (indexedChildren === fallbackObject) {
         // Check to see if we need to index everything

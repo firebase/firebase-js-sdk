@@ -1,6 +1,7 @@
 import { assert } from "../../utils/assert";
 import { logWrapper, warn } from "./util/util";
 import { jsonEval } from "../../utils/json";
+import { safeGet } from "../../utils/obj";
 import { querystring } from "../../utils/util";
 
 /**
@@ -35,9 +36,9 @@ export class ReadonlyRestClient {
    * @return {string}
    * @private
    */
-  static getListenId_(query, opt_tag) {
-    if (opt_tag !== undefined) {
-      return 'tag$' + opt_tag;
+  static getListenId_(query, tag?) {
+    if (tag !== undefined) {
+      return 'tag$' + tag;
     } else {
       assert(query.getQueryParams().isDefault(), "should have a tag if it's not a default query.");
       return query.path.toString();
@@ -81,7 +82,7 @@ export class ReadonlyRestClient {
         self.onDataUpdate_(pathString, data, /*isMerge=*/false, tag);
       }
 
-      if (self.listens_[listenId] === thisListen) {
+      if (safeGet(self.listens_, listenId) === thisListen) {
         var status;
         if (!error) {
           status = 'ok';

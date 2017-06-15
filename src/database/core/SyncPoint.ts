@@ -1,7 +1,7 @@
 import { CacheNode } from "./view/CacheNode";
 import { ChildrenNode } from "./snap/ChildrenNode";
 import { assert } from "../../utils/assert";
-import { isEmpty, forEach, findValue } from "../../utils/obj";
+import { isEmpty, forEach, findValue, safeGet } from "../../utils/obj";
 import { ViewCache } from "./view/ViewCache";
 import { View } from "./view/View";
 
@@ -57,7 +57,7 @@ export class SyncPoint {
   applyOperation(operation, writesCache, optCompleteServerCache) {
     var queryId = operation.source.queryId;
     if (queryId !== null) {
-      var view = this.views_[queryId];
+      var view = safeGet(this.views_, queryId);
       assert(view != null, 'SyncTree gave us an op for an invalid query.');
       return view.applyOperation(operation, writesCache, optCompleteServerCache);
     } else {
@@ -83,7 +83,7 @@ export class SyncPoint {
    */
   addEventRegistration(query, eventRegistration, writesCache, serverCache, serverCacheComplete) {
     var queryId = query.queryIdentifier();
-    var view = this.views_[queryId];
+    var view = safeGet(this.views_, queryId);
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       var eventCache = writesCache.calcCompleteEventCache(serverCacheComplete ? serverCache : null);
@@ -142,7 +142,7 @@ export class SyncPoint {
       });
     } else {
       // remove the callback from the specific view.
-      var view = this.views_[queryId];
+      var view = safeGet(this.views_, queryId);
       if (view) {
         cancelEvents = cancelEvents.concat(view.removeEventRegistration(eventRegistration, cancelError));
         if (view.isEmpty()) {
@@ -198,7 +198,7 @@ export class SyncPoint {
       return this.getCompleteView();
     } else {
       var queryId = query.queryIdentifier();
-      return this.views_[queryId];
+      return safeGet(this.views_, queryId);
     }
   };
 

@@ -2,7 +2,7 @@ import { assert } from '../../utils/assert';
 import { errorForServerCode } from "./util/util";
 import { AckUserWrite } from "./operation/AckUserWrite";
 import { ChildrenNode } from "./snap/ChildrenNode";
-import { forEach } from "../../utils/obj";
+import { forEach, safeGet } from "../../utils/obj";
 import { ImmutableTree } from "./util/ImmutableTree";
 import { ListenComplete } from "./operation/ListenComplete";
 import { Merge } from "./operation/Merge";
@@ -610,7 +610,7 @@ export class SyncTree {
    */
   tagForQuery_(query) {
     var queryKey = this.makeQueryKey_(query);
-    return this.queryToTagMap_[queryKey];
+    return safeGet(this.queryToTagMap_, queryKey);
   };
 
   /**

@@ -1,5 +1,5 @@
 import { Path, ValidationPath } from "./Path";
-import { forEach, contains } from "../../../utils/obj";
+import { forEach, contains, safeGet } from "../../../utils/obj";
 import { isInvalidJSONNumber } from "./util";
 import { errorPrefix as errorPrefixFxn } from "../../../utils/validation";
 import { stringLength } from "../../../utils/utf8";
@@ -362,7 +362,7 @@ export const validateObjectContainsKey = function(fnName, argumentNumber, obj, k
   }
 
   if (opt_type) {
-    var val = obj[key];
+    var val = safeGet(obj, key);
     if ((opt_type === 'number' && !(typeof val === 'number')) ||
         (opt_type === 'string' && !(typeof val === 'string')) ||
         (opt_type === 'boolean' && !(typeof val === 'boolean')) ||

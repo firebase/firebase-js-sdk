@@ -1,5 +1,5 @@
 import firebase from "../../app";
-import { forEach, contains, isEmpty, getCount } from "../../utils/obj";
+import { forEach, contains, isEmpty, getCount, safeGet } from "../../utils/obj";
 import { stringify } from "../../utils/json";
 import { assert } from '../../utils/assert';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from "./util/util";
@@ -243,7 +243,7 @@ export class PersistentConnection {
    */
   warnOnListenWarnings_(payload, query) {
     if (payload && typeof payload === 'object' && contains(payload, 'w')) {
-      var warnings = payload['w'];
+      var warnings = safeGet(payload, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
         var indexSpec = '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
         var indexPath = query.path.toString();

@@ -1,6 +1,6 @@
 import { assert } from "../../../utils/assert";
 import { Path } from "./Path";
-import { forEach, contains } from '../../../utils/obj'
+import { forEach, contains, safeGet } from '../../../utils/obj'
 
 /**
  * Node in a Tree.
@@ -54,7 +54,7 @@ export class Tree {
         pathObj : new Path(pathObj);
     var child = <any>this, next;
     while ((next = path.getFront()) !== null) {
-      var childNode = child.node_.children[next] || new TreeNode();
+      var childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
       path = path.popFront();
     }

@@ -114,7 +114,7 @@ export const buildLogMessage_ = function(var_args) {
  * Use this for all debug messages in Firebase.
  * @type {?function(string)}
  */
-export var logger = null;
+export var logger = console.log.bind(console);
 
 
 /**
@@ -131,8 +131,7 @@ export var firstLog_ = true;
  * @param {boolean=} opt_persistent Whether or not to persist logging settings across refreshes
  */
 export const enableLogging = function(logger, opt_persistent?) {
-  assert(!opt_persistent || (logger === true || logger === false),
-      "Can't turn on custom loggers persistently.");
+  assert(!opt_persistent || (logger === true || logger === false), "Can't turn on custom loggers persistently.");
   if (logger === true) {
     if (typeof console !== 'undefined') {
       if (typeof console.log === 'function') {

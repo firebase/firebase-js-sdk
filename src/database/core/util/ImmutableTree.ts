@@ -3,6 +3,8 @@ import { Path } from "./Path";
 import { stringCompare } from "./util";
 import { forEach } from "../../../utils/obj";
 
+let emptyChildrenSingleton;
+
 /**
  * A tree with immutable elements.
  */
@@ -20,7 +22,10 @@ export class ImmutableTree {
    * @private
    */
   static get EmptyChildren_() {
-    return new SortedMap(stringCompare)
+    if (!emptyChildrenSingleton) {
+      emptyChildrenSingleton = new SortedMap(stringCompare);
+    }
+    return emptyChildrenSingleton;
   }
 
   /**
@@ -41,7 +46,7 @@ export class ImmutableTree {
    * @param {?T} value
    * @param {SortedMap.<string, !ImmutableTree.<T>>=} opt_children
    */
-  constructor(value, opt_children?) {
+  constructor(value, children?) {
     /**
      * @const
      * @type {?T}
@@ -52,7 +57,7 @@ export class ImmutableTree {
      * @const
      * @type {!SortedMap.<string, !ImmutableTree.<T>>}
      */
-    this.children = opt_children || ImmutableTree.EmptyChildren_;
+    this.children = children || ImmutableTree.EmptyChildren_;
   }
 
   /**

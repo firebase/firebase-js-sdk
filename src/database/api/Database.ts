@@ -19,11 +19,9 @@ export class Database {
   root_;
   INTERNAL;
 
-  static get ServerValue() {
-    return {
-      'TIMESTAMP': {
-        '.sv' : 'timestamp'
-      }
+  static ServerValue = {
+    'TIMESTAMP': {
+      '.sv' : 'timestamp'
     }
   }
 

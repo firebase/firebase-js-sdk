@@ -23,6 +23,13 @@ export class LeafNode implements Node {
   static get __childrenNodeConstructor() {
     return __childrenNodeConstructor;
   }
+  /**
+   * The sort order for comparing leaf nodes of different types. If two leaf nodes have
+   * the same type, the comparison falls back to their value
+   * @type {Array.<!string>}
+   * @const
+   */
+  static VALUE_TYPE_ORDER = ['object', 'boolean', 'number', 'string'];
 
   value_;
   priorityNode_;
@@ -52,16 +59,6 @@ export class LeafNode implements Node {
     validatePriorityNode(this.priorityNode_);
 
     this.lazyHash_ = null;
-  }
-
-  /**
-   * The sort order for comparing leaf nodes of different types. If two leaf nodes have
-   * the same type, the comparison falls back to their value
-   * @type {Array.<!string>}
-   * @const
-   */
-  static get VALUE_TYPE_ORDER() {
-    return ['object', 'boolean', 'number', 'string'];
   }
 
   /** @inheritDoc */

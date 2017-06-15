@@ -11,7 +11,7 @@ import {
 } from "./util/util";
 import { resolveDeferredValueSnapshot } from "./util/ServerValues";
 import { isValidPriority, validateFirebaseData } from "./util/validation";
-import { contains } from "../../utils/obj";
+import { contains, safeGet } from "../../utils/obj";
 import { nodeFromJSON } from "./snap/nodeFromJSON";
 import { ChildrenNode } from "./snap/ChildrenNode";
 import { Repo } from "./Repo";
@@ -176,7 +176,7 @@ declare module './Repo' {
     // start new transactions from the event callbacks.
     var priorityForNode;
     if (typeof newVal === 'object' && newVal !== null && contains(newVal, '.priority')) {
-      priorityForNode = newVal['.priority'];
+      priorityForNode = safeGet(newVal, '.priority');
       assert(isValidPriority(priorityForNode), 'Invalid priority returned by transaction. ' +
         'Priority must be a valid string, finite number, server value, or null.');
     } else {

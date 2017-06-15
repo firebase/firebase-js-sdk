@@ -4,7 +4,7 @@ export const contains = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-export const get = function(obj, key) {
+export const safeGet = function(obj, key) {
   if (Object.prototype.hasOwnProperty.call(obj, key))
     return obj[key];
   // else return undefined.

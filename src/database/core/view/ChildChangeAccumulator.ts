@@ -1,4 +1,4 @@
-import { getValues } from '../../../utils/obj';
+import { getValues, safeGet } from '../../../utils/obj';
 import { Change } from "./Change";
 import { assert, assertionError } from "../../../utils/assert";
 
@@ -17,7 +17,7 @@ export class ChildChangeAccumulator {
         type == Change.CHILD_CHANGED ||
         type == Change.CHILD_REMOVED, 'Only child changes supported for tracking');
     assert(childKey !== '.priority', 'Only non-priority child changes can be tracked.');
-    var oldChange = this.changeMap_[childKey];
+    var oldChange = safeGet(this.changeMap_, childKey);
     if (oldChange) {
       var oldType = oldChange.type;
       if (type == Change.CHILD_ADDED && oldType == Change.CHILD_REMOVED) {

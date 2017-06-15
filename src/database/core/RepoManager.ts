@@ -1,4 +1,5 @@
 import { FirebaseApp } from "../../app/firebase_app";
+import { safeGet } from "../../utils/obj";
 import { Repo } from "./Repo";
 import { fatal } from "./util/util";
 import { parseRepoInfo } from "./util/libs/parser";
@@ -8,6 +9,8 @@ import "./Repo_transaction";
 /** @const {string} */
 var DATABASE_URL_OPTION = 'databaseURL';
 
+let _staticInstance;
+
 /**
  * Creates and caches Repo instances.
  */
@@ -15,21 +18,21 @@ export class RepoManager {
   /**
    * @private {!Object.<string, !Repo>}
    */
-  private repos_;
+  private repos_: {
+    [name: string]: Repo
+  } = {};
 
   /**
    * If true, new Repos will be created to use ReadonlyRestClient (for testing purposes).
    * @private {boolean}
    */
-  private useRestClient_;
+  private useRestClient_: boolean = false;
 
   static getInstance() {
-    return new RepoManager();
-  }
-
-  constructor() {
-    this.repos_ = { };
-    this.useRestClient_ = false;
+    if (!_staticInstance) {
+      _staticInstance = new RepoManager();
+    }
+    return _staticInstance;
   }
 
   // TODO(koss): Remove these functions unless used in tests?
@@ -79,8 +82,9 @@ export class RepoManager {
    * @param {!Repo} repo
    */
   deleteRepo(repo) {
+    
     // This should never happen...
-    if (this.repos_[repo.app.name] !== repo) {
+    if (safeGet(this.repos_, repo.app.name) !== repo) {
       fatal("Database " + repo.app.name + " has already been deleted.");
     }
     repo.interrupt();
@@ -96,7 +100,7 @@ export class RepoManager {
    * @return {!Repo} The Repo object for the specified server / repoName.
    */
   createRepo(repoInfo, app: FirebaseApp): Repo {
-    var repo = this.repos_[app.name];
+    var repo = safeGet(this.repos_, app.name);
     if (repo) {
       fatal('FIREBASE INTERNAL ERROR: Database initialized multiple times.');
     }
