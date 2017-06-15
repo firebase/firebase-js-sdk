@@ -22,12 +22,11 @@ export function nodeFromJSON(json, priority?) {
     return ChildrenNode.EMPTY_NODE;
   }
 
-  var priority = null;
+  priority = priority || null;
   if (typeof json === 'object' && '.priority' in json) {
     priority = json['.priority'];
-  } else if (typeof priority !== 'undefined') {
-    priority = priority;
   }
+  
   assert(
       priority === null ||
       typeof priority === 'string' ||
@@ -79,7 +78,7 @@ export function nodeFromJSON(json, priority?) {
   } else {
     var node = ChildrenNode.EMPTY_NODE;
     var jsonObj = /** @type {!Object} */ (json);
-    forEach(jsonObj, function(childData, key) {
+    forEach(jsonObj, function(key, childData) {
       if (contains(jsonObj, key)) {
         if (key.substring(0, 1) !== '.') { // ignore metadata nodes.
           var childNode = nodeFromJSON(childData);

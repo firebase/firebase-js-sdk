@@ -185,7 +185,7 @@ export class Sha1 extends Hash {
       return;
     }
   
-    if (opt_length === 'undefined') {
+    if (opt_length === undefined) {
       opt_length = bytes.length;
     }
   
