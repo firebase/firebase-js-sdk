@@ -35,23 +35,11 @@ firebase.INTERNAL.extendNamespace = function(props) {};
 
 firebase.INTERNAL.resetNamespace = function() {};
 
-/** @interface */
-firebase.Observer = function() {};
-/** @param {*} value */
-firebase.Observer.prototype.next = function(value) {};
-/** @param {!Error} error */
-firebase.Observer.prototype.error = function(error) {};
-firebase.Observer.prototype.complete = function() {};
-
 /** @typedef {function(*): void} */
 firebase.NextFn;
+
 /** @typedef {function(!Error): void} */
 firebase.ErrorFn;
-/** @typedef {function(): void} */
-firebase.CompleteFn;
-
-/** @typedef {function(): void} */
-firebase.Unsubscribe;
 
 /**
  * @typedef {function((firebase.NextFn|firebase.Observer)=,
