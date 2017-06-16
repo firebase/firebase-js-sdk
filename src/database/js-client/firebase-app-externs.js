@@ -182,6 +182,7 @@ firebase.Promise = function(resolver) {};
  * @param {(function(!Error): *)=} onReject Called when the Promise is rejected
  *   (with an error).
  * @return {!firebase.Promise<*>}
+ * @override
  */
 firebase.Promise.prototype.then = function(onResolve, onReject) {};
 
@@ -190,6 +191,7 @@ firebase.Promise.prototype.then = function(onResolve, onReject) {};
  *
  * @param {(function(!Error): *)=} onReject Called when the Promise is rejected
  *   (with an error).
+ * @override
  */
 firebase.Promise.prototype.catch = function(onReject) {};
 
