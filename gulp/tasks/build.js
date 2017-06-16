@@ -134,6 +134,7 @@ function compileIndvES2015ModulesToBrowser() {
       'firebase-app': './src/app.ts',
       'firebase-storage': './src/storage.ts',
       'firebase-messaging': './src/messaging.ts',
+      'firebase-database': './src/database.ts',
     },
     output: {
       path: path.resolve(__dirname, './dist/browser'),
