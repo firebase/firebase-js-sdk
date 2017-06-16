@@ -1,6 +1,6 @@
 import { assert } from "../../../utils/assert";
 import { EventEmitter } from "./EventEmitter";
-import { isMobileCordova } from "../../login/util/environment";
+import { isMobileCordova } from "../../../utils/environment";
 
 /**
  * Monitors online state (as reported by window.online/offline events).

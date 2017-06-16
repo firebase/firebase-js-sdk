@@ -8,12 +8,15 @@ import { CONSTANTS } from "./Constants";
 import { CONSTANTS as ENV_CONSTANTS } from "../../utils/constants";
 import { PersistentStorage } from "../core/storage/storage";
 import { jsonEval, stringify } from "../../utils/json";
+import { isNodeSdk } from "../../utils/environment";
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
 
 let WebSocketImpl = null;
-if (typeof MozWebSocket !== 'undefined') {
+if (isNodeSdk()) {
+  WebSocketImpl = require('faye-websocket')['Client'];
+} else if (typeof MozWebSocket !== 'undefined') {
   WebSocketImpl = MozWebSocket;
 } else if (typeof WebSocket !== 'undefined') {
   WebSocketImpl = WebSocket;
@@ -69,7 +72,8 @@ export class WebSocketConnection {
     var urlParams = {};
     urlParams[CONSTANTS.VERSION_PARAM] = CONSTANTS.PROTOCOL_VERSION;
 
-    if (typeof location !== 'undefined' &&
+    if (!isNodeSdk() &&
+        typeof location !== 'undefined' &&
         location.href &&
         location.href.indexOf(CONSTANTS.FORGE_DOMAIN) !== -1) {
       urlParams[CONSTANTS.REFERER_PARAM] = CONSTANTS.FORGE_REF;
@@ -99,6 +103,29 @@ export class WebSocketConnection {
     PersistentStorage.set('previous_websocket_failure', true);
 
     try {
+      if (isNodeSdk()) {
+        var device = ENV_CONSTANTS.NODE_ADMIN ? 'AdminNode' : 'Node';
+        // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
+        var options = {
+          'headers': {
+            'User-Agent': 'Firebase/' + CONSTANTS.PROTOCOL_VERSION + '/' + firebase.SDK_VERSION + '/' + process.platform + '/' + device
+        }};
+
+        // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
+        var env = process['env'];
+        var proxy = (this.connURL.indexOf("wss://") == 0)
+            ? (env['HTTPS_PROXY'] || env['https_proxy'])
+            : (env['HTTP_PROXY']  || env['http_proxy']);
+
+        if (proxy) {
+          options['proxy'] = { origin: proxy };
+        }
+
+        this.mySock = new WebSocketImpl(this.connURL, [], options);
+      }
+      else {
+        this.mySock = new WebSocketImpl(this.connURL);
+      }
       this.mySock = new WebSocketImpl(this.connURL);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');

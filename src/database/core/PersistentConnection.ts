@@ -11,8 +11,9 @@ import { Connection } from "../realtime/Connection";
 import { CONSTANTS } from "../../utils/constants";
 import { 
   isMobileCordova,
-  isReactNative
-} from "../login/util/environment";
+  isReactNative,
+  isNodeSdk
+} from "../../utils/environment";
 
 var RECONNECT_MIN_DELAY = 1000;
 var RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000;   // 5 minutes in milliseconds (Case: 1858)
@@ -120,7 +121,7 @@ export class PersistentConnection {
     this.authTokenProvider_ = authTokenProvider;
     this.forceTokenRefresh_ = false;
     this.invalidAuthTokenCount_ = 0;
-    if (authOverride) {
+    if (authOverride && !isNodeSdk()) {
       throw new Error('Auth override specified in options, but not supported on non Node.js platforms');
     }
     /** private {Object|null|undefined} */

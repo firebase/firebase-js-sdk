@@ -23,10 +23,11 @@ import { enableLogging } from "./database/core/util/util";
 import { RepoManager } from "./database/core/RepoManager";
 import * as INTERNAL from './database/api/internal';
 import * as TEST_ACCESS from './database/api/test_access';
+import { isNodeSdk } from "./utils/environment";
 
 export function registerDatabase(instance) {
   // Register the Database Service with the 'firebase' namespace.
-  instance.INTERNAL.registerService(
+  const namespace = instance.INTERNAL.registerService(
     'database',
     app => RepoManager.getInstance().databaseFromApp(app),
     // firebase.database namespace properties
@@ -40,6 +41,10 @@ export function registerDatabase(instance) {
       TEST_ACCESS
     }
   );
+
+  if (isNodeSdk()) {
+    module.exports = namespace;
+  }
 }
 
 /**
