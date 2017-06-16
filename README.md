@@ -9,7 +9,7 @@ applications using Firebase services. This SDK is distributed via:
 - [npm package](https://www.npmjs.com/package/firebase)
 - [Bower package](https://github.com/firebase/firebase-bower)
 
-To get starting using Firebase, see
+To get started using Firebase, see
 [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
 
 ## SDK Dev Workflow
