@@ -2,10 +2,13 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "module": "CommonJS",
+    "module": "commonjs",
     "target": "es5",
     "allowJs": true,
-    "declaration": false
+    "declaration": false,
+    "outDir": "testFiles",
+    "inlineSources": true,
+    "isolatedModules": true
   },
   "compileOnSave": true,
   "include": [
