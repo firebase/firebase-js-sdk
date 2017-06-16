@@ -1,4 +1,4 @@
-import { CONSTANTS } from "../../../utils/constants";
+import { CONSTANTS } from "./constants";
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
