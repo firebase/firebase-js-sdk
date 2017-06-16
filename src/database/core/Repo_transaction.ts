@@ -4,6 +4,7 @@ import { DataSnapshot } from "../api/DataSnapshot";
 import { Path } from "./util/Path";
 import { Tree } from "./util/Tree";
 import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
+import { Node } from "./snap/Node";
 import { 
   LUIDGenerator,
   warn,
@@ -94,6 +95,22 @@ declare module './Repo' {
   }
 }
 
+type Transaction = {
+  path: Path,
+  update: Function,
+  onComplete: Function,
+  status: number,
+  order: number,
+  applyLocally: boolean,
+  retryCount: number,
+  unwatcher: Function,
+  abortReason: any,
+  currentWriteId: any,
+  currentInputSnapshot: any,
+  currentOutputSnapshotRaw: any,
+  currentOutputSnapshotResolved: any
+}
+
 /**
  * Creates a new transaction, adds it to the transactions we're tracking, and sends it to the server if possible.
  *
@@ -102,7 +119,10 @@ declare module './Repo' {
  * @param {?function(?Error, boolean, ?DataSnapshot)} onComplete Completion callback.
  * @param {boolean} applyLocally Whether or not to make intermediate results visible
  */
-(Repo.prototype as any).startTransaction = function(path, transactionUpdate, onComplete, applyLocally) {
+(Repo.prototype as any).startTransaction = function(path: Path, 
+                                                    transactionUpdate: () => any, 
+                                                    onComplete: (Error, boolean, DataSnapshot) => any, 
+                                                    applyLocally: boolean) {
   this.log_('transaction on ' + path);
 
   // Add a watch to make sure we get server updates.
@@ -112,7 +132,7 @@ declare module './Repo' {
   var unwatcher = function() { watchRef.off('value', valueCallback); };
 
   // Initialize transaction.
-  var transaction = /** @type {Transaction} */ ({
+  var transaction: Transaction = {
     path: path,
     update: transactionUpdate,
     onComplete: onComplete,
@@ -142,7 +162,7 @@ declare module './Repo' {
     currentOutputSnapshotRaw: null,
 
     currentOutputSnapshotResolved: null
-  });
+  };
 
 
   // Run transaction initially.
@@ -156,9 +176,8 @@ declare module './Repo' {
     transaction.currentOutputSnapshotResolved = null;
     if (transaction.onComplete) {
       // We just set the input snapshot, so this cast should be safe
-      var snapshot = new DataSnapshot(/** @type {!Node} */ (transaction.currentInputSnapshot),
-        new Reference(this, transaction.path), PRIORITY_INDEX);
-      transaction.onComplete(/*error=*/null, /*committed=*/false, snapshot);
+      var snapshot = new DataSnapshot(transaction.currentInputSnapshot, new Reference(this, transaction.path), PRIORITY_INDEX);
+      transaction.onComplete(null, false, snapshot);
     }
   } else {
     validateFirebaseData('transaction failed: Data returned ', newVal, transaction.path);
@@ -192,8 +211,7 @@ declare module './Repo' {
     transaction.currentOutputSnapshotResolved = newNode;
     transaction.currentWriteId = this.getNextWriteId_();
 
-    var events = this.serverSyncTree_.applyUserOverwrite(path, newNode, transaction.currentWriteId,
-      transaction.applyLocally);
+    var events = this.serverSyncTree_.applyUserOverwrite(path, newNode, transaction.currentWriteId, transaction.applyLocally);
     this.eventQueue_.raiseEventsForChangedPath(path, events);
 
     this.sendReadyTransactions_();
@@ -206,7 +224,7 @@ declare module './Repo' {
  * @return {Node}
  * @private
  */
-(Repo.prototype as any).getLatestState_ = function(path, excludeSets) {
+(Repo.prototype as any).getLatestState_ = function(path: Path, excludeSets: [number]): Node {
   return this.serverSyncTree_.calcCompleteEventCache(path, excludeSets) || ChildrenNode.EMPTY_NODE;
 };
 
@@ -221,11 +239,11 @@ declare module './Repo' {
  * @param {Tree.<Array.<Transaction>>=} opt_node  transactionQueueTree node to start at.
  * @private
  */
-(Repo.prototype as any).sendReadyTransactions_ = function(opt_node) {
-  var node = /** @type {!Tree.<Array.<!Transaction>>} */ (opt_node || this.transactionQueueTree_);
+(Repo.prototype as any).sendReadyTransactions_ = function(node?) {
+  var node = /** @type {!Tree.<Array.<!Transaction>>} */ (node || this.transactionQueueTree_);
 
   // Before recursing, make sure any completed transactions are removed.
-  if (!opt_node) {
+  if (!node) {
     this.pruneCompletedTransactionsBelowNode_(node);
   }
 
@@ -257,7 +275,7 @@ declare module './Repo' {
  * @param {!Array.<Transaction>} queue Queue of transactions under the specified location.
  * @private
  */
-(Repo.prototype as any).sendTransactionQueue_ = function(path, queue) {
+(Repo.prototype as any).sendTransactionQueue_ = function(path: Path, queue: Array<Transaction>) {
   // Mark transactions as sent and increment retry count!
   var setsToIgnore = queue.map(function(txn) { return txn.currentWriteId; });
   var latestState = this.getLatestState_(path, setsToIgnore);
@@ -345,7 +363,7 @@ declare module './Repo' {
  * @return {!Path} The rootmost path that was affected by rerunning transactions.
  * @private
  */
-(Repo.prototype as any).rerunTransactions_ = function(changedPath) {
+(Repo.prototype as any).rerunTransactions_ = function(changedPath: Path) {
   var rootMostTransactionNode = this.getAncestorTransactionNode_(changedPath);
   var path = rootMostTransactionNode.path();
 
@@ -363,7 +381,7 @@ declare module './Repo' {
  * @param {!Path} path The path the queue is for.
  * @private
  */
-(Repo.prototype as any).rerunTransactionQueue_ = function(queue, path) {
+(Repo.prototype as any).rerunTransactionQueue_ = function(queue: Array<Transaction>, path: Path) {
   if (queue.length === 0) {
     return; // Nothing to do!
   }
@@ -413,7 +431,7 @@ declare module './Repo' {
           transaction.currentOutputSnapshotResolved = newNodeResolved;
           transaction.currentWriteId = this.getNextWriteId_();
           // Mutates setsToIgnore in place
-          setsToIgnore.splice(setsToIgnore.indexOf(oldWriteId));
+          setsToIgnore.splice(setsToIgnore.indexOf(oldWriteId), 1);
           events = events.concat(
             this.serverSyncTree_.applyUserOverwrite(transaction.path, newNodeResolved, transaction.currentWriteId,
               transaction.applyLocally)
@@ -473,7 +491,7 @@ declare module './Repo' {
  * @return {!Tree.<Array.<!Transaction>>} The rootmost node with a transaction.
  * @private
  */
-(Repo.prototype as any).getAncestorTransactionNode_ = function(path) {
+(Repo.prototype as any).getAncestorTransactionNode_ = function(path: Path): Tree {
   var front;
 
   // Start at the root and walk deeper into the tree towards path until we find a node with pending transactions.
@@ -494,7 +512,7 @@ declare module './Repo' {
  * @return {Array.<Transaction>} The generated queue.
  * @private
  */
-(Repo.prototype as any).buildTransactionQueue_ = function(transactionNode) {
+(Repo.prototype as any).buildTransactionQueue_ = function(transactionNode: Tree): Array<Transaction> {
   // Walk any child transaction queues and aggregate them into a single queue.
   var transactionQueue = [];
   this.aggregateTransactionQueuesForNode_(transactionNode, transactionQueue);
@@ -510,7 +528,7 @@ declare module './Repo' {
  * @param {Array.<Transaction>} queue
  * @private
  */
-(Repo.prototype as any).aggregateTransactionQueuesForNode_ = function(node, queue) {
+(Repo.prototype as any).aggregateTransactionQueuesForNode_ = function(node: Tree, queue: Array<Transaction>) {
   var nodeQueue = node.getValue();
   if (nodeQueue !== null) {
     for (var i = 0; i < nodeQueue.length; i++) {
@@ -531,7 +549,7 @@ declare module './Repo' {
  * @param {!Tree.<Array.<!Transaction>>} node
  * @private
  */
-(Repo.prototype as any).pruneCompletedTransactionsBelowNode_ = function(node) {
+(Repo.prototype as any).pruneCompletedTransactionsBelowNode_ = function(node: Tree) {
   var queue = node.getValue();
   if (queue) {
     var to = 0;
@@ -560,7 +578,7 @@ declare module './Repo' {
  * @return {!Path}
  * @private
  */
-(Repo.prototype as any).abortTransactions_ = function(path) {
+(Repo.prototype as any).abortTransactions_ = function(path: Path) {
   var affectedPath = this.getAncestorTransactionNode_(path).path();
 
   var transactionNode = this.transactionQueueTree_.subTree(path);
@@ -586,7 +604,7 @@ declare module './Repo' {
  * @param {!Tree.<Array.<Transaction>>} node Node to abort transactions for.
  * @private
  */
-(Repo.prototype as any).abortTransactionsOnNode_ = function(node) {
+(Repo.prototype as any).abortTransactionsOnNode_ = function(node: Tree) {
   var queue = node.getValue();
   if (queue !== null) {
 

@@ -22,7 +22,7 @@ export function nodeFromJSON(json, priority?) {
     return ChildrenNode.EMPTY_NODE;
   }
 
-  priority = priority || null;
+  priority = priority !== undefined ? priority : null;
   if (typeof json === 'object' && '.priority' in json) {
     priority = json['.priority'];
   }

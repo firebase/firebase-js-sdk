@@ -22,6 +22,7 @@ import { Reference } from "./database/api/Reference";
 import { enableLogging } from "./database/core/util/util";
 import { RepoManager } from "./database/core/RepoManager";
 import * as INTERNAL from './database/api/internal';
+import * as TEST_ACCESS from './database/api/test_access';
 
 export function registerDatabase(instance) {
   // Register the Database Service with the 'firebase' namespace.
@@ -36,6 +37,7 @@ export function registerDatabase(instance) {
       enableLogging,
       INTERNAL,
       ServerValue: Database.ServerValue,
+      TEST_ACCESS
     }
   );
 }
