@@ -30,8 +30,8 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   cancel(opt_onComplete) {
-    validateArgCount('firebase.database.onDisconnect().cancel', 0, 1, arguments.length);
-    validateCallback('firebase.database.onDisconnect().cancel', 1, opt_onComplete, true);
+    validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
+    validateCallback('OnDisconnect.cancel', 1, opt_onComplete, true);
     const deferred = new Deferred();
     this.repo_.onDisconnectCancel(this.path_, deferred.wrapCallback(opt_onComplete));
     return deferred.promise;
@@ -42,9 +42,9 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   remove(opt_onComplete) {
-    validateArgCount('firebase.database.onDisconnect().remove', 0, 1, arguments.length);
-    validateWritablePath('firebase.database.onDisconnect().remove', this.path_);
-    validateCallback('firebase.database.onDisconnect().remove', 1, opt_onComplete, true);
+    validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
+    validateWritablePath('OnDisconnect.remove', this.path_);
+    validateCallback('OnDisconnect.remove', 1, opt_onComplete, true);
     const deferred = new Deferred();
     this.repo_.onDisconnectSet(this.path_, null, deferred.wrapCallback(opt_onComplete));
     return deferred.promise;
@@ -56,10 +56,10 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   set(value, opt_onComplete) {
-    validateArgCount('firebase.database.onDisconnect().set', 1, 2, arguments.length);
-    validateWritablePath('firebase.database.onDisconnect().set', this.path_);
-    validateFirebaseDataArg('firebase.database.onDisconnect().set', 1, value, this.path_, false);
-    validateCallback('firebase.database.onDisconnect().set', 2, opt_onComplete, true);
+    validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
+    validateWritablePath('OnDisconnect.set', this.path_);
+    validateFirebaseDataArg('OnDisconnect.set', 1, value, this.path_, false);
+    validateCallback('OnDisconnect.set', 2, opt_onComplete, true);
     const deferred = new Deferred();
     this.repo_.onDisconnectSet(this.path_, value, deferred.wrapCallback(opt_onComplete));
     return deferred.promise;
@@ -72,12 +72,12 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   setWithPriority(value, priority, opt_onComplete) {
-    validateArgCount('firebase.database.onDisconnect().setWithPriority', 2, 3, arguments.length);
-    validateWritablePath('firebase.database.onDisconnect().setWithPriority', this.path_);
-    validateFirebaseDataArg('firebase.database.onDisconnect().setWithPriority',
+    validateArgCount('OnDisconnect.setWithPriority', 2, 3, arguments.length);
+    validateWritablePath('OnDisconnect.setWithPriority', this.path_);
+    validateFirebaseDataArg('OnDisconnect.setWithPriority',
       1, value, this.path_, false);
-    validatePriority('firebase.database.onDisconnect().setWithPriority', 2, priority, false);
-    validateCallback('firebase.database.onDisconnect().setWithPriority', 3, opt_onComplete, true);
+    validatePriority('OnDisconnect.setWithPriority', 2, priority, false);
+    validateCallback('OnDisconnect.setWithPriority', 3, opt_onComplete, true);
 
     const deferred = new Deferred();
     this.repo_.onDisconnectSetWithPriority(this.path_, value, priority, deferred.wrapCallback(opt_onComplete));
@@ -90,8 +90,8 @@ export class OnDisconnect {
    * @return {!firebase.Promise}
    */
   update(objectToMerge, opt_onComplete) {
-    validateArgCount('firebase.database.onDisconnect().update', 1, 2, arguments.length);
-    validateWritablePath('firebase.database.onDisconnect().update', this.path_);
+    validateArgCount('OnDisconnect.update', 1, 2, arguments.length);
+    validateWritablePath('OnDisconnect.update', this.path_);
     if (Array.isArray(objectToMerge)) {
       const newObjectToMerge = {};
       for (let i = 0; i < objectToMerge.length; ++i) {
@@ -103,9 +103,9 @@ export class OnDisconnect {
         'existing data, or an Object with integer keys if you really do want to only update some of the children.'
       );
     }
-    validateFirebaseMergeDataArg('firebase.database.onDisconnect().update', 1, objectToMerge,
+    validateFirebaseMergeDataArg('OnDisconnect.update', 1, objectToMerge,
       this.path_, false);
-    validateCallback('firebase.database.onDisconnect().update', 2, opt_onComplete, true);
+    validateCallback('OnDisconnect.update', 2, opt_onComplete, true);
     const deferred = new Deferred();
     this.repo_.onDisconnectUpdate(this.path_, objectToMerge, deferred.wrapCallback(opt_onComplete));
     return deferred.promise;

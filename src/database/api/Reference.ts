@@ -1,11 +1,11 @@
-import { OnDisconnect } from "./onDisconnect";
-import { TransactionResult } from "./TransactionResult";
-import { warn, exportPropGetter } from "../core/util/util";
-import { nextPushId } from "../core/util/NextPushId";
-import { Query } from "./Query";
-import { Repo } from "../core/Repo";
-import { Path } from "../core/util/Path";
-import { QueryParams } from "../core/view/QueryParams";
+import { OnDisconnect } from './onDisconnect';
+import { TransactionResult } from './TransactionResult';
+import { warn } from '../core/util/util';
+import { nextPushId } from '../core/util/NextPushId';
+import { Query } from './Query';
+import { Repo } from '../core/Repo';
+import { Path } from '../core/util/Path';
+import { QueryParams } from '../core/view/QueryParams';
 import {
   validateRootPathString,
   validatePathString,
@@ -14,17 +14,20 @@ import {
   validatePriority,
   validateFirebaseDataArg,
   validateWritablePath,
-} from "../core/util/validation";
+} from '../core/util/validation';
 import {
   validateArgCount,
   validateCallback,
-} from "../../utils/validation";
-import { Deferred, attachDummyErrorHandler, PromiseImpl } from "../../utils/promise";
-import { SyncPoint } from "../core/SyncPoint";
+} from '../../utils/validation';
+import { Deferred, attachDummyErrorHandler, PromiseImpl } from '../../utils/promise';
+import { SyncPoint } from '../core/SyncPoint';
+import { Database } from './Database';
+import { DataSnapshot } from './DataSnapshot';
 
 export class Reference extends Query {
   public then;
   public catch;
+
   /**
    * Call options:
    *   new Reference(Repo, Path) or
@@ -38,7 +41,7 @@ export class Reference extends Query {
    */
   constructor(repo: Repo, path: Path) {
     if (!(repo instanceof Repo)) {
-      throw new Error("new Reference() no longer supported - use app.database().");
+      throw new Error('new Reference() no longer supported - use app.database().');
     }
 
     // call Query's constructor, passing in the repo and path.
@@ -46,8 +49,8 @@ export class Reference extends Query {
   }
 
   /** @return {?string} */
-  getKey() {
-    validateArgCount('Firebase.key', 0, 0, arguments.length);
+  getKey(): string | null {
+    validateArgCount('Reference.key', 0, 0, arguments.length);
 
     if (this.path.isEmpty())
       return null;
@@ -57,35 +60,35 @@ export class Reference extends Query {
 
   /**
    * @param {!(string|Path)} pathString
-   * @return {!Firebase}
+   * @return {!Reference}
    */
-  child(pathString) {
-    validateArgCount('Firebase.child', 1, 1, arguments.length);
+  child(pathString: string | Path): Reference {
+    validateArgCount('Reference.child', 1, 1, arguments.length);
     if (typeof pathString === 'number') {
       pathString = String(pathString);
     } else if (!(pathString instanceof Path)) {
       if (this.path.getFront() === null)
-        validateRootPathString('Firebase.child', 1, pathString, false);
+        validateRootPathString('Reference.child', 1, pathString, false);
       else
-        validatePathString('Firebase.child', 1, pathString, false);
+        validatePathString('Reference.child', 1, pathString, false);
     }
 
     return new Reference(this.repo, this.path.child(pathString));
   }
 
-  /** @return {?Firebase} */
-  getParent() {
-    validateArgCount('Firebase.parent', 0, 0, arguments.length);
+  /** @return {?Reference} */
+  getParent(): Reference | null {
+    validateArgCount('Reference.parent', 0, 0, arguments.length);
 
-    var parentPath = this.path.parent();
+    const parentPath = this.path.parent();
     return parentPath === null ? null : new Reference(this.repo, parentPath);
   }
 
-  /** @return {!Firebase} */
-  getRoot() {
-    validateArgCount('Firebase.ref', 0, 0, arguments.length);
+  /** @return {!Reference} */
+  getRoot(): Reference {
+    validateArgCount('Reference.root', 0, 0, arguments.length);
 
-    var ref = <any>this;
+    let ref = <any>this;
     while (ref.getParent() !== null) {
       ref = ref.getParent();
     }
@@ -93,50 +96,50 @@ export class Reference extends Query {
   }
 
   /** @return {!Database} */
-  databaseProp() {
+  databaseProp(): Database {
     return this.repo.database;
   }
 
   /**
    * @param {*} newVal
-   * @param {function(?Error)=} opt_onComplete
-   * @return {!firebase.Promise}
+   * @param {function(?Error)=} onComplete
+   * @return {!Promise}
    */
-  set(newVal, onComplete?): Promise<any> {
-    validateArgCount('Firebase.set', 1, 2, arguments.length);
-    validateWritablePath('Firebase.set', this.path);
-    validateFirebaseDataArg('Firebase.set', 1, newVal, this.path, false);
-    validateCallback('Firebase.set', 2, onComplete, true);
+  set(newVal: any, onComplete?: (a: Error | null) => any): Promise<any> {
+    validateArgCount('Reference.set', 1, 2, arguments.length);
+    validateWritablePath('Reference.set', this.path);
+    validateFirebaseDataArg('Reference.set', 1, newVal, this.path, false);
+    validateCallback('Reference.set', 2, onComplete, true);
 
-    var deferred = new Deferred();
+    const deferred = new Deferred();
     this.repo.setWithPriority(this.path, newVal, /*priority=*/ null, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
   /**
    * @param {!Object} objectToMerge
-   * @param {function(?Error)=} opt_onComplete
-   * @return {!firebase.Promise}
+   * @param {function(?Error)=} onComplete
+   * @return {!Promise}
    */
-  update(objectToMerge, onComplete?) {
-    validateArgCount('Firebase.update', 1, 2, arguments.length);
-    validateWritablePath('Firebase.update', this.path);
+  update(objectToMerge: Object, onComplete?: (a: Error | null) => any): Promise<any> {
+    validateArgCount('Reference.update', 1, 2, arguments.length);
+    validateWritablePath('Reference.update', this.path);
 
     if (Array.isArray(objectToMerge)) {
-      var newObjectToMerge = {};
-      for (var i = 0; i < objectToMerge.length; ++i) {
+      const newObjectToMerge = {};
+      for (let i = 0; i < objectToMerge.length; ++i) {
         newObjectToMerge['' + i] = objectToMerge[i];
       }
       objectToMerge = newObjectToMerge;
       warn('Passing an Array to Firebase.update() is deprecated. ' +
-                        'Use set() if you want to overwrite the existing data, or ' +
-                        'an Object with integer keys if you really do want to ' +
-                        'only update some of the children.'
+        'Use set() if you want to overwrite the existing data, or ' +
+        'an Object with integer keys if you really do want to ' +
+        'only update some of the children.'
       );
     }
-    validateFirebaseMergeDataArg('Firebase.update', 1, objectToMerge, this.path, false);
-    validateCallback('Firebase.update', 2, onComplete, true);
-    var deferred = new Deferred();
+    validateFirebaseMergeDataArg('Reference.update', 1, objectToMerge, this.path, false);
+    validateCallback('Reference.update', 2, onComplete, true);
+    const deferred = new Deferred();
     this.repo.update(this.path, objectToMerge, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
@@ -144,124 +147,127 @@ export class Reference extends Query {
   /**
    * @param {*} newVal
    * @param {string|number|null} newPriority
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  setWithPriority(newVal, newPriority, onComplete?): Promise<any> {
-    validateArgCount('Firebase.setWithPriority', 2, 3, arguments.length);
-    validateWritablePath('Firebase.setWithPriority', this.path);
-    validateFirebaseDataArg('Firebase.setWithPriority', 1, newVal, this.path, false);
-    validatePriority('Firebase.setWithPriority', 2, newPriority, false);
-    validateCallback('Firebase.setWithPriority', 3, onComplete, true);
+  setWithPriority(newVal: any, newPriority: string | number | null,
+                  onComplete?: (a: Error | null) => any): Promise<any> {
+    validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
+    validateWritablePath('Reference.setWithPriority', this.path);
+    validateFirebaseDataArg('Reference.setWithPriority', 1, newVal, this.path, false);
+    validatePriority('Reference.setWithPriority', 2, newPriority, false);
+    validateCallback('Reference.setWithPriority', 3, onComplete, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Firebase.setWithPriority failed: ' + this.getKey() + ' is a read-only object.';
+      throw 'Reference.setWithPriority failed: ' + this.getKey() + ' is a read-only object.';
 
-    var deferred = new Deferred();
+    const deferred = new Deferred();
     this.repo.setWithPriority(this.path, newVal, newPriority, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
   /**
-   * @param {function(?Error)=} opt_onComplete
-   * @return {!firebase.Promise}
+   * @param {function(?Error)=} onComplete
+   * @return {!Promise}
    */
-  remove(onComplete?) {
-    validateArgCount('Firebase.remove', 0, 1, arguments.length);
-    validateWritablePath('Firebase.remove', this.path);
-    validateCallback('Firebase.remove', 1, onComplete, true);
+  remove(onComplete?: (a: Error | null) => any): Promise<any> {
+    validateArgCount('Reference.remove', 0, 1, arguments.length);
+    validateWritablePath('Reference.remove', this.path);
+    validateCallback('Reference.remove', 1, onComplete, true);
 
     return this.set(null, onComplete);
   }
 
   /**
    * @param {function(*):*} transactionUpdate
-   * @param {(function(?Error, boolean, ?DataSnapshot))=} opt_onComplete
-   * @param {boolean=} opt_applyLocally
-   * @return {!firebase.Promise}
+   * @param {(function(?Error, boolean, ?DataSnapshot))=} onComplete
+   * @param {boolean=} applyLocally
+   * @return {!Promise}
    */
-  transaction(transactionUpdate, opt_onComplete, opt_applyLocally) {
-    validateArgCount('Firebase.transaction', 1, 3, arguments.length);
-    validateWritablePath('Firebase.transaction', this.path);
-    validateCallback('Firebase.transaction', 1, transactionUpdate, false);
-    validateCallback('Firebase.transaction', 2, opt_onComplete, true);
-    // NOTE: opt_applyLocally is an internal-only option for now.  We need to decide if we want to keep it and how
+  transaction(transactionUpdate: (a: any) => any,
+              onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
+              applyLocally?: boolean): Promise<any> {
+    validateArgCount('Reference.transaction', 1, 3, arguments.length);
+    validateWritablePath('Reference.transaction', this.path);
+    validateCallback('Reference.transaction', 1, transactionUpdate, false);
+    validateCallback('Reference.transaction', 2, onComplete, true);
+    // NOTE: applyLocally is an internal-only option for now.  We need to decide if we want to keep it and how
     // to expose it.
-    validateBoolean('Firebase.transaction', 3, opt_applyLocally, true);
+    validateBoolean('Reference.transaction', 3, applyLocally, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Firebase.transaction failed: ' + this.getKey() + ' is a read-only object.';
+      throw 'Reference.transaction failed: ' + this.getKey() + ' is a read-only object.';
 
-    if (opt_applyLocally === undefined)
-      opt_applyLocally = true;
+    if (applyLocally === undefined)
+      applyLocally = true;
 
-    var deferred = new Deferred();
-    if (typeof opt_onComplete === 'function') {
+    const deferred = new Deferred();
+    if (typeof onComplete === 'function') {
       attachDummyErrorHandler(deferred.promise);
     }
 
-    var promiseComplete = function(error, committed, snapshot) {
+    const promiseComplete = function (error, committed, snapshot) {
       if (error) {
         deferred.reject(error);
       } else {
         deferred.resolve(new TransactionResult(committed, snapshot));
       }
-      if (typeof opt_onComplete === 'function') {
-        opt_onComplete(error, committed, snapshot);
+      if (typeof onComplete === 'function') {
+        onComplete(error, committed, snapshot);
       }
     };
-    this.repo.startTransaction(this.path, transactionUpdate, promiseComplete, opt_applyLocally);
+    this.repo.startTransaction(this.path, transactionUpdate, promiseComplete, applyLocally);
 
     return deferred.promise;
   }
 
   /**
    * @param {string|number|null} priority
-   * @param {function(?Error)=} opt_onComplete
-   * @return {!firebase.Promise}
+   * @param {function(?Error)=} onComplete
+   * @return {!Promise}
    */
-  setPriority(priority, onComplete?): Promise<any> {
-    validateArgCount('Firebase.setPriority', 1, 2, arguments.length);
-    validateWritablePath('Firebase.setPriority', this.path);
-    validatePriority('Firebase.setPriority', 1, priority, false);
-    validateCallback('Firebase.setPriority', 2, onComplete, true);
+  setPriority(priority: string | number | null, onComplete?: (a: Error | null) => any): Promise<any> {
+    validateArgCount('Reference.setPriority', 1, 2, arguments.length);
+    validateWritablePath('Reference.setPriority', this.path);
+    validatePriority('Reference.setPriority', 1, priority, false);
+    validateCallback('Reference.setPriority', 2, onComplete, true);
 
-    var deferred = new Deferred();
+    const deferred = new Deferred();
     this.repo.setWithPriority(this.path.child('.priority'), priority, null, deferred.wrapCallback(onComplete));
     return deferred.promise;
   }
 
   /**
-   * @param {*=} opt_value
-   * @param {function(?Error)=} opt_onComplete
-   * @return {!Firebase}
+   * @param {*=} value
+   * @param {function(?Error)=} onComplete
+   * @return {!Reference}
    */
-  push(value?, onComplete?) {
-    validateArgCount('Firebase.push', 0, 2, arguments.length);
-    validateWritablePath('Firebase.push', this.path);
-    validateFirebaseDataArg('Firebase.push', 1, value, this.path, true);
-    validateCallback('Firebase.push', 2, onComplete, true);
+  push(value?: any, onComplete?: (a: Error | null) => any): Reference {
+    validateArgCount('Reference.push', 0, 2, arguments.length);
+    validateWritablePath('Reference.push', this.path);
+    validateFirebaseDataArg('Reference.push', 1, value, this.path, true);
+    validateCallback('Reference.push', 2, onComplete, true);
 
-    var now = this.repo.serverTime();
-    var name = nextPushId(now);
+    const now = this.repo.serverTime();
+    const name = nextPushId(now);
 
     // push() returns a ThennableReference whose promise is fulfilled with a regular Reference.
     // We use child() to create handles to two different references. The first is turned into a
     // ThennableReference below by adding then() and catch() methods and is used as the
     // return value of push(). The second remains a regular Reference and is used as the fulfilled
     // value of the first ThennableReference.
-    var thennablePushRef = this.child(name);
-    var pushRef = this.child(name);
+    const thennablePushRef = this.child(name);
+    const pushRef = this.child(name);
 
-    var promise;
+    let promise;
     if (value != null) {
-      promise = thennablePushRef.set(value, onComplete).then(function () { return pushRef; });
+      promise = thennablePushRef.set(value, onComplete).then(() => pushRef);
     } else {
       promise = PromiseImpl.resolve(pushRef);
     }
 
     thennablePushRef.then = promise.then.bind(promise);
-    /** @type {letMeUseMapAccessors} */ (thennablePushRef)["catch"] = promise.then.bind(promise, undefined);
+    thennablePushRef.catch = promise.then.bind(promise, undefined);
 
     if (typeof onComplete === 'function') {
       attachDummyErrorHandler(promise);
@@ -273,31 +279,31 @@ export class Reference extends Query {
   /**
    * @return {!OnDisconnect}
    */
-  onDisconnect() {
-    validateWritablePath('Firebase.onDisconnect', this.path);
+  onDisconnect(): OnDisconnect {
+    validateWritablePath('Reference.onDisconnect', this.path);
     return new OnDisconnect(this.repo, this.path);
   }
 
-  get database() {
+  get database(): Database {
     return this.databaseProp();
   }
 
-  get key() {
+  get key(): string | null {
     return this.getKey();
   }
 
-  get parent() {
+  get parent(): Reference | null {
     return this.getParent();
   }
 
-  get root() {
+  get root(): Reference {
     return this.getRoot();
   }
 }
 
 /**
  * Define reference constructor in various modules
- * 
+ *
  * We are doing this here to avoid several circular
  * dependency issues
  */

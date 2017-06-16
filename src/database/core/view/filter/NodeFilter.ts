@@ -16,13 +16,13 @@ export interface NodeFilter {
    * Update a single complete child in the snap. If the child equals the old child in the snap, this is a no-op.
    * The method expects an indexed snap.
    *
-   * @param {!fb.core.snap.Node} snap
+   * @param {!Node} snap
    * @param {string} key
-   * @param {!fb.core.snap.Node} newChild
-   * @param {!fb.core.util.Path} affectedPath
-   * @param {!fb.core.view.CompleteChildSource} source
-   * @param {?fb.core.view.ChildChangeAccumulator} optChangeAccumulator
-   * @return {!fb.core.snap.Node}
+   * @param {!Node} newChild
+   * @param {!Path} affectedPath
+   * @param {!CompleteChildSource} source
+   * @param {?ChildChangeAccumulator} optChangeAccumulator
+   * @return {!Node}
    */
   updateChild(snap: Node, key: string, newChild: Node, affectedPath: Path,
               source: CompleteChildSource,
@@ -31,10 +31,10 @@ export interface NodeFilter {
   /**
    * Update a node in full and output any resulting change from this complete update.
    *
-   * @param {!fb.core.snap.Node} oldSnap
-   * @param {!fb.core.snap.Node} newSnap
-   * @param {?fb.core.view.ChildChangeAccumulator} optChangeAccumulator
-   * @return {!fb.core.snap.Node}
+   * @param {!Node} oldSnap
+   * @param {!Node} newSnap
+   * @param {?ChildChangeAccumulator} optChangeAccumulator
+   * @return {!Node}
    */
   updateFullNode(oldSnap: Node, newSnap: Node,
                  optChangeAccumulator: ChildChangeAccumulator | null): Node;
@@ -42,9 +42,9 @@ export interface NodeFilter {
   /**
    * Update the priority of the root node
    *
-   * @param {!fb.core.snap.Node} oldSnap
-   * @param {!fb.core.snap.Node} newPriority
-   * @return {!fb.core.snap.Node}
+   * @param {!Node} oldSnap
+   * @param {!Node} newPriority
+   * @return {!Node}
    */
   updatePriority(oldSnap: Node, newPriority: Node): Node;
 
@@ -63,7 +63,7 @@ export interface NodeFilter {
 
   /**
    * Returns the index that this filter uses
-   * @return {!fb.core.snap.Index}
+   * @return {!Index}
    */
   getIndex(): Index;
 }

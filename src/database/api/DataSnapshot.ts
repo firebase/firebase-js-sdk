@@ -13,9 +13,9 @@ import { ChildrenNode } from '../core/snap/ChildrenNode';
  */
 export class DataSnapshot {
   /**
-   * @param {!fb.core.snap.Node} node_ A SnapshotNode to wrap.
+   * @param {!Node} node_ A SnapshotNode to wrap.
    * @param {!Reference} ref_ The ref of the location this snapshot came from.
-   * @param {!fb.core.snap.Index} index_ The iteration order for this snapshot
+   * @param {!Index} index_ The iteration order for this snapshot
    */
   constructor(private readonly node_: Node,
               private readonly ref_: Reference,
@@ -29,7 +29,7 @@ export class DataSnapshot {
    * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
    */
   val(): any {
-    validateArgCount('firebase.database.DataSnapshot.val', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.val', 0, 0, arguments.length);
     return this.node_.val();
   }
 
@@ -39,7 +39,7 @@ export class DataSnapshot {
    * @return {*} JSON representation of the DataSnapshot contents, or null if empty.
    */
   exportVal(): any {
-    validateArgCount('firebase.database.DataSnapshot.exportVal', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.exportVal', 0, 0, arguments.length);
     return this.node_.val(true);
   }
 
@@ -47,7 +47,7 @@ export class DataSnapshot {
   // for end-users
   toJSON(): any {
     // Optional spacer argument is unnecessary because we're depending on recursion rather than stringifying the content
-    validateArgCount('firebase.database.DataSnapshot.toJSON', 0, 1, arguments.length);
+    validateArgCount('DataSnapshot.toJSON', 0, 1, arguments.length);
     return this.exportVal();
   }
 
@@ -57,7 +57,7 @@ export class DataSnapshot {
    * @return {boolean} Whether the snapshot contains a non-null value, or is empty.
    */
   exists(): boolean {
-    validateArgCount('firebase.database.DataSnapshot.exists', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.exists', 0, 0, arguments.length);
     return !this.node_.isEmpty();
   }
 
@@ -68,10 +68,10 @@ export class DataSnapshot {
    * @return {!DataSnapshot} DataSnapshot for child node.
    */
   child(childPathString: string): DataSnapshot {
-    validateArgCount('firebase.database.DataSnapshot.child', 0, 1, arguments.length);
+    validateArgCount('DataSnapshot.child', 0, 1, arguments.length);
     // Ensure the childPath is a string (can be a number)
     childPathString = String(childPathString);
-    validatePathString('firebase.database.DataSnapshot.child', 1, childPathString, false);
+    validatePathString('DataSnapshot.child', 1, childPathString, false);
 
     const childPath = new Path(childPathString);
     const childRef = this.ref_.child(childPath);
@@ -85,8 +85,8 @@ export class DataSnapshot {
    * @return {boolean} Whether the child exists.
    */
   hasChild(childPathString: string): boolean {
-    validateArgCount('firebase.database.DataSnapshot.hasChild', 1, 1, arguments.length);
-    validatePathString('firebase.database.DataSnapshot.hasChild', 1, childPathString, false);
+    validateArgCount('DataSnapshot.hasChild', 1, 1, arguments.length);
+    validatePathString('DataSnapshot.hasChild', 1, childPathString, false);
 
     const childPath = new Path(childPathString);
     return !this.node_.getChild(childPath).isEmpty();
@@ -98,7 +98,7 @@ export class DataSnapshot {
    * @return {string|number|null} The priority.
    */
   getPriority(): string | number | null {
-    validateArgCount('firebase.database.DataSnapshot.getPriority', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.getPriority', 0, 0, arguments.length);
 
     // typecast here because we never return deferred values or internal priorities (MAX_PRIORITY)
     return /**@type {string|number|null} */ <string | number | null>(this.node_.getPriority().val());
@@ -113,8 +113,8 @@ export class DataSnapshot {
    * one of the child nodes.
    */
   forEach(action: (d: DataSnapshot) => any): boolean {
-    validateArgCount('firebase.database.DataSnapshot.forEach', 1, 1, arguments.length);
-    validateCallback('firebase.database.DataSnapshot.forEach', 1, action, false);
+    validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
+    validateCallback('DataSnapshot.forEach', 1, action, false);
 
     if (this.node_.isLeafNode())
       return false;
@@ -131,7 +131,7 @@ export class DataSnapshot {
    * @return {boolean} True if the DataSnapshot contains 1 or more child nodes.
    */
   hasChildren(): boolean {
-    validateArgCount('firebase.database.DataSnapshot.hasChildren', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.hasChildren', 0, 0, arguments.length);
 
     if (this.node_.isLeafNode())
       return false;
@@ -143,7 +143,7 @@ export class DataSnapshot {
    * @return {?string} The key of the location this snapshot's data came from.
    */
   getKey(): string | null {
-    validateArgCount('firebase.database.DataSnapshot.key', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.key', 0, 0, arguments.length);
 
     return this.ref_.getKey();
   }
@@ -157,7 +157,7 @@ export class DataSnapshot {
    * @return {number} The number of children that this DataSnapshot contains.
    */
   numChildren(): number {
-    validateArgCount('firebase.database.DataSnapshot.numChildren', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.numChildren', 0, 0, arguments.length);
 
     return this.node_.numChildren();
   }
@@ -166,7 +166,7 @@ export class DataSnapshot {
    * @return {Reference} The Firebase reference for the location this snapshot's data came from.
    */
   getRef(): Reference {
-    validateArgCount('firebase.database.DataSnapshot.ref', 0, 0, arguments.length);
+    validateArgCount('DataSnapshot.ref', 0, 0, arguments.length);
 
     return this.ref_;
   }

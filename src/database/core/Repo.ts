@@ -1,53 +1,62 @@
-import { 
+import {
   generateWithValues,
   resolveDeferredValueSnapshot,
   resolveDeferredValueTree
-} from "./util/ServerValues";
-import { nodeFromJSON } from "./snap/nodeFromJSON";
-import { Path } from "./util/Path";
-import { SparseSnapshotTree } from "./SparseSnapshotTree";
-import { SyncTree } from "./SyncTree";
-import { SnapshotHolder } from "./SnapshotHolder";
-import { stringify } from "../../utils/json";
-import { beingCrawled, each, exceptionGuard, warn, log } from "./util/util";
-import { map, forEach } from "../../utils/obj";
-import { AuthTokenProvider } from "./AuthTokenProvider";
-import { StatsManager } from "./stats/StatsManager";
-import { StatsReporter } from "./stats/StatsReporter";
-import { StatsListener } from "./stats/StatsListener";
-import { EventQueue } from "./view/EventQueue";
-import { PersistentConnection } from "./PersistentConnection";
-import { ReadonlyRestClient } from "./ReadonlyRestClient";
-import { FirebaseApp } from "../../app/firebase_app";
-import { RepoInfo } from "./RepoInfo";
+} from './util/ServerValues';
+import { nodeFromJSON } from './snap/nodeFromJSON';
+import { Path } from './util/Path';
+import { SparseSnapshotTree } from './SparseSnapshotTree';
+import { SyncTree } from './SyncTree';
+import { SnapshotHolder } from './SnapshotHolder';
+import { stringify } from '../../utils/json';
+import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
+import { map, forEach, isEmpty } from '../../utils/obj';
+import { AuthTokenProvider } from './AuthTokenProvider';
+import { StatsManager } from './stats/StatsManager';
+import { StatsReporter } from './stats/StatsReporter';
+import { StatsListener } from './stats/StatsListener';
+import { EventQueue } from './view/EventQueue';
+import { PersistentConnection } from './PersistentConnection';
+import { ReadonlyRestClient } from './ReadonlyRestClient';
+import { FirebaseApp } from '../../app/firebase_app';
+import { RepoInfo } from './RepoInfo';
+import { Database } from '../api/Database';
+import { ServerActions } from './ServerActions';
+import { Query } from '../api/Query';
+import { EventRegistration } from './view/EventRegistration';
 
-var INTERRUPT_REASON = 'repo_interrupt';
+const INTERRUPT_REASON = 'repo_interrupt';
 
 /**
  * A connection to a single data repository.
  */
 export class Repo {
-  repoInfo_;
-  stats_;
-  statsListener_;
-  eventQueue_;
-  nextWriteId_;
-  persistentConnection_ : PersistentConnection | null;
-  server_;
-  statsReporter_;
-  transactions_init_;
-  infoData_;
-  infoSyncTree_: SyncTree;
-  onDisconnect_;
-  abortTransactions_;
-  rerunTransactions_;
-
   /** @type {!Database} */
-  database;
+  database: Database;
+  infoSyncTree_: SyncTree;
   dataUpdateCount;
-  interceptServerDataCallback_;
   serverSyncTree_: SyncTree;
-  
+
+  private repoInfo_;
+  private stats_;
+  private statsListener_;
+  private eventQueue_;
+  private nextWriteId_;
+  private server_: ServerActions;
+  private statsReporter_;
+  private transactions_init_;
+  private infoData_;
+  private onDisconnect_;
+  private abortTransactions_;
+  private rerunTransactions_;
+  private interceptServerDataCallback_;
+
+  /**
+   * TODO: This should be @private but it's used by test_access.js and internal.js
+   * @type {?PersistentConnection}
+   */
+  persistentConnection_: PersistentConnection | null = null;
+
   /**
    * @param {!RepoInfo} repoInfo
    * @param {boolean} forceRestClient
@@ -55,7 +64,7 @@ export class Repo {
    */
   constructor(repoInfo: RepoInfo, forceRestClient: boolean, public app: FirebaseApp) {
     /** @type {!AuthTokenProvider} */
-    var authTokenProvider = new AuthTokenProvider(app);
+    const authTokenProvider = new AuthTokenProvider(app);
 
     this.repoInfo_ = repoInfo;
     this.stats_ = StatsManager.getCollection(repoInfo);
@@ -63,17 +72,6 @@ export class Repo {
     this.statsListener_ = null;
     this.eventQueue_ = new EventQueue();
     this.nextWriteId_ = 1;
-
-    /**
-     * TODO: This should be @private but it's used by test_access.js and internal.js
-     * @type {?PersistentConnection}
-     */
-    this.persistentConnection_ = null;
-
-    /**
-     * @private {!ServerActions}
-     */
-    this.server_;
 
     if (forceRestClient || beingCrawled()) {
       this.server_ = new ReadonlyRestClient(this.repoInfo_,
@@ -83,7 +81,7 @@ export class Repo {
       // Minor hack: Fire onConnect immediately, since there's no actual connection.
       setTimeout(this.onConnectStatus_.bind(this, true), 0);
     } else {
-      var authOverride = app.options['databaseAuthVariableOverride'];
+      const authOverride = app.options['databaseAuthVariableOverride'];
       // Validate authOverride
       if (typeof authOverride !== 'undefined' && authOverride !== null) {
         if (authOverride !== 'object') {
@@ -105,29 +103,29 @@ export class Repo {
 
       this.server_ = this.persistentConnection_;
     }
-    var self = this;
-    authTokenProvider.addTokenChangeListener(function(token) {
-      self.server_.refreshAuthToken(token);
+
+    authTokenProvider.addTokenChangeListener((token) => {
+      this.server_.refreshAuthToken(token);
     });
 
     // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
     // we only want to create one StatsReporter.  As such, we'll report stats over the first Repo created.
     this.statsReporter_ = StatsManager.getOrCreateReporter(repoInfo,
-      function() { return new StatsReporter(this.stats_, this.server_); }.bind(this));
+      () => new StatsReporter(this.stats_, this.server_));
 
     this.transactions_init_();
 
     // Used for .info.
     this.infoData_ = new SnapshotHolder();
     this.infoSyncTree_ = new SyncTree({
-      startListening(query, tag, currentHashFn, onComplete) {
-        var infoEvents = [];
-        var node = self.infoData_.getNode(query.path);
+      startListening: (query, tag, currentHashFn, onComplete) => {
+        let infoEvents = [];
+        const node = this.infoData_.getNode(query.path);
         // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
         // on initial data...
         if (!node.isEmpty()) {
-          infoEvents = self.infoSyncTree_.applyServerOverwrite(query.path, node);
-          setTimeout(function() {
+          infoEvents = this.infoSyncTree_.applyServerOverwrite(query.path, node);
+          setTimeout(() => {
             onComplete('ok');
           }, 0);
         }
@@ -145,16 +143,16 @@ export class Repo {
     this.interceptServerDataCallback_ = null;
 
     this.serverSyncTree_ = new SyncTree({
-      startListening(query, tag, currentHashFn, onComplete) {
-        self.server_.listen(query, currentHashFn, tag, function(status, data) {
-          var events = onComplete(status, data);
-          self.eventQueue_.raiseEventsForChangedPath(query.path, events);
+      startListening: (query, tag, currentHashFn, onComplete) => {
+        this.server_.listen(query, currentHashFn, tag, (status, data) => {
+          const events = onComplete(status, data);
+          this.eventQueue_.raiseEventsForChangedPath(query.path, events);
         });
         // No synchronous events for network-backed sync trees
         return [];
       },
-      stopListening(query, tag) {
-        self.server_.unlisten(query, tag);
+      stopListening: (query, tag) => {
+        this.server_.unlisten(query, tag);
       }
     });
   }
@@ -162,23 +160,23 @@ export class Repo {
   /**
    * @return {string}  The URL corresponding to the root of this Firebase.
    */
-  toString() {
+  toString(): string {
     return (this.repoInfo_.secure ? 'https://' : 'http://') + this.repoInfo_.host;
   }
 
   /**
    * @return {!string} The namespace represented by the repo.
    */
-  name() {
+  name(): string {
     return this.repoInfo_.namespace;
   }
 
   /**
    * @return {!number} The time in milliseconds, taking the server offset into account if we have one.
    */
-  serverTime() {
-    var offsetNode = this.infoData_.getNode(new Path('.info/serverTimeOffset'));
-    var offset = /** @type {number} */ (offsetNode.val()) || 0;
+  serverTime(): number {
+    const offsetNode = this.infoData_.getNode(new Path('.info/serverTimeOffset'));
+    const offset = /** @type {number} */ (offsetNode.val()) || 0;
     return new Date().getTime() + offset;
   }
 
@@ -186,7 +184,7 @@ export class Repo {
    * Generate ServerValues using some variables from the repo object.
    * @return {!Object}
    */
-  generateServerValues() {
+  generateServerValues(): Object {
     return generateWithValues({
       'timestamp': this.serverTime()
     });
@@ -201,32 +199,28 @@ export class Repo {
    * @param {boolean} isMerge
    * @param {?number} tag
    */
-  onDataUpdate_(pathString, data, isMerge, tag) {
+  private onDataUpdate_(pathString: string, data: any, isMerge: boolean, tag: number | null) {
     // For testing.
     this.dataUpdateCount++;
-    var path = new Path(pathString);
+    const path = new Path(pathString);
     data = this.interceptServerDataCallback_ ? this.interceptServerDataCallback_(pathString, data) : data;
-    var events = [];
+    let events = [];
     if (tag) {
       if (isMerge) {
-        var taggedChildren = map(/**@type {!Object.<string, *>} */ (data), function(raw) {
-          return nodeFromJSON(raw);
-        });
+        const taggedChildren = map(/**@type {!Object.<string, *>} */ (data), (raw) => nodeFromJSON(raw));
         events = this.serverSyncTree_.applyTaggedQueryMerge(path, taggedChildren, tag);
       } else {
-        var taggedSnap = nodeFromJSON(data);
+        const taggedSnap = nodeFromJSON(data);
         events = this.serverSyncTree_.applyTaggedQueryOverwrite(path, taggedSnap, tag);
       }
     } else if (isMerge) {
-      var changedChildren = map(/**@type {!Object.<string, *>} */ (data), function(raw) {
-        return nodeFromJSON(raw);
-      });
+      const changedChildren = map(/**@type {!Object.<string, *>} */ (data), (raw) => nodeFromJSON(raw));
       events = this.serverSyncTree_.applyServerMerge(path, changedChildren);
     } else {
-      var snap = nodeFromJSON(data);
+      const snap = nodeFromJSON(data);
       events = this.serverSyncTree_.applyServerOverwrite(path, snap);
     }
-    var affectedPath = path;
+    let affectedPath = path;
     if (events.length > 0) {
       // Since we have a listener outstanding for each transaction, receiving any events
       // is a proxy for some change having occurred.
@@ -239,7 +233,7 @@ export class Repo {
    * @param {?function(!string, *):*} callback
    * @private
    */
-  interceptServerData_(callback) {
+  private interceptServerData_(callback: (a: string, b: any) => any) {
     this.interceptServerDataCallback_ = callback;
   }
 
@@ -247,7 +241,7 @@ export class Repo {
    * @param {!boolean} connectStatus
    * @private
    */
-  onConnectStatus_(connectStatus) {
+  private onConnectStatus_(connectStatus: boolean) {
     this.updateInfo_('connected', connectStatus);
     if (connectStatus === false) {
       this.runOnDisconnectEvents_();
@@ -258,10 +252,9 @@ export class Repo {
    * @param {!Object} updates
    * @private
    */
-  onServerInfoUpdate_(updates) {
-    var self = this;
-    each(updates, function(value, key) {
-      self.updateInfo_(key, value);
+  private onServerInfoUpdate_(updates: Object) {
+    each(updates, (value: any, key: string) => {
+      this.updateInfo_(key, value);
     });
   }
 
@@ -271,11 +264,11 @@ export class Repo {
    * @param {*} value
    * @private
    */
-  updateInfo_(pathString, value) {
-    var path = new Path('/.info/' + pathString);
-    var newNode = nodeFromJSON(value);
+  private updateInfo_(pathString: string, value: any) {
+    const path = new Path('/.info/' + pathString);
+    const newNode = nodeFromJSON(value);
     this.infoData_.updateSnapshot(path, newNode);
-    var events = this.infoSyncTree_.applyServerOverwrite(path, newNode);
+    const events = this.infoSyncTree_.applyServerOverwrite(path, newNode);
     this.eventQueue_.raiseEventsForChangedPath(path, events);
   }
 
@@ -283,7 +276,7 @@ export class Repo {
    * @return {!number}
    * @private
    */
-  getNextWriteId_() {
+  private getNextWriteId_(): number {
     return this.nextWriteId_++;
   }
 
@@ -293,30 +286,30 @@ export class Repo {
    * @param {number|string|null} newPriority
    * @param {?function(?Error, *=)} onComplete
    */
-  setWithPriority(path, newVal, newPriority, onComplete) {
+  setWithPriority(path: Path, newVal: any, newPriority: number | string | null,
+                          onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
     this.log_('set', {path: path.toString(), value: newVal, priority: newPriority});
 
     // TODO: Optimize this behavior to either (a) store flag to skip resolving where possible and / or
     // (b) store unresolved paths on JSON parse
-    var serverValues = this.generateServerValues();
-    var newNodeUnresolved = nodeFromJSON(newVal, newPriority);
-    var newNode = resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
+    const serverValues = this.generateServerValues();
+    const newNodeUnresolved = nodeFromJSON(newVal, newPriority);
+    const newNode = resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
 
-    var writeId = this.getNextWriteId_();
-    var events = this.serverSyncTree_.applyUserOverwrite(path, newNode, writeId, true);
+    const writeId = this.getNextWriteId_();
+    const events = this.serverSyncTree_.applyUserOverwrite(path, newNode, writeId, true);
     this.eventQueue_.queueEvents(events);
-    var self = this;
-    this.server_.put(path.toString(), newNodeUnresolved.val(/*export=*/true), function(status, errorReason) {
-      var success = status === 'ok';
+    this.server_.put(path.toString(), newNodeUnresolved.val(/*export=*/true), (status, errorReason) => {
+      const success = status === 'ok';
       if (!success) {
         warn('set at ' + path + ' failed: ' + status);
       }
 
-      var clearEvents = self.serverSyncTree_.ackUserWrite(writeId, !success);
-      self.eventQueue_.raiseEventsForChangedPath(path, clearEvents);
-      self.callOnCompleteCallback(onComplete, status, errorReason);
+      const clearEvents = this.serverSyncTree_.ackUserWrite(writeId, !success);
+      this.eventQueue_.raiseEventsForChangedPath(path, clearEvents);
+      this.callOnCompleteCallback(onComplete, status, errorReason);
     });
-    var affectedPath = this.abortTransactions_(path);
+    const affectedPath = this.abortTransactions_(path);
     this.rerunTransactions_(affectedPath);
     // We queued the events above, so just flush the queue here
     this.eventQueue_.raiseEventsForChangedPath(affectedPath, []);
@@ -327,42 +320,39 @@ export class Repo {
    * @param {!Object} childrenToMerge
    * @param {?function(?Error, *=)} onComplete
    */
-  update(path: Path, childrenToMerge, onComplete) {
+  update(path: Path, childrenToMerge: Object,
+                 onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
     this.log_('update', {path: path.toString(), value: childrenToMerge});
 
     // Start with our existing data and merge each child into it.
-    var empty = true;
-    var serverValues = this.generateServerValues();
-    var changedChildren = {};
-    forEach(childrenToMerge, function(changedKey, changedValue) {
+    let empty = true;
+    const serverValues = this.generateServerValues();
+    const changedChildren = {};
+    forEach(childrenToMerge, function (changedKey, changedValue) {
       empty = false;
-      var newNodeUnresolved = nodeFromJSON(changedValue);
+      const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
     });
 
     if (!empty) {
-      var writeId = this.getNextWriteId_();
-      var events = this.serverSyncTree_.applyUserMerge(path, changedChildren, writeId);
+      const writeId = this.getNextWriteId_();
+      const events = this.serverSyncTree_.applyUserMerge(path, changedChildren, writeId);
       this.eventQueue_.queueEvents(events);
-      var self = this;
-      this.server_.merge(path.toString(), childrenToMerge, function(status, errorReason) {
-        var success = status === 'ok';
+      this.server_.merge(path.toString(), childrenToMerge, (status, errorReason) => {
+        const success = status === 'ok';
         if (!success) {
           warn('update at ' + path + ' failed: ' + status);
         }
 
-        var clearEvents = self.serverSyncTree_.ackUserWrite(writeId, !success);
-        var affectedPath = path;
-        if (clearEvents.length > 0) {
-          affectedPath = self.rerunTransactions_(path);
-        }
-        self.eventQueue_.raiseEventsForChangedPath(affectedPath, clearEvents);
-        self.callOnCompleteCallback(onComplete, status, errorReason);
+        const clearEvents = this.serverSyncTree_.ackUserWrite(writeId, !success);
+        const affectedPath = (clearEvents.length > 0) ? this.rerunTransactions_(path) : path;
+        this.eventQueue_.raiseEventsForChangedPath(affectedPath, clearEvents);
+        this.callOnCompleteCallback(onComplete, status, errorReason);
       });
 
-      forEach(childrenToMerge, function(changedPath, changedValue) {
-        var affectedPath = self.abortTransactions_(path.child(changedPath));
-        self.rerunTransactions_(affectedPath);
+      forEach(childrenToMerge, (changedPath, changedValue) => {
+        const affectedPath = this.abortTransactions_(path.child(changedPath));
+        this.rerunTransactions_(affectedPath);
       });
 
       // We queued the events above, so just flush the queue here
@@ -377,18 +367,17 @@ export class Repo {
    * Applies all of the changes stored up in the onDisconnect_ tree.
    * @private
    */
-  runOnDisconnectEvents_() {
+  private runOnDisconnectEvents_() {
     this.log_('onDisconnectEvents');
-    var self = this;
 
-    var serverValues = this.generateServerValues();
-    var resolvedOnDisconnectTree = resolveDeferredValueTree(this.onDisconnect_, serverValues);
-    var events = [];
+    const serverValues = this.generateServerValues();
+    const resolvedOnDisconnectTree = resolveDeferredValueTree(this.onDisconnect_, serverValues);
+    let events = [];
 
-    resolvedOnDisconnectTree.forEachTree(Path.Empty, function(path, snap) {
-      events = events.concat(self.serverSyncTree_.applyServerOverwrite(path, snap));
-      var affectedPath = self.abortTransactions_(path);
-      self.rerunTransactions_(affectedPath);
+    resolvedOnDisconnectTree.forEachTree(Path.Empty, (path, snap) => {
+      events = events.concat(this.serverSyncTree_.applyServerOverwrite(path, snap));
+      const affectedPath = this.abortTransactions_(path);
+      this.rerunTransactions_(affectedPath);
     });
 
     this.onDisconnect_ = new SparseSnapshotTree();
@@ -397,60 +386,69 @@ export class Repo {
 
   /**
    * @param {!Path} path
-   * @param {?function(?Error)} onComplete
+   * @param {?function(?Error, *=)} onComplete
    */
-  onDisconnectCancel(path, onComplete) {
-    var self = this;
-    this.server_.onDisconnectCancel(path.toString(), function(status, errorReason) {
+  onDisconnectCancel(path: Path, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+    this.server_.onDisconnectCancel(path.toString(), (status, errorReason) => {
       if (status === 'ok') {
-        self.onDisconnect_.forget(path);
+        this.onDisconnect_.forget(path);
       }
-      self.callOnCompleteCallback(onComplete, status, errorReason);
+      this.callOnCompleteCallback(onComplete, status, errorReason);
     });
   }
 
-  onDisconnectSet(path, value, onComplete) {
-    var self = this;
-    var newNode = nodeFromJSON(value);
-    this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), function(status, errorReason) {
+  /**
+   * @param {!Path} path
+   * @param {*} value
+   * @param {?function(?Error, *=)} onComplete
+   */
+  onDisconnectSet(path: Path, value: any, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+    const newNode = nodeFromJSON(value);
+    this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), (status, errorReason) => {
       if (status === 'ok') {
-        self.onDisconnect_.remember(path, newNode);
+        this.onDisconnect_.remember(path, newNode);
       }
-      self.callOnCompleteCallback(onComplete, status, errorReason);
+      this.callOnCompleteCallback(onComplete, status, errorReason);
     });
   }
 
-  onDisconnectSetWithPriority(path, value, priority, onComplete) {
-    var self = this;
-    var newNode = nodeFromJSON(value, priority);
-    this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), function(status, errorReason) {
+  /**
+   * @param {!Path} path
+   * @param {*} value
+   * @param {*} priority
+   * @param {?function(?Error, *=)} onComplete
+   */
+  onDisconnectSetWithPriority(path, value, priority, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+    const newNode = nodeFromJSON(value, priority);
+    this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), (status, errorReason) => {
       if (status === 'ok') {
-        self.onDisconnect_.remember(path, newNode);
+        this.onDisconnect_.remember(path, newNode);
       }
-      self.callOnCompleteCallback(onComplete, status, errorReason);
+      this.callOnCompleteCallback(onComplete, status, errorReason);
     });
   }
 
-  onDisconnectUpdate(path, childrenToMerge, onComplete) {
-    var empty = true;
-    for (var childName in childrenToMerge) {
-      empty = false;
-    }
-    if (empty) {
+  /**
+   * @param {!Path} path
+   * @param {*} childrenToMerge
+   * @param {?function(?Error, *=)} onComplete
+   */
+  onDisconnectUpdate(path, childrenToMerge,
+                     onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+    if (isEmpty(childrenToMerge)) {
       log('onDisconnect().update() called with empty data.  Don\'t do anything.');
       this.callOnCompleteCallback(onComplete, 'ok');
       return;
     }
 
-    var self = this;
-    this.server_.onDisconnectMerge(path.toString(), childrenToMerge, function(status, errorReason) {
+    this.server_.onDisconnectMerge(path.toString(), childrenToMerge, (status, errorReason) => {
       if (status === 'ok') {
-        for (var childName in childrenToMerge) {
-          var newChildNode = nodeFromJSON(childrenToMerge[childName]);
-          self.onDisconnect_.remember(path.child(childName), newChildNode);
-        }
+        forEach(childrenToMerge, (childName: string, childNode: any) => {
+          const newChildNode = nodeFromJSON(childNode);
+          this.onDisconnect_.remember(path.child(childName), newChildNode);
+        });
       }
-      self.callOnCompleteCallback(onComplete, status, errorReason);
+      this.callOnCompleteCallback(onComplete, status, errorReason);
     });
   }
 
@@ -458,8 +456,8 @@ export class Repo {
    * @param {!Query} query
    * @param {!EventRegistration} eventRegistration
    */
-  addEventCallbackForQuery(query, eventRegistration) {
-    var events;
+  addEventCallbackForQuery(query: Query, eventRegistration: EventRegistration) {
+    let events;
     if (query.path.getFront() === '.info') {
       events = this.infoSyncTree_.addEventRegistration(query, eventRegistration);
     } else {
@@ -472,10 +470,10 @@ export class Repo {
    * @param {!Query} query
    * @param {?EventRegistration} eventRegistration
    */
-  removeEventCallbackForQuery(query, eventRegistration) {
+  removeEventCallbackForQuery(query: Query, eventRegistration: EventRegistration) {
     // These are guaranteed not to raise events, since we're not passing in a cancelError. However, we can future-proof
     // a little bit by handling the return values anyways.
-    var events;
+    let events;
     if (query.path.getFront() === '.info') {
       events = this.infoSyncTree_.removeEventRegistration(query, eventRegistration);
     } else {
@@ -496,11 +494,11 @@ export class Repo {
     }
   }
 
-  stats(showDelta) {
+  stats(showDelta: boolean = false) {
     if (typeof console === 'undefined')
       return;
 
-    var stats;
+    let stats;
     if (showDelta) {
       if (!this.statsListener_)
         this.statsListener_ = new StatsListener(this.stats_);
@@ -509,18 +507,17 @@ export class Repo {
       stats = this.stats_.get();
     }
 
-    var longestName = Object.keys(stats).reduce(
-        function(previousValue, currentValue, index, array) {
-          return Math.max(currentValue.length, previousValue);
-        }, 0);
+    const longestName = Object.keys(stats).reduce(
+      function (previousValue, currentValue, index, array) {
+        return Math.max(currentValue.length, previousValue);
+      }, 0);
 
-    for (var stat in stats) {
-      var value = stats[stat];
+    forEach(stats, (stat, value) => {
       // pad stat names to be the same length (plus 2 extra spaces).
-      for (var i = stat.length; i < longestName + 2; i++)
+      for (let i = stat.length; i < longestName + 2; i++)
         stat += ' ';
       console.log(stat + value);
-    }
+    });
   }
 
   statsIncrementCounter(metric) {
@@ -532,12 +529,12 @@ export class Repo {
    * @param {...*} var_args
    * @private
    */
-  log_(...var_args) {
-    var prefix = '';
+  private log_(...var_args: any[]) {
+    let prefix = '';
     if (this.persistentConnection_) {
       prefix = this.persistentConnection_.id + ':';
     }
-    log(prefix, arguments);
+    log(prefix, var_args);
   }
 
   /**
@@ -545,22 +542,24 @@ export class Repo {
    * @param {!string} status
    * @param {?string=} errorReason
    */
-  callOnCompleteCallback(callback, status, errorReason?) {
+  callOnCompleteCallback(callback: ((status: Error | null, errorReason?: string) => any) | null,
+                         status: string, errorReason?: string | null) {
     if (callback) {
-      exceptionGuard(function() {
+      exceptionGuard(function () {
         if (status == 'ok') {
           callback(null);
         } else {
-          var code = (status || 'error').toUpperCase();
-          var message = code;
+          const code = (status || 'error').toUpperCase();
+          let message = code;
           if (errorReason)
             message += ': ' + errorReason;
 
-          var error = new Error(message);
+          const error = new Error(message);
           (error as any).code = code;
           callback(error);
         }
       });
     }
   }
-}; // end Repo
+}
+

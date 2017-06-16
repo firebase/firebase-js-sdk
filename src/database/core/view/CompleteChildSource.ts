@@ -15,15 +15,15 @@ import { ViewCache } from './ViewCache';
 export interface CompleteChildSource {
   /**
    * @param {!string} childKey
-   * @return {?fb.core.snap.Node}
+   * @return {?Node}
    */
   getCompleteChild(childKey: string): Node | null;
 
   /**
-   * @param {!fb.core.snap.Index} index
-   * @param {!fb.core.snap.NamedNode} child
+   * @param {!Index} index
+   * @param {!NamedNode} child
    * @param {boolean} reverse
-   * @return {?fb.core.snap.NamedNode}
+   * @return {?NamedNode}
    */
   getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null;
 }
@@ -71,9 +71,9 @@ export const NO_COMPLETE_CHILD_SOURCE = new NoCompleteChildSource_();
  */
 export class WriteTreeCompleteChildSource implements CompleteChildSource {
   /**
-   * @param {!fb.core.WriteTreeRef} writes_
-   * @param {!fb.core.view.ViewCache} viewCache_
-   * @param {?fb.core.snap.Node} optCompleteServerCache_
+   * @param {!WriteTreeRef} writes_
+   * @param {!ViewCache} viewCache_
+   * @param {?Node} optCompleteServerCache_
    */
   constructor(private writes_: WriteTreeRef,
               private viewCache_: ViewCache,

@@ -23,15 +23,15 @@ export interface EventRegistration {
   respondsTo(eventType: string): boolean;
 
   /**
-   * @param {!fb.core.view.Change} change
-   * @param {!fb.api.Query} query
-   * @return {!fb.core.view.Event}
+   * @param {!Change} change
+   * @param {!Query} query
+   * @return {!Event}
    */
   createEvent(change: Change, query: Query): Event;
 
   /**
    * Given event data, return a function to trigger the user's callback
-   * @param {!fb.core.view.Event} eventData
+   * @param {!Event} eventData
    * @return {function()}
    */
   getEventRunner(eventData: Event): () => any;
@@ -65,7 +65,7 @@ export interface EventRegistration {
 /**
  * Represents registration for 'value' events.
  */
-export class ValueEventRegistration implements ValueEventRegistration {
+export class ValueEventRegistration implements EventRegistration {
   /**
    * @param {?function(!DataSnapshot)} callback_
    * @param {?function(Error)} cancelCallback_
@@ -79,14 +79,14 @@ export class ValueEventRegistration implements ValueEventRegistration {
   /**
    * @inheritDoc
    */
-  respondsTo(eventType) {
+  respondsTo(eventType: string): boolean {
     return eventType === 'value';
   }
 
   /**
    * @inheritDoc
    */
-  createEvent(change, query) {
+  createEvent(change: Change, query: Query): DataEvent {
     const index = query.getQueryParams().getIndex();
     return new DataEvent('value', this, new DataSnapshot(change.snapshotNode, query.getRef(), index));
   }
@@ -94,19 +94,19 @@ export class ValueEventRegistration implements ValueEventRegistration {
   /**
    * @inheritDoc
    */
-  getEventRunner(eventData) {
+  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
     const ctx = this.context_;
     if (eventData.getEventType() === 'cancel') {
       assert(this.cancelCallback_, 'Raising a cancel event on a listener with no cancel callback');
       const cancelCB = this.cancelCallback_;
       return function () {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, eventData.error);
+        cancelCB.call(ctx, (<CancelEvent>eventData).error);
       };
     } else {
       const cb = this.callback_;
       return function () {
-        cb.call(ctx, eventData.snapshot);
+        cb.call(ctx, (<DataEvent>eventData).snapshot);
       };
     }
   }
@@ -114,7 +114,7 @@ export class ValueEventRegistration implements ValueEventRegistration {
   /**
    * @inheritDoc
    */
-  createCancelEvent(error, path) {
+  createCancelEvent(error: Error, path: Path): CancelEvent | null {
     if (this.cancelCallback_) {
       return new CancelEvent(this, error, path);
     } else {
@@ -125,7 +125,7 @@ export class ValueEventRegistration implements ValueEventRegistration {
   /**
    * @inheritDoc
    */
-  matches(other) {
+  matches(other: EventRegistration): boolean {
     if (!(other instanceof ValueEventRegistration)) {
       return false;
     } else if (!other.callback_ || !this.callback_) {
@@ -139,7 +139,7 @@ export class ValueEventRegistration implements ValueEventRegistration {
   /**
    * @inheritDoc
    */
-  hasAnyCallback() {
+  hasAnyCallback(): boolean {
     return this.callback_ !== null;
   }
 }
@@ -167,7 +167,7 @@ export class ChildEventRegistration implements EventRegistration {
   /**
    * @inheritDoc
    */
-  respondsTo(eventType) {
+  respondsTo(eventType): boolean {
     let eventToCheck = eventType === 'children_added' ? 'child_added' : eventType;
     eventToCheck = eventToCheck === 'children_removed' ? 'child_removed' : eventToCheck;
     return contains(this.callbacks_, eventToCheck);
@@ -176,7 +176,7 @@ export class ChildEventRegistration implements EventRegistration {
   /**
    * @inheritDoc
    */
-  createCancelEvent(error, path) {
+  createCancelEvent(error: Error, path: Path): CancelEvent | null {
     if (this.cancelCallback_) {
       return new CancelEvent(this, error, path);
     } else {
@@ -187,30 +187,30 @@ export class ChildEventRegistration implements EventRegistration {
   /**
    * @inheritDoc
    */
-  createEvent(change, query) {
+  createEvent(change: Change, query: Query): DataEvent {
     assert(change.childName != null, 'Child events should have a childName.');
     const ref = query.getRef().child(/** @type {!string} */ (change.childName));
     const index = query.getQueryParams().getIndex();
-    return new DataEvent(change.type, this, new DataSnapshot(change.snapshotNode, ref, index),
+    return new DataEvent(<any>change.type, this, new DataSnapshot(change.snapshotNode, ref, index),
       change.prevName);
   }
 
   /**
    * @inheritDoc
    */
-  getEventRunner(eventData) {
+  getEventRunner(eventData: CancelEvent | DataEvent): () => void {
     const ctx = this.context_;
     if (eventData.getEventType() === 'cancel') {
       assert(this.cancelCallback_, 'Raising a cancel event on a listener with no cancel callback');
       const cancelCB = this.cancelCallback_;
       return function () {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, eventData.error);
+        cancelCB.call(ctx, (<CancelEvent>eventData).error);
       };
     } else {
-      const cb = this.callbacks_[eventData.eventType];
+      const cb = this.callbacks_[(<DataEvent>eventData).eventType];
       return function () {
-        cb.call(ctx, eventData.snapshot, eventData.prevName);
+        cb.call(ctx, (<DataEvent>eventData).snapshot, (<DataEvent>eventData).prevName);
       }
     }
   }
@@ -218,7 +218,7 @@ export class ChildEventRegistration implements EventRegistration {
   /**
    * @inheritDoc
    */
-  matches(other) {
+  matches(other: EventRegistration): boolean {
     if (other instanceof ChildEventRegistration) {
       if (!this.callbacks_ || !other.callbacks_) {
         return true;
@@ -253,7 +253,7 @@ export class ChildEventRegistration implements EventRegistration {
   /**
    * @inheritDoc
    */
-  hasAnyCallback() {
+  hasAnyCallback(): boolean {
     return (this.callbacks_ !== null);
   }
 }

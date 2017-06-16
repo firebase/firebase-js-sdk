@@ -16,7 +16,7 @@ export abstract class Transport {
   /**
    *
    * @param {string} connId An identifier for this connection, used for logging
-   * @param {fb.core.RepoInfo} repoInfo The info for the endpoint to send data to.
+   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
    * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport session
    * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
    * @interface

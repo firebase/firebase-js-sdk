@@ -58,9 +58,9 @@ const LP_CONNECT_TIMEOUT = 30000;
  * This class manages a single long-polling connection.
  *
  * @constructor
- * @implements {fb.realtime.Transport}
+ * @implements {Transport}
  * @param {string} connId An identifier for this connection, used for logging
- * @param {fb.core.RepoInfo} repoInfo The info for the endpoint to send data to.
+ * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
  * @param {string=} opt_transportSessionId Optional transportSessionid if we are reconnecting for an existing
  *                                         transport session
  * @param {string=}  opt_lastSessionId Optional lastSessionId if the PersistentConnection has already created a

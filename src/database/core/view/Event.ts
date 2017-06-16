@@ -9,7 +9,7 @@ import { DataSnapshot } from '../../api/DataSnapshot';
  */
 export interface Event {
   /**
-   * @return {!fb.core.util.Path}
+   * @return {!Path}
    */
   getPath(): Path;
 
@@ -38,7 +38,7 @@ export class DataEvent implements Event {
   /**
    * @param {!string} eventType One of: value, child_added, child_changed, child_moved, child_removed
    * @param {!EventRegistration} eventRegistration The function to call to with the event data. User provided
-   * @param {!fb.api.DataSnapshot} snapshot The data backing the event
+   * @param {!DataSnapshot} snapshot The data backing the event
    * @param {?string=} prevName Optional, the name of the previous child for child_* events.
    */
   constructor(public eventType: 'value' | ' child_added' | ' child_changed' | ' child_moved' | ' child_removed',
@@ -87,7 +87,7 @@ export class CancelEvent implements Event {
   /**
    * @param {EventRegistration} eventRegistration
    * @param {Error} error
-   * @param {!fb.core.util.Path} path
+   * @param {!Path} path
    */
   constructor(public eventRegistration: EventRegistration,
               public error: Error,
@@ -97,28 +97,28 @@ export class CancelEvent implements Event {
   /**
    * @inheritDoc
    */
-  getPath() {
+  getPath(): Path {
     return this.path;
   }
 
   /**
    * @inheritDoc
    */
-  getEventType() {
+  getEventType(): string {
     return 'cancel';
   }
 
   /**
    * @inheritDoc
    */
-  getEventRunner() {
+  getEventRunner(): () => any {
     return this.eventRegistration.getEventRunner(this);
   }
 
   /**
    * @inheritDoc
    */
-  toString() {
+  toString(): string {
     return this.path.toString() + ':cancel';
   }
 }

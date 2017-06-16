@@ -25,7 +25,7 @@ export class AckUserWrite implements Operation {
   /**
    * @inheritDoc
    */
-  operationForChild(childName: string) {
+  operationForChild(childName: string): AckUserWrite {
     if (!this.path.isEmpty()) {
       assert(this.path.getFront() === childName, 'operationForChild called for unrelated child.');
       return new AckUserWrite(this.path.popFront(), this.affectedTree, this.revert);

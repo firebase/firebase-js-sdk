@@ -9,7 +9,7 @@ import { Path } from '../util/Path';
  */
 export class CacheNode {
   /**
-   * @param {!fb.core.snap.Node} node_
+   * @param {!Node} node_
    * @param {boolean} fullyInitialized_
    * @param {boolean} filtered_
    */
@@ -36,7 +36,7 @@ export class CacheNode {
   }
 
   /**
-   * @param {!fb.core.util.Path} path
+   * @param {!Path} path
    * @return {boolean}
    */
   isCompleteForPath(path: Path): boolean {
@@ -57,7 +57,7 @@ export class CacheNode {
   }
 
   /**
-   * @return {!fb.core.snap.Node}
+   * @return {!Node}
    */
   getNode(): Node {
     return this.node_;

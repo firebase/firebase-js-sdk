@@ -1,4 +1,4 @@
-import { contains } from "../../../utils/obj";
+import { contains, forEach } from '../../../utils/obj';
 import { setTimeoutNonBlocking } from "../util/util";
 import { StatsListener } from "./StatsListener";
 
@@ -36,12 +36,13 @@ export class StatsReporter {
     const stats = this.statsListener_.get();
     const reportedStats = {};
     let haveStatsToReport = false;
-    for (let stat in stats) {
-      if (stats[stat] > 0 && contains(this.statsToReport_, stat)) {
-        reportedStats[stat] = stats[stat];
+
+    forEach(stats, (stat, value) => {
+      if (value > 0 && contains(this.statsToReport_, stat)) {
+        reportedStats[stat] = value;
         haveStatsToReport = true;
       }
-    }
+    });
 
     if (haveStatsToReport) {
       this.server_.reportStats(reportedStats);

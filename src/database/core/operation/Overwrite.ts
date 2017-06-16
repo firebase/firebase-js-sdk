@@ -1,5 +1,6 @@
-import { Operation, OperationType } from './Operation';
+import { Operation, OperationSource, OperationType } from './Operation';
 import { Path } from "../util/Path";
+import { Node } from '../snap/Node';
 
 /**
  * @param {!OperationSource} source
@@ -10,25 +11,14 @@ import { Path } from "../util/Path";
  */
 export class Overwrite implements Operation {
   /** @inheritDoc */
-  type;
+  type = OperationType.OVERWRITE;
 
-  /** @inheritDoc */
-  source;
-
-  /** @inheritDoc */
-  path;
-  /**
-   * @type {!Node}
-   */
-  snap;
-  
-  constructor(source, path, snap) {
-    this.type = OperationType.OVERWRITE;
-    this.source = source;
-    this.path = path;
-    this.snap = snap;
+  constructor(public source: OperationSource,
+              public path: Path,
+              public snap: Node) {
   }
-  operationForChild(childName) {
+
+  operationForChild(childName: string): Overwrite {
     if (this.path.isEmpty()) {
       return new Overwrite(this.source, Path.Empty,
           this.snap.getImmediateChild(childName));

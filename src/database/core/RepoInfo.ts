@@ -12,13 +12,13 @@ import { CONSTANTS } from "../realtime/Constants";
  * @constructor
  */
 export class RepoInfo {
-  host
-  domain
-  secure
-  namespace
-  webSocketOnly
-  persistenceKey
-  internalHost
+  host;
+  domain;
+  secure;
+  namespace;
+  webSocketOnly;
+  persistenceKey;
+  internalHost;
 
   constructor(host, secure, namespace, webSocketOnly, persistenceKey?) {
     this.host = host.toLowerCase();

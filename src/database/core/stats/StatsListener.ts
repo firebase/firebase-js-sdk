@@ -1,4 +1,4 @@
-import { clone } from "../../../utils/obj";
+import { clone, forEach } from '../../../utils/obj';
 
 /**
  * Returns the delta from the previous call to get stats.
@@ -17,9 +17,9 @@ export class StatsListener {
 
     const delta = clone(newStats);
     if (this.last_) {
-      for (let stat in this.last_) {
-        delta[stat] = delta[stat] - this.last_[stat];
-      }
+      forEach(this.last_, (stat, value) => {
+        delta[stat] = delta[stat] - value;
+      });
     }
     this.last_ = newStats;
 

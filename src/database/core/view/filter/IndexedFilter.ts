@@ -3,26 +3,26 @@ import { Change } from "../Change";
 import { ChildrenNode } from "../../snap/ChildrenNode";
 import { PRIORITY_INDEX } from "../../snap/indexes/PriorityIndex";
 import { NodeFilter } from './NodeFilter';
+import { Index } from '../../snap/indexes/Index';
+import { Path } from '../../util/Path';
+import { CompleteChildSource } from '../CompleteChildSource';
+import { ChildChangeAccumulator } from '../ChildChangeAccumulator';
+import { Node } from '../../snap/Node';
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes
  *
  * @constructor
- * @implements {filter.NodeFilter}
- * @param {!fb.core.snap.Index} index
+ * @implements {NodeFilter}
+ * @param {!Index} index
  */
 export class IndexedFilter implements NodeFilter {
-  /**
-   * @type {!fb.core.snap.Index}
-   * @const
-   * @private
-   */
-  private index_;
-  constructor(index) {
-    this.index_ = index;
+  constructor(private readonly index_: Index) {
   }
 
-  updateChild(snap, key, newChild, affectedPath, source, optChangeAccumulator) {
+  updateChild(snap: Node, key: string, newChild: Node, affectedPath: Path,
+              source: CompleteChildSource,
+              optChangeAccumulator: ChildChangeAccumulator | null): Node {
     assert(snap.isIndexed(this.index_), 'A node must be indexed if only a child is updated');
     const oldChild = snap.getImmediateChild(key);
     // Check if anything actually changed.
@@ -63,7 +63,8 @@ export class IndexedFilter implements NodeFilter {
   /**
    * @inheritDoc
    */
-  updateFullNode(oldSnap, newSnap, optChangeAccumulator) {
+  updateFullNode(oldSnap: Node, newSnap: Node,
+                 optChangeAccumulator: ChildChangeAccumulator | null): Node {
     if (optChangeAccumulator != null) {
       if (!oldSnap.isLeafNode()) {
         oldSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
@@ -91,7 +92,7 @@ export class IndexedFilter implements NodeFilter {
   /**
    * @inheritDoc
    */
-  updatePriority(oldSnap, newPriority) {
+  updatePriority(oldSnap: Node, newPriority: Node): Node {
     if (oldSnap.isEmpty()) {
       return ChildrenNode.EMPTY_NODE;
     } else {
@@ -102,21 +103,21 @@ export class IndexedFilter implements NodeFilter {
   /**
    * @inheritDoc
    */
-  filtersNodes() {
+  filtersNodes(): boolean {
     return false;
   };
 
   /**
    * @inheritDoc
    */
-  getIndexedFilter() {
+  getIndexedFilter(): IndexedFilter {
     return this;
   };
 
   /**
    * @inheritDoc
    */
-  getIndex() {
+  getIndex(): Index {
     return this.index_;
   };
 }

@@ -22,9 +22,9 @@ if (typeof MozWebSocket !== 'undefined') {
 /**
  * Create a new websocket connection with the given callbacks.
  * @constructor
- * @implements {fb.realtime.Transport}
+ * @implements {Transport}
  * @param {string} connId identifier for this transport
- * @param {fb.core.RepoInfo} repoInfo The info for the websocket endpoint.
+ * @param {RepoInfo} repoInfo The info for the websocket endpoint.
  * @param {string=} opt_transportSessionId Optional transportSessionId if this is connecting to an existing transport
  *                                         session
  * @param {string=} opt_lastSessionId Optional lastSessionId if there was a previous connection
@@ -56,7 +56,7 @@ export class WebSocketConnection implements Transport {
   }
 
   /**
-   * @param {fb.core.RepoInfo} repoInfo The info for the websocket endpoint.
+   * @param {RepoInfo} repoInfo The info for the websocket endpoint.
    * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
    * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection

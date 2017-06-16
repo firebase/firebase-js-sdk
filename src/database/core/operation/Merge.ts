@@ -5,11 +5,11 @@ import { assert } from "../../../utils/assert";
 import { ImmutableTree } from '../util/ImmutableTree';
 
 /**
- * @param {!fb.core.OperationSource} source
+ * @param {!OperationSource} source
  * @param {!Path} path
- * @param {!fb.core.util.ImmutableTree.<!fb.core.snap.Node>} children
+ * @param {!ImmutableTree.<!Node>} children
  * @constructor
- * @implements {fb.core.Operation}
+ * @implements {Operation}
  */
 export class Merge implements Operation {
   /** @inheritDoc */
@@ -46,7 +46,7 @@ export class Merge implements Operation {
   /**
    * @inheritDoc
    */
-  toString() {
+  toString(): string {
     return 'Operation(' + this.path + ': ' + this.source.toString() + ' merge: ' + this.children.toString() + ')';
   }
 }

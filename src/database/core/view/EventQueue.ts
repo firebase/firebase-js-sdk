@@ -32,7 +32,7 @@ export class EventQueue {
 
 
   /**
-   * @param {!Array.<fb.core.view.Event>} eventDataList The new events to queue.
+   * @param {!Array.<Event>} eventDataList The new events to queue.
    */
   queueEvents(eventDataList: Event[]) {
     // We group events by path, storing them in a single EventList, to make it easier to skip over them quickly.
@@ -63,7 +63,7 @@ export class EventQueue {
    * It is assumed that the new events are all for the specified path.
    *
    * @param {!Path} path The path to raise events for.
-   * @param {!Array.<fb.core.view.Event>} eventDataList The new events to raise.
+   * @param {!Array.<Event>} eventDataList The new events to raise.
    */
   raiseEventsAtPath(path: Path, eventDataList: Event[]) {
     this.queueEvents(eventDataList);
@@ -77,7 +77,7 @@ export class EventQueue {
    * It is assumed that the new events are all related (ancestor or descendant) to the specified path.
    *
    * @param {!Path} changedPath The path to raise events for.
-   * @param {!Array.<!fb.core.view.Event>} eventDataList The events to raise
+   * @param {!Array.<!Event>} eventDataList The events to raise
    */
   raiseEventsForChangedPath(changedPath: Path, eventDataList: Event[]) {
     this.queueEvents(eventDataList);
@@ -123,7 +123,7 @@ export class EventQueue {
  */
 export class EventList {
   /**
-   * @type {!Array.<fb.core.view.Event>}
+   * @type {!Array.<Event>}
    * @private
    */
   private events_: Event[] = [];
@@ -132,7 +132,7 @@ export class EventList {
   }
 
   /**
-   * @param {!fb.core.view.Event} eventData
+   * @param {!Event} eventData
    */
   add(eventData: Event) {
     this.events_.push(eventData);

@@ -8,10 +8,10 @@ import { Event } from './Event';
 
 /**
  * An EventGenerator is used to convert "raw" changes (Change) as computed by the
- * CacheDiffer into actual events (fb.core.view.Event) that can be raised.  See generateEventsForChanges()
+ * CacheDiffer into actual events (Event) that can be raised.  See generateEventsForChanges()
  * for details.
  *
- * @param {!fb.api.Query} query
+ * @param {!Query} query
  * @constructor
  */
 export class EventGenerator {
@@ -36,8 +36,8 @@ export class EventGenerator {
    *
    * @param {!Array.<!Change>} changes
    * @param {!Node} eventCache
-   * @param {!Array.<!fb.core.view.EventRegistration>} eventRegistrations
-   * @return {!Array.<!fb.core.view.Event>}
+   * @param {!Array.<!EventRegistration>} eventRegistrations
+   * @return {!Array.<!Event>}
    */
   generateEventsForChanges(changes: Change[], eventCache: Node, eventRegistrations: EventRegistration[]): Event[] {
     const events = [];
@@ -62,10 +62,10 @@ export class EventGenerator {
   /**
    * Given changes of a single change type, generate the corresponding events.
    *
-   * @param {!Array.<!fb.core.view.Event>} events
+   * @param {!Array.<!Event>} events
    * @param {!string} eventType
    * @param {!Array.<!Change>} changes
-   * @param {!Array.<!fb.core.view.EventRegistration>} registrations
+   * @param {!Array.<!EventRegistration>} registrations
    * @param {!Node} eventCache
    * @private
    */
