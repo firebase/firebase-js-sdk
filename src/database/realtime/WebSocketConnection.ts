@@ -1,13 +1,13 @@
+import { RepoInfo } from '../core/RepoInfo';
 declare const MozWebSocket;
 
-import firebase from "../../app";
-import { assert } from "../../utils/assert";
-import { logWrapper, splitStringBySize } from "../core/util/util";
-import { StatsManager } from "../core/stats/StatsManager";
-import { CONSTANTS } from "./Constants";
-import { CONSTANTS as ENV_CONSTANTS } from "../../utils/constants";
-import { PersistentStorage } from "../core/storage/storage";
-import { jsonEval, stringify } from "../../utils/json";
+import { assert } from '../../utils/assert';
+import { logWrapper, splitStringBySize } from '../core/util/util';
+import { StatsManager } from '../core/stats/StatsManager';
+import { CONSTANTS } from './Constants';
+import { PersistentStorage } from '../core/storage/storage';
+import { jsonEval, stringify } from '../../utils/json';
+import { Transport } from './Transport';
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
@@ -29,24 +29,22 @@ if (typeof MozWebSocket !== 'undefined') {
  *                                         session
  * @param {string=} opt_lastSessionId Optional lastSessionId if there was a previous connection
  */
-export class WebSocketConnection {
-  connId;
-  private log_;
+export class WebSocketConnection implements Transport {
   keepaliveTimer;
   frames;
   totalFrames: number;
   bytesSent: number;
   bytesReceived: number;
-  private stats_;
   connURL;
   onDisconnect;
   onMessage;
-  everConnected_: boolean;
   mySock;
-  isClosed_;
+  private log_;
+  private stats_;
+  private everConnected_: boolean;
+  private isClosed_: boolean;
 
-  constructor(connId, repoInfo, opt_transportSessionId, opt_lastSessionId) {
-    this.connId = connId;
+  constructor(public connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string) {
     this.log_ = logWrapper(this.connId);
     this.keepaliveTimer = null;
     this.frames = null;
@@ -54,43 +52,43 @@ export class WebSocketConnection {
     this.bytesSent = 0;
     this.bytesReceived = 0;
     this.stats_ = StatsManager.getCollection(repoInfo);
-    this.connURL = this.connectionURL_(repoInfo, opt_transportSessionId, opt_lastSessionId);
+    this.connURL = WebSocketConnection.connectionURL_(repoInfo, transportSessionId, lastSessionId);
   }
 
   /**
    * @param {fb.core.RepoInfo} repoInfo The info for the websocket endpoint.
-   * @param {string=} opt_transportSessionId Optional transportSessionId if this is connecting to an existing transport
+   * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport
    *                                         session
-   * @param {string=} opt_lastSessionId Optional lastSessionId if there was a previous connection
+   * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
    * @return {string} connection url
    * @private
    */
-  connectionURL_(repoInfo, opt_transportSessionId, opt_lastSessionId) {
-    var urlParams = {};
+  private static connectionURL_(repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string): string {
+    const urlParams = {};
     urlParams[CONSTANTS.VERSION_PARAM] = CONSTANTS.PROTOCOL_VERSION;
 
     if (typeof location !== 'undefined' &&
-        location.href &&
-        location.href.indexOf(CONSTANTS.FORGE_DOMAIN) !== -1) {
+      location.href &&
+      location.href.indexOf(CONSTANTS.FORGE_DOMAIN) !== -1) {
       urlParams[CONSTANTS.REFERER_PARAM] = CONSTANTS.FORGE_REF;
     }
-    if (opt_transportSessionId) {
-      urlParams[CONSTANTS.TRANSPORT_SESSION_PARAM] = opt_transportSessionId;
+    if (transportSessionId) {
+      urlParams[CONSTANTS.TRANSPORT_SESSION_PARAM] = transportSessionId;
     }
-    if (opt_lastSessionId) {
-      urlParams[CONSTANTS.LAST_SESSION_PARAM] = opt_lastSessionId;
+    if (lastSessionId) {
+      urlParams[CONSTANTS.LAST_SESSION_PARAM] = lastSessionId;
     }
     return repoInfo.connectionURL(CONSTANTS.WEBSOCKET, urlParams);
   }
 
   /**
    *
-   * @param onMess Callback when messages arrive
-   * @param onDisconn Callback with connection lost.
+   * @param onMessage Callback when messages arrive
+   * @param onDisconnect Callback with connection lost.
    */
-  open(onMess, onDisconn) {
-    this.onDisconnect = onDisconn;
-    this.onMessage = onMess;
+  open(onMessage: (msg: Object) => any, onDisconnect: () => any) {
+    this.onDisconnect = onDisconnect;
+    this.onMessage = onMessage;
 
     this.log_('Websocket connecting to ' + this.connURL);
 
@@ -102,7 +100,7 @@ export class WebSocketConnection {
       this.mySock = new WebSocketImpl(this.connURL);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
-      var error = e.message || e.data;
+      const error = e.message || e.data;
       if (error) {
         this.log_(error);
       }
@@ -110,30 +108,28 @@ export class WebSocketConnection {
       return;
     }
 
-    var self = this;
-
-    this.mySock.onopen = function() {
-      self.log_('Websocket connected.');
-      self.everConnected_ = true;
+    this.mySock.onopen = () => {
+      this.log_('Websocket connected.');
+      this.everConnected_ = true;
     };
 
-    this.mySock.onclose = function() {
-      self.log_('Websocket connection was disconnected.');
-      self.mySock = null;
-      self.onClosed_();
+    this.mySock.onclose = () => {
+      this.log_('Websocket connection was disconnected.');
+      this.mySock = null;
+      this.onClosed_();
     };
 
-    this.mySock.onmessage = function(m) {
-      self.handleIncomingFrame(m);
+    this.mySock.onmessage = (m) => {
+      this.handleIncomingFrame(m);
     };
 
-    this.mySock.onerror = function(e) {
-      self.log_('WebSocket error.  Closing connection.');
-      var error = e.message || e.data;
+    this.mySock.onerror = (e) => {
+      this.log_('WebSocket error.  Closing connection.');
+      const error = e.message || e.data;
       if (error) {
-        self.log_(error);
+        this.log_(error);
       }
-      self.onClosed_();
+      this.onClosed_();
     };
   }
 
@@ -143,16 +139,16 @@ export class WebSocketConnection {
   start() {};
 
   static forceDisallow_: Boolean;
+
   static forceDisallow() {
     WebSocketConnection.forceDisallow_ = true;
   }
 
-
-  static isAvailable() {
-    var isOldAndroid = false;
+  static isAvailable(): boolean {
+    let isOldAndroid = false;
     if (typeof navigator !== 'undefined' && navigator.userAgent) {
-      var oldAndroidRegex = /Android ([0-9]{0,}\.[0-9]{0,})/;
-      var oldAndroidMatch = navigator.userAgent.match(oldAndroidRegex);
+      const oldAndroidRegex = /Android ([0-9]{0,}\.[0-9]{0,})/;
+      const oldAndroidMatch = navigator.userAgent.match(oldAndroidRegex);
       if (oldAndroidMatch && oldAndroidMatch.length > 1) {
         if (parseFloat(oldAndroidMatch[1]) < 4.4) {
           isOldAndroid = true;
@@ -183,23 +179,23 @@ export class WebSocketConnection {
    * Returns true if we previously failed to connect with this transport.
    * @return {boolean}
    */
-  static previouslyFailed() {
+  static previouslyFailed(): boolean {
     // If our persistent storage is actually only in-memory storage,
     // we default to assuming that it previously failed to be safe.
     return PersistentStorage.isInMemoryStorage ||
-          PersistentStorage.get('previous_websocket_failure') === true;
+      PersistentStorage.get('previous_websocket_failure') === true;
   };
 
   markConnectionHealthy() {
     PersistentStorage.remove('previous_websocket_failure');
   };
 
-  appendFrame_(data) {
+  private appendFrame_(data) {
     this.frames.push(data);
     if (this.frames.length == this.totalFrames) {
-      var fullMess = this.frames.join('');
+      const fullMess = this.frames.join('');
       this.frames = null;
-      var jsonMess = jsonEval(fullMess);
+      const jsonMess = jsonEval(fullMess);
 
       //handle the message
       this.onMessage(jsonMess);
@@ -210,7 +206,7 @@ export class WebSocketConnection {
    * @param {number} frameCount The number of frames we are expecting from the server
    * @private
    */
-  handleNewFrameCount_(frameCount) {
+  private handleNewFrameCount_(frameCount: number) {
     this.totalFrames = frameCount;
     this.frames = [];
   }
@@ -221,12 +217,12 @@ export class WebSocketConnection {
    * @return {?String} Any remaining data to be process, or null if there is none
    * @private
    */
-  extractFrameCount_(data) {
+  private extractFrameCount_(data: string): string | null {
     assert(this.frames === null, 'We already have a frame buffer');
     // TODO: The server is only supposed to send up to 9999 frames (i.e. length <= 4), but that isn't being enforced
     // currently.  So allowing larger frame counts (length <= 6).  See https://app.asana.com/0/search/8688598998380/8237608042508
     if (data.length <= 6) {
-      var frameCount = Number(data);
+      const frameCount = Number(data);
       if (!isNaN(frameCount)) {
         this.handleNewFrameCount_(frameCount);
         return null;
@@ -243,7 +239,7 @@ export class WebSocketConnection {
   handleIncomingFrame(mess) {
     if (this.mySock === null)
       return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
-    var data = mess['data'];
+    const data = mess['data'];
     this.bytesReceived += data.length;
     this.stats_.incrementCounter('bytes_received', data.length);
 
@@ -254,7 +250,7 @@ export class WebSocketConnection {
       this.appendFrame_(data);
     } else {
       // try to parse out a frame count, otherwise, assume 1 and process it
-      var remainingData = this.extractFrameCount_(data);
+      const remainingData = this.extractFrameCount_(data);
       if (remainingData !== null) {
         this.appendFrame_(remainingData);
       }
@@ -265,18 +261,18 @@ export class WebSocketConnection {
    * Send a message to the server
    * @param {Object} data The JSON object to transmit
    */
-  send(data) {
+  send(data: Object) {
 
     this.resetKeepAlive();
 
-    var dataStr = stringify(data);
+    const dataStr = stringify(data);
     this.bytesSent += dataStr.length;
     this.stats_.incrementCounter('bytes_sent', dataStr.length);
 
     //We can only fit a certain amount in each websocket frame, so we need to split this request
     //up into multiple pieces if it doesn't fit in one request.
 
-    var dataSegs = splitStringBySize(dataStr, WEBSOCKET_MAX_FRAME_SIZE);
+    const dataSegs = splitStringBySize(dataStr, WEBSOCKET_MAX_FRAME_SIZE);
 
     //Send the length header
     if (dataSegs.length > 1) {
@@ -284,12 +280,12 @@ export class WebSocketConnection {
     }
 
     //Send the actual data in segments.
-    for (var i = 0; i < dataSegs.length; i++) {
+    for (let i = 0; i < dataSegs.length; i++) {
       this.sendString_(dataSegs[i]);
     }
   };
 
-  shutdown_() {
+  private shutdown_() {
     this.isClosed_ = true;
     if (this.keepaliveTimer) {
       clearInterval(this.keepaliveTimer);
@@ -302,7 +298,7 @@ export class WebSocketConnection {
     }
   };
 
-  onClosed_() {
+  private onClosed_() {
     if (!this.isClosed_) {
       this.log_('WebSocket is closing itself');
       this.shutdown_();
@@ -331,14 +327,13 @@ export class WebSocketConnection {
    * the last activity.
    */
   resetKeepAlive() {
-    var self = this;
     clearInterval(this.keepaliveTimer);
-    this.keepaliveTimer = setInterval(function() {
+    this.keepaliveTimer = setInterval(() => {
       //If there has been no websocket activity for a while, send a no-op
-      if (self.mySock) {
-        self.sendString_('0');
+      if (this.mySock) {
+        this.sendString_('0');
       }
-      self.resetKeepAlive();
+      this.resetKeepAlive();
     }, Math.floor(WEBSOCKET_KEEPALIVE_INTERVAL));
   };
 
@@ -348,7 +343,7 @@ export class WebSocketConnection {
    * @param {string} str String to send.
    * @private
    */
-  sendString_(str) {
+  private sendString_(str: string) {
     // Firefox seems to sometimes throw exceptions (NS_ERROR_UNEXPECTED) from websocket .send()
     // calls for some unknown reason.  We treat these as an error and disconnect.
     // See https://app.asana.com/0/58926111402292/68021340250410

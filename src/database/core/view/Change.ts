@@ -71,14 +71,6 @@ export class Change {
   };
 
 
-  /**
-   * @param {string} prevName
-   * @return {!Change}
-   */
-  changeWithPrevName(prevName) {
-    return new Change(this.type, this.snapshotNode, this.childName, this.oldSnap, prevName);
-  };
-
 
   //event types
   /** Event type for a child added */

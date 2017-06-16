@@ -1,4 +1,4 @@
-import { OperationType } from "./Operation";
+import { Operation, OperationType } from './Operation';
 import { Path } from "../util/Path";
 
 /**
@@ -8,7 +8,7 @@ import { Path } from "../util/Path";
  * @constructor
  * @implements {Operation}
  */
-export class Overwrite {
+export class Overwrite implements Operation {
   /** @inheritDoc */
   type;
 

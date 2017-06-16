@@ -3,23 +3,21 @@ import { clone } from "../../../utils/obj";
 /**
  * Returns the delta from the previous call to get stats.
  *
- * @param collection The collection to "listen" to.
+ * @param collection_ The collection to "listen" to.
  * @constructor
  */
 export class StatsListener {
-  collection_;
-  last_;
+  private last_ = null;
   
-  constructor(collection) {
-    this.collection_ = collection;
-    this.last_ = null;
+  constructor(private collection_) {
   }
-  get() {
-    var newStats = this.collection_.get();
 
-    var delta = clone(newStats);
+  get() {
+    const newStats = this.collection_.get();
+
+    const delta = clone(newStats);
     if (this.last_) {
-      for (var stat in this.last_) {
+      for (let stat in this.last_) {
         delta[stat] = delta[stat] - this.last_[stat];
       }
     }

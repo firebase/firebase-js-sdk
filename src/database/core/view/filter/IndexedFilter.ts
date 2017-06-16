@@ -2,6 +2,7 @@ import { assert } from "../../../../utils/assert";
 import { Change } from "../Change";
 import { ChildrenNode } from "../../snap/ChildrenNode";
 import { PRIORITY_INDEX } from "../../snap/indexes/PriorityIndex";
+import { NodeFilter } from './NodeFilter';
 
 /**
  * Doesn't really filter nodes but applies an index to the node and keeps track of any changes
@@ -10,7 +11,7 @@ import { PRIORITY_INDEX } from "../../snap/indexes/PriorityIndex";
  * @implements {filter.NodeFilter}
  * @param {!fb.core.snap.Index} index
  */
-export class IndexedFilter {
+export class IndexedFilter implements NodeFilter {
   /**
    * @type {!fb.core.snap.Index}
    * @const
@@ -23,7 +24,7 @@ export class IndexedFilter {
 
   updateChild(snap, key, newChild, affectedPath, source, optChangeAccumulator) {
     assert(snap.isIndexed(this.index_), 'A node must be indexed if only a child is updated');
-    var oldChild = snap.getImmediateChild(key);
+    const oldChild = snap.getImmediateChild(key);
     // Check if anything actually changed.
     if (oldChild.getChild(affectedPath).equals(newChild.getChild(affectedPath))) {
       // There's an edge case where a child can enter or leave the view because affectedPath was set to null.
@@ -74,7 +75,7 @@ export class IndexedFilter {
       if (!newSnap.isLeafNode()) {
         newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
           if (oldSnap.hasChild(key)) {
-            var oldChild = oldSnap.getImmediateChild(key);
+            const oldChild = oldSnap.getImmediateChild(key);
             if (!oldChild.equals(childNode)) {
               optChangeAccumulator.trackChildChange(Change.childChangedChange(key, childNode, oldChild));
             }
