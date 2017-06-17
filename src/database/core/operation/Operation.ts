@@ -1,42 +1,42 @@
 import { assert } from "../../../utils/assert";
+import { Path } from '../util/Path';
 
 /**
  *
  * @enum
  */
-export const OperationType = {
-  OVERWRITE: 0,
-  MERGE: 1,
-  ACK_USER_WRITE: 2,
-  LISTEN_COMPLETE: 3
-};
+export enum OperationType {
+  OVERWRITE,
+  MERGE,
+  ACK_USER_WRITE,
+  LISTEN_COMPLETE
+}
 
 /**
  * @interface
  */
-export const Operation = function() { };
+export interface Operation {
+  /**
+   * @type {!OperationSource}
+   */
+  source: OperationSource;
 
-/**
- * @type {!OperationSource}
- */
-Operation.prototype.source;
+  /**
+   * @type {!OperationType}
+   */
+  type: OperationType;
 
-/**
- * @type {!OperationType}
- */
-Operation.prototype.type;
+  /**
+   * @type {!Path}
+   */
+  path: Path;
 
-/**
- * @type {!Path}
- */
-Operation.prototype.path;
-
-/**
- * @param {string} childName
- * @return {?Operation}
- */
-Operation.prototype.operationForChild = () => {};
-
+  /**
+   * @param {string} childName
+   * @return {?Operation}
+   */
+  operationForChild(childName: string): Operation | null;
+}
 
 /**
  * @param {boolean} fromUser
@@ -46,16 +46,10 @@ Operation.prototype.operationForChild = () => {};
  * @constructor
  */
 export class OperationSource {
-  fromUser;
-  fromServer;
-  queryId;
-  tagged;
-  
-  constructor(fromUser, fromServer, queryId, tagged) {
-    this.fromUser = fromUser;
-    this.fromServer = fromServer;
-    this.queryId = queryId;
-    this.tagged = tagged;
+  constructor(public fromUser: boolean,
+              public fromServer: boolean,
+              public queryId: string | null,
+              public tagged: boolean) {
     assert(!tagged || fromServer, 'Tagged queries must be from server.');
   }
   /**

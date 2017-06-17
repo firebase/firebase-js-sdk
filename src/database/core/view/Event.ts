@@ -1,134 +1,124 @@
-import { stringify } from "../../../utils/json";
+import { stringify } from '../../../utils/json';
+import { Path } from '../util/Path';
+import { EventRegistration } from './EventRegistration';
+import { DataSnapshot } from '../../api/DataSnapshot';
 
 /**
  * Encapsulates the data needed to raise an event
  * @interface
  */
-export const Event = function() {};
+export interface Event {
+  /**
+   * @return {!Path}
+   */
+  getPath(): Path;
 
+  /**
+   * @return {!string}
+   */
+  getEventType(): string;
 
-/**
- * @return {!fb.core.util.Path}
- */
-Event.prototype.getPath = () => {};
+  /**
+   * @return {!function()}
+   */
+  getEventRunner(): () => void;
 
-
-/**
- * @return {!string}
- */
-Event.prototype.getEventType = () => {};
-
-
-/**
- * @return {!function()}
- */
-Event.prototype.getEventRunner = () => {};
-
-
-/**
- * @return {!string}
- */
-Event.prototype.toString = () => {};
-
+  /**
+   * @return {!string}
+   */
+  toString(): string;
+}
 
 
 /**
  * Encapsulates the data needed to raise an event
- * @param {!string} eventType One of: value, child_added, child_changed, child_moved, child_removed
- * @param {!EventRegistration} eventRegistration The function to call to with the event data. User provided
- * @param {!fb.api.DataSnapshot} snapshot The data backing the event
- * @param {?string=} opt_prevName Optional, the name of the previous child for child_* events.
- * @constructor
  * @implements {Event}
  */
-export const DataEvent = function(eventType, eventRegistration, snapshot, opt_prevName?) {
-  this.eventRegistration = eventRegistration;
-  this.snapshot = snapshot;
-  this.prevName = opt_prevName;
-  this.eventType = eventType;
-};
-
-
-/**
- * @inheritDoc
- */
-DataEvent.prototype.getPath = function() {
-  var ref = this.snapshot.getRef();
-  if (this.eventType === 'value') {
-    return ref.path;
-  } else {
-    return ref.getParent().path;
+export class DataEvent implements Event {
+  /**
+   * @param {!string} eventType One of: value, child_added, child_changed, child_moved, child_removed
+   * @param {!EventRegistration} eventRegistration The function to call to with the event data. User provided
+   * @param {!DataSnapshot} snapshot The data backing the event
+   * @param {?string=} prevName Optional, the name of the previous child for child_* events.
+   */
+  constructor(public eventType: 'value' | ' child_added' | ' child_changed' | ' child_moved' | ' child_removed',
+              public eventRegistration: EventRegistration,
+              public snapshot: DataSnapshot,
+              public prevName?: string | null) {
   }
-};
 
+  /**
+   * @inheritDoc
+   */
+  getPath(): Path {
+    const ref = this.snapshot.getRef();
+    if (this.eventType === 'value') {
+      return ref.path;
+    } else {
+      return ref.getParent().path;
+    }
+  }
 
-/**
- * @inheritDoc
- */
-DataEvent.prototype.getEventType = function() {
-  return this.eventType;
-};
+  /**
+   * @inheritDoc
+   */
+  getEventType(): string {
+    return this.eventType;
+  }
 
+  /**
+   * @inheritDoc
+   */
+  getEventRunner(): () => void {
+    return this.eventRegistration.getEventRunner(this);
+  }
 
-/**
- * @inheritDoc
- */
-DataEvent.prototype.getEventRunner = function() {
-  return this.eventRegistration.getEventRunner(this);
-};
-
-
-/**
- * @inheritDoc
- */
-DataEvent.prototype.toString = function() {
-  return this.getPath().toString() + ':' + this.eventType + ':' +
+  /**
+   * @inheritDoc
+   */
+  toString(): string {
+    return this.getPath().toString() + ':' + this.eventType + ':' +
       stringify(this.snapshot.exportVal());
-};
+  }
+}
 
 
+export class CancelEvent implements Event {
+  /**
+   * @param {EventRegistration} eventRegistration
+   * @param {Error} error
+   * @param {!Path} path
+   */
+  constructor(public eventRegistration: EventRegistration,
+              public error: Error,
+              public path: Path) {
+  }
 
-/**
- * @param {EventRegistration} eventRegistration
- * @param {Error} error
- * @param {!fb.core.util.Path} path
- * @constructor
- * @implements {Event}
- */
-export const CancelEvent = function(eventRegistration, error, path) {
-  this.eventRegistration = eventRegistration;
-  this.error = error;
-  this.path = path;
-};
+  /**
+   * @inheritDoc
+   */
+  getPath(): Path {
+    return this.path;
+  }
 
+  /**
+   * @inheritDoc
+   */
+  getEventType(): string {
+    return 'cancel';
+  }
 
-/**
- * @inheritDoc
- */
-CancelEvent.prototype.getPath = function() {
-  return this.path;
-};
+  /**
+   * @inheritDoc
+   */
+  getEventRunner(): () => any {
+    return this.eventRegistration.getEventRunner(this);
+  }
 
-
-/**
- * @inheritDoc
- */
-CancelEvent.prototype.getEventType = function() {
-  return 'cancel';
-};
-
-
-/**
- * @inheritDoc
- */
-CancelEvent.prototype.getEventRunner = function() {
-  return this.eventRegistration.getEventRunner(this);
-};
-
-
-/**
- * @inheritDoc
- */
-CancelEvent.prototype.toString = function() {
-  return this.path.toString() + ':cancel';
-};
+  /**
+   * @inheritDoc
+   */
+  toString(): string {
+    return this.path.toString() + ':cancel';
+  }
+}

@@ -9,13 +9,13 @@ import { warn, each } from "../core/util/util";
  * It starts with longpolling in a browser, and httppolling on node. It then upgrades to websockets if
  * they are available.
  * @constructor
- * @param {!fb.core.RepoInfo} repoInfo Metadata around the namespace we're connecting to
+ * @param {!RepoInfo} repoInfo Metadata around the namespace we're connecting to
  */
 export class TransportManager {
   transports_: Array<any>;
   /**
    * @const
-   * @type {!Array.<function(new:Transport, string, fb.core.RepoInfo, string=)>}
+   * @type {!Array.<function(new:Transport, string, RepoInfo, string=)>}
    */
   static get ALL_TRANSPORTS() {
     return [
@@ -28,12 +28,12 @@ export class TransportManager {
   };
 
   /**
-   * @param {!fb.core.RepoInfo} repoInfo
+   * @param {!RepoInfo} repoInfo
    * @private
    */
   initTransports_(repoInfo) {
-    var isWebSocketsAvailable = WebSocketConnection && WebSocketConnection['isAvailable']();
-    var isSkipPollConnection = isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
+    const isWebSocketsAvailable = WebSocketConnection && WebSocketConnection['isAvailable']();
+    let isSkipPollConnection = isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
 
     if (repoInfo.webSocketOnly) {
       if (!isWebSocketsAvailable)
@@ -45,7 +45,7 @@ export class TransportManager {
     if (isSkipPollConnection) {
       this.transports_ = [WebSocketConnection];
     } else {
-      var transports = this.transports_ = [];
+      const transports = this.transports_ = [];
       each(TransportManager.ALL_TRANSPORTS, function(i, transport) {
         if (transport && transport['isAvailable']()) {
           transports.push(transport);
@@ -55,7 +55,7 @@ export class TransportManager {
   }
 
   /**
-   * @return {function(new:Transport, !string, !fb.core.RepoInfo, string=, string=)} The constructor for the
+   * @return {function(new:Transport, !string, !RepoInfo, string=, string=)} The constructor for the
    * initial transport to use
    */
   initialTransport() {
