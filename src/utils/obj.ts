@@ -111,3 +111,22 @@ export const getValues = function(obj) {
   }
   return res;
 };
+
+/**
+ * Tests whether every key/value pair in an object pass the test implemented
+ * by the provided function
+ *
+ * @param {?Object.<K,V>} obj Object to test.
+ * @param {!function(K, V)} fn Function to call for each key and value.
+ * @template K,V
+ */
+export const every = function<V>(obj: Object, fn: (k: string, v?: V) => boolean): boolean {
+  for (let key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (!fn(key, obj[key])) {
+        return false;
+      }
+    }
+  }
+  return true;
+};

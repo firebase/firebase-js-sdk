@@ -1,26 +1,21 @@
-import { assert } from "../../utils/assert";
-import { logWrapper, warn } from "./util/util";
-import { jsonEval } from "../../utils/json";
-import { safeGet } from "../../utils/obj";
-import { querystring } from "../../utils/util";
+import { assert } from '../../utils/assert';
+import { logWrapper, warn } from './util/util';
+import { jsonEval } from '../../utils/json';
+import { safeGet } from '../../utils/obj';
+import { querystring } from '../../utils/util';
+import { ServerActions } from './ServerActions';
+import { RepoInfo } from './RepoInfo';
+import { AuthTokenProvider } from './AuthTokenProvider';
+import { Query } from '../api/Query';
 
 /**
  * An implementation of ServerActions that communicates with the server via REST requests.
  * This is mostly useful for compatibility with crawlers, where we don't want to spin up a full
  * persistent connection (using WebSockets or long-polling)
  */
-export class ReadonlyRestClient {
+export class ReadonlyRestClient implements ServerActions {
   /** @private {function(...[*])} */
-  private log_;
-
-  /** @private {!RepoInfo} */
-  private repoInfo_;
-
-  /** @private {function(string, *, boolean, ?number)} */
-  private onDataUpdate_;
-
-  /** @private {!AuthTokenProvider} */
-  private authTokenProvider_;
+  private log_: (...args: any[]) => any = logWrapper('p:rest:');
 
   /**
    * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
@@ -28,50 +23,48 @@ export class ReadonlyRestClient {
    *
    * @private {!Object.<string, !Object>}
    */
-  private listens_;
-  
+  private listens_: { [k: string]: Object } = {};
+
   /**
    * @param {!Query} query
-   * @param {?number=} opt_tag
+   * @param {?number=} tag
    * @return {string}
    * @private
    */
-  static getListenId_(query, tag?) {
+  static getListenId_(query: Query, tag?: number | null): string {
     if (tag !== undefined) {
       return 'tag$' + tag;
     } else {
-      assert(query.getQueryParams().isDefault(), "should have a tag if it's not a default query.");
+      assert(query.getQueryParams().isDefault(), 'should have a tag if it\'s not a default query.');
       return query.path.toString();
     }
   }
+
   /**
-   * @param {!RepoInfo} repoInfo Data about the namespace we are connecting to
-   * @param {function(string, *, boolean, ?number)} onDataUpdate A callback for new data from the server
+   * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
+   * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
+   * @param {AuthTokenProvider} authTokenProvider_
    * @implements {ServerActions}
    */
-  constructor(repoInfo, onDataUpdate, authTokenProvider) {
-    this.log_ = logWrapper('p:rest:');
-    this.repoInfo_ = repoInfo;
-    this.onDataUpdate_ = onDataUpdate;
-    this.authTokenProvider_ = authTokenProvider;
-    this.listens_ = { };
+  constructor(private repoInfo_: RepoInfo,
+              private onDataUpdate_: (a: string, b: any, c: boolean, d: number | null) => any,
+              private authTokenProvider_: AuthTokenProvider) {
   }
 
   /** @inheritDoc */
-  listen(query, currentHashFn, tag, onComplete) {
-    var pathString = query.path.toString();
+  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => any) {
+    const pathString = query.path.toString();
     this.log_('Listen called for ' + pathString + ' ' + query.queryIdentifier());
 
     // Mark this listener so we can tell if it's removed.
-    var listenId = ReadonlyRestClient.getListenId_(query, tag);
-    var thisListen = new Object();
+    const listenId = ReadonlyRestClient.getListenId_(query, tag);
+    const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    var queryStringParamaters = query.getQueryParams().toRestQueryStringParameters();
+    const queryStringParamaters = query.getQueryParams().toRestQueryStringParameters();
 
-    var self = this;
-    this.restRequest_(pathString + '.json', queryStringParamaters, function(error, result) {
-      var data = result;
+    this.restRequest_(pathString + '.json', queryStringParamaters, (error, result) => {
+      let data = result;
 
       if (error === 404) {
         data = null;
@@ -79,11 +72,11 @@ export class ReadonlyRestClient {
       }
 
       if (error === null) {
-        self.onDataUpdate_(pathString, data, /*isMerge=*/false, tag);
+        this.onDataUpdate_(pathString, data, /*isMerge=*/false, tag);
       }
 
-      if (safeGet(self.listens_, listenId) === thisListen) {
-        var status;
+      if (safeGet(this.listens_, listenId) === thisListen) {
+        let status;
         if (!error) {
           status = 'ok';
         } else if (error == 401) {
@@ -98,33 +91,33 @@ export class ReadonlyRestClient {
   }
 
   /** @inheritDoc */
-  unlisten(query, tag) {
-    var listenId = ReadonlyRestClient.getListenId_(query, tag);
+  unlisten(query: Query, tag: number | null) {
+    const listenId = ReadonlyRestClient.getListenId_(query, tag);
     delete this.listens_[listenId];
   }
 
   /** @inheritDoc */
-  refreshAuthToken(token) {
+  refreshAuthToken(token: string) {
     // no-op since we just always call getToken.
   }
 
   /** @inheritDoc */
-  onDisconnectPut(pathString, data, opt_onComplete) { }
+  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => any) { }
 
   /** @inheritDoc */
-  onDisconnectMerge(pathString, data, opt_onComplete) { }
+  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => any) { }
 
   /** @inheritDoc */
-  onDisconnectCancel(pathString, opt_onComplete) { }
+  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => any) { }
 
   /** @inheritDoc */
-  put(pathString, data, opt_onComplete, opt_hash) { }
+  put(pathString: string, data: any, onComplete?: (a: string, b: string) => any, hash?: string) { }
 
   /** @inheritDoc */
-  merge(pathString, data, onComplete, opt_hash) { }
+  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => any, hash?: string) { }
 
   /** @inheritDoc */
-  reportStats(stats) { }
+  reportStats(stats: { [k: string]: any }) { }
 
   /**
    * Performs a REST request to the given path, with the provided query string parameters,
@@ -135,31 +128,28 @@ export class ReadonlyRestClient {
    * @param {?function(?number, *=)} callback
    * @private
    */
-  restRequest_(pathString, queryStringParameters, callback) {
-    queryStringParameters = queryStringParameters || { };
-
+  private restRequest_(pathString: string, queryStringParameters: {[k: string]: any} = {},
+                       callback: ((a: number | null, b?: any) => any) | null) {
     queryStringParameters['format'] = 'export';
 
-    var self = this;
-
-    this.authTokenProvider_.getToken(/*forceRefresh=*/false).then(function(authTokenData) {
-      var authToken = authTokenData && authTokenData.accessToken;
+    this.authTokenProvider_.getToken(/*forceRefresh=*/false).then((authTokenData) => {
+      const authToken = authTokenData && authTokenData.accessToken;
       if (authToken) {
         queryStringParameters['auth'] = authToken;
       }
 
-      var url = (self.repoInfo_.secure ? 'https://' : 'http://') +
-        self.repoInfo_.host +
+      const url = (this.repoInfo_.secure ? 'https://' : 'http://') +
+        this.repoInfo_.host +
         pathString +
         '?' +
         querystring(queryStringParameters);
 
-      self.log_('Sending REST request for ' + url);
-      var xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = function () {
+      this.log_('Sending REST request for ' + url);
+      const xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = () => {
         if (callback && xhr.readyState === 4) {
-          self.log_('REST Response for ' + url + ' received. status:', xhr.status, 'response:', xhr.responseText);
-          var res = null;
+          this.log_('REST Response for ' + url + ' received. status:', xhr.status, 'response:', xhr.responseText);
+          let res = null;
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               res = jsonEval(xhr.responseText);
@@ -182,4 +172,4 @@ export class ReadonlyRestClient {
       xhr.send();
     });
   }
-}; // end ReadonlyRestClient
+}

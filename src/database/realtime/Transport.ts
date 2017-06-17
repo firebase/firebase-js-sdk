@@ -1,35 +1,40 @@
-/**
- *
- * @param {string} connId An identifier for this connection, used for logging
- * @param {fb.core.RepoInfo} repoInfo The info for the endpoint to send data to.
- * @param {string=} sessionId Optional sessionId if we're connecting to an existing session
- * @interface
- */
-export const Transport = function(connId, repoInfo, sessionId) {};
+import { RepoInfo } from '../core/RepoInfo';
 
-/**
- * @param {function(Object)} onMessage Callback when messages arrive
- * @param {function()} onDisconnect Callback with connection lost.
- */
-Transport.prototype.open = function(onMessage, onDisconnect) {};
+export abstract class Transport {
+  /**
+   * Bytes received since connection started.
+   * @type {number}
+   */
+  abstract bytesReceived: number;
 
-Transport.prototype.start = function() {};
+  /**
+   * Bytes sent since connection started.
+   * @type {number}
+   */
+  abstract bytesSent: number;
 
-Transport.prototype.close = function() {};
+  /**
+   *
+   * @param {string} connId An identifier for this connection, used for logging
+   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
+   * @param {string=} transportSessionId Optional transportSessionId if this is connecting to an existing transport session
+   * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
+   * @interface
+   */
+  constructor(connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string) {}
 
-/**
- * @param {!Object} data The JSON data to transmit
- */
-Transport.prototype.send = function(data) {};
+  /**
+   * @param {function(Object)} onMessage Callback when messages arrive
+   * @param {function()} onDisconnect Callback with connection lost.
+   */
+  abstract open(onMessage: (a: Object) => any, onDisconnect: () => any);
 
-/**
- * Bytes received since connection started.
- * @type {number}
- */
-Transport.prototype.bytesReceived;
+  abstract start();
 
-/**
- * Bytes sent since connection started.
- * @type {number}
- */
-Transport.prototype.bytesSent;
+  abstract close();
+
+  /**
+   * @param {!Object} data The JSON data to transmit
+   */
+  abstract send(data: Object);
+}

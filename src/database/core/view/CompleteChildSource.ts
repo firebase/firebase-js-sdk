@@ -1,4 +1,8 @@
-import { CacheNode } from "./CacheNode";
+import { CacheNode } from './CacheNode';
+import { NamedNode, Node } from '../snap/Node';
+import { Index } from '../snap/indexes/Index';
+import { WriteTreeRef } from '../WriteTree';
+import { ViewCache } from './ViewCache';
 
 /**
  * Since updates to filtered nodes might require nodes to be pulled in from "outside" the node, this interface
@@ -8,21 +12,21 @@ import { CacheNode } from "./CacheNode";
  *
  * @interface
  */
-export const CompleteChildSource = function() { };
+export interface CompleteChildSource {
+  /**
+   * @param {!string} childKey
+   * @return {?Node}
+   */
+  getCompleteChild(childKey: string): Node | null;
 
-/**
- * @param {!string} childKey
- * @return {?fb.core.snap.Node}
- */
-CompleteChildSource.prototype.getCompleteChild = function(childKey) { };
-
-/**
- * @param {!fb.core.snap.Index} index
- * @param {!fb.core.snap.NamedNode} child
- * @param {boolean} reverse
- * @return {?fb.core.snap.NamedNode}
- */
-CompleteChildSource.prototype.getChildAfterChild = function(index, child, reverse) { };
+  /**
+   * @param {!Index} index
+   * @param {!NamedNode} child
+   * @param {boolean} reverse
+   * @return {?NamedNode}
+   */
+  getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null;
+}
 
 
 /**
@@ -32,22 +36,23 @@ CompleteChildSource.prototype.getChildAfterChild = function(index, child, revers
  * @constructor
  * @implements CompleteChildSource
  */
-const NoCompleteChildSource_ = function() {
-};
+export class NoCompleteChildSource_ implements CompleteChildSource {
 
-/**
- * @inheritDoc
- */
-NoCompleteChildSource_.prototype.getCompleteChild = function() {
-  return null;
-};
+  /**
+   * @inheritDoc
+   */
+  getCompleteChild() {
+    return null;
+  }
 
-/**
- * @inheritDoc
- */
-NoCompleteChildSource_.prototype.getChildAfterChild = function() {
-  return null;
-};
+  /**
+   * @inheritDoc
+   */
+  getChildAfterChild() {
+    return null;
+  }
+}
+
 
 /**
  * Singleton instance.
@@ -61,57 +66,45 @@ export const NO_COMPLETE_CHILD_SOURCE = new NoCompleteChildSource_();
  * An implementation of CompleteChildSource that uses a WriteTree in addition to any other server data or
  * old event caches available to calculate complete children.
  *
- * @param {!fb.core.WriteTreeRef} writes
- * @param {!fb.core.view.ViewCache} viewCache
- * @param {?fb.core.snap.Node} optCompleteServerCache
  *
- * @constructor
  * @implements CompleteChildSource
  */
-export const WriteTreeCompleteChildSource = function(writes, viewCache, optCompleteServerCache) {
+export class WriteTreeCompleteChildSource implements CompleteChildSource {
   /**
-   * @type {!fb.core.WriteTreeRef}
-   * @private
+   * @param {!WriteTreeRef} writes_
+   * @param {!ViewCache} viewCache_
+   * @param {?Node} optCompleteServerCache_
    */
-  this.writes_ = writes;
+  constructor(private writes_: WriteTreeRef,
+              private viewCache_: ViewCache,
+              private optCompleteServerCache_: Node | null = null) {
+  }
 
   /**
-   * @type {!fb.core.view.ViewCache}
-   * @private
+   * @inheritDoc
    */
-  this.viewCache_ = viewCache;
-
-  /**
-   * @type {?fb.core.snap.Node}
-   * @private
-   */
-  this.optCompleteServerCache_ = optCompleteServerCache;
-};
-
-/**
- * @inheritDoc
- */
-WriteTreeCompleteChildSource.prototype.getCompleteChild = function(childKey) {
-  var node = this.viewCache_.getEventCache();
-  if (node.isCompleteForChild(childKey)) {
-    return node.getNode().getImmediateChild(childKey);
-  } else {
-    var serverNode = this.optCompleteServerCache_ != null ?
+  getCompleteChild(childKey) {
+    const node = this.viewCache_.getEventCache();
+    if (node.isCompleteForChild(childKey)) {
+      return node.getNode().getImmediateChild(childKey);
+    } else {
+      const serverNode = this.optCompleteServerCache_ != null ?
         new CacheNode(this.optCompleteServerCache_, true, false) : this.viewCache_.getServerCache();
-    return this.writes_.calcCompleteChild(childKey, serverNode);
+      return this.writes_.calcCompleteChild(childKey, serverNode);
+    }
   }
-};
 
-/**
- * @inheritDoc
- */
-WriteTreeCompleteChildSource.prototype.getChildAfterChild = function(index, child, reverse) {
-  var completeServerData = this.optCompleteServerCache_ != null ? this.optCompleteServerCache_ :
+  /**
+   * @inheritDoc
+   */
+  getChildAfterChild(index, child, reverse) {
+    const completeServerData = this.optCompleteServerCache_ != null ? this.optCompleteServerCache_ :
       this.viewCache_.getCompleteServerSnap();
-  var nodes = this.writes_.calcIndexedSlice(completeServerData, child, 1, reverse, index);
-  if (nodes.length === 0) {
-    return null;
-  } else {
-    return nodes[0];
+    const nodes = this.writes_.calcIndexedSlice(completeServerData, child, 1, reverse, index);
+    if (nodes.length === 0) {
+      return null;
+    } else {
+      return nodes[0];
+    }
   }
-};
+}

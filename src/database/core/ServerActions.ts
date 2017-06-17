@@ -1,72 +1,74 @@
+import { Query } from '../api/Query';
+
 /**
  * Interface defining the set of actions that can be performed against the Firebase server
  * (basically corresponds to our wire protocol).
  *
  * @interface
  */
-export class ServerActions {
+export interface ServerActions {
 
   /**
-   * @param {!fb.api.Query} query
+   * @param {!Query} query
    * @param {function():string} currentHashFn
    * @param {?number} tag
    * @param {function(string, *)} onComplete
    */
-  listen() {}
+  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => any);
 
   /**
    * Remove a listen.
    *
-   * @param {!fb.api.Query} query
+   * @param {!Query} query
    * @param {?number} tag
    */
-  unlisten() {}
+  unlisten(query: Query, tag: number | null);
 
   /**
    * @param {string} pathString
    * @param {*} data
-   * @param {function(string, string)=} opt_onComplete
-   * @param {string=} opt_hash
+   * @param {function(string, string)=} onComplete
+   * @param {string=} hash
    */
-  put() {}
+  put(pathString: string, data: any, onComplete?: (a: string, b: string) => any, hash?: string);
 
   /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, ?string)} onComplete
-   * @param {string=} opt_hash
+   * @param {string=} hash
    */
-  merge() {}
+  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => any, hash?: string);
 
   /**
    * Refreshes the auth token for the current connection.
    * @param {string} token The authentication token
    */
-  refreshAuthToken() {}
+  refreshAuthToken(token: string);
 
   /**
    * @param {string} pathString
    * @param {*} data
-   * @param {function(string, string)=} opt_onComplete
+   * @param {function(string, string)=} onComplete
    */
-  onDisconnectPut() {}
+  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => any);
 
   /**
    * @param {string} pathString
    * @param {*} data
-   * @param {function(string, string)=} opt_onComplete
+   * @param {function(string, string)=} onComplete
    */
-  onDisconnectMerge() {}
+  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => any);
 
   /**
    * @param {string} pathString
-   * @param {function(string, string)=} opt_onComplete
+   * @param {function(string, string)=} onComplete
    */
-  onDisconnectCancel() {}
+  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => any);
 
   /**
    * @param {Object.<string, *>} stats
    */
-  reportStats() {}
+  reportStats(stats: { [k: string]: any });
 
-}; // fb.core.ServerActions
+}

@@ -1,28 +1,20 @@
 import { Path } from "../util/Path";
-import { OperationType } from "./Operation";
+import { Operation, OperationSource, OperationType } from './Operation';
 
 /**
- * @param {!fb.core.OperationSource} source
+ * @param {!OperationSource} source
  * @param {!Path} path
  * @constructor
- * @implements {fb.core.Operation}
+ * @implements {Operation}
  */
-export class ListenComplete {
-  type;
-  source;
-  path;
-  
-  constructor(source, path) {
-    /** @inheritDoc */
-    this.type = OperationType.LISTEN_COMPLETE;
+export class ListenComplete implements Operation {
+  /** @inheritDoc */
+  type = OperationType.LISTEN_COMPLETE;
 
-    /** @inheritDoc */
-    this.source = source;
-
-    /** @inheritDoc */
-    this.path = path;
+  constructor(public source: OperationSource, public path: Path) {
   }
-  operationForChild(childName) {
+
+  operationForChild(childName: string): ListenComplete {
     if (this.path.isEmpty()) {
       return new ListenComplete(this.source, Path.Empty);
     } else {

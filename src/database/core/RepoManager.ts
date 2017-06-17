@@ -5,6 +5,7 @@ import { fatal } from "./util/util";
 import { parseRepoInfo } from "./util/libs/parser";
 import { validateUrl } from "./util/validation";
 import "./Repo_transaction";
+import { Database } from '../api/Database';
 
 /** @const {string} */
 var DATABASE_URL_OPTION = 'databaseURL';
@@ -54,7 +55,7 @@ export class RepoManager {
    * @param {!App} app
    * @return {!Database}
    */
-  databaseFromApp(app: FirebaseApp) {
+  databaseFromApp(app: FirebaseApp): Database {
     var dbUrl: string = app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal("Can't determine Firebase Database URL.  Be sure to include " +
