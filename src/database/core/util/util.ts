@@ -176,8 +176,8 @@ export const log = function(...var_args) {
  * @return {function(...[*])}
  */
 export const logWrapper = function(prefix) {
-  return function() {
-    log(prefix, arguments);
+  return function(...var_args: any[]) {
+    log(prefix, var_args);
   };
 };
 
