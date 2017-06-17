@@ -45,7 +45,6 @@ module.exports = {
   babel: {
     plugins: [
       require('babel-plugin-add-module-exports'),
-      require('babel-plugin-minify-dead-code-elimination')
     ],
     presets: [
       [require('babel-preset-env'), {

@@ -13,6 +13,7 @@ import { StatsManager } from "../core/stats/StatsManager";
 import { PacketReceiver } from "./polling/PacketReceiver";
 import { CONSTANTS } from "./Constants";
 import { stringify } from "../../utils/json";
+import { isNodeSdk } from "../../utils/environment";
 import { Transport } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
 
@@ -172,7 +173,8 @@ export class BrowserPollConnection implements Transport {
       if (this.lastSessionId) {
         urlParams[CONSTANTS.LAST_SESSION_PARAM] = this.lastSessionId;
       }
-      if (typeof location !== 'undefined' &&
+      if (!isNodeSdk() &&
+        typeof location !== 'undefined' &&
         location.href &&
         location.href.indexOf(CONSTANTS.FORGE_DOMAIN) !== -1) {
         urlParams[CONSTANTS.REFERER_PARAM] = CONSTANTS.FORGE_REF;
@@ -217,7 +219,8 @@ export class BrowserPollConnection implements Transport {
         !BrowserPollConnection.forceDisallow_ &&
         typeof document !== 'undefined' && document.createElement != null &&
         !isChromeExtensionContentScript() &&
-        !isWindowsStoreApp()
+        !isWindowsStoreApp() &&
+        !isNodeSdk()
       );
   };
 
@@ -310,6 +313,7 @@ export class BrowserPollConnection implements Transport {
    * @param {!string} pw
    */
   addDisconnectPingFrame(id: string, pw: string) {
+    if (isNodeSdk()) return;
     this.myDisconnFrame = document.createElement('iframe');
     const urlParams = {};
     urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_REQUEST_PARAM] = 't';
@@ -373,8 +377,11 @@ class FirebaseIFrameScriptHolder {
   alive: boolean;
   myID: string;
   myPW: string;
+  commandCB;
+  onMessageCB;
 
   constructor(commandCB, onMessageCB, public onDisconnect, public urlFn) {
+    if (!isNodeSdk()) {
     //Each script holder registers a couple of uniquely named callbacks with the window. These are called from the
     //iframes where we put the long-polling script tags. We have two callbacks:
     //   1) Command Callback - Triggered for control issues, like starting a connection.
@@ -405,6 +412,10 @@ class FirebaseIFrameScriptHolder {
         log(e.stack);
       }
       log(e);
+    }
+    } else {
+      this.commandCB = commandCB;
+      this.onMessageCB = onMessageCB;
     }
   }
 
@@ -471,6 +482,15 @@ class FirebaseIFrameScriptHolder {
           this.myIFrame = null;
         }
       }, Math.floor(0));
+    }
+
+    if (isNodeSdk() && this.myID) {
+      var urlParams = {};
+      urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_PARAM] = 't';
+      urlParams[FIREBASE_LONGPOLL_ID_PARAM] = this.myID;
+      urlParams[FIREBASE_LONGPOLL_PW_PARAM] = this.myPW;
+      var theURL = this.urlFn(urlParams);
+      (<any>FirebaseIFrameScriptHolder).nodeRestRequest(theURL);
     }
 
     // Protect from being called recursively.
@@ -594,33 +614,87 @@ class FirebaseIFrameScriptHolder {
    * @param {!function()} loadCB - A callback to be triggered once the script has loaded.
    */
   addTag(url: string, loadCB: () => any) {
-    setTimeout(() => {
-      try {
-        // if we're already closed, don't add this poll
-        if (!this.sendNewPolls) return;
-        const newScript = this.myIFrame.doc.createElement('script');
-        newScript.type = 'text/javascript';
-        newScript.async = true;
-        newScript.src = url;
-        newScript.onload = (<any>newScript).onreadystatechange = function () {
-          const rstate = (<any>newScript).readyState;
-          if (!rstate || rstate === 'loaded' || rstate === 'complete') {
-            newScript.onload = (<any>newScript).onreadystatechange = null;
-            if (newScript.parentNode) {
-              newScript.parentNode.removeChild(newScript);
+    if (isNodeSdk()) {
+      (<any>this).doNodeLongPoll(url, loadCB);
+    } else {
+      setTimeout(() => {
+        try {
+          // if we're already closed, don't add this poll
+          if (!this.sendNewPolls) return;
+          const newScript = this.myIFrame.doc.createElement('script');
+          newScript.type = 'text/javascript';
+          newScript.async = true;
+          newScript.src = url;
+          newScript.onload = (<any>newScript).onreadystatechange = function () {
+            const rstate = (<any>newScript).readyState;
+            if (!rstate || rstate === 'loaded' || rstate === 'complete') {
+              newScript.onload = (<any>newScript).onreadystatechange = null;
+              if (newScript.parentNode) {
+                newScript.parentNode.removeChild(newScript);
+              }
+              loadCB();
             }
-            loadCB();
-          }
-        };
-        newScript.onerror = () => {
-          log('Long-poll script failed to load: ' + url);
-          this.sendNewPolls = false;
-          this.close();
-        };
-        this.myIFrame.doc.body.appendChild(newScript);
-      } catch (e) {
-        // TODO: we should make this error visible somehow
-      }
-    }, Math.floor(1));
+          };
+          newScript.onerror = () => {
+            log('Long-poll script failed to load: ' + url);
+            this.sendNewPolls = false;
+            this.close();
+          };
+          this.myIFrame.doc.body.appendChild(newScript);
+        } catch (e) {
+          // TODO: we should make this error visible somehow
+        }
+      }, Math.floor(1));
+    }
   }
+}
+
+if (isNodeSdk()) {
+  /**
+   * @type {?function({url: string, forever: boolean}, function(Error, number, string))}
+   */
+  (FirebaseIFrameScriptHolder as any).request = null;
+
+  /**
+   * @param {{url: string, forever: boolean}} req
+   * @param {function(string)=} onComplete
+   */
+  (FirebaseIFrameScriptHolder as any).nodeRestRequest = function(req, onComplete) {
+    if (!(FirebaseIFrameScriptHolder as any).request)
+      (FirebaseIFrameScriptHolder as any).request =
+        /** @type {function({url: string, forever: boolean}, function(Error, number, string))} */ (require('request'));
+
+    (FirebaseIFrameScriptHolder as any).request(req, function(error, response, body) {
+      if (error)
+        throw 'Rest request for ' + req.url + ' failed.';
+
+      if (onComplete)
+        onComplete(body);
+    });
+  };
+
+  /**
+   * @param {!string} url
+   * @param {function()} loadCB
+   */
+  (<any>FirebaseIFrameScriptHolder.prototype).doNodeLongPoll = function(url, loadCB) {
+    var self = this;
+    (FirebaseIFrameScriptHolder as any).nodeRestRequest({ url: url, forever: true }, function(body) {
+      self.evalBody(body);
+      loadCB();
+    });
+  };
+
+  /**
+   * Evaluates the string contents of a jsonp response.
+   * @param {!string} body
+   */
+  (<any>FirebaseIFrameScriptHolder.prototype).evalBody = function(body) {
+    var jsonpCB;
+    //jsonpCB is externed in firebase-extern.js
+    eval('jsonpCB = function(' + FIREBASE_LONGPOLL_COMMAND_CB_NAME + ', ' + FIREBASE_LONGPOLL_DATA_CB_NAME + ') {' +
+      body +
+      '}');
+    jsonpCB(this.commandCB, this.onMessageCB);
+  };
 }
