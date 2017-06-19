@@ -5,7 +5,7 @@ import { getRandomNode } from "./helpers";
 import { DataSnapshot } from "../../src/database/api/DataSnapshot";
 import { Reference } from "../../src/database/api/Reference";
 
-describe.only("DataSnapshot Tests", function () {
+describe("DataSnapshot Tests", function () {
   /** @return {!DataSnapshot} */
   var snapshotForJSON = function(json) {
     var dummyRef = <Reference>getRandomNode();
