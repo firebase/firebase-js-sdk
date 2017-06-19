@@ -4,7 +4,7 @@ import { Reference } from "../../src/database/api/Reference";
 import { Query } from "../../src/database/api/Query";
 import { expect } from "chai";
 
-const TEST_PROJECT = require('../config/project.json');
+export const TEST_PROJECT = require('../config/project.json');
 
 var qs = {};
 if ('location' in this) {
@@ -22,7 +22,7 @@ let numDatabases = 0;
  * @param {!FirebaseApp} app
  * @return {!FirebaseApp}
  */
-function patchFakeAuthFunctions(app) {
+export function patchFakeAuthFunctions(app) {
   var token_ = null;
 
   app['INTERNAL'] = app['INTERNAL'] || {};

@@ -47,14 +47,14 @@ export class Database {
 
   /**
    * Returns a reference to the root or the path specified in opt_pathString.
-   * @param {string=} opt_pathString
+   * @param {string=} pathString
    * @return {!Firebase} Firebase reference.
    */
-  ref(opt_pathString): Reference {
+  ref(pathString?: string): Reference {
     this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 
-    return opt_pathString !== undefined ? this.root_.child(opt_pathString) : this.root_;
+    return pathString !== undefined ? this.root_.child(pathString) : this.root_;
   }
 
   /**
