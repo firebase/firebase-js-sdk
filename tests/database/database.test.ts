@@ -6,7 +6,7 @@ import {
 } from "./helpers";
 import "../../src/database";
 
-describe.only('Database Tests', function() {
+describe('Database Tests', function() {
   var defaultApp;
 
   beforeEach(function() {
