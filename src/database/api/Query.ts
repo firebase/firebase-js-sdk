@@ -217,7 +217,7 @@ export class Query {
    * @param context
    * @return {!firebase.Promise}
    */
-  once(eventType: string, userCallback: (a: DataSnapshot, b?: string) => any,
+  once(eventType: string, userCallback?: (a: DataSnapshot, b?: string) => any,
        cancelOrContext?, context?: Object) {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);

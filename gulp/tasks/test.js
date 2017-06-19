@@ -54,26 +54,29 @@ function runNodeBinaryTests() {
 /**
  * Runs all of the browser unit tests in karma
  */
-function runBrowserUnitTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
-    // list of files / patterns to load in the browser
-    files: [
-      './+(src|tests)/**/*.ts'
-    ],
-    
-    // list of files to exclude from the included globs above
-    exclude: [
-      // we don't want this file as it references files that only exist once compiled
-      `./src/firebase.ts`,
+function runBrowserUnitTests(dev) {
+  return (done) => {
+    const karmaConfig = Object.assign({}, config.karma, {
+      // list of files / patterns to load in the browser
+      files: [
+        './+(src|tests)/**/*.ts'
+      ],
+      
+      // list of files to exclude from the included globs above
+      exclude: [
+        // we don't want this file as it references files that only exist once compiled
+        `./src/firebase-*.ts`,
 
-      // Don't include node test files
-      './tests/**/node/**/*.test.ts',
+        // Don't include node test files
+        './tests/**/node/**/*.test.ts',
 
-      // Don't include binary test files
-      './tests/**/binary/**/*.test.ts',
-    ],
-  });
-  new karma.Server(karmaConfig, done).start();
+        // Don't include binary test files
+        './tests/**/binary/**/*.test.ts',
+      ],
+      browsers: !!dev ? ['Chrome'] : config.karma.browsers
+    });
+    new karma.Server(karmaConfig, done).start();
+  };
 }
 
 /**
@@ -121,9 +124,9 @@ function runAllKarmaTests(done) {
 }
 
 gulp.task('test:unit:node', runNodeUnitTests);
-gulp.task('test:unit:browser', runBrowserUnitTests);
+gulp.task('test:unit:browser', runBrowserUnitTests());
 
-const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests);
+const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests());
 gulp.task('test:unit', unitTestSuite);
 
 gulp.task('test:binary:browser', runBrowserBinaryTests);
@@ -137,3 +140,6 @@ gulp.task('test', gulp.parallel([
   runNodeBinaryTests,
   runAllKarmaTests
 ]));
+
+exports.runNodeUnitTests = runNodeUnitTests;
+exports.runBrowserUnitTests = runBrowserUnitTests;

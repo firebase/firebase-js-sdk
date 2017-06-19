@@ -30,6 +30,7 @@ module.exports = {
         'tests/**/*.test.ts',
         '!tests/**/browser/**/*.test.ts',
         '!tests/**/binary/**/*.test.ts',
+        '!src/firebase-*.ts',
       ],
       binary: [
         'tests/**/binary/**/*.test.ts',

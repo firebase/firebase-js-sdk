@@ -123,8 +123,9 @@ export class BrowserPollConnection implements Transport {
         return;
 
       //Set up a callback that gets triggered once a connection is set up.
-      this.scriptTagHolder = new FirebaseIFrameScriptHolder((command, arg1, arg2, arg3, arg4) => {
-        this.incrementIncomingBytes_(arguments);
+      this.scriptTagHolder = new FirebaseIFrameScriptHolder((...args) => {
+        const [command, arg1, arg2, arg3, arg4] = args;
+        this.incrementIncomingBytes_(args);
         if (!this.scriptTagHolder)
           return; // we closed the connection.
 
@@ -152,8 +153,9 @@ export class BrowserPollConnection implements Transport {
         } else {
           throw new Error('Unrecognized command received: ' + command);
         }
-      }, (pN, data) => {
-        this.incrementIncomingBytes_(arguments);
+      }, (...args) => {
+        const [pN, data] = args;
+        this.incrementIncomingBytes_(args);
         this.myPacketOrderer.handleResponse(pN, data);
       }, () => {
         this.onClosed_();
