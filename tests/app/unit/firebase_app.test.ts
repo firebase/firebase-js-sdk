@@ -143,6 +143,19 @@ describe("Firebase App Class", () => {
       });
   });
 
+  it("OK to use Object.prototype member names as app name.", () => {
+    let app = firebase.initializeApp({}, 'toString');
+    assert.equal(firebase.apps.length, 1);
+    assert.equal(app.name, 'toString');
+    assert.strictEqual(firebase.app('toString'), app);
+  });
+
+  it("Error to get uninitialized app using Object.prototype member name.", () => {
+    assert.throws(() => {
+      firebase.app('toString');
+    }, /'toString'.*created/i);
+  });
+
   it("Only calls createService on first use (per app).", () => {
     let registrations = 0;
     firebase.INTERNAL.registerService('test', (app: FirebaseApp) => {
