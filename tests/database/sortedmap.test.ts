@@ -8,7 +8,7 @@ import { shuffle } from "./helpers";
 
 // Many of these were adapted from the mugs source code.
 // http://mads379.github.com/mugs/
-describe.only("SortedMap Tests", function() {
+describe("SortedMap Tests", function() {
   var defaultCmp = function(a, b) {
     if (a === b) {
       return 0;
