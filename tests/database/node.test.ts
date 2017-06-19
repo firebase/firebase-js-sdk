@@ -8,7 +8,7 @@ import { ChildrenNode } from "../../src/database/core/snap/ChildrenNode";
 import { NAME_COMPARATOR } from "../../src/database/core/snap/comparators";
 import { nodeFromJSON } from "../../src/database/core/snap/nodeFromJSON";
 
-describe.only('Node Tests', function() {
+describe('Node Tests', function() {
   var DEFAULT_INDEX = PRIORITY_INDEX;
 
   it('Create leaf nodes of various types.', function() {

@@ -714,35 +714,35 @@ export class SortedMap {
    * @param {(function(K, V):T)=} opt_resultGenerator
    * @return {SortedMapIterator.<K, V, T>} The iterator.
    */
-  getIterator(opt_resultGenerator) {
+  getIterator(resultGnerator?) {
     return new SortedMapIterator(this.root_,
                                               null,
                                               this.comparator_,
                                               false,
-                                              opt_resultGenerator);
+                                              resultGnerator);
   }
 
-  getIteratorFrom(key, opt_resultGenerator) {
+  getIteratorFrom(key, resultGnerator?) {
     return new SortedMapIterator(this.root_,
                                               key,
                                               this.comparator_,
                                               false,
-                                              opt_resultGenerator);
+                                              resultGnerator);
   }
 
-  getReverseIteratorFrom(key, opt_resultGenerator) {
+  getReverseIteratorFrom(key, resultGnerator?) {
     return new SortedMapIterator(this.root_,
                                               key,
                                               this.comparator_,
                                               true,
-                                              opt_resultGenerator);
+                                              resultGnerator);
   }
 
-  getReverseIterator(opt_resultGenerator) {
+  getReverseIterator(resultGnerator?) {
     return new SortedMapIterator(this.root_,
                                               null,
                                               this.comparator_,
                                               true,
-                                              opt_resultGenerator);
+                                              resultGnerator);
   }
 }; // end SortedMap
