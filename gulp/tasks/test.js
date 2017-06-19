@@ -73,7 +73,7 @@ function runBrowserUnitTests(dev) {
         // Don't include binary test files
         './tests/**/binary/**/*.test.ts',
       ],
-      browsers: !!dev ? ['Chrome'] : config.karma.browsers
+      browsers: !!dev ? ['ChromeHeadless'] : config.karma.browsers,
     });
     new karma.Server(karmaConfig, done).start();
   };

@@ -104,6 +104,3 @@ export function pause(milliseconds: number) {
 export function getPath(query: Query) {
   return query.toString().replace(TEST_PROJECT.databaseURL, '');
 }
-
-export function runs() {}
-export function waitsFor() {}

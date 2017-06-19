@@ -215,7 +215,7 @@ describe('CompoundWrite Tests', function() {
     for (var i = 0; i < completeChildren.length; i++) {
       actual[completeChildren[i].name] = completeChildren[i].node;
     }
-    expect(actual).to.equal(expected);
+    expect(actual).to.deep.equal(expected);
   });
 
   it('complete children return all children for root set', function() {
@@ -232,7 +232,7 @@ describe('CompoundWrite Tests', function() {
     for (var i = 0; i < completeChildren.length; i++) {
       actual[completeChildren[i].name] = completeChildren[i].node;
     }
-    expect(actual).to.equal(expected);
+    expect(actual).to.deep.equal(expected);
   });
 
   it('empty merge has no shadowing write', function() {
@@ -369,14 +369,14 @@ describe('CompoundWrite Tests', function() {
     var compoundWrite = CompoundWrite.Empty;
     var path = new Path('child-1');
     compoundWrite = compoundWrite.addWrite(path, LEAF_NODE);
-    expect(compoundWrite.apply(CHILDREN_NODE)).to.equal(CHILDREN_NODE.updateImmediateChild(path.getFront(), LEAF_NODE));
+    expect(compoundWrite.apply(CHILDREN_NODE)).to.deep.equal(CHILDREN_NODE.updateImmediateChild(path.getFront(), LEAF_NODE));
   });
 
   it('Updates existing child', function() {
     var compoundWrite = CompoundWrite.Empty;
     var path = new Path('child-1/foo');
     compoundWrite = compoundWrite.addWrite(path, LEAF_NODE);
-    expect(compoundWrite.apply(CHILDREN_NODE)).to.equal(CHILDREN_NODE.updateChild(path, LEAF_NODE));
+    expect(compoundWrite.apply(CHILDREN_NODE)).to.deep.equal(CHILDREN_NODE.updateChild(path, LEAF_NODE));
   });
 
   it("Doesn't update priority on empty node.", function() {
