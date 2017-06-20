@@ -42,7 +42,6 @@ const glob = require('glob');
 const fs = require('fs');
 const gzipSize = require('gzip-size');
 const WrapperPlugin = require('wrapper-webpack-plugin');
-const legacyBuild = require('./build.legacy');
 
 function cleanDist(dir) { 
   return function cleanDistDirectory(done) {
@@ -429,7 +428,6 @@ gulp.task('build:cjs', gulp.parallel([
     gulp.parallel(compileES2015ToCJS, buildAltEnvFirebaseJs)
   ]),
   processPrebuiltFilesForCJS,
-  legacyBuild.compileDatabaseForCJS
 ]));
 
 gulp.task('process:prebuilt', gulp.parallel([
@@ -444,8 +442,6 @@ const compileSourceAssets = gulp.series([
   gulp.parallel([
     compileIndvES2015ModulesToBrowser, 
     compileES2015ToCJS,
-    legacyBuild.compileDatabaseForBrowser,
-    legacyBuild.compileDatabaseForCJS
   ])
 ]);
 
@@ -455,7 +451,6 @@ gulp.task('build:browser', gulp.series([
   gulp.parallel([
     compileSourceAssets,
     processPrebuiltFilesForBrowser,
-    legacyBuild.compileDatabaseForBrowser
   ]),
   buildBrowserFirebaseJs
 ]));
