@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { nodeFromJSON } from "../../src/database/core/snap/nodeFromJSON";
 import { PRIORITY_INDEX } from "../../src/database/core/snap/indexes/PriorityIndex";
-import { getRandomNode } from "./helpers";
+import { getRandomNode } from "./helpers/util";
 import { DataSnapshot } from "../../src/database/api/DataSnapshot";
 import { Reference } from "../../src/database/api/Reference";
 

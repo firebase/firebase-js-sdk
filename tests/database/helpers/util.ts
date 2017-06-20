@@ -1,10 +1,10 @@
-import firebase from "../../src/app";
-import '../../src/database';
-import { Reference } from "../../src/database/api/Reference";
-import { Query } from "../../src/database/api/Query";
+import firebase from "../../../src/app";
+import '../../../src/database';
+import { Reference } from "../../../src/database/api/Reference";
+import { Query } from "../../../src/database/api/Query";
 import { expect } from "chai";
 
-export const TEST_PROJECT = require('../config/project.json');
+export const TEST_PROJECT = require('../../config/project.json');
 
 var qs = {};
 if ('location' in this) {

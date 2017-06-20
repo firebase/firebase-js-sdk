@@ -3,7 +3,7 @@ import {
   SortedMap,
   LLRBNode
 } from "../../src/database/core/util/SortedMap";
-import { shuffle } from "./helpers";
+import { shuffle } from "./helpers/util";
 
 
 // Many of these were adapted from the mugs source code.

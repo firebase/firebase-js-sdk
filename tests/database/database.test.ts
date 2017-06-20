@@ -3,7 +3,7 @@ import firebase from "../../src/app";
 import { 
   TEST_PROJECT,
   patchFakeAuthFunctions,
-} from "./helpers";
+} from "./helpers/util";
 import "../../src/database";
 
 describe('Database Tests', function() {
