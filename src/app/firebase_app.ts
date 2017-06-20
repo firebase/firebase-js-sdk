@@ -217,6 +217,10 @@ export interface FirebaseNamespace {
   }
 }
 
+const contains = function(obj, key) {
+  return Object.prototype.hasOwnProperty.call(obj, key);
+};
+
 let LocalPromise = local.Promise as typeof Promise;
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
@@ -438,11 +442,10 @@ export function createFirebaseNamespace(): FirebaseNamespace {
    */
   function app(name?: string): FirebaseApp {
     name = name || DEFAULT_ENTRY_NAME;
-    let result = apps_[name];
-    if (result === undefined) {
+    if (!contains(apps_, name)) {
       error('no-app', {'name': name});
     }
-    return result;
+    return apps_[name];
   }
 
   patchProperty(app, 'App', FirebaseAppImpl);
@@ -458,7 +461,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
         error('bad-app-name', {'name': name + ''});
       }
     }
-    if (apps_[name!] !== undefined) {
+    if (contains(apps_, name) ) {
       error('duplicate-app', {'name': name});
     }
 
