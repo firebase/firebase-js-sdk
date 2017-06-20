@@ -114,3 +114,70 @@ export function shuffle(arr, randFn?) {
     arr[j] = tmp;
   }
 }
+
+export function testAuthTokenProvider(app) {
+  var token_ = null;
+  var nextToken_ = null;
+  var hasNextToken_ = false;
+  var listeners_  = [];
+
+  app['INTERNAL'] = app['INTERNAL'] || {};
+
+  app['INTERNAL']['getToken'] = function(forceRefresh) {
+    if (forceRefresh && hasNextToken_) {
+      token_ = nextToken_;
+      hasNextToken_ = false;
+    }
+    return Promise.resolve({accessToken: token_});
+  };
+
+  app['INTERNAL']['addAuthTokenListener'] = function(listener) {
+    var token = token_;
+    listeners_.push(listener);
+    var async = Promise.resolve();
+    async.then(function() {
+      listener(token)
+    });
+  };
+
+  app['INTERNAL']['removeAuthTokenListener'] = function(listener) {
+    throw Error('removeAuthTokenListener not supported in testing');
+  };
+
+  return {
+    setToken: function(token) {
+      token_ = token;
+      var async = Promise.resolve();
+      for (var i = 0; i < listeners_.length; i++) {
+        async.then((function(idx) {
+          return function() {
+            listeners_[idx](token);
+          }
+        }(i)));
+      }
+
+      // Any future thens are guaranteed to be resolved after the listeners have been notified
+      return async;
+    },
+    setNextToken: function(token) {
+      nextToken_ = token;
+      hasNextToken_ = true;
+    }
+  };
+}
+
+let freshRepoId = 1;
+const activeFreshApps = [];
+
+export function getFreshRepo(url, path) {
+  var app = firebase.initializeApp({databaseURL: url}, 'ISOLATED_REPO_' + freshRepoId++);
+  patchFakeAuthFunctions(app);
+  activeFreshApps.push(app);
+  return app.database().ref(path);
+}
+
+export function getFreshRepoFromReference(ref) {
+  var host = ref.root.toString();
+  var path = ref.toString().replace(host, '');
+  return getFreshRepo(host, path);
+}

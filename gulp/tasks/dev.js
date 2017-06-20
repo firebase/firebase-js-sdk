@@ -22,7 +22,7 @@ const testFxns = require('./test');
 function watchDevFiles() {
   const stream = gulp.watch([
     `${config.root}/src/**/*.ts`,
-    config.paths.test.unit
+    'tests/**/*.test.ts'
   ], testFxns.runBrowserUnitTests(true));
 
   stream.on('error', err => {});
