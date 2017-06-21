@@ -1,3 +1,4 @@
+import { globalScope } from "../../../src/utils/globalScope";
 import firebase from "../../../src/app";
 import '../../../src/database';
 import { Reference } from "../../../src/database/api/Reference";
@@ -47,7 +48,7 @@ export function patchFakeAuthFunctions(app) {
  * @param {string=} opt_ref
  * @return {Firebase}
  */
-function getRootNode(i?, ref?) {
+export function getRootNode(i?, ref?) {
   if (i === undefined) {
     i = 0;
   }
@@ -181,3 +182,32 @@ export function getFreshRepoFromReference(ref) {
   var path = ref.toString().replace(host, '');
   return getFreshRepo(host, path);
 }
+
+// Little helpers to get the currently cached snapshot / value.
+export function getSnap(path) {
+  var snap;
+  var callback = function(snapshot) { snap = snapshot; };
+  path.once('value', callback);
+  return snap;
+};
+
+export function getVal(path) {
+  var snap = getSnap(path);
+  return snap ? snap.val() : undefined;
+};
+
+export function canCreateExtraConnections() {
+  return globalScope.MozWebSocket || globalScope.WebSocket;
+};
+
+export function buildObjFromKey(key) {
+  var keys = key.split('.');
+  var obj = {};
+  var parent = obj;
+  for (var i = 0; i < keys.length; i++) {
+    var key = keys[i];
+    parent[key] = i < keys.length - 1 ? {} : 'test_value';
+    parent = parent[key];
+  }
+  return obj;
+};

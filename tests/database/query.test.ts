@@ -9,7 +9,7 @@ import {
   getPath, 
   pause
 } from "./helpers/util";
-import { EventAccumulator } from "./helpers/EventAccumulator";
+import { EventAccumulatorFactory } from "./helpers/EventAccumulator";
 
 const _ = require('lodash');
 
@@ -472,7 +472,7 @@ describe('Query Tests', function() {
 
     await Promise.all(pushPromises);
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
 
     node.limitToLast(5).on('value', snap => {
       ea.addEvent(snap);
@@ -505,7 +505,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -541,7 +541,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -577,7 +577,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -604,7 +604,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -634,7 +634,7 @@ describe('Query Tests', function() {
 
     await node.set({a: 1, b: 2, c: 3});    
 
-    const ea = new EventAccumulator(2);
+    const ea = EventAccumulatorFactory.waitsForCount(2);
 
     var added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
@@ -677,7 +677,7 @@ describe('Query Tests', function() {
     var node = <Reference>getRandomNode()
 
     await node.set({a: 1, b: 2, c: 3});    
-    const ea = new EventAccumulator(2);
+    const ea = EventAccumulatorFactory.waitsForCount(2);
 
     var added = '', removed = '';
     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { 
@@ -721,7 +721,7 @@ describe('Query Tests', function() {
 
     await node.set({c: 3});
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
 
     let added = '';
     let removed = '';
@@ -747,7 +747,7 @@ describe('Query Tests', function() {
 
   it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item.', async function() {
     var node = (getRandomNode() as Reference);
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
 
     var added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
@@ -771,7 +771,7 @@ describe('Query Tests', function() {
 
     await node.set({a: 1, b: 2, c: 3});
 
-    let ea = new EventAccumulator(2);
+    let ea = EventAccumulatorFactory.waitsForCount(2);
     var added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
       added += snap.key + ' '; 
@@ -787,7 +787,7 @@ describe('Query Tests', function() {
     expect(removed).to.equal('');
 
     // We are going to wait for one more event before closing
-    ea = new EventAccumulator(1);    
+    ea = EventAccumulatorFactory.waitsForCount(1);    
     added = '';
     await node.child('b').remove();
 
@@ -817,7 +817,7 @@ describe('Query Tests', function() {
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more. Using server data', async function() {
     var node = (getRandomNode() as Reference);
-    const ea = new EventAccumulator(2);
+    const ea = EventAccumulatorFactory.waitsForCount(2);
     let added = '';
     let removed = '';
     await node.set({b: 2, c: 3});
@@ -861,7 +861,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -888,7 +888,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -915,7 +915,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -940,7 +940,7 @@ describe('Query Tests', function() {
     ];
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -967,7 +967,7 @@ describe('Query Tests', function() {
 
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -994,7 +994,7 @@ describe('Query Tests', function() {
     
     return Promise.all(tasks.map(async task => {
       const [query, val] = task;
-      const ea = new EventAccumulator(1);
+      const ea = EventAccumulatorFactory.waitsForCount(1);
       query.on('value', snap => {
         ea.addEvent(snap.val());
       });
@@ -1033,7 +1033,7 @@ describe('Query Tests', function() {
     let added = '';
     await node.child('a').set(1);
     
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     node.limitToLast(2).on('child_added', function(snap, prevName) {
       added += snap.key + ' ' + prevName + ', ';
       ea.addEvent();
@@ -1173,7 +1173,7 @@ describe('Query Tests', function() {
     var nodePair = getRandomNode(2);
     var writeNode = nodePair[0];
     var readNode = nodePair[1];
-    const ea = new EventAccumulator(2);
+    const ea = EventAccumulatorFactory.waitsForCount(2);
     var eventHistory = '';
 
     readNode.limitToLast(2).on('child_added', function(snap) {
@@ -1218,7 +1218,7 @@ describe('Query Tests', function() {
   it('Filtering to only null priorities works.', async function() {
     var f = (getRandomNode() as Reference);
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     f.root.child('.info/connected').on('value', function(snap) {
       ea.addEvent();
     });
@@ -1233,7 +1233,7 @@ describe('Query Tests', function() {
       e: {'.priority': 'hi', '.value': 4}
     });
 
-    const snapAcc = new EventAccumulator(1);
+    const snapAcc = EventAccumulatorFactory.waitsForCount(1);
     f.startAt(null).endAt(null).on('value', snap => {
       snapAcc.addEvent(snap.val());
     });
@@ -1253,7 +1253,7 @@ describe('Query Tests', function() {
       e: {'.priority': 'hi', '.value': 4}
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     f.endAt(2).on('value', snap => {
       ea.addEvent(snap.val());
     });
@@ -1273,7 +1273,7 @@ describe('Query Tests', function() {
       e: {'.priority': 'hi', '.value': 4}
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     
     f.startAt(2).on('value', snap => {
       ea.addEvent(snap.val());
@@ -1442,7 +1442,7 @@ describe('Query Tests', function() {
       'Fred': {'score': 0, 'name': 'Fred'}
     });
 
-    const ea = new EventAccumulator(5);
+    const ea = EventAccumulatorFactory.waitsForCount(5);
     node.limitToLast(5).on('child_added', function(childSnap) {
       children.push(childSnap.key);
       ea.addEvent();
@@ -1588,7 +1588,7 @@ describe('Query Tests', function() {
     var ref = (getRandomNode() as Reference);
 
     var val;
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     ref.limitToLast(1).on('child_added', function(snap) {
       val = snap.val();
       ea.addEvent();
@@ -1621,7 +1621,7 @@ describe('Query Tests', function() {
     var ref = (getRandomNode() as Reference);
     ref.set({a: 1, b: 2});
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var val;
     ref.startAt().limitToFirst(1).on('child_added', function(snap) {
       val = snap.val();
@@ -1674,7 +1674,7 @@ describe('Query Tests', function() {
       f: 6
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
 
     var firstListen = false
     ref.limitToLast(2).on('value', function(snap) {
@@ -1705,7 +1705,7 @@ describe('Query Tests', function() {
       f: 6
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     // Setup value listener
     ref.on('value', function(snap) {
       ea.addEvent();
@@ -1730,7 +1730,7 @@ describe('Query Tests', function() {
       c: 3
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     // Setup value listener
     ref.on('value', function(snap) {
       ea.addEvent();
@@ -2080,7 +2080,7 @@ describe('Query Tests', function() {
 
     await readRef.once('value');
 
-    const ea = new EventAccumulator(5);
+    const ea = EventAccumulatorFactory.waitsForCount(5);
     startAtCount = 0;
     readRef.startAt(null, 'd').on('child_added', function() {
       startAtCount++;
@@ -2146,7 +2146,7 @@ describe('Query Tests', function() {
       }
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var count = 0;
     reader.limitToLast(2).on('value', function(snap) {
       ea.addEvent();
@@ -2170,7 +2170,7 @@ describe('Query Tests', function() {
   it('Priority-only updates are processed correctly by server.', async function() {
     var refPair = (getRandomNode(2) as Reference[]), readRef = refPair[0], writeRef = refPair[1];
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
@@ -2287,7 +2287,7 @@ describe('Query Tests', function() {
       expect(s.val()).to.deep.equal({a: { aa: 1, ab: 1}});
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     readRef.child('a').startAt(1).endAt(1).on('value', function(s) {
       childData = s.val();
       if (childData) {
@@ -2314,7 +2314,7 @@ describe('Query Tests', function() {
       name: 'Mike'
     }});
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var snaps = [];
     ref2.limitToLast(1).on('value', function(s) {
       var val = s.val();
@@ -2341,7 +2341,7 @@ describe('Query Tests', function() {
       name: 'Mike'
     }});
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var snaps = [];
     ref2.limitToLast(1).on('value', function(s) {
       var val = s.val();
@@ -2368,7 +2368,7 @@ describe('Query Tests', function() {
   it('Server: New child at end of limit shows up.', async function() {
     var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var snap;
     ref2.limitToLast(1).on('value', function(s) {
       snap = s.val();
@@ -2392,7 +2392,7 @@ describe('Query Tests', function() {
   it('Server: Priority-only updates are processed correctly by server (1).', async function() {
     var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
@@ -2420,7 +2420,7 @@ describe('Query Tests', function() {
   it('Server: Priority-only updates are processed correctly by server (2).', async function() {
     var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var readVal;
     readRef.endAt(50).limitToLast(2).on('value', function(s) {
       readVal = s.val();
@@ -2460,7 +2460,7 @@ describe('Query Tests', function() {
   it("Cache doesn't remove items that have fallen out of view.", async function() {
     var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
@@ -2502,7 +2502,7 @@ describe('Query Tests', function() {
       expect(snap.val()).to.equal(4);
     });
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     var val;
     reader.limitToLast(2).on('value', function(snap) {
       val = snap.val();
@@ -2613,7 +2613,7 @@ describe('Query Tests', function() {
     // Write 3 children and then start our limit query.
     await writerRef.set({a: 1, b: 2, c: 3});
 
-    const ea = new EventAccumulator(1);
+    const ea = EventAccumulatorFactory.waitsForCount(1);
     queryRef.limitToLast(3).on('value', function(s) { 
       readSnapshot = s;
       if (readSnapshot) {
