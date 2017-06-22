@@ -8,7 +8,18 @@ import {
 import { Reference } from "../../src/database/api/Reference";
 import { EventAccumulator } from "./helpers/EventAccumulator";
 
-describe.only(".info Tests", function () {
+/**
+ * We have a test that depends on leveraging two properly
+ * configured Firebase instances. we are skiping the test
+ * but I want to leave the test here for when we can refactor
+ * to remove the prod firebase dependency.
+ */
+declare var runs;
+declare var waitsFor;
+declare var TEST_ALT_NAMESPACE;
+declare var TEST_NAMESPACE;
+
+describe(".info Tests", function () {
   it("Can get a reference to .info nodes.", function() {
     var f = (getRootNode() as Reference);
     expect(getPath(f.child('.info'))).to.equal('/.info');

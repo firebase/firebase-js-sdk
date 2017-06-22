@@ -9,7 +9,10 @@ import {
   getPath, 
   pause
 } from "./helpers/util";
-import { EventAccumulatorFactory } from "./helpers/EventAccumulator";
+import {
+  EventAccumulator,
+  EventAccumulatorFactory 
+} from "./helpers/EventAccumulator";
 
 const _ = require('lodash');
 
@@ -1173,7 +1176,14 @@ describe('Query Tests', function() {
     var nodePair = getRandomNode(2);
     var writeNode = nodePair[0];
     var readNode = nodePair[1];
-    const ea = EventAccumulatorFactory.waitsForCount(2);
+    const ea = new EventAccumulator(() => {
+      try {
+        expect(eventHistory).to.equal('3 added, 4 added, ');
+        return true;
+      } catch(err) {
+        return false;
+      }
+    });
     var eventHistory = '';
 
     readNode.limitToLast(2).on('child_added', function(snap) {
@@ -1197,8 +1207,6 @@ describe('Query Tests', function() {
     }
 
     await ea.promise;
-
-    expect(eventHistory).to.equal('3 added, 4 added, ');
   });
 
   it('Ensure on() returns callback function.', function() {
