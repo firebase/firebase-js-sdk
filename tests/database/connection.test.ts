@@ -1,16 +1,8 @@
 import { expect } from "chai";
-import { ConnectionTarget } from "../../src/database/api/test_access";
-import { TEST_PROJECT } from "./helpers/util";
+import { TEST_PROJECT, testRepoInfo } from "./helpers/util";
 import { Connection } from "../../src/database/realtime/Connection";
 
 describe('Connection', () => {
-  function testRepoInfo(url) {
-    const regex = /https:\/\/(.*).firebaseio.com/;
-    const match = url.match(regex);
-    if (!match) throw new Error('Couldnt get Namespace from passed URL');
-    const [,ns] = match;
-    return new ConnectionTarget(`${ns}.firebaseio.com`, false, ns, false);
-  }
   it('return the session id', function(done) {
     new Connection('1',
         testRepoInfo(TEST_PROJECT.databaseURL),

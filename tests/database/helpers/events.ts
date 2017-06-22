@@ -31,7 +31,7 @@ function rawPath(firebaseRef) {
  * @param {string=} opt_helperName
  * @return {{waiter: waiter, watchesInitializedWaiter: watchesInitializedWaiter, unregister: unregister, addExpectedEvents: addExpectedEvents}}
  */
-export function eventTestHelper(pathAndEvents, helperName?, eventAccumulator?: EventAccumulator | EventAccumulator[]) {
+export function eventTestHelper(pathAndEvents, helperName?) {
   var expectedPathAndEvents = [];
   var actualPathAndEvents = [];
   var pathEventListeners = {};
@@ -45,16 +45,6 @@ export function eventTestHelper(pathAndEvents, helperName?, eventAccumulator?: E
     return function(snap) {
       // Get the ref of where the snapshot came from.
       var ref = type === 'value' ? snap.ref : snap.ref.parent;
-
-      if (eventAccumulator) {
-        if (Array.isArray(eventAccumulator)) {
-          eventAccumulator.forEach(ea => {
-            ea.addEvent();
-          })
-        } else {
-          eventAccumulator.addEvent();
-        }
-      }
 
       actualPathAndEvents.push([rawPath(ref), [type, snap.key]]);
 

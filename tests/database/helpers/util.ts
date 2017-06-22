@@ -4,6 +4,8 @@ import '../../../src/database';
 import { Reference } from "../../../src/database/api/Reference";
 import { Query } from "../../../src/database/api/Query";
 import { expect } from "chai";
+import { ConnectionTarget } from "../../../src/database/api/test_access";
+
 
 export const TEST_PROJECT = require('../../config/project.json');
 
@@ -211,3 +213,11 @@ export function buildObjFromKey(key) {
   }
   return obj;
 };
+
+export function testRepoInfo(url) {
+  const regex = /https:\/\/(.*).firebaseio.com/;
+  const match = url.match(regex);
+  if (!match) throw new Error('Couldnt get Namespace from passed URL');
+  const [,ns] = match;
+  return new ConnectionTarget(`${ns}.firebaseio.com`, false, ns, false);
+}
