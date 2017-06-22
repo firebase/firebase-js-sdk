@@ -84,7 +84,7 @@ export class Repo {
       const authOverride = app.options['databaseAuthVariableOverride'];
       // Validate authOverride
       if (typeof authOverride !== 'undefined' && authOverride !== null) {
-        if (authOverride !== 'object') {
+        if (typeof authOverride !== 'object') {
           throw new Error('Only objects are supported for option databaseAuthVariableOverride');
         }
         try {
