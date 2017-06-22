@@ -170,7 +170,7 @@ export function testAuthTokenProvider(app) {
 let freshRepoId = 1;
 const activeFreshApps = [];
 
-export function getFreshRepo(url, path) {
+export function getFreshRepo(url, path?) {
   var app = firebase.initializeApp({databaseURL: url}, 'ISOLATED_REPO_' + freshRepoId++);
   patchFakeAuthFunctions(app);
   activeFreshApps.push(app);
