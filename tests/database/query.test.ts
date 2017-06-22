@@ -2460,7 +2460,7 @@ describe('Query Tests', function() {
   it("Cache doesn't remove items that have fallen out of view.", async function() {
     var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
-    const ea = EventAccumulatorFactory.waitsForCount(1);
+    let ea = EventAccumulatorFactory.waitsForCount(1);
     var readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
@@ -2470,7 +2470,7 @@ describe('Query Tests', function() {
     await ea.promise;
     expect(readVal).to.be.null;
 
-    ea.reset(4);
+    ea = EventAccumulatorFactory.waitsForCount(4)
     for (var i = 0; i < 4; i++) {
       writeRef.child('k' + i).set(i);
     }
@@ -2480,7 +2480,7 @@ describe('Query Tests', function() {
     await pause(500);
     expect(readVal).to.deep.equal({'k2': 2, 'k3': 3});
     
-    ea.reset(1);
+    ea = EventAccumulatorFactory.waitsForCount(1)
     writeRef.remove();
 
     await ea.promise;
