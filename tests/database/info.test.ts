@@ -20,6 +20,7 @@ declare var TEST_ALT_NAMESPACE;
 declare var TEST_NAMESPACE;
 
 describe(".info Tests", function () {
+  this.timeout(3000);
   it("Can get a reference to .info nodes.", function() {
     var f = (getRootNode() as Reference);
     expect(getPath(f.child('.info'))).to.equal('/.info');

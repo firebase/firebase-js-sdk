@@ -32,6 +32,16 @@ function rawPath(firebaseRef) {
  * @return {{waiter: waiter, watchesInitializedWaiter: watchesInitializedWaiter, unregister: unregister, addExpectedEvents: addExpectedEvents}}
  */
 export function eventTestHelper(pathAndEvents, helperName?) {
+  let resolve, reject;
+  let promise = new Promise((pResolve, pReject) => {
+    resolve = pResolve;
+    reject = pReject;
+  });
+  let initResolve, initReject;
+  const initPromise = new Promise((pResolve, pReject) => {
+    initResolve = pResolve;
+    initReject = pReject;
+  });
   var expectedPathAndEvents = [];
   var actualPathAndEvents = [];
   var pathEventListeners = {};
@@ -58,6 +68,14 @@ export function eventTestHelper(pathAndEvents, helperName?) {
         // test framework is calling the waiter...  makes for easier debugging.
         waiter();
       }
+
+      // We want to trigger the promise resolution if valid, so try to call waiter as events
+      // are coming back.
+      try {
+        if (waiter()) {
+          resolve();
+        }
+      } catch(e) {}
     };
   };
 
@@ -152,6 +170,11 @@ export function eventTestHelper(pathAndEvents, helperName?) {
         pathEventListeners[path.toString()].unlisten = listenOnPath(path);
       }
     }
+
+    promise = new Promise((pResolve, pReject) => {
+      resolve = pResolve;
+      reject = pReject;
+    });
   };
 
   addExpectedEvents(pathAndEvents);
@@ -166,6 +189,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     actualPathAndEvents.splice(actualPathAndEvents.length - initializationEvents, initializationEvents);
     initializationEvents = 0;
 
+    initResolve();
     return true;
   };
 
@@ -179,9 +203,11 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
   eventCleanupHandlers.push(unregister);
   return {
-    waiter: waiter,
-    watchesInitializedWaiter: watchesInitializedWaiter,
-    unregister: unregister,
+    promise,
+    initPromise,
+    waiter,
+    watchesInitializedWaiter,
+    unregister,
 
     addExpectedEvents: function(moreEvents) {
       addExpectedEvents(moreEvents);

@@ -60,11 +60,12 @@ declare module './app/firebase_app' {
   interface FirebaseNamespace {
     database?: {
       (app?: FirebaseApp): Database,
-      Reference,
-      Query,
       Database,
       enableLogging,
       INTERNAL,
+      Query,
+      Reference,
+      ServerValue,
     }
   }
 }
