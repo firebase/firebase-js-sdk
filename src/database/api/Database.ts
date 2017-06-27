@@ -6,6 +6,7 @@ import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
 import { RepoManager } from "../core/RepoManager";
 import { validateArgCount } from "../../utils/validation";
+import { FirebaseApp } from "../../app/firebase_app";
 import { validateUrl } from "../core/util/validation";
 
 /**
@@ -13,11 +14,10 @@ import { validateUrl } from "../core/util/validation";
  * @implements {firebase.Service}
  */
 export class Database {
-  /** @type {Repo} */
-  repo_;
-  /** @type {Firebase} */
-  root_;
+  repo_: Repo;
+  root_: Reference;
   INTERNAL;
+  private __database: Database;
 
   static ServerValue = {
     'TIMESTAMP': {
@@ -43,18 +43,24 @@ export class Database {
     this.INTERNAL = new DatabaseInternals(this);
   }
 
-  app: null
+  get app(): FirebaseApp {
+    return this.repo_.app;
+  }
+
+  get database(): Database {
+    return this.__database || (this.__database = new Database(this));
+  }
 
   /**
    * Returns a reference to the root or the path specified in opt_pathString.
-   * @param {string=} opt_pathString
+   * @param {string=} pathString
    * @return {!Firebase} Firebase reference.
    */
-  ref(opt_pathString): Reference {
+  ref(pathString?): Reference {
     this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 
-    return opt_pathString !== undefined ? this.root_.child(opt_pathString) : this.root_;
+    return pathString !== undefined ? this.root_.child(pathString) : this.root_;
   }
 
   /**
@@ -85,7 +91,7 @@ export class Database {
    * @param {string} apiName
    * @private
    */
-  checkDeleted_(apiName) {
+  private checkDeleted_(apiName) {
     if (this.repo_ === null) {
       fatal("Cannot call " + apiName + " on a deleted database.");
     }
@@ -104,23 +110,6 @@ export class Database {
     this.repo_.resume();
   }
 };
-
-// Note: This is an un-minfied property of the Database only.
-Object.defineProperty(Database.prototype, 'app', {
-  /**
-   * @this {!Database}
-   * @return {!firebase.app.App}
-   */
-  get() {
-    return this.repo_.app;
-  }
-});
-
-Object.defineProperty(Repo.prototype, 'database', {
-  get() {
-    return this.__database || (this.__database = new Database(this));
-  }
-});
 
 class DatabaseInternals {
   database
