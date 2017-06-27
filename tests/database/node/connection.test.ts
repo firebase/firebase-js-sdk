@@ -3,8 +3,9 @@ import { TEST_PROJECT, testRepoInfo } from "../helpers/util";
 import { Connection } from "../../../src/database/realtime/Connection";
 import "../../../src/utils/nodePatches";
 
-describe.only('Connection', () => {
+describe('Connection', () => {
   it('return the session id', function(done) {
+    debugger;
     new Connection('1',
         testRepoInfo(TEST_PROJECT.databaseURL),
         message => {},
@@ -20,7 +21,6 @@ describe.only('Connection', () => {
   // TODO(koss) - Flakey Test.  When Dev Tools is closed on my Mac, this test
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
-  // https://app.asana.com/0/58926111402292/101921715724749
   it('disconnect old session on new connection', function(done) {
     const info = testRepoInfo(TEST_PROJECT.databaseURL);
     new Connection('1', info,

@@ -760,28 +760,26 @@ describe('Transaction Tests', function() {
     });
   });
 
-  it('Transaction runs on null only once after reconnect (Case 1981).', function(done) {
+  it('Transaction runs on null only once after reconnect (Case 1981).', async function() {
     if (!canCreateExtraConnections()) return;
 
     var ref = (getRandomNode() as Reference);
-    ref.set(42, function() {
-      var newRef = getFreshRepoFromReference(ref);
-      var run = 0;
-      newRef.transaction(function(curr) {
-        run++;
-        if (run === 1) {
-          expect(curr).to.equal(null);
-        } else if (run === 2) {
-          expect(curr).to.equal(42);
-        }
-        return 3.14;
-      }, function(error, committed, resultSnapshot) {
-        expect(error).to.equal(null);
-        expect(committed).to.equal(true);
-        expect(run).to.equal(2);
-        expect(resultSnapshot.val()).to.equal(3.14);
-        done();
-      });
+    await ref.set(42);
+    var newRef = getFreshRepoFromReference(ref);
+    var run = 0;
+    return newRef.transaction(function(curr) {
+      run++;
+      if (run === 1) {
+        expect(curr).to.equal(null);
+      } else if (run === 2) {
+        expect(curr).to.equal(42);
+      }
+      return 3.14;
+    }, function(error, committed, resultSnapshot) {
+      expect(error).to.equal(null);
+      expect(committed).to.equal(true);
+      expect(run).to.equal(2);
+      expect(resultSnapshot.val()).to.equal(3.14);
     });
   });
 
@@ -950,9 +948,9 @@ describe('Transaction Tests', function() {
       return 12;
     });
 
-    return ref.once('value', function(s) {
-      expect(s.exportVal()).to.deep.equal({ '.value': 12, '.priority': 7});
-    });
+    const snap = await ref.once('value');
+
+    expect(snap.exportVal()).to.deep.equal({ '.value': 12, '.priority': 7});
   });
 
   it('Transaction and priority: Transaction can change priority on non-empty node.', async function() {

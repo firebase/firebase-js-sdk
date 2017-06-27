@@ -2,8 +2,7 @@ import { expect } from "chai";
 import { TEST_PROJECT, testRepoInfo } from "../helpers/util";
 import { Connection } from "../../../src/database/realtime/Connection";
 
-describe.only('Connection', function() {
-  this.timeout(10000);
+describe('Connection', function() {
   it('return the session id', function(done) {
     new Connection('1',
         testRepoInfo(TEST_PROJECT.databaseURL),

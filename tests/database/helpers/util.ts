@@ -215,9 +215,9 @@ export function buildObjFromKey(key) {
 };
 
 export function testRepoInfo(url) {
-  const regex = /https:\/\/(.*).firebaseio.com/;
+  const regex = /https?:\/\/(.*).firebaseio.com/;
   const match = url.match(regex);
   if (!match) throw new Error('Couldnt get Namespace from passed URL');
   const [,ns] = match;
-  return new ConnectionTarget(`${ns}.firebaseio.com`, false, ns, false);
+  return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
 }

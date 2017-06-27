@@ -41,11 +41,13 @@ describe(".info Tests", function () {
     expect(function() {f2.set('hi');}).to.throw;
   });
 
-  it("Can watch .info/connected.", function (done) {
-    var f = (getRandomNode() as Reference).root;
-    f.child('.info/connected').on('value', function(snap) {
-      if (snap.val() === true) done();
-    });
+  it("Can watch .info/connected.", function() {
+    return new Promise(resolve => {
+      var f = (getRandomNode() as Reference).root;
+      f.child('.info/connected').on('value', function(snap) {
+        if (snap.val() === true) resolve();
+      });
+    })
   });
 
 
