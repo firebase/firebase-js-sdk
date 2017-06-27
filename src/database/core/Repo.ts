@@ -37,7 +37,7 @@ export class Repo {
   dataUpdateCount;
   serverSyncTree_: SyncTree;
 
-  private repoInfo_;
+  public repoInfo_;
   private stats_;
   private statsListener_;
   private eventQueue_;

@@ -89,7 +89,6 @@ export class Database {
 
   /**
    * @param {string} apiName
-   * @private
    */
   private checkDeleted_(apiName) {
     if (this.repo_ === null) {
