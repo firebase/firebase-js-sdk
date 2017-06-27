@@ -17,8 +17,7 @@ export class Database {
   repo_: Repo;
   root_: Reference;
   INTERNAL;
-  private __database: Database;
-
+  
   static ServerValue = {
     'TIMESTAMP': {
       '.sv' : 'timestamp'
@@ -45,10 +44,6 @@ export class Database {
 
   get app(): FirebaseApp {
     return this.repo_.app;
-  }
-
-  get database(): Database {
-    return this.__database || (this.__database = new Database(this));
   }
 
   /**
@@ -109,6 +104,12 @@ export class Database {
     this.repo_.resume();
   }
 };
+
+Object.defineProperty(Repo.prototype, 'database', {		
+  get() {		
+    return this.__database || (this.__database = new Database(this));		
+  }		
+});
 
 class DatabaseInternals {
   database
