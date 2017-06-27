@@ -1,10 +1,10 @@
 import { CONSTANTS } from "./constants";
-import { setWebSocketImpl } from "../../src/database/realtime/WebSocketConnection";
+import { setWebSocketImpl } from "../database/realtime/WebSocketConnection";
 import { 
   FirebaseIFrameScriptHolder,
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
   FIREBASE_LONGPOLL_DATA_CB_NAME
-} from "../../src/database/realtime/BrowserPollConnection";
+} from "../database/realtime/BrowserPollConnection";
 import { Client } from "faye-websocket";
 
 setWebSocketImpl(Client);
