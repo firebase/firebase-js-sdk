@@ -110,7 +110,7 @@ export class WebSocketConnection implements Transport {
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options = {
           'headers': {
-            'User-Agent': 'Firebase/' + CONSTANTS.PROTOCOL_VERSION + '/' + firebase.SDK_VERSION + '/' + process.platform + '/' + device
+            'User-Agent': `Firebase/${CONSTANTS.PROTOCOL_VERSION}/${firebase.SDK_VERSION}/${process.platform}/${device}`
         }};
 
         // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.

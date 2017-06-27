@@ -5,11 +5,12 @@ import {
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
   FIREBASE_LONGPOLL_DATA_CB_NAME
 } from "../../src/database/realtime/BrowserPollConnection";
+import { Client } from "faye-websocket";
+
+setWebSocketImpl(Client);
 
 // Overriding the constant (we should be the only ones doing this)
 CONSTANTS.NODE_CLIENT = true;
-
-setWebSocketImpl(require('faye-websocket').Client);
 
 /**
  * @suppress {es5Strict}
@@ -176,3 +177,4 @@ setWebSocketImpl(require('faye-websocket').Client);
     '}');
   jsonpCB(this.commandCB, this.onMessageCB);
 };
+
