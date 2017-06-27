@@ -107,7 +107,7 @@ export class Connection {
    */
   private start_() {
     const conn = this.transportManager_.initialTransport();
-    this.conn_ = new conn(this.nextTransportId_(), this.repoInfo_, /*transportSessionId=*/undefined, this.lastSessionId);
+    this.conn_ = new conn(this.nextTransportId_(), this.repoInfo_, undefined, this.lastSessionId);
 
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we
     // can consider the transport healthy.
@@ -120,37 +120,36 @@ export class Connection {
     this.secondaryConn_ = null;
     this.isHealthy_ = false;
 
-    const self = this;
     /*
      * Firefox doesn't like when code from one iframe tries to create another iframe by way of the parent frame.
      * This can occur in the case of a redirect, i.e. we guessed wrong on what server to connect to and received a reset.
      * Somehow, setTimeout seems to make this ok. That doesn't make sense from a security perspective, since you should
      * still have the context of your originating frame.
      */
-    setTimeout(function () {
+    setTimeout(() => {
       // self.conn_ gets set to null in some of the tests. Check to make sure it still exists before using it
-      self.conn_ && self.conn_.open(onMessageReceived, onConnectionLost);
+      this.conn_ && this.conn_.open(onMessageReceived, onConnectionLost);
     }, Math.floor(0));
 
 
     const healthyTimeout_ms = conn['healthyTimeout'] || 0;
     if (healthyTimeout_ms > 0) {
-      this.healthyTimeout_ = setTimeoutNonBlocking(function () {
-        self.healthyTimeout_ = null;
-        if (!self.isHealthy_) {
-          if (self.conn_ && self.conn_.bytesReceived > BYTES_RECEIVED_HEALTHY_OVERRIDE) {
-            self.log_('Connection exceeded healthy timeout but has received ' + self.conn_.bytesReceived +
+      this.healthyTimeout_ = setTimeoutNonBlocking(() => {
+        this.healthyTimeout_ = null;
+        if (!this.isHealthy_) {
+          if (this.conn_ && this.conn_.bytesReceived > BYTES_RECEIVED_HEALTHY_OVERRIDE) {
+            this.log_('Connection exceeded healthy timeout but has received ' + this.conn_.bytesReceived +
               ' bytes.  Marking connection healthy.');
-            self.isHealthy_ = true;
-            self.conn_.markConnectionHealthy();
-          } else if (self.conn_ && self.conn_.bytesSent > BYTES_SENT_HEALTHY_OVERRIDE) {
-            self.log_('Connection exceeded healthy timeout but has sent ' + self.conn_.bytesSent +
+            this.isHealthy_ = true;
+            this.conn_.markConnectionHealthy();
+          } else if (this.conn_ && this.conn_.bytesSent > BYTES_SENT_HEALTHY_OVERRIDE) {
+            this.log_('Connection exceeded healthy timeout but has sent ' + this.conn_.bytesSent +
               ' bytes.  Leaving connection alive.');
             // NOTE: We don't want to mark it healthy, since we have no guarantee that the bytes have made it to
             // the server.
           } else {
-            self.log_('Closing unhealthy connection after timeout.');
-            self.close();
+            this.log_('Closing unhealthy connection after timeout.');
+            this.close();
           }
         }
       }, Math.floor(healthyTimeout_ms));
@@ -166,29 +165,27 @@ export class Connection {
   };
 
   private disconnReceiver_(conn) {
-    const self = this;
-    return function (everConnected) {
-      if (conn === self.conn_) {
-        self.onConnectionLost_(everConnected);
-      } else if (conn === self.secondaryConn_) {
-        self.log_('Secondary connection lost.');
-        self.onSecondaryConnectionLost_();
+    return everConnected => {
+      if (conn === this.conn_) {
+        this.onConnectionLost_(everConnected);
+      } else if (conn === this.secondaryConn_) {
+        this.log_('Secondary connection lost.');
+        this.onSecondaryConnectionLost_();
       } else {
-        self.log_('closing an old connection');
+        this.log_('closing an old connection');
       }
     }
   };
 
   private connReceiver_(conn) {
-    const self = this;
-    return function (message) {
-      if (self.state_ != REALTIME_STATE_DISCONNECTED) {
-        if (conn === self.rx_) {
-          self.onPrimaryMessageReceived_(message);
-        } else if (conn === self.secondaryConn_) {
-          self.onSecondaryMessageReceived_(message);
+    return message => {
+      if (this.state_ != REALTIME_STATE_DISCONNECTED) {
+        if (conn === this.rx_) {
+          this.onPrimaryMessageReceived_(message);
+        } else if (conn === this.secondaryConn_) {
+          this.onSecondaryMessageReceived_(message);
         } else {
-          self.log_('message on old connection');
+          this.log_('message on old connection');
         }
       }
     };

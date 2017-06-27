@@ -1,7 +1,15 @@
 import { CONSTANTS } from "./constants";
+import { setWebSocketImpl } from "../../src/database/realtime/WebSocketConnection";
+import { 
+  FirebaseIFrameScriptHolder,
+  FIREBASE_LONGPOLL_COMMAND_CB_NAME,
+  FIREBASE_LONGPOLL_DATA_CB_NAME
+} from "../../src/database/realtime/BrowserPollConnection";
 
 // Overriding the constant (we should be the only ones doing this)
 CONSTANTS.NODE_CLIENT = true;
+
+setWebSocketImpl(require('faye-websocket').Client);
 
 /**
  * @suppress {es5Strict}
@@ -120,3 +128,51 @@ CONSTANTS.NODE_CLIENT = true;
   var Duplex = require('_stream_duplex');
   Duplex['prototype']['write'] = Writable['prototype']['write'];
 })();
+
+/**
+ * @type {?function({url: string, forever: boolean}, function(Error, number, string))}
+ */
+(FirebaseIFrameScriptHolder as any).request = null;
+
+/**
+ * @param {{url: string, forever: boolean}} req
+ * @param {function(string)=} onComplete
+ */
+(FirebaseIFrameScriptHolder as any).nodeRestRequest = function(req, onComplete) {
+  if (!(FirebaseIFrameScriptHolder as any).request)
+    (FirebaseIFrameScriptHolder as any).request =
+      /** @type {function({url: string, forever: boolean}, function(Error, number, string))} */ (require('request'));
+
+  (FirebaseIFrameScriptHolder as any).request(req, function(error, response, body) {
+    if (error)
+      throw 'Rest request for ' + req.url + ' failed.';
+
+    if (onComplete)
+      onComplete(body);
+  });
+};
+
+/**
+ * @param {!string} url
+ * @param {function()} loadCB
+ */
+(<any>FirebaseIFrameScriptHolder.prototype).doNodeLongPoll = function(url, loadCB) {
+  var self = this;
+  (FirebaseIFrameScriptHolder as any).nodeRestRequest({ url: url, forever: true }, function(body) {
+    self.evalBody(body);
+    loadCB();
+  });
+};
+
+/**
+ * Evaluates the string contents of a jsonp response.
+ * @param {!string} body
+ */
+(<any>FirebaseIFrameScriptHolder.prototype).evalBody = function(body) {
+  var jsonpCB;
+  //jsonpCB is externed in firebase-extern.js
+  eval('jsonpCB = function(' + FIREBASE_LONGPOLL_COMMAND_CB_NAME + ', ' + FIREBASE_LONGPOLL_DATA_CB_NAME + ') {' +
+    body +
+    '}');
+  jsonpCB(this.commandCB, this.onMessageCB);
+};

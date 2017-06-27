@@ -114,7 +114,7 @@ export const buildLogMessage_ = function(var_args) {
  * Use this for all debug messages in Firebase.
  * @type {?function(string)}
  */
-export var logger = null;
+export var logger = console.log.bind(console);
 
 
 /**

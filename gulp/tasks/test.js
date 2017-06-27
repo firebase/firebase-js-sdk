@@ -67,6 +67,9 @@ function runBrowserUnitTests(dev) {
         // we don't want this file as it references files that only exist once compiled
         `./src/firebase-*.ts`,
 
+        // We don't want to load the node env
+        `./src/utils/nodePatches.ts`,
+
         // Don't include node test files
         './tests/**/node/**/*.test.ts',
 
@@ -114,7 +117,7 @@ function runAllKarmaTests(done) {
     // list of files to exclude from the included globs above
     exclude: [
       // we don't want this file as it references files that only exist once compiled
-      `./src/firebase.ts`,
+      `./src/firebase-*.ts`,
 
       // Don't include node test files
       './tests/**/node/**/*.test.ts',

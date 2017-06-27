@@ -16,12 +16,14 @@ const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
 
 let WebSocketImpl = null;
-if (isNodeSdk()) {
-  WebSocketImpl = require('faye-websocket')['Client'];
-} else if (typeof MozWebSocket !== 'undefined') {
+if (typeof MozWebSocket !== 'undefined') {
   WebSocketImpl = MozWebSocket;
 } else if (typeof WebSocket !== 'undefined') {
   WebSocketImpl = WebSocket;
+}
+
+export function setWebSocketImpl(impl) {
+  WebSocketImpl = impl;
 }
 
 /**
@@ -122,11 +124,9 @@ export class WebSocketConnection implements Transport {
         }
 
         this.mySock = new WebSocketImpl(this.connURL, [], options);
-      }
-      else {
+      } else {
         this.mySock = new WebSocketImpl(this.connURL);
       }
-      this.mySock = new WebSocketImpl(this.connURL);
     } catch (e) {
       this.log_('Error instantiating WebSocket.');
       const error = e.message || e.data;

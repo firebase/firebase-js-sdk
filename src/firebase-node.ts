@@ -17,7 +17,7 @@
 import firebase from "./app";
 import './auth';
 import './database';
-import './database/nodePatches';
+import './utils/nodePatches';
 
 
 var Storage = require('dom-storage');
