@@ -361,6 +361,7 @@ export default class WindowController extends ControllerInterface {
     return 'serviceWorker' in navigator &&
         'PushManager' in window &&
         'Notification' in window &&
+        'fetch' in window &&
         ServiceWorkerRegistration.prototype
             .hasOwnProperty('showNotification') &&
         PushSubscription.prototype.hasOwnProperty('getKey');
