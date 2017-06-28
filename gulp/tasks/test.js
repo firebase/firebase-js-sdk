@@ -119,6 +119,9 @@ function runAllKarmaTests(done) {
       // we don't want this file as it references files that only exist once compiled
       `./src/firebase-*.ts`,
 
+      // We don't want to load the node env      
+      `./src/utils/nodePatches.ts`,
+
       // Don't include node test files
       './tests/**/node/**/*.test.ts',
     ],
