@@ -23,7 +23,7 @@ import {
   Observer,
   Subscribe,
   Unsubscribe,
-} from '../../../src/app/subscribe';
+} from '../../src/app/subscribe';
 import {assert} from 'chai';
 import * as sinon from 'sinon';
 

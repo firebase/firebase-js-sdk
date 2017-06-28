@@ -1,5 +1,6 @@
 import { CONSTANTS } from "./constants";
 import { setWebSocketImpl } from "../database/realtime/WebSocketConnection";
+import { setBufferImpl } from "../database/core/util/util";
 import { 
   FirebaseIFrameScriptHolder,
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
@@ -7,6 +8,7 @@ import {
 } from "../database/realtime/BrowserPollConnection";
 import { Client } from "faye-websocket";
 
+setBufferImpl(Buffer);
 setWebSocketImpl(Client);
 
 // Overriding the constant (we should be the only ones doing this)

@@ -49,10 +49,10 @@ const configObj = {
   },
   babel: {
     plugins: [
-      require('babel-plugin-add-module-exports'),
+      'add-module-exports',
     ],
     presets: [
-      [require('babel-preset-env'), {
+      ['env', {
         "targets": {
           "browsers": [
             "ie >= 9"

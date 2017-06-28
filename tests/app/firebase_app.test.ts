@@ -18,7 +18,7 @@ import {
   FirebaseNamespace,
   FirebaseApp,
   FirebaseService
-} from '../../../src/app/firebase_app';
+} from '../../src/app/firebase_app';
 import {assert} from 'chai';
 
 describe("Firebase App Class", () => {

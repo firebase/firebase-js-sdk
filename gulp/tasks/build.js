@@ -137,9 +137,9 @@ function compileIndvES2015ModulesToBrowser() {
       'firebase-database': './src/database.ts',
     },
     output: {
-      path: path.resolve(__dirname, './dist/browser'),
       filename: '[name].js',
-      jsonpFunction: 'webpackJsonpFirebase'
+      jsonpFunction: 'webpackJsonpFirebase',
+      path: path.resolve(__dirname, './dist/browser'),
     },
     module: {
       rules: [{
@@ -158,6 +158,7 @@ function compileIndvES2015ModulesToBrowser() {
       }]
     },
     plugins: [
+      new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.optimize.CommonsChunkPlugin({
         name: 'firebase-app'
       }),

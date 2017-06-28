@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 import {assert} from 'chai';
-import {ErrorFactory, ErrorList, patchCapture} from '../../../src/app/errors';
+import {ErrorFactory, ErrorList, patchCapture} from '../../src/app/errors';
 
 type Err =
   'generic-error' |

@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 import {assert} from 'chai';
-import {deepCopy, deepExtend} from '../../../src/app/deep_copy';
+import {deepCopy, deepExtend} from '../../src/utils/deep_copy';
 
 describe("deepCopy()", () => {
   it("Scalars", () => {

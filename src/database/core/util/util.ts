@@ -48,6 +48,10 @@ export const base64Encode = function(str) {
 };
 
 
+let BufferImpl;
+export function setBufferImpl(impl) {
+  BufferImpl = impl;
+}
 /**
  * URL-safe base64 decoding
  *
@@ -59,8 +63,8 @@ export const base64Encode = function(str) {
  */
 export const base64Decode = function(str) {
   try {
-    if (isNodeSdk()) {
-      return new Buffer(str, 'base64').toString('utf8');
+    if (BufferImpl()) {
+      return new BufferImpl(str, 'base64').toString('utf8');
     } else {
       return base64.decodeString(str, /*useWebSafe=*/true);
     }
