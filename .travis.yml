@@ -19,6 +19,4 @@ before_script:
   - "mkdir -p tests/config && echo $PROJECT_CONFIG > tests/config/project.json"
 script:
   - xvfb-run npm test
-branches:
-  only:
-    - master
+  
