@@ -6,14 +6,5 @@ export class TransactionResult {
    * @param {boolean} committed
    * @param {fb.api.DataSnapshot} snapshot
    */
-  constructor(committed, snapshot) {
-    /**
-    * @type {boolean}
-    */
-    this['committed'] = committed;
-    /**
-    * @type {fb.api.DataSnapshot}
-    */
-    this['snapshot'] = snapshot;
-  }
+  constructor(public committed, public snapshot) {}
 }

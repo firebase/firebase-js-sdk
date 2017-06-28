@@ -139,17 +139,8 @@ export class DataSnapshot {
       return !this.node_.isEmpty();
   }
 
-  /**
-   * @return {?string} The key of the location this snapshot's data came from.
-   */
-  getKey(): string | null {
-    validateArgCount('DataSnapshot.key', 0, 0, arguments.length);
-
-    return this.ref_.getKey();
-  }
-
   get key() {
-    return this.getKey();
+    return this.ref_.getKey();
   }
 
   /**

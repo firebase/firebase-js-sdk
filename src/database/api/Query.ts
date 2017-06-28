@@ -22,6 +22,10 @@ import { DataSnapshot } from './DataSnapshot';
 
 let __referenceConstructor: new(repo: Repo, path: Path) => Query;
 
+export interface SnapshotCallback {
+  (a: DataSnapshot, b?: string): any
+}
+
 /**
  * A Query represents a filter to be applied to a firebase location.  This object purely represents the
  * query expression (and exposes our public API to build the query).  The actual query logic is in ViewBase.js.
@@ -143,8 +147,8 @@ export class Query {
    * @param {Object=} context
    * @return {!function(DataSnapshot, string=)}
    */
-  on(eventType: string, callback: (a: DataSnapshot, b?: string) => any,
-     cancelCallbackOrContext?: ((a: Error) => any) | Object, context?: Object): (a: DataSnapshot, b?: string) => any {
+  on(eventType: string, callback: SnapshotCallback,
+     cancelCallbackOrContext?: ((a: Error) => any) | Object, context?: Object): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
     validateEventType('Query.on', 1, eventType, false);
     validateCallback('Query.on', 2, callback, false);
@@ -177,7 +181,7 @@ export class Query {
    * @param {?function(Error)} cancelCallback
    * @param {?Object} context
    */
-  onChildEvent(callbacks: { [k: string]: (a: DataSnapshot, b: string | null) => any },
+  onChildEvent(callbacks: { [k: string]: SnapshotCallback },
                cancelCallback: ((a: Error) => any) | null, context: Object | null) {
     const container = new ChildEventRegistration(callbacks, cancelCallback, context);
     this.repo.addEventCallbackForQuery(this, container);
@@ -188,7 +192,7 @@ export class Query {
    * @param {(function(!DataSnapshot, ?string=))=} callback
    * @param {Object=} context
    */
-  off(eventType?: string, callback?: (a: DataSnapshot, b?: string | null) => any, context?: Object) {
+  off(eventType?: string, callback?: SnapshotCallback, context?: Object) {
     validateArgCount('Query.off', 0, 3, arguments.length);
     validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
@@ -218,9 +222,8 @@ export class Query {
    * @return {!firebase.Promise}
    */
   once(eventType: string, 
-       userCallback?: (a: DataSnapshot, b?: string) => any,
-       cancelOrContext?, 
-       context?: Object): Promise<DataSnapshot> {
+       userCallback?: SnapshotCallback,
+       cancelOrContext?, context?: Object): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
@@ -378,7 +381,7 @@ export class Query {
     }
 
     // Calling with no params tells us to start at the beginning.
-    if (value == null) {
+    if (value === undefined) {
       value = null;
       name = null;
     }

@@ -37,7 +37,7 @@ export class Repo {
   dataUpdateCount;
   serverSyncTree_: SyncTree;
 
-  private repoInfo_;
+  public repoInfo_;
   private stats_;
   private statsListener_;
   private eventQueue_;
@@ -84,7 +84,7 @@ export class Repo {
       const authOverride = app.options['databaseAuthVariableOverride'];
       // Validate authOverride
       if (typeof authOverride !== 'undefined' && authOverride !== null) {
-        if (authOverride !== 'object') {
+        if (typeof authOverride !== 'object') {
           throw new Error('Only objects are supported for option databaseAuthVariableOverride');
         }
         try {

@@ -6,6 +6,7 @@ import { Reference } from "./Reference";
 import { Repo } from "../core/Repo";
 import { RepoManager } from "../core/RepoManager";
 import { validateArgCount } from "../../utils/validation";
+import { FirebaseApp } from "../../app/firebase_app";
 import { validateUrl } from "../core/util/validation";
 
 /**
@@ -13,12 +14,10 @@ import { validateUrl } from "../core/util/validation";
  * @implements {firebase.Service}
  */
 export class Database {
-  /** @type {Repo} */
-  repo_;
-  /** @type {Firebase} */
-  root_;
+  repo_: Repo;
+  root_: Reference;
   INTERNAL;
-
+  
   static ServerValue = {
     'TIMESTAMP': {
       '.sv' : 'timestamp'
@@ -43,7 +42,9 @@ export class Database {
     this.INTERNAL = new DatabaseInternals(this);
   }
 
-  app: null
+  get app(): FirebaseApp {
+    return this.repo_.app;
+  }
 
   /**
    * Returns a reference to the root or the path specified in opt_pathString.
@@ -83,9 +84,8 @@ export class Database {
 
   /**
    * @param {string} apiName
-   * @private
    */
-  checkDeleted_(apiName) {
+  private checkDeleted_(apiName) {
     if (this.repo_ === null) {
       fatal("Cannot call " + apiName + " on a deleted database.");
     }
@@ -105,21 +105,10 @@ export class Database {
   }
 };
 
-// Note: This is an un-minfied property of the Database only.
-Object.defineProperty(Database.prototype, 'app', {
-  /**
-   * @this {!Database}
-   * @return {!firebase.app.App}
-   */
-  get() {
-    return this.repo_.app;
-  }
-});
-
-Object.defineProperty(Repo.prototype, 'database', {
-  get() {
-    return this.__database || (this.__database = new Database(this));
-  }
+Object.defineProperty(Repo.prototype, 'database', {		
+  get() {		
+    return this.__database || (this.__database = new Database(this));		
+  }		
 });
 
 class DatabaseInternals {
