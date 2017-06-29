@@ -5,7 +5,6 @@ import "../../../src/utils/nodePatches";
 
 describe('Connection', () => {
   it('return the session id', function(done) {
-    debugger;
     new Connection('1',
         testRepoInfo(TEST_PROJECT.databaseURL),
         message => {},
