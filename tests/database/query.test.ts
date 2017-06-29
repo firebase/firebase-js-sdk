@@ -19,14 +19,6 @@ const _ = require('lodash');
 type TaskList = [Query, any][];
 
 describe('Query Tests', function() {
-  /**
-   * We are actually hitting a server during these tests, due to
-   * the increased potential latency, adding a little extra to 
-   * the timeout counter to help counteract tests that may seem
-   * flaky due to network conditions
-   */
-  this.timeout(4000);
-
   // Little helper class for testing event callbacks w/ contexts.
   var EventReceiver = function() {
     this.gotValue = false;
@@ -2278,7 +2270,6 @@ describe('Query Tests', function() {
   });
 
   it('Server limit below limit works properly.', async function() {
-    this.timeout(5000);
     var refPair = <Reference[]>getRandomNode(2),
         readRef = refPair[0],
         writeRef = refPair[1],

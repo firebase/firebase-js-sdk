@@ -17,9 +17,13 @@ const path = require('path');
 const cwd = process.cwd();
 const karma = require('karma');
 
-module.exports = {
+const configObj = {
   root: path.resolve(cwd),
   pkg: require(path.resolve(cwd, 'package.json')),
+  testConfig: {
+    timeout: 5000,
+    retries: 5
+  },
   tsconfig:  require(path.resolve(cwd, 'tsconfig.json')),
   tsconfigTest:  require(path.resolve(cwd, 'tsconfig.test.json')),
   paths: {
@@ -116,6 +120,16 @@ module.exports = {
     // karma-typescript config
     karmaTypescriptConfig: {
       tsconfig: `./tsconfig.test.json`
+    },
+
+    // Stub for client config
+    client: {
+      mocha: {}
     }
   }
 };
+
+configObj.karma.client.mocha.timeout = configObj.testConfig.timeout;
+configObj.karma.client.mocha.retries = configObj.testConfig.retries;
+
+module.exports = configObj;

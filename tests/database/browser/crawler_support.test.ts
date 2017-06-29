@@ -64,11 +64,6 @@ describe('Crawler Support', function() {
   }
 
   it('set() is a no-op', function(done) {
-    // This test mostly exists to make sure restRef really is using ReadonlyRestClient
-    // and we're not accidentally testing a normal Firebase connection. It also can
-    // be a little slow so adding an extra timeout to help out.
-    this.timeout(3500);
-
     normalRef.child('leaf').on('value', function(s) {
       expect(s.val()).to.equal(42);
     });

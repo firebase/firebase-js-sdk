@@ -32,7 +32,9 @@ function runNodeUnitTests() {
     .pipe(envs)
     .pipe(mocha({
       reporter: 'spec',
-      compilers: 'ts:ts-node/register'
+      compilers: 'ts:ts-node/register',
+      timeout: config.testConfig.timeout,
+      retries: config.testConfig.retries
     }));
 }
 
@@ -47,7 +49,9 @@ function runNodeBinaryTests() {
     .pipe(envs)
     .pipe(mocha({
       reporter: 'spec',
-      compilers: 'ts:ts-node/register'
+      compilers: 'ts:ts-node/register',
+      timeout: config.testConfig.timeout,
+      retries: config.testConfig.retries
     }));
 }
 
