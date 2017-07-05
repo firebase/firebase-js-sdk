@@ -1,4 +1,3 @@
-import { EventAccumulator } from './EventAccumulator';
 import { TEST_PROJECT } from "./util";
 
 /**
@@ -37,10 +36,10 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     resolve = pResolve;
     reject = pReject;
   });
-  let initResolve, initReject;
+  let resolveInit, rejectInit;
   const initPromise = new Promise((pResolve, pReject) => {
-    initResolve = pResolve;
-    initReject = pReject;
+    resolveInit = pResolve;
+    rejectInit = pReject;
   });
   var expectedPathAndEvents = [];
   var actualPathAndEvents = [];
@@ -189,7 +188,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     actualPathAndEvents.splice(actualPathAndEvents.length - initializationEvents, initializationEvents);
     initializationEvents = 0;
 
-    initResolve();
+    resolveInit();
     return true;
   };
 
