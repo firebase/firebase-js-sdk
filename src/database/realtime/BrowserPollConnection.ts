@@ -18,19 +18,19 @@ import { Transport } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
 
 // URL query parameters associated with longpolling
-const FIREBASE_LONGPOLL_START_PARAM = 'start';
-const FIREBASE_LONGPOLL_CLOSE_COMMAND = 'close';
-const FIREBASE_LONGPOLL_COMMAND_CB_NAME = 'pLPCommand';
-const FIREBASE_LONGPOLL_DATA_CB_NAME = 'pRTLPCB';
-const FIREBASE_LONGPOLL_ID_PARAM = 'id';
-const FIREBASE_LONGPOLL_PW_PARAM = 'pw';
-const FIREBASE_LONGPOLL_SERIAL_PARAM = 'ser';
-const FIREBASE_LONGPOLL_CALLBACK_ID_PARAM = 'cb';
-const FIREBASE_LONGPOLL_SEGMENT_NUM_PARAM = 'seg';
-const FIREBASE_LONGPOLL_SEGMENTS_IN_PACKET = 'ts';
-const FIREBASE_LONGPOLL_DATA_PARAM = 'd';
-const FIREBASE_LONGPOLL_DISCONN_FRAME_PARAM = 'disconn';
-const FIREBASE_LONGPOLL_DISCONN_FRAME_REQUEST_PARAM = 'dframe';
+export const FIREBASE_LONGPOLL_START_PARAM = 'start';
+export const FIREBASE_LONGPOLL_CLOSE_COMMAND = 'close';
+export const FIREBASE_LONGPOLL_COMMAND_CB_NAME = 'pLPCommand';
+export const FIREBASE_LONGPOLL_DATA_CB_NAME = 'pRTLPCB';
+export const FIREBASE_LONGPOLL_ID_PARAM = 'id';
+export const FIREBASE_LONGPOLL_PW_PARAM = 'pw';
+export const FIREBASE_LONGPOLL_SERIAL_PARAM = 'ser';
+export const FIREBASE_LONGPOLL_CALLBACK_ID_PARAM = 'cb';
+export const FIREBASE_LONGPOLL_SEGMENT_NUM_PARAM = 'seg';
+export const FIREBASE_LONGPOLL_SEGMENTS_IN_PACKET = 'ts';
+export const FIREBASE_LONGPOLL_DATA_PARAM = 'd';
+export const FIREBASE_LONGPOLL_DISCONN_FRAME_PARAM = 'disconn';
+export const FIREBASE_LONGPOLL_DISCONN_FRAME_REQUEST_PARAM = 'dframe';
 
 //Data size constants.
 //TODO: Perf: the maximum length actually differs from browser to browser.
@@ -123,8 +123,9 @@ export class BrowserPollConnection implements Transport {
         return;
 
       //Set up a callback that gets triggered once a connection is set up.
-      this.scriptTagHolder = new FirebaseIFrameScriptHolder((command, arg1, arg2, arg3, arg4) => {
-        this.incrementIncomingBytes_(arguments);
+      this.scriptTagHolder = new FirebaseIFrameScriptHolder((...args) => {
+        const [command, arg1, arg2, arg3, arg4] = args;
+        this.incrementIncomingBytes_(args);
         if (!this.scriptTagHolder)
           return; // we closed the connection.
 
@@ -152,8 +153,9 @@ export class BrowserPollConnection implements Transport {
         } else {
           throw new Error('Unrecognized command received: ' + command);
         }
-      }, (pN, data) => {
-        this.incrementIncomingBytes_(arguments);
+      }, (...args) => {
+        const [pN, data] = args;
+        this.incrementIncomingBytes_(args);
         this.myPacketOrderer.handleResponse(pN, data);
       }, () => {
         this.onClosed_();
@@ -338,7 +340,7 @@ export class BrowserPollConnection implements Transport {
   };
 }
 
-interface IFrameElement extends HTMLIFrameElement {
+export interface IFrameElement extends HTMLIFrameElement {
  doc: Document;
 }
 
@@ -350,7 +352,7 @@ interface IFrameElement extends HTMLIFrameElement {
  * @param onDisconnect - The callback to be triggered when this tag holder is closed
  * @param urlFn - A function that provides the URL of the endpoint to send data to.
  *********************************************************************************************/
-class FirebaseIFrameScriptHolder {
+export class FirebaseIFrameScriptHolder {
   //We maintain a count of all of the outstanding requests, because if we have too many active at once it can cause
   //problems in some browsers.
   /**
@@ -647,54 +649,4 @@ class FirebaseIFrameScriptHolder {
       }, Math.floor(1));
     }
   }
-}
-
-if (isNodeSdk()) {
-  /**
-   * @type {?function({url: string, forever: boolean}, function(Error, number, string))}
-   */
-  (FirebaseIFrameScriptHolder as any).request = null;
-
-  /**
-   * @param {{url: string, forever: boolean}} req
-   * @param {function(string)=} onComplete
-   */
-  (FirebaseIFrameScriptHolder as any).nodeRestRequest = function(req, onComplete) {
-    if (!(FirebaseIFrameScriptHolder as any).request)
-      (FirebaseIFrameScriptHolder as any).request =
-        /** @type {function({url: string, forever: boolean}, function(Error, number, string))} */ (require('request'));
-
-    (FirebaseIFrameScriptHolder as any).request(req, function(error, response, body) {
-      if (error)
-        throw 'Rest request for ' + req.url + ' failed.';
-
-      if (onComplete)
-        onComplete(body);
-    });
-  };
-
-  /**
-   * @param {!string} url
-   * @param {function()} loadCB
-   */
-  (<any>FirebaseIFrameScriptHolder.prototype).doNodeLongPoll = function(url, loadCB) {
-    var self = this;
-    (FirebaseIFrameScriptHolder as any).nodeRestRequest({ url: url, forever: true }, function(body) {
-      self.evalBody(body);
-      loadCB();
-    });
-  };
-
-  /**
-   * Evaluates the string contents of a jsonp response.
-   * @param {!string} body
-   */
-  (<any>FirebaseIFrameScriptHolder.prototype).evalBody = function(body) {
-    var jsonpCB;
-    //jsonpCB is externed in firebase-extern.js
-    eval('jsonpCB = function(' + FIREBASE_LONGPOLL_COMMAND_CB_NAME + ', ' + FIREBASE_LONGPOLL_DATA_CB_NAME + ') {' +
-      body +
-      '}');
-    jsonpCB(this.commandCB, this.onMessageCB);
-  };
 }

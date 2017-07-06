@@ -32,7 +32,9 @@ function runNodeUnitTests() {
     .pipe(envs)
     .pipe(mocha({
       reporter: 'spec',
-      compilers: 'ts:ts-node/register'
+      compilers: 'ts:ts-node/register',
+      timeout: config.testConfig.timeout,
+      retries: config.testConfig.retries
     }));
 }
 
@@ -47,33 +49,41 @@ function runNodeBinaryTests() {
     .pipe(envs)
     .pipe(mocha({
       reporter: 'spec',
-      compilers: 'ts:ts-node/register'
+      compilers: 'ts:ts-node/register',
+      timeout: config.testConfig.timeout,
+      retries: config.testConfig.retries
     }));
 }
 
 /**
  * Runs all of the browser unit tests in karma
  */
-function runBrowserUnitTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
-    // list of files / patterns to load in the browser
-    files: [
-      './+(src|tests)/**/*.ts'
-    ],
-    
-    // list of files to exclude from the included globs above
-    exclude: [
-      // we don't want this file as it references files that only exist once compiled
-      `./src/firebase.ts`,
+function runBrowserUnitTests(dev) {
+  return (done) => {
+    const karmaConfig = Object.assign({}, config.karma, {
+      // list of files / patterns to load in the browser
+      files: [
+        './+(src|tests)/**/*.ts'
+      ],
+      
+      // list of files to exclude from the included globs above
+      exclude: [
+        // we don't want this file as it references files that only exist once compiled
+        `./src/firebase-*.ts`,
 
-      // Don't include node test files
-      './tests/**/node/**/*.test.ts',
+        // We don't want to load the node env
+        `./src/utils/nodePatches.ts`,
 
-      // Don't include binary test files
-      './tests/**/binary/**/*.test.ts',
-    ],
-  });
-  new karma.Server(karmaConfig, done).start();
+        // Don't include node test files
+        './tests/**/node/**/*.test.ts',
+
+        // Don't include binary test files
+        './tests/**/binary/**/*.test.ts',
+      ],
+      browsers: !!dev ? ['ChromeHeadless'] : config.karma.browsers,
+    });
+    new karma.Server(karmaConfig, done).start();
+  };
 }
 
 /**
@@ -111,7 +121,10 @@ function runAllKarmaTests(done) {
     // list of files to exclude from the included globs above
     exclude: [
       // we don't want this file as it references files that only exist once compiled
-      `./src/firebase.ts`,
+      `./src/firebase-*.ts`,
+
+      // We don't want to load the node env      
+      `./src/utils/nodePatches.ts`,
 
       // Don't include node test files
       './tests/**/node/**/*.test.ts',
@@ -121,9 +134,9 @@ function runAllKarmaTests(done) {
 }
 
 gulp.task('test:unit:node', runNodeUnitTests);
-gulp.task('test:unit:browser', runBrowserUnitTests);
+gulp.task('test:unit:browser', runBrowserUnitTests());
 
-const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests);
+const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests());
 gulp.task('test:unit', unitTestSuite);
 
 gulp.task('test:binary:browser', runBrowserBinaryTests);
@@ -137,3 +150,6 @@ gulp.task('test', gulp.parallel([
   runNodeBinaryTests,
   runAllKarmaTests
 ]));
+
+exports.runNodeUnitTests = runNodeUnitTests;
+exports.runBrowserUnitTests = runBrowserUnitTests;

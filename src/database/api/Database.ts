@@ -51,7 +51,7 @@ export class Database {
    * @param {string=} pathString
    * @return {!Firebase} Firebase reference.
    */
-  ref(pathString?): Reference {
+  ref(pathString?: string): Reference {
     this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 

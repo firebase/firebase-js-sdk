@@ -1,6 +1,6 @@
 import { IndexedFilter } from "./IndexedFilter";
 import { PRIORITY_INDEX } from "../../../core/snap/indexes/PriorityIndex";
-import { NamedNode } from "../../../core/snap/Node";
+import { Node, NamedNode } from "../../../core/snap/Node";
 import { ChildrenNode } from "../../../core/snap/ChildrenNode";
 /**
  * Filters nodes by range and uses an IndexFilter to track any changes after filtering the node

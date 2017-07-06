@@ -286,8 +286,9 @@ export class Repo {
    * @param {number|string|null} newPriority
    * @param {?function(?Error, *=)} onComplete
    */
-  setWithPriority(path: Path, newVal: any, newPriority: number | string | null,
-                          onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  setWithPriority(path: Path, newVal: any, 
+                  newPriority: number | string | null,
+                  onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
     this.log_('set', {path: path.toString(), value: newVal, priority: newPriority});
 
     // TODO: Optimize this behavior to either (a) store flag to skip resolving where possible and / or

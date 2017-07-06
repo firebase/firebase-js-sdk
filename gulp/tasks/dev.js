@@ -17,19 +17,18 @@ const gulp = require('gulp');
 const config = require('../config');
 
 // Ensure that the test tasks get set up
-require('./test');
+const testFxns = require('./test');
 
 function watchDevFiles() {
   const stream = gulp.watch([
     `${config.root}/src/**/*.ts`,
-    config.paths.test.unit
-  ], gulp.parallel('test:unit'));
+    'tests/**/*.test.ts'
+  ], testFxns.runBrowserUnitTests(true));
 
-  stream.on('error', () => {});
+  stream.on('error', err => {});
   return stream;
 }
 
 gulp.task('dev', gulp.parallel([
-  'test:unit',
   watchDevFiles
 ]));

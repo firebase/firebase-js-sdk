@@ -2,10 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "module": "CommonJS",
+    "module": "commonjs",
     "target": "es5",
     "allowJs": true,
-    "declaration": false
+    "declaration": false,
+    "outDir": "./dist",
+    "sourceMap": true
   },
   "compileOnSave": true,
   "include": [

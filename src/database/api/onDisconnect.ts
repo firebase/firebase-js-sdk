@@ -26,7 +26,7 @@ export class OnDisconnect {
   }
 
   /**
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
   cancel(onComplete?) {
@@ -38,7 +38,7 @@ export class OnDisconnect {
   }
 
   /**
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
   remove(onComplete?) {
@@ -52,7 +52,7 @@ export class OnDisconnect {
 
   /**
    * @param {*} value
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
   set(value, onComplete?) {
@@ -68,7 +68,7 @@ export class OnDisconnect {
   /**
    * @param {*} value
    * @param {number|string|null} priority
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
   setWithPriority(value, priority, onComplete?) {
@@ -86,7 +86,7 @@ export class OnDisconnect {
 
   /**
    * @param {!Object} objectToMerge
-   * @param {function(?Error)=} opt_onComplete
+   * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
   update(objectToMerge, onComplete?) {
