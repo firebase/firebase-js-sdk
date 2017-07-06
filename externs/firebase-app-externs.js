@@ -275,3 +275,27 @@ firebase.Promise.reject = function(error) {};
  * @return {!firebase.Promise<!Array<*>>}
  */
 firebase.Promise.all = function(values) {};
+
+/**
+ * @template V, E
+ * @interface
+ **/
+firebase.Observer = function() {};
+
+/**
+ * @param {?V} value
+ */
+firebase.Observer.prototype.next = function(value) {};
+
+/**
+ * @param {!E} error
+ */
+firebase.Observer.prototype.error = function(error) {};
+
+firebase.Observer.prototype.complete = function() {};
+
+/** @typedef {function(): void} */
+firebase.CompleteFn;
+
+/** @typedef {function(): void} */
+firebase.Unsubscribe;

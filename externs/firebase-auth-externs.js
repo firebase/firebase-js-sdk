@@ -870,13 +870,13 @@ firebase.auth.Auth.prototype.fetchProvidersForEmail = function(email) {};
  *   }
  * });
  *
- * @param {!Object|function(?firebase.User)}
+ * @param {!firebase.Observer<firebase.User, firebase.auth.Error>|function(?firebase.User)}
  *     nextOrObserver An observer object or a function triggered on change.
  * @param {function(!firebase.auth.Error)=} error Optional A function
  *     triggered on auth error.
- * @param {function()=} completed Optional A function triggered when the
+ * @param {firebase.CompleteFn=} completed Optional A function triggered when the
  *     observer is removed.
- * @return {!function()} The unsubscribe function for the observer.
+ * @return {!firebase.Unsubscribe} The unsubscribe function for the observer.
  */
 firebase.auth.Auth.prototype.onAuthStateChanged = function(
     nextOrObserver, error, completed) {};
@@ -894,13 +894,13 @@ firebase.auth.Auth.prototype.onAuthStateChanged = function(
  *   }
  * });
  *
- * @param {!Object|function(?firebase.User)}
+ * @param {!firebase.Observer<firebase.User, firebase.auth.Error>|function(?firebase.User)}
  *     nextOrObserver An observer object or a function triggered on change.
  * @param {function(!firebase.auth.Error)=} error Optional A function
  *     triggered on auth error.
- * @param {function()=} completed Optional A function triggered when the
+ * @param {firebase.CompleteFn=} completed Optional A function triggered when the
  *     observer is removed.
- * @return {!function()} The unsubscribe function for the observer.
+ * @return {!firebase.Unsubscribe} The unsubscribe function for the observer.
  */
 firebase.auth.Auth.prototype.onIdTokenChanged = function(
     nextOrObserver, error, completed) {};
