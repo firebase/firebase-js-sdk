@@ -12,8 +12,8 @@
 # You can also use email addresses if you prefer.
 
 # Database Code
-src/database  @mikelehen @jdimond @schmidt-sebastian
-tests/database  @mikelehen @jdimond @schmidt-sebastian
+src/database  @mikelehen @schmidt-sebastian
+tests/database  @mikelehen @schmidt-sebastian
 
 # Storage Code
 src/storage  @sphippen
