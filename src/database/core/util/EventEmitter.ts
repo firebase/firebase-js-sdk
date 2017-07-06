@@ -32,13 +32,15 @@ export abstract class EventEmitter {
    * @param {...*} var_args
    */
   trigger(eventType, var_args) {
-    // Clone the list, since callbacks could add/remove listeners.
-    var listeners = [
-      ...this.listeners_[eventType]
-    ];
+    if (Array.isArray(this.listeners_[eventType])) {
+      // Clone the list, since callbacks could add/remove listeners.
+      var listeners = [
+        ...this.listeners_[eventType]
+      ];
 
-    for (var i = 0; i < listeners.length; i++) {
-      listeners[i].callback.apply(listeners[i].context, Array.prototype.slice.call(arguments, 1));
+      for (var i = 0; i < listeners.length; i++) {
+        listeners[i].callback.apply(listeners[i].context, Array.prototype.slice.call(arguments, 1));
+      }
     }
   }
 
