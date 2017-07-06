@@ -23,7 +23,7 @@ import { FirebaseNamespace } from "../../../../src/app/firebase_app";
 import { firebaseSpec } from "../../utils/definitions/firebase";
 import { storageInstanceSpec } from "../../utils/definitions/storage";
 import { authInstanceSpec } from "../../utils/definitions/auth";
-import { compiledMessagingInstanceSpec } from "../../utils/definitions/messaging";
+import { messagingInstanceSpec } from "../../utils/definitions/messaging";
 import { databaseInstanceSpec } from "../../utils/definitions/database";
 
 const appConfig = {
@@ -66,7 +66,7 @@ describe('Binary Namespace Test', () => {
   });
   describe('firebase.messaging() Verification', () => {
     it('firebase.messaging() should expose proper namespace', () => {
-      checkProps('firebase.messaging()', (firebase as any).messaging(), compiledMessagingInstanceSpec);
+      checkProps('firebase.messaging()', (firebase as any).messaging(), messagingInstanceSpec);
     });
   });
 });

@@ -52,9 +52,7 @@ export interface Observable<T> {
   subscribe: Subscribe<T>;
 }
 
-import {local} from './shared_promise';
-
-let LocalPromise = local.Promise as typeof Promise;
+import { PromiseImpl } from '../utils/promise';
 
 export type Executor<T> = (observer: Observer<T>) => void;
 
@@ -83,7 +81,7 @@ class ObserverProxy<T> implements Observer<T>{
   private onNoObservers: Executor<T>|undefined;
   private observerCount = 0;
   // Micro-task scheduling by calling task.then().
-  private task = LocalPromise.resolve();
+  private task = PromiseImpl.resolve();
   private finalized = false;
   private finalError: Error;
 
@@ -257,7 +255,7 @@ class ObserverProxy<T> implements Observer<T>{
 /** Turn synchronous function into one called asynchronously. */
 export function async(fn: Function, onError?: ErrorFn): Function {
   return (...args: any[]) => {
-    LocalPromise.resolve(true)
+    PromiseImpl.resolve(true)
       .then(() => {
         fn(...args);
       })

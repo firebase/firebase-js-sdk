@@ -17,9 +17,13 @@ const path = require('path');
 const cwd = process.cwd();
 const karma = require('karma');
 
-module.exports = {
+const configObj = {
   root: path.resolve(cwd),
   pkg: require(path.resolve(cwd, 'package.json')),
+  testConfig: {
+    timeout: 5000,
+    retries: 5
+  },
   tsconfig:  require(path.resolve(cwd, 'tsconfig.json')),
   tsconfigTest:  require(path.resolve(cwd, 'tsconfig.test.json')),
   paths: {
@@ -30,6 +34,7 @@ module.exports = {
         'tests/**/*.test.ts',
         '!tests/**/browser/**/*.test.ts',
         '!tests/**/binary/**/*.test.ts',
+        '!src/firebase-*.ts',
       ],
       binary: [
         'tests/**/binary/**/*.test.ts',
@@ -44,11 +49,10 @@ module.exports = {
   },
   babel: {
     plugins: [
-      require('babel-plugin-add-module-exports'),
-      require('babel-plugin-minify-dead-code-elimination')
+      'add-module-exports',
     ],
     presets: [
-      [require('babel-preset-env'), {
+      ['env', {
         "targets": {
           "browsers": [
             "ie >= 9"
@@ -103,7 +107,7 @@ module.exports = {
     
     // start these browsers
     // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['ChromeHeadless', 'Firefox'],
     
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -116,6 +120,16 @@ module.exports = {
     // karma-typescript config
     karmaTypescriptConfig: {
       tsconfig: `./tsconfig.test.json`
+    },
+
+    // Stub for client config
+    client: {
+      mocha: {}
     }
   }
 };
+
+configObj.karma.client.mocha.timeout = configObj.testConfig.timeout;
+configObj.karma.client.mocha.retries = configObj.testConfig.retries;
+
+module.exports = configObj;

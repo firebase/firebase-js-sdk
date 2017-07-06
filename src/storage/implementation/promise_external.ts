@@ -25,20 +25,20 @@
  *                  (function(!Error): void))} resolver
  */
 
-import { local } from "../../app/shared_promise";
+import { PromiseImpl } from "../../utils/promise";
 
 export function make<T>(resolver: (p1: (p1: T) => void, 
                         p2: (p1: Error) => void) => void): Promise<T> {
-  return new local.Promise(resolver);
+  return new PromiseImpl(resolver);
 }
 
 /**
  * @template T
  */
 export function resolve<T>(value: T): Promise<T> {
-  return (local.Promise.resolve(value) as Promise<T>);
+  return (PromiseImpl.resolve(value) as Promise<T>);
 }
 
 export function reject<T>(error: Error): Promise<T> {
-  return (local.Promise.reject(error) as Promise<T>);
+  return (PromiseImpl.reject(error) as Promise<T>);
 }

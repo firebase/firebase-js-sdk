@@ -22,8 +22,8 @@ import {
   ErrorFactory,
   FirebaseError
 } from './errors';
-import { local } from './shared_promise';
-import { patchProperty, deepCopy, deepExtend } from './deep_copy';
+import { PromiseImpl } from '../utils/promise';
+import { patchProperty, deepCopy, deepExtend } from '../utils/deep_copy';
 
 export interface FirebaseAuthTokenData { accessToken: string; }
 
@@ -221,8 +221,6 @@ const contains = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-let LocalPromise = local.Promise as typeof Promise;
-
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 // An array to capture listeners before the true auth functions
@@ -252,7 +250,7 @@ class FirebaseAppImpl implements FirebaseApp {
     this.options_ = deepCopy<FirebaseOptions>(options);
     this.INTERNAL = {
       'getUid': () => null,
-      'getToken': () => LocalPromise.resolve(null),
+      'getToken': () => PromiseImpl.resolve(null),
       'addAuthTokenListener': (callback: (token: string|null) => void) => {
         tokenListeners.push(callback);
         // Make sure callback is called, asynchronously, in the absence of the auth module
@@ -275,7 +273,7 @@ class FirebaseAppImpl implements FirebaseApp {
   }
 
   delete(): Promise<void> {
-    return new LocalPromise((resolve) => {
+    return new PromiseImpl((resolve) => {
       this.checkDestroyed_();
       resolve();
     })
@@ -287,7 +285,7 @@ class FirebaseAppImpl implements FirebaseApp {
             services.push(this.services_[serviceKey][instanceKey]);
           });
         });
-        return LocalPromise.all(services.map((service) => {
+        return PromiseImpl.all(services.map((service) => {
           return service.INTERNAL!.delete();
         }));
       })
@@ -394,7 +392,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     'initializeApp': initializeApp,
     'app': app as any,
     'apps': null as any,
-    'Promise': LocalPromise,
+    'Promise': PromiseImpl,
     'SDK_VERSION': '${JSCORE_VERSION}',
     'INTERNAL': {
       'registerService': registerService,
@@ -405,7 +403,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
       'removeApp': removeApp,
       'factories': factories,
       'useAsService': useAsService,
-      'Promise': local.GoogPromise as typeof Promise,
+      'Promise': PromiseImpl,
       'deepExtend': deepExtend,
     }
   };

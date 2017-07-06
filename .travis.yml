@@ -16,8 +16,6 @@ addons:
       - g++-4.8
 before_script:
   - "export DISPLAY=:99.0"
+  - "mkdir -p tests/config && echo \"$PROJECT_CONFIG\" > tests/config/project.json"
 script:
   - xvfb-run npm test
-branches:
-  only:
-    - master

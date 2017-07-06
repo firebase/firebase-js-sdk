@@ -42,7 +42,6 @@ const glob = require('glob');
 const fs = require('fs');
 const gzipSize = require('gzip-size');
 const WrapperPlugin = require('wrapper-webpack-plugin');
-const legacyBuild = require('./build.legacy');
 
 function cleanDist(dir) { 
   return function cleanDistDirectory(done) {
@@ -135,11 +134,12 @@ function compileIndvES2015ModulesToBrowser() {
       'firebase-app': './src/app.ts',
       'firebase-storage': './src/storage.ts',
       'firebase-messaging': './src/messaging.ts',
+      'firebase-database': './src/database.ts',
     },
     output: {
-      path: path.resolve(__dirname, './dist/browser'),
       filename: '[name].js',
-      jsonpFunction: 'webpackJsonpFirebase'
+      jsonpFunction: 'webpackJsonpFirebase',
+      path: path.resolve(__dirname, './dist/browser'),
     },
     module: {
       rules: [{
@@ -158,6 +158,7 @@ function compileIndvES2015ModulesToBrowser() {
       }]
     },
     plugins: [
+      new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.optimize.CommonsChunkPlugin({
         name: 'firebase-app'
       }),
@@ -193,27 +194,6 @@ function compileIndvES2015ModulesToBrowser() {
     .pipe(gulp.dest(`${config.paths.outDir}/browser`));
 }
 
-function compileSDKES2015ToBrowser() {
-  return gulp.src('./dist/es2015/firebase.js')
-    .pipe(webpackStream({
-      plugins: [
-        new webpack.DefinePlugin({
-          TARGET_ENVIRONMENT: JSON.stringify('browser')
-        })
-      ]
-    }, webpack))
-    .pipe(sourcemaps.init({ loadMaps: true }))
-    .pipe(through.obj(function(file, enc, cb) {
-      // Dont pipe through any source map files as it will be handled
-      // by gulp-sourcemaps
-      var isSourceMap = /\.map$/.test(file.path);
-      if (!isSourceMap) this.push(file);
-      cb();
-    }))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(`${config.paths.outDir}/browser`));
-}
-
 function buildBrowserFirebaseJs() {
   return gulp.src('./dist/browser/*.js')
     .pipe(sourcemaps.init({ loadMaps: true }))
@@ -223,32 +203,18 @@ function buildBrowserFirebaseJs() {
 }
 
 function buildAltEnvFirebaseJs() {
-  const envs = [
-    'browser',
-    'node',
-    'react-native'
-  ];
-
-  const streams = envs.map(env => {
-    const babelConfig = Object.assign({}, config.babel, {
-      plugins: [
-        ['inline-replace-variables', {
-          'TARGET_ENVIRONMENT': env
-        }],
-        ...config.babel.plugins
-      ]
-    });
-    return gulp.src('./dist/es2015/firebase.js')
-      .pipe(sourcemaps.init({ loadMaps: true }))
-      .pipe(babel(babelConfig))
-      .pipe(rename({
-        suffix: `-${env}`
-      }))
-      .pipe(sourcemaps.write('.'))
-      .pipe(gulp.dest(`${config.paths.outDir}/cjs`));
+  const babelConfig = Object.assign({}, config.babel, {
+    plugins: config.babel.plugins
   });
-
-  return merge(streams);
+  return gulp.src([
+      './dist/es2015/firebase-browser.js',
+      './dist/es2015/firebase-node.js',
+      './dist/es2015/firebase-react-native.js',
+    ])
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(babel(babelConfig))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(`${config.paths.outDir}/cjs`));
 }
 
 function copyPackageContents() {
@@ -429,7 +395,6 @@ gulp.task('build:cjs', gulp.parallel([
     gulp.parallel(compileES2015ToCJS, buildAltEnvFirebaseJs)
   ]),
   processPrebuiltFilesForCJS,
-  legacyBuild.compileDatabaseForCJS
 ]));
 
 gulp.task('process:prebuilt', gulp.parallel([
@@ -444,8 +409,6 @@ const compileSourceAssets = gulp.series([
   gulp.parallel([
     compileIndvES2015ModulesToBrowser, 
     compileES2015ToCJS,
-    legacyBuild.compileDatabaseForBrowser,
-    legacyBuild.compileDatabaseForCJS
   ])
 ]);
 
@@ -455,7 +418,6 @@ gulp.task('build:browser', gulp.series([
   gulp.parallel([
     compileSourceAssets,
     processPrebuiltFilesForBrowser,
-    legacyBuild.compileDatabaseForBrowser
   ]),
   buildBrowserFirebaseJs
 ]));

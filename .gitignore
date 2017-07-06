@@ -4,7 +4,8 @@
 npm-debug.log
 /coverage
 /.nyc_output
-/tests/integration/config
+/tests/config
 /temp
 /.vscode
+/.ts-node
 /.idea
