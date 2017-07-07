@@ -29,11 +29,6 @@ Buffer.prototype.toString = function(encoding) { return 'dummy'; };
 
 // Browser externs
 var MozWebSocket;
-/**
- * @param {!string} input
- * @return {!string}
- */
-var atob = function(input) { return ''; };
 
 // WinRT
 var Windows;
