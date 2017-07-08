@@ -25,7 +25,7 @@ import * as INTERNAL from './database/api/internal';
 import * as TEST_ACCESS from './database/api/test_access';
 import { isNodeSdk } from "./utils/environment";
 
-export function registerDatabase(instance) {
+export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
   const namespace = instance.INTERNAL.registerService(
     'database',

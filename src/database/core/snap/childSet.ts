@@ -14,42 +14,41 @@
 * limitations under the License.
 */
 
-import { LLRBNode } from "../util/SortedMap";
-import { SortedMap } from "../util/SortedMap";
+import { LLRBNode } from '../util/SortedMap';
+import { SortedMap } from '../util/SortedMap';
+import { NamedNode } from './Node';
 
 const LOG_2 = Math.log(2);
 
 /**
- * @param {number} length
  * @constructor
  */
 class Base12Num {
-  count;
-  current_;
-  bits_;
-  
-  constructor(length) {
-    var logBase2 = function(num) {
-      return parseInt((Math.log(num) / LOG_2 as any), 10);
-    };
-    var bitMask = function(bits) {
-      return parseInt(Array(bits + 1).join('1'), 2);
-    };
+  count: number;
+  private current_: number;
+  private bits_: number;
+
+  /**
+   * @param {number} length
+   */
+  constructor(length: number) {
+    const logBase2 = (num: number) => parseInt((Math.log(num) / LOG_2 as any), 10);
+    const bitMask = (bits: number) => parseInt(Array(bits + 1).join('1'), 2);
     this.count = logBase2(length + 1);
     this.current_ = this.count - 1;
-    var mask = bitMask(this.count);
+    const mask = bitMask(this.count);
     this.bits_ = (length + 1) & mask;
   }
 
   /**
    * @return {boolean}
    */
-  nextBitIsOne() {
+  nextBitIsOne(): boolean {
     //noinspection JSBitwiseOperatorUsage
-    var result = !(this.bits_ & (0x1 << this.current_));
+    const result = !(this.bits_ & (0x1 << this.current_));
     this.current_--;
     return result;
-  };
+  }
 }
 
 /**
@@ -67,43 +66,48 @@ class Base12Num {
  * @param {(function(K, K):number)=} mapSortFn An optional override for comparator used by the generated sorted map
  * @return {SortedMap.<K, V>}
  */
-export const buildChildSet = function(childList, cmp, keyFn?, mapSortFn?) {
+export const buildChildSet = function<K,V>(childList: NamedNode[],
+                                           cmp: (a: NamedNode, b: NamedNode) => number,
+                                           keyFn?: (a: NamedNode) => K,
+                                           mapSortFn?: (a: K, b: K) => number): SortedMap<K, V> {
   childList.sort(cmp);
 
-  var buildBalancedTree = function(low, high) {
-    var length = high - low;
+  const buildBalancedTree = function(low: number, high: number): LLRBNode<K, V> | null {
+    const length = high - low;
+    let namedNode: NamedNode;
+    let key: K;
     if (length == 0) {
       return null;
     } else if (length == 1) {
-      var namedNode = childList[low];
-      var key = keyFn ? keyFn(namedNode) : namedNode;
-      return new LLRBNode(key, namedNode.node, LLRBNode.BLACK, null, null);
+      namedNode = childList[low];
+      key = keyFn ? keyFn(namedNode) : namedNode as any as K;
+      return new LLRBNode(key, namedNode.node as any as V, LLRBNode.BLACK, null, null);
     } else {
-      var middle = parseInt((length / 2 as any), 10) + low;
-      var left = buildBalancedTree(low, middle);
-      var right = buildBalancedTree(middle + 1, high);
+      const middle = parseInt((length / 2 as any), 10) + low;
+      const left = buildBalancedTree(low, middle);
+      const right = buildBalancedTree(middle + 1, high);
       namedNode = childList[middle];
-      key = keyFn ? keyFn(namedNode) : namedNode;
-      return new LLRBNode(key, namedNode.node, LLRBNode.BLACK, left, right);
+      key = keyFn ? keyFn(namedNode) : namedNode as any as K;
+      return new LLRBNode(key, namedNode.node as any as V, LLRBNode.BLACK, left, right);
     }
   };
 
-  var buildFrom12Array = function(base12) {
-    var node = null;
-    var root = null;
-    var index = childList.length;
+  const buildFrom12Array = function (base12: Base12Num): LLRBNode<K, V> {
+    let node: LLRBNode<K, V> = null;
+    let root = null;
+    let index = childList.length;
 
-    var buildPennant = function(chunkSize, color) {
-      var low = index - chunkSize;
-      var high = index;
+    const buildPennant = function (chunkSize: number, color: boolean) {
+      const low = index - chunkSize;
+      const high = index;
       index -= chunkSize;
-      var childTree = buildBalancedTree(low + 1, high);
-      var namedNode = childList[low];
-      var key = keyFn ? keyFn(namedNode) : namedNode;
-      attachPennant(new LLRBNode(key, namedNode.node, color, null, childTree));
+      const childTree = buildBalancedTree(low + 1, high);
+      const namedNode = childList[low];
+      const key: K = keyFn ? keyFn(namedNode) : namedNode as any as K;
+      attachPennant(new LLRBNode(key, namedNode.node as any as V, color, null, childTree));
     };
 
-    var attachPennant = function(pennant) {
+    const attachPennant = function (pennant: LLRBNode<K, V>) {
       if (node) {
         node.left = pennant;
         node = pennant;
@@ -113,10 +117,10 @@ export const buildChildSet = function(childList, cmp, keyFn?, mapSortFn?) {
       }
     };
 
-    for (var i = 0; i < base12.count; ++i) {
-      var isOne = base12.nextBitIsOne();
+    for (let i = 0; i < base12.count; ++i) {
+      const isOne = base12.nextBitIsOne();
       // The number of nodes taken in each slice is 2^(arr.length - (i + 1))
-      var chunkSize = Math.pow(2, base12.count - (i + 1));
+      const chunkSize = Math.pow(2, base12.count - (i + 1));
       if (isOne) {
         buildPennant(chunkSize, LLRBNode.BLACK);
       } else {
@@ -128,8 +132,8 @@ export const buildChildSet = function(childList, cmp, keyFn?, mapSortFn?) {
     return root;
   };
 
-  var base12 = new Base12Num(childList.length);
-  var root = buildFrom12Array(base12);
+  const base12 = new Base12Num(childList.length);
+  const root = buildFrom12Array(base12);
 
-  return new SortedMap(mapSortFn || cmp, root);
+  return new SortedMap<K, V>(mapSortFn || (cmp as any), root);
 };

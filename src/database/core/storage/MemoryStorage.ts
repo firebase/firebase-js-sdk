@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { contains } from "../../../utils/obj";
+import { contains } from '../../../utils/obj';
 
 /**
  * An in-memory storage implementation that matches the API of DOMStorageWrapper
@@ -23,28 +23,26 @@ import { contains } from "../../../utils/obj";
  * @constructor
  */
 export class MemoryStorage {
-  cache_: object;
-  constructor() {
-    this.cache_ = {};
-  }
-  set(key, value) {
+  private cache_: { [k: string]: any } = {};
+
+  set(key: string, value: any | null) {
     if (value == null) {
       delete this.cache_[key];
     } else {
       this.cache_[key] = value;
     }
-  };
+  }
 
-  get(key) {
+  get(key: string): any {
     if (contains(this.cache_, key)) {
       return this.cache_[key];
     }
     return null;
-  };
+  }
 
-  remove(key) {
+  remove(key: string) {
     delete this.cache_[key];
-  };
+  }
 
   isInMemoryStorage = true;
 }

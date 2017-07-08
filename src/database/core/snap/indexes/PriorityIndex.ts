@@ -16,17 +16,17 @@
 
 import { Index } from './Index';
 import { nameCompare, MAX_NAME } from "../../util/util";
-import { NamedNode } from "../Node";
+import { NamedNode, Node } from '../Node';
 import { LeafNode } from "../LeafNode";
 
-let nodeFromJSON;
-let MAX_NODE;
+let nodeFromJSON: (a: any) => Node;
+let MAX_NODE: Node;
 
-export function setNodeFromJSON(val) {
+export function setNodeFromJSON(val: (a: any) => Node) {
   nodeFromJSON = val;
 }
 
-export function setMaxNode(val) {
+export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
 
@@ -37,56 +37,51 @@ export function setMaxNode(val) {
  * @private
  */
 export class PriorityIndex extends Index {
-
-  constructor() {
-    super();
-  }
-
   /**
    * @inheritDoc
    */
-  compare(a, b) {
-    var aPriority = a.node.getPriority();
-    var bPriority = b.node.getPriority();
-    var indexCmp = aPriority.compareTo(bPriority);
+  compare(a: NamedNode, b: NamedNode): number {
+    const aPriority = a.node.getPriority();
+    const bPriority = b.node.getPriority();
+    const indexCmp = aPriority.compareTo(bPriority);
     if (indexCmp === 0) {
       return nameCompare(a.name, b.name);
     } else {
       return indexCmp;
     }
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  isDefinedOn(node) {
+  isDefinedOn(node: Node): boolean {
     return !node.getPriority().isEmpty();
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  indexedValueChanged(oldNode, newNode) {
+  indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return !oldNode.getPriority().equals(newNode.getPriority());
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  minPost() {
+  minPost(): NamedNode {
     return (NamedNode as any).MIN;
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  maxPost() {
+  maxPost(): NamedNode {
     return new NamedNode(MAX_NAME, new LeafNode('[PRIORITY-POST]', MAX_NODE));
-  };
+  }
 
 
   /**
@@ -94,18 +89,18 @@ export class PriorityIndex extends Index {
    * @param {string} name
    * @return {!NamedNode}
    */
-  makePost(indexValue, name) {
-    var priorityNode = nodeFromJSON(indexValue);
+  makePost(indexValue: any, name: string): NamedNode {
+    const priorityNode = nodeFromJSON(indexValue);
     return new NamedNode(name, new LeafNode('[PRIORITY-POST]', priorityNode));
-  };
+  }
 
 
   /**
    * @return {!string} String representation for inclusion in a query spec
    */
-  toString() {
+  toString(): string {
     return '.priority';
-  };
-};
+  }
+}
 
 export const PRIORITY_INDEX = new PriorityIndex();

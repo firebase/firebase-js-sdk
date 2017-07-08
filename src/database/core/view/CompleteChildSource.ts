@@ -57,14 +57,14 @@ export class NoCompleteChildSource_ implements CompleteChildSource {
   /**
    * @inheritDoc
    */
-  getCompleteChild() {
+  getCompleteChild(childKey?: string): Node | null {
     return null;
   }
 
   /**
    * @inheritDoc
    */
-  getChildAfterChild() {
+  getChildAfterChild(index?: Index, child?: NamedNode, reverse?: boolean): NamedNode | null {
     return null;
   }
 }
@@ -99,7 +99,7 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
   /**
    * @inheritDoc
    */
-  getCompleteChild(childKey) {
+  getCompleteChild(childKey: string): Node | null {
     const node = this.viewCache_.getEventCache();
     if (node.isCompleteForChild(childKey)) {
       return node.getNode().getImmediateChild(childKey);
@@ -113,7 +113,7 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
   /**
    * @inheritDoc
    */
-  getChildAfterChild(index, child, reverse) {
+  getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null {
     const completeServerData = this.optCompleteServerCache_ != null ? this.optCompleteServerCache_ :
       this.viewCache_.getCompleteServerSnap();
     const nodes = this.writes_.calcIndexedSlice(completeServerData, child, 1, reverse, index);

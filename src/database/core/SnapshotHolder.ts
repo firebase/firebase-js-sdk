@@ -15,6 +15,8 @@
 */
 
 import { ChildrenNode } from "./snap/ChildrenNode";
+import { Path } from './util/Path';
+import { Node } from './snap/Node';
 
 /**
  * Mutable object which basically just stores a reference to the "latest" immutable snapshot.
@@ -22,14 +24,13 @@ import { ChildrenNode } from "./snap/ChildrenNode";
  * @constructor
  */
 export class SnapshotHolder {
-  private rootNode_;
-  constructor() {
-    this.rootNode_ = ChildrenNode.EMPTY_NODE;
-  }
-  getNode(path) {
+  private rootNode_: Node = ChildrenNode.EMPTY_NODE;
+
+  getNode(path: Path): Node {
     return this.rootNode_.getChild(path);
   }
-  updateSnapshot(path, newSnapshotNode) {
+
+  updateSnapshot(path: Path, newSnapshotNode: Node) {
     this.rootNode_ = this.rootNode_.updateChild(path, newSnapshotNode);
   }
 }

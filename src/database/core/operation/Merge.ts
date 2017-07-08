@@ -19,6 +19,7 @@ import { Overwrite } from "./Overwrite";
 import { Path } from "../util/Path";
 import { assert } from "../../../utils/assert";
 import { ImmutableTree } from '../util/ImmutableTree';
+import { Node } from '../snap/Node';
 
 /**
  * @param {!OperationSource} source
@@ -33,7 +34,7 @@ export class Merge implements Operation {
 
   constructor(/**@inheritDoc */ public source: OperationSource,
               /**@inheritDoc */ public path: Path,
-              /**@inheritDoc */ public children: ImmutableTree) {
+              /**@inheritDoc */ public children: ImmutableTree<Node>) {
   }
 
   /**

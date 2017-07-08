@@ -22,7 +22,7 @@ import { Query } from '../api/Query';
  *
  * @interface
  */
-export interface ServerActions {
+export abstract class ServerActions {
 
   /**
    * @param {!Query} query
@@ -30,7 +30,8 @@ export interface ServerActions {
    * @param {?number} tag
    * @param {function(string, *)} onComplete
    */
-  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => any);
+  abstract listen(query: Query, currentHashFn: () => string, tag: number | null,
+                  onComplete: (a: string, b: any) => void): void;
 
   /**
    * Remove a listen.
@@ -38,7 +39,7 @@ export interface ServerActions {
    * @param {!Query} query
    * @param {?number} tag
    */
-  unlisten(query: Query, tag: number | null);
+  abstract unlisten(query: Query, tag: number | null): void;
 
   /**
    * @param {string} pathString
@@ -46,7 +47,7 @@ export interface ServerActions {
    * @param {function(string, string)=} onComplete
    * @param {string=} hash
    */
-  put(pathString: string, data: any, onComplete?: (a: string, b: string) => any, hash?: string);
+  put(pathString: string, data: any, onComplete?: (a: string, b: string) => void, hash?: string) { }
 
   /**
    * @param {string} pathString
@@ -54,37 +55,37 @@ export interface ServerActions {
    * @param {function(string, ?string)} onComplete
    * @param {string=} hash
    */
-  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => any, hash?: string);
+  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => void, hash?: string) { }
 
   /**
    * Refreshes the auth token for the current connection.
    * @param {string} token The authentication token
    */
-  refreshAuthToken(token: string);
+  refreshAuthToken(token: string) { }
 
   /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => any);
+  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => void) { }
 
   /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => any);
+  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => void) { }
 
   /**
    * @param {string} pathString
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => any);
+  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => void) { }
 
   /**
    * @param {Object.<string, *>} stats
    */
-  reportStats(stats: { [k: string]: any });
+  reportStats(stats: { [k: string]: any }) { }
 
 }

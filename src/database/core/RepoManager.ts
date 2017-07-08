@@ -22,11 +22,12 @@ import { parseRepoInfo } from "./util/libs/parser";
 import { validateUrl } from "./util/validation";
 import "./Repo_transaction";
 import { Database } from '../api/Database';
+import { RepoInfo } from './RepoInfo';
 
 /** @const {string} */
-var DATABASE_URL_OPTION = 'databaseURL';
+const DATABASE_URL_OPTION = 'databaseURL';
 
-let _staticInstance;
+let _staticInstance: RepoManager;
 
 /**
  * Creates and caches Repo instances.
@@ -45,7 +46,7 @@ export class RepoManager {
    */
   private useRestClient_: boolean = false;
 
-  static getInstance() {
+  static getInstance(): RepoManager {
     if (!_staticInstance) {
       _staticInstance = new RepoManager();
     }
@@ -54,13 +55,13 @@ export class RepoManager {
 
   // TODO(koss): Remove these functions unless used in tests?
   interrupt() {
-    for (var repo in this.repos_) {
+    for (const repo in this.repos_) {
       this.repos_[repo].interrupt();
     }
   }
 
   resume() {
-    for (var repo in this.repos_) {
+    for (const repo in this.repos_) {
       this.repos_[repo].resume();
     }
   }
@@ -68,19 +69,19 @@ export class RepoManager {
   /**
    * This function should only ever be called to CREATE a new database instance.
    *
-   * @param {!App} app
+   * @param {!FirebaseApp} app
    * @return {!Database}
    */
   databaseFromApp(app: FirebaseApp): Database {
-    var dbUrl: string = app.options[DATABASE_URL_OPTION];
+    const dbUrl: string = app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal("Can't determine Firebase Database URL.  Be sure to include " +
                          DATABASE_URL_OPTION +
                          " option when calling firebase.intializeApp().");
     }
 
-    var parsedUrl = parseRepoInfo(dbUrl);
-    var repoInfo = parsedUrl.repoInfo;
+    const parsedUrl = parseRepoInfo(dbUrl);
+    const repoInfo = parsedUrl.repoInfo;
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {
@@ -88,7 +89,7 @@ export class RepoManager {
                          "(not including a child path).");
     }
 
-    var repo = this.createRepo(repoInfo, app);
+    const repo = this.createRepo(repoInfo, app);
 
     return repo.database;
   }
@@ -98,7 +99,7 @@ export class RepoManager {
    *
    * @param {!Repo} repo
    */
-  deleteRepo(repo) {
+  deleteRepo(repo: Repo) {
     
     // This should never happen...
     if (safeGet(this.repos_, repo.app.name) !== repo) {
@@ -116,8 +117,8 @@ export class RepoManager {
    * @param {!FirebaseApp} app
    * @return {!Repo} The Repo object for the specified server / repoName.
    */
-  createRepo(repoInfo, app: FirebaseApp): Repo {
-    var repo = safeGet(this.repos_, app.name);
+  createRepo(repoInfo: RepoInfo, app: FirebaseApp): Repo {
+    let repo = safeGet(this.repos_, app.name);
     if (repo) {
       fatal('FIREBASE INTERNAL ERROR: Database initialized multiple times.');
     }
@@ -131,7 +132,7 @@ export class RepoManager {
    * Forces us to use ReadonlyRestClient instead of PersistentConnection for new Repos.
    * @param {boolean} forceRestClient
    */
-  forceRestClient(forceRestClient) {
+  forceRestClient(forceRestClient: boolean) {
     this.useRestClient_ = forceRestClient;
   }
-}; // end RepoManager
+}

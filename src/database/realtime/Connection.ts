@@ -22,9 +22,10 @@ import {
   warn,
 } from '../core/util/util';
 import { PersistentStorage } from '../core/storage/storage';
-import { CONSTANTS } from './Constants';
+import { PROTOCOL_VERSION } from './Constants';
 import { TransportManager } from './TransportManager';
 import { RepoInfo } from '../core/RepoInfo';
+import { Transport, TransportConstructor } from './Transport';
 
 // Abort upgrade attempt if it takes longer than 60s.
 const UPGRADE_TIMEOUT = 60000;
@@ -39,10 +40,11 @@ const DELAY_BEFORE_SENDING_EXTRA_REQUESTS = 5000;
 const BYTES_SENT_HEALTHY_OVERRIDE = 10 * 1024;
 const BYTES_RECEIVED_HEALTHY_OVERRIDE = 100 * 1024;
 
-
-const REALTIME_STATE_CONNECTING = 0;
-const REALTIME_STATE_CONNECTED = 1;
-const REALTIME_STATE_DISCONNECTED = 2;
+const enum RealtimeState {
+  CONNECTING,
+  CONNECTED,
+  DISCONNECTED,
+}
 
 const MESSAGE_TYPE = 't';
 const MESSAGE_DATA = 'd';
@@ -56,63 +58,48 @@ const PING = 'p';
 
 const SERVER_HELLO = 'h';
 
+
 /**
  * Creates a new real-time connection to the server using whichever method works
  * best in the current browser.
  *
  * @constructor
- * @param {!string} connId - an id for this connection
- * @param {!RepoInfo} repoInfo - the info for the endpoint to connect to
- * @param {function(Object)} onMessage - the callback to be triggered when a server-push message arrives
- * @param {function(number, string)} onReady - the callback to be triggered when this connection is ready to send messages.
- * @param {function()} onDisconnect - the callback to be triggered when a connection was lost
- * @param {function(string)} onKill - the callback to be triggered when this connection has permanently shut down.
- * @param {string=} lastSessionId - last session id in persistent connection. is used to clean up old session in real-time server
-
  */
 export class Connection {
-  connectionCount;
-  id;
-  lastSessionId;
-  pendingDataMessages;
-  sessionId;
+  connectionCount = 0;
+  pendingDataMessages: any[] = [];
+  sessionId: string;
 
-  private conn_;
-  private healthyTimeout_;
-  private isHealthy_;
-  private log_;
-  private onDisconnect_;
-  private onKill_;
-  private onMessage_;
-  private onReady_;
-  private primaryResponsesRequired_;
-  private repoInfo_;
-  private rx_;
-  private secondaryConn_;
-  private secondaryResponsesRequired_;
-  private state_;
-  private transportManager_;
-  private tx_;
+  private conn_: Transport;
+  private healthyTimeout_: number;
+  private isHealthy_: boolean;
+  private log_: (...args: any[]) => void;
+  private primaryResponsesRequired_: number;
+  private rx_: Transport;
+  private secondaryConn_: Transport;
+  private secondaryResponsesRequired_: number;
+  private state_ = RealtimeState.CONNECTING;
+  private transportManager_: TransportManager;
+  private tx_: Transport;
 
-  constructor(connId: string,
-              repoInfo: RepoInfo,
-              onMessage: (a: Object) => any,
-              onReady: (a: number, b: string) => any,
-              onDisconnect: () => any,
-              onKill: (a: string) => any,
-              lastSessionId?: string) {
-    this.id = connId;
+  /**
+   * @param {!string} id - an id for this connection
+   * @param {!RepoInfo} repoInfo_ - the info for the endpoint to connect to
+   * @param {function(Object)} onMessage_ - the callback to be triggered when a server-push message arrives
+   * @param {function(number, string)} onReady_ - the callback to be triggered when this connection is ready to send messages.
+   * @param {function()} onDisconnect_ - the callback to be triggered when a connection was lost
+   * @param {function(string)} onKill_ - the callback to be triggered when this connection has permanently shut down.
+   * @param {string=} lastSessionId - last session id in persistent connection. is used to clean up old session in real-time server
+   */
+  constructor(public id: string,
+              private repoInfo_: RepoInfo,
+              private onMessage_: (a: Object) => void,
+              private onReady_: (a: number, b: string) => void,
+              private onDisconnect_: () => void,
+              private onKill_: (a: string) => void,
+              public lastSessionId?: string) {
     this.log_ = logWrapper('c:' + this.id + ':');
-    this.onMessage_ = onMessage;
-    this.onReady_ = onReady;
-    this.onDisconnect_ = onDisconnect;
-    this.onKill_ = onKill;
-    this.repoInfo_ = repoInfo;
-    this.pendingDataMessages = [];
-    this.connectionCount = 0;
-    this.transportManager_ = new TransportManager(repoInfo);
-    this.state_ = REALTIME_STATE_CONNECTING;
-    this.lastSessionId = lastSessionId;
+    this.transportManager_ = new TransportManager(repoInfo_);
     this.log_('Connection created');
     this.start_();
   }
@@ -143,7 +130,7 @@ export class Connection {
      * still have the context of your originating frame.
      */
     setTimeout(() => {
-      // self.conn_ gets set to null in some of the tests. Check to make sure it still exists before using it
+      // this.conn_ gets set to null in some of the tests. Check to make sure it still exists before using it
       this.conn_ && this.conn_.open(onMessageReceived, onConnectionLost);
     }, Math.floor(0));
 
@@ -168,15 +155,15 @@ export class Connection {
             this.close();
           }
         }
-      }, Math.floor(healthyTimeout_ms));
+      }, Math.floor(healthyTimeout_ms)) as any;
     }
-  };
+  }
 
   /**
    * @return {!string}
    * @private
    */
-  private nextTransportId_() {
+  private nextTransportId_(): string {
     return 'c:' + this.id + ':' + this.connectionCount++;
   };
 
@@ -191,11 +178,11 @@ export class Connection {
         this.log_('closing an old connection');
       }
     }
-  };
+  }
 
-  private connReceiver_(conn) {
-    return message => {
-      if (this.state_ != REALTIME_STATE_DISCONNECTED) {
+  private connReceiver_(conn: Transport) {
+    return (message: object) => {
+      if (this.state_ != RealtimeState.DISCONNECTED) {
         if (conn === this.rx_) {
           this.onPrimaryMessageReceived_(message);
         } else if (conn === this.secondaryConn_) {
@@ -205,17 +192,17 @@ export class Connection {
         }
       }
     };
-  };
+  }
 
   /**
    *
    * @param {Object} dataMsg An arbitrary data message to be sent to the server
    */
-  sendRequest(dataMsg) {
+  sendRequest(dataMsg: object) {
     // wrap in a data message envelope and send it on
     const msg = {'t': 'd', 'd': dataMsg};
     this.sendData_(msg);
-  };
+  }
 
   tryCleanupConnection() {
     if (this.tx_ === this.secondaryConn_ && this.rx_ === this.secondaryConn_) {
@@ -224,11 +211,11 @@ export class Connection {
       this.secondaryConn_ = null;
       // the server will shutdown the old connection
     }
-  };
+  }
 
-  private onSecondaryControl_(controlData) {
+  private onSecondaryControl_(controlData: { [k: string]: any }) {
     if (MESSAGE_TYPE in controlData) {
-      const cmd = controlData[MESSAGE_TYPE];
+      const cmd = controlData[MESSAGE_TYPE] as string;
       if (cmd === SWITCH_ACK) {
         this.upgradeIfSecondaryHealthy_();
       } else if (cmd === CONTROL_RESET) {
@@ -245,11 +232,11 @@ export class Connection {
         this.upgradeIfSecondaryHealthy_();
       }
     }
-  };
+  }
 
-  private onSecondaryMessageReceived_(parsedData) {
-    const layer = requireKey('t', parsedData);
-    const data = requireKey('d', parsedData);
+  private onSecondaryMessageReceived_(parsedData: object) {
+    const layer: string = requireKey('t', parsedData);
+    const data: any = requireKey('d', parsedData);
     if (layer == 'c') {
       this.onSecondaryControl_(data);
     } else if (layer == 'd') {
@@ -258,7 +245,7 @@ export class Connection {
     } else {
       throw new Error('Unknown protocol layer: ' + layer);
     }
-  };
+  }
 
   private upgradeIfSecondaryHealthy_() {
     if (this.secondaryResponsesRequired_ <= 0) {
@@ -271,7 +258,7 @@ export class Connection {
       this.log_('sending ping on secondary.');
       this.secondaryConn_.send({'t': 'c', 'd': {'t': PING, 'd': {}}});
     }
-  };
+  }
 
   private proceedWithUpgrade_() {
     // tell this connection to consider itself open
@@ -287,25 +274,25 @@ export class Connection {
     this.tx_ = this.secondaryConn_;
 
     this.tryCleanupConnection();
-  };
+  }
 
-  private onPrimaryMessageReceived_(parsedData) {
+  private onPrimaryMessageReceived_(parsedData: { [k: string]: any }) {
     // Must refer to parsedData properties in quotes, so closure doesn't touch them.
-    const layer = requireKey('t', parsedData);
-    const data = requireKey('d', parsedData);
+    const layer: string = requireKey('t', parsedData);
+    const data: any = requireKey('d', parsedData);
     if (layer == 'c') {
       this.onControl_(data);
     } else if (layer == 'd') {
       this.onDataMessage_(data);
     }
-  };
+  }
 
-  private onDataMessage_(message) {
+  private onDataMessage_(message: any) {
     this.onPrimaryResponse_();
 
     // We don't do anything with data messages, just kick them up a level
     this.onMessage_(message);
-  };
+  }
 
   private onPrimaryResponse_() {
     if (!this.isHealthy_) {
@@ -318,8 +305,8 @@ export class Connection {
     }
   };
 
-  private onControl_(controlData) {
-    const cmd = requireKey(MESSAGE_TYPE, controlData);
+  private onControl_(controlData: { [k: string]: any }) {
+    const cmd: string = requireKey(MESSAGE_TYPE, controlData);
     if (MESSAGE_DATA in controlData) {
       const payload = controlData[MESSAGE_DATA];
       if (cmd === SERVER_HELLO) {
@@ -349,39 +336,39 @@ export class Connection {
         error('Unknown control packet command: ' + cmd);
       }
     }
-  };
+  }
 
   /**
    *
    * @param {Object} handshake The handshake data returned from the server
    * @private
    */
-  private onHandshake_(handshake) {
-    const timestamp = handshake['ts'];
-    const version = handshake['v'];
-    const host = handshake['h'];
-    this.sessionId = handshake['s'];
+  private onHandshake_(handshake: { ts: number, v: string, h: string, s: string }) {
+    const timestamp = handshake.ts;
+    const version = handshake.v;
+    const host = handshake.h;
+    this.sessionId = handshake.s;
     this.repoInfo_.updateHost(host);
     // if we've already closed the connection, then don't bother trying to progress further
-    if (this.state_ == REALTIME_STATE_CONNECTING) {
+    if (this.state_ == RealtimeState.CONNECTING) {
       this.conn_.start();
       this.onConnectionEstablished_(this.conn_, timestamp);
-      if (CONSTANTS.PROTOCOL_VERSION !== version) {
+      if (PROTOCOL_VERSION !== version) {
         warn('Protocol version mismatch detected');
       }
       // TODO: do we want to upgrade? when? maybe a delay?
       this.tryStartUpgrade_();
     }
-  };
+  }
 
   private tryStartUpgrade_() {
     const conn = this.transportManager_.upgradeTransport();
     if (conn) {
       this.startUpgrade_(conn);
     }
-  };
+  }
 
-  private startUpgrade_(conn) {
+  private startUpgrade_(conn: TransportConstructor) {
     this.secondaryConn_ = new conn(this.nextTransportId_(),
       this.repoInfo_, this.sessionId);
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we
@@ -393,59 +380,57 @@ export class Connection {
     this.secondaryConn_.open(onMessage, onDisconnect);
 
     // If we haven't successfully upgraded after UPGRADE_TIMEOUT, give up and kill the secondary.
-    const self = this;
-    setTimeoutNonBlocking(function () {
-      if (self.secondaryConn_) {
-        self.log_('Timed out trying to upgrade.');
-        self.secondaryConn_.close();
+    setTimeoutNonBlocking(() => {
+      if (this.secondaryConn_) {
+        this.log_('Timed out trying to upgrade.');
+        this.secondaryConn_.close();
       }
     }, Math.floor(UPGRADE_TIMEOUT));
-  };
+  }
 
-  private onReset_(host) {
+  private onReset_(host: string) {
     this.log_('Reset packet received.  New host: ' + host);
     this.repoInfo_.updateHost(host);
     // TODO: if we're already "connected", we need to trigger a disconnect at the next layer up.
     // We don't currently support resets after the connection has already been established
-    if (this.state_ === REALTIME_STATE_CONNECTED) {
+    if (this.state_ === RealtimeState.CONNECTED) {
       this.close();
     } else {
       // Close whatever connections we have open and start again.
       this.closeConnections_();
       this.start_();
     }
-  };
+  }
 
-  private onConnectionEstablished_(conn, timestamp) {
+  private onConnectionEstablished_(conn: Transport, timestamp: number) {
     this.log_('Realtime connection established.');
     this.conn_ = conn;
-    this.state_ = REALTIME_STATE_CONNECTED;
+    this.state_ = RealtimeState.CONNECTED;
 
     if (this.onReady_) {
       this.onReady_(timestamp, this.sessionId);
       this.onReady_ = null;
     }
 
-    const self = this;
     // If after 5 seconds we haven't sent enough requests to the server to get the connection healthy,
     // send some pings.
     if (this.primaryResponsesRequired_ === 0) {
       this.log_('Primary connection is healthy.');
       this.isHealthy_ = true;
     } else {
-      setTimeoutNonBlocking(function () {
-        self.sendPingOnPrimaryIfNecessary_();
+      setTimeoutNonBlocking(() => {
+        this.sendPingOnPrimaryIfNecessary_();
       }, Math.floor(DELAY_BEFORE_SENDING_EXTRA_REQUESTS));
     }
-  };
+  }
 
   private sendPingOnPrimaryIfNecessary_() {
     // If the connection isn't considered healthy yet, we'll send a noop ping packet request.
-    if (!this.isHealthy_ && this.state_ === REALTIME_STATE_CONNECTED) {
+    if (!this.isHealthy_ && this.state_ === RealtimeState.CONNECTED) {
       this.log_('sending ping on primary.');
       this.sendData_({'t': 'c', 'd': {'t': PING, 'd': {}}});
     }
-  };
+  }
 
   private onSecondaryConnectionLost_() {
     const conn = this.secondaryConn_;
@@ -454,7 +439,7 @@ export class Connection {
       // we are relying on this connection already in some capacity. Therefore, a failure is real
       this.close();
     }
-  };
+  }
 
   /**
    *
@@ -462,12 +447,12 @@ export class Connection {
    * we should flush the host cache
    * @private
    */
-  private onConnectionLost_(everConnected) {
+  private onConnectionLost_(everConnected: boolean) {
     this.conn_ = null;
 
     // NOTE: IF you're seeing a Firefox error for this line, I think it might be because it's getting
-    // called on window close and REALTIME_STATE_CONNECTING is no longer defined.  Just a guess.
-    if (!everConnected && this.state_ === REALTIME_STATE_CONNECTING) {
+    // called on window close and RealtimeState.CONNECTING is no longer defined.  Just a guess.
+    if (!everConnected && this.state_ === RealtimeState.CONNECTING) {
       this.log_('Realtime connection failed.');
       // Since we failed to connect at all, clear any cached entry for this namespace in case the machine went away
       if (this.repoInfo_.isCacheableHost()) {
@@ -475,19 +460,19 @@ export class Connection {
         // reset the internal host to what we would show the user, i.e. <ns>.firebaseio.com
         this.repoInfo_.internalHost = this.repoInfo_.host;
       }
-    } else if (this.state_ === REALTIME_STATE_CONNECTED) {
+    } else if (this.state_ === RealtimeState.CONNECTED) {
       this.log_('Realtime connection lost.');
     }
 
     this.close();
-  };
+  }
 
   /**
    *
    * @param {string} reason
    * @private
    */
-  private onConnectionShutdown_(reason) {
+  private onConnectionShutdown_(reason: string) {
     this.log_('Connection shutdown command received. Shutting down...');
 
     if (this.onKill_) {
@@ -500,24 +485,24 @@ export class Connection {
     this.onDisconnect_ = null;
 
     this.close();
-  };
+  }
 
 
-  private sendData_(data) {
-    if (this.state_ !== REALTIME_STATE_CONNECTED) {
+  private sendData_(data: object) {
+    if (this.state_ !== RealtimeState.CONNECTED) {
       throw 'Connection is not connected';
     } else {
       this.tx_.send(data);
     }
-  };
+  }
 
   /**
    * Cleans up this connection, calling the appropriate callbacks
    */
   close() {
-    if (this.state_ !== REALTIME_STATE_DISCONNECTED) {
+    if (this.state_ !== RealtimeState.DISCONNECTED) {
       this.log_('Closing realtime connection.');
-      this.state_ = REALTIME_STATE_DISCONNECTED;
+      this.state_ = RealtimeState.DISCONNECTED;
 
       this.closeConnections_();
 
@@ -526,7 +511,7 @@ export class Connection {
         this.onDisconnect_ = null;
       }
     }
-  };
+  }
 
   /**
    *
@@ -548,7 +533,7 @@ export class Connection {
       clearTimeout(this.healthyTimeout_);
       this.healthyTimeout_ = null;
     }
-  };
+  }
 }
 
 

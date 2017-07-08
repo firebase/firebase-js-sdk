@@ -117,7 +117,7 @@ export class DataSnapshot {
     validateArgCount('DataSnapshot.getPriority', 0, 0, arguments.length);
 
     // typecast here because we never return deferred values or internal priorities (MAX_PRIORITY)
-    return /**@type {string|number|null} */ <string | number | null>(this.node_.getPriority().val());
+    return (this.node_.getPriority().val() as string | number | null);
   }
 
   /**
@@ -128,14 +128,14 @@ export class DataSnapshot {
    * @return {boolean} True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
-  forEach(action: (d: DataSnapshot) => any): boolean {
+  forEach(action: (d: DataSnapshot) => void): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 1, action, false);
 
     if (this.node_.isLeafNode())
       return false;
 
-    const childrenNode = /**@type {ChildrenNode} */ <ChildrenNode>(this.node_);
+    const childrenNode = (this.node_ as ChildrenNode);
     // Sanitize the return value to a boolean. ChildrenNode.forEachChild has a weird return type...
     return !!childrenNode.forEachChild(this.index_, (key, node) => {
       return action(new DataSnapshot(node, this.ref_.child(key), PRIORITY_INDEX));

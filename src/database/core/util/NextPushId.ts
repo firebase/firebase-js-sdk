@@ -32,24 +32,25 @@ import { assert } from "../../../utils/assert";
  */
 export const nextPushId = (function() {
   // Modeled after base64 web-safe chars, but ordered by ASCII.
-  var PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 
   // Timestamp of last push, used to prevent local collisions if you push twice
   // in one ms.
-  var lastPushTime = 0;
+  let lastPushTime = 0;
 
   // We generate 72-bits of randomness which get turned into 12 characters and
   // appended to the timestamp to prevent collisions with other clients. We
   // store the last characters we generated because in the event of a collision,
   // we'll use those same characters except "incremented" by one.
-  var lastRandChars = [];
+  const lastRandChars: number[] = [];
 
-  return function(now) {
-    var duplicateTime = (now === lastPushTime);
+  return function(now: number) {
+    const duplicateTime = (now === lastPushTime);
     lastPushTime = now;
 
-    var timeStampChars = new Array(8);
-    for (var i = 7; i >= 0; i--) {
+    let i;
+    const timeStampChars = new Array(8);
+    for (i = 7; i >= 0; i--) {
       timeStampChars[i] = PUSH_CHARS.charAt(now % 64);
       // NOTE: Can't use << here because javascript will convert to int and lose
       // the upper bits.
@@ -57,7 +58,7 @@ export const nextPushId = (function() {
     }
     assert(now === 0, 'Cannot push at time == 0');
 
-    var id = timeStampChars.join('');
+    let id = timeStampChars.join('');
 
     if (!duplicateTime) {
       for (i = 0; i < 12; i++) {

@@ -69,7 +69,7 @@ export interface Node {
    * @param {!Index} index The index to use to determine the predecessor
    * @return {?string} The name of the predecessor child, or null if childNode is the first child.
    */
-  getPredecessorChildName(childName: String, childNode: Node, index: Index): string;
+  getPredecessorChildName(childName: String, childNode: Node, index: Index): string | null;
 
   /**
    * Returns a duplicate node, with the specified immediate child updated.
@@ -116,10 +116,10 @@ export interface Node {
    * each child.  It's passed the child name and the child node.
    * @return {*} The first truthy value return by action, or the last falsey one
    */
-  forEachChild(index: Index, action: (string, node) => any): any;
+  forEachChild(index: Index, action: (a: string, b: Node) => void): any;
 
   /**
-   * @param {boolean=} opt_exportFormat True for export format (also wire protocol format).
+   * @param {boolean=} exportFormat True for export format (also wire protocol format).
    * @return {*} Value of this node as JSON.
    */
   val(exportFormat?: boolean): Object;

@@ -17,7 +17,7 @@
 import { CONSTANTS } from "./constants";
 import { setWebSocketImpl } from "../database/realtime/WebSocketConnection";
 import { setBufferImpl } from "../database/core/util/util";
-import { 
+import {
   FirebaseIFrameScriptHolder,
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
   FIREBASE_LONGPOLL_DATA_CB_NAME

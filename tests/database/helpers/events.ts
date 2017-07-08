@@ -15,6 +15,7 @@
 */
 
 import { TEST_PROJECT } from "./util";
+import { Reference } from '../../../src/database/api/Reference';
 
 /**
  * A set of functions to clean up event handlers.
@@ -25,25 +26,25 @@ export let eventCleanupHandlers = [];
 
 /** Clean up outstanding event handlers */
 export function eventCleanup() {
-  for (var i = 0; i < eventCleanupHandlers.length; ++i) {
+  for (let i = 0; i < eventCleanupHandlers.length; ++i) {
     eventCleanupHandlers[i]();
   }
   eventCleanupHandlers = [];
-};
+}
 
 /**
  * The path component of the firebaseRef url
- * @param {Firebase} firebaseRef
+ * @param {Reference} firebaseRef
  * @return {string}
  */
-function rawPath(firebaseRef) {
+function rawPath(firebaseRef: Reference) {
   return firebaseRef.toString().replace(TEST_PROJECT.databaseURL, '');
-};
+}
 
 /**
  * Creates a struct which waits for many events.
  * @param {Array<Array>} pathAndEvents an array of tuples of [Firebase, [event type strings]]
- * @param {string=} opt_helperName
+ * @param {string=} helperName
  * @return {{waiter: waiter, watchesInitializedWaiter: watchesInitializedWaiter, unregister: unregister, addExpectedEvents: addExpectedEvents}}
  */
 export function eventTestHelper(pathAndEvents, helperName?) {
@@ -57,19 +58,19 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     resolveInit = pResolve;
     rejectInit = pReject;
   });
-  var expectedPathAndEvents = [];
-  var actualPathAndEvents = [];
-  var pathEventListeners = {};
-  var initializationEvents = 0;
+  const expectedPathAndEvents = [];
+  const actualPathAndEvents = [];
+  const pathEventListeners = {};
+  let initializationEvents = 0;
 
   helperName = helperName ? helperName + ': ' : '';
 
   // Listen on all of the required paths, with a callback function that just
   // appends to actualPathAndEvents.
-  var make_eventCallback = function(type) {
+  const make_eventCallback = function(type) {
     return function(snap) {
       // Get the ref of where the snapshot came from.
-      var ref = type === 'value' ? snap.ref : snap.ref.parent;
+      const ref = type === 'value' ? snap.ref : snap.ref.parent;
 
       actualPathAndEvents.push([rawPath(ref), [type, snap.key]]);
 
@@ -98,15 +99,15 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   // in the correct order.  If anything is wrong (too many events or
   // incorrect events, we throw).  Else we return false, indicating we should
   // keep waiting.
-  var waiter = function() {
-    var pathAndEventToString = function(pathAndEvent) {
+  const waiter = function() {
+    const pathAndEventToString = function(pathAndEvent) {
       return '{path: ' + pathAndEvent[0] + ', event:[' + pathAndEvent[1][0] + ', ' + pathAndEvent[1][1] + ']}';
     };
 
-    var i = 0;
+    let i = 0;
     while (i < expectedPathAndEvents.length && i < actualPathAndEvents.length) {
-      var expected = expectedPathAndEvents[i];
-      var actual = actualPathAndEvents[i];
+      const expected = expectedPathAndEvents[i];
+      const actual = actualPathAndEvents[i];
 
       if (expected[0] != actual[0] || expected[1][0] != actual[1][0] || expected[1][1] != actual[1][1]) {
         throw helperName + 'Event ' + i + ' incorrect. Expected: ' + pathAndEventToString(expected) +
@@ -124,12 +125,12 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     return expectedPathAndEvents.length == actualPathAndEvents.length;
   };
 
-  var listenOnPath = function(path) {
-    var valueCB = make_eventCallback('value');
-    var addedCB = make_eventCallback('child_added');
-    var removedCB = make_eventCallback('child_removed');
-    var movedCB = make_eventCallback('child_moved');
-    var changedCB = make_eventCallback('child_changed');
+  const listenOnPath = function(path) {
+    const valueCB = make_eventCallback('value');
+    const addedCB = make_eventCallback('child_added');
+    const removedCB = make_eventCallback('child_removed');
+    const movedCB = make_eventCallback('child_moved');
+    const changedCB = make_eventCallback('child_changed');
     path.on('child_removed', removedCB);
     path.on('child_added', addedCB);
     path.on('child_moved', movedCB);
@@ -145,13 +146,13 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   };
 
 
-  var addExpectedEvents = function(pathAndEvents) {
-    var pathsToListenOn = [];
-    for (var i = 0; i < pathAndEvents.length; i++) {
+  const addExpectedEvents = function(pathAndEvents) {
+    const pathsToListenOn = [];
+    for (let i = 0; i < pathAndEvents.length; i++) {
 
-      var pathAndEvent = pathAndEvents[i];
+      const pathAndEvent = pathAndEvents[i];
 
-      var path = pathAndEvent[0];
+      const path = pathAndEvent[0];
       //var event = pathAndEvent[1];
 
       pathsToListenOn.push(path);
@@ -177,8 +178,8 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     // To mitigate this, we re-ordeer your event registrations and do them in order of shortest path to longest.
 
     pathsToListenOn.sort(function(a, b) { return a.toString().length - b.toString().length; });
-    for (i = 0; i < pathsToListenOn.length; i++) {
-      path = pathsToListenOn[i];
+    for (let i = 0; i < pathsToListenOn.length; i++) {
+      let path = pathsToListenOn[i];
       if (!pathEventListeners[path.toString()]) {
         pathEventListeners[path.toString()] = { };
         pathEventListeners[path.toString()].initialized = false;
@@ -194,8 +195,8 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
   addExpectedEvents(pathAndEvents);
 
-  var watchesInitializedWaiter = function() {
-    for (var path in pathEventListeners) {
+  const watchesInitializedWaiter = function() {
+    for (let path in pathEventListeners) {
       if (!pathEventListeners[path].initialized)
         return false;
     }
@@ -208,8 +209,8 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     return true;
   };
 
-  var unregister = function() {
-    for (var path in pathEventListeners) {
+  const unregister = function() {
+    for (let path in pathEventListeners) {
       if (pathEventListeners.hasOwnProperty(path)) {
         pathEventListeners[path].unlisten();
       }
@@ -228,4 +229,4 @@ export function eventTestHelper(pathAndEvents, helperName?) {
       addExpectedEvents(moreEvents);
     }
   };
-};
+}

@@ -29,7 +29,7 @@ import {
   validateKey,
 } from '../core/util/validation';
 import { errorPrefix, validateArgCount, validateCallback, validateContextObject } from '../../utils/validation';
-import { ValueEventRegistration, ChildEventRegistration } from '../core/view/EventRegistration';
+import { ValueEventRegistration, ChildEventRegistration, EventRegistration } from '../core/view/EventRegistration';
 import { Deferred, attachDummyErrorHandler } from '../../utils/promise';
 import { Repo } from '../core/Repo';
 import { QueryParams } from '../core/view/QueryParams';
@@ -153,7 +153,7 @@ export class Query {
     // This is a slight hack. We cannot goog.require('fb.api.Firebase'), since Firebase requires fb.api.Query.
     // However, we will always export 'Firebase' to the global namespace, so it's guaranteed to exist by the time this
     // method gets called.
-    return <Reference>(new Query.__referenceConstructor(this.repo, this.path));
+    return (new Query.__referenceConstructor(this.repo, this.path) as Reference);
   }
 
   /**
@@ -174,7 +174,7 @@ export class Query {
     if (eventType === 'value') {
       this.onValueEvent(callback, ret.cancel, ret.context);
     } else {
-      const callbacks = {};
+      const callbacks: { [k: string]: typeof callback } = {};
       callbacks[eventType] = callback;
       this.onChildEvent(callbacks, ret.cancel, ret.context);
     }
@@ -187,7 +187,7 @@ export class Query {
    * @param {?Object} context
    * @protected
    */
-  onValueEvent(callback: (a: DataSnapshot) => any, cancelCallback: ((a: Error) => any) | null, context: Object | null) {
+  protected onValueEvent(callback: (a: DataSnapshot) => void, cancelCallback: ((a: Error) => void) | null, context: Object | null) {
     const container = new ValueEventRegistration(callback, cancelCallback || null, context || null);
     this.repo.addEventCallbackForQuery(this, container);
   }
@@ -196,6 +196,7 @@ export class Query {
    * @param {!Object.<string, !function(!DataSnapshot, ?string)>} callbacks
    * @param {?function(Error)} cancelCallback
    * @param {?Object} context
+   * @protected
    */
   onChildEvent(callbacks: { [k: string]: SnapshotCallback },
                cancelCallback: ((a: Error) => any) | null, context: Object | null) {
@@ -214,10 +215,10 @@ export class Query {
     validateCallback('Query.off', 2, callback, true);
     validateContextObject('Query.off', 3, context, true);
 
-    let container = null;
-    let callbacks = null;
+    let container: EventRegistration | null = null;
+    let callbacks: { [k: string]: typeof callback } | null = null;
     if (eventType === 'value') {
-      const valueCallback = /** @type {function(!DataSnapshot)} */ (callback) || null;
+      const valueCallback = callback || null;
       container = new ValueEventRegistration(valueCallback, null, context || null);
     } else if (eventType) {
       if (callback) {
@@ -239,7 +240,8 @@ export class Query {
    */
   once(eventType: string, 
        userCallback?: SnapshotCallback,
-       cancelOrContext?, context?: Object): Promise<DataSnapshot> {
+       cancelOrContext?: ((a: Error) => void) | Object,
+       context?: Object): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
     validateCallback('Query.once', 2, userCallback, true);
@@ -254,7 +256,7 @@ export class Query {
     const deferred = new Deferred();
     attachDummyErrorHandler(deferred.promise);
 
-    const onceCallback = (snapshot) => {
+    const onceCallback = (snapshot: DataSnapshot) => {
       // NOTE: Even though we unsubscribe, we may get called multiple times if a single action (e.g. set() with JSON)
       // triggers multiple events (e.g. child_added or child_changed).
       if (firstCall) {
@@ -508,11 +510,11 @@ export class Query {
    * @return {{cancel: ?function(Error), context: ?Object}}
    * @private
    */
-  private static getCancelAndContextArgs_(fnName: string, cancelOrContext?: ((a: Error) => any) | Object,
-                                   context?: Object): { cancel: ((a: Error) => any) | null, context: Object | null } {
-    const ret = {cancel: null, context: null};
+  private static getCancelAndContextArgs_(fnName: string, cancelOrContext?: ((a: Error) => void) | Object,
+                                          context?: Object): { cancel: ((a: Error) => void) | null, context: Object | null } {
+    const ret: { cancel: ((a: Error) => void) | null, context: Object | null } = {cancel: null, context: null};
     if (cancelOrContext && context) {
-      ret.cancel = /** @type {function(Error)} */ (cancelOrContext);
+      ret.cancel = (cancelOrContext as (a: Error) => void);
       validateCallback(fnName, 3, ret.cancel, true);
 
       ret.context = context;

@@ -14,19 +14,21 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
-import { 
+import { assert } from '../../../utils/assert';
+import {
   MIN_NAME,
   MAX_NAME
-} from "../util/util";
-import { KEY_INDEX } from "../snap/indexes/KeyIndex";
-import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
-import { VALUE_INDEX } from "../snap/indexes/ValueIndex";
-import { PathIndex } from "../snap/indexes/PathIndex";
-import { IndexedFilter } from "./filter/IndexedFilter";
-import { LimitedFilter } from "./filter/LimitedFilter";
-import { RangedFilter } from "./filter/RangedFilter";
-import { stringify } from "../../../utils/json";
+} from '../util/util';
+import { KEY_INDEX } from '../snap/indexes/KeyIndex';
+import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
+import { PathIndex } from '../snap/indexes/PathIndex';
+import { IndexedFilter } from './filter/IndexedFilter';
+import { LimitedFilter } from './filter/LimitedFilter';
+import { RangedFilter } from './filter/RangedFilter';
+import { stringify } from '../../../utils/json';
+import { NodeFilter } from './filter/NodeFilter';
+import { Index } from '../snap/indexes/Index';
 
 /**
  * This class is an immutable-from-the-public-api struct containing a set of query parameters defining a
@@ -35,43 +37,28 @@ import { stringify } from "../../../utils/json";
  * @constructor
  */
 export class QueryParams {
-  endNameSet_
-  endSet_
-  index_
-  indexEndName_
-  indexEndValue_
-  indexStartName_
-  indexStartValue_
-  limit_
-  limitSet_
-  startEndSet_
-  startNameSet_
-  startSet_
-  viewFrom_
+  private limitSet_ = false;
+  private startSet_ = false;
+  private startNameSet_ = false;
+  private endSet_ = false;
+  private endNameSet_ = false;
 
-  constructor() {
-    this.limitSet_ = false;
-    this.startSet_ = false;
-    this.startNameSet_ = false;
-    this.endSet_ = false;
-    this.endNameSet_ = false;
+  private limit_ = 0;
+  private viewFrom_ = '';
+  private indexStartValue_: any | null = null;
+  private indexStartName_ = '';
+  private indexEndValue_: any | null = null;
+  private indexEndName_ = '';
 
-    this.limit_ = 0;
-    this.viewFrom_ = '';
-    this.indexStartValue_ = null;
-    this.indexStartName_ = '';
-    this.indexEndValue_ = null;
-    this.indexEndName_ = '';
+  private index_ = PRIORITY_INDEX;
 
-    this.index_ = PRIORITY_INDEX;
-  };
   /**
    * Wire Protocol Constants
    * @const
    * @enum {string}
    * @private
    */
-  private static WIRE_PROTOCOL_CONSTANTS_ = {
+  private static readonly WIRE_PROTOCOL_CONSTANTS_ = {
     INDEX_START_VALUE: 'sp',
     INDEX_START_NAME: 'sn',
     INDEX_END_VALUE: 'ep',
@@ -89,7 +76,7 @@ export class QueryParams {
    * @enum {string}
    * @private
    */
-  private static REST_QUERY_CONSTANTS_ = {
+  private static readonly REST_QUERY_CONSTANTS_ = {
     ORDER_BY: 'orderBy',
     PRIORITY_INDEX: '$priority',
     VALUE_INDEX: '$value',
@@ -105,19 +92,19 @@ export class QueryParams {
    * @type {!QueryParams}
    * @const
    */
-  static DEFAULT = new QueryParams();
+  static readonly DEFAULT = new QueryParams();
 
   /**
    * @return {boolean}
    */
-  hasStart() {
+  hasStart(): boolean {
     return this.startSet_;
-  };
+  }
 
   /**
    * @return {boolean} True if it would return from left.
    */
-  isViewFromLeft() {
+  isViewFromLeft(): boolean {
     if (this.viewFrom_ === '') {
       // limit(), rather than limitToFirst or limitToLast was called.
       // This means that only one of startSet_ and endSet_ is true. Use them
@@ -127,97 +114,97 @@ export class QueryParams {
     } else {
       return this.viewFrom_ === QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_LEFT;
     }
-  };
+  }
 
   /**
    * Only valid to call if hasStart() returns true
    * @return {*}
    */
-  getIndexStartValue() {
+  getIndexStartValue(): any {
     assert(this.startSet_, 'Only valid if start has been set');
     return this.indexStartValue_;
-  };
+  }
 
   /**
    * Only valid to call if hasStart() returns true.
    * Returns the starting key name for the range defined by these query parameters
    * @return {!string}
    */
-  getIndexStartName() {
+  getIndexStartName(): string {
     assert(this.startSet_, 'Only valid if start has been set');
     if (this.startNameSet_) {
       return this.indexStartName_;
     } else {
       return MIN_NAME;
     }
-  };
+  }
 
   /**
    * @return {boolean}
    */
-  hasEnd() {
+  hasEnd(): boolean {
     return this.endSet_;
-  };
+  }
 
   /**
    * Only valid to call if hasEnd() returns true.
    * @return {*}
    */
-  getIndexEndValue() {
+  getIndexEndValue(): any {
     assert(this.endSet_, 'Only valid if end has been set');
     return this.indexEndValue_;
-  };
+  }
 
   /**
    * Only valid to call if hasEnd() returns true.
    * Returns the end key name for the range defined by these query parameters
    * @return {!string}
    */
-  getIndexEndName() {
+  getIndexEndName(): string {
     assert(this.endSet_, 'Only valid if end has been set');
     if (this.endNameSet_) {
       return this.indexEndName_;
     } else {
       return MAX_NAME;
     }
-  };
+  }
 
   /**
    * @return {boolean}
    */
-  hasLimit() {
+  hasLimit(): boolean {
     return this.limitSet_;
-  };
+  }
 
   /**
    * @return {boolean} True if a limit has been set and it has been explicitly anchored
    */
-  hasAnchoredLimit() {
+  hasAnchoredLimit(): boolean {
     return this.limitSet_ && this.viewFrom_ !== '';
-  };
+  }
 
   /**
    * Only valid to call if hasLimit() returns true
    * @return {!number}
    */
-  getLimit() {
+  getLimit(): number {
     assert(this.limitSet_, 'Only valid if limit has been set');
     return this.limit_;
-  };
+  }
 
   /**
    * @return {!Index}
    */
-  getIndex() {
+  getIndex(): Index {
     return this.index_;
-  };
+  }
 
   /**
    * @return {!QueryParams}
    * @private
    */
-  copy_() {
-    var copy = new QueryParams();
+  private copy_(): QueryParams {
+    const copy = new QueryParams();
     copy.limitSet_ = this.limitSet_;
     copy.limit_ = this.limit_;
     copy.startSet_ = this.startSet_;
@@ -231,38 +218,38 @@ export class QueryParams {
     copy.index_ = this.index_;
     copy.viewFrom_ = this.viewFrom_;
     return copy;
-  };
+  }
 
   /**
    * @param {!number} newLimit
    * @return {!QueryParams}
    */
-  limit(newLimit) {
-    var newParams = this.copy_();
+  limit(newLimit: number): QueryParams {
+    const newParams = this.copy_();
     newParams.limitSet_ = true;
     newParams.limit_ = newLimit;
     newParams.viewFrom_ = '';
     return newParams;
-  };
+  }
 
   /**
    * @param {!number} newLimit
    * @return {!QueryParams}
    */
-  limitToFirst(newLimit) {
-    var newParams = this.copy_();
+  limitToFirst(newLimit: number): QueryParams {
+    const newParams = this.copy_();
     newParams.limitSet_ = true;
     newParams.limit_ = newLimit;
     newParams.viewFrom_ = QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_LEFT;
     return newParams;
-  };
+  }
 
   /**
    * @param {!number} newLimit
    * @return {!QueryParams}
    */
-  limitToLast(newLimit) {
-    var newParams = this.copy_();
+  limitToLast(newLimit: number): QueryParams {
+    const newParams = this.copy_();
     newParams.limitSet_ = true;
     newParams.limit_ = newLimit;
     newParams.viewFrom_ = QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_RIGHT;
@@ -274,8 +261,8 @@ export class QueryParams {
    * @param {?string=} key
    * @return {!QueryParams}
    */
-  startAt(indexValue, key) {
-    var newParams = this.copy_();
+  startAt(indexValue: any, key?: string | null): QueryParams {
+    const newParams = this.copy_();
     newParams.startSet_ = true;
     if (!(indexValue !== undefined)) {
       indexValue = null;
@@ -289,25 +276,25 @@ export class QueryParams {
       newParams.indexStartName_ = '';
     }
     return newParams;
-  };
+  }
 
   /**
    * @param {*} indexValue
    * @param {?string=} key
    * @return {!QueryParams}
    */
-  endAt(indexValue, key) {
-    var newParams = this.copy_();
+  endAt(indexValue: any, key?: string | null): QueryParams {
+    const newParams = this.copy_();
     newParams.endSet_ = true;
     if (!(indexValue !== undefined)) {
       indexValue = null;
     }
     newParams.indexEndValue_ = indexValue;
-    if ((key !== undefined)) {
+    if (key !== undefined) {
       newParams.endNameSet_ = true;
       newParams.indexEndName_ = key;
     } else {
-      newParams.startEndSet_ = false;
+      newParams.endNameSet_ = false;
       newParams.indexEndName_ = '';
     }
     return newParams;
@@ -317,18 +304,18 @@ export class QueryParams {
    * @param {!Index} index
    * @return {!QueryParams}
    */
-  orderBy(index) {
-    var newParams = this.copy_();
+  orderBy(index: Index): QueryParams {
+    const newParams = this.copy_();
     newParams.index_ = index;
     return newParams;
-  };
+  }
 
   /**
    * @return {!Object}
    */
-  getQueryObject() {
-    var WIRE_PROTOCOL_CONSTANTS = QueryParams.WIRE_PROTOCOL_CONSTANTS_;
-    var obj = {};
+  getQueryObject(): Object {
+    const WIRE_PROTOCOL_CONSTANTS = QueryParams.WIRE_PROTOCOL_CONSTANTS_;
+    const obj: { [k: string]: any } = {};
     if (this.startSet_) {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX_START_VALUE] = this.indexStartValue_;
       if (this.startNameSet_) {
@@ -343,7 +330,7 @@ export class QueryParams {
     }
     if (this.limitSet_) {
       obj[WIRE_PROTOCOL_CONSTANTS.LIMIT] = this.limit_;
-      var viewFrom = this.viewFrom_;
+      let viewFrom = this.viewFrom_;
       if (viewFrom === '') {
         if (this.isViewFromLeft()) {
           viewFrom = WIRE_PROTOCOL_CONSTANTS.VIEW_FROM_LEFT;
@@ -358,26 +345,26 @@ export class QueryParams {
       obj[WIRE_PROTOCOL_CONSTANTS.INDEX] = this.index_.toString();
     }
     return obj;
-  };
+  }
 
   /**
    * @return {boolean}
    */
-  loadsAllData() {
+  loadsAllData(): boolean {
     return !(this.startSet_ || this.endSet_ || this.limitSet_);
-  };
+  }
 
   /**
    * @return {boolean}
    */
-  isDefault() {
+  isDefault(): boolean {
     return this.loadsAllData() && this.index_ == PRIORITY_INDEX;
-  };
+  }
 
   /**
    * @return {!NodeFilter}
    */
-  getNodeFilter() {
+  getNodeFilter(): NodeFilter {
     if (this.loadsAllData()) {
       return new IndexedFilter(this.getIndex());
     } else if (this.hasLimit()) {
@@ -385,7 +372,7 @@ export class QueryParams {
     } else {
       return new RangedFilter(this);
     }
-  };
+  }
 
 
   /**
@@ -393,15 +380,15 @@ export class QueryParams {
    *
    * @return {!Object.<string,*>} query string parameters
    */
-  toRestQueryStringParameters() {
-    var REST_CONSTANTS = QueryParams.REST_QUERY_CONSTANTS_;
-    var qs = { };
+  toRestQueryStringParameters(): { [k: string]: any } {
+    const REST_CONSTANTS = QueryParams.REST_QUERY_CONSTANTS_;
+    const qs: { [k: string]: string | number } = {};
 
     if (this.isDefault()) {
       return qs;
     }
 
-    var orderBy;
+    let orderBy;
     if (this.index_ === PRIORITY_INDEX) {
       orderBy = REST_CONSTANTS.PRIORITY_INDEX;
     } else if (this.index_ === VALUE_INDEX) {
@@ -437,5 +424,5 @@ export class QueryParams {
     }
 
     return qs;
-  };
+  }
 }

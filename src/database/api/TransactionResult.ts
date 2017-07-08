@@ -14,13 +14,17 @@
 * limitations under the License.
 */
 
+import { DataSnapshot } from './DataSnapshot';
+
 export class TransactionResult {
   /**
    * A type for the resolve value of Firebase.transaction.
    * @constructor
    * @dict
    * @param {boolean} committed
-   * @param {fb.api.DataSnapshot} snapshot
+   * @param {DataSnapshot} snapshot
    */
-  constructor(public committed, public snapshot) {}
+  constructor(public committed: boolean, public snapshot: DataSnapshot) {
+
+  }
 }

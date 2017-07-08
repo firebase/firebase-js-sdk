@@ -25,10 +25,10 @@ import { isMobileCordova } from "../../../utils/environment";
  * when we're not), but no false negatives.  So we can safely use it to determine when
  * we definitely cannot reach the internet.
  *
- * @extends {fb.core.util.EventEmitter}
+ * @extends {EventEmitter}
  */
 export class OnlineMonitor extends EventEmitter {
-  online_;
+  private online_ = true;
 
   static getInstance() {
     return new OnlineMonitor();
@@ -36,7 +36,6 @@ export class OnlineMonitor extends EventEmitter {
 
   constructor() {
     super(['online']);
-    this.online_ = true;
 
     // We've had repeated complaints that Cordova apps can get stuck "offline", e.g.
     // https://forum.ionicframework.com/t/firebase-connection-is-lost-and-never-come-back/43810
@@ -45,18 +44,17 @@ export class OnlineMonitor extends EventEmitter {
     if (typeof window !== 'undefined' &&
         typeof window.addEventListener !== 'undefined' &&
         !isMobileCordova()) {
-      var self = this;
-      window.addEventListener('online', function() {
-        if (!self.online_) {
-          self.online_ = true;
-          self.trigger('online', true);
+      window.addEventListener('online', () => {
+        if (!this.online_) {
+          this.online_ = true;
+          this.trigger('online', true);
         }
       }, false);
 
-      window.addEventListener('offline', function() {
-        if (self.online_) {
-          self.online_ = false;
-          self.trigger('online', false);
+      window.addEventListener('offline', () => {
+        if (this.online_) {
+          this.online_ = false;
+          this.trigger('online', false);
         }
       }, false);
     }
@@ -66,7 +64,7 @@ export class OnlineMonitor extends EventEmitter {
    * @param {!string} eventType
    * @return {Array.<boolean>}
    */
-  getInitialEvent(eventType) {
+  getInitialEvent(eventType: string): boolean[] {
     assert(eventType === 'online', 'Unknown event type: ' + eventType);
     return [this.online_];
   }
@@ -74,7 +72,7 @@ export class OnlineMonitor extends EventEmitter {
   /**
    * @return {boolean}
    */
-  currentlyOnline() {
+  currentlyOnline(): boolean {
     return this.online_;
   }
-}; // end OnlineMonitor
+}

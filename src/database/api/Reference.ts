@@ -40,9 +40,13 @@ import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
 
+export interface ReferenceConstructor {
+  new(repo: Repo, path: Path): Reference;
+}
+
 export class Reference extends Query {
-  public then;
-  public catch;
+  public then: (a?: any) => Promise<any>;
+  public catch: (a?: Error) => Promise<any>;
 
   /**
    * Call options:
@@ -104,7 +108,7 @@ export class Reference extends Query {
   getRoot(): Reference {
     validateArgCount('Reference.root', 0, 0, arguments.length);
 
-    let ref = <any>this;
+    let ref = (this as any);
     while (ref.getParent() !== null) {
       ref = ref.getParent();
     }
@@ -121,7 +125,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  set(newVal: any, onComplete?: (a: Error | null) => any): Promise<any> {
+  set(newVal: any, onComplete?: (a: Error | null) => void): Promise<any> {
     validateArgCount('Reference.set', 1, 2, arguments.length);
     validateWritablePath('Reference.set', this.path);
     validateFirebaseDataArg('Reference.set', 1, newVal, this.path, false);
@@ -137,12 +141,12 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  update(objectToMerge: Object, onComplete?: (a: Error | null) => any): Promise<any> {
+  update(objectToMerge: Object, onComplete?: (a: Error | null) => void): Promise<any> {
     validateArgCount('Reference.update', 1, 2, arguments.length);
     validateWritablePath('Reference.update', this.path);
 
     if (Array.isArray(objectToMerge)) {
-      const newObjectToMerge = {};
+      const newObjectToMerge: { [k: string]: any } = {};
       for (let i = 0; i < objectToMerge.length; ++i) {
         newObjectToMerge['' + i] = objectToMerge[i];
       }
@@ -167,7 +171,7 @@ export class Reference extends Query {
    * @return {!Promise}
    */
   setWithPriority(newVal: any, newPriority: string | number | null,
-                  onComplete?: (a: Error | null) => any): Promise<any> {
+                  onComplete?: (a: Error | null) => void): Promise<any> {
     validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
     validateWritablePath('Reference.setWithPriority', this.path);
     validateFirebaseDataArg('Reference.setWithPriority', 1, newVal, this.path, false);
@@ -186,7 +190,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  remove(onComplete?: (a: Error | null) => any): Promise<any> {
+  remove(onComplete?: (a: Error | null) => void): Promise<any> {
     validateArgCount('Reference.remove', 0, 1, arguments.length);
     validateWritablePath('Reference.remove', this.path);
     validateCallback('Reference.remove', 1, onComplete, true);
@@ -201,7 +205,7 @@ export class Reference extends Query {
    * @return {!Promise}
    */
   transaction(transactionUpdate: (a: any) => any,
-              onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
+              onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
               applyLocally?: boolean): Promise<any> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
     validateWritablePath('Reference.transaction', this.path);
@@ -222,7 +226,7 @@ export class Reference extends Query {
       attachDummyErrorHandler(deferred.promise);
     }
 
-    const promiseComplete = function (error, committed, snapshot) {
+    const promiseComplete = function (error: Error, committed: boolean, snapshot: DataSnapshot) {
       if (error) {
         deferred.reject(error);
       } else {
@@ -242,7 +246,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  setPriority(priority: string | number | null, onComplete?: (a: Error | null) => any): Promise<any> {
+  setPriority(priority: string | number | null, onComplete?: (a: Error | null) => void): Promise<any> {
     validateArgCount('Reference.setPriority', 1, 2, arguments.length);
     validateWritablePath('Reference.setPriority', this.path);
     validatePriority('Reference.setPriority', 1, priority, false);
@@ -258,7 +262,7 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Reference}
    */
-  push(value?: any, onComplete?: (a: Error | null) => any): Reference {
+  push(value?: any, onComplete?: (a: Error | null) => void): Reference {
     validateArgCount('Reference.push', 0, 2, arguments.length);
     validateWritablePath('Reference.push', this.path);
     validateFirebaseDataArg('Reference.push', 1, value, this.path, true);

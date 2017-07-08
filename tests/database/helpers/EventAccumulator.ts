@@ -18,12 +18,12 @@ export const EventAccumulatorFactory = {
   waitsForCount: maxCount => {
     let count = 0;
     const condition = () => ea.eventData.length >= count;
-    const ea = new EventAccumulator(condition)
+    const ea = new EventAccumulator(condition);
     ea.onReset(() => { count = 0; });
     ea.onEvent(() => { count++; });
     return ea;
   }
-}
+};
 
 export class EventAccumulator {
   public eventData = [];

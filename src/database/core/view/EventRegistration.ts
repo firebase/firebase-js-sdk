@@ -50,7 +50,7 @@ export interface EventRegistration {
    * @param {!Event} eventData
    * @return {function()}
    */
-  getEventRunner(eventData: Event): () => any;
+  getEventRunner(eventData: Event): () => void;
 
   /**
    * @param {!Error} error
@@ -87,8 +87,8 @@ export class ValueEventRegistration implements EventRegistration {
    * @param {?function(Error)} cancelCallback_
    * @param {?Object} context_
    */
-  constructor(private callback_: ((d: DataSnapshot) => any) | null,
-              private cancelCallback_: ((e: Error) => any) | null,
+  constructor(private callback_: ((d: DataSnapshot) => void) | null,
+              private cancelCallback_: ((e: Error) => void) | null,
               private context_: Object | null) {
   }
 
@@ -117,12 +117,12 @@ export class ValueEventRegistration implements EventRegistration {
       const cancelCB = this.cancelCallback_;
       return function () {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (<CancelEvent>eventData).error);
+        cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
       const cb = this.callback_;
       return function () {
-        cb.call(ctx, (<DataEvent>eventData).snapshot);
+        cb.call(ctx, (eventData as DataEvent).snapshot);
       };
     }
   }
@@ -175,15 +175,15 @@ export class ChildEventRegistration implements EventRegistration {
    * @param {?function(Error)} cancelCallback_
    * @param {Object=} context_
    */
-  constructor(private callbacks_: ({ [k: string]: (d: DataSnapshot, s?: string | null) => any }) | null,
-              private cancelCallback_: ((e: Error) => any) | null,
-              private context_: Object) {
+  constructor(private callbacks_: ({ [k: string]: (d: DataSnapshot, s?: string | null) => void }) | null,
+              private cancelCallback_: ((e: Error) => void) | null,
+              private context_?: Object) {
   }
 
   /**
    * @inheritDoc
    */
-  respondsTo(eventType): boolean {
+  respondsTo(eventType: string): boolean {
     let eventToCheck = eventType === 'children_added' ? 'child_added' : eventType;
     eventToCheck = eventToCheck === 'children_removed' ? 'child_removed' : eventToCheck;
     return contains(this.callbacks_, eventToCheck);
@@ -207,7 +207,7 @@ export class ChildEventRegistration implements EventRegistration {
     assert(change.childName != null, 'Child events should have a childName.');
     const ref = query.getRef().child(/** @type {!string} */ (change.childName));
     const index = query.getQueryParams().getIndex();
-    return new DataEvent(<any>change.type, this, new DataSnapshot(change.snapshotNode, ref, index),
+    return new DataEvent(change.type as any, this, new DataSnapshot(change.snapshotNode, ref, index as any),
       change.prevName);
   }
 
@@ -221,12 +221,12 @@ export class ChildEventRegistration implements EventRegistration {
       const cancelCB = this.cancelCallback_;
       return function () {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB.call(ctx, (<CancelEvent>eventData).error);
+        cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
-      const cb = this.callbacks_[(<DataEvent>eventData).eventType];
+      const cb = this.callbacks_[(eventData as DataEvent).eventType];
       return function () {
-        cb.call(ctx, (<DataEvent>eventData).snapshot, (<DataEvent>eventData).prevName);
+        cb.call(ctx, (eventData as DataEvent).snapshot, (eventData as DataEvent).prevName);
       }
     }
   }

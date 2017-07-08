@@ -29,9 +29,15 @@ import { Query } from '../api/Query';
  * This is mostly useful for compatibility with crawlers, where we don't want to spin up a full
  * persistent connection (using WebSockets or long-polling)
  */
-export class ReadonlyRestClient implements ServerActions {
+export class ReadonlyRestClient extends ServerActions {
+  reportStats(stats: {
+    [k: string]: any;
+  }): void {
+    throw new Error('Method not implemented.');
+  }
+
   /** @private {function(...[*])} */
-  private log_: (...args: any[]) => any = logWrapper('p:rest:');
+  private log_: (...args: any[]) => void = logWrapper('p:rest:');
 
   /**
    * We don't actually need to track listens, except to prevent us calling an onComplete for a listen
@@ -63,12 +69,13 @@ export class ReadonlyRestClient implements ServerActions {
    * @implements {ServerActions}
    */
   constructor(private repoInfo_: RepoInfo,
-              private onDataUpdate_: (a: string, b: any, c: boolean, d: number | null) => any,
+              private onDataUpdate_: (a: string, b: any, c: boolean, d: number | null) => void,
               private authTokenProvider_: AuthTokenProvider) {
+    super();
   }
 
   /** @inheritDoc */
-  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => any) {
+  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => void) {
     const pathString = query.path.toString();
     this.log_('Listen called for ' + pathString + ' ' + query.queryIdentifier());
 
@@ -117,24 +124,6 @@ export class ReadonlyRestClient implements ServerActions {
     // no-op since we just always call getToken.
   }
 
-  /** @inheritDoc */
-  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => any) { }
-
-  /** @inheritDoc */
-  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => any) { }
-
-  /** @inheritDoc */
-  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => any) { }
-
-  /** @inheritDoc */
-  put(pathString: string, data: any, onComplete?: (a: string, b: string) => any, hash?: string) { }
-
-  /** @inheritDoc */
-  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => any, hash?: string) { }
-
-  /** @inheritDoc */
-  reportStats(stats: { [k: string]: any }) { }
-
   /**
    * Performs a REST request to the given path, with the provided query string parameters,
    * and any auth credentials we have.
@@ -144,8 +133,8 @@ export class ReadonlyRestClient implements ServerActions {
    * @param {?function(?number, *=)} callback
    * @private
    */
-  private restRequest_(pathString: string, queryStringParameters: {[k: string]: any} = {},
-                       callback: ((a: number | null, b?: any) => any) | null) {
+  private restRequest_(pathString: string, queryStringParameters: { [k: string]: any } = {},
+                       callback: ((a: number | null, b?: any) => void) | null) {
     queryStringParameters['format'] = 'export';
 
     this.authTokenProvider_.getToken(/*forceRefresh=*/false).then((authTokenData) => {

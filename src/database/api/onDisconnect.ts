@@ -14,18 +14,18 @@
 * limitations under the License.
 */
 
-import { 
+import {
   validateArgCount,
   validateCallback
-} from "../../utils/validation";
+} from '../../utils/validation';
 import {
   validateWritablePath,
   validateFirebaseDataArg,
   validatePriority,
   validateFirebaseMergeDataArg,
-} from "../core/util/validation";
-import { warn } from "../core/util/util";
-import { Deferred } from "../../utils/promise";
+} from '../core/util/validation';
+import { warn } from '../core/util/util';
+import { Deferred } from '../../utils/promise';
 import { Repo } from '../core/Repo';
 import { Path } from '../core/util/Path';
 
@@ -45,7 +45,7 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  cancel(onComplete?) {
+  cancel(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.cancel', 0, 1, arguments.length);
     validateCallback('OnDisconnect.cancel', 1, onComplete, true);
     const deferred = new Deferred();
@@ -57,7 +57,7 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  remove(onComplete?) {
+  remove(onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.remove', 0, 1, arguments.length);
     validateWritablePath('OnDisconnect.remove', this.path_);
     validateCallback('OnDisconnect.remove', 1, onComplete, true);
@@ -71,7 +71,7 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  set(value, onComplete?) {
+  set(value: any, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.set', 1, 2, arguments.length);
     validateWritablePath('OnDisconnect.set', this.path_);
     validateFirebaseDataArg('OnDisconnect.set', 1, value, this.path_, false);
@@ -87,7 +87,7 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  setWithPriority(value, priority, onComplete?) {
+  setWithPriority(value: any, priority: number | string | null, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.setWithPriority', 2, 3, arguments.length);
     validateWritablePath('OnDisconnect.setWithPriority', this.path_);
     validateFirebaseDataArg('OnDisconnect.setWithPriority',
@@ -105,11 +105,11 @@ export class OnDisconnect {
    * @param {function(?Error)=} onComplete
    * @return {!firebase.Promise}
    */
-  update(objectToMerge, onComplete?) {
+  update(objectToMerge: object, onComplete?: (a: Error | null) => void): Promise<void> {
     validateArgCount('OnDisconnect.update', 1, 2, arguments.length);
     validateWritablePath('OnDisconnect.update', this.path_);
     if (Array.isArray(objectToMerge)) {
-      const newObjectToMerge = {};
+      const newObjectToMerge: { [k: string]: any } = {};
       for (let i = 0; i < objectToMerge.length; ++i) {
         newObjectToMerge['' + i] = objectToMerge[i];
       }

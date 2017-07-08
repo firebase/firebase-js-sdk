@@ -17,11 +17,13 @@
 import { EventEmitter } from "./EventEmitter";
 import { assert } from "../../../utils/assert";
 
+declare const document: any;
+
 /**
- * @extends {fb.core.util.EventEmitter}
+ * @extends {EventEmitter}
  */
 export class VisibilityMonitor extends EventEmitter {
-  visible_;
+  private visible_: boolean;
 
   static getInstance() {
     return new VisibilityMonitor();
@@ -29,7 +31,8 @@ export class VisibilityMonitor extends EventEmitter {
 
   constructor() {
     super(['visible']);
-    var hidden, visibilityChange;
+    let hidden: string;
+    let visibilityChange: string;
     if (typeof document !== 'undefined' && typeof document.addEventListener !== 'undefined') {
       if (typeof document['hidden'] !== 'undefined') {
         // Opera 12.10 and Firefox 18 and later support
@@ -54,12 +57,11 @@ export class VisibilityMonitor extends EventEmitter {
     this.visible_ = true;
 
     if (visibilityChange) {
-      var self = this;
-      document.addEventListener(visibilityChange, function() {
-        var visible = !document[hidden];
-        if (visible !== self.visible_) {
-          self.visible_ = visible;
-          self.trigger('visible', visible);
+      document.addEventListener(visibilityChange, () => {
+        const visible = !document[hidden];
+        if (visible !== this.visible_) {
+          this.visible_ = visible;
+          this.trigger('visible', visible);
         }
       }, false);
     }
@@ -69,8 +71,8 @@ export class VisibilityMonitor extends EventEmitter {
    * @param {!string} eventType
    * @return {Array.<boolean>}
    */
-  getInitialEvent(eventType) {
+  getInitialEvent(eventType: string): boolean[] {
     assert(eventType === 'visible', 'Unknown event type: ' + eventType);
     return [this.visible_];
   }
-}; // end VisibilityMonitor
+}

@@ -14,23 +14,20 @@
 * limitations under the License.
 */
 
-export const CONSTANTS = {
+export const PROTOCOL_VERSION = '5';
 
-  /** @const */ PROTOCOL_VERSION: '5',
+export const VERSION_PARAM = 'v';
 
-  /** @const */ VERSION_PARAM: 'v',
+export const TRANSPORT_SESSION_PARAM = 's';
 
-  /** @const */ TRANSPORT_SESSION_PARAM: 's',
+export const REFERER_PARAM = 'r';
 
-  /** @const */ REFERER_PARAM: 'r',
+export const FORGE_REF = 'f';
 
-  /** @const */ FORGE_REF: 'f',
+export const FORGE_DOMAIN = 'firebaseio.com';
 
-  /** @const */ FORGE_DOMAIN: 'firebaseio.com',
+export const LAST_SESSION_PARAM = 'ls';
 
-  /** @const */ LAST_SESSION_PARAM: 'ls',
+export const WEBSOCKET = 'websocket';
 
-  /** @const */ WEBSOCKET: 'websocket',
-
-  /** @const */ LONG_POLLING: 'long_polling'
-};
+export const LONG_POLLING = 'long_polling';

@@ -23,15 +23,25 @@ import {
   logWrapper,
   LUIDGenerator,
   splitStringBySize
-} from "../core/util/util";
-import { CountedSet } from "../core/util/CountedSet";
-import { StatsManager } from "../core/stats/StatsManager";
-import { PacketReceiver } from "./polling/PacketReceiver";
-import { CONSTANTS } from "./Constants";
-import { stringify } from "../../utils/json";
-import { isNodeSdk } from "../../utils/environment";
+} from '../core/util/util';
+import { CountedSet } from '../core/util/CountedSet';
+import { StatsManager } from '../core/stats/StatsManager';
+import { PacketReceiver } from './polling/PacketReceiver';
+import {
+  FORGE_DOMAIN,
+  FORGE_REF,
+  LAST_SESSION_PARAM,
+  LONG_POLLING,
+  PROTOCOL_VERSION,
+  REFERER_PARAM,
+  TRANSPORT_SESSION_PARAM,
+  VERSION_PARAM
+} from './Constants';
+import { stringify } from '../../utils/json';
+import { isNodeSdk } from '../../utils/environment';
 import { Transport } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
+import { StatsCollection } from '../core/stats/StatsCollection';
 
 // URL query parameters associated with longpolling
 export const FIREBASE_LONGPOLL_START_PARAM = 'start';
@@ -76,51 +86,45 @@ const LP_CONNECT_TIMEOUT = 30000;
  *
  * @constructor
  * @implements {Transport}
- * @param {string} connId An identifier for this connection, used for logging
- * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
- * @param {string=} opt_transportSessionId Optional transportSessionid if we are reconnecting for an existing
- *                                         transport session
- * @param {string=}  opt_lastSessionId Optional lastSessionId if the PersistentConnection has already created a
- *                                     connection previously
  */
 export class BrowserPollConnection implements Transport {
-  repoInfo;
-  bytesSent;
-  bytesReceived;
-  transportSessionId;
-  lastSessionId;
-  urlFn;
-  scriptTagHolder;
-  myDisconnFrame;
-  curSegmentNum;
-  myPacketOrderer;
-  id;
-  password;
-  private log_;
-  private stats_;
-  private everConnected_;
-  private connectTimeoutTimer_;
-  private onDisconnect_;
-  private isClosed_;
+  bytesSent = 0;
+  bytesReceived = 0;
+  urlFn: (params: object) => string;
+  scriptTagHolder: FirebaseIFrameScriptHolder;
+  myDisconnFrame: HTMLIFrameElement;
+  curSegmentNum: number;
+  myPacketOrderer: PacketReceiver;
+  id: string;
+  password: string;
+  private log_: (...a: any[]) => void;
+  private stats_: StatsCollection;
+  private everConnected_ = false;
+  private isClosed_: boolean;
+  private connectTimeoutTimer_: number | null;
+  private onDisconnect_: ((a?: boolean) => void) | null;
 
-  constructor(public connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string) {
+  /**
+   * @param {string} connId An identifier for this connection, used for logging
+   * @param {RepoInfo} repoInfo The info for the endpoint to send data to.
+   * @param {string=} transportSessionId Optional transportSessionid if we are reconnecting for an existing
+   *                                         transport session
+   * @param {string=}  lastSessionId Optional lastSessionId if the PersistentConnection has already created a
+   *                                     connection previously
+   */
+  constructor(public connId: string, public repoInfo: RepoInfo,
+              public transportSessionId?: string, public lastSessionId?: string) {
     this.log_ = logWrapper(connId);
-    this.repoInfo = repoInfo;
-    this.bytesSent = 0;
-    this.bytesReceived = 0;
     this.stats_ = StatsManager.getCollection(repoInfo);
-    this.transportSessionId = transportSessionId;
-    this.everConnected_ = false;
-    this.lastSessionId = lastSessionId;
-    this.urlFn = (params) => repoInfo.connectionURL(CONSTANTS.LONG_POLLING, params);
-  };
+    this.urlFn = (params: { [k: string]: string }) => repoInfo.connectionURL(LONG_POLLING, params);
+  }
 
   /**
    *
    * @param {function(Object)} onMessage Callback when messages arrive
    * @param {function()} onDisconnect Callback with connection lost.
    */
-  open(onMessage: (msg: Object) => any, onDisconnect: () => any) {
+  open(onMessage: (msg: Object) => void, onDisconnect: (a?: boolean) => void) {
     this.curSegmentNum = 0;
     this.onDisconnect_ = onDisconnect;
     this.myPacketOrderer = new PacketReceiver(onMessage);
@@ -131,7 +135,7 @@ export class BrowserPollConnection implements Transport {
       // Make sure we clear the host cache
       this.onClosed_();
       this.connectTimeoutTimer_ = null;
-    }, Math.floor(LP_CONNECT_TIMEOUT));
+    }, Math.floor(LP_CONNECT_TIMEOUT)) as any;
 
     // Ensure we delay the creation of the iframe until the DOM is loaded.
     executeWhenDOMReady(() => {
@@ -179,23 +183,23 @@ export class BrowserPollConnection implements Transport {
 
       //Send the initial request to connect. The serial number is simply to keep the browser from pulling previous results
       //from cache.
-      const urlParams = {};
+      const urlParams: { [k: string]: string | number } = {};
       urlParams[FIREBASE_LONGPOLL_START_PARAM] = 't';
       urlParams[FIREBASE_LONGPOLL_SERIAL_PARAM] = Math.floor(Math.random() * 100000000);
       if (this.scriptTagHolder.uniqueCallbackIdentifier)
         urlParams[FIREBASE_LONGPOLL_CALLBACK_ID_PARAM] = this.scriptTagHolder.uniqueCallbackIdentifier;
-      urlParams[CONSTANTS.VERSION_PARAM] = CONSTANTS.PROTOCOL_VERSION;
+      urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
       if (this.transportSessionId) {
-        urlParams[CONSTANTS.TRANSPORT_SESSION_PARAM] = this.transportSessionId;
+        urlParams[TRANSPORT_SESSION_PARAM] = this.transportSessionId;
       }
       if (this.lastSessionId) {
-        urlParams[CONSTANTS.LAST_SESSION_PARAM] = this.lastSessionId;
+        urlParams[LAST_SESSION_PARAM] = this.lastSessionId;
       }
       if (!isNodeSdk() &&
         typeof location !== 'undefined' &&
         location.href &&
-        location.href.indexOf(CONSTANTS.FORGE_DOMAIN) !== -1) {
-        urlParams[CONSTANTS.REFERER_PARAM] = CONSTANTS.FORGE_REF;
+        location.href.indexOf(FORGE_DOMAIN) !== -1) {
+        urlParams[REFERER_PARAM] = FORGE_REF;
       }
       const connectURL = this.urlFn(urlParams);
       this.log_('Connecting via long-poll to ' + connectURL);
@@ -211,7 +215,7 @@ export class BrowserPollConnection implements Transport {
     this.addDisconnectPingFrame(this.id, this.password);
   };
 
-  private static forceAllow_;
+  private static forceAllow_: boolean;
 
   /**
    * Forces long polling to be considered as a potential transport
@@ -220,7 +224,7 @@ export class BrowserPollConnection implements Transport {
     BrowserPollConnection.forceAllow_ = true;
   };
 
-  private static forceDisallow_;
+  private static forceDisallow_: boolean;
 
   /**
    * Forces longpolling to not be considered as a potential transport
@@ -234,12 +238,12 @@ export class BrowserPollConnection implements Transport {
     // NOTE: In React-Native there's normally no 'document', but if you debug a React-Native app in
     // the Chrome debugger, 'document' is defined, but document.createElement is null (2015/06/08).
     return BrowserPollConnection.forceAllow_ || (
-        !BrowserPollConnection.forceDisallow_ &&
-        typeof document !== 'undefined' && document.createElement != null &&
-        !isChromeExtensionContentScript() &&
-        !isWindowsStoreApp() &&
-        !isNodeSdk()
-      );
+      !BrowserPollConnection.forceDisallow_ &&
+      typeof document !== 'undefined' && document.createElement != null &&
+      !isChromeExtensionContentScript() &&
+      !isWindowsStoreApp() &&
+      !isNodeSdk()
+    );
   };
 
   /**
@@ -333,7 +337,7 @@ export class BrowserPollConnection implements Transport {
   addDisconnectPingFrame(id: string, pw: string) {
     if (isNodeSdk()) return;
     this.myDisconnFrame = document.createElement('iframe');
-    const urlParams = {};
+    const urlParams: { [k: string]: string } = {};
     urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_REQUEST_PARAM] = 't';
     urlParams[FIREBASE_LONGPOLL_ID_PARAM] = id;
     urlParams[FIREBASE_LONGPOLL_PW_PARAM] = pw;
@@ -363,10 +367,6 @@ export interface IFrameElement extends HTMLIFrameElement {
 /*********************************************************************************************
  * A wrapper around an iframe that is used as a long-polling script holder.
  * @constructor
- * @param commandCB - The callback to be called when control commands are recevied from the server.
- * @param onMessageCB - The callback to be triggered when responses arrive from the server.
- * @param onDisconnect - The callback to be triggered when this tag holder is closed
- * @param urlFn - A function that provides the URL of the endpoint to send data to.
  *********************************************************************************************/
 export class FirebaseIFrameScriptHolder {
   //We maintain a count of all of the outstanding requests, because if we have too many active at once it can cause
@@ -374,10 +374,10 @@ export class FirebaseIFrameScriptHolder {
   /**
    * @type {CountedSet.<number, number>}
    */
-  outstandingRequests = new CountedSet();
+  outstandingRequests = new CountedSet<number, number>();
 
   //A queue of the pending segments waiting for transmission to the server.
-  pendingSegs = [];
+  pendingSegs: { seg: number, ts: number, d: any }[] = [];
 
   //A serial number. We use this for two things:
   // 1) A way to ensure the browser doesn't cache responses to polls
@@ -395,42 +395,51 @@ export class FirebaseIFrameScriptHolder {
   alive: boolean;
   myID: string;
   myPW: string;
-  commandCB;
-  onMessageCB;
+  commandCB: (command: string, ...args: any[]) => void;
+  onMessageCB: (...args: any[]) => void;
 
-  constructor(commandCB, onMessageCB, public onDisconnect, public urlFn) {
+  /**
+   * @param commandCB - The callback to be called when control commands are recevied from the server.
+   * @param onMessageCB - The callback to be triggered when responses arrive from the server.
+   * @param onDisconnect - The callback to be triggered when this tag holder is closed
+   * @param urlFn - A function that provides the URL of the endpoint to send data to.
+   */
+  constructor(commandCB: (command: string, ...args: any[]) => void,
+              onMessageCB: (...args: any[]) => void,
+              public onDisconnect: () => void,
+              public urlFn: (a: object) => string) {
     if (!isNodeSdk()) {
-    //Each script holder registers a couple of uniquely named callbacks with the window. These are called from the
-    //iframes where we put the long-polling script tags. We have two callbacks:
-    //   1) Command Callback - Triggered for control issues, like starting a connection.
-    //   2) Message Callback - Triggered when new data arrives.
-    this.uniqueCallbackIdentifier = LUIDGenerator();
-    window[FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier] = commandCB;
-    window[FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier] = onMessageCB;
+      //Each script holder registers a couple of uniquely named callbacks with the window. These are called from the
+      //iframes where we put the long-polling script tags. We have two callbacks:
+      //   1) Command Callback - Triggered for control issues, like starting a connection.
+      //   2) Message Callback - Triggered when new data arrives.
+      this.uniqueCallbackIdentifier = LUIDGenerator();
+      (window as any)[FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier] = commandCB;
+      (window as any)[FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier] = onMessageCB;
 
-    //Create an iframe for us to add script tags to.
-    this.myIFrame = FirebaseIFrameScriptHolder.createIFrame_();
+      //Create an iframe for us to add script tags to.
+      this.myIFrame = FirebaseIFrameScriptHolder.createIFrame_();
 
-    // Set the iframe's contents.
-    let script = '';
-    // if we set a javascript url, it's IE and we need to set the document domain. The javascript url is sufficient
-    // for ie9, but ie8 needs to do it again in the document itself.
-    if (this.myIFrame.src && this.myIFrame.src.substr(0, 'javascript:'.length) === 'javascript:') {
-      const currentDomain = document.domain;
-      script = '<script>document.domain="' + currentDomain + '";</script>';
-    }
-    const iframeContents = '<html><body>' + script + '</body></html>';
-    try {
-      this.myIFrame.doc.open();
-      this.myIFrame.doc.write(iframeContents);
-      this.myIFrame.doc.close();
-    } catch (e) {
-      log('frame writing exception');
-      if (e.stack) {
-        log(e.stack);
+      // Set the iframe's contents.
+      let script = '';
+      // if we set a javascript url, it's IE and we need to set the document domain. The javascript url is sufficient
+      // for ie9, but ie8 needs to do it again in the document itself.
+      if (this.myIFrame.src && this.myIFrame.src.substr(0, 'javascript:'.length) === 'javascript:') {
+        const currentDomain = document.domain;
+        script = '<script>document.domain="' + currentDomain + '";</script>';
       }
-      log(e);
-    }
+      const iframeContents = '<html><body>' + script + '</body></html>';
+      try {
+        this.myIFrame.doc.open();
+        this.myIFrame.doc.write(iframeContents);
+        this.myIFrame.doc.close();
+      } catch (e) {
+        log('frame writing exception');
+        if (e.stack) {
+          log(e.stack);
+        }
+        log(e);
+      }
     } else {
       this.commandCB = commandCB;
       this.onMessageCB = onMessageCB;
@@ -444,7 +453,7 @@ export class FirebaseIFrameScriptHolder {
    * @return {Element}
    */
   private static createIFrame_(): IFrameElement {
-    const iframe = <IFrameElement>document.createElement('iframe');
+    const iframe = document.createElement('iframe') as IFrameElement;
     iframe.style.display = 'none';
 
     // This is necessary in order to initialize the document inside the iframe
@@ -503,12 +512,12 @@ export class FirebaseIFrameScriptHolder {
     }
 
     if (isNodeSdk() && this.myID) {
-      var urlParams = {};
+      const urlParams: { [k: string]: string } = {};
       urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_PARAM] = 't';
       urlParams[FIREBASE_LONGPOLL_ID_PARAM] = this.myID;
       urlParams[FIREBASE_LONGPOLL_PW_PARAM] = this.myPW;
-      var theURL = this.urlFn(urlParams);
-      (<any>FirebaseIFrameScriptHolder).nodeRestRequest(theURL);
+      const theURL = this.urlFn(urlParams);
+      (FirebaseIFrameScriptHolder as any).nodeRestRequest(theURL);
     }
 
     // Protect from being called recursively.
@@ -547,7 +556,7 @@ export class FirebaseIFrameScriptHolder {
     if (this.alive && this.sendNewPolls && this.outstandingRequests.count() < (this.pendingSegs.length > 0 ? 2 : 1)) {
       //construct our url
       this.currentSerial++;
-      const urlParams = {};
+      const urlParams: { [k: string]: string | number } = {};
       urlParams[FIREBASE_LONGPOLL_ID_PARAM] = this.myID;
       urlParams[FIREBASE_LONGPOLL_PW_PARAM] = this.myPW;
       urlParams[FIREBASE_LONGPOLL_SERIAL_PARAM] = this.currentSerial;
@@ -585,7 +594,7 @@ export class FirebaseIFrameScriptHolder {
    * @param totalsegs - The total number of segments in this packet
    * @param data - The data for this segment.
    */
-  enqueueSegment(segnum, totalsegs, data) {
+  enqueueSegment(segnum: number, totalsegs: number, data: any) {
     //add this to the queue of segments to send.
     this.pendingSegs.push({seg: segnum, ts: totalsegs, d: data});
 
@@ -631,9 +640,9 @@ export class FirebaseIFrameScriptHolder {
    * @param {!string} url - The URL for the script tag source.
    * @param {!function()} loadCB - A callback to be triggered once the script has loaded.
    */
-  addTag(url: string, loadCB: () => any) {
+  addTag(url: string, loadCB: () => void) {
     if (isNodeSdk()) {
-      (<any>this).doNodeLongPoll(url, loadCB);
+      (this as any).doNodeLongPoll(url, loadCB);
     } else {
       setTimeout(() => {
         try {
@@ -643,10 +652,10 @@ export class FirebaseIFrameScriptHolder {
           newScript.type = 'text/javascript';
           newScript.async = true;
           newScript.src = url;
-          newScript.onload = (<any>newScript).onreadystatechange = function () {
-            const rstate = (<any>newScript).readyState;
+          newScript.onload = (newScript as any).onreadystatechange = function () {
+            const rstate = (newScript as any).readyState;
             if (!rstate || rstate === 'loaded' || rstate === 'complete') {
-              newScript.onload = (<any>newScript).onreadystatechange = null;
+              newScript.onload = (newScript as any).onreadystatechange = null;
               if (newScript.parentNode) {
                 newScript.parentNode.removeChild(newScript);
               }

@@ -14,23 +14,21 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
+import { assert } from '../../../utils/assert';
 
 /**
  * Base class to be used if you want to emit events. Call the constructor with
  * the set of allowed event names.
  */
 export abstract class EventEmitter {
-  allowedEvents_;
-  listeners_;
+  private listeners_: { [eventType: string]: Array<{ callback(...args: any[]): void, context: any }> } = {};
+
   /**
-   * @param {!Array.<string>} allowedEvents
+   * @param {!Array.<string>} allowedEvents_
    */
-  constructor(allowedEvents: Array<string>) {
-    assert(Array.isArray(allowedEvents) && allowedEvents.length > 0,
-                        'Requires a non-empty array');
-    this.allowedEvents_ = allowedEvents;
-    this.listeners_ = {};
+  constructor(private allowedEvents_: Array<string>) {
+    assert(Array.isArray(allowedEvents_) && allowedEvents_.length > 0,
+      'Requires a non-empty array');
   }
 
   /**
@@ -40,41 +38,41 @@ export abstract class EventEmitter {
    * @param {!string} eventType
    * @return {Array.<*>} Array of parameters to trigger initial event with.
    */
-  abstract getInitialEvent(eventType: string);
+  abstract getInitialEvent(eventType: string): any[];
 
   /**
    * To be called by derived classes to trigger events.
    * @param {!string} eventType
    * @param {...*} var_args
    */
-  trigger(eventType, var_args) {
+  protected trigger(eventType: string, ...var_args: any[]) {
     if (Array.isArray(this.listeners_[eventType])) {
       // Clone the list, since callbacks could add/remove listeners.
-      var listeners = [
+      const listeners = [
         ...this.listeners_[eventType]
       ];
 
-      for (var i = 0; i < listeners.length; i++) {
-        listeners[i].callback.apply(listeners[i].context, Array.prototype.slice.call(arguments, 1));
+      for (let i = 0; i < listeners.length; i++) {
+        listeners[i].callback.apply(listeners[i].context, var_args);
       }
     }
   }
 
-  on(eventType, callback, context) {
+  on(eventType: string, callback: (a: any) => void, context: any) {
     this.validateEventType_(eventType);
     this.listeners_[eventType] = this.listeners_[eventType] || [];
-    this.listeners_[eventType].push({callback: callback, context: context });
+    this.listeners_[eventType].push({callback, context});
 
-    var eventData = this.getInitialEvent(eventType);
+    const eventData = this.getInitialEvent(eventType);
     if (eventData) {
       callback.apply(context, eventData);
     }
   }
 
-  off(eventType, callback, context) {
+  off(eventType: string, callback: (a: any) => void, context: any) {
     this.validateEventType_(eventType);
-    var listeners = this.listeners_[eventType] || [];
-    for (var i = 0; i < listeners.length; i++) {
+    const listeners = this.listeners_[eventType] || [];
+    for (let i = 0; i < listeners.length; i++) {
       if (listeners[i].callback === callback && (!context || context === listeners[i].context)) {
         listeners.splice(i, 1);
         return;
@@ -82,11 +80,12 @@ export abstract class EventEmitter {
     }
   }
 
-  validateEventType_(eventType) {
-    assert(this.allowedEvents_.find(function(et) {
+  private validateEventType_(eventType: string) {
+    assert(this.allowedEvents_.find(function (et) {
         return et === eventType;
       }),
       'Unknown event: ' + eventType
     );
   }
-}; // end fb.core.util.EventEmitter
+}
+

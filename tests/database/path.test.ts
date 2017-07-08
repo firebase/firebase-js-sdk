@@ -18,12 +18,12 @@ import { expect } from "chai";
 import { Path } from "../../src/database/core/util/Path";
 
 describe('Path Tests', function () {
-  var expectGreater = function(left, right) {
-    expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(1)
+  const expectGreater = function(left, right) {
+    expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(1);
     expect(Path.comparePaths(new Path(right), new Path(left))).to.equal(-1)
   };
 
-  var expectEqual = function(left, right) {
+  const expectEqual = function(left, right) {
     expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(0)
   };
 
@@ -49,7 +49,7 @@ describe('Path Tests', function () {
   });
 
   it('popFront() returns the parent', function() {
-    expect(new Path('/a/b/c').popFront().toString()).to.equal('/b/c')
+    expect(new Path('/a/b/c').popFront().toString()).to.equal('/b/c');
     expect(new Path('/a/b/c').popFront().popFront().toString()).to.equal('/c');
     expect(new Path('/a/b/c').popFront().popFront().popFront().toString()).to.equal('/');
     expect(new Path('/a/b/c').popFront().popFront().popFront().popFront().toString()).to.equal('/');
