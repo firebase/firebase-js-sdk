@@ -104,7 +104,7 @@
   },
   "lint-staged": {
     "**/*.ts": [
-      "prettier --write {src,tests}/**/*.ts",
+      "prettier --write --single-quote",
       "git add"
     ]
   }
