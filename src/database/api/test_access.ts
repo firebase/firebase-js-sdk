@@ -18,6 +18,7 @@ import { RepoInfo } from "../core/RepoInfo";
 import { PersistentConnection } from "../core/PersistentConnection";
 import { RepoManager } from "../core/RepoManager";
 import { Connection } from "../realtime/Connection";
+import { Query } from './Query';
 
 export const DataConnection = PersistentConnection;
 
@@ -25,7 +26,7 @@ export const DataConnection = PersistentConnection;
  * @param {!string} pathString
  * @param {function(*)} onComplete
  */
-(PersistentConnection.prototype as any).simpleListen = function(pathString, onComplete) {
+(PersistentConnection.prototype as any).simpleListen = function(pathString: string, onComplete: (a: any) => void) {
   this.sendRequest('q', {'p': pathString}, onComplete);
 };
 
@@ -33,7 +34,7 @@ export const DataConnection = PersistentConnection;
  * @param {*} data
  * @param {function(*)} onEcho
  */
-(PersistentConnection.prototype as any).echo = function(data, onEcho) {
+(PersistentConnection.prototype as any).echo = function(data: any, onEcho: (a: any) => void) {
   this.sendRequest('echo', {'d': data}, onEcho);
 };
 
@@ -44,8 +45,8 @@ export const RealTimeConnection = Connection;
  * @param {function(): string} newHash
  * @return {function()}
  */
-export const hijackHash = function(newHash) {
-  var oldPut = PersistentConnection.prototype.put;
+export const hijackHash = function(newHash: () => string) {
+  const oldPut = PersistentConnection.prototype.put;
   PersistentConnection.prototype.put = function(pathString, data, opt_onComplete, opt_hash) {
     if (opt_hash !== undefined) {
       opt_hash = newHash();
@@ -58,24 +59,24 @@ export const hijackHash = function(newHash) {
 };
 
 /**
- * @type {function(new:fb.core.RepoInfo, !string, boolean, !string, boolean): undefined}
+ * @type {function(new:RepoInfo, !string, boolean, !string, boolean): undefined}
  */
 export const ConnectionTarget = RepoInfo;
 
 /**
- * @param {!fb.api.Query} query
+ * @param {!Query} query
  * @return {!string}
  */
-export const queryIdentifier = function(query) {
+export const queryIdentifier = function(query: Query) {
   return query.queryIdentifier();
 };
 
 /**
- * @param {!fb.api.Query} firebaseRef
+ * @param {!Query} firebaseRef
  * @return {!Object}
  */
-export const listens = function(firebaseRef) {
-  return firebaseRef.repo.persistentConnection_.listens_;
+export const listens = function(firebaseRef: Query) {
+  return (firebaseRef.repo.persistentConnection_ as any).listens_;
 };
 
 /**
@@ -83,6 +84,6 @@ export const listens = function(firebaseRef) {
  *
  * @param {boolean} forceRestClient
  */
-export const forceRestClient = function(forceRestClient) {
+export const forceRestClient = function(forceRestClient: boolean) {
   RepoManager.getInstance().forceRestClient(forceRestClient);
 };

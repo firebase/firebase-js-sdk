@@ -14,17 +14,22 @@
 * limitations under the License.
 */
 
-import { IndexedFilter } from "./filter/IndexedFilter";
-import { ViewProcessor } from "./ViewProcessor";
-import { ChildrenNode } from "../snap/ChildrenNode";
-import { CacheNode } from "./CacheNode";
-import { ViewCache } from "./ViewCache";
-import { EventGenerator } from "./EventGenerator";
-import { assert } from "../../../utils/assert";
-import { OperationType } from "../operation/Operation";
-import { Change } from "./Change";
-import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
-import { Query } from "../../api/Query";
+import { IndexedFilter } from './filter/IndexedFilter';
+import { ViewProcessor } from './ViewProcessor';
+import { ChildrenNode } from '../snap/ChildrenNode';
+import { CacheNode } from './CacheNode';
+import { ViewCache } from './ViewCache';
+import { EventGenerator } from './EventGenerator';
+import { assert } from '../../../utils/assert';
+import { Operation, OperationType } from '../operation/Operation';
+import { Change } from './Change';
+import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { Query } from '../../api/Query';
+import { EventRegistration } from './EventRegistration';
+import { Node } from '../snap/Node';
+import { Path } from '../util/Path';
+import { WriteTreeRef } from '../WriteTree';
+import { CancelEvent, Event } from './Event';
 
 /**
  * A view represents a specific location and query that has 1 or more event registrations.
@@ -34,27 +39,24 @@ import { Query } from "../../api/Query";
  *  - Maintains a cache of the data visible for this location/query.
  *  - Applies new operations (via applyOperation), updates the cache, and based on the event
  *    registrations returns the set of events to be raised.
- *
- * @param {!fb.api.Query} query
- * @param {!ViewCache} initialViewCache
  * @constructor
  */
 export class View {
-  query_: Query
-  processor_
-  viewCache_
-  eventRegistrations_
-  eventGenerator_
-  constructor(query, initialViewCache) {
-    /**
-     * @type {!fb.api.Query}
-     * @private
-     */
-    this.query_ = query;
-    var params = query.getQueryParams();
+  private processor_: ViewProcessor;
+  private viewCache_: ViewCache;
+  private eventRegistrations_: EventRegistration[] = [];
+  private eventGenerator_: EventGenerator;
 
-    var indexFilter = new IndexedFilter(params.getIndex());
-    var filter = params.getNodeFilter();
+  /**
+   *
+   * @param {!Query} query_
+   * @param {!ViewCache} initialViewCache
+   */
+  constructor(private query_: Query, initialViewCache: ViewCache) {
+    const params = this.query_.getQueryParams();
+
+    const indexFilter = new IndexedFilter(params.getIndex());
+    const filter = params.getNodeFilter();
 
     /**
      * @type {ViewProcessor}
@@ -62,16 +64,16 @@ export class View {
      */
     this.processor_ = new ViewProcessor(filter);
 
-    var initialServerCache = initialViewCache.getServerCache();
-    var initialEventCache = initialViewCache.getEventCache();
+    const initialServerCache = initialViewCache.getServerCache();
+    const initialEventCache = initialViewCache.getEventCache();
 
     // Don't filter server node with other filter than index, wait for tagged listen
-    var serverSnap = indexFilter.updateFullNode(ChildrenNode.EMPTY_NODE, initialServerCache.getNode(), null);
-    var eventSnap = filter.updateFullNode(ChildrenNode.EMPTY_NODE, initialEventCache.getNode(), null);
-    var newServerCache = new CacheNode(serverSnap, initialServerCache.isFullyInitialized(),
-        indexFilter.filtersNodes());
-    var newEventCache = new CacheNode(eventSnap, initialEventCache.isFullyInitialized(),
-        filter.filtersNodes());
+    const serverSnap = indexFilter.updateFullNode(ChildrenNode.EMPTY_NODE, initialServerCache.getNode(), null);
+    const eventSnap = filter.updateFullNode(ChildrenNode.EMPTY_NODE, initialEventCache.getNode(), null);
+    const newServerCache = new CacheNode(serverSnap, initialServerCache.isFullyInitialized(),
+      indexFilter.filtersNodes());
+    const newEventCache = new CacheNode(eventSnap, initialEventCache.isFullyInitialized(),
+      filter.filtersNodes());
 
     /**
      * @type {!ViewCache}
@@ -80,42 +82,37 @@ export class View {
     this.viewCache_ = new ViewCache(newEventCache, newServerCache);
 
     /**
-     * @type {!Array.<!fb.core.view.EventRegistration>}
-     * @private
-     */
-    this.eventRegistrations_ = [];
-
-    /**
      * @type {!EventGenerator}
      * @private
      */
-    this.eventGenerator_ = new EventGenerator(query);
+    this.eventGenerator_ = new EventGenerator(this.query_);
   };
+
   /**
-   * @return {!fb.api.Query}
+   * @return {!Query}
    */
-  getQuery() {
+  getQuery(): Query {
     return this.query_;
   };
 
   /**
-   * @return {?fb.core.snap.Node}
+   * @return {?Node}
    */
-  getServerCache() {
+  getServerCache(): Node | null {
     return this.viewCache_.getServerCache().getNode();
   };
 
   /**
    * @param {!Path} path
-   * @return {?fb.core.snap.Node}
+   * @return {?Node}
    */
-  getCompleteServerCache(path) {
-    var cache = this.viewCache_.getCompleteServerSnap();
+  getCompleteServerCache(path: Path): Node | null {
+    const cache = this.viewCache_.getCompleteServerSnap();
     if (cache) {
       // If this isn't a "loadsAllData" view, then cache isn't actually a complete cache and
       // we need to see if it contains the child we're interested in.
       if (this.query_.getQueryParams().loadsAllData() ||
-          (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())) {
+        (!path.isEmpty() && !cache.getImmediateChild(path.getFront()).isEmpty())) {
         return cache.getChild(path);
       }
     }
@@ -125,30 +122,30 @@ export class View {
   /**
    * @return {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.eventRegistrations_.length === 0;
   };
 
   /**
-   * @param {!fb.core.view.EventRegistration} eventRegistration
+   * @param {!EventRegistration} eventRegistration
    */
-  addEventRegistration(eventRegistration) {
+  addEventRegistration(eventRegistration: EventRegistration) {
     this.eventRegistrations_.push(eventRegistration);
   };
 
   /**
-   * @param {?fb.core.view.EventRegistration} eventRegistration If null, remove all callbacks.
+   * @param {?EventRegistration} eventRegistration If null, remove all callbacks.
    * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {!Array.<!fb.core.view.Event>} Cancel events, if cancelError was provided.
+   * @return {!Array.<!Event>} Cancel events, if cancelError was provided.
    */
-  removeEventRegistration(eventRegistration, cancelError) {
-    var cancelEvents = [];
+  removeEventRegistration(eventRegistration: EventRegistration | null, cancelError?: Error): Event[] {
+    const cancelEvents: CancelEvent[] = [];
     if (cancelError) {
       assert(eventRegistration == null, 'A cancel should cancel all event registrations.');
-      var path = this.query_.path;
-      this.eventRegistrations_.forEach(function(registration) {
+      const path = this.query_.path;
+      this.eventRegistrations_.forEach(function (registration) {
         cancelError = /** @type {!Error} */ (cancelError);
-        var maybeEvent = registration.createCancelEvent(cancelError, path);
+        const maybeEvent = registration.createCancelEvent(cancelError, path);
         if (maybeEvent) {
           cancelEvents.push(maybeEvent);
         }
@@ -156,9 +153,9 @@ export class View {
     }
 
     if (eventRegistration) {
-      var remaining = [];
-      for (var i = 0; i < this.eventRegistrations_.length; ++i) {
-        var existing = this.eventRegistrations_[i];
+      let remaining = [];
+      for (let i = 0; i < this.eventRegistrations_.length; ++i) {
+        const existing = this.eventRegistrations_[i];
         if (!existing.matches(eventRegistration)) {
           remaining.push(existing);
         } else if (eventRegistration.hasAnyCallback()) {
@@ -177,28 +174,28 @@ export class View {
   /**
    * Applies the given Operation, updates our cache, and returns the appropriate events.
    *
-   * @param {!fb.core.Operation} operation
-   * @param {!fb.core.WriteTreeRef} writesCache
-   * @param {?fb.core.snap.Node} optCompleteServerCache
-   * @return {!Array.<!fb.core.view.Event>}
+   * @param {!Operation} operation
+   * @param {!WriteTreeRef} writesCache
+   * @param {?Node} completeServerCache
+   * @return {!Array.<!Event>}
    */
-  applyOperation(operation, writesCache, optCompleteServerCache) {
+  applyOperation(operation: Operation, writesCache: WriteTreeRef, completeServerCache: Node | null): Event[] {
     if (operation.type === OperationType.MERGE &&
-        operation.source.queryId !== null) {
+      operation.source.queryId !== null) {
 
       assert(this.viewCache_.getCompleteServerSnap(),
-          'We should always have a full cache before handling merges');
+        'We should always have a full cache before handling merges');
       assert(this.viewCache_.getCompleteEventSnap(),
-          'Missing event cache, even though we have a server cache');
+        'Missing event cache, even though we have a server cache');
     }
 
-    var oldViewCache = this.viewCache_;
-    var result = this.processor_.applyOperation(oldViewCache, operation, writesCache, optCompleteServerCache);
+    const oldViewCache = this.viewCache_;
+    const result = this.processor_.applyOperation(oldViewCache, operation, writesCache, completeServerCache);
     this.processor_.assertIndexed(result.viewCache);
 
     assert(result.viewCache.getServerCache().isFullyInitialized() ||
-        !oldViewCache.getServerCache().isFullyInitialized(),
-        'Once a server snap is complete, it should never go back');
+      !oldViewCache.getServerCache().isFullyInitialized(),
+      'Once a server snap is complete, it should never go back');
 
     this.viewCache_ = result.viewCache;
 
@@ -206,15 +203,15 @@ export class View {
   };
 
   /**
-   * @param {!fb.core.view.EventRegistration} registration
-   * @return {!Array.<!fb.core.view.Event>}
+   * @param {!EventRegistration} registration
+   * @return {!Array.<!Event>}
    */
-  getInitialEvents(registration) {
-    var eventSnap = this.viewCache_.getEventCache();
-    var initialChanges = [];
+  getInitialEvents(registration: EventRegistration): Event[] {
+    const eventSnap = this.viewCache_.getEventCache();
+    const initialChanges: Change[] = [];
     if (!eventSnap.getNode().isLeafNode()) {
-      var eventNode = /** @type {!fb.core.snap.ChildrenNode} */ (eventSnap.getNode());
-      eventNode.forEachChild(PRIORITY_INDEX, function(key, childNode) {
+      const eventNode = eventSnap.getNode() as ChildrenNode;
+      eventNode.forEachChild(PRIORITY_INDEX, function (key, childNode) {
         initialChanges.push(Change.childAddedChange(key, childNode));
       });
     }
@@ -227,12 +224,12 @@ export class View {
   /**
    * @private
    * @param {!Array.<!Change>} changes
-   * @param {!fb.core.snap.Node} eventCache
-   * @param {fb.core.view.EventRegistration=} opt_eventRegistration
-   * @return {!Array.<!fb.core.view.Event>}
+   * @param {!Node} eventCache
+   * @param {EventRegistration=} eventRegistration
+   * @return {!Array.<!Event>}
    */
-  generateEventsForChanges_(changes, eventCache, opt_eventRegistration) {
-    var registrations = opt_eventRegistration ? [opt_eventRegistration] : this.eventRegistrations_;
+  generateEventsForChanges_(changes: Change[], eventCache: Node, eventRegistration?: EventRegistration): Event[] {
+    const registrations = eventRegistration ? [eventRegistration] : this.eventRegistrations_;
     return this.eventGenerator_.generateEventsForChanges(changes, eventCache, registrations);
   };
 }

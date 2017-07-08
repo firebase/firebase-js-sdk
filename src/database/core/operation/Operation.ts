@@ -84,7 +84,7 @@ export class OperationSource {
    * @param {string} queryId
    * @return {!OperationSource}
    */
-  static forServerTaggedQuery = function(queryId) {
+  static forServerTaggedQuery = function(queryId: string): OperationSource {
     return new OperationSource(false, /*fromServer=*/true, queryId, /*tagged=*/true);
   };
 }

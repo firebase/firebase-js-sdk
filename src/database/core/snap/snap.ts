@@ -19,11 +19,11 @@ import {
   doubleToIEEE754String,
 } from "../util/util";
 import { contains } from "../../../utils/obj";
-import { NamedNode } from "./Node";
+import { Node } from './Node';
 
-let MAX_NODE;
+let MAX_NODE: Node;
 
-export function setMaxNode(val) {
+export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
 
@@ -31,7 +31,7 @@ export function setMaxNode(val) {
  * @param {(!string|!number)} priority
  * @return {!string}
  */
-export const priorityHashText = function(priority) {
+export const priorityHashText = function(priority: string | number): string {
   if (typeof priority === 'number')
     return 'number:' + doubleToIEEE754String(priority);
   else
@@ -43,9 +43,9 @@ export const priorityHashText = function(priority) {
  *
  * @param {!Node} priorityNode
  */
-export const validatePriorityNode = function(priorityNode) {
+export const validatePriorityNode = function(priorityNode: Node) {
   if (priorityNode.isLeafNode()) {
-    var val = priorityNode.val();
+    const val = priorityNode.val();
     assert(typeof val === 'string' || typeof val === 'number' ||
             (typeof val === 'object' && contains(val, '.sv')),
         'Priority must be a string or number.');

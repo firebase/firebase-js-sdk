@@ -23,12 +23,13 @@ import { SortedMap } from "../../src/database/core/util/SortedMap";
 import { ChildrenNode } from "../../src/database/core/snap/ChildrenNode";
 import { NAME_COMPARATOR } from "../../src/database/core/snap/comparators";
 import { nodeFromJSON } from "../../src/database/core/snap/nodeFromJSON";
+import { Node } from '../../src/database/core/snap/Node';
 
 describe('Node Tests', function() {
-  var DEFAULT_INDEX = PRIORITY_INDEX;
+  const DEFAULT_INDEX = PRIORITY_INDEX;
 
   it('Create leaf nodes of various types.', function() {
-    var x = new LeafNode(5, new LeafNode(42));
+    let x = new LeafNode(5, new LeafNode(42));
     expect(x.getValue()).to.equal(5);
     expect(x.getPriority().val()).to.equal(42);
     expect(x.isLeafNode()).to.equal(true);
@@ -40,68 +41,68 @@ describe('Node Tests', function() {
   });
 
   it("LeafNode.updatePriority returns a new leaf node without changing the old.", function() {
-    var x = new LeafNode("test", new LeafNode(42));
-    var y = x.updatePriority(new LeafNode(187));
+    const x = new LeafNode("test", new LeafNode(42));
+    const y = x.updatePriority(new LeafNode(187));
 
     // old node is the same.
     expect(x.getValue()).to.equal("test");
     expect(x.getPriority().val()).to.equal(42);
 
     // new node has the new priority but the old value.
-    expect(y.getValue()).to.equal("test");
+    expect((y as any).getValue()).to.equal("test");
     expect(y.getPriority().val()).to.equal(187);
   });
 
   it("LeafNode.updateImmediateChild returns a new children node.", function() {
-    var x = new LeafNode("test", new LeafNode(42));
-    var y = x.updateImmediateChild('test', new LeafNode("foo"));
+    const x = new LeafNode("test", new LeafNode(42));
+    const y = x.updateImmediateChild('test', new LeafNode("foo"));
 
     expect(y.isLeafNode()).to.equal(false);
     expect(y.getPriority().val()).to.equal(42);
-    expect(y.getImmediateChild('test').getValue()).to.equal('foo');
+    expect((y.getImmediateChild('test') as LeafNode).getValue()).to.equal('foo');
   });
 
   it("LeafNode.getImmediateChild returns an empty node.", function() {
-    var x = new LeafNode("test");
+    const x = new LeafNode("test");
     expect(x.getImmediateChild('foo')).to.equal(ChildrenNode.EMPTY_NODE);
   });
 
   it("LeafNode.getChild returns an empty node.", function() {
-    var x = new LeafNode('test');
+    const x = new LeafNode('test');
     expect(x.getChild(new Path('foo/bar'))).to.equal(ChildrenNode.EMPTY_NODE);
   });
 
   it('ChildrenNode.updatePriority returns a new internal node without changing the old.', function() {
-    var x = ChildrenNode.EMPTY_NODE.updateImmediateChild("child", new LeafNode(5));
-    var children = x.children_;
-    var y = x.updatePriority(new LeafNode(17));
-    expect(y.children_).to.equal(x.children_);
-    expect(x.children_).to.equal(children);
+    const x = ChildrenNode.EMPTY_NODE.updateImmediateChild("child", new LeafNode(5));
+    const children = (x as any).children_;
+    const y = x.updatePriority(new LeafNode(17));
+    expect((y as any).children_).to.equal((x as any).children_);
+    expect((x as any).children_).to.equal(children);
     expect(x.getPriority().val()).to.equal(null);
     expect(y.getPriority().val()).to.equal(17);
   });
 
   it('ChildrenNode.updateImmediateChild returns a new internal node with the new child, without changing the old.',
       function() {
-    var children = new SortedMap(NAME_COMPARATOR);
-    var x = new ChildrenNode(children, ChildrenNode.EMPTY_NODE, IndexMap.Default);
-    var newValue = new LeafNode('new value');
-    var y = x.updateImmediateChild('test', newValue);
-    expect(x.children_).to.equal(children);
-    expect(y.children_.get('test')).to.equal(newValue);
+    const children = new SortedMap<string, Node>(NAME_COMPARATOR);
+    const x = new ChildrenNode(children, ChildrenNode.EMPTY_NODE, IndexMap.Default);
+    const newValue = new LeafNode('new value');
+    const y = x.updateImmediateChild('test', newValue);
+    expect((x as any).children_).to.equal(children);
+    expect((y as any).children_.get('test')).to.equal(newValue);
   });
 
   it("ChildrenNode.updateChild returns a new internal node with the new child, without changing the old.", function() {
-    var children = new SortedMap(NAME_COMPARATOR);
-    var x = new ChildrenNode(children, ChildrenNode.EMPTY_NODE, IndexMap.Default);
-    var newValue = new LeafNode("new value");
-    var y = x.updateChild(new Path('test/foo'), newValue);
-    expect(x.children_).to.equal(children);
+    const children = new SortedMap<string, Node>(NAME_COMPARATOR);
+    const x = new ChildrenNode(children, ChildrenNode.EMPTY_NODE, IndexMap.Default);
+    const newValue = new LeafNode("new value");
+    const y = x.updateChild(new Path('test/foo'), newValue);
+    expect((x as any).children_).to.equal(children);
     expect(y.getChild(new Path('test/foo'))).to.equal(newValue);
   });
 
   it("Node.hash() works correctly.", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       intNode:4,
       doubleNode:4.5623,
       stringNode:"hey guys",
@@ -119,7 +120,7 @@ describe('Node Tests', function() {
   });
 
   it("Node.hash() works correctly with priorities.", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       root: {c: {'.value': 99, '.priority': 'abc'}, '.priority': 'def'}
     });
 
@@ -127,7 +128,7 @@ describe('Node Tests', function() {
   });
 
   it("Node.hash() works correctly with number priorities.", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       root: {c: {'.value': 99, '.priority': 42}, '.priority': 3.14}
     });
 
@@ -135,7 +136,7 @@ describe('Node Tests', function() {
   });
 
   it("Node.hash() stress...", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       a:-1.7976931348623157e+308,
       b:1.7976931348623157e+308,
       c:"unicode ✔ 🐵 🌴 x͢",
@@ -157,7 +158,7 @@ describe('Node Tests', function() {
   });
 
   it("ChildrenNode.getPredecessorChild works correctly.", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       d: true, a: true, g: true, c: true, e: true
     });
 
@@ -170,7 +171,7 @@ describe('Node Tests', function() {
   });
 
   it("SortedChildrenNode.getPredecessorChild works correctly.", function() {
-    var node = nodeFromJSON({
+    const node = nodeFromJSON({
       d: { '.value': true, '.priority' : 22 },
       a: { '.value': true, '.priority' : 25 },
       g: { '.value': true, '.priority' : 19 },
@@ -186,7 +187,7 @@ describe('Node Tests', function() {
   });
 
   it("SortedChildrenNode.updateImmediateChild works correctly.", function() {
-    var node = nodeFromJSON({
+    let node = nodeFromJSON({
       d: { '.value': true, '.priority' : 22 },
       a: { '.value': true, '.priority' : 25 },
       g: { '.value': true, '.priority' : 19 },
@@ -196,40 +197,40 @@ describe('Node Tests', function() {
     });
 
     node = node.updateImmediateChild('c', nodeFromJSON(false));
-    expect(node.getImmediateChild('c').getValue()).to.equal(false);
+    expect((node.getImmediateChild('c') as LeafNode).getValue()).to.equal(false);
     expect(node.getImmediateChild('c').getPriority().val()).to.equal(null);
     expect(node.getPriority().val()).to.equal(1000);
   });
 
   it("removing nodes correctly removes intermediate nodes with no remaining children", function() {
-    var json = {a: {b: {c: 1}}};
-    var node = nodeFromJSON(json);
-    var newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
+    const json = {a: {b: {c: 1}}};
+    const node = nodeFromJSON(json);
+    const newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
     expect(newNode.isEmpty()).to.equal(true);
   });
 
   it("removing nodes leaves intermediate nodes with other children", function() {
-    var json = {a: {b: {c: 1}, d: 2}};
-    var node = nodeFromJSON(json);
-    var newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
+    const json = {a: {b: {c: 1}, d: 2}};
+    const node = nodeFromJSON(json);
+    const newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
     expect(newNode.isEmpty()).to.equal(false);
     expect(newNode.getChild(new Path('a/b/c')).isEmpty()).to.equal(true);
     expect(newNode.getChild(new Path('a/d')).val()).to.equal(2);
   });
 
   it("removing nodes leaves other leaf nodes", function() {
-    var json = {a: {b: {c: 1, d: 2}}};
-    var node = nodeFromJSON(json);
-    var newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
+    const json = {a: {b: {c: 1, d: 2}}};
+    const node = nodeFromJSON(json);
+    const newNode = node.updateChild(new Path('a/b/c'), ChildrenNode.EMPTY_NODE);
     expect(newNode.isEmpty()).to.equal(false);
     expect(newNode.getChild(new Path('a/b/c')).isEmpty()).to.equal(true);
     expect(newNode.getChild(new Path('a/b/d')).val()).to.equal(2);
   });
 
   it("removing nodes correctly removes the root", function() {
-    var json = null;
-    var node = nodeFromJSON(json);
-    var newNode = node.updateChild(new Path(''), ChildrenNode.EMPTY_NODE);
+    let json = null;
+    let node = nodeFromJSON(json);
+    let newNode = node.updateChild(new Path(''), ChildrenNode.EMPTY_NODE);
     expect(newNode.isEmpty()).to.equal(true);
 
     json = {a: 1};
@@ -239,29 +240,29 @@ describe('Node Tests', function() {
   });
 
   it("ignores null values", function() {
-    var json = {a: 1, b: null};
-    var node = nodeFromJSON(json);
-    expect(node.children_.get('b')).to.equal(null);
+    const json = {a: 1, b: null};
+    const node = nodeFromJSON(json);
+    expect((node as any).children_.get('b')).to.equal(null);
   });
 
   it("Leading zeroes in path are handled properly", function() {
-    var json = {"1": 1, "01": 2, "001": 3};
-    var tree = nodeFromJSON(json);
+    const json = {"1": 1, "01": 2, "001": 3};
+    const tree = nodeFromJSON(json);
     expect(tree.getChild(new Path("1")).val()).to.equal(1);
     expect(tree.getChild(new Path("01")).val()).to.equal(2);
     expect(tree.getChild(new Path("001")).val()).to.equal(3);
   });
 
   it("Treats leading zeroes as objects, not array", function() {
-    var json = {"3": 1, "03": 2};
-    var tree = nodeFromJSON(json);
-    var val = tree.val();
+    const json = {"3": 1, "03": 2};
+    const tree = nodeFromJSON(json);
+    const val = tree.val();
     expect(val).to.deep.equal(json);
   });
 
   it("Updating empty children doesn't overwrite leaf node", function() {
-    var empty = ChildrenNode.EMPTY_NODE;
-    var node = nodeFromJSON("value");
+    const empty = ChildrenNode.EMPTY_NODE;
+    const node = nodeFromJSON("value");
     expect(node).to.deep.equal(node.updateChild(new Path(".priority"), empty));
     expect(node).to.deep.equal(node.updateChild(new Path("child"), empty));
     expect(node).to.deep.equal(node.updateChild(new Path("child/.priority"), empty));

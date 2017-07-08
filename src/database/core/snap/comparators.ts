@@ -15,11 +15,12 @@
 */
 
 import { nameCompare } from "../util/util";
+import { NamedNode } from './Node';
 
-export function NAME_ONLY_COMPARATOR(left, right) {
+export function NAME_ONLY_COMPARATOR(left: NamedNode, right: NamedNode) {
   return nameCompare(left.name, right.name);
-};
+}
 
-export function NAME_COMPARATOR(left, right) {
+export function NAME_COMPARATOR(left: string, right: string) {
   return nameCompare(left, right);
-};
+}

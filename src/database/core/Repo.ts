@@ -40,6 +40,9 @@ import { Database } from '../api/Database';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
 import { EventRegistration } from './view/EventRegistration';
+import { StatsCollection } from './stats/StatsCollection';
+import { Event } from './view/Event';
+import { Node } from './snap/Node';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -47,25 +50,25 @@ const INTERRUPT_REASON = 'repo_interrupt';
  * A connection to a single data repository.
  */
 export class Repo {
-  /** @type {!Database} */
-  database: Database;
-  infoSyncTree_: SyncTree;
-  dataUpdateCount;
-  serverSyncTree_: SyncTree;
+  dataUpdateCount = 0;
+  private infoSyncTree_: SyncTree;
+  private serverSyncTree_: SyncTree;
 
-  public repoInfo_;
-  private stats_;
-  private statsListener_;
-  private eventQueue_;
-  private nextWriteId_;
+  private stats_: StatsCollection;
+  private statsListener_: StatsListener | null = null;
+  private eventQueue_ = new EventQueue();
+  private nextWriteId_ = 1;
   private server_: ServerActions;
-  private statsReporter_;
-  private transactions_init_;
-  private infoData_;
-  private onDisconnect_;
-  private abortTransactions_;
-  private rerunTransactions_;
-  private interceptServerDataCallback_;
+  private statsReporter_: StatsReporter;
+  private transactions_init_: () => void;
+  private infoData_: SnapshotHolder;
+  private abortTransactions_: (path: Path) => Path;
+  private rerunTransactions_: (changedPath: Path) => Path;
+  private interceptServerDataCallback_: ((a: string, b: any) => void) | null = null;
+  private __database: Database;
+
+  // A list of data pieces and paths to be set when this client disconnects.
+  private onDisconnect_ = new SparseSnapshotTree();
 
   /**
    * TODO: This should be @private but it's used by test_access.js and internal.js
@@ -74,20 +77,15 @@ export class Repo {
   persistentConnection_: PersistentConnection | null = null;
 
   /**
-   * @param {!RepoInfo} repoInfo
+   * @param {!RepoInfo} repoInfo_
    * @param {boolean} forceRestClient
    * @param {!FirebaseApp} app
    */
-  constructor(repoInfo: RepoInfo, forceRestClient: boolean, public app: FirebaseApp) {
+  constructor(private repoInfo_: RepoInfo, forceRestClient: boolean, public app: FirebaseApp) {
     /** @type {!AuthTokenProvider} */
     const authTokenProvider = new AuthTokenProvider(app);
 
-    this.repoInfo_ = repoInfo;
-    this.stats_ = StatsManager.getCollection(repoInfo);
-    /** @type {StatsListener} */
-    this.statsListener_ = null;
-    this.eventQueue_ = new EventQueue();
-    this.nextWriteId_ = 1;
+    this.stats_ = StatsManager.getCollection(repoInfo_);
 
     if (forceRestClient || beingCrawled()) {
       this.server_ = new ReadonlyRestClient(this.repoInfo_,
@@ -126,7 +124,7 @@ export class Repo {
 
     // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
     // we only want to create one StatsReporter.  As such, we'll report stats over the first Repo created.
-    this.statsReporter_ = StatsManager.getOrCreateReporter(repoInfo,
+    this.statsReporter_ = StatsManager.getOrCreateReporter(repoInfo_,
       () => new StatsReporter(this.stats_, this.server_));
 
     this.transactions_init_();
@@ -135,7 +133,7 @@ export class Repo {
     this.infoData_ = new SnapshotHolder();
     this.infoSyncTree_ = new SyncTree({
       startListening: (query, tag, currentHashFn, onComplete) => {
-        let infoEvents = [];
+        let infoEvents: Event[] = [];
         const node = this.infoData_.getNode(query.path);
         // This is possibly a hack, but we have different semantics for .info endpoints. We don't raise null events
         // on initial data...
@@ -150,13 +148,6 @@ export class Repo {
       stopListening: () => {}
     });
     this.updateInfo_('connected', false);
-
-    // A list of data pieces and paths to be set when this client disconnects.
-    this.onDisconnect_ = new SparseSnapshotTree();
-
-    this.dataUpdateCount = 0;
-
-    this.interceptServerDataCallback_ = null;
 
     this.serverSyncTree_ = new SyncTree({
       startListening: (query, tag, currentHashFn, onComplete) => {
@@ -192,7 +183,7 @@ export class Repo {
    */
   serverTime(): number {
     const offsetNode = this.infoData_.getNode(new Path('.info/serverTimeOffset'));
-    const offset = /** @type {number} */ (offsetNode.val()) || 0;
+    const offset = (offsetNode.val() as number) || 0;
     return new Date().getTime() + offset;
   }
 
@@ -223,14 +214,14 @@ export class Repo {
     let events = [];
     if (tag) {
       if (isMerge) {
-        const taggedChildren = map(/**@type {!Object.<string, *>} */ (data), (raw) => nodeFromJSON(raw));
+        const taggedChildren = map(data as { [k: string]: any }, (raw: any) => nodeFromJSON(raw));
         events = this.serverSyncTree_.applyTaggedQueryMerge(path, taggedChildren, tag);
       } else {
         const taggedSnap = nodeFromJSON(data);
         events = this.serverSyncTree_.applyTaggedQueryOverwrite(path, taggedSnap, tag);
       }
     } else if (isMerge) {
-      const changedChildren = map(/**@type {!Object.<string, *>} */ (data), (raw) => nodeFromJSON(raw));
+      const changedChildren = map(data as { [k: string]: any }, (raw: any) => nodeFromJSON(raw));
       events = this.serverSyncTree_.applyServerMerge(path, changedChildren);
     } else {
       const snap = nodeFromJSON(data);
@@ -246,10 +237,11 @@ export class Repo {
   }
 
   /**
+   * TODO: This should be @private but it's used by test_access.js and internal.js
    * @param {?function(!string, *):*} callback
    * @private
    */
-  private interceptServerData_(callback: (a: string, b: any) => any) {
+  interceptServerData_(callback: ((a: string, b: any) => any) | null) {
     this.interceptServerDataCallback_ = callback;
   }
 
@@ -302,9 +294,9 @@ export class Repo {
    * @param {number|string|null} newPriority
    * @param {?function(?Error, *=)} onComplete
    */
-  setWithPriority(path: Path, newVal: any, 
+  setWithPriority(path: Path, newVal: any,
                   newPriority: number | string | null,
-                  onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+                  onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     this.log_('set', {path: path.toString(), value: newVal, priority: newPriority});
 
     // TODO: Optimize this behavior to either (a) store flag to skip resolving where possible and / or
@@ -337,15 +329,15 @@ export class Repo {
    * @param {!Object} childrenToMerge
    * @param {?function(?Error, *=)} onComplete
    */
-  update(path: Path, childrenToMerge: Object,
-                 onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  update(path: Path, childrenToMerge: { [k: string]: any },
+         onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     this.log_('update', {path: path.toString(), value: childrenToMerge});
 
     // Start with our existing data and merge each child into it.
     let empty = true;
     const serverValues = this.generateServerValues();
-    const changedChildren = {};
-    forEach(childrenToMerge, function (changedKey, changedValue) {
+    const changedChildren: { [k: string]: Node } = {};
+    forEach(childrenToMerge, (changedKey: string, changedValue: any) => {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(newNodeUnresolved, serverValues);
@@ -367,7 +359,7 @@ export class Repo {
         this.callOnCompleteCallback(onComplete, status, errorReason);
       });
 
-      forEach(childrenToMerge, (changedPath, changedValue) => {
+      forEach(childrenToMerge, (changedPath: string) => {
         const affectedPath = this.abortTransactions_(path.child(changedPath));
         this.rerunTransactions_(affectedPath);
       });
@@ -389,7 +381,7 @@ export class Repo {
 
     const serverValues = this.generateServerValues();
     const resolvedOnDisconnectTree = resolveDeferredValueTree(this.onDisconnect_, serverValues);
-    let events = [];
+    let events: Event[] = [];
 
     resolvedOnDisconnectTree.forEachTree(Path.Empty, (path, snap) => {
       events = events.concat(this.serverSyncTree_.applyServerOverwrite(path, snap));
@@ -405,7 +397,7 @@ export class Repo {
    * @param {!Path} path
    * @param {?function(?Error, *=)} onComplete
    */
-  onDisconnectCancel(path: Path, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  onDisconnectCancel(path: Path, onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     this.server_.onDisconnectCancel(path.toString(), (status, errorReason) => {
       if (status === 'ok') {
         this.onDisconnect_.forget(path);
@@ -419,7 +411,7 @@ export class Repo {
    * @param {*} value
    * @param {?function(?Error, *=)} onComplete
    */
-  onDisconnectSet(path: Path, value: any, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  onDisconnectSet(path: Path, value: any, onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     const newNode = nodeFromJSON(value);
     this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), (status, errorReason) => {
       if (status === 'ok') {
@@ -435,7 +427,7 @@ export class Repo {
    * @param {*} priority
    * @param {?function(?Error, *=)} onComplete
    */
-  onDisconnectSetWithPriority(path, value, priority, onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  onDisconnectSetWithPriority(path: Path, value: any, priority: any, onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     const newNode = nodeFromJSON(value, priority);
     this.server_.onDisconnectPut(path.toString(), newNode.val(/*export=*/true), (status, errorReason) => {
       if (status === 'ok') {
@@ -450,8 +442,8 @@ export class Repo {
    * @param {*} childrenToMerge
    * @param {?function(?Error, *=)} onComplete
    */
-  onDisconnectUpdate(path, childrenToMerge,
-                     onComplete: ((status: Error | null, errorReason?: string) => any) | null) {
+  onDisconnectUpdate(path: Path, childrenToMerge: { [k: string]: any },
+                     onComplete: ((status: Error | null, errorReason?: string) => void) | null) {
     if (isEmpty(childrenToMerge)) {
       log('onDisconnect().update() called with empty data.  Don\'t do anything.');
       this.callOnCompleteCallback(onComplete, 'ok');
@@ -515,7 +507,7 @@ export class Repo {
     if (typeof console === 'undefined')
       return;
 
-    let stats;
+    let stats: { [k: string]: any };
     if (showDelta) {
       if (!this.statsListener_)
         this.statsListener_ = new StatsListener(this.stats_);
@@ -525,11 +517,9 @@ export class Repo {
     }
 
     const longestName = Object.keys(stats).reduce(
-      function (previousValue, currentValue, index, array) {
-        return Math.max(currentValue.length, previousValue);
-      }, 0);
+      (previousValue, currentValue) => Math.max(currentValue.length, previousValue), 0);
 
-    forEach(stats, (stat, value) => {
+    forEach(stats, (stat: string, value: any) => {
       // pad stat names to be the same length (plus 2 extra spaces).
       for (let i = stat.length; i < longestName + 2; i++)
         stat += ' ';
@@ -537,7 +527,7 @@ export class Repo {
     });
   }
 
-  statsIncrementCounter(metric) {
+  statsIncrementCounter(metric: string) {
     this.stats_.incrementCounter(metric);
     this.statsReporter_.includeStat(metric);
   }
@@ -551,7 +541,7 @@ export class Repo {
     if (this.persistentConnection_) {
       prefix = this.persistentConnection_.id + ':';
     }
-    log(prefix, var_args);
+    log(prefix, ...var_args);
   }
 
   /**
@@ -559,7 +549,7 @@ export class Repo {
    * @param {!string} status
    * @param {?string=} errorReason
    */
-  callOnCompleteCallback(callback: ((status: Error | null, errorReason?: string) => any) | null,
+  callOnCompleteCallback(callback: ((status: Error | null, errorReason?: string) => void) | null,
                          status: string, errorReason?: string | null) {
     if (callback) {
       exceptionGuard(function () {
@@ -577,6 +567,10 @@ export class Repo {
         }
       });
     }
+  }
+
+  get database(): Database {
+    return this.__database || (this.__database = new Database(this));
   }
 }
 

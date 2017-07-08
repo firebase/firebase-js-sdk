@@ -22,9 +22,9 @@ import { ChildrenNode } from "../../src/database/core/snap/ChildrenNode";
 
 describe("SparseSnapshotTree Tests", function () {
   it("Basic remember and find.", function () {
-    var st = new SparseSnapshotTree();
-    var path = new Path("a/b");
-    var node = nodeFromJSON("sdfsd");
+    const st = new SparseSnapshotTree();
+    const path = new Path("a/b");
+    const node = nodeFromJSON("sdfsd");
 
     st.remember(path, node);
     expect(st.find(new Path("a/b")).isEmpty()).to.equal(false);
@@ -33,9 +33,9 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Find inside an existing snapshot", function () {
-    var st = new SparseSnapshotTree();
-    var path = new Path("t/tt");
-    var node = nodeFromJSON({ a: "sdfsd", x: 5, "999i": true });
+    const st = new SparseSnapshotTree();
+    const path = new Path("t/tt");
+    let node = nodeFromJSON({ a: "sdfsd", x: 5, "999i": true });
     node = node.updateImmediateChild("apples", nodeFromJSON({ "goats": 88 }));
     st.remember(path, node);
 
@@ -48,7 +48,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Write a snapshot inside a snapshot.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ a: { b: "v" } }));
     st.remember(new Path("t/a/rr"), nodeFromJSON(19));
     expect(st.find(new Path("t/a/b")).val()).to.equal("v");
@@ -57,7 +57,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Write a null value and confirm it is remembered.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("awq/fff"), nodeFromJSON(null));
     expect(st.find(new Path("awq/fff"))).to.equal(ChildrenNode.EMPTY_NODE);
     expect(st.find(new Path("awq/sdf"))).to.equal(null);
@@ -67,7 +67,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Overwrite with null and confirm it is remembered.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ a: { b: "v" } }));
     expect(st.find(new Path("t")).isEmpty()).to.equal(false);
     st.remember(new Path("t"), ChildrenNode.EMPTY_NODE);
@@ -76,7 +76,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Simple remember and forget.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ a: { b: "v" } }));
     expect(st.find(new Path("t")).isEmpty()).to.equal(false);
     st.forget(new Path("t"));
@@ -85,7 +85,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Forget the root.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ a: { b: "v" } }));
     expect(st.find(new Path("t")).isEmpty()).to.equal(false);
     st.forget(new Path(""));
@@ -94,7 +94,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Forget snapshot inside snapshot.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ a: { b: "v", c: 9, art: false } }));
     expect(st.find(new Path("t/a/c")).isEmpty()).to.equal(false);
     expect(st.find(new Path("t")).isEmpty()).to.equal(false);
@@ -109,7 +109,7 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Forget path shallower than snapshots.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t/x1"), nodeFromJSON(false));
     st.remember(new Path("t/x2"), nodeFromJSON(true));
     st.forget(new Path("t"));
@@ -118,11 +118,11 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Iterate children.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
     st.remember(new Path("t"), nodeFromJSON({ b: "v", c: 9, art: false }));
     st.remember(new Path("q"), ChildrenNode.EMPTY_NODE);
 
-    var num = 0, gotT = false, gotQ = false;
+    let num = 0, gotT = false, gotQ = false;
     st.forEachChild(function(key, child) {
       num += 1;
       if (key === "t") {
@@ -141,9 +141,9 @@ describe("SparseSnapshotTree Tests", function () {
 
 
   it("Iterate trees.", function () {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
 
-    var count = 0;
+    let count = 0;
     st.forEachTree(new Path(""), function(path, tree) {
       count += 1;
     });
@@ -154,10 +154,10 @@ describe("SparseSnapshotTree Tests", function () {
     st.remember(new Path("a/x/g"), nodeFromJSON(3));
     st.remember(new Path("a/x/null"), nodeFromJSON(null));
 
-    var num = 0, got1 = false, got2 = false, got3 = false, got4 = false;
+    let num = 0, got1 = false, got2 = false, got3 = false, got4 = false;
     st.forEachTree(new Path("q"), function(path, node) {
       num += 1;
-      var pathString = path.toString();
+      const pathString = path.toString();
       if (pathString === "/q/t") {
         got1 = true;
         expect(node.val()).to.equal(1);
@@ -183,10 +183,10 @@ describe("SparseSnapshotTree Tests", function () {
   });
 
   it("Set leaf, then forget deeper path", function() {
-    var st = new SparseSnapshotTree();
+    const st = new SparseSnapshotTree();
 
     st.remember(new Path('foo'), nodeFromJSON('bar'));
-    var safeToRemove = st.forget(new Path('foo/baz'));
+    const safeToRemove = st.forget(new Path('foo/baz'));
     // it's not safe to remove this node
     expect(safeToRemove).to.equal(false);
   });

@@ -15,12 +15,10 @@
 */
 
 import { expect } from "chai";
-import firebase from '../../src/app';
 import { Reference } from "../../src/database/api/Reference";
 import { Query } from "../../src/database/api/Query";
 import "../../src/database/core/snap/ChildrenNode";
-import { 
-  getQueryValue,
+import {
   getRandomNode,
   getPath, 
   pause
@@ -36,7 +34,7 @@ type TaskList = [Query, any][];
 
 describe('Query Tests', function() {
   // Little helper class for testing event callbacks w/ contexts.
-  var EventReceiver = function() {
+  const EventReceiver = function() {
     this.gotValue = false;
     this.gotChildAdded = false;
   };
@@ -48,7 +46,7 @@ describe('Query Tests', function() {
   };
 
   it('Can create basic queries.', function() {
-    var path = (getRandomNode() as Reference);
+    const path = (getRandomNode() as Reference);
 
     path.limitToLast(10);
     path.startAt('199').limitToFirst(10);
@@ -68,11 +66,11 @@ describe('Query Tests', function() {
   });
 
   it('Exposes database as read-only property', function() {
-    var path = (getRandomNode() as Reference);
-    var child = path.child('child');
+    const path = (getRandomNode() as Reference);
+    const child = path.child('child');
 
-    var db = path.database;
-    var dbChild = child.database;
+    const db = path.database;
+    const dbChild = child.database;
 
     expect(db).to.equal(dbChild);
     /**
@@ -84,7 +82,7 @@ describe('Query Tests', function() {
   });
 
   it('Invalid queries throw', function() {
-    var path = (getRandomNode() as Reference);
+    const path = (getRandomNode() as Reference);
     
     /**
      * Because we are testing invalid queries, I am casting
@@ -148,17 +146,17 @@ describe('Query Tests', function() {
   });
 
   it('can produce a valid ref', function() {
-    var path = (getRandomNode() as Reference);
+    const path = (getRandomNode() as Reference);
 
-    var query = path.limitToLast(1);
-    var ref = query.ref;
+    const query = path.limitToLast(1);
+    const ref = query.ref;
 
     expect(ref.toString()).to.equal(path.toString());
   });
 
   it('Passing invalidKeys to startAt / endAt throws.', function() {
-    var f = (getRandomNode() as Reference);
-    var badKeys = ['.test', 'test.', 'fo$o', '[what', 'ever]', 'ha#sh', '/thing', 'th/ing', 'thing/'];
+    const f = (getRandomNode() as Reference);
+    const badKeys = ['.test', 'test.', 'fo$o', '[what', 'ever]', 'ha#sh', '/thing', 'th/ing', 'thing/'];
     // Changed from basic array iteration to avoid closure issues accessing mutable state
     _.each(badKeys, function(badKey) {
       expect(function() { f.startAt(null, badKey); }).to.throw();
@@ -167,15 +165,15 @@ describe('Query Tests', function() {
   });
 
   it('Passing invalid paths to orderBy throws', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     expect(function() { ref.orderByChild('$child/foo'); }).to.throw();
     expect(function() { ref.orderByChild('$key'); }).to.throw();
     expect(function() { ref.orderByChild('$priority'); }).to.throw();
   });
 
   it('Query.queryIdentifier works.', function() {
-    var path = (getRandomNode() as Reference);
-    var queryId = function(query) {
+    const path = (getRandomNode() as Reference);
+    const queryId = function(query) {
       return query.queryIdentifier(query);
     };
 
@@ -194,7 +192,7 @@ describe('Query Tests', function() {
   });
 
   it('Passing invalid queries to isEqual throws', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     expect(function() { (ref as any).isEqual(); }).to.throw();
     expect(function() { (ref as any).isEqual(''); }).to.throw();
     expect(function() { (ref as any).isEqual('foo'); }).to.throw();
@@ -209,9 +207,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.isEqual works.', function() {
-    var path = (getRandomNode() as Reference);
-    var rootRef = path.root;
-    var childRef = rootRef.child('child');
+    const path = (getRandomNode() as Reference);
+    const rootRef = path.root;
+    const childRef = rootRef.child('child');
 
     // Equivalent refs
     expect(path.isEqual(path), 'Query.isEqual - 1').to.be.true;
@@ -230,14 +228,14 @@ describe('Query Tests', function() {
     expect(rootRef.isEqual(childRef), 'Query.isEqual - 7').to.be.false;
     expect(childRef.isEqual(rootRef.child('otherChild')), 'Query.isEqual - 8').to.be.false;
 
-    var childQueryLast25 = childRef.limitToLast(25);
-    var childQueryOrderedByKey = childRef.orderByKey();
-    var childQueryOrderedByPriority = childRef.orderByPriority();
-    var childQueryOrderedByTimestamp = childRef.orderByChild("timestamp");
-    var childQueryStartAt1 = childQueryOrderedByTimestamp.startAt(1);
-    var childQueryStartAt2 = childQueryOrderedByTimestamp.startAt(2);
-    var childQueryEndAt2 = childQueryOrderedByTimestamp.endAt(2);
-    var childQueryStartAt1EndAt2 = childQueryOrderedByTimestamp.startAt(1).endAt(2);
+    const childQueryLast25 = childRef.limitToLast(25);
+    const childQueryOrderedByKey = childRef.orderByKey();
+    const childQueryOrderedByPriority = childRef.orderByPriority();
+    const childQueryOrderedByTimestamp = childRef.orderByChild("timestamp");
+    const childQueryStartAt1 = childQueryOrderedByTimestamp.startAt(1);
+    const childQueryStartAt2 = childQueryOrderedByTimestamp.startAt(2);
+    const childQueryEndAt2 = childQueryOrderedByTimestamp.endAt(2);
+    const childQueryStartAt1EndAt2 = childQueryOrderedByTimestamp.startAt(1).endAt(2);
 
     // Equivalent queries
     expect(childRef.isEqual(childQueryLast25.ref), 'Query.isEqual - 9').to.be.true;
@@ -258,10 +256,10 @@ describe('Query Tests', function() {
   });
 
   it('Query.off can be called on the default query.', function() {
-    var path = (getRandomNode() as Reference);
-    var eventFired = false;
+    const path = (getRandomNode() as Reference);
+    let eventFired = false;
 
-    var callback = function() { eventFired = true; };
+    const callback = function() { eventFired = true; };
     path.limitToLast(5).on('value', callback);
 
     path.set({a: 5, b: 6});
@@ -274,10 +272,10 @@ describe('Query Tests', function() {
   });
 
   it('Query.off can be called on the specific query.', function() {
-    var path = (getRandomNode() as Reference);
-    var eventFired = false;
+    const path = (getRandomNode() as Reference);
+    let eventFired = false;
 
-    var callback = function() { eventFired = true; };
+    const callback = function() { eventFired = true; };
     path.limitToLast(5).on('value', callback);
 
     path.set({a: 5, b: 6});
@@ -290,11 +288,11 @@ describe('Query Tests', function() {
   });
 
   it('Query.off can be called without a callback specified.', function() {
-    var path = (getRandomNode() as Reference);
-    var eventFired = false;
+    const path = (getRandomNode() as Reference);
+    let eventFired = false;
 
-    var callback1 = function() { eventFired = true; };
-    var callback2 = function() { eventFired = true; };
+    const callback1 = function() { eventFired = true; };
+    const callback2 = function() { eventFired = true; };
     path.on('value', callback1);
     path.limitToLast(5).on('value', callback2);
 
@@ -308,11 +306,11 @@ describe('Query Tests', function() {
   });
 
   it('Query.off can be called without an event type or callback specified.', function() {
-    var path = (getRandomNode() as Reference);
-    var eventFired = false;
+    const path = (getRandomNode() as Reference);
+    let eventFired = false;
 
-    var callback1 = function() { eventFired = true; };
-    var callback2 = function() { eventFired = true; };
+    const callback1 = function() { eventFired = true; };
+    const callback2 = function() { eventFired = true; };
     path.on('value', callback1);
     path.limitToLast(5).on('value', callback2);
 
@@ -326,9 +324,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.off respects provided context (for value events).', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var a = new EventReceiver(),
+    const a = new EventReceiver(),
         b = new EventReceiver();
 
     ref.on('value', a.onValue, a);
@@ -351,9 +349,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.off respects provided context (for child events).', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var a = new EventReceiver(),
+    const a = new EventReceiver(),
         b = new EventReceiver();
 
     ref.on('child_added', a.onChildAdded, a);
@@ -376,9 +374,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.off with no callback/context removes all callbacks, even with contexts (for value events).', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var a = new EventReceiver(),
+    const a = new EventReceiver(),
         b = new EventReceiver();
 
     ref.on('value', a.onValue, a);
@@ -399,9 +397,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.off with no callback/context removes all callbacks, even with contexts (for child events).', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var a = new EventReceiver(),
+    const a = new EventReceiver(),
         b = new EventReceiver();
 
     ref.on('child_added', a.onChildAdded, a);
@@ -422,9 +420,9 @@ describe('Query Tests', function() {
   });
 
   it('Query.off with no event type / callback removes all callbacks (even those with contexts).', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var a = new EventReceiver(),
+    const a = new EventReceiver(),
         b = new EventReceiver();
 
     ref.on('value', a.onValue, a);
@@ -452,16 +450,16 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are kept.', function() {
-    var node = (getRandomNode() as Reference);
-    var snap = null;
+    const node = (getRandomNode() as Reference);
+    let snap = null;
     node.limitToLast(5).on('value', function(s) { snap = s; });
 
     node.set({});
-    for (var i = 0; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       node.push().set(i);
     }
 
-    var expected = 5;
+    let expected = 5;
     snap.forEach(function(child) {
       expect(child.val()).to.equal(expected);
       expected++;
@@ -471,7 +469,7 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit of 5, add a bunch of nodes, ensure only last 5 items are sent from server.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     await node.set({});
 
     const pushPromises = [];
@@ -502,12 +500,12 @@ describe('Query Tests', function() {
   });
 
   it('Set various limits, ensure resulting data is correct.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});    
 
     const tasks: TaskList = [
-      [node.limitToLast(1), {c: 3}],,
+      [node.limitToLast(1), {c: 3}],
       [node.endAt().limitToLast(1), {c: 3}],
       [node.limitToLast(2), {b: 2, c: 3}],
       [node.limitToLast(3), {a: 1, b: 2, c: 3}],
@@ -526,7 +524,7 @@ describe('Query Tests', function() {
   });
 
   it('Set various limits with a startAt name, ensure resulting data is correct.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});
 
@@ -562,7 +560,7 @@ describe('Query Tests', function() {
   });
 
   it('Set various limits with a endAt name, ensure resulting data is correct.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});
 
@@ -598,7 +596,7 @@ describe('Query Tests', function() {
   });
 
   it('Set various limits with a startAt name, ensure resulting data is correct from the server.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});
 
@@ -625,8 +623,8 @@ describe('Query Tests', function() {
   });
 
   it('Set limit, ensure child_removed and child_added events are fired when limit is hit.', function() {
-    var node = (getRandomNode() as Reference);
-    var added = '', removed = '';
+    const node = (getRandomNode() as Reference);
+    let added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '});
     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
     node.set({a: 1, b: 2, c: 3});
@@ -641,13 +639,13 @@ describe('Query Tests', function() {
   });
 
   it('Set limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});    
 
     const ea = EventAccumulatorFactory.waitsForCount(2);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
       added += snap.key + ' '; 
       ea.addEvent();
@@ -669,9 +667,9 @@ describe('Query Tests', function() {
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { added += snap.key + ' '});
     node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { removed += snap.key + ' '});
     node.set({a: 1, b: 2, c: 3});
@@ -685,12 +683,12 @@ describe('Query Tests', function() {
   });
 
   it('Set start and limit, ensure child_removed and child_added events are fired when limit is hit, using server data', async function() {
-    var node = <Reference>getRandomNode()
+    const node = <Reference>getRandomNode();
 
     await node.set({a: 1, b: 2, c: 3});    
     const ea = EventAccumulatorFactory.waitsForCount(2);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { 
       added += snap.key + ' '; 
       ea.addEvent();
@@ -712,9 +710,9 @@ describe('Query Tests', function() {
   });
 
   it("Set start and limit, ensure child_added events are fired when limit isn't hit yet.", function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { added += snap.key + ' '});
     node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { removed += snap.key + ' '});
     node.set({c: 3});
@@ -728,7 +726,7 @@ describe('Query Tests', function() {
   });
 
   it("Set start and limit, ensure child_added events are fired when limit isn't hit yet, using server data", async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({c: 3});
 
@@ -737,7 +735,7 @@ describe('Query Tests', function() {
     let added = '';
     let removed = '';
     node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) { 
-      added += snap.key + ' '
+      added += snap.key + ' ';
       ea.addEvent();
     });
     node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) { 
@@ -757,12 +755,12 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     const ea = EventAccumulatorFactory.waitsForCount(1);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
-      added += snap.key + ' '
+      added += snap.key + ' ';
       ea.addEvent();
     });
     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
@@ -778,12 +776,12 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, ensure child_removed and child_added events are fired when limit is satisfied and you remove an item. Using server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({a: 1, b: 2, c: 3});
 
     let ea = EventAccumulatorFactory.waitsForCount(2);
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { 
       added += snap.key + ' '; 
       ea.addEvent();
@@ -809,9 +807,9 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var added = '', removed = '';
+    let added = '', removed = '';
     node.limitToLast(2).on('child_added', function(snap) { added += snap.key + ' '});
     node.limitToLast(2).on('child_removed', function(snap) { removed += snap.key + ' '});
     node.set({b: 2, c: 3});
@@ -827,7 +825,7 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, ensure child_removed events are fired when limit is satisfied, you remove an item, and there are no more. Using server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     const ea = EventAccumulatorFactory.waitsForCount(2);
     let added = '';
     let removed = '';
@@ -855,13 +853,13 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority works.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     const tasks: TaskList = [
       [node.startAt('w').endAt('y'), {b: 2, c: 3, d: 4}],
       [node.startAt('w').endAt('w'), {d: 4 }],
       [node.startAt('a').endAt('c'), null],
-    ]
+    ];
 
     await node.set({
       a: {'.value': 1, '.priority': 'z'},
@@ -882,7 +880,7 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority work with server data.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     
     await node.set({
       a: {'.value': 1, '.priority': 'z'},
@@ -909,7 +907,7 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority and name works.', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({
       a: {'.value': 1, '.priority': 1},
@@ -936,7 +934,7 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority and name work with server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     await node.set({
       a: {'.value': 1, '.priority': 1},
@@ -961,13 +959,13 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority and name works (2).', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     const tasks: TaskList = [
       [node.startAt(1, 'c').endAt(2, 'b'), {a: 1, b: 2, c: 3, d: 4}],
       [node.startAt(1, 'd').endAt(2, 'a'), {d: 4, a: 1}],
       [node.startAt(1, 'e').endAt(2), {a: 1, b: 2}],
-    ]
+    ];
 
     node.set({
       c: {'.value': 3, '.priority': 1},
@@ -988,7 +986,7 @@ describe('Query Tests', function() {
   });
 
   it('Ensure startAt / endAt with priority and name works (2). With server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     
     await node.set({
       c: {'.value': 3, '.priority': 1},
@@ -1015,9 +1013,9 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, add some nodes, ensure prevName works correctly.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var added = '';
+    let added = '';
     node.limitToLast(2).on('child_added', function(snap, prevName) {
       added += snap.key + ' ' + prevName + ', ';
     });
@@ -1039,7 +1037,7 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, add some nodes, ensure prevName works correctly. With server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
     let added = '';
     await node.child('a').set(1);
@@ -1071,8 +1069,8 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, move some nodes, ensure prevName works correctly.', function() {
-    var node = (getRandomNode() as Reference);
-    var moved = '';
+    const node = (getRandomNode() as Reference);
+    let moved = '';
     node.limitToLast(2).on('child_moved', function(snap, prevName) {
       moved += snap.key + ' ' + prevName + ', ';
     });
@@ -1095,8 +1093,8 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, move some nodes, ensure prevName works correctly, with server data', async function() {
-    var node = (getRandomNode() as Reference);
-    var moved = '';
+    const node = (getRandomNode() as Reference);
+    let moved = '';
 
     node.child('a').setWithPriority('a', 10);
     node.child('b').setWithPriority('b', 20);
@@ -1124,9 +1122,9 @@ describe('Query Tests', function() {
   });
 
   it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var moved = '';
+    let moved = '';
     node.limitToLast(2).on('child_moved', function(snap, prevName) {
       moved += snap.key + ' ' + prevName + ', ';
     });
@@ -1141,7 +1139,7 @@ describe('Query Tests', function() {
   });
 
   it('Numeric priorities: Set a limit, move some nodes, ensure prevName works correctly. With server data', async function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     let moved = '';
 
     node.child('a').setWithPriority('a', 1);
@@ -1161,9 +1159,9 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, add a bunch of nodes, ensure local events are correct.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     node.set({});
-    var eventHistory = '';
+    let eventHistory = '';
 
     node.limitToLast(2).on('child_added', function(snap) {
       eventHistory = eventHistory + snap.val() + ' added, ';
@@ -1172,8 +1170,8 @@ describe('Query Tests', function() {
       eventHistory = eventHistory + snap.val() + ' removed, ';
     });
 
-    for (var i = 0; i < 5; i++) {
-      var n = node.push();
+    for (let i = 0; i < 5; i++) {
+      const n = node.push();
       n.set(i);
     }
 
@@ -1181,9 +1179,9 @@ describe('Query Tests', function() {
   });
 
   it('Set a limit, add a bunch of nodes, ensure remote events are correct.', async function() {
-    var nodePair = getRandomNode(2);
-    var writeNode = nodePair[0];
-    var readNode = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writeNode = nodePair[0];
+    const readNode = nodePair[1];
     const ea = new EventAccumulator(() => {
       try {
         expect(eventHistory).to.equal('3 added, 4 added, ');
@@ -1192,7 +1190,7 @@ describe('Query Tests', function() {
         return false;
       }
     });
-    var eventHistory = '';
+    let eventHistory = '';
 
     readNode.limitToLast(2).on('child_added', function(snap) {
       eventHistory = eventHistory + snap.val() + ' added, ';
@@ -1209,8 +1207,8 @@ describe('Query Tests', function() {
     });
 
     const promises = [];
-    for (var i = 0; i < 5; i++) {
-      var n = writeNode.push();
+    for (let i = 0; i < 5; i++) {
+      const n = writeNode.push();
       n.set(i);
     }
 
@@ -1218,21 +1216,21 @@ describe('Query Tests', function() {
   });
 
   it('Ensure on() returns callback function.', function() {
-    var node = (getRandomNode() as Reference);
-    var callback = function() { };
-    var ret = node.on('value', callback);
+    const node = (getRandomNode() as Reference);
+    const callback = function() { };
+    const ret = node.on('value', callback);
     expect(ret).to.equal(callback);
   });
 
   it("Limit on unsynced node fires 'value'.", function(done) {
-    var f = (getRandomNode() as Reference);
+    const f = (getRandomNode() as Reference);
     f.limitToLast(1).on('value', function() {
       done();
     });
   });
 
   it('Filtering to only null priorities works.', async function() {
-    var f = (getRandomNode() as Reference);
+    const f = (getRandomNode() as Reference);
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     f.root.child('.info/connected').on('value', function(snap) {
@@ -1259,7 +1257,7 @@ describe('Query Tests', function() {
   });
 
   it('null priorities included in endAt(2).', async function() {
-    var f = (getRandomNode() as Reference);
+    const f = (getRandomNode() as Reference);
     
     f.set({
       a: {'.priority': null, '.value': 0},
@@ -1279,7 +1277,7 @@ describe('Query Tests', function() {
   });
 
   it('null priorities not included in startAt(2).', async function() {
-    var f = (getRandomNode() as Reference);
+    const f = (getRandomNode() as Reference);
     
     f.set({
       a: {'.priority': null, '.value': 0},
@@ -1300,21 +1298,21 @@ describe('Query Tests', function() {
   });
 
   function dumpListens(node: Query) {
-    var listens = node.repo.persistentConnection_.listens_;
-    var nodePath = getPath(node);
-    var listenPaths = [];
-    for (var path in listens) {
+    const listens = (node.repo.persistentConnection_ as any).listens_;
+    const nodePath = getPath(node);
+    const listenPaths = [];
+    for (let path in listens) {
       if (path.substring(0, nodePath.length) === nodePath) {
         listenPaths.push(path);
       }
     }
 
     listenPaths.sort();
-    var dumpPieces = [];
-    for (var i = 0; i < listenPaths.length; i++) {
+    const dumpPieces = [];
+    for (let i = 0; i < listenPaths.length; i++) {
 
-      var queryIds = [];
-      for (var queryId in listens[listenPaths[i]]) {
+      const queryIds = [];
+      for (let queryId in listens[listenPaths[i]]) {
         queryIds.push(queryId);
       }
       queryIds.sort();
@@ -1327,13 +1325,13 @@ describe('Query Tests', function() {
   }
 
   it('Dedupe listens: listen on parent.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     expect(dumpListens(node)).to.equal('');
 
-    var aOn = node.child('a').on('value', function() { });
+    const aOn = node.child('a').on('value', function() { });
     expect(dumpListens(node)).to.equal('/a:default');
 
-    var rootOn = node.on('value', function() {});
+    const rootOn = node.on('value', function() {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1344,12 +1342,12 @@ describe('Query Tests', function() {
   });
 
   it('Dedupe listens: listen on grandchild.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var rootOn = node.on('value', function() {});
+    const rootOn = node.on('value', function() {});
     expect(dumpListens(node)).to.equal(':default');
 
-    var aaOn = node.child('a/aa').on('value', function() { });
+    const aaOn = node.child('a/aa').on('value', function() { });
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1358,16 +1356,16 @@ describe('Query Tests', function() {
   });
 
   it('Dedupe listens: listen on grandparent of two children.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     expect(dumpListens(node)).to.equal('');
 
-    var aaOn = node.child('a/aa').on('value', function() { });
+    const aaOn = node.child('a/aa').on('value', function() { });
     expect(dumpListens(node)).to.equal('/a/aa:default');
 
-    var bbOn = node.child('a/bb').on('value', function() { });
+    const bbOn = node.child('a/bb').on('value', function() { });
     expect(dumpListens(node)).to.equal('/a/aa:default;/a/bb:default');
 
-    var rootOn = node.on('value', function() {});
+    const rootOn = node.on('value', function() {});
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
@@ -1381,16 +1379,16 @@ describe('Query Tests', function() {
   });
 
   it('Dedupe queried listens: multiple queried listens; no dupes', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
     expect(dumpListens(node)).to.equal('');
 
-    var aLim1On = node.child('a').limitToLast(1).on('value', function() { });
+    const aLim1On = node.child('a').limitToLast(1).on('value', function() { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    var rootLim1On = node.limitToLast(1).on('value', function() { });
+    const rootLim1On = node.limitToLast(1).on('value', function() { });
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
-    var aLim5On = node.child('a').limitToLast(5).on('value', function() { });
+    const aLim5On = node.child('a').limitToLast(5).on('value', function() { });
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}');
 
     node.limitToLast(1).off('value', rootLim1On);
@@ -1402,15 +1400,15 @@ describe('Query Tests', function() {
   });
 
   it('Dedupe queried listens: listen on parent of queried children.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var aLim1On = node.child('a').limitToLast(1).on('value', function() { });
+    const aLim1On = node.child('a').limitToLast(1).on('value', function() { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    var bLim1On = node.child('b').limitToLast(1).on('value', function() { });
+    const bLim1On = node.child('b').limitToLast(1).on('value', function() { });
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}');
 
-    var rootOn = node.on('value', function() { });
+    const rootOn = node.on('value', function() { });
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
@@ -1425,9 +1423,9 @@ describe('Query Tests', function() {
   });
 
   it('Limit with mix of null and non-null priorities.', function() {
-    var node = (getRandomNode() as Reference);
+    const node = (getRandomNode() as Reference);
 
-    var children = [];
+    const children = [];
     node.limitToLast(5).on('child_added', function(childSnap) {
       children.push(childSnap.key);
     });
@@ -1445,10 +1443,9 @@ describe('Query Tests', function() {
   });
 
   it('Limit with mix of null and non-null priorities using server data', async function() {
-    var node = <Reference>getRandomNode(),
-        done, count;
+    const node = <Reference>getRandomNode();
 
-    var children = [];
+    const children = [];
     await node.set({
       'Vikrum': {'.priority': 1000, 'score': 1000, 'name': 'Vikrum'},
       'Mike': {'.priority': 500, 'score': 500, 'name': 'Mike'},
@@ -1470,14 +1467,14 @@ describe('Query Tests', function() {
   });
 
   it('.on() with a context works.', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var ListenerDoohickey = function() { this.snap = null; };
+    const ListenerDoohickey = function() { this.snap = null; };
     ListenerDoohickey.prototype.onEvent = function(snap) {
       this.snap = snap;
     };
 
-    var l = new ListenerDoohickey();
+    const l = new ListenerDoohickey();
     ref.on('value', l.onEvent, l);
 
     ref.set('test');
@@ -1491,14 +1488,14 @@ describe('Query Tests', function() {
   });
 
   it('.once() with a context works.', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var ListenerDoohickey = function() { this.snap = null; };
+    const ListenerDoohickey = function() { this.snap = null; };
     ListenerDoohickey.prototype.onEvent = function(snap) {
       this.snap = snap;
     };
 
-    var l = new ListenerDoohickey();
+    const l = new ListenerDoohickey();
     ref.once('value', l.onEvent, l);
 
     ref.set('test');
@@ -1510,9 +1507,9 @@ describe('Query Tests', function() {
   });
 
   it('handles an update that deletes the entire window in a query', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var snaps = [];
+    const snaps = [];
     ref.limitToLast(2).on('value', function(snap) {
       snaps.push(snap.val());
     });
@@ -1534,14 +1531,14 @@ describe('Query Tests', function() {
   });
 
   it('handles an out-of-view query on a child', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var parent = null;
+    let parent = null;
     ref.limitToLast(1).on('value', function(snap) {
       parent = snap.val();
     });
 
-    var child = null;
+    let child = null;
     ref.child('a').on('value', function(snap) {
       child = snap.val();
     });
@@ -1556,14 +1553,14 @@ describe('Query Tests', function() {
   });
 
   it('handles a child query going out of view of the parent', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var parent = null;
+    let parent = null;
     ref.limitToLast(1).on('value', function(snap) {
       parent = snap.val();
     });
 
-    var child = null;
+    let child = null;
     ref.child('a').on('value', function(snap) {
       child = snap.val();
     });
@@ -1580,14 +1577,14 @@ describe('Query Tests', function() {
   });
 
   it('handles diverging views', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var c = null;
+    let c = null;
     ref.limitToLast(1).endAt(null, 'c').on('value', function(snap) {
       c = snap.val();
     });
 
-    var d = null;
+    let d = null;
     ref.limitToLast(1).endAt(null, 'd').on('value', function(snap) {
       d = snap.val();
     });
@@ -1601,9 +1598,9 @@ describe('Query Tests', function() {
   });
 
   it('handles removing a queried element', async function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
-    var val;
+    let val;
     const ea = EventAccumulatorFactory.waitsForCount(1);
     ref.limitToLast(1).on('child_added', function(snap) {
       val = snap.val();
@@ -1621,10 +1618,10 @@ describe('Query Tests', function() {
   });
 
   it('.startAt().limitToFirst(1) works.', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({a: 1, b: 2});
     
-    var val;
+    let val;
     ref.startAt().limitToFirst(1).on('child_added', function(snap) {
       val = snap.val();
       if (val === 1) {
@@ -1634,11 +1631,11 @@ describe('Query Tests', function() {
   });
 
   it('.startAt().limitToFirst(1) and then remove first child (case 1664).', async function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({a: 1, b: 2});
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var val;
+    let val;
     ref.startAt().limitToFirst(1).on('child_added', function(snap) {
       val = snap.val();
       ea.addEvent();
@@ -1655,7 +1652,7 @@ describe('Query Tests', function() {
   });
 
   it('.startAt() with two arguments works properly (case 1169).', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     const data = { 
       'Walker': { 
         name: 'Walker', 
@@ -1670,7 +1667,7 @@ describe('Query Tests', function() {
     };
     ref.set(data, function() {
       ref.startAt(20, 'Walker').limitToFirst(2).on('value', function(s) {
-        var childNames = [];
+        const childNames = [];
         s.forEach(function(node) { childNames.push(node.key); });
         expect(childNames).to.deep.equal(['Walker', 'Michael']);
         done();
@@ -1679,7 +1676,7 @@ describe('Query Tests', function() {
   });
 
   it('handles multiple queries on the same node', async function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
     await ref.set({
       a: 1,
@@ -1692,7 +1689,7 @@ describe('Query Tests', function() {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
 
-    var firstListen = false
+    let firstListen = false;
     ref.limitToLast(2).on('value', function(snap) {
       // This shouldn't get called twice, we don't update the values here
       expect(firstListen).to.be.false;
@@ -1705,12 +1702,12 @@ describe('Query Tests', function() {
     // now do consecutive once calls
     await ref.limitToLast(1).once('value');
     const snap = await ref.limitToLast(1).once('value');
-    var val = snap.val();
+    const val = snap.val();
     expect(val).to.deep.equal({f: 6});
   });
 
   it('handles once called on a node with a default listener', async function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
     await ref.set({
       a: 1,
@@ -1731,15 +1728,14 @@ describe('Query Tests', function() {
 
     // now do the once call
     const snap = await ref.limitToLast(1).once('child_added');
-    var val = snap.val();
+    const val = snap.val();
     expect(val).to.equal(6);
   });
 
 
   it('handles once called on a node with a default listener and non-complete limit', async function() {
-    var ref = <Reference>getRandomNode(),
-        ready, done;
-    
+    const ref = <Reference>getRandomNode();
+
     await ref.set({
       a: 1,
       b: 2,
@@ -1756,17 +1752,17 @@ describe('Query Tests', function() {
 
     // now do the once call
     const snap = await ref.limitToLast(5).once('value');
-    var val = snap.val();
+    const val = snap.val();
     expect(val).to.deep.equal({a: 1, b: 2, c: 3});
   });
 
   it('Remote remove triggers events.', function(done) {
-    var refPair = getRandomNode(2), writeRef = refPair[0], readRef = refPair[1];
+    const refPair = getRandomNode(2), writeRef = refPair[0], readRef = refPair[1];
 
     writeRef.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' }, function() {
 
       // Wait to get the initial data, and then remove 'c' remotely and wait for new data.
-      var count = 0;
+      let count = 0;
       readRef.limitToLast(5).on('value', function(s) {
         count++;
         if (count == 1) {
@@ -1782,7 +1778,7 @@ describe('Query Tests', function() {
   });
 
   it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({ a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' }, function() {
       ref.endAt(null, 'f').limitToLast(5).on('value', function(s) {
         expect(s.val()).to.deep.equal({b: 'b', c: 'c', d: 'd', e: 'e', f: 'f' });
@@ -1792,14 +1788,14 @@ describe('Query Tests', function() {
   });
 
   it('complex update() at query root raises correct value event', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var readerLoaded = false, numEventsReceived = 0;
+    let readerLoaded = false, numEventsReceived = 0;
     writer.child('foo').set({a: 1, b: 2, c: 3, d: 4, e: 5}, function(error, dummy) {
       reader.child('foo').startAt().limitToFirst(4).on('value', function(snapshot) {
-        var val = snapshot.val();
+        const val = snapshot.val();
         if (!readerLoaded) {
           readerLoaded = true;
           expect(val).to.deep.equal({a: 1, b: 2, c: 3, d: 4});
@@ -1819,14 +1815,14 @@ describe('Query Tests', function() {
   });
 
   it('update() at query root raises correct value event', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var readerLoaded = false, numEventsReceived = 0;
+    let readerLoaded = false, numEventsReceived = 0;
     writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
       reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-        var val = snapshot.val();
+        const val = snapshot.val();
         if (!readerLoaded) {
           readerLoaded = true;
           expect(val.bar).to.equal('a');
@@ -1845,14 +1841,14 @@ describe('Query Tests', function() {
   });
 
   it('set() at query root raises correct value event', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var readerLoaded = false, numEventsReceived = 0;
+    let readerLoaded = false, numEventsReceived = 0;
     writer.child('foo').set({ 'bar': 'a', 'baz': 'b', 'bam': 'c' }, function(error, dummy) {
       reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-        var val = snapshot.val();
+        const val = snapshot.val();
         if (!readerLoaded) {
           readerLoaded = true;
           expect(val.bar).to.equal('a');
@@ -1872,16 +1868,16 @@ describe('Query Tests', function() {
 
 
   it('listen for child_added events with limit and different types fires properly', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false;
+    let numEventsReceived = 0, gotA = false, gotB = false, gotC = false;
     writer.child('a').set(1, function(error, dummy) {
       writer.child('b').set('b', function(error, dummy) {
         writer.child('c').set({ 'deep': 'path', 'of': { 'stuff': true }}, function(error, dummy) {
           reader.limitToLast(3).on('child_added', function(snap) {
-            var val = snap.val();
+            const val = snap.val();
             switch (snap.key) {
               case 'a':
                 gotA = true;
@@ -1909,18 +1905,18 @@ describe('Query Tests', function() {
   });
 
   it('listen for child_changed events with limit and different types fires properly', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    let numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
     writer.set({ a: 'something', b: "we'll", c: 'overwrite '}, function(error, dummy) {
       reader.limitToLast(3).on('value', function(snapshot) {
         if (!readerLoaded) {
           readerLoaded = true;
           // Set up listener for upcoming change events
           reader.limitToLast(3).on('child_changed', function(snap) {
-            var val = snap.val();
+            const val = snap.val();
             switch (snap.key) {
               case 'a':
                 gotA = true;
@@ -1953,11 +1949,11 @@ describe('Query Tests', function() {
   });
 
   it('listen for child_remove events with limit and different types fires properly', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    let numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
       reader.limitToLast(3).on('value', function(snapshot) {
         if (!readerLoaded) {
@@ -1965,7 +1961,7 @@ describe('Query Tests', function() {
 
           // Set up listener for upcoming change events
           reader.limitToLast(3).on('child_removed', function(snap) {
-            var val = snap.val();
+            const val = snap.val();
             switch (snap.key) {
               case 'a':
                 gotA = true;
@@ -1998,11 +1994,11 @@ describe('Query Tests', function() {
   });
 
   it('listen for child_remove events when parent removed', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    let numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
 
       reader.limitToLast(3).on('value', function(snapshot) {
@@ -2011,7 +2007,7 @@ describe('Query Tests', function() {
 
           // Set up listener for upcoming change events
           reader.limitToLast(3).on('child_removed', function(snap) {
-            var val = snap.val();
+            const val = snap.val();
             switch (snap.key) {
               case 'a':
                 gotA = true;
@@ -2042,11 +2038,11 @@ describe('Query Tests', function() {
   });
 
   it('listen for child_remove events when parent set to scalar', function(done) {
-    var nodePair = getRandomNode(2);
-    var writer = nodePair[0];
-    var reader = nodePair[1];
+    const nodePair = getRandomNode(2);
+    const writer = nodePair[0];
+    const reader = nodePair[1];
 
-    var numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
+    let numEventsReceived = 0, gotA = false, gotB = false, gotC = false, readerLoaded = false;
     writer.set({ a: 1, b: 'b', c: { 'deep': 'path', 'of': { 'stuff': true }} }, function(error, dummy) {
 
       reader.limitToLast(3).on('value', function(snapshot) {
@@ -2055,7 +2051,7 @@ describe('Query Tests', function() {
 
           // Set up listener for upcoming change events
           reader.limitToLast(3).on('child_removed', function(snap) {
-            var val = snap.val();
+            const val = snap.val();
             switch (snap.key) {
               case 'a':
                 gotA = true;
@@ -2087,10 +2083,10 @@ describe('Query Tests', function() {
 
 
   it('Queries behave wrong after .once().', async function() {
-    var refPair = getRandomNode(2),
+    const refPair = getRandomNode(2),
         writeRef = refPair[0],
-        readRef = refPair[1],
-        done, startAtCount, defaultCount;
+        readRef = refPair[1];
+    let startAtCount, defaultCount;
 
     await writeRef.set({a: 1, b: 2, c: 3, d: 4 });
 
@@ -2119,8 +2115,8 @@ describe('Query Tests', function() {
   });
 
   it('Case 2003: Correctly get events for startAt/endAt queries when priority changes.', function() {
-    var ref = (getRandomNode() as Reference);
-    var addedFirst = [], removedFirst = [], addedSecond = [], removedSecond = [];
+    const ref = (getRandomNode() as Reference);
+    const addedFirst = [], removedFirst = [], addedSecond = [], removedSecond = [];
     ref.startAt(0).endAt(10).on('child_added', function(snap) { addedFirst.push(snap.key); });
     ref.startAt(0).endAt(10).on('child_removed', function(snap) { removedFirst.push(snap.key); });
     ref.startAt(10).endAt(20).on('child_added', function(snap) { addedSecond.push(snap.key); });
@@ -2140,19 +2136,19 @@ describe('Query Tests', function() {
   });
 
   it('Behaves with diverging queries', async function() {
-    var refs = getRandomNode(2);
-    var writer = refs[0];
-    var reader = refs[1];
+    const refs = getRandomNode(2);
+    const writer = refs[0];
+    const reader = refs[1];
 
     await writer.set({
       a: {b: 1, c: 2},
       e: 3
     });
 
-    var childCount = 0;
+    let childCount = 0;
 
     reader.child('a/b').on('value', function(snap) {
-      var val = snap.val();
+      const val = snap.val();
       childCount++;
       if (childCount == 1) {
         expect(val).to.equal(1);
@@ -2163,10 +2159,10 @@ describe('Query Tests', function() {
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var count = 0;
+    let count = 0;
     reader.limitToLast(2).on('value', function(snap) {
       ea.addEvent();
-      var val = snap.val();
+      const val = snap.val();
       count++;
       if (count == 1) {
         expect(val).to.deep.equal({a: {b: 1, c: 2}, e: 3});
@@ -2184,10 +2180,10 @@ describe('Query Tests', function() {
   });
 
   it('Priority-only updates are processed correctly by server.', async function() {
-    var refPair = (getRandomNode(2) as Reference[]), readRef = refPair[0], writeRef = refPair[1];
+    const refPair = (getRandomNode(2) as Reference[]), readRef = refPair[0], writeRef = refPair[1];
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var readVal;
+    let readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
       if (readVal) {
@@ -2211,7 +2207,7 @@ describe('Query Tests', function() {
   });
 
   it('Server: Test re-listen', function(done) {
-    var refPair = (getRandomNode(2) as Reference[]), ref = refPair[0], ref2 = refPair[1];
+    const refPair = (getRandomNode(2) as Reference[]), ref = refPair[0], ref2 = refPair[1];
     ref.set({
       a: 'a',
       b: 'b',
@@ -2222,7 +2218,7 @@ describe('Query Tests', function() {
       g: 'g'
     });
 
-    var before;
+    let before;
     ref.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
       before = b.val();
     });
@@ -2236,7 +2232,7 @@ describe('Query Tests', function() {
   });
 
   it('Server: Test re-listen 2', function(done) {
-    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    const refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
     ref.set({
       a: 'a',
       b: 'b',
@@ -2247,7 +2243,7 @@ describe('Query Tests', function() {
       g: 'g'
     });
 
-    var before;
+    let before;
     ref.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
       before = b.val();
     });
@@ -2261,7 +2257,7 @@ describe('Query Tests', function() {
   });
 
   it('Server: Test re-listen 3', function(done) {
-    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    const refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
     ref.set({
       a: 'a',
       b: 'b',
@@ -2272,7 +2268,7 @@ describe('Query Tests', function() {
       g: 'g'
     });
 
-    var before;
+    let before;
     ref.limitToLast(3).on('value', function(b) {
       before = b.val();
     });
@@ -2286,10 +2282,10 @@ describe('Query Tests', function() {
   });
 
   it('Server limit below limit works properly.', async function() {
-    var refPair = <Reference[]>getRandomNode(2),
+    const refPair = <Reference[]>getRandomNode(2),
         readRef = refPair[0],
-        writeRef = refPair[1],
-        childData;
+        writeRef = refPair[1];
+    let childData;
 
     await writeRef.set({
       a: {
@@ -2317,22 +2313,22 @@ describe('Query Tests', function() {
     ea.reset();
     writeRef.child('a/ab').setWithPriority(1, 2);
 
-    await ea.promise
+    await ea.promise;
 
     expect(childData).to.deep.equal({ aa: 1 });    
   });
 
   it('Server: Setting grandchild of item in limit works.', async function() {
-    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    const refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
 
     ref.set({ a: {
       name: 'Mike'
     }});
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var snaps = [];
+    const snaps = [];
     ref2.limitToLast(1).on('value', function(s) {
-      var val = s.val();
+      const val = s.val();
       if (val !== null) {
         snaps.push(val);
         ea.addEvent();
@@ -2350,16 +2346,16 @@ describe('Query Tests', function() {
   });
 
   it('Server: Updating grandchildren of item in limit works.', async function() {
-    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    const refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
 
     ref.set({ a: {
       name: 'Mike'
     }});
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var snaps = [];
+    const snaps = [];
     ref2.limitToLast(1).on('value', function(s) {
-      var val = s.val();
+      const val = s.val();
       if (val !== null) {
         snaps.push(val);
         ea.addEvent();
@@ -2381,10 +2377,10 @@ describe('Query Tests', function() {
   });
 
   it('Server: New child at end of limit shows up.', async function() {
-    var refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
+    const refPair = getRandomNode(2), ref = refPair[0], ref2 = refPair[1];
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var snap;
+    let snap;
     ref2.limitToLast(1).on('value', function(s) {
       snap = s.val();
       ea.addEvent();
@@ -2405,10 +2401,10 @@ describe('Query Tests', function() {
   });
 
   it('Server: Priority-only updates are processed correctly by server (1).', async function() {
-    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+    const refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var readVal;
+    let readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
       if (readVal) {
@@ -2421,7 +2417,7 @@ describe('Query Tests', function() {
       c: { '.priority': 30, '.value': 3}
     });
 
-    await ea.promise
+    await ea.promise;
     expect(readVal).to.deep.equal({ b: 2, c: 3 });
     
     ea.reset();
@@ -2433,10 +2429,10 @@ describe('Query Tests', function() {
 
   // Same as above but with an endAt() so we hit CompoundQueryView instead of SimpleLimitView.
   it('Server: Priority-only updates are processed correctly by server (2).', async function() {
-    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+    const refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var readVal;
+    let readVal;
     readRef.endAt(50).limitToLast(2).on('value', function(s) {
       readVal = s.val();
       if (readVal) {
@@ -2461,8 +2457,8 @@ describe('Query Tests', function() {
   });
 
   it('Latency compensation works with limit and pushed object.', function() {
-    var ref = (getRandomNode() as Reference);
-    var events = [];
+    const ref = (getRandomNode() as Reference);
+    const events = [];
     ref.limitToLast(3).on('child_added', function(s) { events.push(s.val()); });
 
     // If you change this to ref.push('foo') it works.
@@ -2473,10 +2469,10 @@ describe('Query Tests', function() {
   });
 
   it("Cache doesn't remove items that have fallen out of view.", async function() {
-    var refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
+    const refPair = getRandomNode(2), readRef = refPair[0], writeRef = refPair[1];
 
     let ea = EventAccumulatorFactory.waitsForCount(1);
-    var readVal;
+    let readVal;
     readRef.limitToLast(2).on('value', function(s) {
       readVal = s.val();
       ea.addEvent();
@@ -2485,8 +2481,8 @@ describe('Query Tests', function() {
     await ea.promise;
     expect(readVal).to.be.null;
 
-    ea = EventAccumulatorFactory.waitsForCount(4)
-    for (var i = 0; i < 4; i++) {
+    ea = EventAccumulatorFactory.waitsForCount(4);
+    for (let i = 0; i < 4; i++) {
       writeRef.child('k' + i).set(i);
     }
 
@@ -2495,7 +2491,7 @@ describe('Query Tests', function() {
     await pause(500);
     expect(readVal).to.deep.equal({'k2': 2, 'k3': 3});
     
-    ea = EventAccumulatorFactory.waitsForCount(1)
+    ea = EventAccumulatorFactory.waitsForCount(1);
     writeRef.remove();
 
     await ea.promise;
@@ -2503,9 +2499,9 @@ describe('Query Tests', function() {
   });
 
   it('handles an update that moves another child that has a deeper listener out of view', async function() {
-    var refs = getRandomNode(2);
-    var reader = refs[0];
-    var writer = refs[1];
+    const refs = getRandomNode(2);
+    const reader = refs[0];
+    const writer = refs[1];
 
     await writer.set({ 
       a: { '.priority': 10, '.value': 1},
@@ -2518,7 +2514,7 @@ describe('Query Tests', function() {
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    var val;
+    let val;
     reader.limitToLast(2).on('value', function(snap) {
       val = snap.val();
       if (val) {
@@ -2537,7 +2533,7 @@ describe('Query Tests', function() {
   });
 
   it('Integer keys behave numerically 1.', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
       ref.startAt(null, '80').once('value', function(s) {
         expect(s.val()).to.deep.equal({80: true, 550: true, 600: true });
@@ -2547,7 +2543,7 @@ describe('Query Tests', function() {
   });
 
   it('Integer keys behave numerically 2.', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true }, function() {
       ref.endAt(null, '50').once('value', function(s) {
         expect(s.val()).to.deep.equal({1: true, 6: true, 8: true, 50: true });
@@ -2557,7 +2553,7 @@ describe('Query Tests', function() {
   });
 
   it('Integer keys behave numerically 3.', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({1: true, 50: true, 550: true, 6: true, 600: true, 70: true, 8: true, 80: true}, function() {
       ref.startAt(null, '50').endAt(null, '80').once('value', function(s) {
         expect(s.val()).to.deep.equal({50: true, 70: true, 80: true });
@@ -2567,7 +2563,7 @@ describe('Query Tests', function() {
   });
 
   it('.limitToLast() on node with priority.', function(done) {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     ref.set({'a': 'blah', '.priority': 'priority'}, function() {
       ref.limitToLast(2).once('value', function(s) {
         expect(s.exportVal()).to.deep.equal({a: 'blah' });
@@ -2577,8 +2573,8 @@ describe('Query Tests', function() {
   });
 
   it('.equalTo works', async function() {
-    var ref = (getRandomNode() as Reference);
-    var done = false;
+    const ref = (getRandomNode() as Reference);
+    const done = false;
 
     await ref.set({
       a: 1,
@@ -2587,21 +2583,21 @@ describe('Query Tests', function() {
     });
 
     const snap1 = await ref.equalTo(2).once('value');
-    var val1 = snap1.exportVal();
+    const val1 = snap1.exportVal();
     expect(val1).to.deep.equal({b: {'.priority': 2, '.value': 2}});
 
     const snap2 = await ref.equalTo('3', 'c').once('value');
     
-    var val2 = snap2.exportVal();
+    const val2 = snap2.exportVal();
     expect(val2).to.deep.equal({c: {'.priority': '3', '.value': 3}});
 
     const snap3 = await ref.equalTo(null, 'c').once('value');
-    var val3 = snap3.exportVal();
+    const val3 = snap3.exportVal();
     expect(val3).to.be.null;
   });
 
   it('Handles fallback for orderBy', async function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
 
     const children = [];
     
@@ -2620,10 +2616,10 @@ describe('Query Tests', function() {
   });
 
   it("Get notified of deletes that happen while offline.", async function() {
-    var refPair = getRandomNode(2);
-    var queryRef = refPair[0];
-    var writerRef = refPair[1];
-    var readSnapshot = null;
+    const refPair = getRandomNode(2);
+    const queryRef = refPair[0];
+    const writerRef = refPair[1];
+    let readSnapshot = null;
 
     // Write 3 children and then start our limit query.
     await writerRef.set({a: 1, b: 2, c: 3});
@@ -2653,10 +2649,10 @@ describe('Query Tests', function() {
   });
 
   it('Snapshot children respect default ordering', function(done) {
-    var refPair = getRandomNode(2);
-    var queryRef = refPair[0], writerRef = refPair[1];
+    const refPair = getRandomNode(2);
+    const queryRef = refPair[0], writerRef = refPair[1];
 
-    var list = {
+    const list = {
       'a': {
         thisvaluefirst: { '.value': true, '.priority': 1 },
         name: { '.value': 'Michael', '.priority': 2 },
@@ -2676,22 +2672,22 @@ describe('Query Tests', function() {
 
     writerRef.set(list, function() {
       queryRef.orderByChild('name').once('value', function(snap) {
-        var expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
-        var expectedNames = ['Jonny', 'Michael', 'Rob'];
+        const expectedKeys = ['thisvaluefirst', 'name', 'thisvaluelast'];
+        const expectedNames = ['Jonny', 'Michael', 'Rob'];
 
 
         // Validate that snap.child() resets order to default for child snaps
-        var orderedKeys = [];
+        const orderedKeys = [];
         snap.child('b').forEach(function(childSnap) {
           orderedKeys.push(childSnap.key);
         });
         expect(orderedKeys).to.deep.equal(expectedKeys);
 
         // Validate that snap.forEach() resets ordering to default for child snaps
-        var orderedNames = [];
+        const orderedNames = [];
         snap.forEach(function(childSnap) {
           orderedNames.push(childSnap.child('name').val());
-          var orderedKeys = [];
+          const orderedKeys = [];
           childSnap.forEach(function(grandchildSnap) {
             orderedKeys.push(grandchildSnap.key);
           });
@@ -2711,7 +2707,7 @@ describe('Query Tests', function() {
     // one-time listener. Event removal code path wasn't removing the listener because it stopped as soon as it
     // found the default view. This left the zombie one-time listener and check failed on the second attempt to
     // create a listener for the same path (asana#61028598952586).
-    var ref = getRandomNode(1)[0];
+    const ref = getRandomNode(1)[0];
 
     ref.child('child').set({name: "John"}, function() {
       ref.orderByChild('name').equalTo('John').on('value', function(snap) {
@@ -2727,7 +2723,7 @@ describe('Query Tests', function() {
   });
 
   it('Can JSON serialize refs', function() {
-    var ref = (getRandomNode() as Reference);
+    const ref = (getRandomNode() as Reference);
     expect(JSON.stringify(ref)).to.equal('"' + ref.toString() + '"');
   });
 });

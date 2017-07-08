@@ -14,25 +14,27 @@
 * limitations under the License.
 */
 
-import { findKey, forEach, safeGet } from "../../utils/obj";
-import { assert, assertionError } from "../../utils/assert";
-import { Path } from "./util/Path";
-import { CompoundWrite } from "./CompoundWrite";
-import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
-import { ChildrenNode } from "./snap/ChildrenNode";
+import { findKey, forEach, safeGet } from '../../utils/obj';
+import { assert, assertionError } from '../../utils/assert';
+import { Path } from './util/Path';
+import { CompoundWrite } from './CompoundWrite';
+import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
+import { ChildrenNode } from './snap/ChildrenNode';
+import { NamedNode, Node } from './snap/Node';
+import { CacheNode } from './view/CacheNode';
+import { Index } from './snap/indexes/Index';
 
 /**
  * Defines a single user-initiated write operation. May be the result of a set(), transaction(), or update() call. In
  * the case of a set() or transaction, snap wil be non-null.  In the case of an update(), children will be non-null.
- *
- * @typedef {{
- *   writeId: number,
- *   path: !Path,
- *   snap: ?Node,
- *   children: ?Object.<string, !Node>,
- *   visible: boolean
- * }}
  */
+export interface WriteRecord {
+  writeId: number;
+  path: Path;
+  snap?: Node | null;
+  children?: { [k: string]: Node } | null;
+  visible: boolean
+}
 
 /**
  * WriteTree tracks all pending user-initiated writes and has methods to calculate the result of merging them
@@ -49,7 +51,7 @@ export class WriteTree {
    * @type {!CompoundWrite}
    * @private
    */
-  visibleWrites_;
+  private visibleWrites_: CompoundWrite = CompoundWrite.Empty;
 
   /**
    * A list of all pending writes, regardless of visibility and shadowed-ness.  Used to calculate arbitrary
@@ -59,23 +61,19 @@ export class WriteTree {
    * @type {!Array.<!WriteRecord>}
    * @private
    */
-  allWrites_;
-  lastWriteId_;
+  private allWrites_: WriteRecord[] = [];
 
-  constructor() {
-    this.visibleWrites_ = CompoundWrite.Empty;
-    this.allWrites_ = [];
-    this.lastWriteId_ = -1;
-  };
+  private lastWriteId_ = -1;
+
   /**
    * Create a new WriteTreeRef for the given path. For use with a new sync point at the given path.
    *
    * @param {!Path} path
    * @return {!WriteTreeRef}
    */
-  childWrites(path): WriteTreeRef {
+  childWrites(path: Path): WriteTreeRef {
     return new WriteTreeRef(path, this);
-  };
+  }
 
   /**
    * Record a new overwrite from user code.
@@ -85,7 +83,7 @@ export class WriteTree {
    * @param {!number} writeId
    * @param {boolean=} visible This is set to false by some transactions. It should be excluded from event caches
    */
-  addOverwrite(path, snap, writeId, visible) {
+  addOverwrite(path: Path, snap: Node, writeId: number, visible?: boolean) {
     assert(writeId > this.lastWriteId_, 'Stacking an older write on top of newer ones');
     if (visible === undefined) {
       visible = true;
@@ -96,7 +94,7 @@ export class WriteTree {
       this.visibleWrites_ = this.visibleWrites_.addWrite(path, snap);
     }
     this.lastWriteId_ = writeId;
-  };
+  }
 
   /**
    * Record a new merge from user code.
@@ -105,28 +103,28 @@ export class WriteTree {
    * @param {!Object.<string, !Node>} changedChildren
    * @param {!number} writeId
    */
-  addMerge(path, changedChildren, writeId) {
+  addMerge(path: Path, changedChildren: { [k: string]: Node }, writeId: number) {
     assert(writeId > this.lastWriteId_, 'Stacking an older merge on top of newer ones');
     this.allWrites_.push({path: path, children: changedChildren, writeId: writeId, visible: true});
 
     this.visibleWrites_ = this.visibleWrites_.addWrites(path, changedChildren);
     this.lastWriteId_ = writeId;
-  };
+  }
 
 
   /**
    * @param {!number} writeId
    * @return {?WriteRecord}
    */
-  getWrite(writeId) {
-    for (var i = 0; i < this.allWrites_.length; i++) {
-      var record = this.allWrites_[i];
+  getWrite(writeId: number): WriteRecord | null {
+    for (let i = 0; i < this.allWrites_.length; i++) {
+      const record = this.allWrites_[i];
       if (record.writeId === writeId) {
         return record;
       }
     }
     return null;
-  };
+  }
 
 
   /**
@@ -137,24 +135,24 @@ export class WriteTree {
    * @return {boolean} true if the write may have been visible (meaning we'll need to reevaluate / raise
    * events as a result).
    */
-  removeWrite(writeId) {
+  removeWrite(writeId: number): boolean {
     // Note: disabling this check. It could be a transaction that preempted another transaction, and thus was applied
     // out of order.
-    //var validClear = revert || this.allWrites_.length === 0 || writeId <= this.allWrites_[0].writeId;
+    //const validClear = revert || this.allWrites_.length === 0 || writeId <= this.allWrites_[0].writeId;
     //assert(validClear, "Either we don't have this write, or it's the first one in the queue");
 
-    var idx = this.allWrites_.findIndex(function(s) { return s.writeId === writeId; });
+    const idx = this.allWrites_.findIndex(function (s) { return s.writeId === writeId; });
     assert(idx >= 0, 'removeWrite called with nonexistent writeId.');
-    var writeToRemove = this.allWrites_[idx];
+    const writeToRemove = this.allWrites_[idx];
     this.allWrites_.splice(idx, 1);
 
-    var removedWriteWasVisible = writeToRemove.visible;
-    var removedWriteOverlapsWithOtherWrites = false;
+    let removedWriteWasVisible = writeToRemove.visible;
+    let removedWriteOverlapsWithOtherWrites = false;
 
-    var i = this.allWrites_.length - 1;
+    let i = this.allWrites_.length - 1;
 
     while (removedWriteWasVisible && i >= 0) {
-      var currentWrite = this.allWrites_[i];
+      const currentWrite = this.allWrites_[i];
       if (currentWrite.visible) {
         if (i >= idx && this.recordContainsPath_(currentWrite, writeToRemove.path)) {
           // The removed write was completely shadowed by a subsequent write.
@@ -178,15 +176,14 @@ export class WriteTree {
       if (writeToRemove.snap) {
         this.visibleWrites_ = this.visibleWrites_.removeWrite(writeToRemove.path);
       } else {
-        var children = writeToRemove.children;
-        var self = this;
-        forEach(children, function(childName, childSnap) {
-          self.visibleWrites_ = self.visibleWrites_.removeWrite(writeToRemove.path.child(childName));
+        const children = writeToRemove.children;
+        forEach(children, (childName: string) => {
+          this.visibleWrites_ = this.visibleWrites_.removeWrite(writeToRemove.path.child(childName));
         });
       }
       return true;
     }
-  };
+  }
 
   /**
    * Return a complete snapshot for the given path if there's visible write data at that path, else null.
@@ -195,9 +192,9 @@ export class WriteTree {
    * @param {!Path} path
    * @return {?Node}
    */
-  getCompleteWriteData(path) {
+  getCompleteWriteData(path: Path): Node | null {
     return this.visibleWrites_.getCompleteNode(path);
-  };
+  }
 
   /**
    * Given optional, underlying server data, and an optional set of constraints (exclude some sets, include hidden
@@ -209,26 +206,26 @@ export class WriteTree {
    * @param {boolean=} includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
    * @return {?Node}
    */
-  calcCompleteEventCache(treePath, completeServerCache, writeIdsToExclude,
-                                                            includeHiddenWrites) {
+  calcCompleteEventCache(treePath: Path, completeServerCache: Node | null, writeIdsToExclude?: number[],
+                         includeHiddenWrites?: boolean): Node | null {
     if (!writeIdsToExclude && !includeHiddenWrites) {
-      var shadowingNode = this.visibleWrites_.getCompleteNode(treePath);
+      const shadowingNode = this.visibleWrites_.getCompleteNode(treePath);
       if (shadowingNode != null) {
         return shadowingNode;
       } else {
-        var subMerge = this.visibleWrites_.childCompoundWrite(treePath);
+        const subMerge = this.visibleWrites_.childCompoundWrite(treePath);
         if (subMerge.isEmpty()) {
           return completeServerCache;
         } else if (completeServerCache == null && !subMerge.hasCompleteWrite(Path.Empty)) {
           // We wouldn't have a complete snapshot, since there's no underlying data and no complete shadow
           return null;
         } else {
-          var layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
+          const layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
           return subMerge.apply(layeredCache);
         }
       }
     } else {
-      var merge = this.visibleWrites_.childCompoundWrite(treePath);
+      const merge = this.visibleWrites_.childCompoundWrite(treePath);
       if (!includeHiddenWrites && merge.isEmpty()) {
         return completeServerCache;
       } else {
@@ -236,18 +233,18 @@ export class WriteTree {
         if (!includeHiddenWrites && completeServerCache == null && !merge.hasCompleteWrite(Path.Empty)) {
           return null;
         } else {
-          var filter = function(write) {
+          const filter = function (write: WriteRecord) {
             return (write.visible || includeHiddenWrites) &&
-                (!writeIdsToExclude || !~writeIdsToExclude.indexOf(write.writeId)) &&
-                (write.path.contains(treePath) || treePath.contains(write.path));
+              (!writeIdsToExclude || !~writeIdsToExclude.indexOf(write.writeId)) &&
+              (write.path.contains(treePath) || treePath.contains(write.path));
           };
-          var mergeAtPath = WriteTree.layerTree_(this.allWrites_, filter, treePath);
-          layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
+          const mergeAtPath = WriteTree.layerTree_(this.allWrites_, filter, treePath);
+          const layeredCache = completeServerCache || ChildrenNode.EMPTY_NODE;
           return mergeAtPath.apply(layeredCache);
         }
       }
     }
-  };
+  }
 
   /**
    * With optional, underlying server data, attempt to return a children node of children that we have complete data for.
@@ -257,13 +254,13 @@ export class WriteTree {
    * @param {?ChildrenNode} completeServerChildren
    * @return {!ChildrenNode}
    */
-  calcCompleteEventChildren(treePath, completeServerChildren) {
-    var completeChildren = ChildrenNode.EMPTY_NODE;
-    var topLevelSet = this.visibleWrites_.getCompleteNode(treePath);
+  calcCompleteEventChildren(treePath: Path, completeServerChildren: ChildrenNode | null) {
+    let completeChildren = ChildrenNode.EMPTY_NODE as Node;
+    const topLevelSet = this.visibleWrites_.getCompleteNode(treePath);
     if (topLevelSet) {
       if (!topLevelSet.isLeafNode()) {
         // we're shadowing everything. Return the children.
-        topLevelSet.forEachChild(PRIORITY_INDEX, function(childName, childSnap) {
+        topLevelSet.forEachChild(PRIORITY_INDEX, function (childName, childSnap) {
           completeChildren = completeChildren.updateImmediateChild(childName, childSnap);
         });
       }
@@ -271,26 +268,26 @@ export class WriteTree {
     } else if (completeServerChildren) {
       // Layer any children we have on top of this
       // We know we don't have a top-level set, so just enumerate existing children
-      var merge = this.visibleWrites_.childCompoundWrite(treePath);
-      completeServerChildren.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
-        var node = merge.childCompoundWrite(new Path(childName)).apply(childNode);
+      const merge = this.visibleWrites_.childCompoundWrite(treePath);
+      completeServerChildren.forEachChild(PRIORITY_INDEX, function (childName, childNode) {
+        const node = merge.childCompoundWrite(new Path(childName)).apply(childNode);
         completeChildren = completeChildren.updateImmediateChild(childName, node);
       });
       // Add any complete children we have from the set
-      merge.getCompleteChildren().forEach(function(namedNode) {
+      merge.getCompleteChildren().forEach(function (namedNode) {
         completeChildren = completeChildren.updateImmediateChild(namedNode.name, namedNode.node);
       });
       return completeChildren;
     } else {
       // We don't have anything to layer on top of. Layer on any children we have
       // Note that we can return an empty snap if we have a defined delete
-      merge = this.visibleWrites_.childCompoundWrite(treePath);
-      merge.getCompleteChildren().forEach(function(namedNode) {
+      const merge = this.visibleWrites_.childCompoundWrite(treePath);
+      merge.getCompleteChildren().forEach(function (namedNode) {
         completeChildren = completeChildren.updateImmediateChild(namedNode.name, namedNode.node);
       });
       return completeChildren;
     }
-  };
+  }
 
   /**
    * Given that the underlying server data has updated, determine what, if anything, needs to be
@@ -312,18 +309,18 @@ export class WriteTree {
    * @param {?Node} existingServerSnap
    * @return {?Node}
    */
-  calcEventCacheAfterServerOverwrite(treePath, childPath, existingEventSnap,
-                                                                      existingServerSnap) {
+  calcEventCacheAfterServerOverwrite(treePath: Path, childPath: Path, existingEventSnap: Node | null,
+                                     existingServerSnap: Node | null): Node | null {
     assert(existingEventSnap || existingServerSnap,
       'Either existingEventSnap or existingServerSnap must exist');
-    var path = treePath.child(childPath);
+    const path = treePath.child(childPath);
     if (this.visibleWrites_.hasCompleteWrite(path)) {
       // At this point we can probably guarantee that we're in case 2, meaning no events
       // May need to check visibility while doing the findRootMostValueAndPath call
       return null;
     } else {
       // No complete shadowing. We're either partially shadowing or not shadowing at all.
-      var childMerge = this.visibleWrites_.childCompoundWrite(path);
+      const childMerge = this.visibleWrites_.childCompoundWrite(path);
       if (childMerge.isEmpty()) {
         // We're not shadowing at all. Case 1
         return existingServerSnap.getChild(childPath);
@@ -337,7 +334,7 @@ export class WriteTree {
         return childMerge.apply(existingServerSnap.getChild(childPath));
       }
     }
-  };
+  }
 
   /**
    * Returns a complete child for a given server snap after applying all user writes or null if there is no
@@ -348,20 +345,20 @@ export class WriteTree {
    * @param {!CacheNode} existingServerSnap
    * @return {?Node}
    */
-  calcCompleteChild(treePath, childKey, existingServerSnap) {
-    var path = treePath.child(childKey);
-    var shadowingNode = this.visibleWrites_.getCompleteNode(path);
+  calcCompleteChild(treePath: Path, childKey: string, existingServerSnap: CacheNode): Node | null {
+    const path = treePath.child(childKey);
+    const shadowingNode = this.visibleWrites_.getCompleteNode(path);
     if (shadowingNode != null) {
       return shadowingNode;
     } else {
       if (existingServerSnap.isCompleteForChild(childKey)) {
-        var childMerge = this.visibleWrites_.childCompoundWrite(path);
+        const childMerge = this.visibleWrites_.childCompoundWrite(path);
         return childMerge.apply(existingServerSnap.getNode().getImmediateChild(childKey));
       } else {
         return null;
       }
     }
-  };
+  }
 
   /**
    * Returns a node if there is a complete overwrite for this path. More specifically, if there is a write at
@@ -371,9 +368,9 @@ export class WriteTree {
    * @param {!Path} path
    * @return {?Node}
    */
-  shadowingWrite(path) {
+  shadowingWrite(path: Path): Node | null {
     return this.visibleWrites_.getCompleteNode(path);
-  };
+  }
 
   /**
    * This method is used when processing child remove events on a query. If we can, we pull in children that were outside
@@ -387,11 +384,11 @@ export class WriteTree {
    * @param {!Index} index
    * @return {!Array.<!NamedNode>}
    */
-  calcIndexedSlice(treePath, completeServerData, startPost, count, reverse,
-                                                          index) {
-    var toIterate;
-    var merge = this.visibleWrites_.childCompoundWrite(treePath);
-    var shadowingNode = merge.getCompleteNode(Path.Empty);
+  calcIndexedSlice(treePath: Path, completeServerData: Node | null, startPost: NamedNode, count: number,
+                   reverse: boolean, index: Index): NamedNode[] {
+    let toIterate: Node;
+    const merge = this.visibleWrites_.childCompoundWrite(treePath);
+    const shadowingNode = merge.getCompleteNode(Path.Empty);
     if (shadowingNode != null) {
       toIterate = shadowingNode;
     } else if (completeServerData != null) {
@@ -402,11 +399,11 @@ export class WriteTree {
     }
     toIterate = toIterate.withIndex(index);
     if (!toIterate.isEmpty() && !toIterate.isLeafNode()) {
-      var nodes = [];
-      var cmp = index.getCompare();
-      var iter = reverse ? toIterate.getReverseIteratorFrom(startPost, index) :
-          toIterate.getIteratorFrom(startPost, index);
-      var next = iter.getNext();
+      const nodes = [];
+      const cmp = index.getCompare();
+      const iter = reverse ? (toIterate as ChildrenNode).getReverseIteratorFrom(startPost, index) :
+          (toIterate as ChildrenNode).getIteratorFrom(startPost, index);
+      let next = iter.getNext();
       while (next && nodes.length < count) {
         if (cmp(next, startPost) !== 0) {
           nodes.push(next);
@@ -417,7 +414,7 @@ export class WriteTree {
     } else {
       return [];
     }
-  };
+  }
 
   /**
    * @param {!WriteRecord} writeRecord
@@ -425,30 +422,30 @@ export class WriteTree {
    * @return {boolean}
    * @private
    */
-  recordContainsPath_(writeRecord, path) {
+  private recordContainsPath_(writeRecord: WriteRecord, path: Path): boolean {
     if (writeRecord.snap) {
       return writeRecord.path.contains(path);
     } else {
       // findKey can return undefined, so use !! to coerce to boolean
-      return !!findKey(writeRecord.children, function(childSnap, childName) {
+      return !!findKey(writeRecord.children, function (childSnap: Node, childName: string) {
         return writeRecord.path.child(childName).contains(path);
       });
     }
-  };
+  }
 
   /**
    * Re-layer the writes and merges into a tree so we can efficiently calculate event snapshots
    * @private
    */
-  resetTree_() {
+  private resetTree_() {
     this.visibleWrites_ = WriteTree.layerTree_(this.allWrites_, WriteTree.DefaultFilter_,
-        Path.Empty);
+      Path.Empty);
     if (this.allWrites_.length > 0) {
       this.lastWriteId_ = this.allWrites_[this.allWrites_.length - 1].writeId;
     } else {
       this.lastWriteId_ = -1;
     }
-  };
+  }
 
   /**
    * The default filter used when constructing the tree. Keep everything that's visible.
@@ -456,9 +453,10 @@ export class WriteTree {
    * @param {!WriteRecord} write
    * @return {boolean}
    * @private
-   * @const
    */
-  static DefaultFilter_ = function(write) { return write.visible; };
+  private static DefaultFilter_(write: WriteRecord) {
+    return write.visible;
+  }
 
   /**
    * Static method. Given an array of WriteRecords, a filter for which ones to include, and a path, construct the tree of
@@ -470,16 +468,16 @@ export class WriteTree {
    * @return {!CompoundWrite}
    * @private
    */
-  static layerTree_ = function(writes, filter, treeRoot) {
-    var compoundWrite = CompoundWrite.Empty;
-    for (var i = 0; i < writes.length; ++i) {
-      var write = writes[i];
+  private static layerTree_(writes: WriteRecord[], filter: (w: WriteRecord) => boolean, treeRoot: Path): CompoundWrite {
+    let compoundWrite = CompoundWrite.Empty;
+    for (let i = 0; i < writes.length; ++i) {
+      const write = writes[i];
       // Theory, a later set will either:
       // a) abort a relevant transaction, so no need to worry about excluding it from calculating that transaction
       // b) not be relevant to a transaction (separate branch), so again will not affect the data for that transaction
       if (filter(write)) {
-        var writePath = write.path;
-        var relativePath;
+        const writePath = write.path;
+        let relativePath;
         if (write.snap) {
           if (treeRoot.contains(writePath)) {
             relativePath = Path.relativePath(treeRoot, writePath);
@@ -499,10 +497,10 @@ export class WriteTree {
             if (relativePath.isEmpty()) {
               compoundWrite = compoundWrite.addWrites(Path.Empty, write.children);
             } else {
-              var child = safeGet(write.children, relativePath.getFront());
+              const child = safeGet(write.children, relativePath.getFront());
               if (child) {
                 // There exists a child in this node that matches the root path
-                var deepNode = child.getChild(relativePath.popFront());
+                const deepNode = child.getChild(relativePath.popFront());
                 compoundWrite = compoundWrite.addWrite(Path.Empty, deepNode);
               }
             }
@@ -515,15 +513,13 @@ export class WriteTree {
       }
     }
     return compoundWrite;
-  };
+  }
 }
 
 /**
  * A WriteTreeRef wraps a WriteTree and a path, for convenient access to a particular subtree.  All of the methods
  * just proxy to the underlying WriteTree.
  *
- * @param {!Path} path
- * @param {!WriteTree} writeTree
  * @constructor
  */
 export class WriteTreeRef {
@@ -535,7 +531,7 @@ export class WriteTreeRef {
    * @private
    * @const
    */
-  treePath_;
+  private readonly treePath_: Path;
 
   /**
    * * A reference to the actual tree of write data. All methods are pass-through to the tree, but with the appropriate
@@ -548,12 +544,17 @@ export class WriteTreeRef {
    * @private
    * @const
    */
-  writeTree_;
+  private readonly writeTree_: WriteTree;
 
-  constructor(path, writeTree) {
+  /**
+   * @param {!Path} path
+   * @param {!WriteTree} writeTree
+   */
+  constructor(path: Path, writeTree: WriteTree) {
     this.treePath_ = path;
     this.writeTree_ = writeTree;
-  };
+  }
+
   /**
    * If possible, returns a complete event cache, using the underlying server data if possible. In addition, can be used
    * to get a cache that includes hidden writes, and excludes arbitrary writes. Note that customizing the returned node
@@ -564,11 +565,11 @@ export class WriteTreeRef {
    * @param {boolean=} includeHiddenWrites Defaults to false, whether or not to layer on writes with visible set to false
    * @return {?Node}
    */
-  calcCompleteEventCache(completeServerCache, writeIdsToExclude,
-                                                          includeHiddenWrites) {
+  calcCompleteEventCache(completeServerCache: Node | null, writeIdsToExclude?: number[],
+                         includeHiddenWrites?: boolean): Node | null {
     return this.writeTree_.calcCompleteEventCache(this.treePath_, completeServerCache, writeIdsToExclude,
-        includeHiddenWrites);
-  };
+      includeHiddenWrites);
+  }
 
   /**
    * If possible, returns a children node containing all of the complete children we have data for. The returned data is a
@@ -577,9 +578,9 @@ export class WriteTreeRef {
    * @param {?ChildrenNode} completeServerChildren
    * @return {!ChildrenNode}
    */
-  calcCompleteEventChildren(completeServerChildren) {
-    return this.writeTree_.calcCompleteEventChildren(this.treePath_, completeServerChildren);
-  };
+  calcCompleteEventChildren(completeServerChildren: ChildrenNode | null): ChildrenNode {
+    return this.writeTree_.calcCompleteEventChildren(this.treePath_, completeServerChildren) as ChildrenNode;
+  }
 
   /**
    * Given that either the underlying server data has updated or the outstanding writes have updated, determine what,
@@ -600,9 +601,10 @@ export class WriteTreeRef {
    * @param {?Node} existingServerSnap
    * @return {?Node}
    */
-  calcEventCacheAfterServerOverwrite(path, existingEventSnap, existingServerSnap) {
+  calcEventCacheAfterServerOverwrite(path: Path, existingEventSnap: Node | null,
+                                     existingServerSnap: Node | null): Node | null {
     return this.writeTree_.calcEventCacheAfterServerOverwrite(this.treePath_, path, existingEventSnap, existingServerSnap);
-  };
+  }
 
   /**
    * Returns a node if there is a complete overwrite for this path. More specifically, if there is a write at
@@ -612,9 +614,9 @@ export class WriteTreeRef {
    * @param {!Path} path
    * @return {?Node}
    */
-  shadowingWrite(path) {
+  shadowingWrite(path: Path): Node | null {
     return this.writeTree_.shadowingWrite(this.treePath_.child(path));
-  };
+  }
 
   /**
    * This method is used when processing child remove events on a query. If we can, we pull in children that were outside
@@ -627,9 +629,10 @@ export class WriteTreeRef {
    * @param {!Index} index
    * @return {!Array.<!NamedNode>}
    */
-  calcIndexedSlice(completeServerData, startPost, count, reverse, index) {
+  calcIndexedSlice(completeServerData: Node | null, startPost: NamedNode, count: number,
+                   reverse: boolean, index: Index): NamedNode[] {
     return this.writeTree_.calcIndexedSlice(this.treePath_, completeServerData, startPost, count, reverse, index);
-  };
+  }
 
   /**
    * Returns a complete child for a given server snap after applying all user writes or null if there is no
@@ -639,9 +642,9 @@ export class WriteTreeRef {
    * @param {!CacheNode} existingServerCache
    * @return {?Node}
    */
-  calcCompleteChild(childKey, existingServerCache) {
+  calcCompleteChild(childKey: string, existingServerCache: CacheNode): Node | null {
     return this.writeTree_.calcCompleteChild(this.treePath_, childKey, existingServerCache);
-  };
+  }
 
   /**
    * Return a WriteTreeRef for a child.
@@ -649,7 +652,7 @@ export class WriteTreeRef {
    * @param {string} childName
    * @return {!WriteTreeRef}
    */
-  child(childName) {
+  child(childName: string): WriteTreeRef {
     return new WriteTreeRef(this.treePath_.child(childName), this.writeTree_);
-  };
+  }
 }

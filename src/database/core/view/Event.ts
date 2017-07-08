@@ -127,7 +127,7 @@ export class CancelEvent implements Event {
   /**
    * @inheritDoc
    */
-  getEventRunner(): () => any {
+  getEventRunner(): () => void {
     return this.eventRegistration.getEventRunner(this);
   }
 

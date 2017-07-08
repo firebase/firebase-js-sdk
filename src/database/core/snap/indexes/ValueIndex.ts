@@ -15,7 +15,7 @@
 */
 
 import { Index } from "./Index";
-import { NamedNode } from "../Node";
+import { NamedNode, Node } from '../Node';
 import { nameCompare } from "../../util/util";
 import { nodeFromJSON } from "../nodeFromJSON";
 
@@ -25,66 +25,62 @@ import { nodeFromJSON } from "../nodeFromJSON";
  * @private
  */
 export class ValueIndex extends Index {
-  constructor() {
-    super();
-  }
-
   /**
    * @inheritDoc
    */
-  compare(a, b) {
-    var indexCmp = a.node.compareTo(b.node);
+  compare(a: NamedNode, b: NamedNode): number {
+    const indexCmp = a.node.compareTo(b.node);
     if (indexCmp === 0) {
       return nameCompare(a.name, b.name);
     } else {
       return indexCmp;
     }
-  };
+  }
 
   /**
    * @inheritDoc
    */
-  isDefinedOn(node) {
+  isDefinedOn(node: Node): boolean {
     return true;
-  };
+  }
 
   /**
    * @inheritDoc
    */
-  indexedValueChanged(oldNode, newNode) {
+  indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return !oldNode.equals(newNode);
-  };
+  }
 
   /**
    * @inheritDoc
    */
-  minPost() {
+  minPost(): NamedNode {
     return (NamedNode as any).MIN;
-  };
+  }
 
   /**
    * @inheritDoc
    */
-  maxPost() {
+  maxPost(): NamedNode {
     return (NamedNode as any).MAX;
-  };
+  }
 
   /**
    * @param {*} indexValue
    * @param {string} name
    * @return {!NamedNode}
    */
-  makePost(indexValue, name) {
-    var valueNode = nodeFromJSON(indexValue);
+  makePost(indexValue: object, name: string): NamedNode {
+    const valueNode = nodeFromJSON(indexValue);
     return new NamedNode(name, valueNode);
-  };
+  }
 
   /**
    * @return {!string} String representation for inclusion in a query spec
    */
-  toString() {
+  toString(): string {
     return '.value';
   };
-};
+}
 
 export const VALUE_INDEX = new ValueIndex();

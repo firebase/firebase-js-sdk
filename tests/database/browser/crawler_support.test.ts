@@ -25,10 +25,10 @@ import {
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
 describe('Crawler Support', function() {
-  var initialData;
-  var normalRef;
-  var restRef;
-  var tokenProvider;
+  let initialData;
+  let normalRef;
+  let restRef;
+  let tokenProvider;
 
   beforeEach(function(done) {
     normalRef = getRandomNode();

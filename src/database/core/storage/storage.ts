@@ -17,6 +17,8 @@
 import { DOMStorageWrapper } from './DOMStorageWrapper';
 import { MemoryStorage } from './MemoryStorage';
 
+declare const window: any;
+
 /**
 * Helper to create a DOMStorageWrapper or else fall back to MemoryStorage.
 * TODO: Once MemoryStorage and DOMStorageWrapper have a shared interface this method annotation should change
@@ -26,13 +28,13 @@ import { MemoryStorage } from './MemoryStorage';
 *   (e.g. 'localStorage' or 'sessionStorage').
 * @return {?} Turning off type information until a common interface is defined.
 */
-const createStoragefor = function(domStorageName) {
+const createStoragefor = function(domStorageName: string): DOMStorageWrapper | MemoryStorage {
   try {
     // NOTE: just accessing "localStorage" or "window['localStorage']" may throw a security exception,
     // so it must be inside the try/catch.
     if (typeof window !== 'undefined' && typeof window[domStorageName] !== 'undefined') {
       // Need to test cache. Just because it's here doesn't mean it works
-      var domStorage = window[domStorageName];
+      const domStorage = window[domStorageName];
       domStorage.setItem('firebase:sentinel', 'cache');
       domStorage.removeItem('firebase:sentinel');
       return new DOMStorageWrapper(domStorage);

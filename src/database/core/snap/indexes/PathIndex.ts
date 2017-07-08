@@ -18,8 +18,9 @@ import { assert } from "../../../../utils/assert";
 import { nameCompare, MAX_NAME } from "../../util/util";
 import { Index } from "./Index";
 import { ChildrenNode, MAX_NODE } from "../ChildrenNode";
-import { NamedNode } from "../Node";
+import { NamedNode, Node } from '../Node';
 import { nodeFromJSON } from "../nodeFromJSON";
+import { Path } from '../../util/Path';
 
 /**
  * @param {!Path} indexPath
@@ -27,76 +28,69 @@ import { nodeFromJSON } from "../nodeFromJSON";
  * @extends {Index}
  */
 export class PathIndex extends Index {
-  indexPath_;
-
-  constructor(indexPath) {
+  constructor(private indexPath_: Path) {
     super();
 
-    assert(!indexPath.isEmpty() && indexPath.getFront() !== '.priority',
+    assert(!indexPath_.isEmpty() && indexPath_.getFront() !== '.priority',
         'Can\'t create PathIndex with empty path or .priority key');
-    /**
-     *
-     * @type {!Path}
-     * @private
-     */
-    this.indexPath_ = indexPath;
-  };
+  }
+
   /**
    * @param {!Node} snap
    * @return {!Node}
    * @protected
    */
-  extractChild(snap) {
+  protected extractChild(snap: Node): Node {
     return snap.getChild(this.indexPath_);
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  isDefinedOn(node) {
+  isDefinedOn(node: Node): boolean {
     return !node.getChild(this.indexPath_).isEmpty();
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  compare(a, b) {
-    var aChild = this.extractChild(a.node);
-    var bChild = this.extractChild(b.node);
-    var indexCmp = aChild.compareTo(bChild);
+  compare(a: NamedNode, b: NamedNode): number {
+    const aChild = this.extractChild(a.node);
+    const bChild = this.extractChild(b.node);
+    const indexCmp = aChild.compareTo(bChild);
     if (indexCmp === 0) {
       return nameCompare(a.name, b.name);
     } else {
       return indexCmp;
     }
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  makePost(indexValue, name) {
-    var valueNode = nodeFromJSON(indexValue);
-    var node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, valueNode);
+  makePost(indexValue: object, name: string): NamedNode {
+    const valueNode = nodeFromJSON(indexValue);
+    const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, valueNode);
     return new NamedNode(name, node);
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  maxPost() {
-    var node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, MAX_NODE);
+  maxPost(): NamedNode {
+    const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, MAX_NODE);
     return new NamedNode(MAX_NAME, node);
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  toString() {
+  toString(): string {
     return this.indexPath_.slice().join('/');
-  };
+  }
 }

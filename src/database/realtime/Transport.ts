@@ -16,6 +16,13 @@
 
 import { RepoInfo } from '../core/RepoInfo';
 
+export interface TransportConstructor {
+  new(connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string): Transport;
+  isAvailable: () => boolean;
+  responsesRequiredToBeHealthy?: number;
+  healthyTimeout?: number;
+}
+
 export abstract class Transport {
   /**
    * Bytes received since connection started.
@@ -28,6 +35,12 @@ export abstract class Transport {
    * @type {number}
    */
   abstract bytesSent: number;
+
+  /**
+   * An identifier for this connection, used for logging
+   * @type {string}
+   */
+  abstract connId: string;
 
   /**
    *
@@ -43,14 +56,22 @@ export abstract class Transport {
    * @param {function(Object)} onMessage Callback when messages arrive
    * @param {function()} onDisconnect Callback with connection lost.
    */
-  abstract open(onMessage: (a: Object) => any, onDisconnect: () => any);
+  abstract open(onMessage: (a: Object) => void, onDisconnect: (a?: boolean) => void): void;
 
-  abstract start();
+  abstract start(): void;
 
-  abstract close();
+  abstract close(): void;
 
   /**
    * @param {!Object} data The JSON data to transmit
    */
-  abstract send(data: Object);
+  abstract send(data: Object): void;
+
+  abstract markConnectionHealthy(): void;
+
+  abstract markConnectionHealthy(): void;
+}
+
+export interface TransportConstructor {
+  new(connId: string, RepoInfo, transportSessionId?: string, lastSessionId?: string);
 }

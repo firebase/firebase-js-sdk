@@ -20,6 +20,7 @@ import { forEach } from "../../utils/obj";
 import { Node, NamedNode } from "./snap/Node";
 import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
 import { assert } from "../../utils/assert";
+import { ChildrenNode } from './snap/ChildrenNode';
 
 /**
  * This class holds a collection of writes that can be applied to nodes in unison. It abstracts away the logic with
@@ -31,12 +32,12 @@ import { assert } from "../../utils/assert";
  * @param {!ImmutableTree.<!Node>} writeTree
  */
 export class CompoundWrite {
-  constructor(private writeTree_: ImmutableTree) {};
+  constructor(private writeTree_: ImmutableTree<Node>) {};
   /**
    * @type {!CompoundWrite}
    */
   static Empty = new CompoundWrite(new ImmutableTree(null));
-  
+
   /**
    * @param {!Path} path
    * @param {!Node} node
@@ -46,20 +47,20 @@ export class CompoundWrite {
     if (path.isEmpty()) {
       return new CompoundWrite(new ImmutableTree(node));
     } else {
-      var rootmost = this.writeTree_.findRootMostValueAndPath(path);
+      const rootmost = this.writeTree_.findRootMostValueAndPath(path);
       if (rootmost != null) {
-        var rootMostPath = rootmost.path
-        var value = rootmost.value;
-        var relativePath = Path.relativePath(rootMostPath, path);
+        const rootMostPath = rootmost.path;
+        let value = rootmost.value;
+        const relativePath = Path.relativePath(rootMostPath, path);
         value = value.updateChild(relativePath, node);
         return new CompoundWrite(this.writeTree_.set(rootMostPath, value));
       } else {
-        var subtree = new ImmutableTree(node);
-        var newWriteTree = this.writeTree_.setTree(path, subtree);
+        const subtree = new ImmutableTree(node);
+        const newWriteTree = this.writeTree_.setTree(path, subtree);
         return new CompoundWrite(newWriteTree);
       }
     }
-  };
+  }
 
   /**
    * @param {!Path} path
@@ -67,12 +68,12 @@ export class CompoundWrite {
    * @return {!CompoundWrite}
    */
   addWrites(path: Path, updates: { [name: string]: Node }): CompoundWrite {
-    var newWrite = <CompoundWrite>this;
-    forEach(updates, function(childKey, node) {
+    let newWrite = this as CompoundWrite;
+    forEach(updates, function(childKey: string, node: Node) {
       newWrite = newWrite.addWrite(path.child(childKey), node);
     });
     return newWrite;
-  };
+  }
 
   /**
    * Will remove a write at the given path and deeper paths. This will <em>not</em> modify a write at a higher
@@ -85,10 +86,10 @@ export class CompoundWrite {
     if (path.isEmpty()) {
       return CompoundWrite.Empty;
     } else {
-      var newWriteTree = this.writeTree_.setTree(path, ImmutableTree.Empty);
+      const newWriteTree = this.writeTree_.setTree(path, ImmutableTree.Empty);
       return new CompoundWrite(newWriteTree);
     }
-  };
+  }
 
   /**
    * Returns whether this CompoundWrite will fully overwrite a node at a given location and can therefore be
@@ -99,7 +100,7 @@ export class CompoundWrite {
    */
   hasCompleteWrite(path: Path): boolean {
     return this.getCompleteNode(path) != null;
-  };
+  }
 
   /**
    * Returns a node for a path if and only if the node is a "complete" overwrite at that path. This will not aggregate
@@ -108,14 +109,14 @@ export class CompoundWrite {
    * @param {!Path} path The path to get a complete write
    * @return {?Node} The node if complete at that path, or null otherwise.
    */
-  getCompleteNode(path: Path): Node {
-    var rootmost = this.writeTree_.findRootMostValueAndPath(path);
+  getCompleteNode(path: Path): Node | null {
+    const rootmost = this.writeTree_.findRootMostValueAndPath(path);
     if (rootmost != null) {
       return this.writeTree_.get(rootmost.path).getChild(Path.relativePath(rootmost.path, path));
     } else {
       return null;
     }
-  };
+  }
 
   /**
    * Returns all children that are guaranteed to be a complete overwrite.
@@ -123,13 +124,12 @@ export class CompoundWrite {
    * @return {!Array.<NamedNode>} A list of all complete children.
    */
   getCompleteChildren(): Array<NamedNode> {
-    var children = [];
-    var node = this.writeTree_.value;
+    const children: NamedNode[] = [];
+    let node = this.writeTree_.value;
     if (node != null) {
       // If it's a leaf node, it has no children; so nothing to do.
       if (!node.isLeafNode()) {
-        node = /** @type {!ChildrenNode} */ (node);
-        node.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
+        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, function(childName, childNode) {
           children.push(new NamedNode(childName, childNode));
         });
       }
@@ -141,32 +141,32 @@ export class CompoundWrite {
       });
     }
     return children;
-  };
+  }
 
   /**
    * @param {!Path} path
    * @return {!CompoundWrite}
    */
-  childCompoundWrite(path: Path) {
+  childCompoundWrite(path: Path): CompoundWrite {
     if (path.isEmpty()) {
       return this;
     } else {
-      var shadowingNode = this.getCompleteNode(path);
+      const shadowingNode = this.getCompleteNode(path);
       if (shadowingNode != null) {
         return new CompoundWrite(new ImmutableTree(shadowingNode));
       } else {
         return new CompoundWrite(this.writeTree_.subtree(path));
       }
     }
-  };
+  }
 
   /**
    * Returns true if this CompoundWrite is empty and therefore does not modify any nodes.
    * @return {boolean} Whether this CompoundWrite is empty
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.writeTree_.isEmpty();
-  };
+  }
 
   /**
    * Applies this CompoundWrite to a node. The node is returned with all writes from this CompoundWrite applied to the
@@ -174,9 +174,9 @@ export class CompoundWrite {
    * @param {!Node} node The node to apply this CompoundWrite to
    * @return {!Node} The node with all writes applied
    */
-  apply(node: Node) {
+  apply(node: Node): Node {
     return CompoundWrite.applySubtreeWrite_(Path.Empty, this.writeTree_, node);
-  };
+  }
 
   /**
    * @param {!Path} relativePath
@@ -185,12 +185,12 @@ export class CompoundWrite {
    * @return {!Node}
    * @private
    */
-  static applySubtreeWrite_ = function(relativePath: Path, writeTree: ImmutableTree, node: Node) {
+  private static applySubtreeWrite_ = function(relativePath: Path, writeTree: ImmutableTree<Node>, node: Node): Node {
     if (writeTree.value != null) {
       // Since there a write is always a leaf, we're done here
       return node.updateChild(relativePath, writeTree.value);
     } else {
-      var priorityWrite = null;
+      let priorityWrite = null;
       writeTree.children.inorderTraversal(function(childKey, childTree) {
         if (childKey === '.priority') {
           // Apply priorities at the end so we don't update priorities for either empty nodes or forget
@@ -207,6 +207,6 @@ export class CompoundWrite {
       }
       return node;
     }
-  };
+  }
 }
 

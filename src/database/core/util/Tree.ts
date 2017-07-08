@@ -14,26 +14,20 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
-import { Path } from "./Path";
+import { assert } from '../../../utils/assert';
+import { Path } from './Path';
 import { forEach, contains, safeGet } from '../../../utils/obj'
 
 /**
  * Node in a Tree.
  */
-export class TreeNode {
-  children;
-  childCount;
-  value;
-
-  constructor() {
-    // TODO: Consider making accessors that create children and value lazily or
-    // separate Internal / Leaf 'types'.
-    this.children = { };
-    this.childCount = 0;
-    this.value = null;
-  }
-}; // end TreeNode
+export class TreeNode<T> {
+  // TODO: Consider making accessors that create children and value lazily or
+  // separate Internal / Leaf 'types'.
+  children: { [name: string]: TreeNode<T> } = {};
+  childCount = 0;
+  value: T | null = null;
+}
 
 
 /**
@@ -41,21 +35,16 @@ export class TreeNode {
  * Nodes are not enumerated (by forEachChild) unless they have a value or non-empty
  * children.
  */
-export class Tree {
-  name_;
-  parent_;
-  node_;
-
+export class Tree<T> {
   /**
    * @template T
-   * @param {string=} opt_name Optional name of the node.
-   * @param {Tree=} opt_parent Optional parent node.
-   * @param {TreeNode=} opt_node Optional node to wrap.
+   * @param {string=} name_ Optional name of the node.
+   * @param {Tree=} parent_ Optional parent node.
+   * @param {TreeNode=} node_ Optional node to wrap.
    */
-  constructor(opt_name?, opt_parent?, opt_node?) {
-    this.name_ = opt_name ? opt_name : '';
-    this.parent_ = opt_parent ? opt_parent : null;
-    this.node_ = opt_node ? opt_node : new TreeNode();
+  constructor(private name_: string = '',
+              private parent_: Tree<T> | null = null,
+              private node_: TreeNode<T> = new TreeNode<T>()) {
   }
 
   /**
@@ -64,13 +53,13 @@ export class Tree {
    * @param {!(string|Path)} pathObj Path to look up.
    * @return {!Tree.<T>} Tree for path.
    */
-  subTree(pathObj) {
+  subTree(pathObj: string | Path): Tree<T> {
     // TODO: Require pathObj to be Path?
-    var path = (pathObj instanceof Path) ?
-        pathObj : new Path(pathObj);
-    var child = <any>this, next;
+    let path = (pathObj instanceof Path) ?
+      pathObj : new Path(pathObj);
+    let child = this as any, next;
     while ((next = path.getFront()) !== null) {
-      var childNode = safeGet(child.node_.children, next) || new TreeNode();
+      const childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
       path = path.popFront();
     }
@@ -83,7 +72,7 @@ export class Tree {
    *
    * @return {?T} The data or null if no data exists.
    */
-  getValue() {
+  getValue(): T | null {
     return this.node_.value;
   }
 
@@ -92,7 +81,7 @@ export class Tree {
    *
    * @param {!T} value Value to set.
    */
-  setValue(value) {
+  setValue(value: T) {
     assert(typeof value !== 'undefined', 'Cannot set value to undefined');
     this.node_.value = value;
     this.updateParents_();
@@ -103,7 +92,7 @@ export class Tree {
    */
   clear() {
     this.node_.value = null;
-    this.node_.children = { };
+    this.node_.children = {};
     this.node_.childCount = 0;
     this.updateParents_();
   }
@@ -111,14 +100,14 @@ export class Tree {
   /**
    * @return {boolean} Whether the tree has any children.
    */
-  hasChildren() {
+  hasChildren(): boolean {
     return this.node_.childCount > 0;
   }
 
   /**
    * @return {boolean} Whether the tree is empty (no value or children).
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.getValue() === null && !this.hasChildren();
   }
 
@@ -127,10 +116,9 @@ export class Tree {
    *
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
-  forEachChild(action) {
-    var self = this;
-    forEach(this.node_.children, function(child, childTree) {
-      action(new Tree(child, self, childTree));
+  forEachChild(action: (tree: Tree<T>) => void) {
+    forEach(this.node_.children, (child: string, childTree: TreeNode<T>) => {
+      action(new Tree<T>(child, this, childTree));
     });
   }
 
@@ -138,20 +126,20 @@ export class Tree {
    * Does a depth-first traversal of this node's descendants, calling action for each one.
    *
    * @param {function(!Tree.<T>)} action Action to be called for each child.
-   * @param {boolean=} opt_includeSelf Whether to call action on this node as well. Defaults to
+   * @param {boolean=} includeSelf Whether to call action on this node as well. Defaults to
    *   false.
-   * @param {boolean=} opt_childrenFirst Whether to call action on children before calling it on
+   * @param {boolean=} childrenFirst Whether to call action on children before calling it on
    *   parent.
    */
-  forEachDescendant(action, opt_includeSelf, opt_childrenFirst) {
-    if (opt_includeSelf && !opt_childrenFirst)
+  forEachDescendant(action: (tree: Tree<T>) => void, includeSelf?: boolean, childrenFirst?: boolean) {
+    if (includeSelf && !childrenFirst)
       action(this);
 
-    this.forEachChild(function(child) {
-      child.forEachDescendant(action, /*opt_includeSelf=*/true, opt_childrenFirst);
+    this.forEachChild(function (child) {
+      child.forEachDescendant(action, /*includeSelf=*/true, childrenFirst);
     });
 
-    if (opt_includeSelf && opt_childrenFirst)
+    if (includeSelf && childrenFirst)
       action(this);
   }
 
@@ -160,11 +148,11 @@ export class Tree {
    *
    * @param {function(!Tree.<T>)} action Action to be called on each parent; return
    *   true to abort.
-   * @param {boolean=} opt_includeSelf Whether to call action on this node as well.
+   * @param {boolean=} includeSelf Whether to call action on this node as well.
    * @return {boolean} true if the action callback returned true.
    */
-  forEachAncestor(action, opt_includeSelf) {
-    var node = opt_includeSelf ? this : this.parent();
+  forEachAncestor(action: (tree: Tree<T>) => void, includeSelf?: boolean): boolean {
+    let node = includeSelf ? this : this.parent();
     while (node !== null) {
       if (action(node)) {
         return true;
@@ -181,8 +169,8 @@ export class Tree {
    *
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
-  forEachImmediateDescendantWithValue(action) {
-    this.forEachChild(function(child) {
+  forEachImmediateDescendantWithValue(action: (tree: Tree<T>) => void) {
+    this.forEachChild(function (child) {
       if (child.getValue() !== null)
         action(child);
       else
@@ -193,22 +181,22 @@ export class Tree {
   /**
    * @return {!Path} The path of this tree node, as a Path.
    */
-  path() {
+  path(): Path {
     return new Path(this.parent_ === null ?
-        this.name_ : this.parent_.path() + '/' + this.name_);
+      this.name_ : this.parent_.path() + '/' + this.name_);
   }
 
   /**
    * @return {string} The name of the tree node.
    */
-  name() {
+  name(): string {
     return this.name_;
   }
 
   /**
    * @return {?Tree} The parent tree node, or null if this is the root of the tree.
    */
-  parent() {
+  parent(): Tree<T> | null {
     return this.parent_;
   }
 
@@ -217,7 +205,7 @@ export class Tree {
    *
    * @private
    */
-  updateParents_() {
+  private updateParents_() {
     if (this.parent_ !== null)
       this.parent_.updateChild_(this.name_, this);
   }
@@ -229,9 +217,9 @@ export class Tree {
    * @param {!Tree.<T>} child The child to update.
    * @private
    */
-  updateChild_(childName, child) {
-    var childEmpty = child.isEmpty();
-    var childExists = contains(this.node_.children, childName);
+  private updateChild_(childName: string, child: Tree<T>) {
+    const childEmpty = child.isEmpty();
+    const childExists = contains(this.node_.children, childName);
     if (childEmpty && childExists) {
       delete (this.node_.children[childName]);
       this.node_.childCount--;
@@ -243,4 +231,4 @@ export class Tree {
       this.updateParents_();
     }
   }
-}; // end Tree
+}

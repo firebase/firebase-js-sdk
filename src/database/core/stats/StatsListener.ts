@@ -15,6 +15,7 @@
 */
 
 import { clone, forEach } from '../../../utils/obj';
+import { StatsCollection } from './StatsCollection';
 
 /**
  * Returns the delta from the previous call to get stats.
@@ -23,17 +24,17 @@ import { clone, forEach } from '../../../utils/obj';
  * @constructor
  */
 export class StatsListener {
-  private last_ = null;
-  
-  constructor(private collection_) {
+  private last_: {[k: string]: number} | null = null;
+
+  constructor(private collection_: StatsCollection) {
   }
 
-  get() {
+  get(): {[k: string]: number} {
     const newStats = this.collection_.get();
 
-    const delta = clone(newStats);
+    const delta: typeof newStats = clone(newStats);
     if (this.last_) {
-      forEach(this.last_, (stat, value) => {
+      forEach(this.last_, (stat: string, value: number) => {
         delta[stat] = delta[stat] - value;
       });
     }

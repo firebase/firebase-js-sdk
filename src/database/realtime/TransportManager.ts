@@ -17,6 +17,8 @@
 import { BrowserPollConnection } from "./BrowserPollConnection";
 import { WebSocketConnection } from "./WebSocketConnection";
 import { warn, each } from "../core/util/util";
+import { TransportConstructor } from './Transport';
+import { RepoInfo } from '../core/RepoInfo';
 
 /**
  * Currently simplistic, this class manages what transport a Connection should use at various stages of its
@@ -25,10 +27,10 @@ import { warn, each } from "../core/util/util";
  * It starts with longpolling in a browser, and httppolling on node. It then upgrades to websockets if
  * they are available.
  * @constructor
- * @param {!RepoInfo} repoInfo Metadata around the namespace we're connecting to
  */
 export class TransportManager {
-  transports_: Array<any>;
+  private transports_: TransportConstructor[];
+
   /**
    * @const
    * @type {!Array.<function(new:Transport, string, RepoInfo, string=)>}
@@ -39,16 +41,20 @@ export class TransportManager {
       WebSocketConnection
     ];
   }
-  constructor(repoInfo) {
+
+  /**
+   * @param {!RepoInfo} repoInfo Metadata around the namespace we're connecting to
+   */
+  constructor(repoInfo: RepoInfo) {
     this.initTransports_(repoInfo);
-  };
+  }
 
   /**
    * @param {!RepoInfo} repoInfo
    * @private
    */
-  initTransports_(repoInfo) {
-    const isWebSocketsAvailable = WebSocketConnection && WebSocketConnection['isAvailable']();
+  private initTransports_(repoInfo: RepoInfo) {
+    const isWebSocketsAvailable: boolean = WebSocketConnection && WebSocketConnection['isAvailable']();
     let isSkipPollConnection = isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
 
     if (repoInfo.webSocketOnly) {
@@ -61,8 +67,8 @@ export class TransportManager {
     if (isSkipPollConnection) {
       this.transports_ = [WebSocketConnection];
     } else {
-      const transports = this.transports_ = [];
-      each(TransportManager.ALL_TRANSPORTS, function(i, transport) {
+      const transports = this.transports_ = [] as TransportConstructor[];
+      each(TransportManager.ALL_TRANSPORTS, (i: number, transport: TransportConstructor) => {
         if (transport && transport['isAvailable']()) {
           transports.push(transport);
         }
@@ -74,7 +80,7 @@ export class TransportManager {
    * @return {function(new:Transport, !string, !RepoInfo, string=, string=)} The constructor for the
    * initial transport to use
    */
-  initialTransport() {
+  initialTransport(): TransportConstructor {
     if (this.transports_.length > 0) {
       return this.transports_[0];
     } else {
@@ -86,7 +92,7 @@ export class TransportManager {
    * @return {?function(new:Transport, function(),function(), string=)} The constructor for the next
    * transport, or null
    */
-  upgradeTransport() {
+  upgradeTransport(): TransportConstructor | null {
     if (this.transports_.length > 1) {
       return this.transports_[1];
     } else {
@@ -94,4 +100,3 @@ export class TransportManager {
     }
   }
 }
-

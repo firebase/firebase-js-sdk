@@ -19,26 +19,28 @@ import { exceptionGuard } from '../../core/util/util';
 /**
  * This class ensures the packets from the server arrive in order
  * This class takes data from the server and ensures it gets passed into the callbacks in order.
- * @param onMessage
  * @constructor
  */
 export class PacketReceiver {
-  pendingResponses = [];
+  pendingResponses: any[] = [];
   currentResponseNum = 0;
   closeAfterResponse = -1;
-  onClose = null;
+  onClose: (() => void) | null = null;
 
-  constructor(private onMessage_: any) {
+  /**
+   * @param onMessage_
+   */
+  constructor(private onMessage_: (a: Object) => void) {
   }
 
-  closeAfter(responseNum, callback) {
+  closeAfter(responseNum: number, callback: () => void) {
     this.closeAfterResponse = responseNum;
     this.onClose = callback;
     if (this.closeAfterResponse < this.currentResponseNum) {
       this.onClose();
       this.onClose = null;
     }
-  };
+  }
 
   /**
    * Each message from the server comes with a response number, and an array of data. The responseNumber
@@ -47,7 +49,7 @@ export class PacketReceiver {
    * @param {number} requestNum
    * @param {Array} data
    */
-  handleResponse(requestNum, data) {
+  handleResponse(requestNum: number, data: any[]) {
     this.pendingResponses[requestNum] = data;
     while (this.pendingResponses[this.currentResponseNum]) {
       const toProcess = this.pendingResponses[this.currentResponseNum];
@@ -61,7 +63,6 @@ export class PacketReceiver {
       }
       if (this.currentResponseNum === this.closeAfterResponse) {
         if (this.onClose) {
-          clearTimeout(this.onClose);
           this.onClose();
           this.onClose = null;
         }

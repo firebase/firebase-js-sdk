@@ -20,25 +20,23 @@ import { nameCompare, MAX_NAME } from "../../util/util";
 import { assert, assertionError } from "../../../../utils/assert";
 import { ChildrenNode } from "../ChildrenNode";
 
-let __EMPTY_NODE;
+let __EMPTY_NODE: ChildrenNode;
 
 export class KeyIndex extends Index {
   static get __EMPTY_NODE() {
     return __EMPTY_NODE;
   }
+
   static set __EMPTY_NODE(val) {
     __EMPTY_NODE = val;
   }
-  constructor() {
-    super();
-  }
+
   /**
    * @inheritDoc
    */
-  compare(a, b) {
+  compare(a: NamedNode, b: NamedNode): number {
     return nameCompare(a.name, b.name);
-  };
-
+  }
 
   /**
    * @inheritDoc
@@ -47,15 +45,15 @@ export class KeyIndex extends Index {
     // We could probably return true here (since every node has a key), but it's never called
     // so just leaving unimplemented for now.
     throw assertionError('KeyIndex.isDefinedOn not expected to be called.');
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  indexedValueChanged(oldNode, newNode) {
+  indexedValueChanged(oldNode: Node, newNode: Node): boolean {
     return false; // The key for a node never changes.
-  };
+  }
 
 
   /**
@@ -63,17 +61,17 @@ export class KeyIndex extends Index {
    */
   minPost() {
     return (NamedNode as any).MIN;
-  };
+  }
 
 
   /**
    * @inheritDoc
    */
-  maxPost() {
+  maxPost(): NamedNode {
     // TODO: This should really be created once and cached in a static property, but
     // NamedNode isn't defined yet, so I can't use it in a static.  Bleh.
     return new NamedNode(MAX_NAME, __EMPTY_NODE);
-  };
+  }
 
 
   /**
@@ -81,19 +79,19 @@ export class KeyIndex extends Index {
    * @param {string} name
    * @return {!NamedNode}
    */
-  makePost(indexValue, name) {
+  makePost(indexValue: string, name: string): NamedNode {
     assert(typeof indexValue === 'string', 'KeyIndex indexValue must always be a string.');
     // We just use empty node, but it'll never be compared, since our comparator only looks at name.
     return new NamedNode(indexValue, __EMPTY_NODE);
-  };
+  }
 
 
   /**
    * @return {!string} String representation for inclusion in a query spec
    */
-  toString() {
+  toString(): string {
     return '.key';
-  };
-};
+  }
+}
 
 export const KEY_INDEX = new KeyIndex();

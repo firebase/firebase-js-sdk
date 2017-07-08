@@ -15,8 +15,8 @@
 */
 
 import { NamedNode, Node } from '../snap/Node';
-import { Change } from "./Change";
-import { assertionError } from "../../../utils/assert";
+import { Change } from './Change';
+import { assertionError } from '../../../utils/assert';
 import { Query } from '../../api/Query';
 import { Index } from '../snap/indexes/Index';
 import { EventRegistration } from './EventRegistration';
@@ -27,12 +27,15 @@ import { Event } from './Event';
  * CacheDiffer into actual events (Event) that can be raised.  See generateEventsForChanges()
  * for details.
  *
- * @param {!Query} query
  * @constructor
  */
 export class EventGenerator {
   private index_: Index;
 
+  /**
+   *
+   * @param {!Query} query_
+   */
   constructor(private query_: Query) {
     /**
      * @private
@@ -56,13 +59,13 @@ export class EventGenerator {
    * @return {!Array.<!Event>}
    */
   generateEventsForChanges(changes: Change[], eventCache: Node, eventRegistrations: EventRegistration[]): Event[] {
-    const events = [];
-    const moves = [];
+    const events: Event[] = [];
+    const moves: Change[] = [];
 
     changes.forEach((change) => {
       if (change.type === Change.CHILD_CHANGED &&
-        this.index_.indexedValueChanged(/** @type {!Node} */ (change.oldSnap), change.snapshotNode)) {
-        moves.push(Change.childMovedChange(/** @type {!string} */ (change.childName), change.snapshotNode));
+        this.index_.indexedValueChanged(change.oldSnap as Node, change.snapshotNode)) {
+        moves.push(Change.childMovedChange(change.childName as string, change.snapshotNode));
       }
     });
 

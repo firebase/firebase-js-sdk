@@ -16,6 +16,7 @@
 
 import { WebSocketConnection } from "../realtime/WebSocketConnection";
 import { BrowserPollConnection } from "../realtime/BrowserPollConnection";
+import { Reference } from './Reference';
 
 /**
  * INTERNAL methods for internal-use only (tests, etc.).
@@ -35,26 +36,26 @@ export const forceWebSockets = function() {
 };
 
 /* Used by App Manager */
-export const isWebSocketsAvailable = function() {
+export const isWebSocketsAvailable = function(): boolean {
   return WebSocketConnection['isAvailable']();
 };
 
-export const setSecurityDebugCallback = function(ref, callback) {
-  ref.repo.persistentConnection_.securityDebugCallback_ = callback;
+export const setSecurityDebugCallback = function(ref: Reference, callback: (a: Object) => void) {
+  (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
 };
 
-export const stats = function(ref, showDelta) {
+export const stats = function(ref: Reference, showDelta?: boolean) {
   ref.repo.stats(showDelta);
 };
 
-export const statsIncrementCounter = function(ref, metric) {
+export const statsIncrementCounter = function(ref: Reference, metric: string) {
   ref.repo.statsIncrementCounter(metric);
 };
 
-export const dataUpdateCount = function(ref) {
+export const dataUpdateCount = function(ref: Reference): number {
   return ref.repo.dataUpdateCount;
 };
 
-export const interceptServerData = function(ref, callback) {
+export const interceptServerData = function(ref: Reference, callback: ((a: string, b: any) => void) | null) {
   return ref.repo.interceptServerData_(callback);
 };

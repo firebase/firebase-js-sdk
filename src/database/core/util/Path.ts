@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { nameCompare } from "./util";
-import { stringLength } from "../../../utils/utf8";
+import { nameCompare } from './util';
+import { stringLength } from '../../../utils/utf8';
 /**
  * An immutable object representing a parsed path.  It's immutable so that you
  * can pass them around to other functions without worrying about them changing
@@ -23,8 +23,8 @@ import { stringLength } from "../../../utils/utf8";
  */
 
 export class Path {
-  pieces_;
-  pieceNum_;
+  private pieces_: string[];
+  private pieceNum_: number;
 
   /**
    * Singleton to represent an empty path
@@ -34,18 +34,19 @@ export class Path {
   static get Empty() {
     return new Path('');
   }
+
   /**
    * @param {string|Array.<string>} pathOrString Path string to parse,
    *      or another path, or the raw tokens array
-   * @param {number=} opt_pieceNum
+   * @param {number=} pieceNum
    */
-  constructor(pathOrString: string|string[], opt_pieceNum?) {
-    if (arguments.length == 1) {
-      this.pieces_ = (<string>pathOrString).split('/');
+  constructor(pathOrString: string | string[], pieceNum?: number) {
+    if (pieceNum === void 0) {
+      this.pieces_ = (pathOrString as string).split('/');
 
       // Remove empty pieces.
-      var copyTo = 0;
-      for (var i = 0; i < this.pieces_.length; i++) {
+      let copyTo = 0;
+      for (let i = 0; i < this.pieces_.length; i++) {
         if (this.pieces_[i].length > 0) {
           this.pieces_[copyTo] = this.pieces_[i];
           copyTo++;
@@ -55,12 +56,12 @@ export class Path {
 
       this.pieceNum_ = 0;
     } else {
-      this.pieces_ = pathOrString;
-      this.pieceNum_ = opt_pieceNum;
+      this.pieces_ = pathOrString as string[];
+      this.pieceNum_ = pieceNum;
     }
   }
 
-  getFront() {
+  getFront(): string | null {
     if (this.pieceNum_ >= this.pieces_.length)
       return null;
 
@@ -70,15 +71,15 @@ export class Path {
   /**
    * @return {number} The number of segments in this path
    */
-  getLength() {
+  getLength(): number {
     return this.pieces_.length - this.pieceNum_;
   }
 
   /**
    * @return {!Path}
    */
-  popFront() {
-    var pieceNum = this.pieceNum_;
+  popFront(): Path {
+    let pieceNum = this.pieceNum_;
     if (pieceNum < this.pieces_.length) {
       pieceNum++;
     }
@@ -88,16 +89,16 @@ export class Path {
   /**
    * @return {?string}
    */
-  getBack() {
+  getBack(): string | null {
     if (this.pieceNum_ < this.pieces_.length)
       return this.pieces_[this.pieces_.length - 1];
 
     return null;
   }
 
-  toString() {
-    var pathString = '';
-    for (var i = this.pieceNum_; i < this.pieces_.length; i++) {
+  toString(): string {
+    let pathString = '';
+    for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
       if (this.pieces_[i] !== '')
         pathString += '/' + this.pieces_[i];
     }
@@ -105,10 +106,10 @@ export class Path {
     return pathString || '/';
   }
 
-  toUrlEncodedString() {
-    var pathString = '';
-    for (var i = this.pieceNum_; i < this.pieces_.length; i++) {
-      if (this.pieces_[i] !== '') 
+  toUrlEncodedString(): string {
+    let pathString = '';
+    for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
+      if (this.pieces_[i] !== '')
         pathString += '/' + encodeURIComponent(String(this.pieces_[i]));
     }
 
@@ -118,23 +119,22 @@ export class Path {
   /**
    * Shallow copy of the parts of the path.
    *
-   * @param {number=} opt_begin
+   * @param {number=} begin
    * @return {!Array<string>}
    */
-  slice(opt_begin) {
-    var begin = opt_begin || 0;
+  slice(begin: number = 0): string[] {
     return this.pieces_.slice(this.pieceNum_ + begin);
   }
 
   /**
    * @return {?Path}
    */
-  parent() {
+  parent(): Path | null {
     if (this.pieceNum_ >= this.pieces_.length)
       return null;
 
-    var pieces = [];
-    for (var i = this.pieceNum_; i < this.pieces_.length - 1; i++)
+    const pieces = [];
+    for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++)
       pieces.push(this.pieces_[i]);
 
     return new Path(pieces, 0);
@@ -144,18 +144,18 @@ export class Path {
    * @param {string|!Path} childPathObj
    * @return {!Path}
    */
-  child(childPathObj) {
-    var pieces = [];
-    for (var i = this.pieceNum_; i < this.pieces_.length; i++)
+  child(childPathObj: string | Path): Path {
+    const pieces = [];
+    for (let i = this.pieceNum_; i < this.pieces_.length; i++)
       pieces.push(this.pieces_[i]);
 
     if (childPathObj instanceof Path) {
-      for (i = childPathObj.pieceNum_; i < childPathObj.pieces_.length; i++) {
+      for (let i = childPathObj.pieceNum_; i < childPathObj.pieces_.length; i++) {
         pieces.push(childPathObj.pieces_[i]);
       }
     } else {
-      var childPieces = childPathObj.split('/');
-      for (i = 0; i < childPieces.length; i++) {
+      const childPieces = childPathObj.split('/');
+      for (let i = 0; i < childPieces.length; i++) {
         if (childPieces[i].length > 0)
           pieces.push(childPieces[i]);
       }
@@ -167,7 +167,7 @@ export class Path {
   /**
    * @return {boolean} True if there are no segments in this path
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return this.pieceNum_ >= this.pieces_.length;
   }
 
@@ -176,28 +176,29 @@ export class Path {
    * @param {!Path} innerPath
    * @return {!Path} The path from outerPath to innerPath
    */
-  static relativePath(outerPath, innerPath) {
-    var outer = outerPath.getFront(), inner = innerPath.getFront();
+  static relativePath(outerPath: Path, innerPath: Path): Path {
+    const outer = outerPath.getFront(), inner = innerPath.getFront();
     if (outer === null) {
       return innerPath;
     } else if (outer === inner) {
       return Path.relativePath(outerPath.popFront(),
-                                            innerPath.popFront());
+        innerPath.popFront());
     } else {
       throw new Error('INTERNAL ERROR: innerPath (' + innerPath + ') is not within ' +
-                      'outerPath (' + outerPath + ')');
+        'outerPath (' + outerPath + ')');
     }
   }
+
   /**
    * @param {!Path} left
    * @param {!Path} right
    * @return {number} -1, 0, 1 if left is less, equal, or greater than the right.
    */
-  static comparePaths(left, right) {
-    var leftKeys = left.slice();
-    var rightKeys = right.slice();
-    for (var i = 0; i < leftKeys.length && i < rightKeys.length; i++) {
-      var cmp = nameCompare(leftKeys[i], rightKeys[i]);
+  static comparePaths(left: Path, right: Path): number {
+    const leftKeys = left.slice();
+    const rightKeys = right.slice();
+    for (let i = 0; i < leftKeys.length && i < rightKeys.length; i++) {
+      const cmp = nameCompare(leftKeys[i], rightKeys[i]);
       if (cmp !== 0) return cmp;
     }
     if (leftKeys.length === rightKeys.length) return 0;
@@ -209,12 +210,12 @@ export class Path {
    * @param {Path} other
    * @return {boolean} true if paths are the same.
    */
-  equals(other) {
+  equals(other: Path): boolean {
     if (this.getLength() !== other.getLength()) {
       return false;
     }
 
-    for (var i = this.pieceNum_, j = other.pieceNum_; i <= this.pieces_.length; i++, j++) {
+    for (let i = this.pieceNum_, j = other.pieceNum_; i <= this.pieces_.length; i++, j++) {
       if (this.pieces_[i] !== other.pieces_[j]) {
         return false;
       }
@@ -228,9 +229,9 @@ export class Path {
    * @param {!Path} other
    * @return {boolean} True if this path is a parent (or the same as) other
    */
-  contains(other) {
-    var i = this.pieceNum_;
-    var j = other.pieceNum_;
+  contains(other: Path): boolean {
+    let i = this.pieceNum_;
+    let j = other.pieceNum_;
     if (this.getLength() > other.getLength()) {
       return false;
     }
@@ -257,29 +258,26 @@ export class Path {
  */
 export class ValidationPath {
   /** @type {!Array<string>} */
-  parts_;
+  private parts_: string[];
   /** @type {number} Initialize to number of '/' chars needed in path. */
-  byteLength_;
-  /** @type {string} */
-  errorPrefix_;
+  private byteLength_: number;
 
   /**
    * @param {!Path} path Initial Path.
-   * @param {string} errorPrefix Prefix for any error messages.
+   * @param {string} errorPrefix_ Prefix for any error messages.
    */
-  constructor(path, errorPrefix) {
+  constructor(path: Path, private errorPrefix_: string) {
     /** @type {!Array<string>} */
     this.parts_ = path.slice();
     /** @type {number} Initialize to number of '/' chars needed in path. */
     this.byteLength_ = Math.max(1, this.parts_.length);
-    /** @type {string} */
-    this.errorPrefix_ = errorPrefix;
 
-    for (var i = 0; i < this.parts_.length; i++) {
+    for (let i = 0; i < this.parts_.length; i++) {
       this.byteLength_ += stringLength(this.parts_[i]);
     }
     this.checkValid_();
   }
+
   /** @const {number} Maximum key depth. */
   static get MAX_PATH_DEPTH() {
     return 32;
@@ -291,7 +289,7 @@ export class ValidationPath {
   }
 
   /** @param {string} child */
-  push(child) {
+  push(child: string) {
     // Count the needed '/'
     if (this.parts_.length > 0) {
       this.byteLength_ += 1;
@@ -302,7 +300,7 @@ export class ValidationPath {
   }
 
   pop() {
-    var last = this.parts_.pop();
+    const last = this.parts_.pop();
     this.byteLength_ -= stringLength(last);
     // Un-count the previous '/'
     if (this.parts_.length > 0) {
@@ -310,16 +308,16 @@ export class ValidationPath {
     }
   }
 
-  checkValid_() {
+  private checkValid_() {
     if (this.byteLength_ > ValidationPath.MAX_PATH_LENGTH_BYTES) {
       throw new Error(this.errorPrefix_ + 'has a key path longer than ' +
-                      ValidationPath.MAX_PATH_LENGTH_BYTES + ' bytes (' +
-                      this.byteLength_ + ').');
+        ValidationPath.MAX_PATH_LENGTH_BYTES + ' bytes (' +
+        this.byteLength_ + ').');
     }
     if (this.parts_.length > ValidationPath.MAX_PATH_DEPTH) {
       throw new Error(this.errorPrefix_ + 'path specified exceeds the maximum depth that can be written (' +
-                      ValidationPath.MAX_PATH_DEPTH +
-                      ') or object contains a cycle ' + this.toErrorString());
+        ValidationPath.MAX_PATH_DEPTH +
+        ') or object contains a cycle ' + this.toErrorString());
     }
   }
 
@@ -328,11 +326,12 @@ export class ValidationPath {
    *
    * @return {string}
    */
-  toErrorString() {
+  toErrorString(): string {
     if (this.parts_.length == 0) {
       return '';
     }
     return 'in property \'' + this.parts_.join('.') + '\'';
   }
 
-}; // end fb.core.util.validation.ValidationPath
+}
+

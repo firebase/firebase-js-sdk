@@ -14,25 +14,30 @@
 * limitations under the License.
 */
 
-import { StatsCollection } from "./StatsCollection";
+import { StatsCollection } from './StatsCollection';
+import { RepoInfo } from '../RepoInfo';
 
-export const StatsManager = {
-  collections_:{ },
-  reporters_:{ },
-  getCollection:function(repoInfo) {
-    var hashString = repoInfo.toString();
+export class StatsManager {
+  private static collections_: { [k: string]: StatsCollection } = {};
+  private static reporters_: { [k: string]: any } = {};
+
+  static getCollection(repoInfo: RepoInfo): StatsCollection {
+    const hashString = repoInfo.toString();
+
     if (!this.collections_[hashString]) {
       this.collections_[hashString] = new StatsCollection();
     }
+
     return this.collections_[hashString];
-  },
-  getOrCreateReporter:function(repoInfo, creatorFunction) {
-    var hashString = repoInfo.toString();
+  }
+
+  static getOrCreateReporter<T>(repoInfo: RepoInfo, creatorFunction: () => T): T {
+    const hashString = repoInfo.toString();
+
     if (!this.reporters_[hashString]) {
       this.reporters_[hashString] = creatorFunction();
     }
 
     return this.reporters_[hashString];
   }
-};
-
+}

@@ -14,18 +14,21 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
-import { Path } from "./Path";
-import { SparseSnapshotTree } from "../SparseSnapshotTree";
-import { LeafNode } from "../snap/LeafNode";
-import { nodeFromJSON } from "../snap/nodeFromJSON";
-import { PRIORITY_INDEX } from "../snap/indexes/PriorityIndex";
+import { assert } from '../../../utils/assert';
+import { Path } from './Path';
+import { SparseSnapshotTree } from '../SparseSnapshotTree';
+import { LeafNode } from '../snap/LeafNode';
+import { nodeFromJSON } from '../snap/nodeFromJSON';
+import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
+import { Node } from '../snap/Node';
+import { ChildrenNode } from '../snap/ChildrenNode';
+
 /**
  * Generate placeholders for deferred values.
  * @param {?Object} values
  * @return {!Object}
  */
-export const generateWithValues = function(values) {
+export const generateWithValues = function (values: { [k: string]: any } | null): { [k: string]: any } {
   values = values || {};
   values['timestamp'] = values['timestamp'] || new Date().getTime();
   return values;
@@ -39,9 +42,10 @@ export const generateWithValues = function(values) {
  * @param {!Object} serverValues
  * @return {!(string|number|boolean)}
  */
-export const resolveDeferredValue = function(value, serverValues) {
+export const resolveDeferredValue = function (value: { [k: string]: any } | string | number | boolean,
+                                              serverValues: { [k: string]: any }): string | number | boolean {
   if (!value || (typeof value !== 'object')) {
-    return /** @type {(string|number|boolean)} */ (value);
+    return value as string | number | boolean;
   } else {
     assert('.sv' in value, 'Unexpected leaf node or priority contents');
     return serverValues[value['.sv']];
@@ -56,9 +60,9 @@ export const resolveDeferredValue = function(value, serverValues) {
  * @param {!Object} serverValues
  * @return {!SparseSnapshotTree}
  */
-export const resolveDeferredValueTree = function(tree, serverValues) {
-  var resolvedTree = new SparseSnapshotTree();
-  tree.forEachTree(new Path(''), function(path, node) {
+export const resolveDeferredValueTree = function (tree: SparseSnapshotTree, serverValues: Object): SparseSnapshotTree {
+  const resolvedTree = new SparseSnapshotTree();
+  tree.forEachTree(new Path(''), function (path, node) {
     resolvedTree.remember(path, resolveDeferredValueSnapshot(node, serverValues));
   });
   return resolvedTree;
@@ -69,31 +73,31 @@ export const resolveDeferredValueTree = function(tree, serverValues) {
  * Recursively replace all deferred values and priorities in the node with the
  * specified generated replacement values.  If there are no server values in the node,
  * it'll be returned as-is.
- * @param {!fb.core.snap.Node} node
+ * @param {!Node} node
  * @param {!Object} serverValues
- * @return {!fb.core.snap.Node}
+ * @return {!Node}
  */
-export const resolveDeferredValueSnapshot = function(node, serverValues) {
-  var rawPri = /** @type {Object|boolean|null|number|string} */ (node.getPriority().val()),
-      priority = resolveDeferredValue(rawPri, serverValues),
-      newNode;
+export const resolveDeferredValueSnapshot = function (node: Node, serverValues: Object): Node {
+  const rawPri = node.getPriority().val() as object | boolean | null | number | string;
+  const priority = resolveDeferredValue(rawPri, serverValues);
+  let newNode: Node;
 
   if (node.isLeafNode()) {
-    var leafNode = /** @type {!LeafNode} */ (node);
-    var value = resolveDeferredValue(leafNode.getValue(), serverValues);
+    const leafNode = node as LeafNode;
+    const value = resolveDeferredValue(leafNode.getValue(), serverValues);
     if (value !== leafNode.getValue() || priority !== leafNode.getPriority().val()) {
       return new LeafNode(value, nodeFromJSON(priority));
     } else {
       return node;
     }
   } else {
-    var childrenNode = /** @type {!fb.core.snap.ChildrenNode} */ (node);
+    const childrenNode = node as ChildrenNode;
     newNode = childrenNode;
     if (priority !== childrenNode.getPriority().val()) {
       newNode = newNode.updatePriority(new LeafNode(priority));
     }
-    childrenNode.forEachChild(PRIORITY_INDEX, function(childName, childNode) {
-      var newChildNode = resolveDeferredValueSnapshot(childNode, serverValues);
+    childrenNode.forEachChild(PRIORITY_INDEX, function (childName, childNode) {
+      const newChildNode = resolveDeferredValueSnapshot(childNode, serverValues);
       if (newChildNode !== childNode) {
         newNode = newNode.updateImmediateChild(childName, newChildNode);
       }

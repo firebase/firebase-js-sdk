@@ -14,35 +14,29 @@
 * limitations under the License.
 */
 
-import { isEmpty, getCount, forEach, contains } from "../../../utils/obj";
+import { isEmpty, getCount, forEach, contains } from '../../../utils/obj';
 
 /**
  * Implements a set with a count of elements.
  *
+ * @template K, V
  */
-export class CountedSet {
-  set: object;
-  
-  /**
-   * @template K, V
-   */
-  constructor() {
-    this.set = {};
-  }
+export class CountedSet<K, V> {
+  set: { [k: string]: V } = {};
 
   /**
    * @param {!K} item
    * @param {V} val
    */
-  add(item, val) {
-    this.set[item] = val !== null ? val : true;
+  add(item: K, val: V) {
+    this.set[item as any] = val !== null ? val : (true as any);
   }
 
   /**
    * @param {!K} key
    * @return {boolean}
    */
-  contains(key) {
+  contains(key: K) {
     return contains(this.set, key);
   }
 
@@ -50,15 +44,15 @@ export class CountedSet {
    * @param {!K} item
    * @return {V}
    */
-  get(item) {
-    return this.contains(item) ? this.set[item] : undefined;
+  get(item: K): V | void {
+    return this.contains(item) ? this.set[item as any] : undefined;
   }
 
   /**
    * @param {!K} item
    */
-  remove(item) {
-    delete this.set[item];
+  remove(item: K) {
+    delete this.set[item as any];
   }
 
   /**
@@ -72,14 +66,14 @@ export class CountedSet {
    * True if there's nothing in the set
    * @return {boolean}
    */
-  isEmpty() {
+  isEmpty(): boolean {
     return isEmpty(this.set);
   }
 
   /**
    * @return {number} The number of items in the set
    */
-  count() {
+  count(): number {
     return getCount(this.set);
   }
 
@@ -87,21 +81,19 @@ export class CountedSet {
    * Run a function on each k,v pair in the set
    * @param {function(K, V)} fn
    */
-  each(fn) {
-    forEach(this.set, function(k, v) {
-      fn(k, v);
-    });
+  each(fn: (k: K, v: V) => void) {
+    forEach(this.set, (k: K, v: V) => fn(k, v));
   }
 
   /**
    * Mostly for debugging
    * @return {Array.<K>} The keys present in this CountedSet
    */
-  keys() {
-    var keys = [];
-    forEach(this.set, function(k, v) {
+  keys(): K[] {
+    const keys: K[] = [];
+    forEach(this.set, (k: K) => {
       keys.push(k);
     });
     return keys;
   }
-}; // end fb.core.util.CountedSet
+}

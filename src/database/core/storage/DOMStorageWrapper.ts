@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { jsonEval, stringify } from "../../../utils/json";
+import { jsonEval, stringify } from '../../../utils/json';
 
 /**
  * Wraps a DOM Storage object and:
@@ -24,63 +24,61 @@ import { jsonEval, stringify } from "../../../utils/json";
  * We automatically (see storage.js) create two such wrappers, one for sessionStorage,
  * and one for localStorage.
  *
- * @param {Storage} domStorage The underlying storage object (e.g. localStorage or sessionStorage)
  * @constructor
  */
 export class DOMStorageWrapper {
-  prefix_;
-  domStorage_;
+  // Use a prefix to avoid collisions with other stuff saved by the app.
+  private prefix_ = 'firebase:';
 
-  constructor(domStorage) {
-    this.domStorage_ = domStorage;
+  /**
+   * @param {Storage} domStorage_ The underlying storage object (e.g. localStorage or sessionStorage)
+   */
+  constructor(private domStorage_: Storage) {
+  }
 
-    // Use a prefix to avoid collisions with other stuff saved by the app.
-    this.prefix_ = 'firebase:';
-  };
-  
   /**
    * @param {string} key The key to save the value under
    * @param {?Object} value The value being stored, or null to remove the key.
    */
-  set(key, value) {
+  set(key: string, value: any | null) {
     if (value == null) {
       this.domStorage_.removeItem(this.prefixedName_(key));
     } else {
       this.domStorage_.setItem(this.prefixedName_(key), stringify(value));
     }
-  };
+  }
 
   /**
    * @param {string} key
    * @return {*} The value that was stored under this key, or null
    */
-  get(key) {
-    var storedVal = this.domStorage_.getItem(this.prefixedName_(key));
+  get(key: string): any {
+    const storedVal = this.domStorage_.getItem(this.prefixedName_(key));
     if (storedVal == null) {
       return null;
     } else {
       return jsonEval(storedVal);
     }
-  };
+  }
 
   /**
    * @param {string} key
    */
-  remove(key) {
+  remove(key: string) {
     this.domStorage_.removeItem(this.prefixedName_(key));
-  };
+  }
 
-  isInMemoryStorage;
+  isInMemoryStorage: boolean;
 
   /**
    * @param {string} name
    * @return {string}
    */
-  prefixedName_(name) {
+  prefixedName_(name: string): string {
     return this.prefix_ + name;
-  };
+  }
 
-  toString() {
+  toString(): string {
     return this.domStorage_.toString();
-  };
+  }
 }

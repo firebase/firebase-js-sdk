@@ -14,61 +14,60 @@
 * limitations under the License.
 */
 
-import { assert } from "../../utils/assert";
-import { forEach } from "../../utils/obj";
+import { assert } from '../../utils/assert';
+import { forEach } from '../../utils/obj';
 import { PersistentStorage } from './storage/storage';
-import { CONSTANTS } from "../realtime/Constants";
+import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
+
+
 /**
  * A class that holds metadata about a Repo object
- * @param {string} host Hostname portion of the url for the repo
- * @param {boolean} secure Whether or not this repo is accessed over ssl
- * @param {string} namespace The namespace represented by the repo
- * @param {boolean} webSocketOnly Whether to prefer websockets over all other transports (used by Nest).
- * @param {string=} persistenceKey Override the default session persistence storage key
+ *
  * @constructor
  */
 export class RepoInfo {
-  host;
-  domain;
-  secure;
-  namespace;
-  webSocketOnly;
-  persistenceKey;
-  internalHost;
+  host: string;
+  domain: string;
+  internalHost: string;
 
-  constructor(host, secure, namespace, webSocketOnly, persistenceKey?) {
+  /**
+   * @param {string} host Hostname portion of the url for the repo
+   * @param {boolean} secure Whether or not this repo is accessed over ssl
+   * @param {string} namespace The namespace represented by the repo
+   * @param {boolean} webSocketOnly Whether to prefer websockets over all other transports (used by Nest).
+   * @param {string=} persistenceKey Override the default session persistence storage key
+   */
+  constructor(host: string,public secure: boolean, public namespace: string,
+              public webSocketOnly: boolean, public persistenceKey: string = '') {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
-    this.secure = secure;
-    this.namespace = namespace;
-    this.webSocketOnly = webSocketOnly;
-    this.persistenceKey = persistenceKey || '';
     this.internalHost = PersistentStorage.get('host:' + host) || this.host;
   }
-  needsQueryParam() {
-    return this.host !== this.internalHost;
-  };
 
-  isCacheableHost() {
+  needsQueryParam(): boolean {
+    return this.host !== this.internalHost;
+  }
+
+  isCacheableHost(): boolean {
     return this.internalHost.substr(0, 2) === 's-';
-  };
+  }
 
   isDemoHost() {
     return this.domain === 'firebaseio-demo.com';
-  };
+  }
 
   isCustomHost() {
     return this.domain !== 'firebaseio.com' && this.domain !== 'firebaseio-demo.com';
-  };
+  }
 
-  updateHost(newHost) {
+  updateHost(newHost: string) {
     if (newHost !== this.internalHost) {
       this.internalHost = newHost;
       if (this.isCacheableHost()) {
         PersistentStorage.set('host:' + this.host, this.internalHost);
       }
     }
-  };
+  }
 
   /**
    * Returns the websocket URL for this repo
@@ -76,13 +75,14 @@ export class RepoInfo {
    * @param {Object} params list
    * @return {string} The URL for this repo
    */
-  connectionURL(type, params) {
+  connectionURL(type: string, params: { [k: string]: string }): string {
     assert(typeof type === 'string', 'typeof type must == string');
     assert(typeof params === 'object', 'typeof params must == object');
-    var connURL;
-    if (type === CONSTANTS.WEBSOCKET) {
+
+    let connURL: string;
+    if (type === WEBSOCKET) {
       connURL = (this.secure ? 'wss://' : 'ws://') + this.internalHost + '/.ws?';
-    } else if (type === CONSTANTS.LONG_POLLING) {
+    } else if (type === LONG_POLLING) {
       connURL = (this.secure ? 'https://' : 'http://') + this.internalHost + '/.lp?';
     } else {
       throw new Error('Unknown connection type: ' + type);
@@ -91,26 +91,26 @@ export class RepoInfo {
       params['ns'] = this.namespace;
     }
 
-    var pairs = [];
+    const pairs: string[] = [];
 
-    forEach(params, (key, value) => {
+    forEach(params, (key: string, value: string) => {
       pairs.push(key + '=' + value);
     });
 
     return connURL + pairs.join('&');
-  };
+  }
 
   /** @return {string} */
-  toString() {
-    var str = this.toURLString();
+  toString(): string {
+    let str = this.toURLString();
     if (this.persistenceKey) {
       str += '<' + this.persistenceKey + '>';
     }
     return str;
-  };
+  }
 
   /** @return {string} */
-  toURLString() {
+  toURLString(): string {
     return (this.secure ? 'https://' : 'http://') + this.host;
-  };
+  }
 }

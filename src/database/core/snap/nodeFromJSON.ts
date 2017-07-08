@@ -14,40 +14,41 @@
 * limitations under the License.
 */
 
-import { ChildrenNode } from "./ChildrenNode";
-import { LeafNode } from "./LeafNode";
-import { NamedNode } from "./Node";
-import { forEach, contains } from "../../../utils/obj";
-import { assert } from "../../../utils/assert";
-import { buildChildSet } from "./childSet";
-import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from "./comparators";
-import { IndexMap } from "./IndexMap";
-import { PRIORITY_INDEX, setNodeFromJSON } from "./indexes/PriorityIndex";
+import { ChildrenNode } from './ChildrenNode';
+import { LeafNode } from './LeafNode';
+import { NamedNode, Node } from './Node';
+import { forEach, contains } from '../../../utils/obj';
+import { assert } from '../../../utils/assert';
+import { buildChildSet } from './childSet';
+import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
+import { IndexMap } from './IndexMap';
+import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
+import { SortedMap } from '../util/SortedMap';
 
 const USE_HINZE = true;
 
 /**
  * Constructs a snapshot node representing the passed JSON and returns it.
  * @param {*} json JSON to create a node for.
- * @param {?string|?number=} opt_priority Optional priority to use.  This will be ignored if the
+ * @param {?string|?number=} priority Optional priority to use.  This will be ignored if the
  * passed JSON contains a .priority property.
  * @return {!Node}
  */
-export function nodeFromJSON(json, priority?) {
+export function nodeFromJSON(json: any | null,
+                             priority: string | number | null = null): Node {
   if (json === null) {
     return ChildrenNode.EMPTY_NODE;
   }
 
-  priority = priority !== undefined ? priority : null;
   if (typeof json === 'object' && '.priority' in json) {
     priority = json['.priority'];
   }
-  
+
   assert(
-      priority === null ||
-      typeof priority === 'string' ||
-      typeof priority === 'number' ||
-      (typeof priority === 'object' && '.sv' in priority),
+    priority === null ||
+    typeof priority === 'string' ||
+    typeof priority === 'number' ||
+    (typeof priority === 'object' && '.sv' in (priority as object)),
     'Invalid priority type found: ' + (typeof priority)
   );
 
@@ -57,17 +58,17 @@ export function nodeFromJSON(json, priority?) {
 
   // Valid leaf nodes include non-objects or server-value wrapper objects
   if (typeof json !== 'object' || '.sv' in json) {
-    var jsonLeaf = /** @type {!(string|number|boolean|Object)} */ (json);
+    const jsonLeaf = json as string | number | boolean | object;
     return new LeafNode(jsonLeaf, nodeFromJSON(priority));
   }
 
   if (!(json instanceof Array) && USE_HINZE) {
-    var children = [];
-    var childrenHavePriority = false;
-    var hinzeJsonObj = /** @type {!Object} */ (json);
-    forEach(hinzeJsonObj, function(key, child) {
+    const children: NamedNode[] = [];
+    let childrenHavePriority = false;
+    const hinzeJsonObj: { [k: string]: any } = json as object;
+    forEach(hinzeJsonObj, (key: string, child: any) => {
       if (typeof key !== 'string' || key.substring(0, 1) !== '.') { // Ignore metadata nodes
-        var childNode = nodeFromJSON(hinzeJsonObj[key]);
+        const childNode = nodeFromJSON(hinzeJsonObj[key]);
         if (!childNode.isEmpty()) {
           childrenHavePriority = childrenHavePriority || !childNode.getPriority().isEmpty();
           children.push(new NamedNode(key, childNode));
@@ -79,25 +80,23 @@ export function nodeFromJSON(json, priority?) {
       return ChildrenNode.EMPTY_NODE;
     }
 
-    var childSet = /**@type {!SortedMap.<string, !Node>} */ (buildChildSet(
-      children, NAME_ONLY_COMPARATOR, function(namedNode) { return namedNode.name; },
-      NAME_COMPARATOR
-    ));
+    const childSet = buildChildSet(children, NAME_ONLY_COMPARATOR,
+      (namedNode) => namedNode.name, NAME_COMPARATOR) as SortedMap<string, Node>;
     if (childrenHavePriority) {
-      var sortedChildSet = buildChildSet(children, PRIORITY_INDEX.getCompare());
+      const sortedChildSet = buildChildSet(children, PRIORITY_INDEX.getCompare());
       return new ChildrenNode(childSet, nodeFromJSON(priority),
         new IndexMap({'.priority': sortedChildSet}, {'.priority': PRIORITY_INDEX}));
     } else {
       return new ChildrenNode(childSet, nodeFromJSON(priority),
-          IndexMap.Default);
+        IndexMap.Default);
     }
   } else {
-    var node = ChildrenNode.EMPTY_NODE;
-    var jsonObj = /** @type {!Object} */ (json);
-    forEach(jsonObj, function(key, childData) {
+    let node: Node = ChildrenNode.EMPTY_NODE;
+    const jsonObj = json as object;
+    forEach(jsonObj, (key: string, childData: any) => {
       if (contains(jsonObj, key)) {
         if (key.substring(0, 1) !== '.') { // ignore metadata nodes.
-          var childNode = nodeFromJSON(childData);
+          const childNode = nodeFromJSON(childData);
           if (childNode.isLeafNode() || !childNode.isEmpty())
             node = node.updateImmediateChild(key, childNode);
         }
@@ -106,6 +105,6 @@ export function nodeFromJSON(json, priority?) {
 
     return node.updatePriority(nodeFromJSON(priority));
   }
-};
+}
 
 setNodeFromJSON(nodeFromJSON);

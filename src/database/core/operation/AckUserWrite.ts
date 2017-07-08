@@ -33,7 +33,7 @@ export class AckUserWrite implements Operation {
    * @param {!boolean} revert
    */
   constructor(/**@inheritDoc */ public path: Path,
-              /**@inheritDoc */ public affectedTree: ImmutableTree,
+              /**@inheritDoc */ public affectedTree: ImmutableTree<boolean>,
               /**@inheritDoc */ public revert: boolean) {
 
   }
