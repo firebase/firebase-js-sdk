@@ -13,7 +13,7 @@
     "outDir": "dist/es2015",
     "rootDir": "src",
     "sourceMap": true,
-    "target": "es2015",
+    "target": "es5",
     "typeRoots": [
       "node_modules/@types"
     ]
