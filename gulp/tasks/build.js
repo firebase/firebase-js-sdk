@@ -140,11 +140,6 @@ function compileIndvES2015ModulesToBrowser() {
     },
     plugins: [
       new CheckerPlugin(),
-      new webpack.DefinePlugin({
-        'process.env': {
-          'NODE_ENV': JSON.stringify('production')
-        }
-      }),
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.optimize.CommonsChunkPlugin({
         name: 'firebase-app'
@@ -173,7 +168,7 @@ function compileIndvES2015ModulesToBrowser() {
         mangle: {
           props: {
             ignore_quoted: true,
-            regex: /_$/,
+            regex: /^_|_$/,
           }
         },
         compress: {
