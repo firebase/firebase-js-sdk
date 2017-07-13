@@ -57,7 +57,19 @@ const configObj = {
           "browsers": [
             "ie >= 9"
           ]
-        }
+        },
+      }]
+    ]
+  },
+  babelWebpack: {
+    presets: [
+      ["env", {
+        "modules": false,
+        "targets": {
+          "browsers": [
+            "ie >= 9"
+          ]
+        },
       }]
     ]
   },

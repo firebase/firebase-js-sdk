@@ -22,24 +22,23 @@ import { forEach } from '../../../utils/obj';
 let emptyChildrenSingleton: SortedMap<string, ImmutableTree<null>>;
 
 /**
+ * Singleton empty children collection.
+ *
+ * @const
+ * @type {!SortedMap.<string, !ImmutableTree.<?>>}
+ */
+const EmptyChildren = (): SortedMap<string, ImmutableTree<null>> => {
+  if (!emptyChildrenSingleton) {
+    emptyChildrenSingleton = new SortedMap<string, ImmutableTree<null>>(stringCompare);
+  }
+  return emptyChildrenSingleton;
+};
+
+/**
  * A tree with immutable elements.
  */
 export class ImmutableTree<T> {
   static Empty = new ImmutableTree<any>(null);
-
-  /**
-   * Singleton empty children collection.
-   *
-   * @const
-   * @type {!SortedMap.<string, !ImmutableTree.<?>>}
-   * @private
-   */
-  private static get EmptyChildren_(): SortedMap<string, ImmutableTree<null>> {
-    if (!emptyChildrenSingleton) {
-      emptyChildrenSingleton = new SortedMap<string, ImmutableTree<null>>(stringCompare);
-    }
-    return emptyChildrenSingleton;
-  }
 
   /**
    * @template T
@@ -60,7 +59,7 @@ export class ImmutableTree<T> {
    * @param {SortedMap.<string, !ImmutableTree.<T>>=} children
    */
   constructor(public readonly value: T | null,
-              public readonly children: SortedMap<string, ImmutableTree<T>> = ImmutableTree.EmptyChildren_) {
+              public readonly children: SortedMap<string, ImmutableTree<T>> = EmptyChildren()) {
   }
 
   /**

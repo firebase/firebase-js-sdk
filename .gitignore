@@ -9,3 +9,4 @@ npm-debug.log
 /.vscode
 /.ts-node
 /.idea
+/.awcache

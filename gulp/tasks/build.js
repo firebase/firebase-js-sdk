@@ -26,13 +26,10 @@ const path = require('path');
 const clone = require('gulp-clone');
 const webpack = require('webpack');
 const webpackStream = require('webpack-stream');
-const named = require('vinyl-named');
 const sourcemaps = require('gulp-sourcemaps');
 const concat = require('gulp-concat');
 const replace = require('gulp-replace');
-const uglify = require('gulp-uglify');
 const gulpFile = require('gulp-file');
-const ignore = require('gulp-ignore');
 const rimraf = require('rimraf');
 const header = require('gulp-header');
 const gitRev = require('git-rev-sync');
@@ -43,6 +40,7 @@ const glob = require('glob');
 const fs = require('fs');
 const gzipSize = require('gzip-size');
 const WrapperPlugin = require('wrapper-webpack-plugin');
+const { CheckerPlugin } = require('awesome-typescript-loader');
 
 function cleanDist(dir) { 
   return function cleanDistDirectory(done) {
@@ -115,20 +113,6 @@ function compileIndvES2015ModulesToBrowser() {
     return pathObj.name === 'firebase-app';
   };
 
-  const babelLoader = {
-    loader: 'babel-loader',
-    options: config.babel
-  };
-
-  const tsLoader = {
-    loader: 'ts-loader',
-    options: {
-      compilerOptions: {
-        declaration: false
-      }
-    }
-  };
-
   const webpackConfig = {
     devtool: 'source-map',
     entry: {
@@ -144,21 +128,18 @@ function compileIndvES2015ModulesToBrowser() {
     },
     module: {
       rules: [{
-        test: /\.ts(x?)$/,
+        test: /\.tsx?$/,
         exclude: /node_modules/,
-        use: [
-          babelLoader,
-          tsLoader
-        ]
-      }, {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: [
-          babelLoader
-        ]
+        loader: 'awesome-typescript-loader',
+        options: {
+          useCache: true,
+          useBabel: true,
+          babelOptions: config.babelWebpack
+        }
       }]
     },
     plugins: [
+      new CheckerPlugin(),
       new webpack.optimize.ModuleConcatenationPlugin(),
       new webpack.optimize.CommonsChunkPlugin({
         name: 'firebase-app'
@@ -171,8 +152,9 @@ function compileIndvES2015ModulesToBrowser() {
           `;
         },
         footer: fileName => {
+          // Note: '.default' needed because of https://github.com/babel/babel/issues/2212
           return isFirebaseApp(fileName) ? `
-          })();` : `
+          })().default;` : `
           } catch(error) {
             throw new Error(
               'Cannot instantiate ${fileName} - ' +
@@ -182,13 +164,24 @@ function compileIndvES2015ModulesToBrowser() {
         }
       }),
       new webpack.optimize.UglifyJsPlugin({
-        sourceMap: true
+        sourceMap: true,
+        mangle: {
+          props: {
+            ignore_quoted: true,
+            regex: /^_|_$/,
+          }
+        },
+        compress: {
+          passes: 3,
+          unsafe: true,
+          warnings: false,
+        }
       })
     ],
     resolve: {
       extensions: ['.ts', '.tsx', '.js']
     },
-  }
+  };
 
   return gulp.src('src/**/*.ts')
     .pipe(webpackStream(webpackConfig, webpack))
