@@ -25,7 +25,7 @@ export default class DBInterface {
   private dbVersion_: number;
   private openDbPromise_: Promise<IDBDatabase>;
   protected errorFactory_: ErrorFactory<string>;
-  protected TRANSACTION_READ_WRITE: string;
+  protected TRANSACTION_READ_WRITE: IDBTransactionMode;
 
   /**
    * @param {string} dbName

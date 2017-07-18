@@ -247,7 +247,7 @@ export default class WindowController extends ControllerInterface {
     const serviceWorker = registration.installing || registration.waiting ||
       registration.active;
 
-    return new Promise((resolve, reject) => {
+    return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
         // This is a rare scenario but has occured in firefox
         reject(this.errorFactory_.create(Errors.codes.NO_SW_IN_REG));
