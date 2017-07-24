@@ -58,7 +58,18 @@ gulp --tasks
 
 ## Testing the SDK
 
-To run all tests for the SDK simply run: `npm test` at the root of this package. 
+To run all tests for the SDK you must first supply a firebase project config for 
+your tests. This is done by creating a file called `project.json` and at the 
+following path:
+
+```
+tests/config/project.json
+```
+
+This file should contain a JSON object with your app information (i.e. the same
+information you would pass to `firebase.initializeApp`).
+
+After you have done this, simply run: `npm test` at the root of this package.
 
 There are several types of available tests:
 
