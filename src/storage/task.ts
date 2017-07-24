@@ -493,13 +493,15 @@ export class UploadTask {
   /**
    * This object behaves like a Promise, and resolves with its snapshot data
    * when the upload completes.
-   *     The fulfillment callback. Promise chaining works as normal.
+   * @param onFulfilled The fulfillment callback. Promise chaining works as normal.
    * @param onRejected The rejection callback.
    */
   then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | PromiseLike<U>) | null, onRejected?: ((error: any) => U | PromiseLike<U>) | null): Promise<U> {
+      // These casts are needed so that TypeScript can infer the types of the
+      // resulting Promise.
       return this.promise_.then<U>(
         (onFulfilled as (value: UploadTaskSnapshot) => U | PromiseLike<U>),
-        (onRejected as ((error: any) => PromiseLike<U>) | null));
+        (onRejected as ((error: any) => PromiseLike<never>) | null));
   }
 
   /**
