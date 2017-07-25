@@ -66,7 +66,7 @@ export function setBufferImpl(impl) {
  */
 export const base64Decode = function (str: string): string | null {
   try {
-    if (BufferImpl()) {
+    if (BufferImpl) {
       return new BufferImpl(str, 'base64').toString('utf8');
     } else {
       return base64.decodeString(str, /*useWebSafe=*/true);
