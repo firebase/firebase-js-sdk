@@ -159,7 +159,7 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     },
     sl_safari: {
       base: 'SauceLabs',
-      browserName: 'iphone',
+      browserName: 'Safari',
       platform: 'macOS 10.12',
       version: 'latest-2'
     },
