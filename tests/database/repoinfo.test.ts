@@ -33,9 +33,13 @@ describe('RepoInfo', function() {
     urlParams[LAST_SESSION_PARAM] = 'test';
 
     const websocketUrl = repoInfo.connectionURL(WEBSOCKET, urlParams);
-    expect(websocketUrl).to.equal('wss://test-ns.firebaseio.com/.ws?v=5&ls=test');
+    expect(websocketUrl).to.equal(
+      'wss://test-ns.firebaseio.com/.ws?v=5&ls=test'
+    );
 
     const longPollingUrl = repoInfo.connectionURL(LONG_POLLING, urlParams);
-    expect(longPollingUrl).to.equal('https://test-ns.firebaseio.com/.lp?v=5&ls=test');
+    expect(longPollingUrl).to.equal(
+      'https://test-ns.firebaseio.com/.lp?v=5&ls=test'
+    );
   });
 });

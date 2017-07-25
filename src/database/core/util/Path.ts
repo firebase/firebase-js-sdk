@@ -62,8 +62,7 @@ export class Path {
   }
 
   getFront(): string | null {
-    if (this.pieceNum_ >= this.pieces_.length)
-      return null;
+    if (this.pieceNum_ >= this.pieces_.length) return null;
 
     return this.pieces_[this.pieceNum_];
   }
@@ -99,8 +98,7 @@ export class Path {
   toString(): string {
     let pathString = '';
     for (let i = this.pieceNum_; i < this.pieces_.length; i++) {
-      if (this.pieces_[i] !== '')
-        pathString += '/' + this.pieces_[i];
+      if (this.pieces_[i] !== '') pathString += '/' + this.pieces_[i];
     }
 
     return pathString || '/';
@@ -130,8 +128,7 @@ export class Path {
    * @return {?Path}
    */
   parent(): Path | null {
-    if (this.pieceNum_ >= this.pieces_.length)
-      return null;
+    if (this.pieceNum_ >= this.pieces_.length) return null;
 
     const pieces = [];
     for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++)
@@ -150,14 +147,17 @@ export class Path {
       pieces.push(this.pieces_[i]);
 
     if (childPathObj instanceof Path) {
-      for (let i = childPathObj.pieceNum_; i < childPathObj.pieces_.length; i++) {
+      for (
+        let i = childPathObj.pieceNum_;
+        i < childPathObj.pieces_.length;
+        i++
+      ) {
         pieces.push(childPathObj.pieces_[i]);
       }
     } else {
       const childPieces = childPathObj.split('/');
       for (let i = 0; i < childPieces.length; i++) {
-        if (childPieces[i].length > 0)
-          pieces.push(childPieces[i]);
+        if (childPieces[i].length > 0) pieces.push(childPieces[i]);
       }
     }
 
@@ -177,15 +177,21 @@ export class Path {
    * @return {!Path} The path from outerPath to innerPath
    */
   static relativePath(outerPath: Path, innerPath: Path): Path {
-    const outer = outerPath.getFront(), inner = innerPath.getFront();
+    const outer = outerPath.getFront(),
+      inner = innerPath.getFront();
     if (outer === null) {
       return innerPath;
     } else if (outer === inner) {
-      return Path.relativePath(outerPath.popFront(),
-        innerPath.popFront());
+      return Path.relativePath(outerPath.popFront(), innerPath.popFront());
     } else {
-      throw new Error('INTERNAL ERROR: innerPath (' + innerPath + ') is not within ' +
-        'outerPath (' + outerPath + ')');
+      throw new Error(
+        'INTERNAL ERROR: innerPath (' +
+          innerPath +
+          ') is not within ' +
+          'outerPath (' +
+          outerPath +
+          ')'
+      );
     }
   }
 
@@ -202,7 +208,7 @@ export class Path {
       if (cmp !== 0) return cmp;
     }
     if (leftKeys.length === rightKeys.length) return 0;
-    return (leftKeys.length < rightKeys.length) ? -1 : 1;
+    return leftKeys.length < rightKeys.length ? -1 : 1;
   }
 
   /**
@@ -215,7 +221,11 @@ export class Path {
       return false;
     }
 
-    for (let i = this.pieceNum_, j = other.pieceNum_; i <= this.pieces_.length; i++, j++) {
+    for (
+      let i = this.pieceNum_, j = other.pieceNum_;
+      i <= this.pieces_.length;
+      i++, j++
+    ) {
       if (this.pieces_[i] !== other.pieces_[j]) {
         return false;
       }
@@ -285,7 +295,7 @@ export class ValidationPath {
 
   /** @const {number} Maximum number of (UTF8) bytes in a Firebase path. */
   static get MAX_PATH_LENGTH_BYTES() {
-    return 768
+    return 768;
   }
 
   /** @param {string} child */
@@ -310,14 +320,23 @@ export class ValidationPath {
 
   private checkValid_() {
     if (this.byteLength_ > ValidationPath.MAX_PATH_LENGTH_BYTES) {
-      throw new Error(this.errorPrefix_ + 'has a key path longer than ' +
-        ValidationPath.MAX_PATH_LENGTH_BYTES + ' bytes (' +
-        this.byteLength_ + ').');
+      throw new Error(
+        this.errorPrefix_ +
+          'has a key path longer than ' +
+          ValidationPath.MAX_PATH_LENGTH_BYTES +
+          ' bytes (' +
+          this.byteLength_ +
+          ').'
+      );
     }
     if (this.parts_.length > ValidationPath.MAX_PATH_DEPTH) {
-      throw new Error(this.errorPrefix_ + 'path specified exceeds the maximum depth that can be written (' +
-        ValidationPath.MAX_PATH_DEPTH +
-        ') or object contains a cycle ' + this.toErrorString());
+      throw new Error(
+        this.errorPrefix_ +
+          'path specified exceeds the maximum depth that can be written (' +
+          ValidationPath.MAX_PATH_DEPTH +
+          ') or object contains a cycle ' +
+          this.toErrorString()
+      );
     }
   }
 
@@ -330,8 +349,6 @@ export class ValidationPath {
     if (this.parts_.length == 0) {
       return '';
     }
-    return 'in property \'' + this.parts_.join('.') + '\'';
+    return "in property '" + this.parts_.join('.') + "'";
   }
-
 }
-

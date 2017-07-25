@@ -21,7 +21,7 @@
 /**
  * @return Null if the path is already at the root.
  */
-export function parent(path: string): string|null {
+export function parent(path: string): string | null {
   if (path.length == 0) {
     return null;
   }
@@ -34,11 +34,12 @@ export function parent(path: string): string|null {
 }
 
 export function child(path: string, childPath: string): string {
-  let canonicalChildPath = childPath.split('/')
-                               .filter(function(component) {
-                                 return component.length > 0;
-                               })
-                               .join('/');
+  let canonicalChildPath = childPath
+    .split('/')
+    .filter(function(component) {
+      return component.length > 0;
+    })
+    .join('/');
   if (path.length === 0) {
     return canonicalChildPath;
   } else {

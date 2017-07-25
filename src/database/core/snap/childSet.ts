@@ -32,7 +32,8 @@ class Base12Num {
    * @param {number} length
    */
   constructor(length: number) {
-    const logBase2 = (num: number) => parseInt((Math.log(num) / LOG_2 as any), 10);
+    const logBase2 = (num: number) =>
+      parseInt((Math.log(num) / LOG_2) as any, 10);
     const bitMask = (bits: number) => parseInt(Array(bits + 1).join('1'), 2);
     this.count = logBase2(length + 1);
     this.current_ = this.count - 1;
@@ -66,13 +67,18 @@ class Base12Num {
  * @param {(function(K, K):number)=} mapSortFn An optional override for comparator used by the generated sorted map
  * @return {SortedMap.<K, V>}
  */
-export const buildChildSet = function<K,V>(childList: NamedNode[],
-                                           cmp: (a: NamedNode, b: NamedNode) => number,
-                                           keyFn?: (a: NamedNode) => K,
-                                           mapSortFn?: (a: K, b: K) => number): SortedMap<K, V> {
+export const buildChildSet = function<K, V>(
+  childList: NamedNode[],
+  cmp: (a: NamedNode, b: NamedNode) => number,
+  keyFn?: (a: NamedNode) => K,
+  mapSortFn?: (a: K, b: K) => number
+): SortedMap<K, V> {
   childList.sort(cmp);
 
-  const buildBalancedTree = function(low: number, high: number): LLRBNode<K, V> | null {
+  const buildBalancedTree = function(
+    low: number,
+    high: number
+  ): LLRBNode<K, V> | null {
     const length = high - low;
     let namedNode: NamedNode;
     let key: K;
@@ -80,34 +86,48 @@ export const buildChildSet = function<K,V>(childList: NamedNode[],
       return null;
     } else if (length == 1) {
       namedNode = childList[low];
-      key = keyFn ? keyFn(namedNode) : namedNode as any as K;
-      return new LLRBNode(key, namedNode.node as any as V, LLRBNode.BLACK, null, null);
+      key = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      return new LLRBNode(
+        key,
+        (namedNode.node as any) as V,
+        LLRBNode.BLACK,
+        null,
+        null
+      );
     } else {
-      const middle = parseInt((length / 2 as any), 10) + low;
+      const middle = parseInt((length / 2) as any, 10) + low;
       const left = buildBalancedTree(low, middle);
       const right = buildBalancedTree(middle + 1, high);
       namedNode = childList[middle];
-      key = keyFn ? keyFn(namedNode) : namedNode as any as K;
-      return new LLRBNode(key, namedNode.node as any as V, LLRBNode.BLACK, left, right);
+      key = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      return new LLRBNode(
+        key,
+        (namedNode.node as any) as V,
+        LLRBNode.BLACK,
+        left,
+        right
+      );
     }
   };
 
-  const buildFrom12Array = function (base12: Base12Num): LLRBNode<K, V> {
+  const buildFrom12Array = function(base12: Base12Num): LLRBNode<K, V> {
     let node: LLRBNode<K, V> = null;
     let root = null;
     let index = childList.length;
 
-    const buildPennant = function (chunkSize: number, color: boolean) {
+    const buildPennant = function(chunkSize: number, color: boolean) {
       const low = index - chunkSize;
       const high = index;
       index -= chunkSize;
       const childTree = buildBalancedTree(low + 1, high);
       const namedNode = childList[low];
-      const key: K = keyFn ? keyFn(namedNode) : namedNode as any as K;
-      attachPennant(new LLRBNode(key, namedNode.node as any as V, color, null, childTree));
+      const key: K = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      attachPennant(
+        new LLRBNode(key, (namedNode.node as any) as V, color, null, childTree)
+      );
     };
 
-    const attachPennant = function (pennant: LLRBNode<K, V>) {
+    const attachPennant = function(pennant: LLRBNode<K, V>) {
       if (node) {
         node.left = pennant;
         node = pennant;

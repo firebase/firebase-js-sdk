@@ -28,7 +28,6 @@
  * Invariant 3: Only the left child can be red (left leaning)
  */
 
-
 // TODO: There are some improvements I'd like to make to improve memory / perf:
 //  * Create two prototypes, LLRedNode and LLBlackNode, instead of storing a
 //    color property in every node.
@@ -54,12 +53,13 @@ export class SortedMapIterator<K, V, T> {
    * @param {boolean} isReverse_ Whether or not to iterate in reverse
    * @param {(function(K, V):T)=} resultGenerator_
    */
-  constructor(node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
-              startKey: K | null,
-              comparator: Comparator<K>,
-              private isReverse_: boolean,
-              private resultGenerator_: ((k: K, v: V) => T) | null = null) {
-
+  constructor(
+    node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
+    startKey: K | null,
+    comparator: Comparator<K>,
+    private isReverse_: boolean,
+    private resultGenerator_: ((k: K, v: V) => T) | null = null
+  ) {
     let cmp = 1;
     while (!node.isEmpty()) {
       node = node as LLRBNode<K, V>;
@@ -91,15 +91,13 @@ export class SortedMapIterator<K, V, T> {
   }
 
   getNext(): T {
-    if (this.nodeStack_.length === 0)
-      return null;
+    if (this.nodeStack_.length === 0) return null;
 
     let node = this.nodeStack_.pop();
     let result: T;
     if (this.resultGenerator_)
       result = this.resultGenerator_(node.key, node.value);
-    else
-      result = {key: node.key, value: node.value} as any;
+    else result = { key: node.key, value: node.value } as any;
 
     if (this.isReverse_) {
       node = node.left;
@@ -123,18 +121,16 @@ export class SortedMapIterator<K, V, T> {
   }
 
   peek(): T {
-    if (this.nodeStack_.length === 0)
-      return null;
+    if (this.nodeStack_.length === 0) return null;
 
     const node = this.nodeStack_[this.nodeStack_.length - 1];
     if (this.resultGenerator_) {
       return this.resultGenerator_(node.key, node.value);
     } else {
-      return {key: node.key, value: node.value} as any;
+      return { key: node.key, value: node.value } as any;
     }
   }
 }
-
 
 /**
  * Represents a node in a Left-leaning Red-Black tree.
@@ -152,14 +148,18 @@ export class LLRBNode<K, V> {
    * @param {?(LLRBNode|LLRBEmptyNode)=} left Left child.
    * @param {?(LLRBNode|LLRBEmptyNode)=} right Right child.
    */
-  constructor(public key: K,
-              public value: V,
-              color: boolean | null,
-              left?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-              right?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null) {
+  constructor(
+    public key: K,
+    public value: V,
+    color: boolean | null,
+    left?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
+    right?: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
+  ) {
     this.color = color != null ? color : LLRBNode.RED;
-    this.left = left != null ? left : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
-    this.right = right != null ? right : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
+    this.left =
+      left != null ? left : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
+    this.right =
+      right != null ? right : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
   }
 
   static RED = true;
@@ -175,15 +175,20 @@ export class LLRBNode<K, V> {
    * @param {?LLRBNode|LLRBEmptyNode} right New right child for the node, or null.
    * @return {!LLRBNode} The node copy.
    */
-  copy(key: K | null, value: V | null, color: boolean | null,
-       left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-       right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBNode<K, V> {
+  copy(
+    key: K | null,
+    value: V | null,
+    color: boolean | null,
+    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
+    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
+  ): LLRBNode<K, V> {
     return new LLRBNode(
-      (key != null) ? key : this.key,
-      (value != null) ? value : this.value,
-      (color != null) ? color : this.color,
-      (left != null) ? left : this.left,
-      (right != null) ? right : this.right);
+      key != null ? key : this.key,
+      value != null ? value : this.value,
+      color != null ? color : this.color,
+      left != null ? left : this.left,
+      right != null ? right : this.right
+    );
   }
 
   /**
@@ -210,9 +215,11 @@ export class LLRBNode<K, V> {
    *   value returned by action
    */
   inorderTraversal(action: (k: K, v: V) => any): boolean {
-    return this.left.inorderTraversal(action) ||
+    return (
+      this.left.inorderTraversal(action) ||
       action(this.key, this.value) ||
-      this.right.inorderTraversal(action);
+      this.right.inorderTraversal(action)
+    );
   }
 
   /**
@@ -224,20 +231,22 @@ export class LLRBNode<K, V> {
    * @return {*} True if traversal was aborted.
    */
   reverseTraversal(action: (k: K, v: V) => void): boolean {
-    return this.right.reverseTraversal(action) ||
+    return (
+      this.right.reverseTraversal(action) ||
       action(this.key, this.value) ||
-      this.left.reverseTraversal(action);
+      this.left.reverseTraversal(action)
+    );
   }
 
   /**
    * @return {!Object} The minimum node in the tree.
    * @private
    */
-  private min_(): LLRBNode<K,V> {
+  private min_(): LLRBNode<K, V> {
     if (this.left.isEmpty()) {
       return this;
     } else {
-      return (this.left as LLRBNode<K,V>).min_();
+      return (this.left as LLRBNode<K, V>).min_();
     }
   }
 
@@ -266,7 +275,7 @@ export class LLRBNode<K, V> {
    * @param {Comparator} comparator Comparator.
    * @return {!LLRBNode} New tree, with the key/value added.
    */
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K,V> {
+  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
     let cmp, n;
     n = this;
     cmp = comparator(key, n.key);
@@ -275,7 +284,13 @@ export class LLRBNode<K, V> {
     } else if (cmp === 0) {
       n = n.copy(null, value, null, null, null);
     } else {
-      n = n.copy(null, null, null, null, n.right.insert(key, value, comparator));
+      n = n.copy(
+        null,
+        null,
+        null,
+        null,
+        n.right.insert(key, value, comparator)
+      );
     }
     return n.fixUp_();
   }
@@ -284,14 +299,13 @@ export class LLRBNode<K, V> {
    * @private
    * @return {!LLRBNode|LLRBEmptyNode} New tree, with the minimum key removed.
    */
-  private removeMin_(): LLRBNode<K,V> | LLRBEmptyNode<K,V> {
+  private removeMin_(): LLRBNode<K, V> | LLRBEmptyNode<K, V> {
     if (this.left.isEmpty()) {
-      return SortedMap.EMPTY_NODE as LLRBEmptyNode<K,V>;
+      return SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
     }
-    let n: LLRBNode<K,V> = this;
-    if (!n.left.isRed_() && !n.left.left.isRed_())
-      n = n.moveRedLeft_();
-    n = n.copy(null, null, null, (n.left as LLRBNode<K,V>).removeMin_(), null);
+    let n: LLRBNode<K, V> = this;
+    if (!n.left.isRed_() && !n.left.left.isRed_()) n = n.moveRedLeft_();
+    n = n.copy(null, null, null, (n.left as LLRBNode<K, V>).removeMin_(), null);
     return n.fixUp_();
   }
 
@@ -300,7 +314,10 @@ export class LLRBNode<K, V> {
    * @param {Comparator} comparator Comparator.
    * @return {!LLRBNode|LLRBEmptyNode} New tree, with the specified item removed.
    */
-  remove(key: K, comparator: Comparator<K>): LLRBNode<K,V> | LLRBEmptyNode<K,V> {
+  remove(
+    key: K,
+    comparator: Comparator<K>
+  ): LLRBNode<K, V> | LLRBEmptyNode<K, V> {
     let n, smallest;
     n = this;
     if (comparator(key, n.key) < 0) {
@@ -315,11 +332,16 @@ export class LLRBNode<K, V> {
       }
       if (comparator(key, n.key) === 0) {
         if (n.right.isEmpty()) {
-          return SortedMap.EMPTY_NODE as LLRBEmptyNode<K,V>;
+          return SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
         } else {
-          smallest = (n.right as LLRBNode<K,V>).min_();
-          n = n.copy(smallest.key, smallest.value, null, null,
-                     (n.right as LLRBNode<K,V>).removeMin_());
+          smallest = (n.right as LLRBNode<K, V>).min_();
+          n = n.copy(
+            smallest.key,
+            smallest.value,
+            null,
+            null,
+            (n.right as LLRBNode<K, V>).removeMin_()
+          );
         }
       }
       n = n.copy(null, null, null, null, n.right.remove(key, comparator));
@@ -339,7 +361,7 @@ export class LLRBNode<K, V> {
    * @private
    * @return {!LLRBNode} New tree after performing any needed rotations.
    */
-  private fixUp_(): LLRBNode<K,V> {
+  private fixUp_(): LLRBNode<K, V> {
     let n = this as any;
     if (n.right.isRed_() && !n.left.isRed_()) n = n.rotateLeft_();
     if (n.left.isRed_() && n.left.left.isRed_()) n = n.rotateRight_();
@@ -351,10 +373,16 @@ export class LLRBNode<K, V> {
    * @private
    * @return {!LLRBNode} New tree, after moveRedLeft.
    */
-  private moveRedLeft_(): LLRBNode<K,V> {
+  private moveRedLeft_(): LLRBNode<K, V> {
     let n = this.colorFlip_();
     if (n.right.left.isRed_()) {
-      n = n.copy(null, null, null, null, (n.right as LLRBNode<K,V>).rotateRight_());
+      n = n.copy(
+        null,
+        null,
+        null,
+        null,
+        (n.right as LLRBNode<K, V>).rotateRight_()
+      );
       n = n.rotateLeft_();
       n = n.colorFlip_();
     }
@@ -365,7 +393,7 @@ export class LLRBNode<K, V> {
    * @private
    * @return {!LLRBNode} New tree, after moveRedRight.
    */
-  private moveRedRight_(): LLRBNode<K,V> {
+  private moveRedRight_(): LLRBNode<K, V> {
     let n = this.colorFlip_();
     if (n.left.left.isRed_()) {
       n = n.rotateRight_();
@@ -378,25 +406,25 @@ export class LLRBNode<K, V> {
    * @private
    * @return {!LLRBNode} New tree, after rotateLeft.
    */
-  private rotateLeft_(): LLRBNode<K,V> {
+  private rotateLeft_(): LLRBNode<K, V> {
     const nl = this.copy(null, null, LLRBNode.RED, null, this.right.left);
-    return this.right.copy(null, null, this.color, nl, null) as LLRBNode<K,V>;
+    return this.right.copy(null, null, this.color, nl, null) as LLRBNode<K, V>;
   }
 
   /**
    * @private
    * @return {!LLRBNode} New tree, after rotateRight.
    */
-  private rotateRight_(): LLRBNode<K,V> {
+  private rotateRight_(): LLRBNode<K, V> {
     const nr = this.copy(null, null, LLRBNode.RED, this.left.right, null);
-    return this.left.copy(null, null, this.color, null, nr) as LLRBNode<K,V>;
+    return this.left.copy(null, null, this.color, null, nr) as LLRBNode<K, V>;
   }
 
   /**
    * @private
    * @return {!LLRBNode} New tree, after colorFlip.
    */
-  private colorFlip_(): LLRBNode<K,V> {
+  private colorFlip_(): LLRBNode<K, V> {
     const left = this.left.copy(null, null, !this.left.color, null, null);
     const right = this.right.copy(null, null, !this.right.color, null, null);
     return this.copy(null, null, !this.color, left, right);
@@ -410,7 +438,7 @@ export class LLRBNode<K, V> {
    */
   private checkMaxDepth_(): boolean {
     const blackDepth = this.check_();
-    return (Math.pow(2.0, blackDepth) <= this.count() + 1);
+    return Math.pow(2.0, blackDepth) <= this.count() + 1;
   }
 
   /**
@@ -420,12 +448,14 @@ export class LLRBNode<K, V> {
   check_(): number {
     let blackDepth;
     if (this.isRed_() && this.left.isRed_()) {
-      throw new Error('Red node has red child(' + this.key + ',' +
-        this.value + ')');
+      throw new Error(
+        'Red node has red child(' + this.key + ',' + this.value + ')'
+      );
     }
     if (this.right.isRed_()) {
-      throw new Error('Right child of (' + this.key + ',' +
-        this.value + ') is red');
+      throw new Error(
+        'Right child of (' + this.key + ',' + this.value + ') is red'
+      );
     }
     blackDepth = this.left.check_();
     if (blackDepth !== this.right.check_()) {
@@ -435,7 +465,6 @@ export class LLRBNode<K, V> {
     }
   }
 }
-
 
 /**
  * Represents an empty node (a leaf node in the Red-Black Tree).
@@ -452,9 +481,13 @@ export class LLRBEmptyNode<K, V> {
    *
    * @return {!LLRBEmptyNode} The node copy.
    */
-  copy(key: K | null, value: V | null, color: boolean | null,
-       left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-       right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null): LLRBEmptyNode<K, V> {
+  copy(
+    key: K | null,
+    value: V | null,
+    color: boolean | null,
+    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
+    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
+  ): LLRBEmptyNode<K, V> {
     return this;
   }
 
@@ -566,9 +599,12 @@ export class SortedMap<K, V> {
    * @param {function(K, K):number} comparator_ Key comparator.
    * @param {LLRBNode=} root_ (Optional) Root node for the map.
    */
-  constructor(private comparator_: Comparator<K>,
-              private root_: LLRBNode<K, V> | LLRBEmptyNode<K, V> = SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>) {
-  }
+  constructor(
+    private comparator_: Comparator<K>,
+    private root_:
+      | LLRBNode<K, V>
+      | LLRBEmptyNode<K, V> = SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>
+  ) {}
 
   /**
    * Returns a copy of the map, with the specified key/value added or replaced.
@@ -581,8 +617,10 @@ export class SortedMap<K, V> {
   insert(key: K, value: V): SortedMap<K, V> {
     return new SortedMap(
       this.comparator_,
-      this.root_.insert(key, value, this.comparator_)
-        .copy(null, null, LLRBNode.BLACK, null, null));
+      this.root_
+        .insert(key, value, this.comparator_)
+        .copy(null, null, LLRBNode.BLACK, null, null)
+    );
   }
 
   /**
@@ -594,8 +632,10 @@ export class SortedMap<K, V> {
   remove(key: K): SortedMap<K, V> {
     return new SortedMap(
       this.comparator_,
-      this.root_.remove(key, this.comparator_)
-        .copy(null, null, LLRBNode.BLACK, null, null));
+      this.root_
+        .remove(key, this.comparator_)
+        .copy(null, null, LLRBNode.BLACK, null, null)
+    );
   }
 
   /**
@@ -627,14 +667,15 @@ export class SortedMap<K, V> {
    * @return {?K} The predecessor key.
    */
   getPredecessorKey(key: K): K | null {
-    let cmp, node = this.root_, rightParent = null;
+    let cmp,
+      node = this.root_,
+      rightParent = null;
     while (!node.isEmpty()) {
       cmp = this.comparator_(key, node.key);
       if (cmp === 0) {
         if (!node.left.isEmpty()) {
           node = node.left;
-          while (!node.right.isEmpty())
-            node = node.right;
+          while (!node.right.isEmpty()) node = node.right;
           return node.key;
         } else if (rightParent) {
           return rightParent.key;
@@ -649,7 +690,9 @@ export class SortedMap<K, V> {
       }
     }
 
-    throw new Error('Attempted to find predecessor key for a nonexistent key.  What gives?');
+    throw new Error(
+      'Attempted to find predecessor key for a nonexistent key.  What gives?'
+    );
   }
 
   /**
@@ -711,35 +754,53 @@ export class SortedMap<K, V> {
    * @param {(function(K, V):T)=} resultGenerator
    * @return {SortedMapIterator.<K, V, T>} The iterator.
    */
-  getIterator<T>(resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator(this.root_,
+  getIterator<T>(
+    resultGenerator?: (k: K, v: V) => T
+  ): SortedMapIterator<K, V, T> {
+    return new SortedMapIterator(
+      this.root_,
       null,
       this.comparator_,
       false,
-      resultGenerator);
+      resultGenerator
+    );
   }
 
-  getIteratorFrom<T>(key: K, resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator(this.root_,
+  getIteratorFrom<T>(
+    key: K,
+    resultGenerator?: (k: K, v: V) => T
+  ): SortedMapIterator<K, V, T> {
+    return new SortedMapIterator(
+      this.root_,
       key,
       this.comparator_,
       false,
-      resultGenerator);
+      resultGenerator
+    );
   }
 
-  getReverseIteratorFrom<T>(key: K, resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator(this.root_,
+  getReverseIteratorFrom<T>(
+    key: K,
+    resultGenerator?: (k: K, v: V) => T
+  ): SortedMapIterator<K, V, T> {
+    return new SortedMapIterator(
+      this.root_,
       key,
       this.comparator_,
       true,
-      resultGenerator);
+      resultGenerator
+    );
   }
 
-  getReverseIterator<T>(resultGenerator?: (k: K, v: V) => T): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator(this.root_,
+  getReverseIterator<T>(
+    resultGenerator?: (k: K, v: V) => T
+  ): SortedMapIterator<K, V, T> {
+    return new SortedMapIterator(
+      this.root_,
       null,
       this.comparator_,
       true,
-      resultGenerator);
+      resultGenerator
+    );
   }
 }

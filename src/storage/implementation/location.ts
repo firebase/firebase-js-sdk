@@ -19,7 +19,7 @@
  * object location.
  */
 import * as errorsExports from './error';
-import {errors} from './error';
+import { errors } from './error';
 
 /**
  * @struct
@@ -73,20 +73,25 @@ export class Location {
     let gsPath = '(/(.*))?$';
     let path = '(/([^?#]*).*)?$';
     let gsRegex = new RegExp('^gs://' + bucketDomain + gsPath, 'i');
-    let gsIndices = {bucket: 1, path: 3};
+    let gsIndices = { bucket: 1, path: 3 };
 
     function httpModify(loc: Location) {
       loc.path_ = decodeURIComponent(loc.path);
     }
     let version = 'v[A-Za-z0-9_]+';
     let httpRegex = new RegExp(
-        '^https?://firebasestorage\\.googleapis\\.com/' + version + '/b/' +
-            bucketDomain + '/o' + path,
-        'i');
-    let httpIndices = {bucket: 1, path: 3};
+      '^https?://firebasestorage\\.googleapis\\.com/' +
+        version +
+        '/b/' +
+        bucketDomain +
+        '/o' +
+        path,
+      'i'
+    );
+    let httpIndices = { bucket: 1, path: 3 };
     let groups = [
-      {regex: gsRegex, indices: gsIndices, postModify: gsModify},
-      {regex: httpRegex, indices: httpIndices, postModify: httpModify}
+      { regex: gsRegex, indices: gsIndices, postModify: gsModify },
+      { regex: httpRegex, indices: httpIndices, postModify: httpModify }
     ];
     for (let i = 0; i < groups.length; i++) {
       let group = groups[i];

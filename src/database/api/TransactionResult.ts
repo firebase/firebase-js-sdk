@@ -25,9 +25,7 @@ export class TransactionResult {
    * @param {boolean} committed
    * @param {DataSnapshot} snapshot
    */
-  constructor(public committed: boolean, public snapshot: DataSnapshot) {
-
-  }
+  constructor(public committed: boolean, public snapshot: DataSnapshot) {}
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
   // for end-users
@@ -35,5 +33,4 @@ export class TransactionResult {
     validateArgCount('TransactionResult.toJSON', 0, 1, arguments.length);
     return { committed: this.committed, snapshot: this.snapshot.toJSON() };
   }
-
 }

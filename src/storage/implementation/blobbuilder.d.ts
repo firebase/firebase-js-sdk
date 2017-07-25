@@ -14,14 +14,14 @@
 * limitations under the License.
 */
 declare class IBlobBuilder {
-  append(x: string|Blob|ArrayBuffer): void;
+  append(x: string | Blob | ArrayBuffer): void;
   getBlob(): Blob;
 }
 
-declare const BlobBuilder: undefined|(typeof IBlobBuilder);
-declare const WebKitBlobBuilder: undefined|(typeof IBlobBuilder);
+declare const BlobBuilder: undefined | (typeof IBlobBuilder);
+declare const WebKitBlobBuilder: undefined | (typeof IBlobBuilder);
 
-declare interface Blob {
+interface Blob {
   webkitSlice: typeof Blob.prototype.slice;
   mozSlice: typeof Blob.prototype.slice;
 }

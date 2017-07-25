@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { assert } from "chai";
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
 import makeFakeSWReg from './make-fake-sw-reg';
@@ -35,10 +35,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     p256dh: '123456789098765642421'
   };
 
-  const servicesToTest = [
-    WindowController,
-    SWController
-  ];
+  const servicesToTest = [WindowController, SWController];
 
   const app = makeFakeApp({
     messagingSenderId: EXAMPLE_TOKEN_SAVE.fcmSenderId
@@ -46,7 +43,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
   const configureRegistrationMocks = fakeReg => {
     servicesToTest.forEach(serviceClass => {
-      const controllerStub = sinon.stub(serviceClass.prototype, 'getSWRegistration_');
+      const controllerStub = sinon.stub(
+        serviceClass.prototype,
+        'getSWRegistration_'
+      );
       controllerStub.callsFake(() => {
         return fakeReg;
       });
@@ -71,14 +71,12 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
   });
 
   afterEach(function() {
-    stubs.forEach((stub) => {
+    stubs.forEach(stub => {
       stub.restore();
-    })
+    });
     stubs = [];
 
-    const deletePromises = [
-      dbTMHelper.closeDatabase()
-    ];
+    const deletePromises = [dbTMHelper.closeDatabase()];
     if (globalMessagingService) {
       deletePromises.push(globalMessagingService.delete());
     }
@@ -87,19 +85,23 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
   it('should handle no token to delete', function() {
     globalMessagingService = new WindowController(app);
-    return globalMessagingService.deleteToken()
-    .then(() => {
-      throw new Error('Invalid subscription.');
-    }, err => {
-      assert.equal('messaging/' + Errors.codes.INVALID_DELETE_TOKEN, err.code);
-    });
+    return globalMessagingService.deleteToken().then(
+      () => {
+        throw new Error('Invalid subscription.');
+      },
+      err => {
+        assert.equal(
+          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
+          err.code
+        );
+      }
+    );
   });
 
   it('should handle no registration', function() {
     configureRegistrationMocks(Promise.resolve(null));
 
-    return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE)
-    .then(() => {
+    return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE).then(() => {
       globalMessagingService = new WindowController(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
@@ -113,32 +115,33 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
 
     globalMessagingService = new WindowController(app);
-    return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
-    .then(() => {
-      throw new Error('Expected this to reject');
-    }, err => {
-      assert.equal('Unknown error', err.message);
-    });
+    return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
+      () => {
+        throw new Error('Expected this to reject');
+      },
+      err => {
+        assert.equal('Unknown error', err.message);
+      }
+    );
   });
 
   it('should handle null getSubscription()', function() {
-    configureRegistrationMocks(
-      generateFakeReg(Promise.resolve(null))
-    );
+    configureRegistrationMocks(generateFakeReg(Promise.resolve(null)));
 
     let serviceInstance;
 
     return servicesToTest.reduce((chain, serviceClass) => {
-      return chain.then(() => {
-        return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
-      })
-      .then(() => {
-        serviceInstance = new serviceClass(app);
-        return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
-      })
-      .then(() => {
-        return serviceInstance.delete();
-      });
+      return chain
+        .then(() => {
+          return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
+        })
+        .then(() => {
+          serviceInstance = new serviceClass(app);
+          return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
+        })
+        .then(() => {
+          return serviceInstance.delete();
+        });
     }, Promise.resolve());
   });
 
@@ -156,21 +159,24 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     let serviceInstance;
 
     return servicesToTest.reduce((chain, serviceClass) => {
-      return chain.then(() => {
-        return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
-      })
-      .then(() => {
-        serviceInstance = new serviceClass(app);
-        return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
+      return chain
         .then(() => {
-          throw new Error('Expected this to reject');
-        }, err => {
-          assert.equal(errorMsg, err.message);
+          return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
+        })
+        .then(() => {
+          serviceInstance = new serviceClass(app);
+          return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
+            () => {
+              throw new Error('Expected this to reject');
+            },
+            err => {
+              assert.equal(errorMsg, err.message);
+            }
+          );
+        })
+        .then(() => {
+          return serviceInstance.delete();
         });
-      })
-      .then(() => {
-        return serviceInstance.delete();
-      });
     }, Promise.resolve());
   });
 
@@ -187,16 +193,17 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     let serviceInstance;
 
     return servicesToTest.reduce((chain, serviceClass) => {
-      return chain.then(() => {
-        return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
-      })
-      .then(() => {
-        serviceInstance = new serviceClass(app);
-        return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
-      })
-      .then(() => {
-        return serviceInstance.delete();
-      });
+      return chain
+        .then(() => {
+          return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE);
+        })
+        .then(() => {
+          serviceInstance = new serviceClass(app);
+          return serviceInstance.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
+        })
+        .then(() => {
+          return serviceInstance.delete();
+        });
     }, Promise.resolve());
   });
 });

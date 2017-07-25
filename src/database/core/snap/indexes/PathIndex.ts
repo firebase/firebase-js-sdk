@@ -14,12 +14,12 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../../utils/assert";
-import { nameCompare, MAX_NAME } from "../../util/util";
-import { Index } from "./Index";
-import { ChildrenNode, MAX_NODE } from "../ChildrenNode";
+import { assert } from '../../../../utils/assert';
+import { nameCompare, MAX_NAME } from '../../util/util';
+import { Index } from './Index';
+import { ChildrenNode, MAX_NODE } from '../ChildrenNode';
 import { NamedNode, Node } from '../Node';
-import { nodeFromJSON } from "../nodeFromJSON";
+import { nodeFromJSON } from '../nodeFromJSON';
 import { Path } from '../../util/Path';
 
 /**
@@ -31,8 +31,10 @@ export class PathIndex extends Index {
   constructor(private indexPath_: Path) {
     super();
 
-    assert(!indexPath_.isEmpty() && indexPath_.getFront() !== '.priority',
-        'Can\'t create PathIndex with empty path or .priority key');
+    assert(
+      !indexPath_.isEmpty() && indexPath_.getFront() !== '.priority',
+      "Can't create PathIndex with empty path or .priority key"
+    );
   }
 
   /**
@@ -44,14 +46,12 @@ export class PathIndex extends Index {
     return snap.getChild(this.indexPath_);
   }
 
-
   /**
    * @inheritDoc
    */
   isDefinedOn(node: Node): boolean {
     return !node.getChild(this.indexPath_).isEmpty();
   }
-
 
   /**
    * @inheritDoc
@@ -67,16 +67,17 @@ export class PathIndex extends Index {
     }
   }
 
-
   /**
    * @inheritDoc
    */
   makePost(indexValue: object, name: string): NamedNode {
     const valueNode = nodeFromJSON(indexValue);
-    const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, valueNode);
+    const node = ChildrenNode.EMPTY_NODE.updateChild(
+      this.indexPath_,
+      valueNode
+    );
     return new NamedNode(name, node);
   }
-
 
   /**
    * @inheritDoc
@@ -85,7 +86,6 @@ export class PathIndex extends Index {
     const node = ChildrenNode.EMPTY_NODE.updateChild(this.indexPath_, MAX_NODE);
     return new NamedNode(MAX_NAME, node);
   }
-
 
   /**
    * @inheritDoc

@@ -19,7 +19,6 @@ import { forEach } from '../../utils/obj';
 import { PersistentStorage } from './storage/storage';
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 
-
 /**
  * A class that holds metadata about a Repo object
  *
@@ -37,8 +36,13 @@ export class RepoInfo {
    * @param {boolean} webSocketOnly Whether to prefer websockets over all other transports (used by Nest).
    * @param {string=} persistenceKey Override the default session persistence storage key
    */
-  constructor(host: string,public secure: boolean, public namespace: string,
-              public webSocketOnly: boolean, public persistenceKey: string = '') {
+  constructor(
+    host: string,
+    public secure: boolean,
+    public namespace: string,
+    public webSocketOnly: boolean,
+    public persistenceKey: string = ''
+  ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
     this.internalHost = PersistentStorage.get('host:' + host) || this.host;
@@ -57,7 +61,9 @@ export class RepoInfo {
   }
 
   isCustomHost() {
-    return this.domain !== 'firebaseio.com' && this.domain !== 'firebaseio-demo.com';
+    return (
+      this.domain !== 'firebaseio.com' && this.domain !== 'firebaseio-demo.com'
+    );
   }
 
   updateHost(newHost: string) {
@@ -81,9 +87,11 @@ export class RepoInfo {
 
     let connURL: string;
     if (type === WEBSOCKET) {
-      connURL = (this.secure ? 'wss://' : 'ws://') + this.internalHost + '/.ws?';
+      connURL =
+        (this.secure ? 'wss://' : 'ws://') + this.internalHost + '/.ws?';
     } else if (type === LONG_POLLING) {
-      connURL = (this.secure ? 'https://' : 'http://') + this.internalHost + '/.lp?';
+      connURL =
+        (this.secure ? 'https://' : 'http://') + this.internalHost + '/.lp?';
     } else {
       throw new Error('Unknown connection type: ' + type);
     }

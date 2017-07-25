@@ -13,12 +13,22 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {forEach} from '../../../src/storage/implementation/object';
+import { forEach } from '../../../src/storage/implementation/object';
 import * as promiseimpl from '../../../src/storage/implementation/promise_external';
 import * as type from '../../../src/storage/implementation/type';
-import {ErrorCode, Headers, XhrIo} from '../../../src/storage/implementation/xhrio';
+import {
+  ErrorCode,
+  Headers,
+  XhrIo
+} from '../../../src/storage/implementation/xhrio';
 
-export type SendHook = (xhrio: TestingXhrIo, url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers) => void;
+export type SendHook = (
+  xhrio: TestingXhrIo,
+  url: string,
+  method: string,
+  body?: ArrayBufferView | Blob | string | null,
+  headers?: Headers
+) => void;
 
 export enum State {
   START = 0,
@@ -26,10 +36,9 @@ export enum State {
   DONE = 2
 }
 
-export type StringHeaders = {[name: string]: string};
+export type StringHeaders = { [name: string]: string };
 
 export class TestingXhrIo implements XhrIo {
-
   private state: State;
   private sendPromise: Promise<XhrIo>;
   private resolve: (XhrIo) => void;
@@ -41,8 +50,9 @@ export class TestingXhrIo implements XhrIo {
 
   constructor(sendHook: SendHook) {
     this.state = State.START;
-    this.sendPromise = 
-    this.sendPromise = promiseimpl.make<XhrIo>((resolve, reject) => {
+    this.sendPromise = this.sendPromise = promiseimpl.make<
+      XhrIo
+    >((resolve, reject) => {
       this.resolve = resolve;
     });
     this.sendHook = sendHook;
@@ -52,9 +62,14 @@ export class TestingXhrIo implements XhrIo {
     this.errorCode = ErrorCode.NO_ERROR;
   }
 
-  send(url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers): Promise<XhrIo> {
+  send(
+    url: string,
+    method: string,
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
+  ): Promise<XhrIo> {
     if (this.state !== State.START) {
-      throw new Error('Can\'t send again');
+      throw new Error("Can't send again");
     }
 
     this.state = State.SENT;
@@ -67,13 +82,13 @@ export class TestingXhrIo implements XhrIo {
 
   simulateResponse(status: number, body: string, headers: Headers) {
     if (this.state !== State.SENT) {
-      throw new Error('Can\'t simulate response before send/more than once');
+      throw new Error("Can't simulate response before send/more than once");
     }
 
     this.status = status;
     this.responseText = body;
     this.headers = {};
-    forEach(headers, (key: string, val: string|number) => {
+    forEach(headers, (key: string, val: string | number) => {
       this.headers[key.toLowerCase()] = val.toString();
     });
     this.errorCode = ErrorCode.NO_ERROR;

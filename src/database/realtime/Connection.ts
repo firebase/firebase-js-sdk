@@ -19,7 +19,7 @@ import {
   logWrapper,
   requireKey,
   setTimeoutNonBlocking,
-  warn,
+  warn
 } from '../core/util/util';
 import { PersistentStorage } from '../core/storage/storage';
 import { PROTOCOL_VERSION } from './Constants';
@@ -43,7 +43,7 @@ const BYTES_RECEIVED_HEALTHY_OVERRIDE = 100 * 1024;
 const enum RealtimeState {
   CONNECTING,
   CONNECTED,
-  DISCONNECTED,
+  DISCONNECTED
 }
 
 const MESSAGE_TYPE = 't';
@@ -57,7 +57,6 @@ const END_TRANSMISSION = 'n';
 const PING = 'p';
 
 const SERVER_HELLO = 'h';
-
 
 /**
  * Creates a new real-time connection to the server using whichever method works
@@ -91,13 +90,15 @@ export class Connection {
    * @param {function(string)} onKill_ - the callback to be triggered when this connection has permanently shut down.
    * @param {string=} lastSessionId - last session id in persistent connection. is used to clean up old session in real-time server
    */
-  constructor(public id: string,
-              private repoInfo_: RepoInfo,
-              private onMessage_: (a: Object) => void,
-              private onReady_: (a: number, b: string) => void,
-              private onDisconnect_: () => void,
-              private onKill_: (a: string) => void,
-              public lastSessionId?: string) {
+  constructor(
+    public id: string,
+    private repoInfo_: RepoInfo,
+    private onMessage_: (a: Object) => void,
+    private onReady_: (a: number, b: string) => void,
+    private onDisconnect_: () => void,
+    private onKill_: (a: string) => void,
+    public lastSessionId?: string
+  ) {
     this.log_ = logWrapper('c:' + this.id + ':');
     this.transportManager_ = new TransportManager(repoInfo_);
     this.log_('Connection created');
@@ -110,7 +111,12 @@ export class Connection {
    */
   private start_() {
     const conn = this.transportManager_.initialTransport();
-    this.conn_ = new conn(this.nextTransportId_(), this.repoInfo_, undefined, this.lastSessionId);
+    this.conn_ = new conn(
+      this.nextTransportId_(),
+      this.repoInfo_,
+      undefined,
+      this.lastSessionId
+    );
 
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we
     // can consider the transport healthy.
@@ -134,20 +140,31 @@ export class Connection {
       this.conn_ && this.conn_.open(onMessageReceived, onConnectionLost);
     }, Math.floor(0));
 
-
     const healthyTimeout_ms = conn['healthyTimeout'] || 0;
     if (healthyTimeout_ms > 0) {
       this.healthyTimeout_ = setTimeoutNonBlocking(() => {
         this.healthyTimeout_ = null;
         if (!this.isHealthy_) {
-          if (this.conn_ && this.conn_.bytesReceived > BYTES_RECEIVED_HEALTHY_OVERRIDE) {
-            this.log_('Connection exceeded healthy timeout but has received ' + this.conn_.bytesReceived +
-              ' bytes.  Marking connection healthy.');
+          if (
+            this.conn_ &&
+            this.conn_.bytesReceived > BYTES_RECEIVED_HEALTHY_OVERRIDE
+          ) {
+            this.log_(
+              'Connection exceeded healthy timeout but has received ' +
+                this.conn_.bytesReceived +
+                ' bytes.  Marking connection healthy.'
+            );
             this.isHealthy_ = true;
             this.conn_.markConnectionHealthy();
-          } else if (this.conn_ && this.conn_.bytesSent > BYTES_SENT_HEALTHY_OVERRIDE) {
-            this.log_('Connection exceeded healthy timeout but has sent ' + this.conn_.bytesSent +
-              ' bytes.  Leaving connection alive.');
+          } else if (
+            this.conn_ &&
+            this.conn_.bytesSent > BYTES_SENT_HEALTHY_OVERRIDE
+          ) {
+            this.log_(
+              'Connection exceeded healthy timeout but has sent ' +
+                this.conn_.bytesSent +
+                ' bytes.  Leaving connection alive.'
+            );
             // NOTE: We don't want to mark it healthy, since we have no guarantee that the bytes have made it to
             // the server.
           } else {
@@ -165,7 +182,7 @@ export class Connection {
    */
   private nextTransportId_(): string {
     return 'c:' + this.id + ':' + this.connectionCount++;
-  };
+  }
 
   private disconnReceiver_(conn) {
     return everConnected => {
@@ -177,7 +194,7 @@ export class Connection {
       } else {
         this.log_('closing an old connection');
       }
-    }
+    };
   }
 
   private connReceiver_(conn: Transport) {
@@ -200,13 +217,15 @@ export class Connection {
    */
   sendRequest(dataMsg: object) {
     // wrap in a data message envelope and send it on
-    const msg = {'t': 'd', 'd': dataMsg};
+    const msg = { t: 'd', d: dataMsg };
     this.sendData_(msg);
   }
 
   tryCleanupConnection() {
     if (this.tx_ === this.secondaryConn_ && this.rx_ === this.secondaryConn_) {
-      this.log_('cleaning up and promoting a connection: ' + this.secondaryConn_.connId);
+      this.log_(
+        'cleaning up and promoting a connection: ' + this.secondaryConn_.connId
+      );
       this.conn_ = this.secondaryConn_;
       this.secondaryConn_ = null;
       // the server will shutdown the old connection
@@ -223,7 +242,10 @@ export class Connection {
         this.log_('Got a reset on secondary, closing it');
         this.secondaryConn_.close();
         // If we were already using this connection for something, than we need to fully close
-        if (this.tx_ === this.secondaryConn_ || this.rx_ === this.secondaryConn_) {
+        if (
+          this.tx_ === this.secondaryConn_ ||
+          this.rx_ === this.secondaryConn_
+        ) {
           this.close();
         }
       } else if (cmd === CONTROL_PONG) {
@@ -256,7 +278,7 @@ export class Connection {
     } else {
       // Send a ping to make sure the connection is healthy.
       this.log_('sending ping on secondary.');
-      this.secondaryConn_.send({'t': 'c', 'd': {'t': PING, 'd': {}}});
+      this.secondaryConn_.send({ t: 'c', d: { t: PING, d: {} } });
     }
   }
 
@@ -265,12 +287,12 @@ export class Connection {
     this.secondaryConn_.start();
     // send ack
     this.log_('sending client ack on secondary');
-    this.secondaryConn_.send({'t': 'c', 'd': {'t': SWITCH_ACK, 'd': {}}});
+    this.secondaryConn_.send({ t: 'c', d: { t: SWITCH_ACK, d: {} } });
 
     // send end packet on primary transport, switch to sending on this one
     // can receive on this one, buffer responses until end received on primary transport
     this.log_('Ending transmission on primary');
-    this.conn_.send({'t': 'c', 'd': {'t': END_TRANSMISSION, 'd': {}}});
+    this.conn_.send({ t: 'c', d: { t: END_TRANSMISSION, d: {} } });
     this.tx_ = this.secondaryConn_;
 
     this.tryCleanupConnection();
@@ -303,7 +325,7 @@ export class Connection {
         this.conn_.markConnectionHealthy();
       }
     }
-  };
+  }
 
   private onControl_(controlData: { [k: string]: any }) {
     const cmd: string = requireKey(MESSAGE_TYPE, controlData);
@@ -343,7 +365,12 @@ export class Connection {
    * @param {Object} handshake The handshake data returned from the server
    * @private
    */
-  private onHandshake_(handshake: { ts: number, v: string, h: string, s: string }) {
+  private onHandshake_(handshake: {
+    ts: number;
+    v: string;
+    h: string;
+    s: string;
+  }) {
     const timestamp = handshake.ts;
     const version = handshake.v;
     const host = handshake.h;
@@ -369,11 +396,15 @@ export class Connection {
   }
 
   private startUpgrade_(conn: TransportConstructor) {
-    this.secondaryConn_ = new conn(this.nextTransportId_(),
-      this.repoInfo_, this.sessionId);
+    this.secondaryConn_ = new conn(
+      this.nextTransportId_(),
+      this.repoInfo_,
+      this.sessionId
+    );
     // For certain transports (WebSockets), we need to send and receive several messages back and forth before we
     // can consider the transport healthy.
-    this.secondaryResponsesRequired_ = conn['responsesRequiredToBeHealthy'] || 0;
+    this.secondaryResponsesRequired_ =
+      conn['responsesRequiredToBeHealthy'] || 0;
 
     const onMessage = this.connReceiver_(this.secondaryConn_);
     const onDisconnect = this.disconnReceiver_(this.secondaryConn_);
@@ -428,7 +459,7 @@ export class Connection {
     // If the connection isn't considered healthy yet, we'll send a noop ping packet request.
     if (!this.isHealthy_ && this.state_ === RealtimeState.CONNECTED) {
       this.log_('sending ping on primary.');
-      this.sendData_({'t': 'c', 'd': {'t': PING, 'd': {}}});
+      this.sendData_({ t: 'c', d: { t: PING, d: {} } });
     }
   }
 
@@ -487,7 +518,6 @@ export class Connection {
     this.close();
   }
 
-
   private sendData_(data: object) {
     if (this.state_ !== RealtimeState.CONNECTED) {
       throw 'Connection is not connected';
@@ -535,5 +565,3 @@ export class Connection {
     }
   }
 }
-
-

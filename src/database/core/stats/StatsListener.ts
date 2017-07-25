@@ -24,12 +24,11 @@ import { StatsCollection } from './StatsCollection';
  * @constructor
  */
 export class StatsListener {
-  private last_: {[k: string]: number} | null = null;
+  private last_: { [k: string]: number } | null = null;
 
-  constructor(private collection_: StatsCollection) {
-  }
+  constructor(private collection_: StatsCollection) {}
 
-  get(): {[k: string]: number} {
+  get(): { [k: string]: number } {
     const newStats = this.collection_.get();
 
     const delta: typeof newStats = clone(newStats);
@@ -43,4 +42,3 @@ export class StatsListener {
     return delta;
   }
 }
-

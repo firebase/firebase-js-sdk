@@ -14,21 +14,21 @@
 * limitations under the License.
 */
 
-import { createFirebaseNamespace } from "../../src/app/firebase_app";
-import { appInstanceSpec } from "./utils/definitions/app";
-import { assert } from "chai";
-import { checkProps } from "./utils/validator";
-import { FirebaseNamespace } from "../../src/app/firebase_app";
-import { registerStorage } from "../../src/storage";
-import { storageInstanceSpec } from "./utils/definitions/storage";
+import { createFirebaseNamespace } from '../../src/app/firebase_app';
+import { appInstanceSpec } from './utils/definitions/app';
+import { assert } from 'chai';
+import { checkProps } from './utils/validator';
+import { FirebaseNamespace } from '../../src/app/firebase_app';
+import { registerStorage } from '../../src/storage';
+import { storageInstanceSpec } from './utils/definitions/storage';
 
 const appConfig = {
-  apiKey: "test-api-key",
-  authDomain: "test-project-name.firebaseapp.com",
-  databaseURL: "https://test-project-name.firebaseio.com",
-  projectId: "test-project-name",
-  storageBucket: "test-project-name.appspot.com",
-  messagingSenderId: "012345678910"
+  apiKey: 'test-api-key',
+  authDomain: 'test-project-name.firebaseapp.com',
+  databaseURL: 'https://test-project-name.firebaseio.com',
+  projectId: 'test-project-name',
+  storageBucket: 'test-project-name.appspot.com',
+  messagingSenderId: '012345678910'
 };
 
 describe('Namespace Test', () => {
@@ -36,7 +36,7 @@ describe('Namespace Test', () => {
   beforeEach(() => {
     firebase = createFirebaseNamespace();
     registerStorage(firebase);
-    firebase.initializeApp(appConfig)
+    firebase.initializeApp(appConfig);
   });
   describe('firebase Verification', () => {
     it('Will be tested by integration test suite until TS migration');
@@ -54,7 +54,11 @@ describe('Namespace Test', () => {
   });
   describe('firebase.storage() Verification', () => {
     it('firebase.storage() should expose proper namespace', () => {
-      checkProps('firebase.storage()', (firebase as any).storage(), storageInstanceSpec);
+      checkProps(
+        'firebase.storage()',
+        (firebase as any).storage(),
+        storageInstanceSpec
+      );
     });
   });
 });

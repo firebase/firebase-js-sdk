@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { assert } from "./assert";
+import { assert } from './assert';
 
 // Code originally came from goog.crypt.stringToUtf8ByteArray, but for some reason they
 // automatically replaced '\r\n' with '\n', and they didn't handle surrogate pairs,
@@ -27,13 +27,13 @@ import { assert } from "./assert";
 // pair).
 // See http://www.ecma-international.org/ecma-262/5.1/#sec-15.1.3
 
-
 /**
  * @param {string} str
  * @return {Array}
  */
 export const stringToByteArray = function(str) {
-  var out = [], p = 0;
+  var out = [],
+    p = 0;
   for (var i = 0; i < str.length; i++) {
     var c = str.charCodeAt(i);
 
@@ -64,7 +64,6 @@ export const stringToByteArray = function(str) {
   }
   return out;
 };
-
 
 /**
  * Calculate length without actually converting; useful for doing cheaper validation.

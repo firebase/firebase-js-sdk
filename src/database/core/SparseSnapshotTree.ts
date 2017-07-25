@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-import { Path } from "./util/Path";
-import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
-import { CountedSet } from "./util/CountedSet";
+import { Path } from './util/Path';
+import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
+import { CountedSet } from './util/CountedSet';
 import { Node } from './snap/Node';
 
 /**
@@ -120,7 +120,9 @@ export class SparseSnapshotTree {
         const childKey = path.getFront();
         path = path.popFront();
         if (this.children_.contains(childKey)) {
-          const safeToRemove = (this.children_.get(childKey) as SparseSnapshotTree).forget(path);
+          const safeToRemove = (this.children_.get(
+            childKey
+          ) as SparseSnapshotTree).forget(path);
           if (safeToRemove) {
             this.children_.remove(childKey);
           }
@@ -132,7 +134,6 @@ export class SparseSnapshotTree {
         } else {
           return false;
         }
-
       } else {
         return true;
       }
@@ -146,7 +147,7 @@ export class SparseSnapshotTree {
    * @param {!Path} prefixPath Path to look up node for.
    * @param {!Function} func The function to invoke for each tree.
    */
-  forEachTree(prefixPath: Path, func: (a: Path, b: Node) =>  any) {
+  forEachTree(prefixPath: Path, func: (a: Path, b: Node) => any) {
     if (this.value_ !== null) {
       func(prefixPath, this.value_);
     } else {

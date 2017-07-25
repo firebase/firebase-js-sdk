@@ -40,17 +40,25 @@ export class IndexMap {
    * @const
    */
   static get Default(): IndexMap {
-    assert(fallbackObject && PRIORITY_INDEX, 'ChildrenNode.ts has not been loaded');
-    _defaultIndexMap = _defaultIndexMap || new IndexMap(
-      {'.priority': fallbackObject},
-      {'.priority': PRIORITY_INDEX}
+    assert(
+      fallbackObject && PRIORITY_INDEX,
+      'ChildrenNode.ts has not been loaded'
     );
+    _defaultIndexMap =
+      _defaultIndexMap ||
+      new IndexMap(
+        { '.priority': fallbackObject },
+        { '.priority': PRIORITY_INDEX }
+      );
     return _defaultIndexMap;
   }
 
-  constructor(private indexes_: { [k: string]: SortedMap<NamedNode, Node> | /*FallbackType*/object },
-              private indexSet_: { [k: string]: Index }) {
-  }
+  constructor(
+    private indexes_: {
+      [k: string]: SortedMap<NamedNode, Node> | /*FallbackType*/ object;
+    },
+    private indexSet_: { [k: string]: Index }
+  ) {}
 
   /**
    *
@@ -83,15 +91,21 @@ export class IndexMap {
    * @param {!SortedMap.<string, !Node>} existingChildren
    * @return {!IndexMap}
    */
-  addIndex(indexDefinition: Index, existingChildren: SortedMap<string, Node>): IndexMap {
-    assert(indexDefinition !== KEY_INDEX,
-      'KeyIndex always exists and isn\'t meant to be added to the IndexMap.');
+  addIndex(
+    indexDefinition: Index,
+    existingChildren: SortedMap<string, Node>
+  ): IndexMap {
+    assert(
+      indexDefinition !== KEY_INDEX,
+      "KeyIndex always exists and isn't meant to be added to the IndexMap."
+    );
     const childList = [];
     let sawIndexedValue = false;
     const iter = existingChildren.getIterator(NamedNode.Wrap);
     let next = iter.getNext();
     while (next) {
-      sawIndexedValue = sawIndexedValue || indexDefinition.isDefinedOn(next.node);
+      sawIndexedValue =
+        sawIndexedValue || indexDefinition.isDefinedOn(next.node);
       childList.push(next);
       next = iter.getNext();
     }
@@ -109,45 +123,52 @@ export class IndexMap {
     return new IndexMap(newIndexes, newIndexSet);
   }
 
-
   /**
    * Ensure that this node is properly tracked in any indexes that we're maintaining
    * @param {!NamedNode} namedNode
    * @param {!SortedMap.<string, !Node>} existingChildren
    * @return {!IndexMap}
    */
-  addToIndexes(namedNode: NamedNode, existingChildren: SortedMap<string, Node>): IndexMap {
-    const newIndexes = map(this.indexes_, (indexedChildren: SortedMap<NamedNode, Node>, indexName: string) => {
-      const index = safeGet(this.indexSet_, indexName);
-      assert(index, 'Missing index implementation for ' + indexName);
-      if (indexedChildren === fallbackObject) {
-        // Check to see if we need to index everything
-        if (index.isDefinedOn(namedNode.node)) {
-          // We need to build this index
-          const childList = [];
-          const iter = existingChildren.getIterator(NamedNode.Wrap);
-          let next = iter.getNext();
-          while (next) {
-            if (next.name != namedNode.name) {
-              childList.push(next);
+  addToIndexes(
+    namedNode: NamedNode,
+    existingChildren: SortedMap<string, Node>
+  ): IndexMap {
+    const newIndexes = map(
+      this.indexes_,
+      (indexedChildren: SortedMap<NamedNode, Node>, indexName: string) => {
+        const index = safeGet(this.indexSet_, indexName);
+        assert(index, 'Missing index implementation for ' + indexName);
+        if (indexedChildren === fallbackObject) {
+          // Check to see if we need to index everything
+          if (index.isDefinedOn(namedNode.node)) {
+            // We need to build this index
+            const childList = [];
+            const iter = existingChildren.getIterator(NamedNode.Wrap);
+            let next = iter.getNext();
+            while (next) {
+              if (next.name != namedNode.name) {
+                childList.push(next);
+              }
+              next = iter.getNext();
             }
-            next = iter.getNext();
+            childList.push(namedNode);
+            return buildChildSet(childList, index.getCompare());
+          } else {
+            // No change, this remains a fallback
+            return fallbackObject;
           }
-          childList.push(namedNode);
-          return buildChildSet(childList, index.getCompare());
         } else {
-          // No change, this remains a fallback
-          return fallbackObject;
+          const existingSnap = existingChildren.get(namedNode.name);
+          let newChildren = indexedChildren;
+          if (existingSnap) {
+            newChildren = newChildren.remove(
+              new NamedNode(namedNode.name, existingSnap)
+            );
+          }
+          return newChildren.insert(namedNode, namedNode.node);
         }
-      } else {
-        const existingSnap = existingChildren.get(namedNode.name);
-        let newChildren = indexedChildren;
-        if (existingSnap) {
-          newChildren = newChildren.remove(new NamedNode(namedNode.name, existingSnap));
-        }
-        return newChildren.insert(namedNode, namedNode.node);
       }
-    });
+    );
     return new IndexMap(newIndexes, this.indexSet_);
   }
 
@@ -157,15 +178,22 @@ export class IndexMap {
    * @param {!SortedMap.<string, !Node>} existingChildren
    * @return {!IndexMap}
    */
-  removeFromIndexes(namedNode: NamedNode, existingChildren: SortedMap<string, Node>): IndexMap {
-    const newIndexes = map(this.indexes_, function (indexedChildren: SortedMap<NamedNode, Node>) {
+  removeFromIndexes(
+    namedNode: NamedNode,
+    existingChildren: SortedMap<string, Node>
+  ): IndexMap {
+    const newIndexes = map(this.indexes_, function(
+      indexedChildren: SortedMap<NamedNode, Node>
+    ) {
       if (indexedChildren === fallbackObject) {
         // This is the fallback. Just return it, nothing to do in this case
         return indexedChildren;
       } else {
         const existingSnap = existingChildren.get(namedNode.name);
         if (existingSnap) {
-          return indexedChildren.remove(new NamedNode(namedNode.name, existingSnap));
+          return indexedChildren.remove(
+            new NamedNode(namedNode.name, existingSnap)
+          );
         } else {
           // No record of this child
           return indexedChildren;

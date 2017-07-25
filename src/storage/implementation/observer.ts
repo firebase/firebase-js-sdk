@@ -20,12 +20,13 @@ type ErrorFn = (error: Error) => void;
 type CompleteFn = () => void;
 type Unsubscribe = () => void;
 
-type Subscribe<T> =
-    (next: NextFn<T> | {[name: string]: string|null},
-     error?: ErrorFn,
-     complete?: CompleteFn) => Unsubscribe;
+type Subscribe<T> = (
+  next: NextFn<T> | { [name: string]: string | null },
+  error?: ErrorFn,
+  complete?: CompleteFn
+) => Unsubscribe;
 
-export {NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe};
+export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
 
 /**
  * @struct
@@ -36,13 +37,16 @@ export class Observer<T> {
   complete: CompleteFn | null;
 
   constructor(
-      nextOrObserver: NextFn<T> | {[name: string]: string|null} | null,
-      opt_error?: ErrorFn | null,
-      opt_complete?: CompleteFn | null) {
-    let asFunctions = type.isFunction(nextOrObserver) ||
-        type.isDef(opt_error) || type.isDef(opt_complete);
+    nextOrObserver: NextFn<T> | { [name: string]: string | null } | null,
+    opt_error?: ErrorFn | null,
+    opt_complete?: CompleteFn | null
+  ) {
+    let asFunctions =
+      type.isFunction(nextOrObserver) ||
+      type.isDef(opt_error) ||
+      type.isDef(opt_complete);
     if (asFunctions) {
-      this.next = nextOrObserver as (NextFn<T> | null);
+      this.next = nextOrObserver as NextFn<T> | null;
       this.error = opt_error || null;
       this.complete = opt_complete || null;
     } else {

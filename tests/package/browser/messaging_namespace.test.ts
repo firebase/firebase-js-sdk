@@ -14,19 +14,19 @@
 * limitations under the License.
 */
 
-import { createFirebaseNamespace } from "../../../src/app/firebase_app";
-import { messagingInstanceSpec } from "../utils/definitions/messaging";
-import { FirebaseNamespace } from "../../../src/app/firebase_app";
-import { registerMessaging } from "../../../src/messaging";
-import { checkProps } from "../utils/validator";
+import { createFirebaseNamespace } from '../../../src/app/firebase_app';
+import { messagingInstanceSpec } from '../utils/definitions/messaging';
+import { FirebaseNamespace } from '../../../src/app/firebase_app';
+import { registerMessaging } from '../../../src/messaging';
+import { checkProps } from '../utils/validator';
 
 const appConfig = {
-  apiKey: "test-api-key",
-  authDomain: "test-project-name.firebaseapp.com",
-  databaseURL: "https://test-project-name.firebaseio.com",
-  projectId: "test-project-name",
-  storageBucket: "test-project-name.appspot.com",
-  messagingSenderId: "012345678910"
+  apiKey: 'test-api-key',
+  authDomain: 'test-project-name.firebaseapp.com',
+  databaseURL: 'https://test-project-name.firebaseio.com',
+  projectId: 'test-project-name',
+  storageBucket: 'test-project-name.appspot.com',
+  messagingSenderId: '012345678910'
 };
 
 describe('Namespace Test', () => {
@@ -38,7 +38,11 @@ describe('Namespace Test', () => {
   });
   describe('firebase.messaging() Verification', () => {
     it('firebase.messaging() should expose proper namespace', () => {
-      checkProps('firebase.messaging()', (firebase as any).messaging(), messagingInstanceSpec);
+      checkProps(
+        'firebase.messaging()',
+        (firebase as any).messaging(),
+        messagingInstanceSpec
+      );
     });
   });
 });

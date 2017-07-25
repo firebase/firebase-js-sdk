@@ -41,9 +41,12 @@ export interface CompleteChildSource {
    * @param {boolean} reverse
    * @return {?NamedNode}
    */
-  getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null;
+  getChildAfterChild(
+    index: Index,
+    child: NamedNode,
+    reverse: boolean
+  ): NamedNode | null;
 }
-
 
 /**
  * An implementation of CompleteChildSource that never returns any additional children
@@ -53,7 +56,6 @@ export interface CompleteChildSource {
  * @implements CompleteChildSource
  */
 export class NoCompleteChildSource_ implements CompleteChildSource {
-
   /**
    * @inheritDoc
    */
@@ -64,11 +66,14 @@ export class NoCompleteChildSource_ implements CompleteChildSource {
   /**
    * @inheritDoc
    */
-  getChildAfterChild(index?: Index, child?: NamedNode, reverse?: boolean): NamedNode | null {
+  getChildAfterChild(
+    index?: Index,
+    child?: NamedNode,
+    reverse?: boolean
+  ): NamedNode | null {
     return null;
   }
 }
-
 
 /**
  * Singleton instance.
@@ -76,7 +81,6 @@ export class NoCompleteChildSource_ implements CompleteChildSource {
  * @type {!CompleteChildSource}
  */
 export const NO_COMPLETE_CHILD_SOURCE = new NoCompleteChildSource_();
-
 
 /**
  * An implementation of CompleteChildSource that uses a WriteTree in addition to any other server data or
@@ -91,10 +95,11 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
    * @param {!ViewCache} viewCache_
    * @param {?Node} optCompleteServerCache_
    */
-  constructor(private writes_: WriteTreeRef,
-              private viewCache_: ViewCache,
-              private optCompleteServerCache_: Node | null = null) {
-  }
+  constructor(
+    private writes_: WriteTreeRef,
+    private viewCache_: ViewCache,
+    private optCompleteServerCache_: Node | null = null
+  ) {}
 
   /**
    * @inheritDoc
@@ -104,8 +109,10 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
     if (node.isCompleteForChild(childKey)) {
       return node.getNode().getImmediateChild(childKey);
     } else {
-      const serverNode = this.optCompleteServerCache_ != null ?
-        new CacheNode(this.optCompleteServerCache_, true, false) : this.viewCache_.getServerCache();
+      const serverNode =
+        this.optCompleteServerCache_ != null
+          ? new CacheNode(this.optCompleteServerCache_, true, false)
+          : this.viewCache_.getServerCache();
       return this.writes_.calcCompleteChild(childKey, serverNode);
     }
   }
@@ -113,10 +120,22 @@ export class WriteTreeCompleteChildSource implements CompleteChildSource {
   /**
    * @inheritDoc
    */
-  getChildAfterChild(index: Index, child: NamedNode, reverse: boolean): NamedNode | null {
-    const completeServerData = this.optCompleteServerCache_ != null ? this.optCompleteServerCache_ :
-      this.viewCache_.getCompleteServerSnap();
-    const nodes = this.writes_.calcIndexedSlice(completeServerData, child, 1, reverse, index);
+  getChildAfterChild(
+    index: Index,
+    child: NamedNode,
+    reverse: boolean
+  ): NamedNode | null {
+    const completeServerData =
+      this.optCompleteServerCache_ != null
+        ? this.optCompleteServerCache_
+        : this.viewCache_.getCompleteServerSnap();
+    const nodes = this.writes_.calcIndexedSlice(
+      completeServerData,
+      child,
+      1,
+      reverse,
+      index
+    );
     if (nodes.length === 0) {
       return null;
     } else {

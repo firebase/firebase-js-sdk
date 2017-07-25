@@ -15,23 +15,23 @@
 */
 
 const firebase = require('../../../../dist/package/firebase-node');
-import { appInstanceSpec } from "../../utils/definitions/app";
-import { assert } from "chai";
-import { checkProps } from "../../utils/validator";
-import { FirebaseNamespace } from "../../../../src/app/firebase_app";
-import { firebaseSpec } from "../../utils/definitions/firebase";
-import { storageInstanceSpec } from "../../utils/definitions/storage";
-import { authInstanceSpec } from "../../utils/definitions/auth";
-import { compiledMessagingInstanceSpec } from "../../utils/definitions/messaging";
-import { databaseInstanceSpec } from "../../utils/definitions/database";
+import { appInstanceSpec } from '../../utils/definitions/app';
+import { assert } from 'chai';
+import { checkProps } from '../../utils/validator';
+import { FirebaseNamespace } from '../../../../src/app/firebase_app';
+import { firebaseSpec } from '../../utils/definitions/firebase';
+import { storageInstanceSpec } from '../../utils/definitions/storage';
+import { authInstanceSpec } from '../../utils/definitions/auth';
+import { compiledMessagingInstanceSpec } from '../../utils/definitions/messaging';
+import { databaseInstanceSpec } from '../../utils/definitions/database';
 
 const appConfig = {
-  apiKey: "test-api-key",
-  authDomain: "test-project-name.firebaseapp.com",
-  databaseURL: "https://test-project-name.firebaseio.com",
-  projectId: "test-project-name",
-  storageBucket: "test-project-name.appspot.com",
-  messagingSenderId: "012345678910"
+  apiKey: 'test-api-key',
+  authDomain: 'test-project-name.firebaseapp.com',
+  databaseURL: 'https://test-project-name.firebaseio.com',
+  projectId: 'test-project-name',
+  storageBucket: 'test-project-name.appspot.com',
+  messagingSenderId: '012345678910'
 };
 
 describe('Binary Namespace Test', () => {
@@ -55,7 +55,11 @@ describe('Binary Namespace Test', () => {
   });
   describe('firebase.database() Verification', () => {
     it('firebase.database() should expose proper namespace', () => {
-      checkProps('firebase.database()', (firebase as any).database(), databaseInstanceSpec);
+      checkProps(
+        'firebase.database()',
+        (firebase as any).database(),
+        databaseInstanceSpec
+      );
     });
   });
 });

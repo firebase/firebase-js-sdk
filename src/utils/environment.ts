@@ -14,15 +14,17 @@
 * limitations under the License.
 */
 
-import { CONSTANTS } from "./constants";
+import { CONSTANTS } from './constants';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
  * @return {string} user agent string
  */
 export const getUA = function() {
-  if (typeof navigator !== 'undefined' &&
-      typeof navigator['userAgent'] === 'string') {
+  if (
+    typeof navigator !== 'undefined' &&
+    typeof navigator['userAgent'] === 'string'
+  ) {
     return navigator['userAgent'];
   } else {
     return '';
@@ -38,11 +40,12 @@ export const getUA = function() {
  * @return {boolean} isMobileCordova
  */
 export const isMobileCordova = function() {
-  return typeof window !== 'undefined' &&
-         !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
-         /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA());
+  return (
+    typeof window !== 'undefined' &&
+    !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
+    /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA())
+  );
 };
-
 
 /**
  * Detect React Native.
@@ -50,9 +53,10 @@ export const isMobileCordova = function() {
  * @return {boolean} True if ReactNative environment is detected.
  */
 export const isReactNative = function() {
-  return typeof navigator === 'object' && navigator['product'] === 'ReactNative';
+  return (
+    typeof navigator === 'object' && navigator['product'] === 'ReactNative'
+  );
 };
-
 
 /**
  * Detect Node.js.

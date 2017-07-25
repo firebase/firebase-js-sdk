@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
+import { assert } from '../../../utils/assert';
 
 /**
  * Fancy ID generator that creates 20-character string identifiers with the
@@ -32,7 +32,8 @@ import { assert } from "../../../utils/assert";
  */
 export const nextPushId = (function() {
   // Modeled after base64 web-safe chars, but ordered by ASCII.
-  const PUSH_CHARS = '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
+  const PUSH_CHARS =
+    '-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';
 
   // Timestamp of last push, used to prevent local collisions if you push twice
   // in one ms.
@@ -45,7 +46,7 @@ export const nextPushId = (function() {
   const lastRandChars: number[] = [];
 
   return function(now: number) {
-    const duplicateTime = (now === lastPushTime);
+    const duplicateTime = now === lastPushTime;
     lastPushTime = now;
 
     let i;

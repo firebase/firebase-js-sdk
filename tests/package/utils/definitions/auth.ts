@@ -23,23 +23,23 @@ import { NamespaceSpec } from '../namespace';
 // Auth Service namespace
 //
 export const authSpec: NamespaceSpec = {
-  Auth: {is: Function},
-  Error: {is: Function},
-  EmailAuthProvider: {is: Function},
-  FacebookAuthProvider: {is: Function},
-  GithubAuthProvider: {is: Function},
-  GoogleAuthProvider: {is: Function},
-  TwitterAuthProvider: {is: Function},
+  Auth: { is: Function },
+  Error: { is: Function },
+  EmailAuthProvider: { is: Function },
+  FacebookAuthProvider: { is: Function },
+  GithubAuthProvider: { is: Function },
+  GoogleAuthProvider: { is: Function },
+  TwitterAuthProvider: { is: Function }
 };
 
 //
 // Auth Service instance
 //
 export const authInstanceSpec: NamespaceSpec = {
-  app: {is: Object, isName: 'App'},
+  app: { is: Object, isName: 'App' },
   INTERNAL: {
-    delete: {is: Function}
-  },
+    delete: { is: Function }
+  }
 };
 
 //
@@ -48,14 +48,14 @@ export const authInstanceSpec: NamespaceSpec = {
 export const firebaseSpec: NamespaceSpec = {
   INTERNAL: {
     factories: {
-      auth: {is: Function},
-    },
+      auth: { is: Function }
+    }
   },
 
-  User: {is: Function},
+  User: { is: Function },
 
   // Service namespaces are also accessor functions
-  auth: {is: Function, args: 1},
+  auth: { is: Function, args: 1 }
 };
 
 //
@@ -63,5 +63,5 @@ export const firebaseSpec: NamespaceSpec = {
 //
 export const appInstanceSpec: NamespaceSpec = {
   // App-specific, service accessors
-  auth: {is: Function, args: 1},
+  auth: { is: Function, args: 1 }
 };

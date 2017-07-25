@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { ChildrenNode } from "./snap/ChildrenNode";
+import { ChildrenNode } from './snap/ChildrenNode';
 import { Path } from './util/Path';
 import { Node } from './snap/Node';
 

@@ -14,15 +14,9 @@
 * limitations under the License.
 */
 
-import { assert } from '../../../utils/assert'
-import {
-  doubleToIEEE754String,
-  sha1
-} from '../util/util';
-import {
-  priorityHashText,
-  validatePriorityNode
-} from './snap';
+import { assert } from '../../../utils/assert';
+import { doubleToIEEE754String, sha1 } from '../util/util';
+import { priorityHashText, validatePriorityNode } from './snap';
 import { Node } from './Node';
 import { Path } from '../util/Path';
 import { Index } from './indexes/Index';
@@ -60,10 +54,14 @@ export class LeafNode implements Node {
    *                                         The object type is possible in the event of a deferred value
    * @param {!Node=} priorityNode_ The priority of this node.
    */
-  constructor(private readonly value_: string | number | boolean | object,
-              private priorityNode_: Node = LeafNode.__childrenNodeConstructor.EMPTY_NODE) {
-    assert(this.value_ !== undefined && this.value_ !== null,
-      'LeafNode shouldn\'t be created with null/undefined value.');
+  constructor(
+    private readonly value_: string | number | boolean | object,
+    private priorityNode_: Node = LeafNode.__childrenNodeConstructor.EMPTY_NODE
+  ) {
+    assert(
+      this.value_ !== undefined && this.value_ !== null,
+      "LeafNode shouldn't be created with null/undefined value."
+    );
 
     validatePriorityNode(this.priorityNode_);
   }
@@ -137,10 +135,18 @@ export class LeafNode implements Node {
     } else if (newChildNode.isEmpty() && front !== '.priority') {
       return this;
     } else {
-      assert(front !== '.priority' || path.getLength() === 1,
-        '.priority must be the last token in a path');
+      assert(
+        front !== '.priority' || path.getLength() === 1,
+        '.priority must be the last token in a path'
+      );
 
-      return this.updateImmediateChild(front, LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateChild(path.popFront(), newChildNode));
+      return this.updateImmediateChild(
+        front,
+        LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateChild(
+          path.popFront(),
+          newChildNode
+        )
+      );
     }
   }
 
@@ -164,9 +170,11 @@ export class LeafNode implements Node {
    */
   val(exportFormat?: boolean): Object {
     if (exportFormat && !this.getPriority().isEmpty())
-      return {'.value': this.getValue(), '.priority': this.getPriority().val()};
-    else
-      return this.getValue();
+      return {
+        '.value': this.getValue(),
+        '.priority': this.getPriority().val()
+      };
+    else return this.getValue();
   }
 
   /** @inheritDoc */
@@ -174,8 +182,10 @@ export class LeafNode implements Node {
     if (this.lazyHash_ === null) {
       let toHash = '';
       if (!this.priorityNode_.isEmpty())
-        toHash += 'priority:' + priorityHashText(
-          (this.priorityNode_.val() as number|string)) + ':';
+        toHash +=
+          'priority:' +
+          priorityHashText(this.priorityNode_.val() as number | string) +
+          ':';
 
       const type = typeof this.value_;
       toHash += type + ':';
@@ -267,10 +277,12 @@ export class LeafNode implements Node {
      */
     if (other === this) {
       return true;
-    }
-    else if (other.isLeafNode()) {
+    } else if (other.isLeafNode()) {
       const otherLeaf = other as LeafNode;
-      return this.value_ === otherLeaf.value_ && this.priorityNode_.equals(otherLeaf.priorityNode_);
+      return (
+        this.value_ === otherLeaf.value_ &&
+        this.priorityNode_.equals(otherLeaf.priorityNode_)
+      );
     } else {
       return false;
     }

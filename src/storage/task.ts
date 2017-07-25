@@ -17,31 +17,37 @@
  * @fileoverview Defines types for interacting with blob transfer tasks.
  */
 
-import {AuthWrapper} from './implementation/authwrapper';
-import {FbsBlob} from './implementation/blob';
-import {FirebaseStorageError} from './implementation/error';
-import {InternalTaskState} from './implementation/taskenums';
-import {Metadata} from './metadata';
-import {NextFn, ErrorFn, CompleteFn, Unsubscribe, Observer} from './implementation/observer';
-import {Request} from './implementation/request';
+import { AuthWrapper } from './implementation/authwrapper';
+import { FbsBlob } from './implementation/blob';
+import { FirebaseStorageError } from './implementation/error';
+import { InternalTaskState } from './implementation/taskenums';
+import { Metadata } from './metadata';
+import {
+  NextFn,
+  ErrorFn,
+  CompleteFn,
+  Unsubscribe,
+  Observer
+} from './implementation/observer';
+import { Request } from './implementation/request';
 import * as RequestExports from './implementation/request';
-import {Subscribe} from './implementation/observer';
-import {TaskEvent, TaskState} from './implementation/taskenums';
-import {UploadTaskSnapshot} from './tasksnapshot';
+import { Subscribe } from './implementation/observer';
+import { TaskEvent, TaskState } from './implementation/taskenums';
+import { UploadTaskSnapshot } from './tasksnapshot';
 import * as fbsArgs from './implementation/args';
-import {ArgSpec} from './implementation/args';
+import { ArgSpec } from './implementation/args';
 import * as fbsArray from './implementation/array';
-import {async as fbsAsync} from './implementation/async';
-import {errors as fbsErrors} from './implementation/error';
+import { async as fbsAsync } from './implementation/async';
+import { errors as fbsErrors } from './implementation/error';
 import * as errors from './implementation/error';
-import {Location} from './implementation/location';
+import { Location } from './implementation/location';
 import * as fbsMetadata from './implementation/metadata';
 import * as fbsPromiseimpl from './implementation/promise_external';
-import {RequestInfo} from './implementation/requestinfo';
+import { RequestInfo } from './implementation/requestinfo';
 import * as fbsRequests from './implementation/requests';
 import * as fbsTaskEnums from './implementation/taskenums';
 import * as typeUtils from './implementation/type';
-import {Reference} from './reference';
+import { Reference } from './reference';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
@@ -52,7 +58,7 @@ export class UploadTask {
   private authWrapper_: AuthWrapper;
   private location_: Location;
   private blob_: FbsBlob;
-  private metadata_: Metadata|null;
+  private metadata_: Metadata | null;
   private mappings_: fbsMetadata.Mappings;
   private transferred_: number = 0;
   private needToFetchStatus_: boolean = false;
@@ -60,14 +66,13 @@ export class UploadTask {
   private observers_: Observer<UploadTaskSnapshot>[] = [];
   private resumable_: boolean;
   private state_: InternalTaskState;
-  private error_: Error|null = null;
-  private uploadUrl_: string|null = null;
-  private request_: Request<any>|null = null;
+  private error_: Error | null = null;
+  private uploadUrl_: string | null = null;
+  private request_: Request<any> | null = null;
   private chunkMultiplier_: number = 1;
   private errorHandler_: (p1: FirebaseStorageError) => void;
   private metadataErrorHandler_: (p1: FirebaseStorageError) => void;
-  private resolve_:
-      ((p1: UploadTaskSnapshot) => void) | null = null;
+  private resolve_: ((p1: UploadTaskSnapshot) => void) | null = null;
   private reject_: ((p1: Error) => void) | null = null;
   private promise_: Promise<UploadTaskSnapshot>;
 
@@ -77,8 +82,13 @@ export class UploadTask {
    * @param blob The blob to upload.
    */
   constructor(
-      ref: Reference, authWrapper: AuthWrapper, location: Location,
-      mappings: fbsMetadata.Mappings, blob: FbsBlob, metadata: Metadata|null = null) {
+    ref: Reference,
+    authWrapper: AuthWrapper,
+    location: Location,
+    mappings: fbsMetadata.Mappings,
+    blob: FbsBlob,
+    metadata: Metadata | null = null
+  ) {
     this.ref_ = ref;
     this.authWrapper_ = authWrapper;
     this.location_ = location;
@@ -87,7 +97,7 @@ export class UploadTask {
     this.mappings_ = mappings;
     this.resumable_ = this.shouldDoResumable_(this.blob_);
     this.state_ = InternalTaskState.RUNNING;
-    this.errorHandler_ = (error) => {
+    this.errorHandler_ = error => {
       this.request_ = null;
       this.chunkMultiplier_ = 1;
       if (error.codeEquals(errors.Code.CANCELED)) {
@@ -98,7 +108,7 @@ export class UploadTask {
         this.transition_(InternalTaskState.ERROR);
       }
     };
-    this.metadataErrorHandler_ = (error) => {
+    this.metadataErrorHandler_ = error => {
       this.request_ = null;
       if (error.codeEquals(errors.Code.CANCELED)) {
         this.completeTransitions_();
@@ -118,8 +128,7 @@ export class UploadTask {
     this.promise_.then(null, () => {});
   }
 
-  private makeProgressCallback_():
-      (p1: number, p2: number) => void {
+  private makeProgressCallback_(): (p1: number, p2: number) => void {
     const sizeBefore = this.transferred_;
     return (loaded, total) => {
       this.updateProgress_(sizeBefore + loaded);
@@ -158,8 +167,8 @@ export class UploadTask {
     }
   }
 
-  private resolveToken_(callback: (p1: string|null) => void) {
-    this.authWrapper_.getAuthToken().then((authToken) => {
+  private resolveToken_(callback: (p1: string | null) => void) {
+    this.authWrapper_.getAuthToken().then(authToken => {
       switch (this.state_) {
         case InternalTaskState.RUNNING:
           callback(authToken);
@@ -178,86 +187,108 @@ export class UploadTask {
   // TODO(andysoto): assert false
 
   private createResumable_() {
-    this.resolveToken_((authToken) => {
+    this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.createResumableUpload(
-          this.authWrapper_, this.location_, this.mappings_, this.blob_,
-          this.metadata_);
-      const createRequest = this.authWrapper_.makeRequest(requestInfo, authToken);
+        this.authWrapper_,
+        this.location_,
+        this.mappings_,
+        this.blob_,
+        this.metadata_
+      );
+      const createRequest = this.authWrapper_.makeRequest(
+        requestInfo,
+        authToken
+      );
       this.request_ = createRequest;
-      createRequest.getPromise().then(
-          (url: string) => {
-            this.request_ = null;
-            this.uploadUrl_ = url;
-            this.needToFetchStatus_ = false;
-            this.completeTransitions_();
-          },
-          this.errorHandler_);
+      createRequest.getPromise().then((url: string) => {
+        this.request_ = null;
+        this.uploadUrl_ = url;
+        this.needToFetchStatus_ = false;
+        this.completeTransitions_();
+      }, this.errorHandler_);
     });
   }
 
   private fetchStatus_() {
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
-    const url = (this.uploadUrl_ as string);
-    this.resolveToken_((authToken) => {
+    const url = this.uploadUrl_ as string;
+    this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.getResumableUploadStatus(
-          this.authWrapper_, this.location_, url, this.blob_);
-      const statusRequest = this.authWrapper_.makeRequest(requestInfo, authToken);
+        this.authWrapper_,
+        this.location_,
+        url,
+        this.blob_
+      );
+      const statusRequest = this.authWrapper_.makeRequest(
+        requestInfo,
+        authToken
+      );
       this.request_ = statusRequest;
-      statusRequest.getPromise().then(
-          (status) => {
-            status = (status as fbsRequests.ResumableUploadStatus);
-            this.request_ = null;
-            this.updateProgress_(status.current);
-            this.needToFetchStatus_ = false;
-            if (status.finalized) {
-              this.needToFetchMetadata_ = true;
-            }
-            this.completeTransitions_();
-          },
-          this.errorHandler_);
+      statusRequest.getPromise().then(status => {
+        status = status as fbsRequests.ResumableUploadStatus;
+        this.request_ = null;
+        this.updateProgress_(status.current);
+        this.needToFetchStatus_ = false;
+        if (status.finalized) {
+          this.needToFetchMetadata_ = true;
+        }
+        this.completeTransitions_();
+      }, this.errorHandler_);
     });
   }
 
   private continueUpload_() {
     const chunkSize =
-        fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
+      fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
     const status = new fbsRequests.ResumableUploadStatus(
-        this.transferred_, this.blob_.size());
+      this.transferred_,
+      this.blob_.size()
+    );
 
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
-    const url = (this.uploadUrl_ as string);
-    this.resolveToken_((authToken) => {
-    let requestInfo;
+    const url = this.uploadUrl_ as string;
+    this.resolveToken_(authToken => {
+      let requestInfo;
       try {
         requestInfo = fbsRequests.continueResumableUpload(
-            this.location_, this.authWrapper_, url, this.blob_, chunkSize,
-            this.mappings_, status, this.makeProgressCallback_());
+          this.location_,
+          this.authWrapper_,
+          url,
+          this.blob_,
+          chunkSize,
+          this.mappings_,
+          status,
+          this.makeProgressCallback_()
+        );
       } catch (e) {
         this.error_ = e;
         this.transition_(InternalTaskState.ERROR);
         return;
       }
-      const uploadRequest = this.authWrapper_.makeRequest(requestInfo, authToken);
+      const uploadRequest = this.authWrapper_.makeRequest(
+        requestInfo,
+        authToken
+      );
       this.request_ = uploadRequest;
-      uploadRequest.getPromise().then(
-          (newStatus: fbsRequests.ResumableUploadStatus) => {
-            this.increaseMultiplier_();
-            this.request_ = null;
-            this.updateProgress_(newStatus.current);
-            if (newStatus.finalized) {
-              this.metadata_ = newStatus.metadata;
-              this.transition_(InternalTaskState.SUCCESS);
-            } else {
-              this.completeTransitions_();
-            }
-          },
-          this.errorHandler_);
+      uploadRequest
+        .getPromise()
+        .then((newStatus: fbsRequests.ResumableUploadStatus) => {
+          this.increaseMultiplier_();
+          this.request_ = null;
+          this.updateProgress_(newStatus.current);
+          if (newStatus.finalized) {
+            this.metadata_ = newStatus.metadata;
+            this.transition_(InternalTaskState.SUCCESS);
+          } else {
+            this.completeTransitions_();
+          }
+        }, this.errorHandler_);
     });
   }
 
   private increaseMultiplier_() {
     const currentSize =
-        fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
+      fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
 
     // Max chunk size is 32M.
     if (currentSize < 32 * 1024 * 1024) {
@@ -266,36 +297,45 @@ export class UploadTask {
   }
 
   private fetchMetadata_() {
-    this.resolveToken_((authToken) => {
+    this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.getMetadata(
-          this.authWrapper_, this.location_, this.mappings_);
-      const metadataRequest = this.authWrapper_.makeRequest(requestInfo, authToken);
+        this.authWrapper_,
+        this.location_,
+        this.mappings_
+      );
+      const metadataRequest = this.authWrapper_.makeRequest(
+        requestInfo,
+        authToken
+      );
       this.request_ = metadataRequest;
-      metadataRequest.getPromise().then(
-          (metadata) => {
-            this.request_ = null;
-            this.metadata_ = metadata;
-            this.transition_(InternalTaskState.SUCCESS);
-          },
-          this.metadataErrorHandler_);
+      metadataRequest.getPromise().then(metadata => {
+        this.request_ = null;
+        this.metadata_ = metadata;
+        this.transition_(InternalTaskState.SUCCESS);
+      }, this.metadataErrorHandler_);
     });
   }
 
   private oneShotUpload_() {
-    this.resolveToken_((authToken) => {
+    this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.multipartUpload(
-          this.authWrapper_, this.location_, this.mappings_, this.blob_,
-          this.metadata_);
-      const multipartRequest = this.authWrapper_.makeRequest(requestInfo, authToken);
+        this.authWrapper_,
+        this.location_,
+        this.mappings_,
+        this.blob_,
+        this.metadata_
+      );
+      const multipartRequest = this.authWrapper_.makeRequest(
+        requestInfo,
+        authToken
+      );
       this.request_ = multipartRequest;
-      multipartRequest.getPromise().then(
-          (metadata) => {
-            this.request_ = null;
-            this.metadata_ = metadata;
-            this.updateProgress_(this.blob_.size());
-            this.transition_(InternalTaskState.SUCCESS);
-          },
-          this.errorHandler_);
+      multipartRequest.getPromise().then(metadata => {
+        this.request_ = null;
+        this.metadata_ = metadata;
+        this.updateProgress_(this.blob_.size());
+        this.transition_(InternalTaskState.SUCCESS);
+      }, this.errorHandler_);
     });
   }
 
@@ -317,7 +357,6 @@ export class UploadTask {
     }
     switch (state) {
       case InternalTaskState.CANCELING:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.RUNNING ||
         //        this.state_ === InternalTaskState.PAUSING);
@@ -327,7 +366,6 @@ export class UploadTask {
         }
         break;
       case InternalTaskState.PAUSING:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.RUNNING);
         this.state_ = state;
@@ -336,7 +374,6 @@ export class UploadTask {
         }
         break;
       case InternalTaskState.RUNNING:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.PAUSED ||
         //        this.state_ === InternalTaskState.PAUSING);
@@ -348,14 +385,12 @@ export class UploadTask {
         }
         break;
       case InternalTaskState.PAUSED:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.PAUSING);
         this.state_ = state;
         this.notifyObservers_();
         break;
       case InternalTaskState.CANCELED:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.PAUSED ||
         //        this.state_ === InternalTaskState.CANCELING);
@@ -364,7 +399,6 @@ export class UploadTask {
         this.notifyObservers_();
         break;
       case InternalTaskState.ERROR:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.RUNNING ||
         //        this.state_ === InternalTaskState.PAUSING ||
@@ -373,7 +407,6 @@ export class UploadTask {
         this.notifyObservers_();
         break;
       case InternalTaskState.SUCCESS:
-
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.RUNNING ||
         //        this.state_ === InternalTaskState.PAUSING ||
@@ -396,34 +429,43 @@ export class UploadTask {
         this.start_();
         break;
       default:
-
         // TODO(andysoto): assert(false);
         break;
     }
   }
 
   get snapshot(): UploadTaskSnapshot {
-    const externalState =
-        fbsTaskEnums.taskStateFromInternalTaskState(this.state_);
+    const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
+      this.state_
+    );
     return new UploadTaskSnapshot(
-        this.transferred_, this.blob_.size(), externalState, this.metadata_,
-        this, this.ref_);
+      this.transferred_,
+      this.blob_.size(),
+      externalState,
+      this.metadata_,
+      this,
+      this.ref_
+    );
   }
 
   /**
    * Adds a callback for an event.
    * @param type The type of event to listen for.
    */
-  on(type: TaskEvent, nextOrObserver = undefined, error = undefined,
-     completed = undefined): Unsubscribe | Subscribe<UploadTaskSnapshot> {
+  on(
+    type: TaskEvent,
+    nextOrObserver = undefined,
+    error = undefined,
+    completed = undefined
+  ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
     function typeValidator(_p: any) {
       if (type !== TaskEvent.STATE_CHANGED) {
         throw `Expected one of the event types: [${TaskEvent.STATE_CHANGED}].`;
       }
     }
     const nextOrObserverMessage =
-        'Expected a function or an Object with one of ' +
-        '`next`, `error`, `complete` properties.';
+      'Expected a function or an Object with one of ' +
+      '`next`, `error`, `complete` properties.';
     const nextValidator = fbsArgs.nullFunctionSpec(true).validator;
     const observerValidator = fbsArgs.looseObjectSpec(null, true).validator;
 
@@ -431,12 +473,13 @@ export class UploadTask {
       try {
         nextValidator(p);
         return;
-      } catch (e) {
-      }
+      } catch (e) {}
       try {
         observerValidator(p);
-        const anyDefined = typeUtils.isJustDef(p['next']) || typeUtils.isJustDef(p['error']) ||
-            typeUtils.isJustDef(p['complete']);
+        const anyDefined =
+          typeUtils.isJustDef(p['next']) ||
+          typeUtils.isJustDef(p['error']) ||
+          typeUtils.isJustDef(p['complete']);
         if (!anyDefined) {
           throw '';
         }
@@ -448,16 +491,23 @@ export class UploadTask {
     const specs = [
       fbsArgs.stringSpec(typeValidator),
       fbsArgs.looseObjectSpec(nextOrObserverValidator, true),
-      fbsArgs.nullFunctionSpec(true), fbsArgs.nullFunctionSpec(true)
+      fbsArgs.nullFunctionSpec(true),
+      fbsArgs.nullFunctionSpec(true)
     ];
     fbsArgs.validate('on', specs, arguments);
     const self = this;
 
-    function makeBinder(specs: ArgSpec[]|null): Subscribe<UploadTaskSnapshot> {
+    function makeBinder(
+      specs: ArgSpec[] | null
+    ): Subscribe<UploadTaskSnapshot> {
       function binder(
-          nextOrObserver: NextFn<UploadTaskSnapshot> | {[name: string]: string|null} | null,
-          error?: ErrorFn | null,
-          opt_complete?: CompleteFn | null) {
+        nextOrObserver:
+          | NextFn<UploadTaskSnapshot>
+          | { [name: string]: string | null }
+          | null,
+        error?: ErrorFn | null,
+        opt_complete?: CompleteFn | null
+      ) {
         if (specs !== null) {
           fbsArgs.validate('on', specs, arguments);
         }
@@ -478,11 +528,14 @@ export class UploadTask {
     }
     const binderSpecs = [
       fbsArgs.looseObjectSpec(binderNextOrObserverValidator),
-      fbsArgs.nullFunctionSpec(true), fbsArgs.nullFunctionSpec(true)
+      fbsArgs.nullFunctionSpec(true),
+      fbsArgs.nullFunctionSpec(true)
     ];
-    const typeOnly =
-        !(typeUtils.isJustDef(nextOrObserver) || typeUtils.isJustDef(error) ||
-          typeUtils.isJustDef(completed));
+    const typeOnly = !(
+      typeUtils.isJustDef(nextOrObserver) ||
+      typeUtils.isJustDef(error) ||
+      typeUtils.isJustDef(completed)
+    );
     if (typeOnly) {
       return makeBinder(binderSpecs);
     } else {
@@ -496,12 +549,16 @@ export class UploadTask {
    * @param onFulfilled The fulfillment callback. Promise chaining works as normal.
    * @param onRejected The rejection callback.
    */
-  then<U>(onFulfilled?: ((value: UploadTaskSnapshot) => U | PromiseLike<U>) | null, onRejected?: ((error: any) => U | PromiseLike<U>) | null): Promise<U> {
-      // These casts are needed so that TypeScript can infer the types of the
-      // resulting Promise.
-      return this.promise_.then<U>(
-        (onFulfilled as (value: UploadTaskSnapshot) => U | PromiseLike<U>),
-        (onRejected as ((error: any) => PromiseLike<never>) | null));
+  then<U>(
+    onFulfilled?: ((value: UploadTaskSnapshot) => U | PromiseLike<U>) | null,
+    onRejected?: ((error: any) => U | PromiseLike<U>) | null
+  ): Promise<U> {
+    // These casts are needed so that TypeScript can infer the types of the
+    // resulting Promise.
+    return this.promise_.then<U>(
+      onFulfilled as (value: UploadTaskSnapshot) => U | PromiseLike<U>,
+      onRejected as ((error: any) => PromiseLike<never>) | null
+    );
   }
 
   /**
@@ -529,7 +586,7 @@ export class UploadTask {
   private notifyObservers_() {
     this.finishPromise_();
     const observers = fbsArray.clone(this.observers_);
-    observers.forEach((observer) => {
+    observers.forEach(observer => {
       this.notifyObserver_(observer);
     });
   }
@@ -543,8 +600,8 @@ export class UploadTask {
           break;
         case TaskState.CANCELED:
         case TaskState.ERROR:
-          const toCall = (this.reject_ as ((p1: Error) => void));
-          fbsAsync(toCall.bind(null, (this.error_ as Error)))();
+          const toCall = this.reject_ as ((p1: Error) => void);
+          fbsAsync(toCall.bind(null, this.error_ as Error))();
           break;
         default:
           triggered = false;
@@ -558,8 +615,9 @@ export class UploadTask {
   }
 
   private notifyObserver_(observer: Observer<UploadTaskSnapshot>) {
-    const externalState =
-        fbsTaskEnums.taskStateFromInternalTaskState(this.state_);
+    const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
+      this.state_
+    );
     switch (externalState) {
       case TaskState.RUNNING:
       case TaskState.PAUSED:
@@ -575,14 +633,13 @@ export class UploadTask {
       case TaskState.CANCELED:
       case TaskState.ERROR:
         if (observer.error !== null) {
-          fbsAsync(observer.error.bind(observer, (this.error_ as Error)))();
+          fbsAsync(observer.error.bind(observer, this.error_ as Error))();
         }
         break;
       default:
-
         // TODO(andysoto): assert(false);
         if (observer.error !== null) {
-          fbsAsync(observer.error.bind(observer, (this.error_ as Error)))();
+          fbsAsync(observer.error.bind(observer, this.error_ as Error))();
         }
     }
   }
@@ -593,8 +650,9 @@ export class UploadTask {
    */
   resume(): boolean {
     fbsArgs.validate('resume', [], arguments);
-    const valid = this.state_ === InternalTaskState.PAUSED ||
-        this.state_ === InternalTaskState.PAUSING;
+    const valid =
+      this.state_ === InternalTaskState.PAUSED ||
+      this.state_ === InternalTaskState.PAUSING;
     if (valid) {
       this.transition_(InternalTaskState.RUNNING);
     }
@@ -621,8 +679,9 @@ export class UploadTask {
    */
   cancel(): boolean {
     fbsArgs.validate('cancel', [], arguments);
-    const valid = this.state_ === InternalTaskState.RUNNING ||
-        this.state_ === InternalTaskState.PAUSING;
+    const valid =
+      this.state_ === InternalTaskState.RUNNING ||
+      this.state_ === InternalTaskState.PAUSING;
     if (valid) {
       this.transition_(InternalTaskState.CANCELING);
     }

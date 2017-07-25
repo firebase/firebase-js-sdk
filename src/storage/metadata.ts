@@ -13,33 +13,33 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {Reference} from './reference';
+import { Reference } from './reference';
 
 /**
  * @fileoverview Documentation for the metadata format.
  */
 type Metadata = {
-  bucket: string|undefined,
-  generation: string|undefined,
-  metageneration: string|undefined,
-  fullPath: string|undefined,
-  name: string|undefined,
-  size: number|undefined,
-  type: string|undefined,
-  timeCreated: string|undefined,
-  updated: string|undefined,
-  md5Hash: string|undefined,
-  cacheControl: string|undefined,
-  contentDisposition: string|undefined,
-  contentEncoding: string|undefined,
-  contentLanguage: string|undefined,
-  contentType: string|undefined,
-  downloadURLs: string[]|undefined,
-  downloadTokens: string[]|undefined,
-  customMetadata: {[key: string]: string}|undefined,
-  ref: Reference|undefined
+  bucket: string | undefined;
+  generation: string | undefined;
+  metageneration: string | undefined;
+  fullPath: string | undefined;
+  name: string | undefined;
+  size: number | undefined;
+  type: string | undefined;
+  timeCreated: string | undefined;
+  updated: string | undefined;
+  md5Hash: string | undefined;
+  cacheControl: string | undefined;
+  contentDisposition: string | undefined;
+  contentEncoding: string | undefined;
+  contentLanguage: string | undefined;
+  contentType: string | undefined;
+  downloadURLs: string[] | undefined;
+  downloadTokens: string[] | undefined;
+  customMetadata: { [key: string]: string } | undefined;
+  ref: Reference | undefined;
 
   [prop: string]: any;
 };
 
-export {Metadata};
+export { Metadata };

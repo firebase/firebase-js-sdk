@@ -20,12 +20,11 @@ import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
 import DefaultSW from '../models/default-sw';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
-import {createSubscribe} from '../../app/subscribe';
+import { createSubscribe } from '../../app/subscribe';
 
 declare const firebase: any;
 
 export default class WindowController extends ControllerInterface {
-
   private registrationToUse_;
   private manifestCheckPromise_;
   private messageObserver_;
@@ -94,8 +93,7 @@ export default class WindowController extends ControllerInterface {
       );
     }
 
-    return this.manifestCheck_()
-    .then(() => {
+    return this.manifestCheck_().then(() => {
       return super.getToken();
     });
   }
@@ -112,33 +110,36 @@ export default class WindowController extends ControllerInterface {
       return this.manifestCheckPromise_;
     }
 
-    const manifestTag = (<HTMLAnchorElement> document.querySelector('link[rel="manifest"]'));
+    const manifestTag = <HTMLAnchorElement>document.querySelector(
+      'link[rel="manifest"]'
+    );
     if (!manifestTag) {
       this.manifestCheckPromise_ = Promise.resolve();
     } else {
       this.manifestCheckPromise_ = fetch(manifestTag.href)
-      .then(response => {
-        return response.json();
-      })
-      .catch(() => {
-        // If the download or parsing fails allow check.
-        // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-        return Promise.resolve();
-      })
-      .then(manifestContent => {
-        if (!manifestContent) {
-          return;
-        }
+        .then(response => {
+          return response.json();
+        })
+        .catch(() => {
+          // If the download or parsing fails allow check.
+          // We only want to error if we KNOW that the gcm_sender_id is incorrect.
+          return Promise.resolve();
+        })
+        .then(manifestContent => {
+          if (!manifestContent) {
+            return;
+          }
 
-        if (!manifestContent['gcm_sender_id']) {
-          return;
-        }
+          if (!manifestContent['gcm_sender_id']) {
+            return;
+          }
 
-        if (manifestContent['gcm_sender_id'] !== '103953800507') {
-          throw this.errorFactory_.create(
-            Errors.codes.INCORRECT_GCM_SENDER_ID);
-        }
-      });
+          if (manifestContent['gcm_sender_id'] !== '103953800507') {
+            throw this.errorFactory_.create(
+              Errors.codes.INCORRECT_GCM_SENDER_ID
+            );
+          }
+        });
     }
 
     return this.manifestCheckPromise_;
@@ -160,11 +161,13 @@ export default class WindowController extends ControllerInterface {
         if (result === NOTIFICATION_PERMISSION.granted) {
           return resolve();
         } else if (result === NOTIFICATION_PERMISSION.denied) {
-          return reject(this.errorFactory_.create(
-            Errors.codes.PERMISSION_BLOCKED));
+          return reject(
+            this.errorFactory_.create(Errors.codes.PERMISSION_BLOCKED)
+          );
         } else {
-          return reject(this.errorFactory_.create(
-            Errors.codes.PERMISSION_DEFAULT));
+          return reject(
+            this.errorFactory_.create(Errors.codes.PERMISSION_DEFAULT)
+          );
         }
       };
 
@@ -244,8 +247,8 @@ export default class WindowController extends ControllerInterface {
    * registration to become active
    */
   waitForRegistrationToActivate_(registration) {
-    const serviceWorker = registration.installing || registration.waiting ||
-      registration.active;
+    const serviceWorker =
+      registration.installing || registration.waiting || registration.active;
 
     return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
@@ -295,29 +298,30 @@ export default class WindowController extends ControllerInterface {
     // use a new service worker as registrationToUse_ is no longer undefined
     this.registrationToUse_ = null;
 
-    return navigator.serviceWorker.register(DefaultSW.path, {
-      scope: DefaultSW.scope
-    })
-    .catch(err => {
-      throw this.errorFactory_.create(
-        Errors.codes.FAILED_DEFAULT_REGISTRATION, {
-          'browserErrorMessage': err.message
-        }
-      );
-    })
-    .then(registration => {
-      return this.waitForRegistrationToActivate_(registration)
-      .then(() => {
-        this.registrationToUse_ = registration;
+    return navigator.serviceWorker
+      .register(DefaultSW.path, {
+        scope: DefaultSW.scope
+      })
+      .catch(err => {
+        throw this.errorFactory_.create(
+          Errors.codes.FAILED_DEFAULT_REGISTRATION,
+          {
+            browserErrorMessage: err.message
+          }
+        );
+      })
+      .then(registration => {
+        return this.waitForRegistrationToActivate_(registration).then(() => {
+          this.registrationToUse_ = registration;
 
-        // We update after activation due to an issue with Firefox v49 where
-        // a race condition occassionally causes the service work to not
-        // install
-        registration.update();
+          // We update after activation due to an issue with Firefox v49 where
+          // a race condition occassionally causes the service work to not
+          // install
+          registration.update();
 
-        return registration;
+          return registration;
+        });
       });
-    });
   }
 
   /**
@@ -332,24 +336,29 @@ export default class WindowController extends ControllerInterface {
       return;
     }
 
-    navigator.serviceWorker.addEventListener('message', event => {
-      if (!event.data || !event.data[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
-        // Not a message from FCM
-        return;
-      }
+    navigator.serviceWorker.addEventListener(
+      'message',
+      event => {
+        if (!event.data || !event.data[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
+          // Not a message from FCM
+          return;
+        }
 
-      const workerPageMessage = event.data;
-      switch (workerPageMessage[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
-        case WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED:
-        case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
-          const pushMessage = workerPageMessage[WorkerPageMessage.PARAMS.DATA];
-          this.messageObserver_.next(pushMessage);
-          break;
-        default:
-          // Noop.
-          break;
-      }
-    }, false);
+        const workerPageMessage = event.data;
+        switch (workerPageMessage[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
+          case WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED:
+          case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
+            const pushMessage =
+              workerPageMessage[WorkerPageMessage.PARAMS.DATA];
+            this.messageObserver_.next(pushMessage);
+            break;
+          default:
+            // Noop.
+            break;
+        }
+      },
+      false
+    );
   }
 
   /**
@@ -358,12 +367,13 @@ export default class WindowController extends ControllerInterface {
    * @return {boolean} Returns true if the desired APIs are available.
    */
   isSupported_() {
-    return 'serviceWorker' in navigator &&
-        'PushManager' in window &&
-        'Notification' in window &&
-        'fetch' in window &&
-        ServiceWorkerRegistration.prototype
-            .hasOwnProperty('showNotification') &&
-        PushSubscription.prototype.hasOwnProperty('getKey');
+    return (
+      'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window &&
+      'fetch' in window &&
+      ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+      PushSubscription.prototype.hasOwnProperty('getKey')
+    );
   }
 }

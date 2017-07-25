@@ -15,15 +15,15 @@
 */
 
 import firebase from './app';
-import { FirebaseApp, FirebaseNamespace } from "./app/firebase_app";
-import { Database } from "./database/api/Database";
-import { Query } from "./database/api/Query";
-import { Reference } from "./database/api/Reference";
-import { enableLogging } from "./database/core/util/util";
-import { RepoManager } from "./database/core/RepoManager";
+import { FirebaseApp, FirebaseNamespace } from './app/firebase_app';
+import { Database } from './database/api/Database';
+import { Query } from './database/api/Query';
+import { Reference } from './database/api/Reference';
+import { enableLogging } from './database/core/util/util';
+import { RepoManager } from './database/core/RepoManager';
 import * as INTERNAL from './database/api/internal';
 import * as TEST_ACCESS from './database/api/test_access';
-import { isNodeSdk } from "./utils/environment";
+import { isNodeSdk } from './utils/environment';
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
@@ -52,21 +52,21 @@ export function registerDatabase(instance: FirebaseNamespace) {
  */
 declare module './app/firebase_app' {
   interface FirebaseApp {
-    database?(): Database
+    database?(): Database;
   }
 }
 
 declare module './app/firebase_app' {
   interface FirebaseNamespace {
     database?: {
-      (app?: FirebaseApp): Database,
-      Database,
-      enableLogging,
-      INTERNAL,
-      Query,
-      Reference,
-      ServerValue,
-    }
+      (app?: FirebaseApp): Database;
+      Database;
+      enableLogging;
+      INTERNAL;
+      Query;
+      Reference;
+      ServerValue;
+    };
   }
 }
 

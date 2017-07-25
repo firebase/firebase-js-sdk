@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-import { BrowserPollConnection } from "./BrowserPollConnection";
-import { WebSocketConnection } from "./WebSocketConnection";
-import { warn, each } from "../core/util/util";
+import { BrowserPollConnection } from './BrowserPollConnection';
+import { WebSocketConnection } from './WebSocketConnection';
+import { warn, each } from '../core/util/util';
 import { TransportConstructor } from './Transport';
 import { RepoInfo } from '../core/RepoInfo';
 
@@ -36,10 +36,7 @@ export class TransportManager {
    * @type {!Array.<function(new:Transport, string, RepoInfo, string=)>}
    */
   static get ALL_TRANSPORTS() {
-    return [
-      BrowserPollConnection,
-      WebSocketConnection
-    ];
+    return [BrowserPollConnection, WebSocketConnection];
   }
 
   /**
@@ -54,12 +51,16 @@ export class TransportManager {
    * @private
    */
   private initTransports_(repoInfo: RepoInfo) {
-    const isWebSocketsAvailable: boolean = WebSocketConnection && WebSocketConnection['isAvailable']();
-    let isSkipPollConnection = isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
+    const isWebSocketsAvailable: boolean =
+      WebSocketConnection && WebSocketConnection['isAvailable']();
+    let isSkipPollConnection =
+      isWebSocketsAvailable && !WebSocketConnection.previouslyFailed();
 
     if (repoInfo.webSocketOnly) {
       if (!isWebSocketsAvailable)
-        warn('wss:// URL used, but browser isn\'t known to support websockets.  Trying anyway.');
+        warn(
+          "wss:// URL used, but browser isn't known to support websockets.  Trying anyway."
+        );
 
       isSkipPollConnection = true;
     }
@@ -67,12 +68,15 @@ export class TransportManager {
     if (isSkipPollConnection) {
       this.transports_ = [WebSocketConnection];
     } else {
-      const transports = this.transports_ = [] as TransportConstructor[];
-      each(TransportManager.ALL_TRANSPORTS, (i: number, transport: TransportConstructor) => {
-        if (transport && transport['isAvailable']()) {
-          transports.push(transport);
+      const transports = (this.transports_ = [] as TransportConstructor[]);
+      each(
+        TransportManager.ALL_TRANSPORTS,
+        (i: number, transport: TransportConstructor) => {
+          if (transport && transport['isAvailable']()) {
+            transports.push(transport);
+          }
         }
-      });
+      );
     }
   }
 

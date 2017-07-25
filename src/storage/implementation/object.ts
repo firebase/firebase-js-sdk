@@ -17,14 +17,14 @@
 /**
  * @fileoverview Contains methods for working with objects.
  */
-export function contains(
-    obj: Object, prop: string): boolean {
+export function contains(obj: Object, prop: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
 export function forEach<T>(
-    obj: {[key: string]: T},
-    f: (p1: string, p2: T) => void) {
+  obj: { [key: string]: T },
+  f: (p1: string, p2: T) => void
+) {
   for (let key in obj) {
     if (contains(obj, key)) {
       f(key, obj[key]);
@@ -32,12 +32,12 @@ export function forEach<T>(
   }
 }
 
-export function clone<T>(obj?: {[key: string]: any}|null): T {
+export function clone<T>(obj?: { [key: string]: any } | null): T {
   if (obj == null) {
     return {} as T;
   }
 
-  let c: {[name: string]: any} = {};
+  let c: { [name: string]: any } = {};
   forEach(obj, function(key, val) {
     c[key] = val;
   });

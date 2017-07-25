@@ -33,10 +33,11 @@ export class DataSnapshot {
    * @param {!Reference} ref_ The ref of the location this snapshot came from.
    * @param {!Index} index_ The iteration order for this snapshot
    */
-  constructor(private readonly node_: Node,
-              private readonly ref_: Reference,
-              private readonly index_: Index) {
-  }
+  constructor(
+    private readonly node_: Node,
+    private readonly ref_: Reference,
+    private readonly index_: Index
+  ) {}
 
   /**
    * Retrieves the snapshot contents as JSON.  Returns null if the snapshot is
@@ -91,7 +92,11 @@ export class DataSnapshot {
 
     const childPath = new Path(childPathString);
     const childRef = this.ref_.child(childPath);
-    return new DataSnapshot(this.node_.getChild(childPath), childRef, PRIORITY_INDEX);
+    return new DataSnapshot(
+      this.node_.getChild(childPath),
+      childRef,
+      PRIORITY_INDEX
+    );
   }
 
   /**
@@ -117,7 +122,7 @@ export class DataSnapshot {
     validateArgCount('DataSnapshot.getPriority', 0, 0, arguments.length);
 
     // typecast here because we never return deferred values or internal priorities (MAX_PRIORITY)
-    return (this.node_.getPriority().val() as string | number | null);
+    return this.node_.getPriority().val() as string | number | null;
   }
 
   /**
@@ -132,13 +137,14 @@ export class DataSnapshot {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 1, action, false);
 
-    if (this.node_.isLeafNode())
-      return false;
+    if (this.node_.isLeafNode()) return false;
 
-    const childrenNode = (this.node_ as ChildrenNode);
+    const childrenNode = this.node_ as ChildrenNode;
     // Sanitize the return value to a boolean. ChildrenNode.forEachChild has a weird return type...
     return !!childrenNode.forEachChild(this.index_, (key, node) => {
-      return action(new DataSnapshot(node, this.ref_.child(key), PRIORITY_INDEX));
+      return action(
+        new DataSnapshot(node, this.ref_.child(key), PRIORITY_INDEX)
+      );
     });
   }
 
@@ -149,10 +155,8 @@ export class DataSnapshot {
   hasChildren(): boolean {
     validateArgCount('DataSnapshot.hasChildren', 0, 0, arguments.length);
 
-    if (this.node_.isLeafNode())
-      return false;
-    else
-      return !this.node_.isEmpty();
+    if (this.node_.isLeafNode()) return false;
+    else return !this.node_.isEmpty();
   }
 
   get key() {

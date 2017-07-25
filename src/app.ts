@@ -14,10 +14,7 @@
 * limitations under the License.
 */
 // Import the createFirebaseNamespace function
-import { 
-  createFirebaseNamespace,
-  FirebaseNamespace
-} from './app/firebase_app';
+import { createFirebaseNamespace, FirebaseNamespace } from './app/firebase_app';
 
 // Export a single instance of firebase app
 const firebase: FirebaseNamespace = createFirebaseNamespace();

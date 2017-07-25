@@ -14,13 +14,12 @@
 * limitations under the License.
 */
 
-import { globalScope } from "../../../src/utils/globalScope";
-import firebase from "../../../src/app";
+import { globalScope } from '../../../src/utils/globalScope';
+import firebase from '../../../src/app';
 import '../../../src/database';
-import { Reference } from "../../../src/database/api/Reference";
-import { Query } from "../../../src/database/api/Query";
-import { ConnectionTarget } from "../../../src/database/api/test_access";
-
+import { Reference } from '../../../src/database/api/Reference';
+import { Query } from '../../../src/database/api/Query';
+import { ConnectionTarget } from '../../../src/database/api/test_access';
 
 export const TEST_PROJECT = require('../../config/project.json');
 
@@ -29,7 +28,7 @@ if ('location' in this) {
   const search = (this.location.search.substr(1) || '').split('&');
   for (let i = 0; i < search.length; ++i) {
     const parts = search[i].split('=');
-    qs[parts[0]] = parts[1] || true;  // support for foo=
+    qs[parts[0]] = parts[1] || true; // support for foo=
   }
 }
 
@@ -49,11 +48,9 @@ export function patchFakeAuthFunctions(app) {
     return Promise.resolve(token_);
   };
 
-  app['INTERNAL']['addAuthTokenListener'] = function(listener) {
-  };
+  app['INTERNAL']['addAuthTokenListener'] = function(listener) {};
 
-  app['INTERNAL']['removeAuthTokenListener'] = function(listener) {
-  };
+  app['INTERNAL']['removeAuthTokenListener'] = function(listener) {};
 
   return app;
 }
@@ -72,9 +69,12 @@ export function getRootNode(i = 0, ref?: string) {
   let app;
   let db;
   try {
-    app = firebase.app("TEST-" + i);
-  } catch(e) {
-    app = firebase.initializeApp({ databaseURL: TEST_PROJECT.databaseURL }, "TEST-" + i);
+    app = firebase.app('TEST-' + i);
+  } catch (e) {
+    app = firebase.initializeApp(
+      { databaseURL: TEST_PROJECT.databaseURL },
+      'TEST-' + i
+    );
     patchFakeAuthFunctions(app);
   }
   db = app.database();
@@ -121,7 +121,7 @@ export function getPath(query: Query) {
 }
 
 export function shuffle(arr, randFn = Math.random) {
-  for (let i = arr.length - 1;i > 0;i--) {
+  for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(randFn() * (i + 1));
     const tmp = arr[i];
     arr[i] = arr[j];
@@ -133,7 +133,7 @@ export function testAuthTokenProvider(app) {
   let token_ = null;
   let nextToken_ = null;
   let hasNextToken_ = false;
-  const listeners_  = [];
+  const listeners_ = [];
 
   app['INTERNAL'] = app['INTERNAL'] || {};
 
@@ -142,7 +142,7 @@ export function testAuthTokenProvider(app) {
       token_ = nextToken_;
       hasNextToken_ = false;
     }
-    return Promise.resolve({accessToken: token_});
+    return Promise.resolve({ accessToken: token_ });
   };
 
   app['INTERNAL']['addAuthTokenListener'] = function(listener) {
@@ -150,7 +150,7 @@ export function testAuthTokenProvider(app) {
     listeners_.push(listener);
     const async = Promise.resolve();
     async.then(function() {
-      listener(token)
+      listener(token);
     });
   };
 
@@ -163,11 +163,13 @@ export function testAuthTokenProvider(app) {
       token_ = token;
       const async = Promise.resolve();
       for (let i = 0; i < listeners_.length; i++) {
-        async.then((function(idx) {
-          return function() {
-            listeners_[idx](token);
-          }
-        }(i)));
+        async.then(
+          (function(idx) {
+            return function() {
+              listeners_[idx](token);
+            };
+          })(i)
+        );
       }
 
       // Any future thens are guaranteed to be resolved after the listeners have been notified
@@ -184,7 +186,10 @@ let freshRepoId = 1;
 const activeFreshApps = [];
 
 export function getFreshRepo(url, path?) {
-  const app = firebase.initializeApp({databaseURL: url}, 'ISOLATED_REPO_' + freshRepoId++);
+  const app = firebase.initializeApp(
+    { databaseURL: url },
+    'ISOLATED_REPO_' + freshRepoId++
+  );
   patchFakeAuthFunctions(app);
   activeFreshApps.push(app);
   return app.database().ref(path);
@@ -199,7 +204,9 @@ export function getFreshRepoFromReference(ref) {
 // Little helpers to get the currently cached snapshot / value.
 export function getSnap(path) {
   let snap;
-  const callback = function(snapshot) { snap = snapshot; };
+  const callback = function(snapshot) {
+    snap = snapshot;
+  };
   path.once('value', callback);
   return snap;
 }
@@ -229,6 +236,6 @@ export function testRepoInfo(url) {
   const regex = /https?:\/\/(.*).firebaseio.com/;
   const match = url.match(regex);
   if (!match) throw new Error('Couldnt get Namespace from passed URL');
-  const [,ns] = match;
+  const [, ns] = match;
   return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
 }

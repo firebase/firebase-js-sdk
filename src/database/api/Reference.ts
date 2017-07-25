@@ -29,19 +29,20 @@ import {
   validateBoolean,
   validatePriority,
   validateFirebaseDataArg,
-  validateWritablePath,
+  validateWritablePath
 } from '../core/util/validation';
+import { validateArgCount, validateCallback } from '../../utils/validation';
 import {
-  validateArgCount,
-  validateCallback,
-} from '../../utils/validation';
-import { Deferred, attachDummyErrorHandler, PromiseImpl } from '../../utils/promise';
+  Deferred,
+  attachDummyErrorHandler,
+  PromiseImpl
+} from '../../utils/promise';
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';
 
 export interface ReferenceConstructor {
-  new(repo: Repo, path: Path): Reference;
+  new (repo: Repo, path: Path): Reference;
 }
 
 export class Reference extends Query {
@@ -61,7 +62,9 @@ export class Reference extends Query {
    */
   constructor(repo: Repo, path: Path) {
     if (!(repo instanceof Repo)) {
-      throw new Error('new Reference() no longer supported - use app.database().');
+      throw new Error(
+        'new Reference() no longer supported - use app.database().'
+      );
     }
 
     // call Query's constructor, passing in the repo and path.
@@ -72,10 +75,8 @@ export class Reference extends Query {
   getKey(): string | null {
     validateArgCount('Reference.key', 0, 0, arguments.length);
 
-    if (this.path.isEmpty())
-      return null;
-    else
-      return this.path.getBack();
+    if (this.path.isEmpty()) return null;
+    else return this.path.getBack();
   }
 
   /**
@@ -89,8 +90,7 @@ export class Reference extends Query {
     } else if (!(pathString instanceof Path)) {
       if (this.path.getFront() === null)
         validateRootPathString('Reference.child', 1, pathString, false);
-      else
-        validatePathString('Reference.child', 1, pathString, false);
+      else validatePathString('Reference.child', 1, pathString, false);
     }
 
     return new Reference(this.repo, this.path.child(pathString));
@@ -108,7 +108,7 @@ export class Reference extends Query {
   getRoot(): Reference {
     validateArgCount('Reference.root', 0, 0, arguments.length);
 
-    let ref = (this as any);
+    let ref = this as any;
     while (ref.getParent() !== null) {
       ref = ref.getParent();
     }
@@ -132,7 +132,12 @@ export class Reference extends Query {
     validateCallback('Reference.set', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(this.path, newVal, /*priority=*/ null, deferred.wrapCallback(onComplete));
+    this.repo.setWithPriority(
+      this.path,
+      newVal,
+      /*priority=*/ null,
+      deferred.wrapCallback(onComplete)
+    );
     return deferred.promise;
   }
 
@@ -141,7 +146,10 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  update(objectToMerge: Object, onComplete?: (a: Error | null) => void): Promise<any> {
+  update(
+    objectToMerge: Object,
+    onComplete?: (a: Error | null) => void
+  ): Promise<any> {
     validateArgCount('Reference.update', 1, 2, arguments.length);
     validateWritablePath('Reference.update', this.path);
 
@@ -151,16 +159,27 @@ export class Reference extends Query {
         newObjectToMerge['' + i] = objectToMerge[i];
       }
       objectToMerge = newObjectToMerge;
-      warn('Passing an Array to Firebase.update() is deprecated. ' +
-        'Use set() if you want to overwrite the existing data, or ' +
-        'an Object with integer keys if you really do want to ' +
-        'only update some of the children.'
+      warn(
+        'Passing an Array to Firebase.update() is deprecated. ' +
+          'Use set() if you want to overwrite the existing data, or ' +
+          'an Object with integer keys if you really do want to ' +
+          'only update some of the children.'
       );
     }
-    validateFirebaseMergeDataArg('Reference.update', 1, objectToMerge, this.path, false);
+    validateFirebaseMergeDataArg(
+      'Reference.update',
+      1,
+      objectToMerge,
+      this.path,
+      false
+    );
     validateCallback('Reference.update', 2, onComplete, true);
     const deferred = new Deferred();
-    this.repo.update(this.path, objectToMerge, deferred.wrapCallback(onComplete));
+    this.repo.update(
+      this.path,
+      objectToMerge,
+      deferred.wrapCallback(onComplete)
+    );
     return deferred.promise;
   }
 
@@ -170,19 +189,35 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  setWithPriority(newVal: any, newPriority: string | number | null,
-                  onComplete?: (a: Error | null) => void): Promise<any> {
+  setWithPriority(
+    newVal: any,
+    newPriority: string | number | null,
+    onComplete?: (a: Error | null) => void
+  ): Promise<any> {
     validateArgCount('Reference.setWithPriority', 2, 3, arguments.length);
     validateWritablePath('Reference.setWithPriority', this.path);
-    validateFirebaseDataArg('Reference.setWithPriority', 1, newVal, this.path, false);
+    validateFirebaseDataArg(
+      'Reference.setWithPriority',
+      1,
+      newVal,
+      this.path,
+      false
+    );
     validatePriority('Reference.setWithPriority', 2, newPriority, false);
     validateCallback('Reference.setWithPriority', 3, onComplete, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Reference.setWithPriority failed: ' + this.getKey() + ' is a read-only object.';
+      throw 'Reference.setWithPriority failed: ' +
+        this.getKey() +
+        ' is a read-only object.';
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(this.path, newVal, newPriority, deferred.wrapCallback(onComplete));
+    this.repo.setWithPriority(
+      this.path,
+      newVal,
+      newPriority,
+      deferred.wrapCallback(onComplete)
+    );
     return deferred.promise;
   }
 
@@ -204,9 +239,11 @@ export class Reference extends Query {
    * @param {boolean=} applyLocally
    * @return {!Promise}
    */
-  transaction(transactionUpdate: (a: any) => any,
-              onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
-              applyLocally?: boolean): Promise<TransactionResult> {
+  transaction(
+    transactionUpdate: (a: any) => any,
+    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
+    applyLocally?: boolean
+  ): Promise<TransactionResult> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
     validateWritablePath('Reference.transaction', this.path);
     validateCallback('Reference.transaction', 1, transactionUpdate, false);
@@ -216,17 +253,22 @@ export class Reference extends Query {
     validateBoolean('Reference.transaction', 3, applyLocally, true);
 
     if (this.getKey() === '.length' || this.getKey() === '.keys')
-      throw 'Reference.transaction failed: ' + this.getKey() + ' is a read-only object.';
+      throw 'Reference.transaction failed: ' +
+        this.getKey() +
+        ' is a read-only object.';
 
-    if (applyLocally === undefined)
-      applyLocally = true;
+    if (applyLocally === undefined) applyLocally = true;
 
     const deferred = new Deferred();
     if (typeof onComplete === 'function') {
       attachDummyErrorHandler(deferred.promise);
     }
 
-    const promiseComplete = function (error: Error, committed: boolean, snapshot: DataSnapshot) {
+    const promiseComplete = function(
+      error: Error,
+      committed: boolean,
+      snapshot: DataSnapshot
+    ) {
       if (error) {
         deferred.reject(error);
       } else {
@@ -236,7 +278,12 @@ export class Reference extends Query {
         onComplete(error, committed, snapshot);
       }
     };
-    this.repo.startTransaction(this.path, transactionUpdate, promiseComplete, applyLocally);
+    this.repo.startTransaction(
+      this.path,
+      transactionUpdate,
+      promiseComplete,
+      applyLocally
+    );
 
     return deferred.promise;
   }
@@ -246,14 +293,22 @@ export class Reference extends Query {
    * @param {function(?Error)=} onComplete
    * @return {!Promise}
    */
-  setPriority(priority: string | number | null, onComplete?: (a: Error | null) => void): Promise<any> {
+  setPriority(
+    priority: string | number | null,
+    onComplete?: (a: Error | null) => void
+  ): Promise<any> {
     validateArgCount('Reference.setPriority', 1, 2, arguments.length);
     validateWritablePath('Reference.setPriority', this.path);
     validatePriority('Reference.setPriority', 1, priority, false);
     validateCallback('Reference.setPriority', 2, onComplete, true);
 
     const deferred = new Deferred();
-    this.repo.setWithPriority(this.path.child('.priority'), priority, null, deferred.wrapCallback(onComplete));
+    this.repo.setWithPriority(
+      this.path.child('.priority'),
+      priority,
+      null,
+      deferred.wrapCallback(onComplete)
+    );
     return deferred.promise;
   }
 

@@ -23,41 +23,41 @@ import { NamespaceSpec } from '../namespace';
 // Database Service namespace
 //
 export const databaseSpec: NamespaceSpec = {
-  Database: {is: Function},
-  Reference: {is: Function},
-  Query: {is: Function},
-  enableLogging: {is: Function, args: 2},
+  Database: { is: Function },
+  Reference: { is: Function },
+  Query: { is: Function },
+  enableLogging: { is: Function, args: 2 },
   ServerValue: {
-    TIMESTAMP: {is: Object}
-  },
+    TIMESTAMP: { is: Object }
+  }
 };
 
 //
 // Database Service instance
 //
 export const databaseInstanceSpec: NamespaceSpec = {
-  app: {is: Object, isName: 'App'},
+  app: { is: Object, isName: 'App' },
   INTERNAL: {
-    delete: {is: Function}
+    delete: { is: Function }
   },
 
-  ref: {is: Function, args: 1},
-  refFromURL: {is: Function, args: 1},
-  goOnline: {is: Function, args: 0},
-  goOffline: {is: Function, args: 0},
+  ref: { is: Function, args: 1 },
+  refFromURL: { is: Function, args: 1 },
+  goOnline: { is: Function, args: 0 },
+  goOffline: { is: Function, args: 0 }
 };
 
 // Incremental properties on firebase namespace.
 export const firebaseSpec: NamespaceSpec = {
   INTERNAL: {
     factories: {
-      database: {is: Function},
-    },
+      database: { is: Function }
+    }
   },
-  database: {is: Function, args: 1},
+  database: { is: Function, args: 1 }
 };
 
 // Incremental properties on App instance.
 export const appInstanceSpec: NamespaceSpec = {
-  database: {is: Function, args: 1},
+  database: { is: Function, args: 1 }
 };

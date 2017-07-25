@@ -14,12 +14,12 @@
 * limitations under the License.
 */
 
-import { ImmutableTree } from "./util/ImmutableTree";
-import { Path } from "./util/Path";
-import { forEach } from "../../utils/obj";
-import { Node, NamedNode } from "./snap/Node";
-import { PRIORITY_INDEX } from "./snap/indexes/PriorityIndex";
-import { assert } from "../../utils/assert";
+import { ImmutableTree } from './util/ImmutableTree';
+import { Path } from './util/Path';
+import { forEach } from '../../utils/obj';
+import { Node, NamedNode } from './snap/Node';
+import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
+import { assert } from '../../utils/assert';
 import { ChildrenNode } from './snap/ChildrenNode';
 
 /**
@@ -32,7 +32,7 @@ import { ChildrenNode } from './snap/ChildrenNode';
  * @param {!ImmutableTree.<!Node>} writeTree
  */
 export class CompoundWrite {
-  constructor(private writeTree_: ImmutableTree<Node>) {};
+  constructor(private writeTree_: ImmutableTree<Node>) {}
   /**
    * @type {!CompoundWrite}
    */
@@ -112,7 +112,9 @@ export class CompoundWrite {
   getCompleteNode(path: Path): Node | null {
     const rootmost = this.writeTree_.findRootMostValueAndPath(path);
     if (rootmost != null) {
-      return this.writeTree_.get(rootmost.path).getChild(Path.relativePath(rootmost.path, path));
+      return this.writeTree_
+        .get(rootmost.path)
+        .getChild(Path.relativePath(rootmost.path, path));
     } else {
       return null;
     }
@@ -129,7 +131,10 @@ export class CompoundWrite {
     if (node != null) {
       // If it's a leaf node, it has no children; so nothing to do.
       if (!node.isLeafNode()) {
-        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, function(childName, childNode) {
+        (node as ChildrenNode).forEachChild(PRIORITY_INDEX, function(
+          childName,
+          childNode
+        ) {
           children.push(new NamedNode(childName, childNode));
         });
       }
@@ -185,7 +190,11 @@ export class CompoundWrite {
    * @return {!Node}
    * @private
    */
-  private static applySubtreeWrite_ = function(relativePath: Path, writeTree: ImmutableTree<Node>, node: Node): Node {
+  private static applySubtreeWrite_ = function(
+    relativePath: Path,
+    writeTree: ImmutableTree<Node>,
+    node: Node
+  ): Node {
     if (writeTree.value != null) {
       // Since there a write is always a leaf, we're done here
       return node.updateChild(relativePath, writeTree.value);
@@ -195,10 +204,17 @@ export class CompoundWrite {
         if (childKey === '.priority') {
           // Apply priorities at the end so we don't update priorities for either empty nodes or forget
           // to apply priorities to empty nodes that are later filled
-          assert(childTree.value !== null, 'Priority writes must always be leaf nodes');
+          assert(
+            childTree.value !== null,
+            'Priority writes must always be leaf nodes'
+          );
           priorityWrite = childTree.value;
         } else {
-          node = CompoundWrite.applySubtreeWrite_(relativePath.child(childKey), childTree, node);
+          node = CompoundWrite.applySubtreeWrite_(
+            relativePath.child(childKey),
+            childTree,
+            node
+          );
         }
       });
       // If there was a priority write, we only apply it if the node is not empty
@@ -207,6 +223,5 @@ export class CompoundWrite {
       }
       return node;
     }
-  }
+  };
 }
-

@@ -14,9 +14,9 @@
 * limitations under the License.
 */
 
-import { assert } from "../../../utils/assert";
-import { EventEmitter } from "./EventEmitter";
-import { isMobileCordova } from "../../../utils/environment";
+import { assert } from '../../../utils/assert';
+import { EventEmitter } from './EventEmitter';
+import { isMobileCordova } from '../../../utils/environment';
 
 /**
  * Monitors online state (as reported by window.online/offline events).
@@ -41,22 +41,32 @@ export class OnlineMonitor extends EventEmitter {
     // https://forum.ionicframework.com/t/firebase-connection-is-lost-and-never-come-back/43810
     // It would seem that the 'online' event does not always fire consistently. So we disable it
     // for Cordova.
-    if (typeof window !== 'undefined' &&
-        typeof window.addEventListener !== 'undefined' &&
-        !isMobileCordova()) {
-      window.addEventListener('online', () => {
-        if (!this.online_) {
-          this.online_ = true;
-          this.trigger('online', true);
-        }
-      }, false);
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.addEventListener !== 'undefined' &&
+      !isMobileCordova()
+    ) {
+      window.addEventListener(
+        'online',
+        () => {
+          if (!this.online_) {
+            this.online_ = true;
+            this.trigger('online', true);
+          }
+        },
+        false
+      );
 
-      window.addEventListener('offline', () => {
-        if (this.online_) {
-          this.online_ = false;
-          this.trigger('online', false);
-        }
-      }, false);
+      window.addEventListener(
+        'offline',
+        () => {
+          if (this.online_) {
+            this.online_ = false;
+            this.trigger('online', false);
+          }
+        },
+        false
+      );
     }
   }
 

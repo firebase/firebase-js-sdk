@@ -31,17 +31,26 @@ export class ViewCache {
    * @param {!CacheNode} eventCache_
    * @param {!CacheNode} serverCache_
    */
-  constructor(private readonly eventCache_: CacheNode,
-              private readonly serverCache_: CacheNode) {
-  }
+  constructor(
+    private readonly eventCache_: CacheNode,
+    private readonly serverCache_: CacheNode
+  ) {}
 
   /**
    * @const
    * @type {ViewCache}
    */
   static Empty = new ViewCache(
-    new CacheNode(ChildrenNode.EMPTY_NODE, /*fullyInitialized=*/false, /*filtered=*/false),
-    new CacheNode(ChildrenNode.EMPTY_NODE, /*fullyInitialized=*/false, /*filtered=*/false)
+    new CacheNode(
+      ChildrenNode.EMPTY_NODE,
+      /*fullyInitialized=*/ false,
+      /*filtered=*/ false
+    ),
+    new CacheNode(
+      ChildrenNode.EMPTY_NODE,
+      /*fullyInitialized=*/ false,
+      /*filtered=*/ false
+    )
   );
 
   /**
@@ -50,8 +59,15 @@ export class ViewCache {
    * @param {boolean} filtered
    * @return {!ViewCache}
    */
-  updateEventSnap(eventSnap: Node, complete: boolean, filtered: boolean): ViewCache {
-    return new ViewCache(new CacheNode(eventSnap, complete, filtered), this.serverCache_);
+  updateEventSnap(
+    eventSnap: Node,
+    complete: boolean,
+    filtered: boolean
+  ): ViewCache {
+    return new ViewCache(
+      new CacheNode(eventSnap, complete, filtered),
+      this.serverCache_
+    );
   }
 
   /**
@@ -60,8 +76,15 @@ export class ViewCache {
    * @param {boolean} filtered
    * @return {!ViewCache}
    */
-  updateServerSnap(serverSnap: Node, complete: boolean, filtered: boolean): ViewCache {
-    return new ViewCache(this.eventCache_, new CacheNode(serverSnap, complete, filtered));
+  updateServerSnap(
+    serverSnap: Node,
+    complete: boolean,
+    filtered: boolean
+  ): ViewCache {
+    return new ViewCache(
+      this.eventCache_,
+      new CacheNode(serverSnap, complete, filtered)
+    );
   }
 
   /**
@@ -75,7 +98,9 @@ export class ViewCache {
    * @return {?Node}
    */
   getCompleteEventSnap(): Node | null {
-    return (this.eventCache_.isFullyInitialized()) ? this.eventCache_.getNode() : null;
+    return this.eventCache_.isFullyInitialized()
+      ? this.eventCache_.getNode()
+      : null;
   }
 
   /**
@@ -89,7 +114,8 @@ export class ViewCache {
    * @return {?Node}
    */
   getCompleteServerSnap(): Node | null {
-    return this.serverCache_.isFullyInitialized() ? this.serverCache_.getNode() : null;
+    return this.serverCache_.isFullyInitialized()
+      ? this.serverCache_.getNode()
+      : null;
   }
 }
-

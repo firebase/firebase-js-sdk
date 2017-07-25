@@ -17,17 +17,17 @@
 import {
   async,
   CompleteFn,
-  createSubscribe, 
+  createSubscribe,
   ErrorFn,
   NextFn,
   Observer,
   Subscribe,
-  Unsubscribe,
+  Unsubscribe
 } from '../../src/app/subscribe';
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
 
-describe("createSubscribe", function() {
+describe('createSubscribe', function() {
   let spy: any;
   beforeEach(() => {
     // Listen to console.error calls.
@@ -38,7 +38,7 @@ describe("createSubscribe", function() {
     spy.restore();
   });
 
-  it("Creation", (done) => {
+  it('Creation', done => {
     let subscribe = createSubscribe<number>((observer: Observer<number>) => {
       observer.next(123);
     });
@@ -50,7 +50,7 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Logging observer error to console", (done) => {
+  it('Logging observer error to console', done => {
     let uncatchableError = new Error('uncatchable');
     let subscribe = createSubscribe<number>((observer: Observer<number>) => {
       observer.next(123);
@@ -72,8 +72,8 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Well-defined subscription order", (done) => {
-    let subscribe = createSubscribe<number>((observer) => {
+  it('Well-defined subscription order', done => {
+    let subscribe = createSubscribe<number>(observer => {
       observer.next(123);
       // Subscription after value emitted should NOT be received.
       subscribe({
@@ -90,9 +90,9 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Subscribing to already complete Subscribe", (done) => {
+  it('Subscribing to already complete Subscribe', done => {
     let seq = 0;
-    let subscribe = createSubscribe<number>((observer) => {
+    let subscribe = createSubscribe<number>(observer => {
       observer.next(456);
       observer.complete();
     });
@@ -112,11 +112,11 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Subscribing to errored Subscribe", (done) => {
+  it('Subscribing to errored Subscribe', done => {
     let seq = 0;
-    let subscribe = createSubscribe<number>((observer) => {
+    let subscribe = createSubscribe<number>(observer => {
       observer.next(246);
-      observer.error(new Error("failure"));
+      observer.error(new Error('failure'));
     });
     subscribe({
       next(value: number) {
@@ -128,7 +128,7 @@ describe("createSubscribe", function() {
         subscribe({
           error(e2) {
             assert.equal(seq++, 2);
-            assert.equal(e.message, "failure");
+            assert.equal(e.message, 'failure');
             done();
           }
         });
@@ -139,7 +139,7 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Delayed value", (done) => {
+  it('Delayed value', done => {
     let subscribe = createSubscribe<number>((observer: Observer<number>) => {
       setTimeout(() => observer.next(123), 10);
     });
@@ -150,21 +150,21 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("Executor throws => Error", () => {
+  it('Executor throws => Error', () => {
     // It's an application error to throw an exception in the executor -
     // but since it is called asynchronously, our only option is
     // to emit that Error and terminate the Subscribe.
     let subscribe = createSubscribe<number>((observer: Observer<number>) => {
-      throw new Error("Executor throws");
+      throw new Error('Executor throws');
     });
     subscribe({
       error(e) {
-        assert.equal(e.message, "Executor throws");
+        assert.equal(e.message, 'Executor throws');
       }
     });
   });
 
-  it("Sequence", (done) => {
+  it('Sequence', done => {
     let subscribe = makeCounter(10);
 
     let j = 1;
@@ -179,12 +179,14 @@ describe("createSubscribe", function() {
     });
   });
 
-  it("unlisten", (done) => {
+  it('unlisten', done => {
     let subscribe = makeCounter(10);
 
-    subscribe({complete: () => {
-      async(done)();
-    }});
+    subscribe({
+      complete: () => {
+        async(done)();
+      }
+    });
 
     let j = 1;
     let unsub = subscribe({
@@ -196,12 +198,12 @@ describe("createSubscribe", function() {
         }
       },
       complete: () => {
-        assert.ok(false, "Does not call completed if unsubscribed");
+        assert.ok(false, 'Does not call completed if unsubscribed');
       }
     });
   });
 
-  it("onNoObservers", (done) => {
+  it('onNoObservers', done => {
     let subscribe = makeCounter(10);
 
     let j = 1;
@@ -215,13 +217,13 @@ describe("createSubscribe", function() {
         }
       },
       complete: () => {
-        assert.ok(false, "Does not call completed if unsubscribed");
+        assert.ok(false, 'Does not call completed if unsubscribed');
       }
     });
   });
 
   // TODO(koss): Add test for partial Observer (missing methods).
-  it("Partial Observer", (done) => {
+  it('Partial Observer', done => {
     let subscribe = makeCounter(10);
 
     let unsub = subscribe({
@@ -230,7 +232,6 @@ describe("createSubscribe", function() {
       }
     });
   });
-
 });
 
 function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
@@ -253,5 +254,6 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
     (observer: Observer<number>) => {
       clearInterval(id);
       id = undefined;
-    });
+    }
+  );
 }

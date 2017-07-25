@@ -13,7 +13,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { assert } from "chai";
+import { assert } from 'chai';
 import dbTMHelper from './db-token-manager';
 import TokenManager from '../../../src/messaging/models/token-manager';
 import Errors from '../../../src/messaging/models/errors';
@@ -27,9 +27,8 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
     return dbTMHelper.deleteDB();
   });
 
-
   afterEach(function() {
-    stubs.forEach((stub) => {
+    stubs.forEach(stub => {
       stub.restore();
     });
     stubs = [];
@@ -42,24 +41,32 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
 
   it('should handle nothing', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken()
-    .then(() => {
-      throw new Error('Expected this to throw an error due to no token');
-    }, err => {
-      assert.equal('messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
-        err.code);
-    });
+    return globalTokenManager.deleteToken().then(
+      () => {
+        throw new Error('Expected this to throw an error due to no token');
+      },
+      err => {
+        assert.equal(
+          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
+          err.code
+        );
+      }
+    );
   });
 
   it('should handle empty string', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken('')
-    .then(() => {
-      throw new Error('Expected this to throw an error due to no token');
-    }, err => {
-      assert.equal('messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
-        err.code);
-    });
+    return globalTokenManager.deleteToken('').then(
+      () => {
+        throw new Error('Expected this to throw an error due to no token');
+      },
+      err => {
+        assert.equal(
+          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
+          err.code
+        );
+      }
+    );
   });
 
   it('should delete current token', function() {
@@ -71,18 +78,18 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
     dbTMHelper.addObjectToIndexDB(exampleDetails);
 
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken(exampleDetails.fcmToken)
-    .then(deletedDetails => {
-      assert.equal(exampleDetails.swScope, deletedDetails.swScope);
-      assert.equal(exampleDetails.fcmToken, deletedDetails.fcmToken);
-      assert.equal(exampleDetails.fcmSenderId, deletedDetails.fcmSenderId);
+    return globalTokenManager
+      .deleteToken(exampleDetails.fcmToken)
+      .then(deletedDetails => {
+        assert.equal(exampleDetails.swScope, deletedDetails.swScope);
+        assert.equal(exampleDetails.fcmToken, deletedDetails.fcmToken);
+        assert.equal(exampleDetails.fcmSenderId, deletedDetails.fcmSenderId);
 
-      return dbTMHelper.getTokenDetailsFromDB();
-
-    })
-    .then(tokenDetails => {
-      assert.equal(0, tokenDetails.length);
-    });
+        return dbTMHelper.getTokenDetailsFromDB();
+      })
+      .then(tokenDetails => {
+        assert.equal(0, tokenDetails.length);
+      });
   });
 
   it('should delete non existant token', function() {
@@ -94,22 +101,27 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
     dbTMHelper.addObjectToIndexDB(exampleDetails);
 
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken('bad-token')
-    .then(() => {
-      throw new Error('Expected this delete to throw and error.');
-    }, err => {
-      assert.equal('messaging/' + Errors.codes.DELETE_TOKEN_NOT_FOUND,
-        err.code);
-    })
-    .then(() => {
-      return dbTMHelper.getTokenDetailsFromDB();
-    })
-    .then(tokenDetails => {
-      assert.equal(1, tokenDetails.length);
-      assert.equal(exampleDetails.swScope, tokenDetails[0].swScope);
-      assert.equal(exampleDetails.fcmToken, tokenDetails[0].fcmToken);
-      assert.equal(exampleDetails.fcmSenderId, tokenDetails[0].fcmSenderId);
-    });
+    return globalTokenManager
+      .deleteToken('bad-token')
+      .then(
+        () => {
+          throw new Error('Expected this delete to throw and error.');
+        },
+        err => {
+          assert.equal(
+            'messaging/' + Errors.codes.DELETE_TOKEN_NOT_FOUND,
+            err.code
+          );
+        }
+      )
+      .then(() => {
+        return dbTMHelper.getTokenDetailsFromDB();
+      })
+      .then(tokenDetails => {
+        assert.equal(1, tokenDetails.length);
+        assert.equal(exampleDetails.swScope, tokenDetails[0].swScope);
+        assert.equal(exampleDetails.fcmToken, tokenDetails[0].fcmToken);
+        assert.equal(exampleDetails.fcmSenderId, tokenDetails[0].fcmSenderId);
+      });
   });
-
 });

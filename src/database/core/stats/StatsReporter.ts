@@ -43,7 +43,9 @@ export class StatsReporter {
   constructor(collection: StatsCollection, private server_: ServerActions) {
     this.statsListener_ = new StatsListener(collection);
 
-    const timeout = FIRST_STATS_MIN_TIME + (FIRST_STATS_MAX_TIME - FIRST_STATS_MIN_TIME) * Math.random();
+    const timeout =
+      FIRST_STATS_MIN_TIME +
+      (FIRST_STATS_MAX_TIME - FIRST_STATS_MIN_TIME) * Math.random();
     setTimeoutNonBlocking(this.reportStats_.bind(this), Math.floor(timeout));
   }
 
@@ -68,6 +70,9 @@ export class StatsReporter {
     }
 
     // queue our next run.
-    setTimeoutNonBlocking(this.reportStats_.bind(this), Math.floor(Math.random() * 2 * REPORT_STATS_INTERVAL));
+    setTimeoutNonBlocking(
+      this.reportStats_.bind(this),
+      Math.floor(Math.random() * 2 * REPORT_STATS_INTERVAL)
+    );
   }
 }

@@ -20,7 +20,7 @@
  */
 type id = (p1: boolean) => void;
 
-export {id};
+export { id };
 
 /**
  * @param f May be invoked
@@ -29,9 +29,13 @@ export {id};
  *     passed to f, including the initial boolean.
  */
 export function start(
-    f: (p1: (success: boolean, ...rest: any[]) => void,
-        canceled: boolean) => void,
-    callback: Function, timeout: number): id {
+  f: (
+    p1: (success: boolean, ...rest: any[]) => void,
+    canceled: boolean
+  ) => void,
+  callback: Function,
+  timeout: number
+): id {
   // TODO(andysoto): make this code cleaner (probably refactor into an actual
   // type instead of a bunch of functions with state shared in the closure)
   let waitSeconds = 1;
@@ -59,7 +63,7 @@ export function start(
     }, millis);
   }
 
-  function handler(success: boolean, ...var_args: any[]):void {
+  function handler(success: boolean, ...var_args: any[]): void {
     if (triggeredCallback) {
       return;
     }

@@ -26,12 +26,13 @@ import { Node } from '../snap/Node';
  * @param {string=} prevName The name for the previous child, if applicable
  */
 export class Change {
-  constructor(public type: string,
-              public snapshotNode: Node,
-              public childName?: string,
-              public oldSnap?: Node,
-              public prevName?: string) {
-  };
+  constructor(
+    public type: string,
+    public snapshotNode: Node,
+    public childName?: string,
+    public oldSnap?: Node,
+    public prevName?: string
+  ) {}
 
   /**
    * @param {!Node} snapshot
@@ -39,7 +40,7 @@ export class Change {
    */
   static valueChange(snapshot: Node): Change {
     return new Change(Change.VALUE, snapshot);
-  };
+  }
 
   /**
    * @param {string} childKey
@@ -48,7 +49,7 @@ export class Change {
    */
   static childAddedChange(childKey: string, snapshot: Node): Change {
     return new Change(Change.CHILD_ADDED, snapshot, childKey);
-  };
+  }
 
   /**
    * @param {string} childKey
@@ -57,7 +58,7 @@ export class Change {
    */
   static childRemovedChange(childKey: string, snapshot: Node): Change {
     return new Change(Change.CHILD_REMOVED, snapshot, childKey);
-  };
+  }
 
   /**
    * @param {string} childKey
@@ -65,9 +66,13 @@ export class Change {
    * @param {!Node} oldSnapshot
    * @return {!Change}
    */
-  static childChangedChange(childKey: string, newSnapshot: Node, oldSnapshot: Node): Change {
+  static childChangedChange(
+    childKey: string,
+    newSnapshot: Node,
+    oldSnapshot: Node
+  ): Change {
     return new Change(Change.CHILD_CHANGED, newSnapshot, childKey, oldSnapshot);
-  };
+  }
 
   /**
    * @param {string} childKey
@@ -76,7 +81,7 @@ export class Change {
    */
   static childMovedChange(childKey: string, snapshot: Node): Change {
     return new Change(Change.CHILD_MOVED, snapshot, childKey);
-  };
+  }
 
   //event types
   /** Event type for a child added */
@@ -94,4 +99,3 @@ export class Change {
   /** Event type for a value change */
   static VALUE = 'value';
 }
-

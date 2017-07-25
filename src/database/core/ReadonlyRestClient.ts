@@ -30,9 +30,7 @@ import { Query } from '../api/Query';
  * persistent connection (using WebSockets or long-polling)
  */
 export class ReadonlyRestClient extends ServerActions {
-  reportStats(stats: {
-    [k: string]: any;
-  }): void {
+  reportStats(stats: { [k: string]: any }): void {
     throw new Error('Method not implemented.');
   }
 
@@ -57,7 +55,10 @@ export class ReadonlyRestClient extends ServerActions {
     if (tag !== undefined) {
       return 'tag$' + tag;
     } else {
-      assert(query.getQueryParams().isDefault(), 'should have a tag if it\'s not a default query.');
+      assert(
+        query.getQueryParams().isDefault(),
+        "should have a tag if it's not a default query."
+      );
       return query.path.toString();
     }
   }
@@ -68,49 +69,69 @@ export class ReadonlyRestClient extends ServerActions {
    * @param {AuthTokenProvider} authTokenProvider_
    * @implements {ServerActions}
    */
-  constructor(private repoInfo_: RepoInfo,
-              private onDataUpdate_: (a: string, b: any, c: boolean, d: number | null) => void,
-              private authTokenProvider_: AuthTokenProvider) {
+  constructor(
+    private repoInfo_: RepoInfo,
+    private onDataUpdate_: (
+      a: string,
+      b: any,
+      c: boolean,
+      d: number | null
+    ) => void,
+    private authTokenProvider_: AuthTokenProvider
+  ) {
     super();
   }
 
   /** @inheritDoc */
-  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => void) {
+  listen(
+    query: Query,
+    currentHashFn: () => string,
+    tag: number | null,
+    onComplete: (a: string, b: any) => void
+  ) {
     const pathString = query.path.toString();
-    this.log_('Listen called for ' + pathString + ' ' + query.queryIdentifier());
+    this.log_(
+      'Listen called for ' + pathString + ' ' + query.queryIdentifier()
+    );
 
     // Mark this listener so we can tell if it's removed.
     const listenId = ReadonlyRestClient.getListenId_(query, tag);
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParamaters = query.getQueryParams().toRestQueryStringParameters();
+    const queryStringParamaters = query
+      .getQueryParams()
+      .toRestQueryStringParameters();
 
-    this.restRequest_(pathString + '.json', queryStringParamaters, (error, result) => {
-      let data = result;
+    this.restRequest_(
+      pathString + '.json',
+      queryStringParamaters,
+      (error, result) => {
+        let data = result;
 
-      if (error === 404) {
-        data = null;
-        error = null;
-      }
-
-      if (error === null) {
-        this.onDataUpdate_(pathString, data, /*isMerge=*/false, tag);
-      }
-
-      if (safeGet(this.listens_, listenId) === thisListen) {
-        let status;
-        if (!error) {
-          status = 'ok';
-        } else if (error == 401) {
-          status = 'permission_denied';
-        } else {
-          status = 'rest_error:' + error;
+        if (error === 404) {
+          data = null;
+          error = null;
         }
 
-        onComplete(status, null);
+        if (error === null) {
+          this.onDataUpdate_(pathString, data, /*isMerge=*/ false, tag);
+        }
+
+        if (safeGet(this.listens_, listenId) === thisListen) {
+          let status;
+          if (!error) {
+            status = 'ok';
+          } else if (error == 401) {
+            status = 'permission_denied';
+          } else {
+            status = 'rest_error:' + error;
+          }
+
+          onComplete(status, null);
+        }
       }
-    });
+    );
   }
 
   /** @inheritDoc */
@@ -133,48 +154,69 @@ export class ReadonlyRestClient extends ServerActions {
    * @param {?function(?number, *=)} callback
    * @private
    */
-  private restRequest_(pathString: string, queryStringParameters: { [k: string]: any } = {},
-                       callback: ((a: number | null, b?: any) => void) | null) {
+  private restRequest_(
+    pathString: string,
+    queryStringParameters: { [k: string]: any } = {},
+    callback: ((a: number | null, b?: any) => void) | null
+  ) {
     queryStringParameters['format'] = 'export';
 
-    this.authTokenProvider_.getToken(/*forceRefresh=*/false).then((authTokenData) => {
-      const authToken = authTokenData && authTokenData.accessToken;
-      if (authToken) {
-        queryStringParameters['auth'] = authToken;
-      }
-
-      const url = (this.repoInfo_.secure ? 'https://' : 'http://') +
-        this.repoInfo_.host +
-        pathString +
-        '?' +
-        querystring(queryStringParameters);
-
-      this.log_('Sending REST request for ' + url);
-      const xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = () => {
-        if (callback && xhr.readyState === 4) {
-          this.log_('REST Response for ' + url + ' received. status:', xhr.status, 'response:', xhr.responseText);
-          let res = null;
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              res = jsonEval(xhr.responseText);
-            } catch (e) {
-              warn('Failed to parse JSON response for ' + url + ': ' + xhr.responseText);
-            }
-            callback(null, res);
-          } else {
-            // 401 and 404 are expected.
-            if (xhr.status !== 401 && xhr.status !== 404) {
-              warn('Got unsuccessful REST response for ' + url + ' Status: ' + xhr.status);
-            }
-            callback(xhr.status);
-          }
-          callback = null;
+    this.authTokenProvider_
+      .getToken(/*forceRefresh=*/ false)
+      .then(authTokenData => {
+        const authToken = authTokenData && authTokenData.accessToken;
+        if (authToken) {
+          queryStringParameters['auth'] = authToken;
         }
-      };
 
-      xhr.open('GET', url, /*asynchronous=*/true);
-      xhr.send();
-    });
+        const url =
+          (this.repoInfo_.secure ? 'https://' : 'http://') +
+          this.repoInfo_.host +
+          pathString +
+          '?' +
+          querystring(queryStringParameters);
+
+        this.log_('Sending REST request for ' + url);
+        const xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = () => {
+          if (callback && xhr.readyState === 4) {
+            this.log_(
+              'REST Response for ' + url + ' received. status:',
+              xhr.status,
+              'response:',
+              xhr.responseText
+            );
+            let res = null;
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                res = jsonEval(xhr.responseText);
+              } catch (e) {
+                warn(
+                  'Failed to parse JSON response for ' +
+                    url +
+                    ': ' +
+                    xhr.responseText
+                );
+              }
+              callback(null, res);
+            } else {
+              // 401 and 404 are expected.
+              if (xhr.status !== 401 && xhr.status !== 404) {
+                warn(
+                  'Got unsuccessful REST response for ' +
+                    url +
+                    ' Status: ' +
+                    xhr.status
+                );
+              }
+              callback(xhr.status);
+            }
+            callback = null;
+          }
+        };
+
+        xhr.open('GET', url, /*asynchronous=*/ true);
+        xhr.send();
+      });
   }
 }

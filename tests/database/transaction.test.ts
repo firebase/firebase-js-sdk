@@ -14,23 +14,26 @@
 * limitations under the License.
 */
 
-import { expect } from "chai";
-import { Reference } from "../../src/database/api/Reference";
-import { 
+import { expect } from 'chai';
+import { Reference } from '../../src/database/api/Reference';
+import {
   canCreateExtraConnections,
   getFreshRepoFromReference,
-  getRandomNode, 
-  getVal, 
-} from "./helpers/util";
-import { eventTestHelper } from "./helpers/events";
-import { EventAccumulator, EventAccumulatorFactory } from "./helpers/EventAccumulator";
-import { hijackHash } from "../../src/database/api/test_access";
-import firebase from "../../src/app";
-import "../../src/database";
+  getRandomNode,
+  getVal
+} from './helpers/util';
+import { eventTestHelper } from './helpers/events';
+import {
+  EventAccumulator,
+  EventAccumulatorFactory
+} from './helpers/EventAccumulator';
+import { hijackHash } from '../../src/database/api/test_access';
+import firebase from '../../src/app';
+import '../../src/database';
 
 describe('Transaction Tests', function() {
   it('New value is immediately visible.', function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     node.child('foo').transaction(function() {
       return 42;
     });
@@ -43,11 +46,9 @@ describe('Transaction Tests', function() {
   });
 
   it.skip('Event is raised for new value.', function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     const fooNode = node.child('foo');
-    const eventHelper = eventTestHelper([
-      [fooNode, ['value', '']]
-    ]);
+    const eventHelper = eventTestHelper([[fooNode, ['value', '']]]);
 
     node.child('foo').transaction(function() {
       return 42;
@@ -57,44 +58,56 @@ describe('Transaction Tests', function() {
   });
 
   it('Transaction result can be converted to JSON.', function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
 
-    return node.transaction(() => {
-      return 42;
-    }).then(transactionResult => {
-      expect(transactionResult.toJSON()).to.deep.equal({ committed: true, snapshot: 42 });
-    });
-  });
-
-  it('Non-aborted transaction sets committed to true in callback.', function(done) {
-    const node = (getRandomNode() as Reference);
-
-    node.transaction(function() {
-          return 42;
-        },
-        function(error, committed, snapshot) {
-          expect(error).to.equal(null);
-          expect(committed).to.equal(true);
-          expect(snapshot.val()).to.equal(42);
-          done();
+    return node
+      .transaction(() => {
+        return 42;
+      })
+      .then(transactionResult => {
+        expect(transactionResult.toJSON()).to.deep.equal({
+          committed: true,
+          snapshot: 42
         });
+      });
   });
 
-  it('Aborted transaction sets committed to false in callback.', function(done) {
-    const node = (getRandomNode() as Reference);
+  it('Non-aborted transaction sets committed to true in callback.', function(
+    done
+  ) {
+    const node = getRandomNode() as Reference;
 
-    node.transaction(function() {},
-        function(error, committed, snapshot) {
-          expect(error).to.equal(null);
-          expect(committed).to.equal(false);
-          expect(snapshot.val()).to.be.null;
-          done();
-        });
+    node.transaction(
+      function() {
+        return 42;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snapshot.val()).to.equal(42);
+        done();
+      }
+    );
   });
 
-  it('Tetris bug test - set data, reconnect, do transaction that aborts once data arrives, verify correct events.',
-      async function() {
-    const nodePair = (getRandomNode(2) as Reference[]);
+  it('Aborted transaction sets committed to false in callback.', function(
+    done
+  ) {
+    const node = getRandomNode() as Reference;
+
+    node.transaction(
+      function() {},
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(false);
+        expect(snapshot.val()).to.be.null;
+        done();
+      }
+    );
+  });
+
+  it('Tetris bug test - set data, reconnect, do transaction that aborts once data arrives, verify correct events.', async function() {
+    const nodePair = getRandomNode(2) as Reference[];
     let node = nodePair[0];
     let eventsReceived = 0;
     const ea = EventAccumulatorFactory.waitsForCount(2);
@@ -105,11 +118,9 @@ describe('Transaction Tests', function() {
     node.child('foo').on('value', function(snap) {
       if (eventsReceived === 0) {
         expect(snap.val()).to.equal('temp value');
-      }
-      else if (eventsReceived === 1) {
+      } else if (eventsReceived === 1) {
         expect(snap.val()).to.equal(42);
-      }
-      else {
+      } else {
         // Extra event detected.
         expect(true).to.equal(false);
       }
@@ -117,23 +128,25 @@ describe('Transaction Tests', function() {
       ea.addEvent();
     });
 
-    node.child('foo').transaction(function(value) {
-      if (value === null)
-        return 'temp value';
-      else
-        return;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(false);
-      expect(snapshot.val()).to.equal(42);
-    });
+    node.child('foo').transaction(
+      function(value) {
+        if (value === null) return 'temp value';
+        else return;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(false);
+        expect(snapshot.val()).to.equal(42);
+      }
+    );
 
     return ea.promise;
   });
 
   it('Use transaction to create a node, make sure exactly one event is received.', function() {
-    const node = (getRandomNode() as Reference);
-    let events = 0, done = false;
+    const node = getRandomNode() as Reference;
+    let events = 0,
+      done = false;
 
     const ea = new EventAccumulator(() => done && events === 1);
 
@@ -143,54 +156,55 @@ describe('Transaction Tests', function() {
       if (events > 1) throw 'Expected 1 event on a, but got two.';
     });
 
-    node.child('a').transaction(function() {
-      return 42;
-    }, function() {
-      done = true;
-      ea.addEvent();
-    });
+    node.child('a').transaction(
+      function() {
+        return 42;
+      },
+      function() {
+        done = true;
+        ea.addEvent();
+      }
+    );
 
     return ea.promise;
   });
 
-  it('Use transaction to update one of two existing child nodes. ' +
-    'Make sure events are only raised for the changed node.', async function() {
-    const nodePair = (getRandomNode(2) as Reference[]);
-    let node = nodePair[0].child('foo');
+  it(
+    'Use transaction to update one of two existing child nodes. ' +
+      'Make sure events are only raised for the changed node.',
+    async function() {
+      const nodePair = getRandomNode(2) as Reference[];
+      let node = nodePair[0].child('foo');
 
-    await Promise.all([
-      node.child('a').set(42),
-      node.child('b').set(42)
-    ]);
+      await Promise.all([node.child('a').set(42), node.child('b').set(42)]);
 
-    node = nodePair[1].child('foo');
-    const eventHelper = eventTestHelper([
-      [node.child('a'), ['value', '']],
-      [node.child('b'), ['value', '']]
-    ]);
+      node = nodePair[1].child('foo');
+      const eventHelper = eventTestHelper([
+        [node.child('a'), ['value', '']],
+        [node.child('b'), ['value', '']]
+      ]);
 
-    await eventHelper.promise;
+      await eventHelper.promise;
 
-    eventHelper.addExpectedEvents([
-      [node.child('b'), ['value', '']]
-    ]);
-    
-    const transaction = node.transaction(function() {
-      return {a: 42, b: 87};
-    }, function(error, committed, snapshot) {
-      expect(error).to.be.null;
-      expect(committed).to.equal(true);
-      expect(snapshot.val()).to.deep.equal({a: 42, b: 87});
-    });
+      eventHelper.addExpectedEvents([[node.child('b'), ['value', '']]]);
 
-    return Promise.all([
-      eventHelper.promise,
-      transaction
-    ]);
-  });
+      const transaction = node.transaction(
+        function() {
+          return { a: 42, b: 87 };
+        },
+        function(error, committed, snapshot) {
+          expect(error).to.be.null;
+          expect(committed).to.equal(true);
+          expect(snapshot.val()).to.deep.equal({ a: 42, b: 87 });
+        }
+      );
+
+      return Promise.all([eventHelper.promise, transaction]);
+    }
+  );
 
   it('Transaction is only called once when initializing an empty node.', function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     let updateCalled = 0;
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
@@ -198,8 +212,7 @@ describe('Transaction Tests', function() {
       expect(value).to.equal(null);
       updateCalled++;
       ea.addEvent();
-      if (updateCalled > 1)
-        throw 'Transaction called too many times.';
+      if (updateCalled > 1) throw 'Transaction called too many times.';
 
       if (value === null) {
         return { a: 5, b: 3 };
@@ -209,9 +222,14 @@ describe('Transaction Tests', function() {
     return ea.promise;
   });
 
-  it('Second transaction gets run immediately on previous output and only runs once.', function(done) {
-    const nodePair = (getRandomNode(2) as Reference[]);
-    let firstRun = false, firstDone = false, secondRun = false, secondDone = false;
+  it('Second transaction gets run immediately on previous output and only runs once.', function(
+    done
+  ) {
+    const nodePair = getRandomNode(2) as Reference[];
+    let firstRun = false,
+      firstDone = false,
+      secondRun = false,
+      secondDone = false;
 
     function onComplete() {
       if (firstDone && secondDone) {
@@ -222,31 +240,37 @@ describe('Transaction Tests', function() {
       }
     }
 
-    nodePair[0].transaction(function() {
-      expect(firstRun).to.equal(false);
-      firstRun = true;
-      return 42;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      firstDone = true;
-      onComplete();
-    });
+    nodePair[0].transaction(
+      function() {
+        expect(firstRun).to.equal(false);
+        firstRun = true;
+        return 42;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        firstDone = true;
+        onComplete();
+      }
+    );
     expect(firstRun).to.equal(true);
 
-    nodePair[0].transaction(function(value) {
-      expect(secondRun).to.equal(false);
-      secondRun = true;
-      expect(value).to.equal(42);
-      return 84;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      secondDone = true;
-      onComplete();
-    });
+    nodePair[0].transaction(
+      function(value) {
+        expect(secondRun).to.equal(false);
+        secondRun = true;
+        expect(value).to.equal(42);
+        return 84;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        secondDone = true;
+        onComplete();
+      }
+    );
     expect(secondRun).to.equal(true);
-    
+
     expect(getVal(nodePair[0])).to.equal(84);
   });
 
@@ -257,8 +281,10 @@ describe('Transaction Tests', function() {
     //   Transaction #1 should complete as planned (since it was already sent).
     //   Transaction #2 should be aborted by the set.
     //   Transaction #3 should be re-run after #2 is reverted, and then be sent to the server and succeed.
-    let firstDone = false, secondDone = false, thirdDone = false;
-    const node = (getRandomNode() as Reference);
+    let firstDone = false,
+      secondDone = false,
+      thirdDone = false;
+    const node = getRandomNode() as Reference;
     let nodeSnap = null;
     let nodeFooSnap = null;
 
@@ -271,8 +297,9 @@ describe('Transaction Tests', function() {
       nodeFooSnap = s;
     });
 
-
-    let firstRun = false, secondRun = false, thirdRunCount = 0;
+    let firstRun = false,
+      secondRun = false,
+      thirdRunCount = 0;
     const ea = new EventAccumulator(() => firstDone && thirdDone);
     node.child('foo').transaction(
       function() {
@@ -286,14 +313,15 @@ describe('Transaction Tests', function() {
         expect(snapshot.val()).to.equal(42);
         firstDone = true;
         ea.addEvent();
-      });
+      }
+    );
     expect(nodeFooSnap.val()).to.deep.equal(42);
 
     node.transaction(
       function() {
         expect(secondRun).to.equal(false);
         secondRun = true;
-        return { 'foo' : 84, 'bar' : 1};
+        return { foo: 84, bar: 1 };
       },
       function(error, committed, snapshot) {
         expect(committed).to.equal(false);
@@ -302,28 +330,31 @@ describe('Transaction Tests', function() {
       }
     );
     expect(secondRun).to.equal(true);
-    expect(nodeSnap.val()).to.deep.equal({'foo': 84, 'bar': 1});
+    expect(nodeSnap.val()).to.deep.equal({ foo: 84, bar: 1 });
 
-    node.child('bar').transaction(function(val) {
-      thirdRunCount++;
-      if (thirdRunCount === 1) {
-        expect(val).to.equal(1);
-        return 'first';
-      } else if (thirdRunCount === 2) {
-        expect(val).to.equal(null);
-        return 'second';
-      } else {
-        throw new Error('Called too many times!');
+    node.child('bar').transaction(
+      function(val) {
+        thirdRunCount++;
+        if (thirdRunCount === 1) {
+          expect(val).to.equal(1);
+          return 'first';
+        } else if (thirdRunCount === 2) {
+          expect(val).to.equal(null);
+          return 'second';
+        } else {
+          throw new Error('Called too many times!');
+        }
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snapshot.val()).to.equal('second');
+        thirdDone = true;
+        ea.addEvent();
       }
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(snapshot.val()).to.equal('second');
-      thirdDone = true;
-      ea.addEvent();
-    });
+    );
     expect(thirdRunCount).to.equal(1);
-    expect(nodeSnap.val()).to.deep.equal({'foo' : 84, 'bar': 'first'});
+    expect(nodeSnap.val()).to.deep.equal({ foo: 84, bar: 'first' });
 
     // This rolls back the second transaction, and triggers a re-run of the third.
     // However, a new value event won't be triggered until the listener is complete,
@@ -338,35 +369,44 @@ describe('Transaction Tests', function() {
 
     await ea.promise;
 
-    expect(nodeSnap.val()).to.deep.equal({'foo' : 0, 'bar': 'second'});
+    expect(nodeSnap.val()).to.deep.equal({ foo: 0, bar: 'second' });
   });
 
   it('transaction(), set(), set() should work.', function(done) {
-    const ref = (getRandomNode() as Reference);
-    ref.transaction(function(curr) {
-      expect(curr).to.equal(null);
-      return 'hi!';
-    }, function(error, committed) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      done();
-    });
+    const ref = getRandomNode() as Reference;
+    ref.transaction(
+      function(curr) {
+        expect(curr).to.equal(null);
+        return 'hi!';
+      },
+      function(error, committed) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        done();
+      }
+    );
 
     ref.set('foo');
     ref.set('bar');
   });
 
   it('Priority is preserved when setting data.', async function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     let complete = false;
     let snap;
-    node.on('value', function(s) { snap = s; });
+    node.on('value', function(s) {
+      snap = s;
+    });
     node.setWithPriority('test', 5);
     expect(snap.getPriority()).to.equal(5);
 
     let promise = node.transaction(
-        function() { return 'new value'},
-        function() { complete = true; }
+      function() {
+        return 'new value';
+      },
+      function() {
+        complete = true;
+      }
     );
 
     expect(snap.val()).to.equal('new value');
@@ -377,52 +417,61 @@ describe('Transaction Tests', function() {
   });
 
   it('Tetris bug test - Can do transactions from transaction callback.', async function() {
-    const nodePair = (getRandomNode(2) as Reference[]), writeDone = false;
+    const nodePair = getRandomNode(2) as Reference[],
+      writeDone = false;
     await nodePair[0].child('foo').set(42);
 
     const node = nodePair[1];
 
     return new Promise(resolve => {
-      node.child('foo').transaction(function(val) {
-        if (val === null)
-          return 84;
-      }, function() {
-        node.child('bar').transaction(function(val) {
-          resolve();
-          return 168;
-        });
-      });
-    })
+      node.child('foo').transaction(
+        function(val) {
+          if (val === null) return 84;
+        },
+        function() {
+          node.child('bar').transaction(function(val) {
+            resolve();
+            return 168;
+          });
+        }
+      );
+    });
   });
 
   it('Resulting snapshot is passed to onComplete callback.', async function() {
-    const nodePair = (getRandomNode(2) as Reference[]);
-    await nodePair[0].transaction(function(v) {
-      if (v === null)
-        return 'hello!';
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(snapshot.val()).to.equal('hello!');
-    });
+    const nodePair = getRandomNode(2) as Reference[];
+    await nodePair[0].transaction(
+      function(v) {
+        if (v === null) return 'hello!';
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snapshot.val()).to.equal('hello!');
+      }
+    );
 
     // Do it again for the aborted case.
-    await nodePair[0].transaction(function(v) {
-      if (v === null)
-        return 'hello!';
-    }, function(error, committed, snapshot) {
-      expect(committed).to.equal(false);
-      expect(snapshot.val()).to.equal('hello!');
-    });
+    await nodePair[0].transaction(
+      function(v) {
+        if (v === null) return 'hello!';
+      },
+      function(error, committed, snapshot) {
+        expect(committed).to.equal(false);
+        expect(snapshot.val()).to.equal('hello!');
+      }
+    );
 
     // Do it again on a fresh connection, for the aborted case.
-    await nodePair[1].transaction(function(v) {
-      if (v === null)
-        return 'hello!';
-    }, function(error, committed, snapshot) {
-      expect(committed).to.equal(false);
-      expect(snapshot.val()).to.equal('hello!');
-    });
+    await nodePair[1].transaction(
+      function(v) {
+        if (v === null) return 'hello!';
+      },
+      function(error, committed, snapshot) {
+        expect(committed).to.equal(false);
+        expect(snapshot.val()).to.equal('hello!');
+      }
+    );
   });
 
   it('Transaction aborts after 25 retries.', function(done) {
@@ -430,35 +479,43 @@ describe('Transaction Tests', function() {
       return 'duck, duck, goose.';
     });
 
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     let tries = 0;
-    node.transaction(function(curr) {
-      expect(tries).to.be.lessThan(25);
-      tries++;
-      return 'hello!';
-    }, function(error, committed, snapshot) {
-      expect(error.message).to.equal('maxretry');
-      expect(committed).to.equal(false);
-      expect(tries).to.equal(25);
-      restoreHash();
-      done();
-    });
+    node.transaction(
+      function(curr) {
+        expect(tries).to.be.lessThan(25);
+        tries++;
+        return 'hello!';
+      },
+      function(error, committed, snapshot) {
+        expect(error.message).to.equal('maxretry');
+        expect(committed).to.equal(false);
+        expect(tries).to.equal(25);
+        restoreHash();
+        done();
+      }
+    );
   });
 
-  it('Set should cancel already sent transactions that come back as datastale.', function(done) {
-    const nodePair = (getRandomNode(2) as Reference[]);
+  it('Set should cancel already sent transactions that come back as datastale.', function(
+    done
+  ) {
+    const nodePair = getRandomNode(2) as Reference[];
     let transactionCalls = 0;
     nodePair[0].set(5, function() {
-      nodePair[1].transaction(function(old) {
-        expect(transactionCalls).to.equal(0);
-        expect(old).to.equal(null);
-        transactionCalls++;
-        return 72;
-      }, function(error, committed, snapshot) {
-        expect(error.message).to.equal('set');
-        expect(committed).to.equal(false);
-        done();
-      });
+      nodePair[1].transaction(
+        function(old) {
+          expect(transactionCalls).to.equal(0);
+          expect(old).to.equal(null);
+          transactionCalls++;
+          return 72;
+        },
+        function(error, committed, snapshot) {
+          expect(error.message).to.equal('set');
+          expect(committed).to.equal(false);
+          done();
+        }
+      );
 
       // Transaction should get sent but fail due to stale data, and then aborted because of the below set().
       nodePair[1].set(32);
@@ -466,7 +523,7 @@ describe('Transaction Tests', function() {
   });
 
   it('Update should not cancel unrelated transactions', async function() {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     let fooTransactionDone = false;
     let barTransactionDone = false;
     const restoreHash = hijackHash(function() {
@@ -474,31 +531,37 @@ describe('Transaction Tests', function() {
     });
 
     await node.child('foo').set(5);
-    
+
     // 'foo' gets overwritten in the update so the transaction gets cancelled.
-    node.child('foo').transaction(function(old) {
-      return 72;
-    }, function(error, committed, snapshot) {
-      expect(error.message).to.equal('set');
-      expect(committed).to.equal(false);
-      fooTransactionDone = true;
-    });
+    node.child('foo').transaction(
+      function(old) {
+        return 72;
+      },
+      function(error, committed, snapshot) {
+        expect(error.message).to.equal('set');
+        expect(committed).to.equal(false);
+        fooTransactionDone = true;
+      }
+    );
 
     // 'bar' does not get touched during the update and the transaction succeeds.
-    node.child('bar').transaction(function(old) {
-      return 72;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      barTransactionDone = true;
-    });
+    node.child('bar').transaction(
+      function(old) {
+        return 72;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        barTransactionDone = true;
+      }
+    );
 
     await node.update({
-      'foo': 'newValue',
-      'boo': 'newValue',
-      'loo' : {
-        'doo' : {
-          'boo': 'newValue'
+      foo: 'newValue',
+      boo: 'newValue',
+      loo: {
+        doo: {
+          boo: 'newValue'
         }
       }
     });
@@ -509,143 +572,173 @@ describe('Transaction Tests', function() {
   });
 
   it('Test transaction on wacky unicode data.', function(done) {
-    const nodePair = (getRandomNode(2) as Reference[]);
+    const nodePair = getRandomNode(2) as Reference[];
     nodePair[0].set('♜♞♝♛♚♝♞♜', function() {
-      nodePair[1].transaction(function(current) {
-        if (current !== null)
-          expect(current).to.equal('♜♞♝♛♚♝♞♜');
-        return '♖♘♗♕♔♗♘♖';
-      }, function(error, committed, snapshot) {
-        expect(error).to.equal(null);
-        expect(committed).to.equal(true);
-        done();
-      });
+      nodePair[1].transaction(
+        function(current) {
+          if (current !== null) expect(current).to.equal('♜♞♝♛♚♝♞♜');
+          return '♖♘♗♕♔♗♘♖';
+        },
+        function(error, committed, snapshot) {
+          expect(error).to.equal(null);
+          expect(committed).to.equal(true);
+          done();
+        }
+      );
     });
   });
 
   it('Test immediately aborted transaction.', function(done) {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     // without callback.
     node.transaction(function(curr) {
       return;
     });
 
     // with callback.
-    node.transaction(function(curr) {
-      return;
-    }, function(error, committed, snapshot) {
-      expect(committed).to.equal(false);
-      done();
-    });
+    node.transaction(
+      function(curr) {
+        return;
+      },
+      function(error, committed, snapshot) {
+        expect(committed).to.equal(false);
+        done();
+      }
+    );
   });
 
   it('Test adding to an array with a transaction.', function(done) {
-    const node = (getRandomNode() as Reference);
+    const node = getRandomNode() as Reference;
     node.set(['cat', 'horse'], function() {
-      node.transaction(function(current) {
-        if (current) {
-          current.push('dog');
-        } else {
-          current = ['dog'];
+      node.transaction(
+        function(current) {
+          if (current) {
+            current.push('dog');
+          } else {
+            current = ['dog'];
+          }
+          return current;
+        },
+        function(error, committed, snapshot) {
+          expect(error).to.equal(null);
+          expect(committed).to.equal(true);
+          expect(snapshot.val()).to.deep.equal(['cat', 'horse', 'dog']);
+          done();
         }
-        return current;
-      }, function(error, committed, snapshot) {
-        expect(error).to.equal(null);
-        expect(committed).to.equal(true);
-        expect(snapshot.val()).to.deep.equal(['cat', 'horse', 'dog']);
-        done();
-      });
+      );
     });
   });
 
   it('Merged transactions have correct snapshot in onComplete.', async function() {
-    const nodePair = (getRandomNode(2) as Reference[]), node1 = nodePair[0], node2 = nodePair[1];
+    const nodePair = getRandomNode(2) as Reference[],
+      node1 = nodePair[0],
+      node2 = nodePair[1];
     let transaction1Done, transaction2Done;
-    await node1.set({a: 0});
-    
-    const tx1 = node2.transaction(function(val) {
-      if (val !== null) {
-        expect(val).to.deep.equal({a: 0});
-      }
-      return {a: 1};
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(snapshot.key).to.equal(node2.key);
-      // Per new behavior, will include the accepted value of the transaction, if it was successful.
-      expect(snapshot.val()).to.deep.equal({a: 1});
-      transaction1Done = true;
-    });
+    await node1.set({ a: 0 });
 
-    const tx2 = node2.child('a').transaction(function(val) {
-      if (val !== null) {
-        expect(val).to.equal(1); // should run after the first transaction.
+    const tx1 = node2.transaction(
+      function(val) {
+        if (val !== null) {
+          expect(val).to.deep.equal({ a: 0 });
+        }
+        return { a: 1 };
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snapshot.key).to.equal(node2.key);
+        // Per new behavior, will include the accepted value of the transaction, if it was successful.
+        expect(snapshot.val()).to.deep.equal({ a: 1 });
+        transaction1Done = true;
       }
-      return 2;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(snapshot.key).to.equal('a');
-      expect(snapshot.val()).to.deep.equal(2);
-      transaction2Done = true;
-    });
+    );
 
-    return Promise.all([ tx1, tx2 ])
+    const tx2 = node2.child('a').transaction(
+      function(val) {
+        if (val !== null) {
+          expect(val).to.equal(1); // should run after the first transaction.
+        }
+        return 2;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snapshot.key).to.equal('a');
+        expect(snapshot.val()).to.deep.equal(2);
+        transaction2Done = true;
+      }
+    );
+
+    return Promise.all([tx1, tx2]);
   });
 
-  it('Doing set() in successful transaction callback works. Case 870.', function(done) {
-    const node = (getRandomNode() as Reference);
+  it('Doing set() in successful transaction callback works. Case 870.', function(
+    done
+  ) {
+    const node = getRandomNode() as Reference;
     let transactionCalled = false;
     let callbackCalled = false;
-    node.transaction(function(val) {
-      expect(transactionCalled).to.not.be.ok;
-      transactionCalled = true;
-      return 'hi';
-    }, function() {
-      expect(callbackCalled).to.not.be.ok;
-      callbackCalled = true;
-      node.set('transaction done', function() {
-        done();
-      });
-    });
+    node.transaction(
+      function(val) {
+        expect(transactionCalled).to.not.be.ok;
+        transactionCalled = true;
+        return 'hi';
+      },
+      function() {
+        expect(callbackCalled).to.not.be.ok;
+        callbackCalled = true;
+        node.set('transaction done', function() {
+          done();
+        });
+      }
+    );
   });
 
-  it('Doing set() in aborted transaction callback works. Case 870.', function(done) {
-    const nodePair = (getRandomNode(2) as Reference[]), node1 = nodePair[0], node2 = nodePair[1];
+  it('Doing set() in aborted transaction callback works. Case 870.', function(
+    done
+  ) {
+    const nodePair = getRandomNode(2) as Reference[],
+      node1 = nodePair[0],
+      node2 = nodePair[1];
 
     node1.set('initial', function() {
       let transactionCalled = false;
       let callbackCalled = false;
-      node2.transaction(function(val) {
-        // Return dummy value until we're called with the actual current value.
-        if (val === null)
-          return 'hi';
+      node2.transaction(
+        function(val) {
+          // Return dummy value until we're called with the actual current value.
+          if (val === null) return 'hi';
 
-        expect(transactionCalled).to.not.be.ok;
-        transactionCalled = true;
-        return;
-      }, function(error, committed, snapshot) {
-        expect(callbackCalled).to.not.be.ok;
-        callbackCalled = true;
-        node2.set('transaction done', function() {
-          done();
-        });
-      });
+          expect(transactionCalled).to.not.be.ok;
+          transactionCalled = true;
+          return;
+        },
+        function(error, committed, snapshot) {
+          expect(callbackCalled).to.not.be.ok;
+          callbackCalled = true;
+          node2.set('transaction done', function() {
+            done();
+          });
+        }
+      );
     });
   });
 
   it('Pending transactions are canceled on disconnect.', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
     // wait to be connected and some data set.
     ref.set('initial', function() {
-      ref.transaction(function(current) {
-        return 'new';
-      }, function(error, committed, snapshot) {
-        expect(committed).to.equal(false);
-        expect(error.message).to.equal('disconnect');
-        done();
-      });
+      ref.transaction(
+        function(current) {
+          return 'new';
+        },
+        function(error, committed, snapshot) {
+          expect(committed).to.equal(false);
+          expect(error.message).to.equal('disconnect');
+          done();
+        }
+      );
 
       // Kill the connection, which should cancel the outstanding transaction, since we don't know if it was
       // committed on the server or not.
@@ -655,7 +748,8 @@ describe('Transaction Tests', function() {
   });
 
   it('Transaction without local events (1)', async function() {
-    const ref = (getRandomNode() as Reference), actions = [];
+    const ref = getRandomNode() as Reference,
+      actions = [];
     let ea = EventAccumulatorFactory.waitsForCount(1);
 
     ref.on('value', function(s) {
@@ -666,65 +760,82 @@ describe('Transaction Tests', function() {
     await ea.promise;
 
     ea = new EventAccumulator(() => actions.length >= 4);
-    
-    ref.transaction(function() {
-      return 'hello!';
-    }, function(error, committed, snapshot) {
-      expect(error).to.be.null;
-      expect(committed).to.equal(true);
-      expect(snapshot.val()).to.equal('hello!');
 
-      actions.push('txn completed');
-      ea.addEvent();      
-    }, /*applyLocally=*/false);
+    ref.transaction(
+      function() {
+        return 'hello!';
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.be.null;
+        expect(committed).to.equal(true);
+        expect(snapshot.val()).to.equal('hello!');
+
+        actions.push('txn completed');
+        ea.addEvent();
+      },
+      /*applyLocally=*/ false
+    );
 
     // Shouldn't have gotten any events yet.
     expect(actions).to.deep.equal(['value null']);
     actions.push('txn run');
-    ea.addEvent();    
+    ea.addEvent();
 
     await ea.promise;
 
-    expect(actions).to.deep.equal(['value null', 'txn run', 'value hello!', 'txn completed']);
+    expect(actions).to.deep.equal([
+      'value null',
+      'txn run',
+      'value hello!',
+      'txn completed'
+    ]);
   });
 
   // This test is meant to ensure that with applyLocally=false, while the transaction is outstanding, we continue
   // to get events from other clients.
   it('Transaction without local events (2)', function(done) {
-    const refPair = (getRandomNode(2) as Reference[]), ref1 = refPair[0], ref2 = refPair[1];
-    const restoreHash = hijackHash(function() { return 'badhash'; });
+    const refPair = getRandomNode(2) as Reference[],
+      ref1 = refPair[0],
+      ref2 = refPair[1];
+    const restoreHash = hijackHash(function() {
+      return 'badhash';
+    });
     const SETS = 4;
-    let events = [], retries = 0, setsDone = 0;
+    let events = [],
+      retries = 0,
+      setsDone = 0;
 
     function txn1(next) {
       // Do a transaction on the first connection which will keep retrying (cause we hijacked the hash).
       // Make sure we're getting events for the sets happening on the second connection.
-      ref1.transaction(function(current) {
-        retries++;
-        // We should be getting server events while the transaction is outstanding.
-        for (let i = 0; i < (current || 0); i++) {
-          expect(events[i]).to.equal(i);
-        }
+      ref1.transaction(
+        function(current) {
+          retries++;
+          // We should be getting server events while the transaction is outstanding.
+          for (let i = 0; i < (current || 0); i++) {
+            expect(events[i]).to.equal(i);
+          }
 
-        if (current === SETS - 1) {
-          restoreHash();
-        }
-        return 'txn result';
-      }, function(error, committed, snapshot) {
-        expect(error).to.equal(null);
-        expect(committed).to.equal(true);
+          if (current === SETS - 1) {
+            restoreHash();
+          }
+          return 'txn result';
+        },
+        function(error, committed, snapshot) {
+          expect(error).to.equal(null);
+          expect(committed).to.equal(true);
 
-        expect(snapshot && snapshot.val()).to.equal('txn result');
-        next()
-      }, /*applyLocally=*/false);
-
+          expect(snapshot && snapshot.val()).to.equal('txn result');
+          next();
+        },
+        /*applyLocally=*/ false
+      );
 
       // Meanwhile, do sets from the second connection.
       const doSet = function() {
         ref2.set(setsDone, function() {
           setsDone++;
-          if (setsDone < SETS)
-            doSet();
+          if (setsDone < SETS) doSet();
         });
       };
       doSet();
@@ -737,8 +848,7 @@ describe('Transaction Tests', function() {
           txn1(function() {
             // Sanity check stuff.
             expect(setsDone).to.equal(SETS);
-            if (retries === 0)
-              throw 'Transaction should have had to retry!';
+            if (retries === 0) throw 'Transaction should have had to retry!';
 
             // Validate we got the correct events.
             for (let i = 0; i < SETS; i++) {
@@ -755,49 +865,55 @@ describe('Transaction Tests', function() {
   });
 
   it('Transaction from value callback.', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
     const COUNT = 1;
     ref.on('value', function(snap) {
       let shouldCommit = true;
-      ref.transaction(function(current) {
-        if (current == null) {
-          return 0;
-        } else if (current < COUNT) {
-          return current + 1;
-        } else {
-          shouldCommit = false;
-        }
+      ref.transaction(
+        function(current) {
+          if (current == null) {
+            return 0;
+          } else if (current < COUNT) {
+            return current + 1;
+          } else {
+            shouldCommit = false;
+          }
 
-        if (snap.val() === COUNT) {
-          done();
+          if (snap.val() === COUNT) {
+            done();
+          }
+        },
+        function(error, committed, snap) {
+          expect(committed).to.equal(shouldCommit);
         }
-      }, function(error, committed, snap) {
-        expect(committed).to.equal(shouldCommit);
-      });
+      );
     });
   });
 
   it('Transaction runs on null only once after reconnect (Case 1981).', async function() {
     if (!canCreateExtraConnections()) return;
 
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
     await ref.set(42);
     const newRef = getFreshRepoFromReference(ref);
     let run = 0;
-    return newRef.transaction(function(curr) {
-      run++;
-      if (run === 1) {
-        expect(curr).to.equal(null);
-      } else if (run === 2) {
-        expect(curr).to.equal(42);
+    return newRef.transaction(
+      function(curr) {
+        run++;
+        if (run === 1) {
+          expect(curr).to.equal(null);
+        } else if (run === 2) {
+          expect(curr).to.equal(42);
+        }
+        return 3.14;
+      },
+      function(error, committed, resultSnapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(run).to.equal(2);
+        expect(resultSnapshot.val()).to.equal(3.14);
       }
-      return 3.14;
-    }, function(error, committed, resultSnapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(run).to.equal(2);
-      expect(resultSnapshot.val()).to.equal(3.14);
-    });
+    );
   });
 
   // Provided by bk@thinkloop.com, this was failing when we sent puts before listens, but passes now.
@@ -819,29 +935,34 @@ describe('Transaction Tests', function() {
     }
 
     function makeFriend(accountID, friendAccountID, firebase) {
-      firebase.child(accountID).child(friendAccountID).transaction(function(r) {
-            if (r == null) {
-              r = { accountID: accountID, friendAccountID: friendAccountID, percentCommon: 0 };
-            }
+      firebase.child(accountID).child(friendAccountID).transaction(
+        function(r) {
+          if (r == null) {
+            r = {
+              accountID: accountID,
+              friendAccountID: friendAccountID,
+              percentCommon: 0
+            };
+          }
 
-            return r;
-          },
-          function(error, committed, snapshot) {
-            if (error) {
-              throw error;
-            }
-            else if (!committed) {
-              throw 'All should be committed!';
-            }
-            else {
-              count++;
-              ea.addEvent();
-              snapshot.ref.setPriority(snapshot.val().percentCommon);
-            }
-          }, false);
+          return r;
+        },
+        function(error, committed, snapshot) {
+          if (error) {
+            throw error;
+          } else if (!committed) {
+            throw 'All should be committed!';
+          } else {
+            count++;
+            ea.addEvent();
+            snapshot.ref.setPriority(snapshot.val().percentCommon);
+          }
+        },
+        false
+      );
     }
 
-    const firebase = (getRandomNode() as Reference);
+    const firebase = getRandomNode() as Reference;
     firebase.database.goOffline();
     firebase.database.goOnline();
     let count = 0;
@@ -852,29 +973,41 @@ describe('Transaction Tests', function() {
   });
 
   it('transaction() respects .priority.', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
     const values = [];
-    ref.on('value', function(s) { values.push(s.exportVal()); });
-
-    ref.transaction(function(curr) {
-      expect(curr).to.equal(null);
-      return {'.value': 5, '.priority': 5};
-    }, function() {
-      ref.transaction(function(curr) {
-        expect(curr).to.equal(5);
-        return {'.value': 10, '.priority': 10 };
-      }, function() {
-        expect(values).to.deep.equal([
-          {'.value': 5, '.priority': 5},
-          {'.value': 10, '.priority': 10}
-        ]);
-        done();
-      });
+    ref.on('value', function(s) {
+      values.push(s.exportVal());
     });
+
+    ref.transaction(
+      function(curr) {
+        expect(curr).to.equal(null);
+        return { '.value': 5, '.priority': 5 };
+      },
+      function() {
+        ref.transaction(
+          function(curr) {
+            expect(curr).to.equal(5);
+            return { '.value': 10, '.priority': 10 };
+          },
+          function() {
+            expect(values).to.deep.equal([
+              { '.value': 5, '.priority': 5 },
+              { '.value': 10, '.priority': 10 }
+            ]);
+            done();
+          }
+        );
+      }
+    );
   });
 
-  it('Transaction properly reverts data when you add a deeper listen.', function(done) {
-    const refPair = (getRandomNode(2) as Reference[]), ref1 = refPair[0], ref2 = refPair[1];
+  it('Transaction properly reverts data when you add a deeper listen.', function(
+    done
+  ) {
+    const refPair = getRandomNode(2) as Reference[],
+      ref1 = refPair[0],
+      ref2 = refPair[1];
     ref1.child('y').set('test', function() {
       ref2.transaction(function(curr) {
         if (curr === null) {
@@ -891,32 +1024,38 @@ describe('Transaction Tests', function() {
   });
 
   it('Transaction with integer keys', function(done) {
-    const ref = (getRandomNode() as Reference);
-    ref.set({1: 1, 5: 5, 10: 10, 20: 20}, function() {
-      ref.transaction(function(current) {
-        return 42;
-      }, function(error, committed) {
-        expect(error).to.be.null;
-        expect(committed).to.equal(true);
-        done();
-      });
+    const ref = getRandomNode() as Reference;
+    ref.set({ 1: 1, 5: 5, 10: 10, 20: 20 }, function() {
+      ref.transaction(
+        function(current) {
+          return 42;
+        },
+        function(error, committed) {
+          expect(error).to.be.null;
+          expect(committed).to.equal(true);
+          done();
+        }
+      );
     });
   });
 
   it('Return null from first run of transaction.', function(done) {
-    const ref = (getRandomNode() as Reference);
-    ref.transaction(function(c) {
-      return null;
-    }, function(error, committed) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      done();
-    });
+    const ref = getRandomNode() as Reference;
+    ref.transaction(
+      function(c) {
+        return null;
+      },
+      function(error, committed) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        done();
+      }
+    );
   });
 
   // https://app.asana.com/0/5673976843758/9259161251948
   it('Bubble-app transaction bug.', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
     ref.child('a').transaction(function() {
       return 1;
     });
@@ -926,34 +1065,37 @@ describe('Transaction Tests', function() {
     ref.child('b').transaction(function() {
       return 7;
     });
-    ref.transaction(function(current) {
-      if (current && current.a && current.b) {
-        return current.a + current.b;
-      } else {
-        return 'dummy';
+    ref.transaction(
+      function(current) {
+        if (current && current.a && current.b) {
+          return current.a + current.b;
+        } else {
+          return 'dummy';
+        }
+      },
+      function(error, committed, snap) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        expect(snap.val()).to.deep.equal(50);
+        done();
       }
-    }, function(error, committed, snap) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      expect(snap.val()).to.deep.equal(50);
-      done();
-    });
+    );
   });
 
   it('Transaction and priority: Can set priority in transaction on empty node', async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
     await ref.transaction(function(current) {
       return { '.value': 42, '.priority': 7 };
     });
 
     return ref.once('value', function(s) {
-      expect(s.exportVal()).to.deep.equal({ '.value': 42, '.priority': 7});
+      expect(s.exportVal()).to.deep.equal({ '.value': 42, '.priority': 7 });
     });
   });
 
   it("Transaction and priority: Transaction doesn't change priority.", async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
     await ref.set({ '.value': 42, '.priority': 7 });
 
@@ -963,11 +1105,11 @@ describe('Transaction Tests', function() {
 
     const snap = await ref.once('value');
 
-    expect(snap.exportVal()).to.deep.equal({ '.value': 12, '.priority': 7});
+    expect(snap.exportVal()).to.deep.equal({ '.value': 12, '.priority': 7 });
   });
 
   it('Transaction and priority: Transaction can change priority on non-empty node.', async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
     await ref.set({ '.value': 42, '.priority': 7 });
 
@@ -976,16 +1118,16 @@ describe('Transaction Tests', function() {
     });
 
     return ref.once('value', function(s) {
-      expect(s.exportVal()).to.deep.equal({ '.value': 43, '.priority': 8});
+      expect(s.exportVal()).to.deep.equal({ '.value': 43, '.priority': 8 });
     });
   });
 
   it('Transaction and priority: Changing priority on siblings.', async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
-    await ref.set({ 
-      a: { '.value': 'a', '.priority': 'a' }, 
-      b: { '.value': 'b', '.priority': 'b' } 
+    await ref.set({
+      a: { '.value': 'a', '.priority': 'a' },
+      b: { '.value': 'b', '.priority': 'b' }
     });
 
     const tx1 = ref.child('a').transaction(function(current) {
@@ -999,14 +1141,20 @@ describe('Transaction Tests', function() {
     await Promise.all([tx1, tx2]);
 
     return ref.once('value', function(s) {
-      expect(s.exportVal()).to.deep.equal({ a: { '.value': 'a2', '.priority': 'a2' }, b: { '.value': 'b2', '.priority': 'b2' } });
+      expect(s.exportVal()).to.deep.equal({
+        a: { '.value': 'a2', '.priority': 'a2' },
+        b: { '.value': 'b2', '.priority': 'b2' }
+      });
     });
   });
 
   it('Transaction and priority: Leaving priority on siblings.', async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
-    await ref.set({a: {'.value': 'a', '.priority': 'a'}, b: {'.value': 'b', '.priority': 'b'}});
+    await ref.set({
+      a: { '.value': 'a', '.priority': 'a' },
+      b: { '.value': 'b', '.priority': 'b' }
+    });
 
     const tx1 = ref.child('a').transaction(function(current) {
       return 'a2';
@@ -1019,75 +1167,108 @@ describe('Transaction Tests', function() {
     await Promise.all([tx1, tx2]);
 
     return ref.once('value', function(s) {
-      expect(s.exportVal()).to.deep.equal({ a: { '.value': 'a2', '.priority': 'a' }, b: { '.value': 'b2', '.priority': 'b' } });
+      expect(s.exportVal()).to.deep.equal({
+        a: { '.value': 'a2', '.priority': 'a' },
+        b: { '.value': 'b2', '.priority': 'b' }
+      });
     });
   });
 
-  it('transaction() doesn\'t pick up cached data from previous once().', function(done) {
-    const refPair = (getRandomNode(2) as Reference[]);
-    const me = refPair[0], other = refPair[1];
+  it("transaction() doesn't pick up cached data from previous once().", function(
+    done
+  ) {
+    const refPair = getRandomNode(2) as Reference[];
+    const me = refPair[0],
+      other = refPair[1];
     me.set('not null', function() {
       me.once('value', function(snapshot) {
         other.set(null, function() {
-          me.transaction(function(snapshot) {
-            if (snapshot === null) {
-              return 'it was null!';
-            } else {
-              return 'it was not null!';
+          me.transaction(
+            function(snapshot) {
+              if (snapshot === null) {
+                return 'it was null!';
+              } else {
+                return 'it was not null!';
+              }
+            },
+            function(err, committed, snapshot) {
+              expect(err).to.equal(null);
+              expect(committed).to.equal(true);
+              expect(snapshot.val()).to.deep.equal('it was null!');
+              done();
             }
-          }, function(err, committed, snapshot) {
-            expect(err).to.equal(null);
-            expect(committed).to.equal(true);
-            expect(snapshot.val()).to.deep.equal('it was null!');
-            done();
-          });
+          );
         });
       });
     });
   });
 
-  it('transaction() doesn\'t pick up cached data from previous transaction.', function(done) {
-    const refPair = (getRandomNode(2) as Reference[]);
-    const me = refPair[0], other = refPair[1];
-    me.transaction(function() {
-      return 'not null';
-    }, function(err, committed) {
-      expect(err).to.equal(null);
-      expect(committed).to.equal(true);
-      other.set(null, function() {
-        me.transaction(function(snapshot) {
-          if (snapshot === null) {
-            return 'it was null!';
-          } else {
-            return 'it was not null!';
-          }
-        }, function(err, committed, snapshot) {
-          expect(err).to.equal(null);
-          expect(committed).to.equal(true);
-          expect(snapshot.val()).to.deep.equal('it was null!');
-          done();
+  it("transaction() doesn't pick up cached data from previous transaction.", function(
+    done
+  ) {
+    const refPair = getRandomNode(2) as Reference[];
+    const me = refPair[0],
+      other = refPair[1];
+    me.transaction(
+      function() {
+        return 'not null';
+      },
+      function(err, committed) {
+        expect(err).to.equal(null);
+        expect(committed).to.equal(true);
+        other.set(null, function() {
+          me.transaction(
+            function(snapshot) {
+              if (snapshot === null) {
+                return 'it was null!';
+              } else {
+                return 'it was not null!';
+              }
+            },
+            function(err, committed, snapshot) {
+              expect(err).to.equal(null);
+              expect(committed).to.equal(true);
+              expect(snapshot.val()).to.deep.equal('it was null!');
+              done();
+            }
+          );
         });
-      });
-    });
+      }
+    );
   });
 
-  it("server values: local timestamp should eventually (but not immediately) match the server with txns", function(done) {
-    const refPair = (getRandomNode(2) as Reference[]),
-        writer = refPair[0],
-        reader = refPair[1],
-        readSnaps = [], writeSnaps = [];
+  it('server values: local timestamp should eventually (but not immediately) match the server with txns', function(
+    done
+  ) {
+    const refPair = getRandomNode(2) as Reference[],
+      writer = refPair[0],
+      reader = refPair[1],
+      readSnaps = [],
+      writeSnaps = [];
 
     const evaluateCompletionCriteria = function() {
       if (readSnaps.length === 1 && writeSnaps.length === 2) {
-        expect(Math.abs(new Date().getTime() - writeSnaps[0].val()) < 10000).to.equal(true);
-        expect(Math.abs(new Date().getTime() - writeSnaps[0].getPriority()) < 10000).to.equal(true);
-        expect(Math.abs(new Date().getTime() - writeSnaps[1].val()) < 10000).to.equal(true);
-        expect(Math.abs(new Date().getTime() - writeSnaps[1].getPriority()) < 10000).to.equal(true);
+        expect(
+          Math.abs(new Date().getTime() - writeSnaps[0].val()) < 10000
+        ).to.equal(true);
+        expect(
+          Math.abs(new Date().getTime() - writeSnaps[0].getPriority()) < 10000
+        ).to.equal(true);
+        expect(
+          Math.abs(new Date().getTime() - writeSnaps[1].val()) < 10000
+        ).to.equal(true);
+        expect(
+          Math.abs(new Date().getTime() - writeSnaps[1].getPriority()) < 10000
+        ).to.equal(true);
 
         expect(writeSnaps[0].val() === writeSnaps[1].val()).to.equal(false);
-        expect(writeSnaps[0].getPriority() === writeSnaps[1].getPriority()).to.equal(false);
+        expect(
+          writeSnaps[0].getPriority() === writeSnaps[1].getPriority()
+        ).to.equal(false);
         expect(writeSnaps[1].val() === readSnaps[0].val()).to.equal(true);
-        expect(writeSnaps[1].getPriority() === readSnaps[0].getPriority()).to.equal(true);
+        expect(
+          writeSnaps[1].getPriority() === readSnaps[0].getPriority()
+        ).to.equal(true);
         done();
       }
     };
@@ -1113,8 +1294,8 @@ describe('Transaction Tests', function() {
 
     writer.transaction(function(current) {
       return {
-        '.value'    : firebase.database.ServerValue.TIMESTAMP,
-        '.priority' : firebase.database.ServerValue.TIMESTAMP
+        '.value': firebase.database.ServerValue.TIMESTAMP,
+        '.priority': firebase.database.ServerValue.TIMESTAMP
       };
     });
 
@@ -1122,47 +1303,58 @@ describe('Transaction Tests', function() {
   });
 
   it("transaction() still works when there's a query listen.", function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
-    ref.set({
-      a: 1,
-      b: 2
-    }, function() {
-      ref.limitToFirst(1).on('child_added', function() {});
+    ref.set(
+      {
+        a: 1,
+        b: 2
+      },
+      function() {
+        ref.limitToFirst(1).on('child_added', function() {});
 
-      ref.child('a').transaction(function(current) {
-        return current;
-      }, function(error, committed, snapshot) {
-        expect(error).to.equal(null);
-        expect(committed).to.equal(true);
-        if (!error) {
-          expect(snapshot.val()).to.deep.equal(1);
-        }
-        done();
-      }, false);
-    });
+        ref.child('a').transaction(
+          function(current) {
+            return current;
+          },
+          function(error, committed, snapshot) {
+            expect(error).to.equal(null);
+            expect(committed).to.equal(true);
+            if (!error) {
+              expect(snapshot.val()).to.deep.equal(1);
+            }
+            done();
+          },
+          false
+        );
+      }
+    );
   });
 
-  it("transaction() on queried location doesn't run initially on null (firebase-worker-queue depends on this).",
-      function(done) {
-    const ref = (getRandomNode() as Reference);
-    ref.push({ a: 1, b: 2}, function() {
+  it("transaction() on queried location doesn't run initially on null (firebase-worker-queue depends on this).", function(
+    done
+  ) {
+    const ref = getRandomNode() as Reference;
+    ref.push({ a: 1, b: 2 }, function() {
       ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-        snap.ref.transaction(function(current) {
-          expect(current).to.deep.equal({a: 1, b: 2});
-          return null;
-        }, function(error, committed, snapshot) {
-          expect(error).to.equal(null);
-          expect(committed).to.equal(true);
-          expect(snapshot.val()).to.equal(null);
-          done();
-        });
+        snap.ref.transaction(
+          function(current) {
+            expect(current).to.deep.equal({ a: 1, b: 2 });
+            return null;
+          },
+          function(error, committed, snapshot) {
+            expect(error).to.equal(null);
+            expect(committed).to.equal(true);
+            expect(snapshot.val()).to.equal(null);
+            done();
+          }
+        );
       });
     });
   });
 
   it('transactions raise correct child_changed events on queries', async function() {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
     const value = { foo: { value: 1 } };
     const snapshots = [];
@@ -1178,12 +1370,16 @@ describe('Transaction Tests', function() {
       snapshots.push(snapshot);
     });
 
-    await ref.child('foo').transaction(function(current) {
-      return {value: 2};
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-    }, false);
+    await ref.child('foo').transaction(
+      function(current) {
+        return { value: 2 };
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+      },
+      false
+    );
 
     expect(snapshots.length).to.equal(2);
     const addedSnapshot = snapshots[0];
@@ -1195,49 +1391,63 @@ describe('Transaction Tests', function() {
   });
 
   it('transactions can use local merges', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
-    ref.update({'foo': 'bar'});
+    ref.update({ foo: 'bar' });
 
-    ref.child('foo').transaction(function(current) {
-      expect(current).to.equal('bar');
-      return current;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      done();
-    });
+    ref.child('foo').transaction(
+      function(current) {
+        expect(current).to.equal('bar');
+        return current;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        done();
+      }
+    );
   });
 
-  it('transactions works with merges without the transaction path', function(done) {
-    const ref = (getRandomNode() as Reference);
+  it('transactions works with merges without the transaction path', function(
+    done
+  ) {
+    const ref = getRandomNode() as Reference;
 
-    ref.update({'foo': 'bar'});
+    ref.update({ foo: 'bar' });
 
-    ref.child('non-foo').transaction(function(current) {
-      expect(current).to.equal(null);
-      return current;
-    }, function(error, committed, snapshot) {
-      expect(error).to.equal(null);
-      expect(committed).to.equal(true);
-      done();
-    });
+    ref.child('non-foo').transaction(
+      function(current) {
+        expect(current).to.equal(null);
+        return current;
+      },
+      function(error, committed, snapshot) {
+        expect(error).to.equal(null);
+        expect(committed).to.equal(true);
+        done();
+      }
+    );
   });
 
   //See https://app.asana.com/0/15566422264127/23303789496881
   it('out of order remove writes are handled correctly', function(done) {
-    const ref = (getRandomNode() as Reference);
+    const ref = getRandomNode() as Reference;
 
-    ref.set({foo: 'bar'});
-    ref.transaction(function() {
-      return 'transaction-1';
-    }, function() { });
-    ref.transaction(function() {
-      return 'transaction-2';
-    }, function() { });
+    ref.set({ foo: 'bar' });
+    ref.transaction(
+      function() {
+        return 'transaction-1';
+      },
+      function() {}
+    );
+    ref.transaction(
+      function() {
+        return 'transaction-2';
+      },
+      function() {}
+    );
 
     // This will trigger an abort of the transaction which should not cause the client to crash
-    ref.update({qux: 'quu' }, function(error) {
+    ref.update({ qux: 'quu' }, function(error) {
       expect(error).to.equal(null);
       done();
     });

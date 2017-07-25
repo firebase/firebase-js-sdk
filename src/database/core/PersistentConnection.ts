@@ -36,7 +36,7 @@ import { RepoInfo } from './RepoInfo';
 import { Query } from '../api/Query';
 
 const RECONNECT_MIN_DELAY = 1000;
-const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000;   // 5 minutes in milliseconds (Case: 1858)
+const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
 const RECONNECT_MAX_DELAY_FOR_ADMINS = 30 * 1000; // 30 seconds for admin clients (likely to be a backend server)
 const RECONNECT_DELAY_MULTIPLIER = 1.3;
 const RECONNECT_DELAY_RESET_TIMEOUT = 30000; // Reset delay back to MIN_DELAY after being connected for 30sec.
@@ -105,7 +105,10 @@ export class PersistentConnection extends ServerActions {
    *   sendRequest(Object),
    *   close()
    * }} */
-  private realtime_: { sendRequest(a: Object): void, close(): void } | null = null;
+  private realtime_: {
+    sendRequest(a: Object): void;
+    close(): void;
+  } | null = null;
 
   /** @private {string|null} */
   private authToken_: string | null = null;
@@ -115,7 +118,6 @@ export class PersistentConnection extends ServerActions {
   private firstConnection_ = true;
   private lastConnectionAttemptTime_: number | null = null;
   private lastConnectionEstablishedTime_: number | null = null;
-
 
   /**
    * @private
@@ -138,16 +140,25 @@ export class PersistentConnection extends ServerActions {
    * @param authTokenProvider_
    * @param authOverride_
    */
-  constructor(private repoInfo_: RepoInfo,
-              private onDataUpdate_: (a: string, b: any, c: boolean, d: number | null) => void,
-              private onConnectStatus_: (a: boolean) => void,
-              private onServerInfoUpdate_: (a: any) => void,
-              private authTokenProvider_: AuthTokenProvider,
-              private authOverride_?: Object | null) {
+  constructor(
+    private repoInfo_: RepoInfo,
+    private onDataUpdate_: (
+      a: string,
+      b: any,
+      c: boolean,
+      d: number | null
+    ) => void,
+    private onConnectStatus_: (a: boolean) => void,
+    private onServerInfoUpdate_: (a: any) => void,
+    private authTokenProvider_: AuthTokenProvider,
+    private authOverride_?: Object | null
+  ) {
     super();
 
     if (authOverride_ && !isNodeSdk()) {
-      throw new Error('Auth override specified in options, but not supported on non Node.js platforms');
+      throw new Error(
+        'Auth override specified in options, but not supported on non Node.js platforms'
+      );
     }
     this.scheduleConnect_(0);
 
@@ -164,12 +175,19 @@ export class PersistentConnection extends ServerActions {
    * @param {function(*)=} onResponse
    * @protected
    */
-  protected sendRequest(action: string, body: any, onResponse?: (a: any) => void) {
+  protected sendRequest(
+    action: string,
+    body: any,
+    onResponse?: (a: any) => void
+  ) {
     const curReqNum = ++this.requestNumber_;
 
-    const msg = {'r': curReqNum, 'a': action, 'b': body};
+    const msg = { r: curReqNum, a: action, b: body };
     this.log_(stringify(msg));
-    assert(this.connected_, 'sendRequest call when we\'re not connected not allowed.');
+    assert(
+      this.connected_,
+      "sendRequest call when we're not connected not allowed."
+    );
     this.realtime_.sendRequest(msg);
     if (onResponse) {
       this.requestCBHash_[curReqNum] = onResponse;
@@ -179,14 +197,25 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  listen(query: Query, currentHashFn: () => string, tag: number | null, onComplete: (a: string, b: any) => void) {
+  listen(
+    query: Query,
+    currentHashFn: () => string,
+    tag: number | null,
+    onComplete: (a: string, b: any) => void
+  ) {
     const queryId = query.queryIdentifier();
     const pathString = query.path.toString();
     this.log_('Listen called for ' + pathString + ' ' + queryId);
     this.listens_[pathString] = this.listens_[pathString] || {};
-    assert(query.getQueryParams().isDefault() || !query.getQueryParams().loadsAllData(),
-      'listen() called for non-default but complete query');
-    assert(!this.listens_[pathString][queryId], 'listen() called twice for same path/queryId.');
+    assert(
+      query.getQueryParams().isDefault() ||
+        !query.getQueryParams().loadsAllData(),
+      'listen() called for non-default but complete query'
+    );
+    assert(
+      !this.listens_[pathString][queryId],
+      'listen() called twice for same path/queryId.'
+    );
     const listenSpec: ListenSpec = {
       onComplete: onComplete,
       hashFn: currentHashFn,
@@ -212,7 +241,7 @@ export class PersistentConnection extends ServerActions {
     const pathString = query.path.toString();
     const queryId = query.queryIdentifier();
     this.log_('Listen on ' + pathString + ' for ' + queryId);
-    const req: { [k: string]: any } = {/*path*/ 'p': pathString};
+    const req: { [k: string]: any } = { /*path*/ p: pathString };
 
     const action = 'q';
 
@@ -222,7 +251,7 @@ export class PersistentConnection extends ServerActions {
       req['t'] = listenSpec.tag;
     }
 
-    req[/*hash*/'h'] = listenSpec.hashFn();
+    req[/*hash*/ 'h'] = listenSpec.hashFn();
 
     this.sendRequest(action, req, (message: { [k: string]: any }) => {
       const payload: any = message[/*data*/ 'd'];
@@ -231,7 +260,8 @@ export class PersistentConnection extends ServerActions {
       // print warnings in any case...
       PersistentConnection.warnOnListenWarnings_(payload, query);
 
-      const currentListenSpec = this.listens_[pathString] && this.listens_[pathString][queryId];
+      const currentListenSpec =
+        this.listens_[pathString] && this.listens_[pathString][queryId];
       // only trigger actions if the listen hasn't been removed and readded
       if (currentListenSpec === listenSpec) {
         this.log_('listen response', message);
@@ -256,10 +286,16 @@ export class PersistentConnection extends ServerActions {
     if (payload && typeof payload === 'object' && contains(payload, 'w')) {
       const warnings = safeGet(payload, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
-        const indexSpec = '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
+        const indexSpec =
+          '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
         const indexPath = query.path.toString();
-        warn('Using an unspecified index. Consider adding ' + indexSpec + ' at ' + indexPath +
-          ' to your security rules for better performance');
+        warn(
+          'Using an unspecified index. Consider adding ' +
+            indexSpec +
+            ' at ' +
+            indexPath +
+            ' to your security rules for better performance'
+        );
       }
     }
   }
@@ -276,7 +312,7 @@ export class PersistentConnection extends ServerActions {
       //If we're connected we want to let the server know to unauthenticate us. If we're not connected, simply delete
       //the credential so we dont become authenticated next time we connect.
       if (this.connected_) {
-        this.sendRequest('unauth', {}, () => { });
+        this.sendRequest('unauth', {}, () => {});
       }
     }
 
@@ -292,7 +328,9 @@ export class PersistentConnection extends ServerActions {
     // Additionally, we don't bother resetting the max delay back to the default if auth fails / expires.
     const isFirebaseSecret = credential && credential.length === 40;
     if (isFirebaseSecret || isAdmin(credential)) {
-      this.log_('Admin auth credential detected.  Reducing max reconnect time.');
+      this.log_(
+        'Admin auth credential detected.  Reducing max reconnect time.'
+      );
       this.maxReconnectDelay_ = RECONNECT_MAX_DELAY_FOR_ADMINS;
     }
   }
@@ -305,7 +343,7 @@ export class PersistentConnection extends ServerActions {
     if (this.connected_ && this.authToken_) {
       const token = this.authToken_;
       const authMethod = isValidFormat(token) ? 'auth' : 'gauth';
-      const requestData: { [k: string]: any } = {'cred': token};
+      const requestData: { [k: string]: any } = { cred: token };
       if (this.authOverride_ === null) {
         requestData['noauth'] = true;
       } else if (typeof this.authOverride_ === 'object') {
@@ -336,18 +374,26 @@ export class PersistentConnection extends ServerActions {
 
     this.log_('Unlisten called for ' + pathString + ' ' + queryId);
 
-    assert(query.getQueryParams().isDefault() || !query.getQueryParams().loadsAllData(),
-      'unlisten() called for non-default but complete query');
+    assert(
+      query.getQueryParams().isDefault() ||
+        !query.getQueryParams().loadsAllData(),
+      'unlisten() called for non-default but complete query'
+    );
     const listen = this.removeListen_(pathString, queryId);
     if (listen && this.connected_) {
       this.sendUnlisten_(pathString, queryId, query.queryObject(), tag);
     }
   }
 
-  private sendUnlisten_(pathString: string, queryId: string, queryObj: Object, tag: number | null) {
+  private sendUnlisten_(
+    pathString: string,
+    queryId: string,
+    queryObj: Object,
+    tag: number | null
+  ) {
     this.log_('Unlisten on ' + pathString + ' for ' + queryId);
 
-    const req: { [k: string]: any } = {/*path*/ 'p': pathString};
+    const req: { [k: string]: any } = { /*path*/ p: pathString };
     const action = 'n';
     // Only bother sending queryId if it's non-default.
     if (tag) {
@@ -361,7 +407,11 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => void) {
+  onDisconnectPut(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void
+  ) {
     if (this.connected_) {
       this.sendOnDisconnect_('o', pathString, data, onComplete);
     } else {
@@ -377,7 +427,11 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => void) {
+  onDisconnectMerge(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void
+  ) {
     if (this.connected_) {
       this.sendOnDisconnect_('om', pathString, data, onComplete);
     } else {
@@ -393,7 +447,10 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => void) {
+  onDisconnectCancel(
+    pathString: string,
+    onComplete?: (a: string, b: string) => void
+  ) {
     if (this.connected_) {
       this.sendOnDisconnect_('oc', pathString, null, onComplete);
     } else {
@@ -406,13 +463,18 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  private sendOnDisconnect_(action: string, pathString: string, data: any, onComplete: (a: string, b: string) => void) {
-    const request = {/*path*/ 'p': pathString, /*data*/ 'd': data};
+  private sendOnDisconnect_(
+    action: string,
+    pathString: string,
+    data: any,
+    onComplete: (a: string, b: string) => void
+  ) {
+    const request = { /*path*/ p: pathString, /*data*/ d: data };
     this.log_('onDisconnect ' + action, request);
     this.sendRequest(action, request, (response: { [k: string]: any }) => {
       if (onComplete) {
-        setTimeout(function () {
-          onComplete(response[/*status*/ 's'], response[/* data */'d']);
+        setTimeout(function() {
+          onComplete(response[/*status*/ 's'], response[/* data */ 'd']);
         }, Math.floor(0));
       }
     });
@@ -421,23 +483,40 @@ export class PersistentConnection extends ServerActions {
   /**
    * @inheritDoc
    */
-  put(pathString: string, data: any, onComplete?: (a: string, b: string) => void, hash?: string) {
+  put(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void,
+    hash?: string
+  ) {
     this.putInternal('p', pathString, data, onComplete, hash);
   }
 
   /**
    * @inheritDoc
    */
-  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => void, hash?: string) {
+  merge(
+    pathString: string,
+    data: any,
+    onComplete: (a: string, b: string | null) => void,
+    hash?: string
+  ) {
     this.putInternal('m', pathString, data, onComplete, hash);
   }
 
-  putInternal(action: string, pathString: string, data: any,
-              onComplete: (a: string, b: string | null) => void, hash?: string) {
-    const request: { [k: string]: any } = {/*path*/ 'p': pathString, /*data*/ 'd': data};
+  putInternal(
+    action: string,
+    pathString: string,
+    data: any,
+    onComplete: (a: string, b: string | null) => void,
+    hash?: string
+  ) {
+    const request: { [k: string]: any } = {
+      /*path*/ p: pathString,
+      /*data*/ d: data
+    };
 
-    if (hash !== undefined)
-      request[/*hash*/ 'h'] = hash;
+    if (hash !== undefined) request[/*hash*/ 'h'] = hash;
 
     // TODO: Only keep track of the most recent put for a given path?
     this.outstandingPuts_.push({
@@ -484,10 +563,10 @@ export class PersistentConnection extends ServerActions {
   reportStats(stats: { [k: string]: any }) {
     // If we're not connected, we just drop the stats.
     if (this.connected_) {
-      const request = {/*counters*/ 'c': stats};
+      const request = { /*counters*/ c: stats };
       this.log_('reportStats', request);
 
-      this.sendRequest(/*stats*/ 's', request, (result) => {
+      this.sendRequest(/*stats*/ 's', request, result => {
         const status = result[/*status*/ 's'];
         if (status !== 'ok') {
           const errorReason = result[/* data */ 'd'];
@@ -522,18 +601,33 @@ export class PersistentConnection extends ServerActions {
   private onDataPush_(action: string, body: { [k: string]: any }) {
     this.log_('handleServerMessage', action, body);
     if (action === 'd')
-      this.onDataUpdate_(body[/*path*/ 'p'], body[/*data*/ 'd'], /*isMerge*/false, body['t']);
+      this.onDataUpdate_(
+        body[/*path*/ 'p'],
+        body[/*data*/ 'd'],
+        /*isMerge*/ false,
+        body['t']
+      );
     else if (action === 'm')
-      this.onDataUpdate_(body[/*path*/ 'p'], body[/*data*/ 'd'], /*isMerge=*/true, body['t']);
+      this.onDataUpdate_(
+        body[/*path*/ 'p'],
+        body[/*data*/ 'd'],
+        /*isMerge=*/ true,
+        body['t']
+      );
     else if (action === 'c')
       this.onListenRevoked_(body[/*path*/ 'p'], body[/*query*/ 'q']);
     else if (action === 'ac')
-      this.onAuthRevoked_(body[/*status code*/ 's'], body[/* explanation */ 'd']);
-    else if (action === 'sd')
-      this.onSecurityDebugPacket_(body);
+      this.onAuthRevoked_(
+        body[/*status code*/ 's'],
+        body[/* explanation */ 'd']
+      );
+    else if (action === 'sd') this.onSecurityDebugPacket_(body);
     else
-      error('Unrecognized action received from server: ' + stringify(action) +
-        '\nAre you using the latest client?');
+      error(
+        'Unrecognized action received from server: ' +
+          stringify(action) +
+          '\nAre you using the latest client?'
+      );
   }
 
   private onReady_(timestamp: number, sessionId: string) {
@@ -551,7 +645,10 @@ export class PersistentConnection extends ServerActions {
   }
 
   private scheduleConnect_(timeout: number) {
-    assert(!this.realtime_, 'Scheduling a connect when we\'re already connected/ing?');
+    assert(
+      !this.realtime_,
+      "Scheduling a connect when we're already connected/ing?"
+    );
 
     if (this.establishConnectionTimer_) {
       clearTimeout(this.establishConnectionTimer_);
@@ -572,7 +669,11 @@ export class PersistentConnection extends ServerActions {
    */
   private onVisible_(visible: boolean) {
     // NOTE: Tabbing away and back to a window will defeat our reconnect backoff, but I think that's fine.
-    if (visible && !this.visible_ && this.reconnectDelay_ === this.maxReconnectDelay_) {
+    if (
+      visible &&
+      !this.visible_ &&
+      this.reconnectDelay_ === this.maxReconnectDelay_
+    ) {
       this.log_('Window became visible.  Reducing delay.');
       this.reconnectDelay_ = RECONNECT_MIN_DELAY;
 
@@ -611,26 +712,34 @@ export class PersistentConnection extends ServerActions {
 
     if (this.shouldReconnect_()) {
       if (!this.visible_) {
-        this.log_('Window isn\'t visible.  Delaying reconnect.');
+        this.log_("Window isn't visible.  Delaying reconnect.");
         this.reconnectDelay_ = this.maxReconnectDelay_;
         this.lastConnectionAttemptTime_ = new Date().getTime();
       } else if (this.lastConnectionEstablishedTime_) {
         // If we've been connected long enough, reset reconnect delay to minimum.
-        const timeSinceLastConnectSucceeded = new Date().getTime() - this.lastConnectionEstablishedTime_;
+        const timeSinceLastConnectSucceeded =
+          new Date().getTime() - this.lastConnectionEstablishedTime_;
         if (timeSinceLastConnectSucceeded > RECONNECT_DELAY_RESET_TIMEOUT)
           this.reconnectDelay_ = RECONNECT_MIN_DELAY;
         this.lastConnectionEstablishedTime_ = null;
       }
 
-      const timeSinceLastConnectAttempt = new Date().getTime() - this.lastConnectionAttemptTime_;
-      let reconnectDelay = Math.max(0, this.reconnectDelay_ - timeSinceLastConnectAttempt);
+      const timeSinceLastConnectAttempt =
+        new Date().getTime() - this.lastConnectionAttemptTime_;
+      let reconnectDelay = Math.max(
+        0,
+        this.reconnectDelay_ - timeSinceLastConnectAttempt
+      );
       reconnectDelay = Math.random() * reconnectDelay;
 
       this.log_('Trying to reconnect in ' + reconnectDelay + 'ms');
       this.scheduleConnect_(reconnectDelay);
 
       // Adjust reconnect delay for next time.
-      this.reconnectDelay_ = Math.min(this.maxReconnectDelay_, this.reconnectDelay_ * RECONNECT_DELAY_MULTIPLIER);
+      this.reconnectDelay_ = Math.min(
+        this.maxReconnectDelay_,
+        this.reconnectDelay_ * RECONNECT_DELAY_MULTIPLIER
+      );
     }
     this.onConnectStatus_(false);
   }
@@ -648,7 +757,7 @@ export class PersistentConnection extends ServerActions {
       const lastSessionId = this.lastSessionId;
       let canceled = false;
       let connection: Connection | null = null;
-      const closeFn = function () {
+      const closeFn = function() {
         if (connection) {
           connection.close();
         } else {
@@ -656,8 +765,11 @@ export class PersistentConnection extends ServerActions {
           onDisconnect();
         }
       };
-      const sendRequestFn = function (msg: Object) {
-        assert(connection, 'sendRequest call when we\'re not connected not allowed.');
+      const sendRequestFn = function(msg: Object) {
+        assert(
+          connection,
+          "sendRequest call when we're not connected not allowed."
+        );
         connection.sendRequest(msg);
       };
 
@@ -670,33 +782,40 @@ export class PersistentConnection extends ServerActions {
       this.forceTokenRefresh_ = false;
 
       // First fetch auth token, and establish connection after fetching the token was successful
-      this.authTokenProvider_.getToken(forceRefresh).then(function (result) {
-        if (!canceled) {
-          log('getToken() completed. Creating connection.');
-          self.authToken_ = result && result.accessToken;
-          connection = new Connection(connId, self.repoInfo_,
-            onDataMessage,
-            onReady,
-            onDisconnect, /* onKill= */ function (reason) {
-              warn(reason + ' (' + self.repoInfo_.toString() + ')');
-              self.interrupt(SERVER_KILL_INTERRUPT_REASON);
-            },
-            lastSessionId);
-        } else {
-          log('getToken() completed but was canceled');
-        }
-      }).then(null, function (error) {
-        self.log_('Failed to get token: ' + error);
-        if (!canceled) {
-          if (CONSTANTS.NODE_ADMIN) {
-            // This may be a critical error for the Admin Node.js SDK, so log a warning.
-            // But getToken() may also just have temporarily failed, so we still want to
-            // continue retrying.
-            warn(error);
+      this.authTokenProvider_
+        .getToken(forceRefresh)
+        .then(function(result) {
+          if (!canceled) {
+            log('getToken() completed. Creating connection.');
+            self.authToken_ = result && result.accessToken;
+            connection = new Connection(
+              connId,
+              self.repoInfo_,
+              onDataMessage,
+              onReady,
+              onDisconnect,
+              /* onKill= */ function(reason) {
+                warn(reason + ' (' + self.repoInfo_.toString() + ')');
+                self.interrupt(SERVER_KILL_INTERRUPT_REASON);
+              },
+              lastSessionId
+            );
+          } else {
+            log('getToken() completed but was canceled');
           }
-          closeFn();
-        }
-      });
+        })
+        .then(null, function(error) {
+          self.log_('Failed to get token: ' + error);
+          if (!canceled) {
+            if (CONSTANTS.NODE_ADMIN) {
+              // This may be a critical error for the Admin Node.js SDK, so log a warning.
+              // But getToken() may also just have temporarily failed, so we still want to
+              // continue retrying.
+              warn(error);
+            }
+            closeFn();
+          }
+        });
     }
   }
 
@@ -735,15 +854,14 @@ export class PersistentConnection extends ServerActions {
 
   private handleTimestamp_(timestamp: number) {
     const delta = timestamp - new Date().getTime();
-    this.onServerInfoUpdate_({'serverTimeOffset': delta});
+    this.onServerInfoUpdate_({ serverTimeOffset: delta });
   }
 
   private cancelSentTransactions_() {
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
       const put = this.outstandingPuts_[i];
-      if (put && /*hash*/'h' in put.request && put.queued) {
-        if (put.onComplete)
-          put.onComplete('disconnect');
+      if (put && /*hash*/ 'h' in put.request && put.queued) {
+        if (put.onComplete) put.onComplete('disconnect');
 
         delete this.outstandingPuts_[i];
         this.outstandingPutCount_--;
@@ -751,8 +869,7 @@ export class PersistentConnection extends ServerActions {
     }
 
     // Clean up array occasionally.
-    if (this.outstandingPutCount_ === 0)
-      this.outstandingPuts_ = [];
+    if (this.outstandingPutCount_ === 0) this.outstandingPuts_ = [];
   }
 
   /**
@@ -769,8 +886,7 @@ export class PersistentConnection extends ServerActions {
       queryId = query.map(q => ObjectToUniqueKey(q)).join('$');
     }
     const listen = this.removeListen_(pathString, queryId);
-    if (listen && listen.onComplete)
-      listen.onComplete('permission_denied');
+    if (listen && listen.onComplete) listen.onComplete('permission_denied');
   }
 
   /**
@@ -839,13 +955,17 @@ export class PersistentConnection extends ServerActions {
     });
 
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
-      if (this.outstandingPuts_[i])
-        this.sendPut_(i);
+      if (this.outstandingPuts_[i]) this.sendPut_(i);
     }
 
     while (this.onDisconnectRequestQueue_.length) {
       const request = this.onDisconnectRequestQueue_.shift();
-      this.sendOnDisconnect_(request.action, request.pathString, request.data, request.onComplete);
+      this.sendOnDisconnect_(
+        request.action,
+        request.pathString,
+        request.data,
+        request.onComplete
+      );
     }
   }
 
@@ -863,12 +983,13 @@ export class PersistentConnection extends ServerActions {
       clientName = 'node';
     }
 
-    stats['sdk.' + clientName + '.' + firebase.SDK_VERSION.replace(/\./g, '-')] = 1;
+    stats[
+      'sdk.' + clientName + '.' + firebase.SDK_VERSION.replace(/\./g, '-')
+    ] = 1;
 
     if (isMobileCordova()) {
       stats['framework.cordova'] = 1;
-    }
-    else if (isReactNative()) {
+    } else if (isReactNative()) {
       stats['framework.reactnative'] = 1;
     }
     this.reportStats(stats);
@@ -883,4 +1004,3 @@ export class PersistentConnection extends ServerActions {
     return isEmpty(this.interruptReasons_) && online;
   }
 }
-

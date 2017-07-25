@@ -42,29 +42,40 @@ function decodePath(pathString: string): string {
  * @param {!string} dataURL
  * @return {{repoInfo: !RepoInfo, path: !Path}}
  */
-export const parseRepoInfo = function (dataURL: string): { repoInfo: RepoInfo, path: Path } {
+export const parseRepoInfo = function(
+  dataURL: string
+): { repoInfo: RepoInfo; path: Path } {
   const parsedUrl = parseURL(dataURL),
     namespace = parsedUrl.subdomain;
 
   if (parsedUrl.domain === 'firebase') {
-    fatal(parsedUrl.host +
-      ' is no longer supported. ' +
-      'Please use <YOUR FIREBASE>.firebaseio.com instead');
+    fatal(
+      parsedUrl.host +
+        ' is no longer supported. ' +
+        'Please use <YOUR FIREBASE>.firebaseio.com instead'
+    );
   }
 
   // Catch common error of uninitialized namespace value.
   if (!namespace || namespace == 'undefined') {
-    fatal('Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com');
+    fatal(
+      'Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com'
+    );
   }
 
   if (!parsedUrl.secure) {
     warnIfPageIsSecure();
   }
 
-  const webSocketOnly = (parsedUrl.scheme === 'ws') || (parsedUrl.scheme === 'wss');
+  const webSocketOnly = parsedUrl.scheme === 'ws' || parsedUrl.scheme === 'wss';
 
   return {
-    repoInfo: new RepoInfo(parsedUrl.host, parsedUrl.secure, namespace, webSocketOnly),
+    repoInfo: new RepoInfo(
+      parsedUrl.host,
+      parsedUrl.secure,
+      namespace,
+      webSocketOnly
+    ),
     path: new Path(parsedUrl.pathString)
   };
 };
@@ -74,20 +85,27 @@ export const parseRepoInfo = function (dataURL: string): { repoInfo: RepoInfo, p
  * @param {!string} dataURL
  * @return {{host: string, port: number, domain: string, subdomain: string, secure: boolean, scheme: string, pathString: string}}
  */
-export const parseURL = function (dataURL: string): {
-  host: string,
-  port: number,
-  domain: string,
-  subdomain: string,
-  secure: boolean,
-  scheme: string,
-  pathString: string
+export const parseURL = function(
+  dataURL: string
+): {
+  host: string;
+  port: number;
+  domain: string;
+  subdomain: string;
+  secure: boolean;
+  scheme: string;
+  pathString: string;
 } {
   // Default to empty strings in the event of a malformed string.
-  let host = '', domain = '', subdomain = '', pathString = '';
+  let host = '',
+    domain = '',
+    subdomain = '',
+    pathString = '';
 
   // Always default to SSL, unless otherwise specified.
-  let secure = true, scheme = 'https', port = 443;
+  let secure = true,
+    scheme = 'https',
+    port = 443;
 
   // Don't do any validation here. The caller is responsible for validating the result of parsing.
   if (typeof dataURL === 'string') {
@@ -118,7 +136,7 @@ export const parseURL = function (dataURL: string): {
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
     if (colonInd >= 0) {
-      secure = (scheme === 'https') || (scheme === 'wss');
+      secure = scheme === 'https' || scheme === 'wss';
       port = parseInt(host.substring(colonInd + 1), 10);
     }
   }
@@ -130,6 +148,6 @@ export const parseURL = function (dataURL: string): {
     subdomain,
     secure,
     scheme,
-    pathString,
+    pathString
   };
 };

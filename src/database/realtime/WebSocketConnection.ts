@@ -80,11 +80,19 @@ export class WebSocketConnection implements Transport {
    *                                         session
    * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
    */
-  constructor(public connId: string, repoInfo: RepoInfo,
-              transportSessionId?: string, lastSessionId?: string) {
+  constructor(
+    public connId: string,
+    repoInfo: RepoInfo,
+    transportSessionId?: string,
+    lastSessionId?: string
+  ) {
     this.log_ = logWrapper(this.connId);
     this.stats_ = StatsManager.getCollection(repoInfo);
-    this.connURL = WebSocketConnection.connectionURL_(repoInfo, transportSessionId, lastSessionId);
+    this.connURL = WebSocketConnection.connectionURL_(
+      repoInfo,
+      transportSessionId,
+      lastSessionId
+    );
   }
 
   /**
@@ -95,14 +103,20 @@ export class WebSocketConnection implements Transport {
    * @return {string} connection url
    * @private
    */
-  private static connectionURL_(repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string): string {
+  private static connectionURL_(
+    repoInfo: RepoInfo,
+    transportSessionId?: string,
+    lastSessionId?: string
+  ): string {
     const urlParams: { [k: string]: string } = {};
     urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
 
-    if (!isNodeSdk() &&
+    if (
+      !isNodeSdk() &&
       typeof location !== 'undefined' &&
       location.href &&
-      location.href.indexOf(FORGE_DOMAIN) !== -1) {
+      location.href.indexOf(FORGE_DOMAIN) !== -1
+    ) {
       urlParams[REFERER_PARAM] = FORGE_REF;
     }
     if (transportSessionId) {
@@ -134,18 +148,20 @@ export class WebSocketConnection implements Transport {
         const device = ENV_CONSTANTS.NODE_ADMIN ? 'AdminNode' : 'Node';
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
-          'headers': {
+          headers: {
             'User-Agent': `Firebase/${PROTOCOL_VERSION}/${firebase.SDK_VERSION}/${process.platform}/${device}`
-        }};
+          }
+        };
 
         // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
         const env = process['env'];
-        const proxy = (this.connURL.indexOf('wss://') == 0)
-          ? (env['HTTPS_PROXY'] || env['https_proxy'])
-          : (env['HTTP_PROXY'] || env['http_proxy']);
+        const proxy =
+          this.connURL.indexOf('wss://') == 0
+            ? env['HTTPS_PROXY'] || env['https_proxy']
+            : env['HTTP_PROXY'] || env['http_proxy'];
 
         if (proxy) {
-          options['proxy'] = {origin: proxy};
+          options['proxy'] = { origin: proxy };
         }
 
         this.mySock = new WebSocketImpl(this.connURL, [], options);
@@ -190,7 +206,7 @@ export class WebSocketConnection implements Transport {
   /**
    * No-op for websockets, we don't need to do anything once the connection is confirmed as open
    */
-  start() {};
+  start() {}
 
   static forceDisallow_: Boolean;
 
@@ -210,7 +226,11 @@ export class WebSocketConnection implements Transport {
       }
     }
 
-    return !isOldAndroid && WebSocketImpl !== null && !WebSocketConnection.forceDisallow_;
+    return (
+      !isOldAndroid &&
+      WebSocketImpl !== null &&
+      !WebSocketConnection.forceDisallow_
+    );
   }
 
   /**
@@ -232,8 +252,10 @@ export class WebSocketConnection implements Transport {
   static previouslyFailed(): boolean {
     // If our persistent storage is actually only in-memory storage,
     // we default to assuming that it previously failed to be safe.
-    return PersistentStorage.isInMemoryStorage ||
-      PersistentStorage.get('previous_websocket_failure') === true;
+    return (
+      PersistentStorage.isInMemoryStorage ||
+      PersistentStorage.get('previous_websocket_failure') === true
+    );
   }
 
   markConnectionHealthy() {
@@ -287,8 +309,7 @@ export class WebSocketConnection implements Transport {
    * @param mess The frame data
    */
   handleIncomingFrame(mess: { [k: string]: any }) {
-    if (this.mySock === null)
-      return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
+    if (this.mySock === null) return; // Chrome apparently delivers incoming packets even after we .close() the connection sometimes.
     const data = mess['data'] as string;
     this.bytesReceived += data.length;
     this.stats_.incrementCounter('bytes_received', data.length);
@@ -312,7 +333,6 @@ export class WebSocketConnection implements Transport {
    * @param {Object} data The JSON object to transmit
    */
   send(data: Object) {
-
     this.resetKeepAlive();
 
     const dataStr = stringify(data);
@@ -400,10 +420,12 @@ export class WebSocketConnection implements Transport {
     try {
       this.mySock.send(str);
     } catch (e) {
-      this.log_('Exception thrown from WebSocket.send():', e.message || e.data, 'Closing connection.');
+      this.log_(
+        'Exception thrown from WebSocket.send():',
+        e.message || e.data,
+        'Closing connection.'
+      );
       setTimeout(this.onClosed_.bind(this), 0);
     }
   }
 }
-
-

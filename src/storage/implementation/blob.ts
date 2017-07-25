@@ -21,7 +21,7 @@
  */
 import * as fs from './fs';
 import * as string from './string';
-import {StringFormat} from './string';
+import { StringFormat } from './string';
 import * as type from './type';
 
 /**
@@ -30,15 +30,15 @@ import * as type from './type';
  *     modified after this blob's construction.
  */
 export class FbsBlob {
-  private data_: Blob|Uint8Array;
+  private data_: Blob | Uint8Array;
   private size_: number;
   private type_: string;
 
-  constructor(data: Blob|Uint8Array|ArrayBuffer, opt_elideCopy?: boolean) {
+  constructor(data: Blob | Uint8Array | ArrayBuffer, opt_elideCopy?: boolean) {
     let size: number = 0;
     let blobType: string = '';
     if (type.isNativeBlob(data)) {
-      this.data_ = (data as Blob);
+      this.data_ = data as Blob;
       size = (data as Blob).size;
       blobType = (data as Blob).type;
     } else if (data instanceof ArrayBuffer) {
@@ -51,10 +51,10 @@ export class FbsBlob {
       size = this.data_.length;
     } else if (data instanceof Uint8Array) {
       if (opt_elideCopy) {
-        this.data_ = (data as Uint8Array);
+        this.data_ = data as Uint8Array;
       } else {
         this.data_ = new Uint8Array(data.length);
-        this.data_.set((data as Uint8Array));
+        this.data_.set(data as Uint8Array);
       }
       size = data.length;
     }
@@ -70,24 +70,29 @@ export class FbsBlob {
     return this.type_;
   }
 
-  slice(startByte: number, endByte: number): FbsBlob|null {
+  slice(startByte: number, endByte: number): FbsBlob | null {
     if (type.isNativeBlob(this.data_)) {
-      let realBlob = (this.data_ as Blob);
+      let realBlob = this.data_ as Blob;
       let sliced = fs.sliceBlob(realBlob, startByte, endByte);
       if (sliced === null) {
         return null;
       }
       return new FbsBlob(sliced);
     } else {
-      let slice =
-          new Uint8Array((this.data_ as Uint8Array).buffer, startByte, endByte - startByte);
+      let slice = new Uint8Array(
+        (this.data_ as Uint8Array).buffer,
+        startByte,
+        endByte - startByte
+      );
       return new FbsBlob(slice, true);
     }
   }
 
-  static getBlob(...var_args: (string|FbsBlob)[]): FbsBlob|null {
+  static getBlob(...var_args: (string | FbsBlob)[]): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      var blobby: (Blob|Uint8Array|string)[] = var_args.map(function(val: string|FbsBlob): Blob|Uint8Array|string {
+      var blobby: (Blob | Uint8Array | string)[] = var_args.map(function(
+        val: string | FbsBlob
+      ): Blob | Uint8Array | string {
         if (val instanceof FbsBlob) {
           return val.data_;
         } else {
@@ -96,12 +101,14 @@ export class FbsBlob {
       });
       return new FbsBlob(fs.getBlob.apply(null, blobby));
     } else {
-      let uint8Arrays: Uint8Array[] = var_args.map(function(val: string|FbsBlob): Uint8Array {
+      let uint8Arrays: Uint8Array[] = var_args.map(function(
+        val: string | FbsBlob
+      ): Uint8Array {
         if (type.isString(val)) {
           return string.dataFromString(StringFormat.RAW, val as string).data;
         } else {
           // Blobs don't exist, so this has to be a Uint8Array.
-          return ((val as FbsBlob).data_ as Uint8Array);
+          return (val as FbsBlob).data_ as Uint8Array;
         }
       });
       let finalLength = 0;
@@ -119,7 +126,7 @@ export class FbsBlob {
     }
   }
 
-  uploadData(): Blob|Uint8Array {
+  uploadData(): Blob | Uint8Array {
     return this.data_;
   }
 }

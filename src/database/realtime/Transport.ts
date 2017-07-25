@@ -17,7 +17,12 @@
 import { RepoInfo } from '../core/RepoInfo';
 
 export interface TransportConstructor {
-  new(connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string): Transport;
+  new (
+    connId: string,
+    repoInfo: RepoInfo,
+    transportSessionId?: string,
+    lastSessionId?: string
+  ): Transport;
   isAvailable: () => boolean;
   responsesRequiredToBeHealthy?: number;
   healthyTimeout?: number;
@@ -50,13 +55,21 @@ export abstract class Transport {
    * @param {string=} lastSessionId Optional lastSessionId if there was a previous connection
    * @interface
    */
-  constructor(connId: string, repoInfo: RepoInfo, transportSessionId?: string, lastSessionId?: string) {}
+  constructor(
+    connId: string,
+    repoInfo: RepoInfo,
+    transportSessionId?: string,
+    lastSessionId?: string
+  ) {}
 
   /**
    * @param {function(Object)} onMessage Callback when messages arrive
    * @param {function()} onDisconnect Callback with connection lost.
    */
-  abstract open(onMessage: (a: Object) => void, onDisconnect: (a?: boolean) => void): void;
+  abstract open(
+    onMessage: (a: Object) => void,
+    onDisconnect: (a?: boolean) => void
+  ): void;
 
   abstract start(): void;
 
@@ -73,5 +86,10 @@ export abstract class Transport {
 }
 
 export interface TransportConstructor {
-  new(connId: string, RepoInfo, transportSessionId?: string, lastSessionId?: string);
+  new (
+    connId: string,
+    RepoInfo,
+    transportSessionId?: string,
+    lastSessionId?: string
+  );
 }

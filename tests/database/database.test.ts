@@ -14,19 +14,18 @@
 * limitations under the License.
 */
 
-import { expect } from "chai";
-import firebase from "../../src/app";
-import { 
-  TEST_PROJECT,
-  patchFakeAuthFunctions,
-} from "./helpers/util";
-import "../../src/database";
+import { expect } from 'chai';
+import firebase from '../../src/app';
+import { TEST_PROJECT, patchFakeAuthFunctions } from './helpers/util';
+import '../../src/database';
 
 describe('Database Tests', function() {
   let defaultApp;
 
   beforeEach(function() {
-    defaultApp = firebase.initializeApp({databaseURL: TEST_PROJECT.databaseURL});
+    defaultApp = firebase.initializeApp({
+      databaseURL: TEST_PROJECT.databaseURL
+    });
     patchFakeAuthFunctions(defaultApp);
   });
 
@@ -95,7 +94,9 @@ describe('Database Tests', function() {
   it('refFromURL() validates domain', function() {
     const db = firebase.database();
     expect(function() {
-      const ref = db.refFromURL('https://thisisnotarealfirebase.firebaseio.com/path/to/data');
+      const ref = db.refFromURL(
+        'https://thisisnotarealfirebase.firebaseio.com/path/to/data'
+      );
     }).to.throw(/does not match.*database/i);
   });
 

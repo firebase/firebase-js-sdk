@@ -25,10 +25,11 @@
  *                  (function(!Error): void))} resolver
  */
 
-import { PromiseImpl } from "../../utils/promise";
+import { PromiseImpl } from '../../utils/promise';
 
-export function make<T>(resolver: (p1: (p1: T) => void, 
-                        p2: (p1: Error) => void) => void): Promise<T> {
+export function make<T>(
+  resolver: (p1: (p1: T) => void, p2: (p1: Error) => void) => void
+): Promise<T> {
   return new PromiseImpl(resolver);
 }
 
@@ -36,9 +37,9 @@ export function make<T>(resolver: (p1: (p1: T) => void,
  * @template T
  */
 export function resolve<T>(value: T): Promise<T> {
-  return (PromiseImpl.resolve(value) as Promise<T>);
+  return PromiseImpl.resolve(value) as Promise<T>;
 }
 
 export function reject<T>(error: Error): Promise<T> {
-  return (PromiseImpl.reject(error) as Promise<T>);
+  return PromiseImpl.reject(error) as Promise<T>;
 }

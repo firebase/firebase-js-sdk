@@ -29,7 +29,7 @@ export class CountedSet<K, V> {
    * @param {V} val
    */
   add(item: K, val: V) {
-    this.set[item as any] = val !== null ? val : (true as any);
+    this.set[item as any] = val !== null ? val : true as any;
   }
 
   /**

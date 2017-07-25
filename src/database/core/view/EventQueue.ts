@@ -46,7 +46,6 @@ export class EventQueue {
    */
   private recursionDepth_ = 0;
 
-
   /**
    * @param {!Array.<Event>} eventDataList The new events to queue.
    */
@@ -83,7 +82,9 @@ export class EventQueue {
    */
   raiseEventsAtPath(path: Path, eventDataList: Event[]) {
     this.queueEvents(eventDataList);
-    this.raiseQueuedEventsMatchingPredicate_((eventPath: Path) => eventPath.equals(path));
+    this.raiseQueuedEventsMatchingPredicate_((eventPath: Path) =>
+      eventPath.equals(path)
+    );
   }
 
   /**
@@ -101,13 +102,15 @@ export class EventQueue {
     this.raiseQueuedEventsMatchingPredicate_((eventPath: Path) => {
       return eventPath.contains(changedPath) || changedPath.contains(eventPath);
     });
-  };
+  }
 
   /**
    * @param {!function(!Path):boolean} predicate
    * @private
    */
-  private raiseQueuedEventsMatchingPredicate_(predicate: (path: Path) => boolean) {
+  private raiseQueuedEventsMatchingPredicate_(
+    predicate: (path: Path) => boolean
+  ) {
     this.recursionDepth_++;
 
     let sentAll = true;
@@ -132,7 +135,6 @@ export class EventQueue {
   }
 }
 
-
 /**
  * @param {!Path} path
  * @constructor
@@ -144,8 +146,7 @@ export class EventList {
    */
   private events_: Event[] = [];
 
-  constructor(private readonly path_: Path) {
-  }
+  constructor(private readonly path_: Path) {}
 
   /**
    * @param {!Event} eventData
@@ -178,4 +179,3 @@ export class EventList {
     return this.path_;
   }
 }
-

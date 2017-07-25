@@ -23,21 +23,21 @@ import { NamespaceSpec } from '../namespace';
 // App instance
 //
 export const appInstanceSpec: NamespaceSpec = {
-  name: {is: String},
-  options: {is: Object},
-  delete: {is: Function},
+  name: { is: String },
+  options: { is: Object },
+  delete: { is: Function },
 
   // Patched methods from Auth service
   INTERNAL: {
-    getToken: {is: Function},
-    addAuthTokenListener: {is: Function},
-    removeAuthTokenListener: {is: Function},
+    getToken: { is: Function },
+    addAuthTokenListener: { is: Function },
+    removeAuthTokenListener: { is: Function }
   }
 };
 
 export const firebaseErrorSpec: NamespaceSpec = {
-  code: {is: String},
-  message: {is: String},
-  name: {is: String},
-  stack: {is: String},
+  code: { is: String },
+  message: { is: String },
+  name: { is: String },
+  stack: { is: String }
 };
