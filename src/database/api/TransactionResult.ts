@@ -31,7 +31,7 @@ export class TransactionResult {
 
   // Do not create public documentation. This is intended to make JSON serialization work but is otherwise unnecessary
   // for end-users
-  toJSON(): any {
+  toJSON(): object {
     validateArgCount('TransactionResult.toJSON', 0, 1, arguments.length);
     return { committed: this.committed, snapshot: this.snapshot.toJSON() };
   }
