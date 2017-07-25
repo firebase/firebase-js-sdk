@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { nameCompare } from "../util/util";
+import { nameCompare } from '../util/util';
 import { NamedNode } from './Node';
 
 export function NAME_ONLY_COMPARATOR(left: NamedNode, right: NamedNode) {

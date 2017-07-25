@@ -14,14 +14,14 @@
 * limitations under the License.
 */
 import * as args from './implementation/args';
-import {AuthWrapper} from './implementation/authwrapper';
-import {Location} from './implementation/location';
+import { AuthWrapper } from './implementation/authwrapper';
+import { Location } from './implementation/location';
 import * as fbsPromiseImpl from './implementation/promise_external';
 import * as RequestExports from './implementation/request';
-import {Request} from './implementation/request';
-import {XhrIoPool} from './implementation/xhriopool';
-import {Reference} from './reference';
-import { FirebaseApp } from "../app/firebase_app";
+import { Request } from './implementation/request';
+import { XhrIoPool } from './implementation/xhriopool';
+import { Reference } from './reference';
+import { FirebaseApp } from '../app/firebase_app';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -32,15 +32,20 @@ import { FirebaseApp } from "../app/firebase_app";
 export class Service {
   authWrapper_: AuthWrapper;
   private app_: FirebaseApp;
-  private bucket_: Location|null = null;
+  private bucket_: Location | null = null;
   private internals_: ServiceInternals;
 
   constructor(app: FirebaseApp, pool: XhrIoPool, url?: string) {
     function maker(authWrapper: AuthWrapper, loc: Location) {
       return new Reference(authWrapper, loc);
     }
-    this.authWrapper_ =
-        new AuthWrapper(app, maker, RequestExports.makeRequest, this, pool);
+    this.authWrapper_ = new AuthWrapper(
+      app,
+      maker,
+      RequestExports.makeRequest,
+      this,
+      pool
+    );
     this.app_ = app;
     if (url != null) {
       this.bucket_ = Location.makeFromBucketSpec(url);
@@ -101,7 +106,10 @@ export class Service {
 
   setMaxUploadRetryTime(time: number) {
     args.validate(
-        'setMaxUploadRetryTime', [args.nonNegativeNumberSpec()], arguments);
+      'setMaxUploadRetryTime',
+      [args.nonNegativeNumberSpec()],
+      arguments
+    );
     this.authWrapper_.setMaxUploadRetryTime(time);
   }
 
@@ -111,7 +119,10 @@ export class Service {
 
   setMaxOperationRetryTime(time: number) {
     args.validate(
-        'setMaxOperationRetryTime', [args.nonNegativeNumberSpec()], arguments);
+      'setMaxOperationRetryTime',
+      [args.nonNegativeNumberSpec()],
+      arguments
+    );
     this.authWrapper_.setMaxOperationRetryTime(time);
   }
 

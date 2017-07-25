@@ -14,15 +14,15 @@
 * limitations under the License.
 */
 
-import { CONSTANTS } from "./constants";
-import { setWebSocketImpl } from "../database/realtime/WebSocketConnection";
-import { setBufferImpl } from "../database/core/util/util";
+import { CONSTANTS } from './constants';
+import { setWebSocketImpl } from '../database/realtime/WebSocketConnection';
+import { setBufferImpl } from '../database/core/util/util';
 import {
   FirebaseIFrameScriptHolder,
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
   FIREBASE_LONGPOLL_DATA_CB_NAME
-} from "../database/realtime/BrowserPollConnection";
-import { Client } from "faye-websocket";
+} from '../database/realtime/BrowserPollConnection';
+import { Client } from 'faye-websocket';
 
 setBufferImpl(Buffer);
 setWebSocketImpl(Client);
@@ -35,7 +35,12 @@ CONSTANTS.NODE_CLIENT = true;
  */
 (function() {
   var version = process['version'];
-  if (version !== 'v0.10.22' && version !== 'v0.10.23' && version !== 'v0.10.24') return;
+  if (
+    version !== 'v0.10.22' &&
+    version !== 'v0.10.23' &&
+    version !== 'v0.10.24'
+  )
+    return;
   /**
    * The following duplicates much of `/lib/_stream_writable.js` at
    * b922b5e90d2c14dd332b95827c2533e083df7e55, applying the fix for
@@ -54,16 +59,12 @@ CONSTANTS.NODE_CLIENT = true;
       encoding = null;
     }
 
-    if (Buffer['isBuffer'](chunk))
-      encoding = 'buffer';
-    else if (!encoding)
-      encoding = state['defaultEncoding'];
+    if (Buffer['isBuffer'](chunk)) encoding = 'buffer';
+    else if (!encoding) encoding = state['defaultEncoding'];
 
-    if (typeof cb !== 'function')
-      cb = function() {};
+    if (typeof cb !== 'function') cb = function() {};
 
-    if (state['ended'])
-      writeAfterEnd(this, state, cb);
+    if (state['ended']) writeAfterEnd(this, state, cb);
     else if (validChunk(this, state, chunk, cb))
       ret = writeOrBuffer(this, state, chunk, encoding, cb);
 
@@ -81,11 +82,13 @@ CONSTANTS.NODE_CLIENT = true;
 
   function validChunk(stream, state, chunk, cb) {
     var valid = true;
-    if (!Buffer['isBuffer'](chunk) &&
-        'string' !== typeof chunk &&
-        chunk !== null &&
-        chunk !== undefined &&
-        !state['objectMode']) {
+    if (
+      !Buffer['isBuffer'](chunk) &&
+      'string' !== typeof chunk &&
+      chunk !== null &&
+      chunk !== undefined &&
+      !state['objectMode']
+    ) {
       var er = new TypeError('Invalid non-string/buffer chunk');
       stream['emit']('error', er);
       process['nextTick'](function() {
@@ -98,29 +101,28 @@ CONSTANTS.NODE_CLIENT = true;
 
   function writeOrBuffer(stream, state, chunk, encoding, cb) {
     chunk = decodeChunk(state, chunk, encoding);
-    if (Buffer['isBuffer'](chunk))
-      encoding = 'buffer';
+    if (Buffer['isBuffer'](chunk)) encoding = 'buffer';
     var len = state['objectMode'] ? 1 : chunk['length'];
 
     state['length'] += len;
 
     var ret = state['length'] < state['highWaterMark'];
     // we must ensure that previous needDrain will not be reset to false.
-    if (!ret)
-      state['needDrain'] = true;
+    if (!ret) state['needDrain'] = true;
 
     if (state['writing'])
       state['buffer']['push'](new WriteReq(chunk, encoding, cb));
-    else
-      doWrite(stream, state, len, chunk, encoding, cb);
+    else doWrite(stream, state, len, chunk, encoding, cb);
 
     return ret;
   }
 
   function decodeChunk(state, chunk, encoding) {
-    if (!state['objectMode'] &&
-        state['decodeStrings'] !== false &&
-        typeof chunk === 'string') {
+    if (
+      !state['objectMode'] &&
+      state['decodeStrings'] !== false &&
+      typeof chunk === 'string'
+    ) {
       chunk = new Buffer(chunk, encoding);
     }
     return chunk;
@@ -157,17 +159,21 @@ CONSTANTS.NODE_CLIENT = true;
  * @param {{url: string, forever: boolean}} req
  * @param {function(string)=} onComplete
  */
-(FirebaseIFrameScriptHolder as any).nodeRestRequest = function(req, onComplete) {
+(FirebaseIFrameScriptHolder as any).nodeRestRequest = function(
+  req,
+  onComplete
+) {
   if (!(FirebaseIFrameScriptHolder as any).request)
-    (FirebaseIFrameScriptHolder as any).request =
-      /** @type {function({url: string, forever: boolean}, function(Error, number, string))} */ (require('request'));
+    (FirebaseIFrameScriptHolder as any).request = /** @type {function({url: string, forever: boolean}, function(Error, number, string))} */ require('request');
 
-  (FirebaseIFrameScriptHolder as any).request(req, function(error, response, body) {
-    if (error)
-      throw 'Rest request for ' + req.url + ' failed.';
+  (FirebaseIFrameScriptHolder as any).request(req, function(
+    error,
+    response,
+    body
+  ) {
+    if (error) throw 'Rest request for ' + req.url + ' failed.';
 
-    if (onComplete)
-      onComplete(body);
+    if (onComplete) onComplete(body);
   });
 };
 
@@ -175,12 +181,18 @@ CONSTANTS.NODE_CLIENT = true;
  * @param {!string} url
  * @param {function()} loadCB
  */
-(<any>FirebaseIFrameScriptHolder.prototype).doNodeLongPoll = function(url, loadCB) {
+(<any>FirebaseIFrameScriptHolder.prototype).doNodeLongPoll = function(
+  url,
+  loadCB
+) {
   var self = this;
-  (FirebaseIFrameScriptHolder as any).nodeRestRequest({ url: url, forever: true }, function(body) {
-    self.evalBody(body);
-    loadCB();
-  });
+  (FirebaseIFrameScriptHolder as any).nodeRestRequest(
+    { url: url, forever: true },
+    function(body) {
+      self.evalBody(body);
+      loadCB();
+    }
+  );
 };
 
 /**
@@ -190,9 +202,14 @@ CONSTANTS.NODE_CLIENT = true;
 (<any>FirebaseIFrameScriptHolder.prototype).evalBody = function(body) {
   var jsonpCB;
   //jsonpCB is externed in firebase-extern.js
-  eval('jsonpCB = function(' + FIREBASE_LONGPOLL_COMMAND_CB_NAME + ', ' + FIREBASE_LONGPOLL_DATA_CB_NAME + ') {' +
-    body +
-    '}');
+  eval(
+    'jsonpCB = function(' +
+      FIREBASE_LONGPOLL_COMMAND_CB_NAME +
+      ', ' +
+      FIREBASE_LONGPOLL_DATA_CB_NAME +
+      ') {' +
+      body +
+      '}'
+  );
   jsonpCB(this.commandCB, this.onMessageCB);
 };
-

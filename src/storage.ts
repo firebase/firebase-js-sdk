@@ -13,17 +13,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {StringFormat} from './storage/implementation/string';
-import {TaskEvent} from './storage/implementation/taskenums';
-import {TaskState} from './storage/implementation/taskenums';
-import {XhrIoPool} from './storage/implementation/xhriopool';
-import {Reference} from './storage/reference';
-import {Service} from './storage/service';
+import { StringFormat } from './storage/implementation/string';
+import { TaskEvent } from './storage/implementation/taskenums';
+import { TaskState } from './storage/implementation/taskenums';
+import { XhrIoPool } from './storage/implementation/xhriopool';
+import { Reference } from './storage/reference';
+import { Service } from './storage/service';
 import firebase from './app';
-import { 
-  FirebaseApp, 
-  FirebaseServiceFactory 
-} from "./app/firebase_app";
+import { FirebaseApp, FirebaseServiceFactory } from './app/firebase_app';
 /**
  * Type constant for Firebase Storage.
  */
@@ -36,19 +33,20 @@ function factory(app: FirebaseApp, unused: any, opt_url?: string): Service {
 export function registerStorage(instance) {
   let namespaceExports = {
     // no-inline
-    'TaskState': TaskState,
-    'TaskEvent': TaskEvent,
-    'StringFormat': StringFormat,
-    'Storage': Service,
-    'Reference': Reference
+    TaskState: TaskState,
+    TaskEvent: TaskEvent,
+    StringFormat: StringFormat,
+    Storage: Service,
+    Reference: Reference
   };
   instance.INTERNAL.registerService(
-      STORAGE_TYPE, 
-      (factory as FirebaseServiceFactory),
-      namespaceExports, 
-      undefined,
-      // Allow multiple storage instances per app.
-      true);
+    STORAGE_TYPE,
+    factory as FirebaseServiceFactory,
+    namespaceExports,
+    undefined,
+    // Allow multiple storage instances per app.
+    true
+  );
 }
 
 registerStorage(firebase);

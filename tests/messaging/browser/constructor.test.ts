@@ -14,12 +14,12 @@
 * limitations under the License.
 */
 
-import { assert } from "chai";
+import { assert } from 'chai';
 import makeFakeApp from './make-fake-app';
 
-import Errors from '../../../src/messaging/models/errors'
-import WindowController from '../../../src/messaging/controllers/window-controller'
-import SWController from '../../../src/messaging/controllers/sw-controller'
+import Errors from '../../../src/messaging/models/errors';
+import WindowController from '../../../src/messaging/controllers/window-controller';
+import SWController from '../../../src/messaging/controllers/sw-controller';
 
 describe('Firebase Messaging > new *Controller()', function() {
   it('should handle bad input', function() {
@@ -44,8 +44,10 @@ describe('Firebase Messaging > new *Controller()', function() {
         new WindowController(badInput);
         new SWController(badInput);
 
-        console.warn('Bad Input should have thrown: ',
-          JSON.stringify(badInput));
+        console.warn(
+          'Bad Input should have thrown: ',
+          JSON.stringify(badInput)
+        );
       } catch (err) {
         caughtError = err;
       }
@@ -59,5 +61,5 @@ describe('Firebase Messaging > new *Controller()', function() {
     });
     new WindowController(app);
     new SWController(app);
-  })
+  });
 });

@@ -14,13 +14,13 @@
 * limitations under the License.
 */
 
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {FbsBlob} from '../../../src/storage/implementation/blob';
+import { FbsBlob } from '../../../src/storage/implementation/blob';
 import * as type from '../../../src/storage/implementation/type';
 import * as testShared from './testshared';
 
-describe("Firebase Storage > Blob", () => {
+describe('Firebase Storage > Blob', () => {
   let stubs = [];
   before(() => {
     const definedStub = sinon.stub(type, 'isNativeBlobDefined');
@@ -28,7 +28,7 @@ describe("Firebase Storage > Blob", () => {
     stubs.push(definedStub);
 
     const blobStub = sinon.stub(window, 'Blob');
-    blobStub.throws(Error('I don\'t exist'));
+    blobStub.throws(Error("I don't exist"));
     stubs.push(blobStub);
   });
   after(() => {
@@ -38,19 +38,38 @@ describe("Firebase Storage > Blob", () => {
     stubs = [];
   });
 
-  it("Slicing works", () => {
+  it('Slicing works', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4, 5, 6, 7]));
     const sliced = blob.slice(1, 5);
-    testShared.assertUint8ArrayEquals(sliced.uploadData() as Uint8Array, new Uint8Array([2, 3, 4, 5]));
+    testShared.assertUint8ArrayEquals(
+      sliced.uploadData() as Uint8Array,
+      new Uint8Array([2, 3, 4, 5])
+    );
   });
-  it("Blobs are merged with strings correctly", () => {
+  it('Blobs are merged with strings correctly', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4]));
     const merged = FbsBlob.getBlob('what', blob, '\ud83d\ude0a ');
-    testShared.assertUint8ArrayEquals(merged.uploadData() as Uint8Array,
-        new Uint8Array([0x77, 0x68, 0x61, 0x74, 0x1, 0x2, 0x3, 0x4, 0xF0, 0x9F, 0x98, 0x8A, 0x20]));
+    testShared.assertUint8ArrayEquals(
+      merged.uploadData() as Uint8Array,
+      new Uint8Array([
+        0x77,
+        0x68,
+        0x61,
+        0x74,
+        0x1,
+        0x2,
+        0x3,
+        0x4,
+        0xf0,
+        0x9f,
+        0x98,
+        0x8a,
+        0x20
+      ])
+    );
   });
 
-  it("Respects windowed views of ArrayBuffers when merging", () => {
+  it('Respects windowed views of ArrayBuffers when merging', () => {
     const buf = new ArrayBuffer(100);
     const arr1 = new Uint8Array(buf, 0, 10);
     const arr2 = new Uint8Array(buf, 10, 10);

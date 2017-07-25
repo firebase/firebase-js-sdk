@@ -23,15 +23,18 @@ import { Query } from '../api/Query';
  * @interface
  */
 export abstract class ServerActions {
-
   /**
    * @param {!Query} query
    * @param {function():string} currentHashFn
    * @param {?number} tag
    * @param {function(string, *)} onComplete
    */
-  abstract listen(query: Query, currentHashFn: () => string, tag: number | null,
-                  onComplete: (a: string, b: any) => void): void;
+  abstract listen(
+    query: Query,
+    currentHashFn: () => string,
+    tag: number | null,
+    onComplete: (a: string, b: any) => void
+  ): void;
 
   /**
    * Remove a listen.
@@ -47,7 +50,12 @@ export abstract class ServerActions {
    * @param {function(string, string)=} onComplete
    * @param {string=} hash
    */
-  put(pathString: string, data: any, onComplete?: (a: string, b: string) => void, hash?: string) { }
+  put(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void,
+    hash?: string
+  ) {}
 
   /**
    * @param {string} pathString
@@ -55,37 +63,52 @@ export abstract class ServerActions {
    * @param {function(string, ?string)} onComplete
    * @param {string=} hash
    */
-  merge(pathString: string, data: any, onComplete: (a: string, b: string | null) => void, hash?: string) { }
+  merge(
+    pathString: string,
+    data: any,
+    onComplete: (a: string, b: string | null) => void,
+    hash?: string
+  ) {}
 
   /**
    * Refreshes the auth token for the current connection.
    * @param {string} token The authentication token
    */
-  refreshAuthToken(token: string) { }
+  refreshAuthToken(token: string) {}
 
   /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectPut(pathString: string, data: any, onComplete?: (a: string, b: string) => void) { }
+  onDisconnectPut(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void
+  ) {}
 
   /**
    * @param {string} pathString
    * @param {*} data
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectMerge(pathString: string, data: any, onComplete?: (a: string, b: string) => void) { }
+  onDisconnectMerge(
+    pathString: string,
+    data: any,
+    onComplete?: (a: string, b: string) => void
+  ) {}
 
   /**
    * @param {string} pathString
    * @param {function(string, string)=} onComplete
    */
-  onDisconnectCancel(pathString: string, onComplete?: (a: string, b: string) => void) { }
+  onDisconnectCancel(
+    pathString: string,
+    onComplete?: (a: string, b: string) => void
+  ) {}
 
   /**
    * @param {Object.<string, *>} stats
    */
-  reportStats(stats: { [k: string]: any }) { }
-
+  reportStats(stats: { [k: string]: any }) {}
 }

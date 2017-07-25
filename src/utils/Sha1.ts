@@ -31,7 +31,7 @@ import { Hash } from './hash';
  *   Firefox 16:  ~250 Mbit/s
  *
  */
- 
+
 /**
  * SHA-1 cryptographic hash constructor.
  *
@@ -49,7 +49,7 @@ export class Sha1 extends Hash {
    * @private
    */
   private chain_: Array<number> = [];
-  
+
   /**
    * A buffer holding the partially computed hash result.
    * @type {!Array<number>}
@@ -84,29 +84,28 @@ export class Sha1 extends Hash {
 
   constructor() {
     super();
-  
+
     this.blockSize = 512 / 8;
-  
+
     this.pad_[0] = 128;
     for (var i = 1; i < this.blockSize; ++i) {
       this.pad_[i] = 0;
     }
-  
+
     this.reset();
   }
-  
+
   reset() {
     this.chain_[0] = 0x67452301;
     this.chain_[1] = 0xefcdab89;
     this.chain_[2] = 0x98badcfe;
     this.chain_[3] = 0x10325476;
     this.chain_[4] = 0xc3d2e1f0;
-  
+
     this.inbuf_ = 0;
     this.total_ = 0;
   }
-  
-  
+
   /**
    * Internal compress helper function.
    * @param {!Array<number>|!Uint8Array|string} buf Block to compress.
@@ -117,9 +116,9 @@ export class Sha1 extends Hash {
     if (!opt_offset) {
       opt_offset = 0;
     }
-  
+
     var W = this.W_;
-  
+
     // get 16 big endian words
     if (typeof buf === 'string') {
       for (var i = 0; i < 16; i++) {
@@ -131,35 +130,37 @@ export class Sha1 extends Hash {
         // this change once the Safari bug
         // (https://bugs.webkit.org/show_bug.cgi?id=109036) has been fixed and
         // most clients have been updated.
-        W[i] = (buf.charCodeAt(opt_offset) << 24) |
-              (buf.charCodeAt(opt_offset + 1) << 16) |
-              (buf.charCodeAt(opt_offset + 2) << 8) |
-              (buf.charCodeAt(opt_offset + 3));
+        W[i] =
+          (buf.charCodeAt(opt_offset) << 24) |
+          (buf.charCodeAt(opt_offset + 1) << 16) |
+          (buf.charCodeAt(opt_offset + 2) << 8) |
+          buf.charCodeAt(opt_offset + 3);
         opt_offset += 4;
       }
     } else {
       for (var i = 0; i < 16; i++) {
-        W[i] = (buf[opt_offset] << 24) |
-              (buf[opt_offset + 1] << 16) |
-              (buf[opt_offset + 2] << 8) |
-              (buf[opt_offset + 3]);
+        W[i] =
+          (buf[opt_offset] << 24) |
+          (buf[opt_offset + 1] << 16) |
+          (buf[opt_offset + 2] << 8) |
+          buf[opt_offset + 3];
         opt_offset += 4;
       }
     }
-  
+
     // expand to 80 words
     for (var i = 16; i < 80; i++) {
       var t = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
       W[i] = ((t << 1) | (t >>> 31)) & 0xffffffff;
     }
-  
+
     var a = this.chain_[0];
     var b = this.chain_[1];
     var c = this.chain_[2];
     var d = this.chain_[3];
     var e = this.chain_[4];
     var f, k;
-  
+
     // TODO(user): Try to unroll this loop to speed up the computation.
     for (var i = 0; i < 80; i++) {
       if (i < 40) {
@@ -179,7 +180,7 @@ export class Sha1 extends Hash {
           k = 0xca62c1d6;
         }
       }
-  
+
       var t = (((a << 5) | (a >>> 27)) + f + e + k + W[i]) & 0xffffffff;
       e = d;
       d = c;
@@ -187,30 +188,30 @@ export class Sha1 extends Hash {
       b = a;
       a = t;
     }
-  
+
     this.chain_[0] = (this.chain_[0] + a) & 0xffffffff;
     this.chain_[1] = (this.chain_[1] + b) & 0xffffffff;
     this.chain_[2] = (this.chain_[2] + c) & 0xffffffff;
     this.chain_[3] = (this.chain_[3] + d) & 0xffffffff;
     this.chain_[4] = (this.chain_[4] + e) & 0xffffffff;
   }
-  
+
   update(bytes, opt_length?) {
     // TODO(johnlenz): tighten the function signature and remove this check
     if (bytes == null) {
       return;
     }
-  
+
     if (opt_length === undefined) {
       opt_length = bytes.length;
     }
-  
+
     var lengthMinusBlock = opt_length - this.blockSize;
     var n = 0;
     // Using local instead of member variables gives ~5% speedup on Firefox 16.
     var buf = this.buf_;
     var inbuf = this.inbuf_;
-  
+
     // The outer while loop should execute at most twice.
     while (n < opt_length) {
       // When we have no data in the block to top up, we can directly process the
@@ -223,7 +224,7 @@ export class Sha1 extends Hash {
           n += this.blockSize;
         }
       }
-  
+
       if (typeof bytes === 'string') {
         while (n < opt_length) {
           buf[inbuf] = bytes.charCodeAt(n);
@@ -250,32 +251,31 @@ export class Sha1 extends Hash {
         }
       }
     }
-  
+
     this.inbuf_ = inbuf;
     this.total_ += opt_length;
   }
-  
-  
+
   /** @override */
   digest() {
     var digest = [];
     var totalBits = this.total_ * 8;
-  
+
     // Add pad 0x80 0x00*.
     if (this.inbuf_ < 56) {
       this.update(this.pad_, 56 - this.inbuf_);
     } else {
       this.update(this.pad_, this.blockSize - (this.inbuf_ - 56));
     }
-  
+
     // Add # bits.
     for (var i = this.blockSize - 1; i >= 56; i--) {
       this.buf_[i] = totalBits & 255;
       totalBits /= 256; // Don't use bit-shifting here!
     }
-  
+
     this.compress_(this.buf_);
-  
+
     var n = 0;
     for (var i = 0; i < 5; i++) {
       for (var j = 24; j >= 0; j -= 8) {

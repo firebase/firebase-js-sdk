@@ -56,4 +56,3 @@ export function isNativeBlob(p: any): boolean {
 export function isNativeBlobDefined(): boolean {
   return typeof Blob !== 'undefined';
 }
-

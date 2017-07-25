@@ -89,26 +89,44 @@ export class RangedFilter implements NodeFilter {
    * @return {boolean}
    */
   matches(node: NamedNode): boolean {
-    return (this.index_.compare(this.getStartPost(), node) <= 0 && this.index_.compare(node, this.getEndPost()) <= 0);
+    return (
+      this.index_.compare(this.getStartPost(), node) <= 0 &&
+      this.index_.compare(node, this.getEndPost()) <= 0
+    );
   }
 
   /**
    * @inheritDoc
    */
-  updateChild(snap: Node, key: string, newChild: Node, affectedPath: Path,
-              source: CompleteChildSource,
-              optChangeAccumulator: ChildChangeAccumulator | null): Node {
+  updateChild(
+    snap: Node,
+    key: string,
+    newChild: Node,
+    affectedPath: Path,
+    source: CompleteChildSource,
+    optChangeAccumulator: ChildChangeAccumulator | null
+  ): Node {
     if (!this.matches(new NamedNode(key, newChild))) {
       newChild = ChildrenNode.EMPTY_NODE;
     }
-    return this.indexedFilter_.updateChild(snap, key, newChild, affectedPath, source, optChangeAccumulator);
+    return this.indexedFilter_.updateChild(
+      snap,
+      key,
+      newChild,
+      affectedPath,
+      source,
+      optChangeAccumulator
+    );
   }
 
   /**
    * @inheritDoc
    */
-  updateFullNode(oldSnap: Node, newSnap: Node,
-                 optChangeAccumulator: ChildChangeAccumulator | null): Node {
+  updateFullNode(
+    oldSnap: Node,
+    newSnap: Node,
+    optChangeAccumulator: ChildChangeAccumulator | null
+  ): Node {
     if (newSnap.isLeafNode()) {
       // Make sure we have a children node with the correct index, not a leaf node;
       newSnap = ChildrenNode.EMPTY_NODE;
@@ -117,12 +135,16 @@ export class RangedFilter implements NodeFilter {
     // Don't support priorities on queries
     filtered = filtered.updatePriority(ChildrenNode.EMPTY_NODE);
     const self = this;
-    newSnap.forEachChild(PRIORITY_INDEX, function (key, childNode) {
+    newSnap.forEachChild(PRIORITY_INDEX, function(key, childNode) {
       if (!self.matches(new NamedNode(key, childNode))) {
         filtered = filtered.updateImmediateChild(key, ChildrenNode.EMPTY_NODE);
       }
     });
-    return this.indexedFilter_.updateFullNode(oldSnap, filtered, optChangeAccumulator);
+    return this.indexedFilter_.updateFullNode(
+      oldSnap,
+      filtered,
+      optChangeAccumulator
+    );
   }
 
   /**

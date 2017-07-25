@@ -58,22 +58,66 @@ export class EventGenerator {
    * @param {!Array.<!EventRegistration>} eventRegistrations
    * @return {!Array.<!Event>}
    */
-  generateEventsForChanges(changes: Change[], eventCache: Node, eventRegistrations: EventRegistration[]): Event[] {
+  generateEventsForChanges(
+    changes: Change[],
+    eventCache: Node,
+    eventRegistrations: EventRegistration[]
+  ): Event[] {
     const events: Event[] = [];
     const moves: Change[] = [];
 
-    changes.forEach((change) => {
-      if (change.type === Change.CHILD_CHANGED &&
-        this.index_.indexedValueChanged(change.oldSnap as Node, change.snapshotNode)) {
-        moves.push(Change.childMovedChange(change.childName as string, change.snapshotNode));
+    changes.forEach(change => {
+      if (
+        change.type === Change.CHILD_CHANGED &&
+        this.index_.indexedValueChanged(
+          change.oldSnap as Node,
+          change.snapshotNode
+        )
+      ) {
+        moves.push(
+          Change.childMovedChange(
+            change.childName as string,
+            change.snapshotNode
+          )
+        );
       }
     });
 
-    this.generateEventsForType_(events, Change.CHILD_REMOVED, changes, eventRegistrations, eventCache);
-    this.generateEventsForType_(events, Change.CHILD_ADDED, changes, eventRegistrations, eventCache);
-    this.generateEventsForType_(events, Change.CHILD_MOVED, moves, eventRegistrations, eventCache);
-    this.generateEventsForType_(events, Change.CHILD_CHANGED, changes, eventRegistrations, eventCache);
-    this.generateEventsForType_(events, Change.VALUE, changes, eventRegistrations, eventCache);
+    this.generateEventsForType_(
+      events,
+      Change.CHILD_REMOVED,
+      changes,
+      eventRegistrations,
+      eventCache
+    );
+    this.generateEventsForType_(
+      events,
+      Change.CHILD_ADDED,
+      changes,
+      eventRegistrations,
+      eventCache
+    );
+    this.generateEventsForType_(
+      events,
+      Change.CHILD_MOVED,
+      moves,
+      eventRegistrations,
+      eventCache
+    );
+    this.generateEventsForType_(
+      events,
+      Change.CHILD_CHANGED,
+      changes,
+      eventRegistrations,
+      eventCache
+    );
+    this.generateEventsForType_(
+      events,
+      Change.VALUE,
+      changes,
+      eventRegistrations,
+      eventCache
+    );
 
     return events;
   }
@@ -88,16 +132,26 @@ export class EventGenerator {
    * @param {!Node} eventCache
    * @private
    */
-  private generateEventsForType_(events: Event[], eventType: string, changes: Change[],
-                                 registrations: EventRegistration[], eventCache: Node) {
-    const filteredChanges = changes.filter((change) => change.type === eventType);
+  private generateEventsForType_(
+    events: Event[],
+    eventType: string,
+    changes: Change[],
+    registrations: EventRegistration[],
+    eventCache: Node
+  ) {
+    const filteredChanges = changes.filter(change => change.type === eventType);
 
     filteredChanges.sort(this.compareChanges_.bind(this));
-    filteredChanges.forEach((change) => {
-      const materializedChange = this.materializeSingleChange_(change, eventCache);
-      registrations.forEach((registration) => {
+    filteredChanges.forEach(change => {
+      const materializedChange = this.materializeSingleChange_(
+        change,
+        eventCache
+      );
+      registrations.forEach(registration => {
         if (registration.respondsTo(change.type)) {
-          events.push(registration.createEvent(materializedChange, this.query_));
+          events.push(
+            registration.createEvent(materializedChange, this.query_)
+          );
         }
       });
     });
@@ -113,8 +167,12 @@ export class EventGenerator {
     if (change.type === 'value' || change.type === 'child_removed') {
       return change;
     } else {
-      change.prevName = eventCache.getPredecessorChildName(/** @type {!string} */ (change.childName), change.snapshotNode,
-        this.index_);
+      change.prevName = eventCache.getPredecessorChildName(
+        /** @type {!string} */
+        change.childName,
+        change.snapshotNode,
+        this.index_
+      );
       return change;
     }
   }

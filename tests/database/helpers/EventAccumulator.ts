@@ -19,8 +19,12 @@ export const EventAccumulatorFactory = {
     let count = 0;
     const condition = () => ea.eventData.length >= count;
     const ea = new EventAccumulator(condition);
-    ea.onReset(() => { count = 0; });
-    ea.onEvent(() => { count++; });
+    ea.onReset(() => {
+      count = 0;
+    });
+    ea.onEvent(() => {
+      count++;
+    });
     return ea;
   }
 };
@@ -39,10 +43,7 @@ export class EventAccumulator {
     });
   }
   addEvent(eventData?: any) {
-    this.eventData = [
-      ...this.eventData,
-      eventData
-    ];
+    this.eventData = [...this.eventData, eventData];
     if (typeof this.onEventFxn === 'function') this.onEventFxn();
     if (this._testCondition()) {
       this.resolve(this.eventData);

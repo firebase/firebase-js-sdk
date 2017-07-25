@@ -30,4 +30,4 @@ export default function(selectedState?, desiredValue?) {
   });
 
   return fakeReg;
-};
+}

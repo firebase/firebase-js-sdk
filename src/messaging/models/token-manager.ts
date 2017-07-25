@@ -15,7 +15,7 @@
 */
 'use strict';
 
-import {ErrorFactory} from '../../app/errors';
+import { ErrorFactory } from '../../app/errors';
 
 import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
@@ -26,7 +26,6 @@ const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
 const FCM_TOKEN_DETAILS_DB_VERSION = 1;
 
 export default class TokenManager {
-
   private errorFactory_: ErrorFactory<string>;
   private openDbPromise_: Promise<IDBDatabase>;
 
@@ -46,16 +45,18 @@ export default class TokenManager {
     }
 
     this.openDbPromise_ = new Promise((resolve, reject) => {
-      const request = indexedDB.open(FCM_TOKEN_DETAILS_DB,
-        FCM_TOKEN_DETAILS_DB_VERSION);
+      const request = indexedDB.open(
+        FCM_TOKEN_DETAILS_DB,
+        FCM_TOKEN_DETAILS_DB_VERSION
+      );
       request.onerror = event => {
-        reject((<IDBRequest> event.target).error);
+        reject((<IDBRequest>event.target).error);
       };
       request.onsuccess = event => {
-        resolve((<IDBRequest> event.target).result);
+        resolve((<IDBRequest>event.target).result);
       };
       request.onupgradeneeded = event => {
-        var db = (<IDBRequest> event.target).result;
+        var db = (<IDBRequest>event.target).result;
 
         var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
           keyPath: 'swScope'
@@ -97,44 +98,41 @@ export default class TokenManager {
    * @return {Promise<Object>} The details associated with that token.
    */
   getTokenDetailsFromToken(fcmToken) {
-    return this.openDatabase_()
-    .then(db => {
+    return this.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
         const index = objectStore.index('fcmToken');
         const request = index.get(fcmToken);
         request.onerror = function(event) {
-          reject((<IDBRequest> event.target).error);
+          reject((<IDBRequest>event.target).error);
         };
         request.onsuccess = function(event) {
-          resolve((<IDBRequest> event.target).result);
+          resolve((<IDBRequest>event.target).result);
         };
       });
     });
   }
 
   getTokenDetailsFromSWScope_(swScope) {
-    return this.openDatabase_()
-    .then(db => {
+    return this.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
         const scopeRequest = objectStore.get(swScope);
         scopeRequest.onerror = event => {
-          reject((<IDBRequest> event.target).error);
+          reject((<IDBRequest>event.target).error);
         };
 
         scopeRequest.onsuccess = event => {
-          resolve((<IDBRequest> event.target).result);
+          resolve((<IDBRequest>event.target).result);
         };
       });
     });
   }
 
   getAllTokenDetailsForSenderId_(senderId): Promise<Array<Object>> {
-    return this.openDatabase_()
-    .then(db => {
+    return this.openDatabase_().then(db => {
       return new Promise<Array<Object>>((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
@@ -143,11 +141,11 @@ export default class TokenManager {
 
         const cursorRequest = objectStore.openCursor();
         cursorRequest.onerror = event => {
-          reject((<IDBRequest> event.target).error);
+          reject((<IDBRequest>event.target).error);
         };
 
         cursorRequest.onsuccess = event => {
-          const cursor = (<IDBRequest> event.target).result;
+          const cursor = (<IDBRequest>event.target).result;
           if (cursor) {
             if (cursor.value['fcmSenderId'] === senderId) {
               senderIdTokens.push(cursor.value);
@@ -175,7 +173,8 @@ export default class TokenManager {
     const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
     const auth = arrayBufferToBase64(subscription['getKey']('auth'));
 
-    let fcmSubscribeBody = `authorized_entity=${senderId}&` +
+    let fcmSubscribeBody =
+      `authorized_entity=${senderId}&` +
       `endpoint=${subscription.endpoint}&` +
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
@@ -193,30 +192,37 @@ export default class TokenManager {
       body: fcmSubscribeBody
     };
 
-    return fetch(FCMDetails.ENDPOINT + '/fcm/connect/subscribe',
-      subscribeOptions)
-    .then(response => response.json())
-    .then(response => {
-      const fcmTokenResponse = response;
-      if (fcmTokenResponse['error']) {
-        const message = fcmTokenResponse['error']['message'];
-        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED,
-          {'message': message});
-      }
+    return fetch(
+      FCMDetails.ENDPOINT + '/fcm/connect/subscribe',
+      subscribeOptions
+    )
+      .then(response => response.json())
+      .then(response => {
+        const fcmTokenResponse = response;
+        if (fcmTokenResponse['error']) {
+          const message = fcmTokenResponse['error']['message'];
+          throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED, {
+            message: message
+          });
+        }
 
-      if (!fcmTokenResponse['token']) {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN);
-      }
+        if (!fcmTokenResponse['token']) {
+          throw this.errorFactory_.create(
+            Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN
+          );
+        }
 
-      if (!fcmTokenResponse['pushSet']) {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET);
-      }
+        if (!fcmTokenResponse['pushSet']) {
+          throw this.errorFactory_.create(
+            Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET
+          );
+        }
 
-      return {
-        'token': fcmTokenResponse['token'],
-        'pushSet': fcmTokenResponse['pushSet']
-      };
-    });
+        return {
+          token: fcmTokenResponse['token'],
+          pushSet: fcmTokenResponse['pushSet']
+        };
+      });
   }
 
   /**
@@ -233,11 +239,13 @@ export default class TokenManager {
   isSameSubscription_(subscription, masterTokenDetails) {
     // getKey() isn't defined in the PushSubscription externs file, hence
     // subscription['getKey']('<key name>').
-    return (subscription.endpoint === masterTokenDetails['endpoint'] &&
+    return (
+      subscription.endpoint === masterTokenDetails['endpoint'] &&
       arrayBufferToBase64(subscription['getKey']('auth')) ===
         masterTokenDetails['auth'] &&
       arrayBufferToBase64(subscription['getKey']('p256dh')) ===
-        masterTokenDetails['p256dh']);
+        masterTokenDetails['p256dh']
+    );
   }
 
   /**
@@ -253,26 +261,30 @@ export default class TokenManager {
    * @param  {string} fcmPushSet The FCM push tied to the fcm token.
    * @return {Promise<void>}
    */
-  saveTokenDetails_(senderId, swRegistration,
-    subscription, fcmToken, fcmPushSet) {
+  saveTokenDetails_(
+    senderId,
+    swRegistration,
+    subscription,
+    fcmToken,
+    fcmPushSet
+  ) {
     const details = {
-      'swScope': swRegistration.scope,
-      'endpoint': subscription.endpoint,
-      'auth': arrayBufferToBase64(subscription['getKey']('auth')),
-      'p256dh': arrayBufferToBase64(subscription['getKey']('p256dh')),
-      'fcmToken': fcmToken,
-      'fcmPushSet': fcmPushSet,
-      'fcmSenderId': senderId
+      swScope: swRegistration.scope,
+      endpoint: subscription.endpoint,
+      auth: arrayBufferToBase64(subscription['getKey']('auth')),
+      p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),
+      fcmToken: fcmToken,
+      fcmPushSet: fcmPushSet,
+      fcmSenderId: senderId
     };
 
-    return this.openDatabase_()
-    .then(db => {
+    return this.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE], 'readwrite');
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
         const request = objectStore.put(details);
         request.onerror = event => {
-          reject((<IDBRequest> event.target).error);
+          reject((<IDBRequest>event.target).error);
         };
         request.onsuccess = event => {
           resolve();
@@ -294,48 +306,57 @@ export default class TokenManager {
    */
   getSavedToken(senderId, swRegistration) {
     if (!(swRegistration instanceof ServiceWorkerRegistration)) {
-      return Promise.reject(this.errorFactory_.create(
-        Errors.codes.SW_REGISTRATION_EXPECTED));
+      return Promise.reject(
+        this.errorFactory_.create(Errors.codes.SW_REGISTRATION_EXPECTED)
+      );
     }
 
     if (typeof senderId !== 'string' || senderId.length === 0) {
-      return Promise.reject(this.errorFactory_.create(
-        Errors.codes.BAD_SENDER_ID));
+      return Promise.reject(
+        this.errorFactory_.create(Errors.codes.BAD_SENDER_ID)
+      );
     }
 
     return this.getAllTokenDetailsForSenderId_(senderId)
-    .then(allTokenDetails => {
-      if (allTokenDetails.length === 0) {
-        return;
-      }
-
-      const index = allTokenDetails.findIndex(tokenDetails => {
-        return (swRegistration.scope === tokenDetails['swScope'] &&
-          senderId === tokenDetails['fcmSenderId']);
-      });
-
-      if (index === -1) {
-        return;
-      }
-
-      return allTokenDetails[index];
-    })
-    .then(tokenDetails => {
-      if (!tokenDetails) {
-        return;
-      }
-
-      return swRegistration.pushManager.getSubscription()
-      .catch(err => {
-        throw this.errorFactory_.create(Errors.codes.GET_SUBSCRIPTION_FAILED);
-      })
-      .then(subscription => {
-        if (subscription &&
-          this.isSameSubscription_(subscription, tokenDetails)) {
-          return tokenDetails['fcmToken'];
+      .then(allTokenDetails => {
+        if (allTokenDetails.length === 0) {
+          return;
         }
+
+        const index = allTokenDetails.findIndex(tokenDetails => {
+          return (
+            swRegistration.scope === tokenDetails['swScope'] &&
+            senderId === tokenDetails['fcmSenderId']
+          );
+        });
+
+        if (index === -1) {
+          return;
+        }
+
+        return allTokenDetails[index];
+      })
+      .then(tokenDetails => {
+        if (!tokenDetails) {
+          return;
+        }
+
+        return swRegistration.pushManager
+          .getSubscription()
+          .catch(err => {
+            throw this.errorFactory_.create(
+              Errors.codes.GET_SUBSCRIPTION_FAILED
+            );
+          })
+          .then(subscription => {
+            if (
+              subscription &&
+              this.isSameSubscription_(subscription, tokenDetails)
+            ) {
+              return tokenDetails['fcmToken'];
+            }
+          });
       });
-    });
   }
 
   /**
@@ -343,37 +364,46 @@ export default class TokenManager {
    */
   createToken(senderId, swRegistration): Promise<String> {
     if (typeof senderId !== 'string' || senderId.length === 0) {
-      return Promise.reject(this.errorFactory_.create(
-        Errors.codes.BAD_SENDER_ID));
+      return Promise.reject(
+        this.errorFactory_.create(Errors.codes.BAD_SENDER_ID)
+      );
     }
 
-    if (!(swRegistration  instanceof ServiceWorkerRegistration)) {
-      return Promise.reject(this.errorFactory_.create(
-        Errors.codes.SW_REGISTRATION_EXPECTED));
+    if (!(swRegistration instanceof ServiceWorkerRegistration)) {
+      return Promise.reject(
+        this.errorFactory_.create(Errors.codes.SW_REGISTRATION_EXPECTED)
+      );
     }
 
     // Check for existing subscription first
     let subscription;
     let fcmTokenDetails;
-    return swRegistration.pushManager.getSubscription()
-    .then(subscription => {
-      if (subscription) {
-        return subscription;
-      }
+    return swRegistration.pushManager
+      .getSubscription()
+      .then(subscription => {
+        if (subscription) {
+          return subscription;
+        }
 
-      return swRegistration.pushManager.subscribe(
-        FCMDetails.SUBSCRIPTION_OPTIONS);
-    })
-    .then(sub => {
-      subscription = sub;
-      return this.subscribeToFCM(senderId, subscription)
-    })
-    .then(tokenDetails => {
-      fcmTokenDetails = tokenDetails;
-      return this.saveTokenDetails_(senderId, swRegistration, subscription,
-          fcmTokenDetails['token'], fcmTokenDetails['pushSet']);
-    })
-    .then(() => fcmTokenDetails['token']);
+        return swRegistration.pushManager.subscribe(
+          FCMDetails.SUBSCRIPTION_OPTIONS
+        );
+      })
+      .then(sub => {
+        subscription = sub;
+        return this.subscribeToFCM(senderId, subscription);
+      })
+      .then(tokenDetails => {
+        fcmTokenDetails = tokenDetails;
+        return this.saveTokenDetails_(
+          senderId,
+          swRegistration,
+          subscription,
+          fcmTokenDetails['token'],
+          fcmTokenDetails['pushSet']
+        );
+      })
+      .then(() => fcmTokenDetails['token']);
   }
 
   /**
@@ -387,28 +417,31 @@ export default class TokenManager {
   deleteToken(token) {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN));
+        this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN)
+      );
     }
 
-    return this.getTokenDetailsFromToken(token)
-    .then(details => {
+    return this.getTokenDetailsFromToken(token).then(details => {
       if (!details) {
         throw this.errorFactory_.create(Errors.codes.DELETE_TOKEN_NOT_FOUND);
       }
 
-      return  this.openDatabase_()
-      .then(db => {
+      return this.openDatabase_().then(db => {
         return new Promise((resolve, reject) => {
-          const transaction = db.transaction([FCM_TOKEN_OBJ_STORE],
-              'readwrite');
+          const transaction = db.transaction(
+            [FCM_TOKEN_OBJ_STORE],
+            'readwrite'
+          );
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const request = objectStore.delete(details['swScope']);
           request.onerror = event => {
-            reject((<IDBRequest> event.target).error);
+            reject((<IDBRequest>event.target).error);
           };
           request.onsuccess = event => {
-            if ((<IDBRequest> event.target).result === 0) {
-              reject(this.errorFactory_.create(Errors.codes.FAILED_TO_DELETE_TOKEN));
+            if ((<IDBRequest>event.target).result === 0) {
+              reject(
+                this.errorFactory_.create(Errors.codes.FAILED_TO_DELETE_TOKEN)
+              );
               return;
             }
 

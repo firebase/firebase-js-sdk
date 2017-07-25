@@ -14,11 +14,11 @@
 * limitations under the License.
 */
 
-import { Index } from "./Index";
-import { Node, NamedNode } from "../Node";
-import { nameCompare, MAX_NAME } from "../../util/util";
-import { assert, assertionError } from "../../../../utils/assert";
-import { ChildrenNode } from "../ChildrenNode";
+import { Index } from './Index';
+import { Node, NamedNode } from '../Node';
+import { nameCompare, MAX_NAME } from '../../util/util';
+import { assert, assertionError } from '../../../../utils/assert';
+import { ChildrenNode } from '../ChildrenNode';
 
 let __EMPTY_NODE: ChildrenNode;
 
@@ -47,7 +47,6 @@ export class KeyIndex extends Index {
     throw assertionError('KeyIndex.isDefinedOn not expected to be called.');
   }
 
-
   /**
    * @inheritDoc
    */
@@ -55,14 +54,12 @@ export class KeyIndex extends Index {
     return false; // The key for a node never changes.
   }
 
-
   /**
    * @inheritDoc
    */
   minPost() {
     return (NamedNode as any).MIN;
   }
-
 
   /**
    * @inheritDoc
@@ -73,18 +70,19 @@ export class KeyIndex extends Index {
     return new NamedNode(MAX_NAME, __EMPTY_NODE);
   }
 
-
   /**
    * @param {*} indexValue
    * @param {string} name
    * @return {!NamedNode}
    */
   makePost(indexValue: string, name: string): NamedNode {
-    assert(typeof indexValue === 'string', 'KeyIndex indexValue must always be a string.');
+    assert(
+      typeof indexValue === 'string',
+      'KeyIndex indexValue must always be a string.'
+    );
     // We just use empty node, but it'll never be compared, since our comparator only looks at name.
     return new NamedNode(indexValue, __EMPTY_NODE);
   }
-
 
   /**
    * @return {!string} String representation for inclusion in a query spec

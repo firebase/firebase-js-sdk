@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { forEach } from "./obj";
+import { forEach } from './obj';
 
 /**
  * Returns a querystring-formatted string (e.g. &arg=val&arg2=val2) from a params
@@ -29,15 +29,16 @@ export const querystring = function(querystringParams) {
   forEach(querystringParams, function(key, value) {
     if (Array.isArray(value)) {
       value.forEach(function(arrayVal) {
-        params.push(encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal));
+        params.push(
+          encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal)
+        );
       });
     } else {
       params.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
     }
   });
-  return (params.length) ? '&' + params.join('&') : '';
+  return params.length ? '&' + params.join('&') : '';
 };
-
 
 /**
  * Decodes a querystring (e.g. ?arg=val&arg2=val2) into a params object (e.g. {arg: 'val', arg2: 'val2'})

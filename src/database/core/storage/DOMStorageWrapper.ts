@@ -33,8 +33,7 @@ export class DOMStorageWrapper {
   /**
    * @param {Storage} domStorage_ The underlying storage object (e.g. localStorage or sessionStorage)
    */
-  constructor(private domStorage_: Storage) {
-  }
+  constructor(private domStorage_: Storage) {}
 
   /**
    * @param {string} key The key to save the value under

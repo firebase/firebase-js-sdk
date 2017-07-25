@@ -15,9 +15,9 @@
 */
 
 import { Index } from './Index';
-import { nameCompare, MAX_NAME } from "../../util/util";
+import { nameCompare, MAX_NAME } from '../../util/util';
 import { NamedNode, Node } from '../Node';
-import { LeafNode } from "../LeafNode";
+import { LeafNode } from '../LeafNode';
 
 let nodeFromJSON: (a: any) => Node;
 let MAX_NODE: Node;
@@ -29,7 +29,6 @@ export function setNodeFromJSON(val: (a: any) => Node) {
 export function setMaxNode(val: Node) {
   MAX_NODE = val;
 }
-
 
 /**
  * @constructor
@@ -51,14 +50,12 @@ export class PriorityIndex extends Index {
     }
   }
 
-
   /**
    * @inheritDoc
    */
   isDefinedOn(node: Node): boolean {
     return !node.getPriority().isEmpty();
   }
-
 
   /**
    * @inheritDoc
@@ -67,7 +64,6 @@ export class PriorityIndex extends Index {
     return !oldNode.getPriority().equals(newNode.getPriority());
   }
 
-
   /**
    * @inheritDoc
    */
@@ -75,14 +71,12 @@ export class PriorityIndex extends Index {
     return (NamedNode as any).MIN;
   }
 
-
   /**
    * @inheritDoc
    */
   maxPost(): NamedNode {
     return new NamedNode(MAX_NAME, new LeafNode('[PRIORITY-POST]', MAX_NODE));
   }
-
 
   /**
    * @param {*} indexValue
@@ -93,7 +87,6 @@ export class PriorityIndex extends Index {
     const priorityNode = nodeFromJSON(indexValue);
     return new NamedNode(name, new LeafNode('[PRIORITY-POST]', priorityNode));
   }
-
 
   /**
    * @return {!string} String representation for inclusion in a query spec

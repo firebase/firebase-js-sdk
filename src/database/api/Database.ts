@@ -35,7 +35,7 @@ export class Database implements FirebaseService {
   private root_: Reference;
 
   static readonly ServerValue = {
-    'TIMESTAMP': {
+    TIMESTAMP: {
       '.sv': 'timestamp'
     }
   };
@@ -46,7 +46,9 @@ export class Database implements FirebaseService {
    */
   constructor(private repo_: Repo) {
     if (!(repo_ instanceof Repo)) {
-      fatal('Don\'t call new Database() directly - please use firebase.database().');
+      fatal(
+        "Don't call new Database() directly - please use firebase.database()."
+      );
     }
 
     /** @type {Reference} */
@@ -88,9 +90,15 @@ export class Database implements FirebaseService {
 
     const repoInfo = parsedURL.repoInfo;
     if (repoInfo.host !== ((this.repo_ as any).repoInfo_ as RepoInfo).host) {
-      fatal(apiName + ': Host name does not match the current database: ' +
-        '(found ' + repoInfo.host + ' but expected ' +
-        ((this.repo_ as any).repoInfo_ as RepoInfo).host + ')');
+      fatal(
+        apiName +
+          ': Host name does not match the current database: ' +
+          '(found ' +
+          repoInfo.host +
+          ' but expected ' +
+          ((this.repo_ as any).repoInfo_ as RepoInfo).host +
+          ')'
+      );
     }
 
     return this.ref(parsedURL.path.toString());
@@ -121,8 +129,7 @@ export class Database implements FirebaseService {
 
 export class DatabaseInternals {
   /** @param {!Database} database */
-  constructor(public database: Database) {
-  }
+  constructor(public database: Database) {}
 
   /** @return {Promise<void>} */
   delete(): Promise<void> {
@@ -136,4 +143,3 @@ export class DatabaseInternals {
     return PromiseImpl.resolve();
   }
 }
-

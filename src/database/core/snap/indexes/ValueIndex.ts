@@ -14,10 +14,10 @@
 * limitations under the License.
 */
 
-import { Index } from "./Index";
+import { Index } from './Index';
 import { NamedNode, Node } from '../Node';
-import { nameCompare } from "../../util/util";
-import { nodeFromJSON } from "../nodeFromJSON";
+import { nameCompare } from '../../util/util';
+import { nodeFromJSON } from '../nodeFromJSON';
 
 /**
  * @constructor
@@ -80,7 +80,7 @@ export class ValueIndex extends Index {
    */
   toString(): string {
     return '.value';
-  };
+  }
 }
 
 export const VALUE_INDEX = new ValueIndex();

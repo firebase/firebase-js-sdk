@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { base64Decode } from "../database/core/util/util";
-import { jsonEval } from "./json";
+import { base64Decode } from '../database/core/util/util';
+import { jsonEval } from './json';
 
 /**
  * Decodes a Firebase auth. token into constituent parts.
@@ -29,9 +29,9 @@ import { jsonEval } from "./json";
  */
 export const decode = function(token) {
   var header = {},
-      claims = {},
-      data = {},
-      signature = '';
+    claims = {},
+    data = {},
+    signature = '';
 
   try {
     var parts = token.split('.');
@@ -63,8 +63,9 @@ export const decode = function(token) {
  */
 export const isValidTimestamp = function(token) {
   var claims = decode(token).claims,
-      now = Math.floor(new Date().getTime() / 1000),
-      validSince, validUntil;
+    now = Math.floor(new Date().getTime() / 1000),
+    validSince,
+    validUntil;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
@@ -81,8 +82,9 @@ export const isValidTimestamp = function(token) {
     }
   }
 
-  return now && validSince && validUntil &&
-        (now >= validSince) && (now <= validUntil);
+  return (
+    now && validSince && validUntil && now >= validSince && now <= validUntil
+  );
 };
 
 /**
@@ -116,12 +118,14 @@ export const issuedAtTime = function(token) {
  */
 export const isValidFormat = function(token) {
   var decoded = decode(token),
-      claims = decoded.claims;
+    claims = decoded.claims;
 
-  return !!decoded.signature &&
+  return (
+    !!decoded.signature &&
     !!claims &&
-    (typeof claims === 'object') &&
-    claims.hasOwnProperty('iat');
+    typeof claims === 'object' &&
+    claims.hasOwnProperty('iat')
+  );
 };
 
 /**
@@ -136,5 +140,5 @@ export const isValidFormat = function(token) {
  */
 export const isAdmin = function(token) {
   var claims = decode(token).claims;
-  return (typeof claims === 'object' && claims['admin'] === true);
+  return typeof claims === 'object' && claims['admin'] === true;
 };

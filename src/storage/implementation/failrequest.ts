@@ -13,10 +13,10 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {FirebaseStorageError} from './error';
+import { FirebaseStorageError } from './error';
 import * as promiseimpl from './promise_external';
 import * as RequestExports from './request';
-import {Request} from './request';
+import { Request } from './request';
 
 /**
  * A request whose promise always fails.

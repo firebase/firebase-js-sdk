@@ -26,8 +26,7 @@ export class StatsCollection {
   private counters_: { [k: string]: number } = {};
 
   incrementCounter(name: string, amount: number = 1) {
-    if (!contains(this.counters_, name))
-      this.counters_[name] = 0;
+    if (!contains(this.counters_, name)) this.counters_[name] = 0;
 
     this.counters_[name] += amount;
   }
@@ -36,4 +35,3 @@ export class StatsCollection {
     return deepCopy(this.counters_);
   }
 }
-

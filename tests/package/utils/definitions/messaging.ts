@@ -30,48 +30,48 @@ export const messagingSpec: NamespaceSpec = {
 // Messaging Service instance
 //
 export const messagingInstanceSpec: NamespaceSpec = {
-  app: {is: Object, isName: 'App'},
+  app: { is: Object, isName: 'App' },
   INTERNAL: {
-    delete: {is: Function}
+    delete: { is: Function }
   },
 
-  getToken: {is: Function, args: 0},
-  onMessage: {is: Function, args: 3},
+  getToken: { is: Function, args: 0 },
+  onMessage: { is: Function, args: 3 },
 
-  onTokenRefresh: {is: Function, args: 3},
-  requestPermission: {is: Function, args: 0},
-  deleteToken: {is: Function, args: 1},
+  onTokenRefresh: { is: Function, args: 3 },
+  requestPermission: { is: Function, args: 0 },
+  deleteToken: { is: Function, args: 1 },
 
-  setBackgroundMessageHandler: {is: Function, args: 1},
+  setBackgroundMessageHandler: { is: Function, args: 1 }
 };
 
 export const compiledMessagingInstanceSpec: NamespaceSpec = {
-  app: {is: Object, isName: 'App'},
+  app: { is: Object, isName: 'App' },
   INTERNAL: {
-    delete: {is: Function}
+    delete: { is: Function }
   },
 
-  getToken: {is: Function, args: 0},
-  onMessage: {is: Function, args: 3},
+  getToken: { is: Function, args: 0 },
+  onMessage: { is: Function, args: 3 },
 
-  onTokenRefresh: {is: Function, args: 3},
-  requestPermission: {is: Function, args: 0},
-  deleteToken: {is: Function, args: 1},
+  onTokenRefresh: { is: Function, args: 3 },
+  requestPermission: { is: Function, args: 0 },
+  deleteToken: { is: Function, args: 1 },
 
-  setBackgroundMessageHandler: {is: Function, args: 0},
+  setBackgroundMessageHandler: { is: Function, args: 0 }
 };
 
 // Incremental properties on firebase namespace.
 export const firebaseSpec: NamespaceSpec = {
   INTERNAL: {
     factories: {
-      messaging: {is: Function},
-    },
+      messaging: { is: Function }
+    }
   },
-  messaging: {is: Function, args: 1},
+  messaging: { is: Function, args: 1 }
 };
 
 // Incremental properties on firebase App instance.
 export const appInstanceSpec: NamespaceSpec = {
-  messaging: {is: Function, args: 1},
+  messaging: { is: Function, args: 1 }
 };

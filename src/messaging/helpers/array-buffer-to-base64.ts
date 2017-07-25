@@ -18,9 +18,7 @@ function toBase64(arrayBuffer) {
   return window.btoa(String.fromCharCode.apply(null, uint8Version));
 }
 
-export default (arrayBuffer) => {
+export default arrayBuffer => {
   const base64String = toBase64(arrayBuffer);
-  return base64String.replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
+  return base64String.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 };

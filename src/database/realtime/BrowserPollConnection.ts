@@ -112,11 +112,16 @@ export class BrowserPollConnection implements Transport {
    * @param {string=}  lastSessionId Optional lastSessionId if the PersistentConnection has already created a
    *                                     connection previously
    */
-  constructor(public connId: string, public repoInfo: RepoInfo,
-              public transportSessionId?: string, public lastSessionId?: string) {
+  constructor(
+    public connId: string,
+    public repoInfo: RepoInfo,
+    public transportSessionId?: string,
+    public lastSessionId?: string
+  ) {
     this.log_ = logWrapper(connId);
     this.stats_ = StatsManager.getCollection(repoInfo);
-    this.urlFn = (params: { [k: string]: string }) => repoInfo.connectionURL(LONG_POLLING, params);
+    this.urlFn = (params: { [k: string]: string }) =>
+      repoInfo.connectionURL(LONG_POLLING, params);
   }
 
   /**
@@ -139,55 +144,64 @@ export class BrowserPollConnection implements Transport {
 
     // Ensure we delay the creation of the iframe until the DOM is loaded.
     executeWhenDOMReady(() => {
-      if (this.isClosed_)
-        return;
+      if (this.isClosed_) return;
 
       //Set up a callback that gets triggered once a connection is set up.
-      this.scriptTagHolder = new FirebaseIFrameScriptHolder((...args) => {
-        const [command, arg1, arg2, arg3, arg4] = args;
-        this.incrementIncomingBytes_(args);
-        if (!this.scriptTagHolder)
-          return; // we closed the connection.
+      this.scriptTagHolder = new FirebaseIFrameScriptHolder(
+        (...args) => {
+          const [command, arg1, arg2, arg3, arg4] = args;
+          this.incrementIncomingBytes_(args);
+          if (!this.scriptTagHolder) return; // we closed the connection.
 
-        if (this.connectTimeoutTimer_) {
-          clearTimeout(this.connectTimeoutTimer_);
-          this.connectTimeoutTimer_ = null;
-        }
-        this.everConnected_ = true;
-        if (command == FIREBASE_LONGPOLL_START_PARAM) {
-          this.id = arg1;
-          this.password = arg2;
-        } else if (command === FIREBASE_LONGPOLL_CLOSE_COMMAND) {
-          // Don't clear the host cache. We got a response from the server, so we know it's reachable
-          if (arg1) {
-            // We aren't expecting any more data (other than what the server's already in the process of sending us
-            // through our already open polls), so don't send any more.
-            this.scriptTagHolder.sendNewPolls = false;
-
-            // arg1 in this case is the last response number sent by the server. We should try to receive
-            // all of the responses up to this one before closing
-            this.myPacketOrderer.closeAfter(arg1, () => { this.onClosed_(); });
-          } else {
-            this.onClosed_();
+          if (this.connectTimeoutTimer_) {
+            clearTimeout(this.connectTimeoutTimer_);
+            this.connectTimeoutTimer_ = null;
           }
-        } else {
-          throw new Error('Unrecognized command received: ' + command);
-        }
-      }, (...args) => {
-        const [pN, data] = args;
-        this.incrementIncomingBytes_(args);
-        this.myPacketOrderer.handleResponse(pN, data);
-      }, () => {
-        this.onClosed_();
-      }, this.urlFn);
+          this.everConnected_ = true;
+          if (command == FIREBASE_LONGPOLL_START_PARAM) {
+            this.id = arg1;
+            this.password = arg2;
+          } else if (command === FIREBASE_LONGPOLL_CLOSE_COMMAND) {
+            // Don't clear the host cache. We got a response from the server, so we know it's reachable
+            if (arg1) {
+              // We aren't expecting any more data (other than what the server's already in the process of sending us
+              // through our already open polls), so don't send any more.
+              this.scriptTagHolder.sendNewPolls = false;
+
+              // arg1 in this case is the last response number sent by the server. We should try to receive
+              // all of the responses up to this one before closing
+              this.myPacketOrderer.closeAfter(arg1, () => {
+                this.onClosed_();
+              });
+            } else {
+              this.onClosed_();
+            }
+          } else {
+            throw new Error('Unrecognized command received: ' + command);
+          }
+        },
+        (...args) => {
+          const [pN, data] = args;
+          this.incrementIncomingBytes_(args);
+          this.myPacketOrderer.handleResponse(pN, data);
+        },
+        () => {
+          this.onClosed_();
+        },
+        this.urlFn
+      );
 
       //Send the initial request to connect. The serial number is simply to keep the browser from pulling previous results
       //from cache.
       const urlParams: { [k: string]: string | number } = {};
       urlParams[FIREBASE_LONGPOLL_START_PARAM] = 't';
-      urlParams[FIREBASE_LONGPOLL_SERIAL_PARAM] = Math.floor(Math.random() * 100000000);
+      urlParams[FIREBASE_LONGPOLL_SERIAL_PARAM] = Math.floor(
+        Math.random() * 100000000
+      );
       if (this.scriptTagHolder.uniqueCallbackIdentifier)
-        urlParams[FIREBASE_LONGPOLL_CALLBACK_ID_PARAM] = this.scriptTagHolder.uniqueCallbackIdentifier;
+        urlParams[
+          FIREBASE_LONGPOLL_CALLBACK_ID_PARAM
+        ] = this.scriptTagHolder.uniqueCallbackIdentifier;
       urlParams[VERSION_PARAM] = PROTOCOL_VERSION;
       if (this.transportSessionId) {
         urlParams[TRANSPORT_SESSION_PARAM] = this.transportSessionId;
@@ -195,17 +209,21 @@ export class BrowserPollConnection implements Transport {
       if (this.lastSessionId) {
         urlParams[LAST_SESSION_PARAM] = this.lastSessionId;
       }
-      if (!isNodeSdk() &&
+      if (
+        !isNodeSdk() &&
         typeof location !== 'undefined' &&
         location.href &&
-        location.href.indexOf(FORGE_DOMAIN) !== -1) {
+        location.href.indexOf(FORGE_DOMAIN) !== -1
+      ) {
         urlParams[REFERER_PARAM] = FORGE_REF;
       }
       const connectURL = this.urlFn(urlParams);
       this.log_('Connecting via long-poll to ' + connectURL);
-      this.scriptTagHolder.addTag(connectURL, () => { /* do nothing */ });
+      this.scriptTagHolder.addTag(connectURL, () => {
+        /* do nothing */
+      });
     });
-  };
+  }
 
   /**
    * Call this when a handshake has completed successfully and we want to consider the connection established
@@ -213,7 +231,7 @@ export class BrowserPollConnection implements Transport {
   start() {
     this.scriptTagHolder.startLongPoll(this.id, this.password);
     this.addDisconnectPingFrame(this.id, this.password);
-  };
+  }
 
   private static forceAllow_: boolean;
 
@@ -222,7 +240,7 @@ export class BrowserPollConnection implements Transport {
    */
   static forceAllow() {
     BrowserPollConnection.forceAllow_ = true;
-  };
+  }
 
   private static forceDisallow_: boolean;
 
@@ -231,25 +249,27 @@ export class BrowserPollConnection implements Transport {
    */
   static forceDisallow() {
     BrowserPollConnection.forceDisallow_ = true;
-  };
+  }
 
   // Static method, use string literal so it can be accessed in a generic way
   static isAvailable() {
     // NOTE: In React-Native there's normally no 'document', but if you debug a React-Native app in
     // the Chrome debugger, 'document' is defined, but document.createElement is null (2015/06/08).
-    return BrowserPollConnection.forceAllow_ || (
-      !BrowserPollConnection.forceDisallow_ &&
-      typeof document !== 'undefined' && document.createElement != null &&
-      !isChromeExtensionContentScript() &&
-      !isWindowsStoreApp() &&
-      !isNodeSdk()
+    return (
+      BrowserPollConnection.forceAllow_ ||
+      (!BrowserPollConnection.forceDisallow_ &&
+        typeof document !== 'undefined' &&
+        document.createElement != null &&
+        !isChromeExtensionContentScript() &&
+        !isWindowsStoreApp() &&
+        !isNodeSdk())
     );
-  };
+  }
 
   /**
    * No-op for polling
    */
-  markConnectionHealthy() { };
+  markConnectionHealthy() {}
 
   /**
    * Stops polling and cleans up the iframe
@@ -273,7 +293,7 @@ export class BrowserPollConnection implements Transport {
       clearTimeout(this.connectTimeoutTimer_);
       this.connectTimeoutTimer_ = null;
     }
-  };
+  }
 
   /**
    * Triggered when this transport is closed
@@ -289,7 +309,7 @@ export class BrowserPollConnection implements Transport {
         this.onDisconnect_ = null;
       }
     }
-  };
+  }
 
   /**
    * External-facing close handler. RealTime has requested we shut down. Kill our connection and tell the server
@@ -300,7 +320,7 @@ export class BrowserPollConnection implements Transport {
       this.log_('Longpoll is being closed.');
       this.shutdown_();
     }
-  };
+  }
 
   /**
    * Send the JSON object down to the server. It will need to be stringified, base64 encoded, and then
@@ -322,10 +342,14 @@ export class BrowserPollConnection implements Transport {
     //Enqueue each segment for transmission. We assign each chunk a sequential ID and a total number
     //of segments so that we can reassemble the packet on the server.
     for (let i = 0; i < dataSegs.length; i++) {
-      this.scriptTagHolder.enqueueSegment(this.curSegmentNum, dataSegs.length, dataSegs[i]);
+      this.scriptTagHolder.enqueueSegment(
+        this.curSegmentNum,
+        dataSegs.length,
+        dataSegs[i]
+      );
       this.curSegmentNum++;
     }
-  };
+  }
 
   /**
    * This is how we notify the server that we're leaving.
@@ -345,7 +369,7 @@ export class BrowserPollConnection implements Transport {
     this.myDisconnFrame.style.display = 'none';
 
     document.body.appendChild(this.myDisconnFrame);
-  };
+  }
 
   /**
    * Used to track the bytes received by this client
@@ -357,11 +381,11 @@ export class BrowserPollConnection implements Transport {
     const bytesReceived = stringify(args).length;
     this.bytesReceived += bytesReceived;
     this.stats_.incrementCounter('bytes_received', bytesReceived);
-  };
+  }
 }
 
 export interface IFrameElement extends HTMLIFrameElement {
- doc: Document;
+  doc: Document;
 }
 
 /*********************************************************************************************
@@ -377,7 +401,7 @@ export class FirebaseIFrameScriptHolder {
   outstandingRequests = new CountedSet<number, number>();
 
   //A queue of the pending segments waiting for transmission to the server.
-  pendingSegs: { seg: number, ts: number, d: any }[] = [];
+  pendingSegs: { seg: number; ts: number; d: any }[] = [];
 
   //A serial number. We use this for two things:
   // 1) A way to ensure the browser doesn't cache responses to polls
@@ -404,18 +428,24 @@ export class FirebaseIFrameScriptHolder {
    * @param onDisconnect - The callback to be triggered when this tag holder is closed
    * @param urlFn - A function that provides the URL of the endpoint to send data to.
    */
-  constructor(commandCB: (command: string, ...args: any[]) => void,
-              onMessageCB: (...args: any[]) => void,
-              public onDisconnect: () => void,
-              public urlFn: (a: object) => string) {
+  constructor(
+    commandCB: (command: string, ...args: any[]) => void,
+    onMessageCB: (...args: any[]) => void,
+    public onDisconnect: () => void,
+    public urlFn: (a: object) => string
+  ) {
     if (!isNodeSdk()) {
       //Each script holder registers a couple of uniquely named callbacks with the window. These are called from the
       //iframes where we put the long-polling script tags. We have two callbacks:
       //   1) Command Callback - Triggered for control issues, like starting a connection.
       //   2) Message Callback - Triggered when new data arrives.
       this.uniqueCallbackIdentifier = LUIDGenerator();
-      (window as any)[FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier] = commandCB;
-      (window as any)[FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier] = onMessageCB;
+      (window as any)[
+        FIREBASE_LONGPOLL_COMMAND_CB_NAME + this.uniqueCallbackIdentifier
+      ] = commandCB;
+      (window as any)[
+        FIREBASE_LONGPOLL_DATA_CB_NAME + this.uniqueCallbackIdentifier
+      ] = onMessageCB;
 
       //Create an iframe for us to add script tags to.
       this.myIFrame = FirebaseIFrameScriptHolder.createIFrame_();
@@ -424,7 +454,10 @@ export class FirebaseIFrameScriptHolder {
       let script = '';
       // if we set a javascript url, it's IE and we need to set the document domain. The javascript url is sufficient
       // for ie9, but ie8 needs to do it again in the document itself.
-      if (this.myIFrame.src && this.myIFrame.src.substr(0, 'javascript:'.length) === 'javascript:') {
+      if (
+        this.myIFrame.src &&
+        this.myIFrame.src.substr(0, 'javascript:'.length) === 'javascript:'
+      ) {
         const currentDomain = document.domain;
         script = '<script>document.domain="' + currentDomain + '";</script>';
       }
@@ -470,8 +503,10 @@ export class FirebaseIFrameScriptHolder {
         }
       } catch (e) {
         const domain = document.domain;
-        iframe.src = 'javascript:void((function(){document.open();document.domain=\'' + domain +
-          '\';document.close();})())';
+        iframe.src =
+          "javascript:void((function(){document.open();document.domain='" +
+          domain +
+          "';document.close();})())";
       }
     } else {
       // LongPollConnection attempts to delay initialization until the document is ready, so hopefully this
@@ -481,11 +516,11 @@ export class FirebaseIFrameScriptHolder {
 
     // Get the document of the iframe in a browser-specific way.
     if (iframe.contentDocument) {
-      (iframe as any).doc = iframe.contentDocument;  // Firefox, Opera, Safari
+      (iframe as any).doc = iframe.contentDocument; // Firefox, Opera, Safari
     } else if (iframe.contentWindow) {
-      (iframe as any).doc = iframe.contentWindow.document;  // Internet Explorer
+      (iframe as any).doc = iframe.contentWindow.document; // Internet Explorer
     } else if ((iframe as any).document) {
-      (iframe as any).doc = (iframe as any).document;  //others?
+      (iframe as any).doc = (iframe as any).document; //others?
     }
 
     return iframe;
@@ -540,7 +575,7 @@ export class FirebaseIFrameScriptHolder {
 
     //send the initial request. If there are requests queued, make sure that we transmit as many as we are currently able to.
     while (this.newRequest_()) {}
-  };
+  }
 
   /**
    * This is called any time someone might want a script tag to be added. It adds a script tag when there aren't
@@ -553,7 +588,11 @@ export class FirebaseIFrameScriptHolder {
     // We keep one outstanding request open all the time to receive data, but if we need to send data
     // (pendingSegs.length > 0) then we create a new request to send the data.  The server will automatically
     // close the old request.
-    if (this.alive && this.sendNewPolls && this.outstandingRequests.count() < (this.pendingSegs.length > 0 ? 2 : 1)) {
+    if (
+      this.alive &&
+      this.sendNewPolls &&
+      this.outstandingRequests.count() < (this.pendingSegs.length > 0 ? 2 : 1)
+    ) {
       //construct our url
       this.currentSerial++;
       const urlParams: { [k: string]: string | number } = {};
@@ -568,11 +607,29 @@ export class FirebaseIFrameScriptHolder {
       while (this.pendingSegs.length > 0) {
         //first, lets see if the next segment will fit.
         const nextSeg = this.pendingSegs[0];
-        if (nextSeg.d.length + SEG_HEADER_SIZE + curDataString.length <= MAX_URL_DATA_SIZE) {
+        if (
+          nextSeg.d.length + SEG_HEADER_SIZE + curDataString.length <=
+          MAX_URL_DATA_SIZE
+        ) {
           //great, the segment will fit. Lets append it.
           const theSeg = this.pendingSegs.shift();
-          curDataString = curDataString + '&' + FIREBASE_LONGPOLL_SEGMENT_NUM_PARAM + i + '=' + theSeg.seg +
-            '&' + FIREBASE_LONGPOLL_SEGMENTS_IN_PACKET + i + '=' + theSeg.ts + '&' + FIREBASE_LONGPOLL_DATA_PARAM + i + '=' + theSeg.d;
+          curDataString =
+            curDataString +
+            '&' +
+            FIREBASE_LONGPOLL_SEGMENT_NUM_PARAM +
+            i +
+            '=' +
+            theSeg.seg +
+            '&' +
+            FIREBASE_LONGPOLL_SEGMENTS_IN_PACKET +
+            i +
+            '=' +
+            theSeg.ts +
+            '&' +
+            FIREBASE_LONGPOLL_DATA_PARAM +
+            i +
+            '=' +
+            theSeg.d;
           i++;
         } else {
           break;
@@ -586,7 +643,7 @@ export class FirebaseIFrameScriptHolder {
     } else {
       return false;
     }
-  };
+  }
 
   /**
    * Queue a packet for transmission to the server.
@@ -596,14 +653,14 @@ export class FirebaseIFrameScriptHolder {
    */
   enqueueSegment(segnum: number, totalsegs: number, data: any) {
     //add this to the queue of segments to send.
-    this.pendingSegs.push({seg: segnum, ts: totalsegs, d: data});
+    this.pendingSegs.push({ seg: segnum, ts: totalsegs, d: data });
 
     //send the data immediately if there isn't already data being transmitted, unless
     //startLongPoll hasn't been called yet.
     if (this.alive) {
       this.newRequest_();
     }
-  };
+  }
 
   /**
    * Add a script tag for a regular long-poll request.
@@ -622,7 +679,10 @@ export class FirebaseIFrameScriptHolder {
 
     // If this request doesn't return on its own accord (by the server sending us some data), we'll
     // create a new one after the KEEPALIVE interval to make sure we always keep a fresh request open.
-    const keepaliveTimeout = setTimeout(doNewRequest, Math.floor(KEEPALIVE_REQUEST_INTERVAL));
+    const keepaliveTimeout = setTimeout(
+      doNewRequest,
+      Math.floor(KEEPALIVE_REQUEST_INTERVAL)
+    );
 
     const readyStateCB = () => {
       // Request completed.  Cancel the keepalive.
@@ -633,7 +693,7 @@ export class FirebaseIFrameScriptHolder {
     };
 
     this.addTag(url, readyStateCB);
-  };
+  }
 
   /**
    * Add an arbitrary script tag to the iframe.
@@ -652,7 +712,7 @@ export class FirebaseIFrameScriptHolder {
           newScript.type = 'text/javascript';
           newScript.async = true;
           newScript.src = url;
-          newScript.onload = (newScript as any).onreadystatechange = function () {
+          newScript.onload = (newScript as any).onreadystatechange = function() {
             const rstate = (newScript as any).readyState;
             if (!rstate || rstate === 'loaded' || rstate === 'complete') {
               newScript.onload = (newScript as any).onreadystatechange = null;

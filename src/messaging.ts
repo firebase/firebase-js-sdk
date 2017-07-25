@@ -32,10 +32,14 @@ export function registerMessaging(instance) {
 
   const namespaceExports = {
     // no-inline
-    'Messaging': WindowController
+    Messaging: WindowController
   };
 
-  instance.INTERNAL.registerService(messagingName, factoryMethod, namespaceExports);
+  instance.INTERNAL.registerService(
+    messagingName,
+    factoryMethod,
+    namespaceExports
+  );
 }
 
 registerMessaging(firebase);

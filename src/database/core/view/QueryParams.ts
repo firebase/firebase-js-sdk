@@ -15,10 +15,7 @@
 */
 
 import { assert } from '../../../utils/assert';
-import {
-  MIN_NAME,
-  MAX_NAME
-} from '../util/util';
+import { MIN_NAME, MAX_NAME } from '../util/util';
 import { KEY_INDEX } from '../snap/indexes/KeyIndex';
 import { PRIORITY_INDEX } from '../snap/indexes/PriorityIndex';
 import { VALUE_INDEX } from '../snap/indexes/ValueIndex';
@@ -112,7 +109,9 @@ export class QueryParams {
       // anchor to the end.
       return this.startSet_;
     } else {
-      return this.viewFrom_ === QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_LEFT;
+      return (
+        this.viewFrom_ === QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_LEFT
+      );
     }
   }
 
@@ -254,7 +253,7 @@ export class QueryParams {
     newParams.limit_ = newLimit;
     newParams.viewFrom_ = QueryParams.WIRE_PROTOCOL_CONSTANTS_.VIEW_FROM_RIGHT;
     return newParams;
-  };
+  }
 
   /**
    * @param {*} indexValue
@@ -298,7 +297,7 @@ export class QueryParams {
       newParams.indexEndName_ = '';
     }
     return newParams;
-  };
+  }
 
   /**
    * @param {!Index} index
@@ -373,7 +372,6 @@ export class QueryParams {
       return new RangedFilter(this);
     }
   }
-
 
   /**
    * Returns a set of REST query string parameters representing this query.

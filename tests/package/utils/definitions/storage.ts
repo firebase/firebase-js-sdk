@@ -23,51 +23,51 @@ import { NamespaceSpec } from '../namespace';
 // Storage Service namespace
 //
 export const storageSpec: NamespaceSpec = {
-  Storage: {is: Function},
-  Reference: {is: Function},
+  Storage: { is: Function },
+  Reference: { is: Function },
   // Enums:
   TaskEvent: {
-    STATE_CHANGED: {is: String},
+    STATE_CHANGED: { is: String }
   },
   TaskState: {
-    RUNNING: {is: String},
-    PAUSED: {is: String},
-    SUCCESS: {is: String},
-    CANCELED: {is: String},
-    ERROR: {is: String},
+    RUNNING: { is: String },
+    PAUSED: { is: String },
+    SUCCESS: { is: String },
+    CANCELED: { is: String },
+    ERROR: { is: String }
   },
   StringFormat: {
-    RAW: {is: String},
-    BASE64: {is: String},
-    BASE64URL: {is: String},
-    DATA_URL: {is: String},
-  },
+    RAW: { is: String },
+    BASE64: { is: String },
+    BASE64URL: { is: String },
+    DATA_URL: { is: String }
+  }
 };
 
 //
 // Storage Service instance
 //
 export const storageInstanceSpec: NamespaceSpec = {
-  app: {is: Object, isName: 'App'},
+  app: { is: Object, isName: 'App' },
   INTERNAL: {
-    delete: {is: Function}
+    delete: { is: Function }
   },
 
-  ref: {is: Function, args: 1},
-  refFromURL: {is: Function, args: 1},
+  ref: { is: Function, args: 1 },
+  refFromURL: { is: Function, args: 1 }
 };
 
 // Incremental properties on firebase namespace.
 export const firebaseSpec: NamespaceSpec = {
   INTERNAL: {
     factories: {
-      storage: {is: Function},
-    },
+      storage: { is: Function }
+    }
   },
-  storage: {is: Function, args: 1},
+  storage: { is: Function, args: 1 }
 };
 
 // Incremental properties on firebase App instance.
 export const appInstanceSpec: NamespaceSpec = {
-  storage: {is: Function, args: 1},
+  storage: { is: Function, args: 1 }
 };

@@ -17,17 +17,16 @@
 /**
  * @fileoverview Documentation for the metadata format
  */
-import {Metadata} from '../metadata';
+import { Metadata } from '../metadata';
 
-import {AuthWrapper} from './authwrapper';
+import { AuthWrapper } from './authwrapper';
 import * as json from './json';
-import {Location} from './location';
+import { Location } from './location';
 import * as path from './path';
 import * as type from './type';
 import * as UrlUtils from './url';
 
-export function noXform_(
-    metadata: Metadata, value: any): any {
+export function noXform_(metadata: Metadata, value: any): any {
   return value;
 }
 
@@ -40,9 +39,11 @@ export class Mapping {
   xform: (p1: Metadata, p2: any) => any;
 
   constructor(
-      public server: string, opt_local?: string|null, opt_writable?: boolean,
-      opt_xform?: (p1: Metadata, p2: any) => any |
-          null) {
+    public server: string,
+    opt_local?: string | null,
+    opt_writable?: boolean,
+    opt_xform?: (p1: Metadata, p2: any) => any | null
+  ) {
     this.local = opt_local || server;
     this.writable = !!opt_writable;
     this.xform = opt_xform || noXform_;
@@ -50,16 +51,16 @@ export class Mapping {
 }
 type Mappings = Mapping[];
 
-export {Mappings};
+export { Mappings };
 
-let mappings_: Mappings|null = null;
+let mappings_: Mappings | null = null;
 
 export function xformPath(fullPath: any): string {
   let valid = type.isString(fullPath);
   if (!valid || fullPath.length < 2) {
     return fullPath;
   } else {
-    fullPath = (fullPath as string);
+    fullPath = fullPath as string;
     return path.lastComponent(fullPath);
   }
 }
@@ -74,8 +75,7 @@ export function getMappings(): Mappings {
   mappings.push(new Mapping('metageneration'));
   mappings.push(new Mapping('name', 'fullPath', true));
 
-  function mappingsXformPath(
-      metadata: Metadata, fullPath: any): string {
+  function mappingsXformPath(metadata: Metadata, fullPath: any): string {
     return xformPath(fullPath);
   }
   let nameMapping = new Mapping('name');
@@ -85,8 +85,7 @@ export function getMappings(): Mappings {
   /**
    * Coerces the second param to a number, if it is defined.
    */
-  function xformSize(
-      metadata: Metadata, size: any): number|null|undefined {
+  function xformSize(metadata: Metadata, size: any): number | null | undefined {
     if (type.isDef(size)) {
       return +(size as number);
     } else {
@@ -110,8 +109,7 @@ export function getMappings(): Mappings {
    * Transforms a comma-separated string of tokens into a list of download
    * URLs.
    */
-  function xformTokens(
-      metadata: Metadata, tokens: any): string[] {
+  function xformTokens(metadata: Metadata, tokens: any): string[] {
     let valid = type.isString(tokens) && tokens.length > 0;
     if (!valid) {
       // This can happen if objects are uploaded through GCS and retrieved
@@ -125,13 +123,17 @@ export function getMappings(): Mappings {
       let path: string = metadata['fullPath'] as string;
       let urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
       let base = UrlUtils.makeDownloadUrl(urlPart);
-      let queryString = UrlUtils.makeQueryString({'alt': 'media', 'token': token});
+      let queryString = UrlUtils.makeQueryString({
+        alt: 'media',
+        token: token
+      });
       return base + queryString;
     });
     return urls;
   }
   mappings.push(
-      new Mapping('downloadTokens', 'downloadURLs', false, xformTokens));
+    new Mapping('downloadTokens', 'downloadURLs', false, xformTokens)
+  );
   mappings_ = mappings;
   return mappings_;
 }
@@ -143,14 +145,16 @@ export function addRef(metadata: Metadata, authWrapper: AuthWrapper) {
     let loc = new Location(bucket, path);
     return authWrapper.makeStorageReference(loc);
   }
-  Object.defineProperty(metadata, 'ref', {get: generateRef});
+  Object.defineProperty(metadata, 'ref', { get: generateRef });
 }
 
 export function fromResource(
-    authWrapper: AuthWrapper, resource: {[name: string]: any},
-    mappings: Mappings): Metadata {
+  authWrapper: AuthWrapper,
+  resource: { [name: string]: any },
+  mappings: Mappings
+): Metadata {
   let metadata: Metadata = {} as Metadata;
-  metadata['type']  = 'file';
+  metadata['type'] = 'file';
   let len = mappings.length;
   for (let i = 0; i < len; i++) {
     let mapping = mappings[i];
@@ -161,20 +165,24 @@ export function fromResource(
 }
 
 export function fromResourceString(
-    authWrapper: AuthWrapper, resourceString: string,
-    mappings: Mappings): Metadata|null {
+  authWrapper: AuthWrapper,
+  resourceString: string,
+  mappings: Mappings
+): Metadata | null {
   let obj = json.jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
-  let resource = (obj as Metadata);
+  let resource = obj as Metadata;
   return fromResource(authWrapper, resource, mappings);
 }
 
 export function toResourceString(
-    metadata: Metadata, mappings: Mappings): string {
+  metadata: Metadata,
+  mappings: Mappings
+): string {
   let resource: {
-    [prop: string]: any
+    [prop: string]: any;
   } = {};
   let len = mappings.length;
   for (let i = 0; i < len; i++) {
@@ -199,7 +207,7 @@ export function metadataValidator(p: any) {
       }
     } else {
       if (type.isNonNullObject(val)) {
-        throw 'Mapping for \'' + key + '\' cannot be an object.';
+        throw "Mapping for '" + key + "' cannot be an object.";
       }
     }
   }

@@ -53,7 +53,7 @@
  *     }
  *   }
  */
-export type ErrorList<T> = {[code: string]: string};
+export type ErrorList<T> = { [code: string]: string };
 
 const ERROR_NAME = 'FirebaseError';
 
@@ -61,8 +61,8 @@ export interface StringLike {
   toString: () => string;
 }
 
-let captureStackTrace: (obj: Object, fn?: Function) => void =
-  (Error as any).captureStackTrace;
+let captureStackTrace: (obj: Object, fn?: Function) => void = (Error as any)
+  .captureStackTrace;
 
 // Export for faking in tests
 export function patchCapture(captureFake?: any): any {
@@ -73,24 +73,23 @@ export function patchCapture(captureFake?: any): any {
 
 export interface FirebaseError {
   // Unique code for error - format is service/error-code-string
-  code: string,
+  code: string;
 
   // Developer-friendly error message.
-  message: string,
+  message: string;
 
   // Always 'FirebaseError'
-  name: string,
+  name: string;
 
   // Where available - stack backtrace in a string
-  stack: string,
+  stack: string;
 }
 
 export class FirebaseError implements FirebaseError {
   public stack: string;
   public name: string;
 
-  constructor(public code: string,
-              public message: string) {
+  constructor(public code: string, public message: string) {
     let stack: string;
     // We want the stack value, if implemented by Error
     if (captureStackTrace) {
@@ -116,31 +115,32 @@ FirebaseError.prototype.constructor = FirebaseError;
 
 export class ErrorFactory<T extends string> {
   // Matches {$name}, by default.
-  public pattern = /\{\$([^}]+)}/g
+  public pattern = /\{\$([^}]+)}/g;
 
-  constructor(private service: string,
-              private serviceName: string,
-              private errors: ErrorList<T>) {
+  constructor(
+    private service: string,
+    private serviceName: string,
+    private errors: ErrorList<T>
+  ) {
     // empty
   }
 
-  create(code: T, data?: {[prop: string]: StringLike}): FirebaseError {
+  create(code: T, data?: { [prop: string]: StringLike }): FirebaseError {
     if (data === undefined) {
       data = {};
     }
 
-    let template = this.errors[(code as string)];
+    let template = this.errors[code as string];
 
     let fullCode = this.service + '/' + code;
     let message: string;
 
     if (template === undefined) {
-      message = "Error";
+      message = 'Error';
     } else {
       message = template.replace(this.pattern, (match, key) => {
         let value = data![key];
-        return value !== undefined ? value.toString()
-          : '<' + key + '?>';
+        return value !== undefined ? value.toString() : '<' + key + '?>';
       });
     }
 

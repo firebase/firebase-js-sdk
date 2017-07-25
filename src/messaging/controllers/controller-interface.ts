@@ -15,7 +15,7 @@
 */
 'use strict';
 
-import {ErrorFactory} from '../../app/errors';
+import { ErrorFactory } from '../../app/errors';
 import Errors from '../models/errors';
 import TokenManager from '../models/token-manager';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
@@ -23,7 +23,6 @@ import NOTIFICATION_PERMISSION from '../models/notification-permission';
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 
 export default class ControllerInterface {
-
   public app;
   public INTERNAL;
   protected errorFactory_;
@@ -37,8 +36,10 @@ export default class ControllerInterface {
   constructor(app) {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
 
-    if (!app.options[SENDER_ID_OPTION_NAME] ||
-        typeof app.options[SENDER_ID_OPTION_NAME] !== 'string') {
+    if (
+      !app.options[SENDER_ID_OPTION_NAME] ||
+      typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
+    ) {
       throw this.errorFactory_.create(Errors.codes.BAD_SENDER_ID);
     }
 
@@ -62,7 +63,7 @@ export default class ControllerInterface {
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
       if (currentPermission === NOTIFICATION_PERMISSION.denied) {
         return Promise.reject(
-            this.errorFactory_.create(Errors.codes.NOTIFICATIONS_BLOCKED)
+          this.errorFactory_.create(Errors.codes.NOTIFICATIONS_BLOCKED)
         );
       }
 
@@ -70,19 +71,20 @@ export default class ControllerInterface {
       return Promise.resolve(null);
     }
 
-    return this.getSWRegistration_()
-      .then(registration => {
-        return this.tokenManager_.getSavedToken(
-            this.messagingSenderId_, registration)
-              .then(token => {
-                if (token) {
-                  return token;
-                }
+    return this.getSWRegistration_().then(registration => {
+      return this.tokenManager_
+        .getSavedToken(this.messagingSenderId_, registration)
+        .then(token => {
+          if (token) {
+            return token;
+          }
 
-                return this.tokenManager_.createToken(this.messagingSenderId_,
-                  registration);
-              });
-      });
+          return this.tokenManager_.createToken(
+            this.messagingSenderId_,
+            registration
+          );
+        });
+    });
   }
 
   /**
@@ -93,10 +95,9 @@ export default class ControllerInterface {
    * @return {Promise<void>}
    */
   deleteToken(token) {
-    return this.tokenManager_.deleteToken(token)
-      .then(() => {
-        return this.getSWRegistration_()
-        .then((registration) => {
+    return this.tokenManager_.deleteToken(token).then(() => {
+      return this.getSWRegistration_()
+        .then(registration => {
           if (registration) {
             return registration.pushManager.getSubscription();
           }
@@ -106,10 +107,10 @@ export default class ControllerInterface {
             return subscription.unsubscribe();
           }
         });
-      });
+    });
   }
 
-  getSWRegistration_(): Promise<ServiceWorkerRegistration>  {
+  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 

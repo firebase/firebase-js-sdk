@@ -16,7 +16,7 @@
 
 import { assert } from '../../../utils/assert';
 import { Path } from './Path';
-import { forEach, contains, safeGet } from '../../../utils/obj'
+import { forEach, contains, safeGet } from '../../../utils/obj';
 
 /**
  * Node in a Tree.
@@ -28,7 +28,6 @@ export class TreeNode<T> {
   childCount = 0;
   value: T | null = null;
 }
-
 
 /**
  * A light-weight tree, traversable by path.  Nodes can have both values and children.
@@ -42,10 +41,11 @@ export class Tree<T> {
    * @param {Tree=} parent_ Optional parent node.
    * @param {TreeNode=} node_ Optional node to wrap.
    */
-  constructor(private name_: string = '',
-              private parent_: Tree<T> | null = null,
-              private node_: TreeNode<T> = new TreeNode<T>()) {
-  }
+  constructor(
+    private name_: string = '',
+    private parent_: Tree<T> | null = null,
+    private node_: TreeNode<T> = new TreeNode<T>()
+  ) {}
 
   /**
    * Returns a sub-Tree for the given path.
@@ -55,9 +55,9 @@ export class Tree<T> {
    */
   subTree(pathObj: string | Path): Tree<T> {
     // TODO: Require pathObj to be Path?
-    let path = (pathObj instanceof Path) ?
-      pathObj : new Path(pathObj);
-    let child = this as any, next;
+    let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
+    let child = this as any,
+      next;
     while ((next = path.getFront()) !== null) {
       const childNode = safeGet(child.node_.children, next) || new TreeNode();
       child = new Tree(next, child, childNode);
@@ -131,16 +131,18 @@ export class Tree<T> {
    * @param {boolean=} childrenFirst Whether to call action on children before calling it on
    *   parent.
    */
-  forEachDescendant(action: (tree: Tree<T>) => void, includeSelf?: boolean, childrenFirst?: boolean) {
-    if (includeSelf && !childrenFirst)
-      action(this);
+  forEachDescendant(
+    action: (tree: Tree<T>) => void,
+    includeSelf?: boolean,
+    childrenFirst?: boolean
+  ) {
+    if (includeSelf && !childrenFirst) action(this);
 
-    this.forEachChild(function (child) {
-      child.forEachDescendant(action, /*includeSelf=*/true, childrenFirst);
+    this.forEachChild(function(child) {
+      child.forEachDescendant(action, /*includeSelf=*/ true, childrenFirst);
     });
 
-    if (includeSelf && childrenFirst)
-      action(this);
+    if (includeSelf && childrenFirst) action(this);
   }
 
   /**
@@ -151,7 +153,10 @@ export class Tree<T> {
    * @param {boolean=} includeSelf Whether to call action on this node as well.
    * @return {boolean} true if the action callback returned true.
    */
-  forEachAncestor(action: (tree: Tree<T>) => void, includeSelf?: boolean): boolean {
+  forEachAncestor(
+    action: (tree: Tree<T>) => void,
+    includeSelf?: boolean
+  ): boolean {
     let node = includeSelf ? this : this.parent();
     while (node !== null) {
       if (action(node)) {
@@ -170,11 +175,9 @@ export class Tree<T> {
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
   forEachImmediateDescendantWithValue(action: (tree: Tree<T>) => void) {
-    this.forEachChild(function (child) {
-      if (child.getValue() !== null)
-        action(child);
-      else
-        child.forEachImmediateDescendantWithValue(action);
+    this.forEachChild(function(child) {
+      if (child.getValue() !== null) action(child);
+      else child.forEachImmediateDescendantWithValue(action);
     });
   }
 
@@ -182,8 +185,11 @@ export class Tree<T> {
    * @return {!Path} The path of this tree node, as a Path.
    */
   path(): Path {
-    return new Path(this.parent_ === null ?
-      this.name_ : this.parent_.path() + '/' + this.name_);
+    return new Path(
+      this.parent_ === null
+        ? this.name_
+        : this.parent_.path() + '/' + this.name_
+    );
   }
 
   /**
@@ -206,8 +212,7 @@ export class Tree<T> {
    * @private
    */
   private updateParents_() {
-    if (this.parent_ !== null)
-      this.parent_.updateChild_(this.name_, this);
+    if (this.parent_ !== null) this.parent_.updateChild_(this.name_, this);
   }
 
   /**
@@ -221,11 +226,10 @@ export class Tree<T> {
     const childEmpty = child.isEmpty();
     const childExists = contains(this.node_.children, childName);
     if (childEmpty && childExists) {
-      delete (this.node_.children[childName]);
+      delete this.node_.children[childName];
       this.node_.childCount--;
       this.updateParents_();
-    }
-    else if (!childEmpty && !childExists) {
+    } else if (!childEmpty && !childExists) {
       this.node_.children[childName] = child.node_;
       this.node_.childCount++;
       this.updateParents_();

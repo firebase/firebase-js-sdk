@@ -31,7 +31,10 @@ export class StatsManager {
     return this.collections_[hashString];
   }
 
-  static getOrCreateReporter<T>(repoInfo: RepoInfo, creatorFunction: () => T): T {
+  static getOrCreateReporter<T>(
+    repoInfo: RepoInfo,
+    creatorFunction: () => T
+  ): T {
     const hashString = repoInfo.toString();
 
     if (!this.reporters_[hashString]) {

@@ -23,44 +23,47 @@ import { NamespaceSpec } from '../namespace';
 // firebase namespace.
 //
 export const firebaseSpec: NamespaceSpec = {
-  initializeApp: {is: Function, args: 2},
+  initializeApp: { is: Function, args: 2 },
   //
   // App namespace and accessor
   //
   app: {
     is: Function,
     args: 1,
-    App: {is: Function},
+    App: { is: Function }
   },
-  SDK_VERSION: {is: String},
-  apps: {is: Array},
+  SDK_VERSION: { is: String },
+  apps: { is: Array },
   Promise: {
     is: Function,
-    resolve: {is: Function},
-    reject: {is: Function},
-    all: {is: Function},
-    prototype: {then: {is: Function, args: 2}, catch: {is: Function, args: 1}},
+    resolve: { is: Function },
+    reject: { is: Function },
+    all: { is: Function },
+    prototype: {
+      then: { is: Function, args: 2 },
+      catch: { is: Function, args: 1 }
+    }
   },
   INTERNAL: {
-    registerService: {is: Function, args: 5},
-    extendNamespace: {is: Function, args: 1},
-    createFirebaseNamespace: {is: Function, args: 0},
-    createSubscribe: {is: Function, args: 2},
-    removeApp: {is: Function, args: 1},
-    factories: {is: Object},
-    ErrorFactory: {is: Function, args: 3},
-    deepExtend: {is: Function, args: 2},
+    registerService: { is: Function, args: 5 },
+    extendNamespace: { is: Function, args: 1 },
+    createFirebaseNamespace: { is: Function, args: 0 },
+    createSubscribe: { is: Function, args: 2 },
+    removeApp: { is: Function, args: 1 },
+    factories: { is: Object },
+    ErrorFactory: { is: Function, args: 3 },
+    deepExtend: { is: Function, args: 2 },
     // goog.Promise implementation (Browser only)
     Promise: {
       is: Function,
-      resolve: {is: Function},
-      reject: {is: Function},
-      all: {is: Function},
+      resolve: { is: Function },
+      reject: { is: Function },
+      all: { is: Function },
       prototype: {
         // goog.Promise adds extra context argment to these methods
-        then: {is: Function, args: 2},
-        catch: {is: Function, args: 1}
-      },
+        then: { is: Function, args: 2 },
+        catch: { is: Function, args: 1 }
+      }
     }
-  },
+  }
 };

@@ -28,29 +28,31 @@ declare const window: any;
 *   (e.g. 'localStorage' or 'sessionStorage').
 * @return {?} Turning off type information until a common interface is defined.
 */
-const createStoragefor = function(domStorageName: string): DOMStorageWrapper | MemoryStorage {
+const createStoragefor = function(
+  domStorageName: string
+): DOMStorageWrapper | MemoryStorage {
   try {
     // NOTE: just accessing "localStorage" or "window['localStorage']" may throw a security exception,
     // so it must be inside the try/catch.
-    if (typeof window !== 'undefined' && typeof window[domStorageName] !== 'undefined') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window[domStorageName] !== 'undefined'
+    ) {
       // Need to test cache. Just because it's here doesn't mean it works
       const domStorage = window[domStorageName];
       domStorage.setItem('firebase:sentinel', 'cache');
       domStorage.removeItem('firebase:sentinel');
       return new DOMStorageWrapper(domStorage);
     }
-  } catch (e) {
-  }
-  
+  } catch (e) {}
+
   // Failed to create wrapper.  Just return in-memory storage.
   // TODO: log?
   return new MemoryStorage();
 };
 
-
 /** A storage object that lasts across sessions */
 export const PersistentStorage = createStoragefor('localStorage');
-
 
 /** A storage object that only lasts one session */
 export const SessionStorage = createStoragefor('sessionStorage');

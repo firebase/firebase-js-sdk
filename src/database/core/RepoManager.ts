@@ -14,13 +14,13 @@
 * limitations under the License.
 */
 
-import { FirebaseApp } from "../../app/firebase_app";
-import { safeGet } from "../../utils/obj";
-import { Repo } from "./Repo";
-import { fatal } from "./util/util";
-import { parseRepoInfo } from "./util/libs/parser";
-import { validateUrl } from "./util/validation";
-import "./Repo_transaction";
+import { FirebaseApp } from '../../app/firebase_app';
+import { safeGet } from '../../utils/obj';
+import { Repo } from './Repo';
+import { fatal } from './util/util';
+import { parseRepoInfo } from './util/libs/parser';
+import { validateUrl } from './util/validation';
+import './Repo_transaction';
 import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
 
@@ -37,7 +37,7 @@ export class RepoManager {
    * @private {!Object.<string, !Repo>}
    */
   private repos_: {
-    [name: string]: Repo
+    [name: string]: Repo;
   } = {};
 
   /**
@@ -75,9 +75,11 @@ export class RepoManager {
   databaseFromApp(app: FirebaseApp): Database {
     const dbUrl: string = app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
-      fatal("Can't determine Firebase Database URL.  Be sure to include " +
-                         DATABASE_URL_OPTION +
-                         " option when calling firebase.intializeApp().");
+      fatal(
+        "Can't determine Firebase Database URL.  Be sure to include " +
+          DATABASE_URL_OPTION +
+          ' option when calling firebase.intializeApp().'
+      );
     }
 
     const parsedUrl = parseRepoInfo(dbUrl);
@@ -85,8 +87,10 @@ export class RepoManager {
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {
-      fatal("Database URL must point to the root of a Firebase Database " +
-                         "(not including a child path).");
+      fatal(
+        'Database URL must point to the root of a Firebase Database ' +
+          '(not including a child path).'
+      );
     }
 
     const repo = this.createRepo(repoInfo, app);
@@ -100,10 +104,9 @@ export class RepoManager {
    * @param {!Repo} repo
    */
   deleteRepo(repo: Repo) {
-    
     // This should never happen...
     if (safeGet(this.repos_, repo.app.name) !== repo) {
-      fatal("Database " + repo.app.name + " has already been deleted.");
+      fatal('Database ' + repo.app.name + ' has already been deleted.');
     }
     repo.interrupt();
     delete this.repos_[repo.app.name];

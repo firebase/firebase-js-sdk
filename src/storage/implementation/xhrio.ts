@@ -19,12 +19,15 @@
  * goog.net.XhrIo-like interface.
  */
 
-export type Headers = {[name: string]: (string|number)};
+export type Headers = { [name: string]: string | number };
 
 export interface XhrIo {
   send(
-      url: string, method: string, opt_body?: ArrayBufferView|Blob|string|null,
-      opt_headers?: Headers): Promise<XhrIo>;
+    url: string,
+    method: string,
+    opt_body?: ArrayBufferView | Blob | string | null,
+    opt_headers?: Headers
+  ): Promise<XhrIo>;
 
   getErrorCode(): ErrorCode;
 
@@ -37,7 +40,7 @@ export interface XhrIo {
    */
   abort(): void;
 
-  getResponseHeader(header: string): string|null;
+  getResponseHeader(header: string): string | null;
 
   addUploadProgressListener(listener: (p1: Event) => void): void;
 

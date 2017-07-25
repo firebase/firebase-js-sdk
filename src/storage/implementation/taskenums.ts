@@ -61,8 +61,9 @@ export const TaskState = {
   ERROR: 'error'
 };
 
-export function taskStateFromInternalTaskState(state: InternalTaskState):
-    TaskState {
+export function taskStateFromInternalTaskState(
+  state: InternalTaskState
+): TaskState {
   switch (state) {
     case InternalTaskState.RUNNING:
     case InternalTaskState.PAUSING:
@@ -77,7 +78,6 @@ export function taskStateFromInternalTaskState(state: InternalTaskState):
     case InternalTaskState.ERROR:
       return TaskState.ERROR;
     default:
-
       // TODO(andysoto): assert(false);
       return TaskState.ERROR;
   }

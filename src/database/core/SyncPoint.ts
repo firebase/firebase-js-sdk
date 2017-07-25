@@ -43,7 +43,10 @@ let __referenceConstructor: ReferenceConstructor;
  */
 export class SyncPoint {
   static set __referenceConstructor(val: ReferenceConstructor) {
-    assert(!__referenceConstructor, '__referenceConstructor has already been defined');
+    assert(
+      !__referenceConstructor,
+      '__referenceConstructor has already been defined'
+    );
     __referenceConstructor = val;
   }
 
@@ -77,18 +80,27 @@ export class SyncPoint {
    * @param {?Node} optCompleteServerCache
    * @return {!Array.<!Event>}
    */
-  applyOperation(operation: Operation, writesCache: WriteTreeRef,
-                 optCompleteServerCache: Node | null): Event[] {
+  applyOperation(
+    operation: Operation,
+    writesCache: WriteTreeRef,
+    optCompleteServerCache: Node | null
+  ): Event[] {
     const queryId = operation.source.queryId;
     if (queryId !== null) {
       const view = safeGet(this.views_, queryId);
       assert(view != null, 'SyncTree gave us an op for an invalid query.');
-      return view.applyOperation(operation, writesCache, optCompleteServerCache);
+      return view.applyOperation(
+        operation,
+        writesCache,
+        optCompleteServerCache
+      );
     } else {
       let events: Event[] = [];
 
-      forEach(this.views_, function (key: string, view: View) {
-        events = events.concat(view.applyOperation(operation, writesCache, optCompleteServerCache));
+      forEach(this.views_, function(key: string, view: View) {
+        events = events.concat(
+          view.applyOperation(operation, writesCache, optCompleteServerCache)
+        );
       });
 
       return events;
@@ -105,13 +117,20 @@ export class SyncPoint {
    * @param {boolean} serverCacheComplete
    * @return {!Array.<!Event>} Events to raise.
    */
-  addEventRegistration(query: Query, eventRegistration: EventRegistration, writesCache: WriteTreeRef,
-                       serverCache: Node | null, serverCacheComplete: boolean): Event[] {
+  addEventRegistration(
+    query: Query,
+    eventRegistration: EventRegistration,
+    writesCache: WriteTreeRef,
+    serverCache: Node | null,
+    serverCacheComplete: boolean
+  ): Event[] {
     const queryId = query.queryIdentifier();
     let view = safeGet(this.views_, queryId);
     if (!view) {
       // TODO: make writesCache take flag for complete server node
-      let eventCache = writesCache.calcCompleteEventCache(serverCacheComplete ? serverCache : null);
+      let eventCache = writesCache.calcCompleteEventCache(
+        serverCacheComplete ? serverCache : null
+      );
       let eventCacheComplete = false;
       if (eventCache) {
         eventCacheComplete = true;
@@ -123,8 +142,16 @@ export class SyncPoint {
         eventCacheComplete = false;
       }
       const viewCache = new ViewCache(
-        new CacheNode(/** @type {!Node} */ (eventCache), eventCacheComplete, false),
-        new CacheNode(/** @type {!Node} */ (serverCache), serverCacheComplete, false)
+        new CacheNode /** @type {!Node} */(
+          eventCache,
+          eventCacheComplete,
+          false
+        ),
+        new CacheNode /** @type {!Node} */(
+          serverCache,
+          serverCacheComplete,
+          false
+        )
       );
       view = new View(query, viewCache);
       this.views_[queryId] = view;
@@ -146,8 +173,11 @@ export class SyncPoint {
    * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
    * @return {{removed:!Array.<!Query>, events:!Array.<!Event>}} removed queries and any cancel events
    */
-  removeEventRegistration(query: Query, eventRegistration: EventRegistration | null,
-                          cancelError?: Error): { removed: Query[], events: Event[] } {
+  removeEventRegistration(
+    query: Query,
+    eventRegistration: EventRegistration | null,
+    cancelError?: Error
+  ): { removed: Query[]; events: Event[] } {
     const queryId = query.queryIdentifier();
     const removed: Query[] = [];
     let cancelEvents: Event[] = [];
@@ -155,8 +185,10 @@ export class SyncPoint {
     if (queryId === 'default') {
       // When you do ref.off(...), we search all views for the registration to remove.
       const self = this;
-      forEach(this.views_, function (viewQueryId: string, view: View) {
-        cancelEvents = cancelEvents.concat(view.removeEventRegistration(eventRegistration, cancelError));
+      forEach(this.views_, function(viewQueryId: string, view: View) {
+        cancelEvents = cancelEvents.concat(
+          view.removeEventRegistration(eventRegistration, cancelError)
+        );
         if (view.isEmpty()) {
           delete self.views_[viewQueryId];
 
@@ -170,7 +202,9 @@ export class SyncPoint {
       // remove the callback from the specific view.
       const view = safeGet(this.views_, queryId);
       if (view) {
-        cancelEvents = cancelEvents.concat(view.removeEventRegistration(eventRegistration, cancelError));
+        cancelEvents = cancelEvents.concat(
+          view.removeEventRegistration(eventRegistration, cancelError)
+        );
         if (view.isEmpty()) {
           delete this.views_[queryId];
 
@@ -184,19 +218,20 @@ export class SyncPoint {
 
     if (hadCompleteView && !this.hasCompleteView()) {
       // We removed our last complete view.
-      removed.push(new SyncPoint.__referenceConstructor(query.repo, query.path));
+      removed.push(
+        new SyncPoint.__referenceConstructor(query.repo, query.path)
+      );
     }
 
-    return {removed: removed, events: cancelEvents};
+    return { removed: removed, events: cancelEvents };
   }
 
   /**
    * @return {!Array.<!View>}
    */
   getQueryViews(): View[] {
-    const values = Object.keys(this.views_)
-      .map(key => this.views_[key]);
-    return values.filter(function (view) {
+    const values = Object.keys(this.views_).map(key => this.views_[key]);
+    return values.filter(function(view) {
       return !view.getQuery().getQueryParams().loadsAllData();
     });
   }
@@ -247,7 +282,9 @@ export class SyncPoint {
    * @return {?View}
    */
   getCompleteView(): View | null {
-    const completeView = findValue(this.views_, (view: View) => view.getQuery().getQueryParams().loadsAllData());
+    const completeView = findValue(this.views_, (view: View) =>
+      view.getQuery().getQueryParams().loadsAllData()
+    );
     return completeView || null;
   }
 }

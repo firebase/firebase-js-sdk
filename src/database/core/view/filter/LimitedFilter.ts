@@ -75,9 +75,14 @@ export class LimitedFilter implements NodeFilter {
   /**
    * @inheritDoc
    */
-  updateChild(snap: Node, key: string, newChild: Node, affectedPath: Path,
-              source: CompleteChildSource,
-              optChangeAccumulator: ChildChangeAccumulator | null): Node {
+  updateChild(
+    snap: Node,
+    key: string,
+    newChild: Node,
+    affectedPath: Path,
+    source: CompleteChildSource,
+    optChangeAccumulator: ChildChangeAccumulator | null
+  ): Node {
     if (!this.rangedFilter_.matches(new NamedNode(key, newChild))) {
       newChild = ChildrenNode.EMPTY_NODE;
     }
@@ -85,41 +90,69 @@ export class LimitedFilter implements NodeFilter {
       // No change
       return snap;
     } else if (snap.numChildren() < this.limit_) {
-      return this.rangedFilter_.getIndexedFilter().updateChild(snap, key, newChild, affectedPath, source,
-        optChangeAccumulator);
+      return this.rangedFilter_
+        .getIndexedFilter()
+        .updateChild(
+          snap,
+          key,
+          newChild,
+          affectedPath,
+          source,
+          optChangeAccumulator
+        );
     } else {
-      return this.fullLimitUpdateChild_(snap, key, newChild, source, optChangeAccumulator);
+      return this.fullLimitUpdateChild_(
+        snap,
+        key,
+        newChild,
+        source,
+        optChangeAccumulator
+      );
     }
   }
 
   /**
    * @inheritDoc
    */
-  updateFullNode(oldSnap: Node, newSnap: Node,
-                 optChangeAccumulator: ChildChangeAccumulator | null): Node {
+  updateFullNode(
+    oldSnap: Node,
+    newSnap: Node,
+    optChangeAccumulator: ChildChangeAccumulator | null
+  ): Node {
     let filtered;
     if (newSnap.isLeafNode() || newSnap.isEmpty()) {
       // Make sure we have a children node with the correct index, not a leaf node;
       filtered = ChildrenNode.EMPTY_NODE.withIndex(this.index_);
     } else {
-      if (this.limit_ * 2 < newSnap.numChildren() && newSnap.isIndexed(this.index_)) {
+      if (
+        this.limit_ * 2 < newSnap.numChildren() &&
+        newSnap.isIndexed(this.index_)
+      ) {
         // Easier to build up a snapshot, since what we're given has more than twice the elements we want
         filtered = ChildrenNode.EMPTY_NODE.withIndex(this.index_);
         // anchor to the startPost, endPost, or last element as appropriate
         let iterator;
         if (this.reverse_) {
-          iterator = (newSnap as ChildrenNode).getReverseIteratorFrom(this.rangedFilter_.getEndPost(), this.index_);
+          iterator = (newSnap as ChildrenNode).getReverseIteratorFrom(
+            this.rangedFilter_.getEndPost(),
+            this.index_
+          );
         } else {
-          iterator = (newSnap as ChildrenNode).getIteratorFrom(this.rangedFilter_.getStartPost(), this.index_);
+          iterator = (newSnap as ChildrenNode).getIteratorFrom(
+            this.rangedFilter_.getStartPost(),
+            this.index_
+          );
         }
         let count = 0;
         while (iterator.hasNext() && count < this.limit_) {
           const next = iterator.getNext();
           let inRange;
           if (this.reverse_) {
-            inRange = this.index_.compare(this.rangedFilter_.getStartPost(), next) <= 0;
+            inRange =
+              this.index_.compare(this.rangedFilter_.getStartPost(), next) <= 0;
           } else {
-            inRange = this.index_.compare(next, this.rangedFilter_.getEndPost()) <= 0;
+            inRange =
+              this.index_.compare(next, this.rangedFilter_.getEndPost()) <= 0;
           }
           if (inRange) {
             filtered = filtered.updateImmediateChild(next.name, next.node);
@@ -133,7 +166,9 @@ export class LimitedFilter implements NodeFilter {
         // The snap contains less than twice the limit. Faster to delete from the snap than build up a new one
         filtered = newSnap.withIndex(this.index_);
         // Don't support priorities on queries
-        filtered = filtered.updatePriority(ChildrenNode.EMPTY_NODE) as ChildrenNode;
+        filtered = filtered.updatePriority(
+          ChildrenNode.EMPTY_NODE
+        ) as ChildrenNode;
         let startPost;
         let endPost;
         let cmp;
@@ -159,16 +194,22 @@ export class LimitedFilter implements NodeFilter {
             // start adding
             foundStartPost = true;
           }
-          let inRange = foundStartPost && count < this.limit_ && cmp(next, endPost) <= 0;
+          let inRange =
+            foundStartPost && count < this.limit_ && cmp(next, endPost) <= 0;
           if (inRange) {
             count++;
           } else {
-            filtered = filtered.updateImmediateChild(next.name, ChildrenNode.EMPTY_NODE);
+            filtered = filtered.updateImmediateChild(
+              next.name,
+              ChildrenNode.EMPTY_NODE
+            );
           }
         }
       }
     }
-    return this.rangedFilter_.getIndexedFilter().updateFullNode(oldSnap, filtered, optChangeAccumulator);
+    return this.rangedFilter_
+      .getIndexedFilter()
+      .updateFullNode(oldSnap, filtered, optChangeAccumulator);
   }
 
   /**
@@ -209,8 +250,13 @@ export class LimitedFilter implements NodeFilter {
    * @return {!Node}
    * @private
    */
-  private fullLimitUpdateChild_(snap: Node, childKey: string, childSnap: Node, source: CompleteChildSource,
-                                changeAccumulator: ChildChangeAccumulator | null): Node {
+  private fullLimitUpdateChild_(
+    snap: Node,
+    childKey: string,
+    childSnap: Node,
+    source: CompleteChildSource,
+    changeAccumulator: ChildChangeAccumulator | null
+  ): Node {
     // TODO: rename all cache stuff etc to general snap terminology
     let cmp;
     if (this.reverse_) {
@@ -222,35 +268,63 @@ export class LimitedFilter implements NodeFilter {
     const oldEventCache = snap as ChildrenNode;
     assert(oldEventCache.numChildren() == this.limit_, '');
     const newChildNamedNode = new NamedNode(childKey, childSnap);
-    const windowBoundary = this.reverse_ ? oldEventCache.getFirstChild(this.index_) : oldEventCache.getLastChild(this.index_) as NamedNode;
+    const windowBoundary = this.reverse_
+      ? oldEventCache.getFirstChild(this.index_)
+      : oldEventCache.getLastChild(this.index_) as NamedNode;
     const inRange = this.rangedFilter_.matches(newChildNamedNode);
     if (oldEventCache.hasChild(childKey)) {
       const oldChildSnap = oldEventCache.getImmediateChild(childKey);
-      let nextChild = source.getChildAfterChild(this.index_, windowBoundary, this.reverse_);
-      while (nextChild != null && (nextChild.name == childKey || oldEventCache.hasChild(nextChild.name))) {
+      let nextChild = source.getChildAfterChild(
+        this.index_,
+        windowBoundary,
+        this.reverse_
+      );
+      while (
+        nextChild != null &&
+        (nextChild.name == childKey || oldEventCache.hasChild(nextChild.name))
+      ) {
         // There is a weird edge case where a node is updated as part of a merge in the write tree, but hasn't
         // been applied to the limited filter yet. Ignore this next child which will be updated later in
         // the limited filter...
-        nextChild = source.getChildAfterChild(this.index_, nextChild, this.reverse_);
+        nextChild = source.getChildAfterChild(
+          this.index_,
+          nextChild,
+          this.reverse_
+        );
       }
-      const compareNext = nextChild == null ? 1 : cmp(nextChild, newChildNamedNode);
-      const remainsInWindow = inRange && !childSnap.isEmpty() && compareNext >= 0;
+      const compareNext =
+        nextChild == null ? 1 : cmp(nextChild, newChildNamedNode);
+      const remainsInWindow =
+        inRange && !childSnap.isEmpty() && compareNext >= 0;
       if (remainsInWindow) {
         if (changeAccumulator != null) {
-          changeAccumulator.trackChildChange(Change.childChangedChange(childKey, childSnap, oldChildSnap));
+          changeAccumulator.trackChildChange(
+            Change.childChangedChange(childKey, childSnap, oldChildSnap)
+          );
         }
         return oldEventCache.updateImmediateChild(childKey, childSnap);
       } else {
         if (changeAccumulator != null) {
-          changeAccumulator.trackChildChange(Change.childRemovedChange(childKey, oldChildSnap));
+          changeAccumulator.trackChildChange(
+            Change.childRemovedChange(childKey, oldChildSnap)
+          );
         }
-        const newEventCache = oldEventCache.updateImmediateChild(childKey, ChildrenNode.EMPTY_NODE);
-        const nextChildInRange = nextChild != null && this.rangedFilter_.matches(nextChild);
+        const newEventCache = oldEventCache.updateImmediateChild(
+          childKey,
+          ChildrenNode.EMPTY_NODE
+        );
+        const nextChildInRange =
+          nextChild != null && this.rangedFilter_.matches(nextChild);
         if (nextChildInRange) {
           if (changeAccumulator != null) {
-            changeAccumulator.trackChildChange(Change.childAddedChange(nextChild.name, nextChild.node));
+            changeAccumulator.trackChildChange(
+              Change.childAddedChange(nextChild.name, nextChild.node)
+            );
           }
-          return newEventCache.updateImmediateChild(nextChild.name, nextChild.node);
+          return newEventCache.updateImmediateChild(
+            nextChild.name,
+            nextChild.node
+          );
         } else {
           return newEventCache;
         }
@@ -261,11 +335,16 @@ export class LimitedFilter implements NodeFilter {
     } else if (inRange) {
       if (cmp(windowBoundary, newChildNamedNode) >= 0) {
         if (changeAccumulator != null) {
-          changeAccumulator.trackChildChange(Change.childRemovedChange(windowBoundary.name, windowBoundary.node));
-          changeAccumulator.trackChildChange(Change.childAddedChange(childKey, childSnap));
+          changeAccumulator.trackChildChange(
+            Change.childRemovedChange(windowBoundary.name, windowBoundary.node)
+          );
+          changeAccumulator.trackChildChange(
+            Change.childAddedChange(childKey, childSnap)
+          );
         }
-        return oldEventCache.updateImmediateChild(childKey, childSnap).updateImmediateChild(windowBoundary.name,
-          ChildrenNode.EMPTY_NODE);
+        return oldEventCache
+          .updateImmediateChild(childKey, childSnap)
+          .updateImmediateChild(windowBoundary.name, ChildrenNode.EMPTY_NODE);
       } else {
         return snap;
       }

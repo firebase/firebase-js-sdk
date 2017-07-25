@@ -15,10 +15,8 @@
 */
 
 import { assert } from '../../../utils/assert';
-import { 
-  doubleToIEEE754String,
-} from "../util/util";
-import { contains } from "../../../utils/obj";
+import { doubleToIEEE754String } from '../util/util';
+import { contains } from '../../../utils/obj';
 import { Node } from './Node';
 
 let MAX_NODE: Node;
@@ -34,8 +32,7 @@ export function setMaxNode(val: Node) {
 export const priorityHashText = function(priority: string | number): string {
   if (typeof priority === 'number')
     return 'number:' + doubleToIEEE754String(priority);
-  else
-    return 'string:' + priority;
+  else return 'string:' + priority;
 };
 
 /**
@@ -46,14 +43,21 @@ export const priorityHashText = function(priority: string | number): string {
 export const validatePriorityNode = function(priorityNode: Node) {
   if (priorityNode.isLeafNode()) {
     const val = priorityNode.val();
-    assert(typeof val === 'string' || typeof val === 'number' ||
-            (typeof val === 'object' && contains(val, '.sv')),
-        'Priority must be a string or number.');
+    assert(
+      typeof val === 'string' ||
+        typeof val === 'number' ||
+        (typeof val === 'object' && contains(val, '.sv')),
+      'Priority must be a string or number.'
+    );
   } else {
-    assert(priorityNode === MAX_NODE || priorityNode.isEmpty(),
-        'priority of unexpected type.');
+    assert(
+      priorityNode === MAX_NODE || priorityNode.isEmpty(),
+      'priority of unexpected type.'
+    );
   }
   // Don't call getPriority() on MAX_NODE to avoid hitting assertion.
-  assert(priorityNode === MAX_NODE || priorityNode.getPriority().isEmpty(),
-      "Priority nodes can't have a priority of their own.");
+  assert(
+    priorityNode === MAX_NODE || priorityNode.getPriority().isEmpty(),
+    "Priority nodes can't have a priority of their own."
+  );
 };

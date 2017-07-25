@@ -14,14 +14,14 @@
 * limitations under the License.
 */
 
-import { expect } from "chai";
-import { forceRestClient } from "../../../src/database/api/test_access";
+import { expect } from 'chai';
+import { forceRestClient } from '../../../src/database/api/test_access';
 
-import { 
+import {
   getRandomNode,
   testAuthTokenProvider,
   getFreshRepoFromReference
-} from "../helpers/util";
+} from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
 describe('Crawler Support', function() {
@@ -114,17 +114,24 @@ describe('Crawler Support', function() {
     // We need to wait long enough to be sure that our 'hello' didn't actually get set, but there's
     // no good way to do that.  So we just do a couple round-trips via the REST client and assume
     // that's good enough.
-    return restRef.child('obj').once('value').then(function(s) {
-      expect(s.val()).to.deep.equal(initialData.obj);
+    return restRef
+      .child('obj')
+      .once('value')
+      .then(function(s) {
+        expect(s.val()).to.deep.equal(initialData.obj);
 
-      return restRef.child('obj').once('value');
-    }).then(function(s) {
-      expect(s.val()).to.deep.equal(initialData.obj);
-      normalRef.child('leaf').off();
-    }, function (reason) {
-      normalRef.child('leaf').off();
-      return Promise.reject(reason);
-    });
+        return restRef.child('obj').once('value');
+      })
+      .then(
+        function(s) {
+          expect(s.val()).to.deep.equal(initialData.obj);
+          normalRef.child('leaf').off();
+        },
+        function(reason) {
+          normalRef.child('leaf').off();
+          return Promise.reject(reason);
+        }
+      );
   });
 
   it('.info/connected fires with true', function(done) {

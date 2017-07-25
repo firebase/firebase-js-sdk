@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { EventEmitter } from "./EventEmitter";
-import { assert } from "../../../utils/assert";
+import { EventEmitter } from './EventEmitter';
+import { assert } from '../../../utils/assert';
 
 declare const document: any;
 
@@ -33,7 +33,10 @@ export class VisibilityMonitor extends EventEmitter {
     super(['visible']);
     let hidden: string;
     let visibilityChange: string;
-    if (typeof document !== 'undefined' && typeof document.addEventListener !== 'undefined') {
+    if (
+      typeof document !== 'undefined' &&
+      typeof document.addEventListener !== 'undefined'
+    ) {
       if (typeof document['hidden'] !== 'undefined') {
         // Opera 12.10 and Firefox 18 and later support
         visibilityChange = 'visibilitychange';
@@ -57,13 +60,17 @@ export class VisibilityMonitor extends EventEmitter {
     this.visible_ = true;
 
     if (visibilityChange) {
-      document.addEventListener(visibilityChange, () => {
-        const visible = !document[hidden];
-        if (visible !== this.visible_) {
-          this.visible_ = visible;
-          this.trigger('visible', visible);
-        }
-      }, false);
+      document.addEventListener(
+        visibilityChange,
+        () => {
+          const visible = !document[hidden];
+          if (visible !== this.visible_) {
+            this.visible_ = visible;
+            this.trigger('visible', visible);
+          }
+        },
+        false
+      );
     }
   }
 

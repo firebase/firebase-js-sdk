@@ -32,4 +32,4 @@ export const CONSTANTS = {
    * Firebase SDK Version
    */
   SDK_VERSION: '${JSCORE_VERSION}'
-}
+};

@@ -13,23 +13,23 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {assert} from 'chai';
+import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {FirebaseNamespace} from '../../../src/app/firebase_app';
-import {makeRequest} from '../../../src/storage/implementation/request';
-import {RequestInfo} from '../../../src/storage/implementation/requestinfo';
-import {Headers, XhrIo} from '../../../src/storage/implementation/xhrio';
-import {makePool} from './testshared';
-import {TestingXhrIo} from './xhrio';
+import { FirebaseNamespace } from '../../../src/app/firebase_app';
+import { makeRequest } from '../../../src/storage/implementation/request';
+import { RequestInfo } from '../../../src/storage/implementation/requestinfo';
+import { Headers, XhrIo } from '../../../src/storage/implementation/xhrio';
+import { makePool } from './testshared';
+import { TestingXhrIo } from './xhrio';
 
 declare var firebase: FirebaseNamespace;
 
-describe("Firebase Storage > Request", () => {
+describe('Firebase Storage > Request', () => {
   const versionHeaderName = 'X-Firebase-Storage-Version';
   const versionHeaderValue = 'webjs/' + firebase.SDK_VERSION;
   const timeout = 60 * 1000;
 
-  it("Simple success request works", () => {
+  it('Simple success request works', () => {
     const url = 'http://my-url.com/';
     const method = 'GET';
 
@@ -38,7 +38,13 @@ describe("Firebase Storage > Request", () => {
     const responseValue = 'ResponseValue1';
     const response = 'I am the server response!!!!';
 
-    function newSend(xhrio: TestingXhrIo, url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers) {
+    function newSend(
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
+      headers?: Headers
+    ) {
       const responseHeaders = {};
       responseHeaders[responseHeader] = responseValue;
       xhrio.simulateResponse(status, response, responseHeaders);
@@ -60,8 +66,9 @@ describe("Firebase Storage > Request", () => {
     requestInfo.successCodes = [200, 234];
 
     return makeRequest(requestInfo, null, makePool(spiedSend))
-        .getPromise()
-        .then(result => {
+      .getPromise()
+      .then(
+        result => {
           assert.equal(result, response);
           assert.isTrue(spiedSend.calledOnce);
 
@@ -72,18 +79,28 @@ describe("Firebase Storage > Request", () => {
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
           assert.deepEqual(args[4], expectedHeaders);
-        }, error => {
+        },
+        error => {
           assert.fail('Errored in successful call...');
-        });
+        }
+      );
   });
 
-  it("URL parameters get encoded correctly", () => {
-    function newSend(xhrio: TestingXhrIo, url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers) {
+  it('URL parameters get encoded correctly', () => {
+    function newSend(
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
+      headers?: Headers
+    ) {
       xhrio.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
-    function handler(xhr: XhrIo, text: string): string { return text; }
+    function handler(xhr: XhrIo, text: string): string {
+      return text;
+    }
 
     const url = 'http://my-url.com/';
     const method = 'DELETE';
@@ -97,70 +114,121 @@ describe("Firebase Storage > Request", () => {
     requestInfo.urlParams[p2] = v2;
     requestInfo.body = 'thisistherequestbody';
     return makeRequest(requestInfo, null, makePool(spiedSend))
-        .getPromise()
-        .then(result => {
+      .getPromise()
+      .then(
+        result => {
           assert.isTrue(spiedSend.calledOnce);
 
-          const fullUrl = url + '?' + encodeURIComponent(p1) + '=' +
-              encodeURIComponent(v1) + '&' + encodeURIComponent(p2) + '=' +
-              encodeURIComponent(v2);
+          const fullUrl =
+            url +
+            '?' +
+            encodeURIComponent(p1) +
+            '=' +
+            encodeURIComponent(v1) +
+            '&' +
+            encodeURIComponent(p2) +
+            '=' +
+            encodeURIComponent(v2);
           const args = spiedSend.getCall(0).args;
           assert.equal(args[1], fullUrl);
           assert.equal(args[2], method);
           assert.equal(args[3], requestInfo.body);
-        }, error => {
+        },
+        error => {
           assert.fail('Request failed unexpectedly');
-        });
+        }
+      );
   });
 
-  it("Propagates errors acceptably", () => {
-    function newSend(xhrio: TestingXhrIo, url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers) {
+  it('Propagates errors acceptably', () => {
+    function newSend(
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
+      headers?: Headers
+    ) {
       xhrio.simulateResponse(200, '', {});
     }
 
     const errorMessage = 'Catch me if you can';
-    function handler(xhr: XhrIo, text: string): string { throw new Error(errorMessage); }
-    const requestInfo = new RequestInfo('http://my-url.com/', 'GET', handler, timeout);
+    function handler(xhr: XhrIo, text: string): string {
+      throw new Error(errorMessage);
+    }
+    const requestInfo = new RequestInfo(
+      'http://my-url.com/',
+      'GET',
+      handler,
+      timeout
+    );
 
-    return makeRequest(requestInfo, null, makePool(newSend))
-        .getPromise()
-        .then(result => {
-          assert.fail('Succeeded when handler gave error');
-        }, error => {
-          assert.equal(error.message, errorMessage);
-        });
+    return makeRequest(requestInfo, null, makePool(newSend)).getPromise().then(
+      result => {
+        assert.fail('Succeeded when handler gave error');
+      },
+      error => {
+        assert.equal(error.message, errorMessage);
+      }
+    );
   });
 
-  it("Cancels properly", () => {
-    function handler(xhr: XhrIo, text: string): boolean { return true; }
-    const requestInfo = new RequestInfo('http://my-url.com/', 'GET', handler, timeout);
+  it('Cancels properly', () => {
+    function handler(xhr: XhrIo, text: string): boolean {
+      return true;
+    }
+    const requestInfo = new RequestInfo(
+      'http://my-url.com/',
+      'GET',
+      handler,
+      timeout
+    );
     const request = makeRequest(requestInfo, null, makePool(null));
     const promise = request.getPromise().then(
-        result => { assert.fail('Succeeded when handler gave error'); },
-        error => { return true; });
+      result => {
+        assert.fail('Succeeded when handler gave error');
+      },
+      error => {
+        return true;
+      }
+    );
     request.cancel();
     return promise;
   });
 
-  it("Sends auth tokens along properly", () => {
-    function newSend(xhrio: TestingXhrIo, url: string, method: string, body?: ArrayBufferView|Blob|string|null, headers?: Headers) {
+  it('Sends auth tokens along properly', () => {
+    function newSend(
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
+      headers?: Headers
+    ) {
       xhrio.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
     const authToken = 'totallyLegitAuthToken';
-    function handler(xhr: XhrIo, text: string): boolean { return true; }
-    const requestInfo = new RequestInfo('http://my-url.com/', 'GET', handler, timeout);
+    function handler(xhr: XhrIo, text: string): boolean {
+      return true;
+    }
+    const requestInfo = new RequestInfo(
+      'http://my-url.com/',
+      'GET',
+      handler,
+      timeout
+    );
     const request = makeRequest(requestInfo, authToken, makePool(spiedSend));
     return request.getPromise().then(
-        result => {
-          assert.isTrue(spiedSend.calledOnce);
-          const args = spiedSend.getCall(0).args;
-          const expectedHeaders = {'Authorization': 'Firebase ' + authToken};
-          expectedHeaders[versionHeaderName] = versionHeaderValue;
-          assert.deepEqual(args[4], expectedHeaders);
-        }, error => {
-          assert.fail('Request failed unexpectedly');
-        });
+      result => {
+        assert.isTrue(spiedSend.calledOnce);
+        const args = spiedSend.getCall(0).args;
+        const expectedHeaders = { Authorization: 'Firebase ' + authToken };
+        expectedHeaders[versionHeaderName] = versionHeaderValue;
+        assert.deepEqual(args[4], expectedHeaders);
+      },
+      error => {
+        assert.fail('Request failed unexpectedly');
+      }
+    );
   });
 });

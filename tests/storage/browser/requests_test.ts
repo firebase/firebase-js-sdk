@@ -13,25 +13,30 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {assert} from 'chai';
-import {AuthWrapper} from '../../../src/storage/implementation/authwrapper';
-import {FbsBlob} from '../../../src/storage/implementation/blob';
-import {Location} from '../../../src/storage/implementation/location';
-import {fromResourceString, getMappings} from '../../../src/storage/implementation/metadata';
-import {makeRequest} from '../../../src/storage/implementation/request';
+import { assert } from 'chai';
+import { AuthWrapper } from '../../../src/storage/implementation/authwrapper';
+import { FbsBlob } from '../../../src/storage/implementation/blob';
+import { Location } from '../../../src/storage/implementation/location';
+import {
+  fromResourceString,
+  getMappings
+} from '../../../src/storage/implementation/metadata';
+import { makeRequest } from '../../../src/storage/implementation/request';
 import * as requests from '../../../src/storage/implementation/requests';
-import {makeNormalUrl, makeUploadUrl} from '../../../src/storage/implementation/url';
+import {
+  makeNormalUrl,
+  makeUploadUrl
+} from '../../../src/storage/implementation/url';
 import * as fbsPromise from '../../../src/storage/implementation/promise_external';
 import * as errors from '../../../src/storage/implementation/error';
-import {RequestInfo} from '../../../src/storage/implementation/requestinfo';
-import {XhrIoPool} from '../../../src/storage/implementation/xhriopool';
-import {Metadata} from '../../../src/storage/metadata';
-import {Reference} from '../../../src/storage/reference';
-import {Service} from '../../../src/storage/service';
-import {assertObjectIncludes, fakeXhrIo} from './testshared';
+import { RequestInfo } from '../../../src/storage/implementation/requestinfo';
+import { XhrIoPool } from '../../../src/storage/implementation/xhriopool';
+import { Metadata } from '../../../src/storage/metadata';
+import { Reference } from '../../../src/storage/reference';
+import { Service } from '../../../src/storage/service';
+import { assertObjectIncludes, fakeXhrIo } from './testshared';
 
-describe("Firebase Storage > Requests", () => {
-
+describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
   const locationNormal = new Location(normalBucket, 'o');
   const locationNormalUrl = '/b/' + normalBucket + '/o/o';
@@ -47,56 +52,65 @@ describe("Firebase Storage > Requests", () => {
 
   const mappings = getMappings();
 
-  const authWrapper = new AuthWrapper(null, function(authWrapper, loc) {
-    return {} as Reference;
-  }, makeRequest, {} as Service, new XhrIoPool());
+  const authWrapper = new AuthWrapper(
+    null,
+    function(authWrapper, loc) {
+      return {} as Reference;
+    },
+    makeRequest,
+    {} as Service,
+    new XhrIoPool()
+  );
 
   const contentTypeInMetadata = 'application/jason';
   const metadata = ({
-    'contentType': contentTypeInMetadata,
-    'customMetadata': {
+    contentType: contentTypeInMetadata,
+    customMetadata: {
       // no-inline
-      'foo': 'bar'
+      foo: 'bar'
     }
   } as any) as Metadata;
   const metadataString = JSON.stringify({
     // no-inline
-    'contentType': contentTypeInMetadata,
-    'metadata': {
+    contentType: contentTypeInMetadata,
+    metadata: {
       // no-inline
-      'foo': 'bar'
+      foo: 'bar'
     }
   });
 
   const serverResource = {
-    'bucket': normalBucket,
-    'generation': '1',
-    'metageneration': '2',
+    bucket: normalBucket,
+    generation: '1',
+    metageneration: '2',
 
-    'name': 'foo/bar/baz.png',
+    name: 'foo/bar/baz.png',
 
-    'size': '10',
-    'timeCreated': 'This is a real time',
-    'updated': 'Also a real time',
-    'md5Hash': 'deadbeef',
+    size: '10',
+    timeCreated: 'This is a real time',
+    updated: 'Also a real time',
+    md5Hash: 'deadbeef',
 
-    'cacheControl': 'max-age=604800',
-    'contentDisposition': 'Attachment; filename=baz.png',
-    'contentLanguage': 'en-US',
-    'contentType': 'application/jason',
+    cacheControl: 'max-age=604800',
+    contentDisposition: 'Attachment; filename=baz.png',
+    contentLanguage: 'en-US',
+    contentType: 'application/jason',
 
-    'downloadTokens': 'a,b,c',
-    'metadata': {'foo': 'bar'}
+    downloadTokens: 'a,b,c',
+    metadata: { foo: 'bar' }
   };
   const serverResourceString = JSON.stringify(serverResource);
   const metadataFromServerResource = fromResourceString(
-      authWrapper, serverResourceString, mappings);
+    authWrapper,
+    serverResourceString,
+    mappings
+  );
 
   function uploadMetadataString(name: string): string {
     return JSON.stringify({
-      'name': name,
-      'contentType': contentTypeInMetadata,
-      'metadata': {'foo': 'bar'}
+      name: name,
+      contentType: contentTypeInMetadata,
+      metadata: { foo: 'bar' }
     });
   }
 
@@ -115,7 +129,10 @@ describe("Firebase Storage > Requests", () => {
     });
   }
 
-  function assertBodyEquals(body: Blob|string|Uint8Array|null, expectedStr: string): Promise<void> {
+  function assertBodyEquals(
+    body: Blob | string | Uint8Array | null,
+    expectedStr: string
+  ): Promise<void> {
     if (body === null) {
       assert.fail('body was null');
     }
@@ -135,8 +152,7 @@ describe("Firebase Storage > Requests", () => {
   }
 
   function checkMetadataHandler(requestInfo: RequestInfo<Metadata>): void {
-    const metadata =
-        requestInfo.handler(fakeXhrIo({}), serverResourceString);
+    const metadata = requestInfo.handler(fakeXhrIo({}), serverResourceString);
     assert.deepEqual(metadata, metadataFromServerResource);
   }
 
@@ -148,80 +164,97 @@ describe("Firebase Storage > Requests", () => {
     }
   }
 
-  it("getMetadata request info", () => {
+  it('getMetadata request info', () => {
     const maps = [
-      [locationNormal, locationNormalUrl], [locationEscapes, locationEscapesUrl]
+      [locationNormal, locationNormalUrl],
+      [locationEscapes, locationEscapesUrl]
     ];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const requestInfo = requests.getMetadata(authWrapper, location, mappings);
       assertObjectIncludes(
-          {
-            url: normalUrl(url),
-            method: 'GET',
-            body: null,
-            headers: {},
-            urlParams: {}
-          },
-          requestInfo);
+        {
+          url: normalUrl(url),
+          method: 'GET',
+          body: null,
+          headers: {},
+          urlParams: {}
+        },
+        requestInfo
+      );
     }
   });
-  it("getMetadata handler", () => {
-    const requestInfo =
-        requests.getMetadata(authWrapper, locationNormal, mappings);
+  it('getMetadata handler', () => {
+    const requestInfo = requests.getMetadata(
+      authWrapper,
+      locationNormal,
+      mappings
+    );
     checkMetadataHandler(requestInfo);
   });
-  it("updateMetadata requestinfo", () => {
+  it('updateMetadata requestinfo', () => {
     const maps = [
-      [locationNormal, locationNormalUrl], [locationEscapes, locationEscapesUrl]
+      [locationNormal, locationNormalUrl],
+      [locationEscapes, locationEscapesUrl]
     ];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo =
-          requests.updateMetadata(authWrapper, location, metadata, mappings);
+      const requestInfo = requests.updateMetadata(
+        authWrapper,
+        location,
+        metadata,
+        mappings
+      );
       assertObjectIncludes(
-          {
-            url: normalUrl(url),
-            method: 'PATCH',
-            body: metadataString,
-            headers: {'Content-Type': metadataContentType},
-            urlParams: {}
-          },
-          requestInfo);
+        {
+          url: normalUrl(url),
+          method: 'PATCH',
+          body: metadataString,
+          headers: { 'Content-Type': metadataContentType },
+          urlParams: {}
+        },
+        requestInfo
+      );
     }
   });
-  it("updateMetadata handler", () => {
+  it('updateMetadata handler', () => {
     const requestInfo = requests.updateMetadata(
-        authWrapper, locationNormal, metadata, mappings);
+      authWrapper,
+      locationNormal,
+      metadata,
+      mappings
+    );
     checkMetadataHandler(requestInfo);
   });
 
-  it("deleteObject request info", () => {
+  it('deleteObject request info', () => {
     const maps = [
-      [locationNormal, locationNormalUrl], [locationEscapes, locationEscapesUrl]
+      [locationNormal, locationNormalUrl],
+      [locationEscapes, locationEscapesUrl]
     ];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const requestInfo = requests.deleteObject(authWrapper, location);
       assertObjectIncludes(
-          {
-            url: normalUrl(url),
-            method: 'DELETE',
-            body: null,
-            headers: {},
-            urlParams: {}
-          },
-          requestInfo);
+        {
+          url: normalUrl(url),
+          method: 'DELETE',
+          body: null,
+          headers: {},
+          urlParams: {}
+        },
+        requestInfo
+      );
     }
   });
-  it("deleteObject handler", () => {
+  it('deleteObject handler', () => {
     const requestInfo = requests.deleteObject(authWrapper, locationNormal);
     checkNoOpHandler(requestInfo);
   });
-  it("multipartUpload request info", () => {
+  it('multipartUpload request info', () => {
     const multipartHeaderRegex = /^multipart\/related; boundary=([A-Za-z0-9]+)$/;
 
     const maps = [
@@ -233,46 +266,73 @@ describe("Firebase Storage > Requests", () => {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const makeMultipartBodyString = (boundary: string): string => {
-        return '--' + boundary + '\r\n' +
-            'Content-Type: ' + metadataContentType + '\r\n\r\n' +
-            uploadMetadataString(location.path) + '\r\n--' + boundary + '\r\n' +
-            'Content-Type: ' + contentTypeInMetadata + '\r\n\r\n' +
-            smallBlobString + '\r\n--' + boundary + '--';
+        return (
+          '--' +
+          boundary +
+          '\r\n' +
+          'Content-Type: ' +
+          metadataContentType +
+          '\r\n\r\n' +
+          uploadMetadataString(location.path) +
+          '\r\n--' +
+          boundary +
+          '\r\n' +
+          'Content-Type: ' +
+          contentTypeInMetadata +
+          '\r\n\r\n' +
+          smallBlobString +
+          '\r\n--' +
+          boundary +
+          '--'
+        );
       };
       const requestInfo = requests.multipartUpload(
-          authWrapper, location, mappings, smallBlob, metadata);
-      const matches =
-          (requestInfo.headers['Content-Type'] as string).match(multipartHeaderRegex);
+        authWrapper,
+        location,
+        mappings,
+        smallBlob,
+        metadata
+      );
+      const matches = (requestInfo.headers['Content-Type'] as string).match(
+        multipartHeaderRegex
+      );
       assert.isNotNull(matches);
       assert.equal(matches.length, 2);
       const boundary = matches[1];
       promises.push(
-          assertBodyEquals(requestInfo.body, makeMultipartBodyString(boundary)));
+        assertBodyEquals(requestInfo.body, makeMultipartBodyString(boundary))
+      );
 
       assertObjectIncludes(
-          {
-            url: uploadUrl(url),
-            method: 'POST',
-            urlParams: {'name': location.path},
-            headers: {
-              'X-Goog-Upload-Protocol': 'multipart',
-              // Checked before this block, but needed here because
-              // assertObjectIncludes does exact checks on values.
-              'Content-Type': requestInfo.headers['Content-Type']
-            }
-          },
-          requestInfo);
+        {
+          url: uploadUrl(url),
+          method: 'POST',
+          urlParams: { name: location.path },
+          headers: {
+            'X-Goog-Upload-Protocol': 'multipart',
+            // Checked before this block, but needed here because
+            // assertObjectIncludes does exact checks on values.
+            'Content-Type': requestInfo.headers['Content-Type']
+          }
+        },
+        requestInfo
+      );
     }
 
     return Promise.all(promises);
   });
-  it("multipartUpload handler", () => {
+  it('multipartUpload handler', () => {
     const requestInfo = requests.multipartUpload(
-        authWrapper, locationNormal, mappings, smallBlob, metadata);
+      authWrapper,
+      locationNormal,
+      mappings,
+      smallBlob,
+      metadata
+    );
     checkMetadataHandler(requestInfo);
   });
 
-  it("createResumableUpload request info", () => {
+  it('createResumableUpload request info', () => {
     const maps = [
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
@@ -282,143 +342,212 @@ describe("Firebase Storage > Requests", () => {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
       const requestInfo = requests.createResumableUpload(
-          authWrapper, location, mappings, smallBlob, metadata);
+        authWrapper,
+        location,
+        mappings,
+        smallBlob,
+        metadata
+      );
       assertObjectIncludes(
-          {
-            url: uploadUrl(url),
-            method: 'POST',
-            urlParams: {'name': location.path},
-            headers: {
-              'X-Goog-Upload-Protocol': 'resumable',
-              'X-Goog-Upload-Command': 'start',
-              'X-Goog-Upload-Header-Content-Length': smallBlob.size(),
-              'X-Goog-Upload-Header-Content-Type': contentTypeInMetadata,
-              'Content-Type': metadataContentType
-            }
-          },
-          requestInfo);
+        {
+          url: uploadUrl(url),
+          method: 'POST',
+          urlParams: { name: location.path },
+          headers: {
+            'X-Goog-Upload-Protocol': 'resumable',
+            'X-Goog-Upload-Command': 'start',
+            'X-Goog-Upload-Header-Content-Length': smallBlob.size(),
+            'X-Goog-Upload-Header-Content-Type': contentTypeInMetadata,
+            'Content-Type': metadataContentType
+          }
+        },
+        requestInfo
+      );
       promises.push(
-          assertBodyEquals(requestInfo.body, uploadMetadataString(location.path)));
+        assertBodyEquals(requestInfo.body, uploadMetadataString(location.path))
+      );
     }
     return Promise.all(promises);
   });
 
   function testCreateResumableUploadHandler() {
     const requestInfo = requests.createResumableUpload(
-        authWrapper, locationNormal, mappings, smallBlob,
-        metadata);
+      authWrapper,
+      locationNormal,
+      mappings,
+      smallBlob,
+      metadata
+    );
     const uploadUrl = 'https://i.am.an.upload.url.com/hello/there';
 
     const handlerUrl = requestInfo.handler(
-        fakeXhrIo(
-            {'X-Goog-Upload-Status': 'active', 'X-Goog-Upload-URL': uploadUrl}),
-        '');
+      fakeXhrIo({
+        'X-Goog-Upload-Status': 'active',
+        'X-Goog-Upload-URL': uploadUrl
+      }),
+      ''
+    );
 
     assert.equal(handlerUrl, uploadUrl);
   }
-  it("getResumableUploadStatus request info", () => {
-    const url = 'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+  it('getResumableUploadStatus request info', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.getResumableUploadStatus(
-        authWrapper, locationNormal, url, smallBlob);
+      authWrapper,
+      locationNormal,
+      url,
+      smallBlob
+    );
     assertObjectIncludes(
-        {
-          url: url,
-          method: 'POST',
-          urlParams: {},
-          headers: {'X-Goog-Upload-Command': 'query'}
-        },
-        requestInfo);
+      {
+        url: url,
+        method: 'POST',
+        urlParams: {},
+        headers: { 'X-Goog-Upload-Command': 'query' }
+      },
+      requestInfo
+    );
   });
-  describe("getResumableUploadStatus handler", () => {
-    const url = 'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+  describe('getResumableUploadStatus handler', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.getResumableUploadStatus(
-        authWrapper, locationNormal, url, smallBlob);
+      authWrapper,
+      locationNormal,
+      url,
+      smallBlob
+    );
 
     let status = requestInfo.handler(
-        fakeXhrIo({
-          'X-Goog-Upload-Status': 'active',
-          'X-Goog-Upload-Size-Received': '0'
-        }),
-        '');
-    let expectedStatus =
-        new requests.ResumableUploadStatus(0, smallBlob.size(), false);
+      fakeXhrIo({
+        'X-Goog-Upload-Status': 'active',
+        'X-Goog-Upload-Size-Received': '0'
+      }),
+      ''
+    );
+    let expectedStatus = new requests.ResumableUploadStatus(
+      0,
+      smallBlob.size(),
+      false
+    );
     assert.deepEqual(status, expectedStatus);
 
     status = requestInfo.handler(
-        fakeXhrIo({
-          'X-Goog-Upload-Status': 'final',
-          'X-Goog-Upload-Size-Received': '' + smallBlob.size()
-        }),
-        '');
+      fakeXhrIo({
+        'X-Goog-Upload-Status': 'final',
+        'X-Goog-Upload-Size-Received': '' + smallBlob.size()
+      }),
+      ''
+    );
     expectedStatus = new requests.ResumableUploadStatus(
-        smallBlob.size(), smallBlob.size(), true);
+      smallBlob.size(),
+      smallBlob.size(),
+      true
+    );
     assert.deepEqual(status, expectedStatus);
   });
-  it("continueResumableUpload request info", () => {
-    const url = 'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+  it('continueResumableUpload request info', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const requestInfo = requests.continueResumableUpload(
-        locationNormal, authWrapper, url, smallBlob,
-        requests.resumableUploadChunkSize, mappings);
+      locationNormal,
+      authWrapper,
+      url,
+      smallBlob,
+      requests.resumableUploadChunkSize,
+      mappings
+    );
     assertObjectIncludes(
-        {
-          url: url,
-          method: 'POST',
-          urlParams: {},
-          headers: {
-            'X-Goog-Upload-Command': 'upload, finalize',
-            'X-Goog-Upload-Offset': 0
-          }
-        },
-        requestInfo);
+      {
+        url: url,
+        method: 'POST',
+        urlParams: {},
+        headers: {
+          'X-Goog-Upload-Command': 'upload, finalize',
+          'X-Goog-Upload-Offset': 0
+        }
+      },
+      requestInfo
+    );
 
     return assertBodyEquals(requestInfo.body, smallBlobString);
   });
-  it("continueResumableUpload handler", () => {
-    const url = 'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
+  it('continueResumableUpload handler', () => {
+    const url =
+      'https://this.is.totally.a.real.url.com/hello/upload?whatsgoingon';
     const chunkSize = requests.resumableUploadChunkSize;
 
     assert.isTrue(smallBlob.size() < chunkSize);
     let requestInfo = requests.continueResumableUpload(
-        locationNormal, authWrapper, url, smallBlob, chunkSize, mappings);
+      locationNormal,
+      authWrapper,
+      url,
+      smallBlob,
+      chunkSize,
+      mappings
+    );
     let status = requestInfo.handler(
-        fakeXhrIo({'X-Goog-Upload-Status': 'final'}),
-        serverResourceString);
+      fakeXhrIo({ 'X-Goog-Upload-Status': 'final' }),
+      serverResourceString
+    );
     let expectedStatus = new requests.ResumableUploadStatus(
-        smallBlob.size(), smallBlob.size(), true, metadataFromServerResource);
+      smallBlob.size(),
+      smallBlob.size(),
+      true,
+      metadataFromServerResource
+    );
     assert.deepEqual(status, expectedStatus);
 
     assert.isTrue(bigBlob.size() > chunkSize);
     requestInfo = requests.continueResumableUpload(
-        locationNormal, authWrapper, url, bigBlob, chunkSize, mappings);
+      locationNormal,
+      authWrapper,
+      url,
+      bigBlob,
+      chunkSize,
+      mappings
+    );
     status = requestInfo.handler(
-        fakeXhrIo({'X-Goog-Upload-Status': 'active'}), '');
-    expectedStatus =
-        new requests.ResumableUploadStatus(chunkSize, bigBlob.size(), false);
+      fakeXhrIo({ 'X-Goog-Upload-Status': 'active' }),
+      ''
+    );
+    expectedStatus = new requests.ResumableUploadStatus(
+      chunkSize,
+      bigBlob.size(),
+      false
+    );
     assert.deepEqual(status, expectedStatus);
   });
 
-  it("error handler passes through unknown errors", () => {
-    const requestInfo =
-        requests.getMetadata(authWrapper, locationNormal, mappings);
+  it('error handler passes through unknown errors', () => {
+    const requestInfo = requests.getMetadata(
+      authWrapper,
+      locationNormal,
+      mappings
+    );
     const error = errors.unknown();
-    const resultError =
-        requestInfo.errorHandler(fakeXhrIo({}, 509), error);
+    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 509), error);
     assert.equal(resultError, error);
   });
-  it("error handler converts 404 to not found", () => {
-    const requestInfo =
-        requests.getMetadata(authWrapper, locationNormal, mappings);
+  it('error handler converts 404 to not found', () => {
+    const requestInfo = requests.getMetadata(
+      authWrapper,
+      locationNormal,
+      mappings
+    );
     const error = errors.unknown();
-    const resultError =
-        requestInfo.errorHandler(fakeXhrIo({}, 404), error);
+    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 404), error);
     assert.isTrue(resultError.codeEquals(errors.Code.OBJECT_NOT_FOUND));
   });
-  it("error handler converts 402 to quota exceeded", () => {
-    const requestInfo =
-        requests.getMetadata(authWrapper, locationNormal, mappings);
+  it('error handler converts 402 to quota exceeded', () => {
+    const requestInfo = requests.getMetadata(
+      authWrapper,
+      locationNormal,
+      mappings
+    );
     const error = errors.unknown();
-    const resultError =
-        requestInfo.errorHandler(fakeXhrIo({}, 402), error);
+    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 402), error);
     assert.isTrue(resultError.codeEquals(errors.Code.QUOTA_EXCEEDED));
   });
 });

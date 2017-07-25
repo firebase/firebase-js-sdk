@@ -18,7 +18,7 @@ import * as object from './object';
 import * as promiseimpl from './promise_external';
 import * as type from './type';
 import * as XhrIoExports from './xhrio';
-import {Headers, XhrIo} from './xhrio';
+import { Headers, XhrIo } from './xhrio';
 
 /**
  * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
@@ -34,15 +34,15 @@ export class NetworkXhrIo implements XhrIo {
     this.xhr_ = new XMLHttpRequest();
     this.errorCode_ = XhrIoExports.ErrorCode.NO_ERROR;
     this.sendPromise_ = promiseimpl.make((resolve, reject) => {
-      this.xhr_.addEventListener('abort', (event) => {
+      this.xhr_.addEventListener('abort', event => {
         this.errorCode_ = XhrIoExports.ErrorCode.ABORT;
         resolve(this);
       });
-      this.xhr_.addEventListener('error', (event) => {
+      this.xhr_.addEventListener('error', event => {
         this.errorCode_ = XhrIoExports.ErrorCode.NETWORK_ERROR;
         resolve(this);
       });
-      this.xhr_.addEventListener('load', (event) => {
+      this.xhr_.addEventListener('load', event => {
         resolve(this);
       });
     });
@@ -52,15 +52,18 @@ export class NetworkXhrIo implements XhrIo {
    * @override
    */
   send(
-      url: string, method: string, opt_body?: ArrayBufferView|Blob|string|null,
-      opt_headers?: Headers): Promise<XhrIo> {
+    url: string,
+    method: string,
+    opt_body?: ArrayBufferView | Blob | string | null,
+    opt_headers?: Headers
+  ): Promise<XhrIo> {
     if (this.sent_) {
       throw errorsExports.internalError('cannot .send() more than once');
     }
     this.sent_ = true;
     this.xhr_.open(method, url, true);
     if (type.isDef(opt_headers)) {
-      const headers = (opt_headers as Headers);
+      const headers = opt_headers as Headers;
       object.forEach(headers, (key, val) => {
         this.xhr_.setRequestHeader(key, val.toString());
       });
@@ -79,7 +82,8 @@ export class NetworkXhrIo implements XhrIo {
   getErrorCode(): XhrIoExports.ErrorCode {
     if (!this.sent_) {
       throw errorsExports.internalError(
-          'cannot .getErrorCode() before sending');
+        'cannot .getErrorCode() before sending'
+      );
     }
     return this.errorCode_;
   }
@@ -104,7 +108,8 @@ export class NetworkXhrIo implements XhrIo {
   getResponseText(): string {
     if (!this.sent_) {
       throw errorsExports.internalError(
-          'cannot .getResponseText() before sending');
+        'cannot .getResponseText() before sending'
+      );
     }
     return this.xhr_.responseText;
   }
@@ -120,7 +125,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  getResponseHeader(header: string): string|null {
+  getResponseHeader(header: string): string | null {
     return this.xhr_.getResponseHeader(header);
   }
 

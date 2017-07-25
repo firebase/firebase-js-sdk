@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { WebSocketConnection } from "../realtime/WebSocketConnection";
-import { BrowserPollConnection } from "../realtime/BrowserPollConnection";
+import { WebSocketConnection } from '../realtime/WebSocketConnection';
+import { BrowserPollConnection } from '../realtime/BrowserPollConnection';
 import { Reference } from './Reference';
 
 /**
@@ -40,7 +40,10 @@ export const isWebSocketsAvailable = function(): boolean {
   return WebSocketConnection['isAvailable']();
 };
 
-export const setSecurityDebugCallback = function(ref: Reference, callback: (a: Object) => void) {
+export const setSecurityDebugCallback = function(
+  ref: Reference,
+  callback: (a: Object) => void
+) {
   (ref.repo.persistentConnection_ as any).securityDebugCallback_ = callback;
 };
 
@@ -56,6 +59,9 @@ export const dataUpdateCount = function(ref: Reference): number {
   return ref.repo.dataUpdateCount;
 };
 
-export const interceptServerData = function(ref: Reference, callback: ((a: string, b: any) => void) | null) {
+export const interceptServerData = function(
+  ref: Reference,
+  callback: ((a: string, b: any) => void) | null
+) {
   return ref.repo.interceptServerData_(callback);
 };

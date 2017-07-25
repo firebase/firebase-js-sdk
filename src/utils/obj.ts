@@ -21,8 +21,7 @@ export const contains = function(obj, key) {
 };
 
 export const safeGet = function(obj, key) {
-  if (Object.prototype.hasOwnProperty.call(obj, key))
-    return obj[key];
+  if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
   // else return undefined.
 };
 
@@ -52,8 +51,7 @@ export const extend = function(objTo, objFrom) {
     objTo[key] = value;
   });
   return objTo;
-}
-
+};
 
 /**
  * Returns a clone of the specified object.
@@ -63,7 +61,6 @@ export const extend = function(objTo, objFrom) {
 export const clone = function(obj) {
   return extend({}, obj);
 };
-
 
 /**
  * Returns true if obj has typeof "object" and is not null.  Unlike goog.isObject(), does not return true
@@ -81,7 +78,7 @@ export const isEmpty = function(obj) {
     return false;
   }
   return true;
-}
+};
 
 export const getCount = function(obj) {
   var rv = 0;
@@ -89,7 +86,7 @@ export const getCount = function(obj) {
     rv++;
   }
   return rv;
-}
+};
 
 export const map = function(obj, f, opt_obj?) {
   var res = {};
@@ -136,7 +133,10 @@ export const getValues = function(obj) {
  * @param {!function(K, V)} fn Function to call for each key and value.
  * @template K,V
  */
-export const every = function<V>(obj: Object, fn: (k: string, v?: V) => boolean): boolean {
+export const every = function<V>(
+  obj: Object,
+  fn: (k: string, v?: V) => boolean
+): boolean {
   for (let key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (!fn(key, obj[key])) {

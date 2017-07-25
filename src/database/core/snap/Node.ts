@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { Path } from "../util/Path";
-import { Index } from "./indexes/Index";
+import { Path } from '../util/Path';
+import { Index } from './indexes/Index';
 
 /**
  * Node is an interface defining the common functionality for nodes in
@@ -30,13 +30,11 @@ export interface Node {
    */
   isLeafNode(): boolean;
 
-
   /**
    * Gets the priority of the node.
    * @return {!Node} The priority of the node.
    */
   getPriority(): Node;
-
 
   /**
    * Returns a duplicate node with the new priority.
@@ -45,14 +43,12 @@ export interface Node {
    */
   updatePriority(newPriorityNode: Node): Node;
 
-
   /**
    * Returns the specified immediate child, or null if it doesn't exist.
    * @param {string} childName The name of the child to retrieve.
    * @return {!Node} The retrieved child, or an empty node.
    */
   getImmediateChild(childName: string): Node;
-
 
   /**
    * Returns a child by path, or null if it doesn't exist.
@@ -61,7 +57,6 @@ export interface Node {
    */
   getChild(path: Path): Node;
 
-
   /**
    * Returns the name of the child immediately prior to the specified childNode, or null.
    * @param {!string} childName The name of the child to find the predecessor of.
@@ -69,7 +64,11 @@ export interface Node {
    * @param {!Index} index The index to use to determine the predecessor
    * @return {?string} The name of the predecessor child, or null if childNode is the first child.
    */
-  getPredecessorChildName(childName: String, childNode: Node, index: Index): string | null;
+  getPredecessorChildName(
+    childName: String,
+    childNode: Node,
+    index: Index
+  ): string | null;
 
   /**
    * Returns a duplicate node, with the specified immediate child updated.
@@ -79,7 +78,6 @@ export interface Node {
    * @return {!Node} The updated node.
    */
   updateImmediateChild(childName: string, newChildNode: Node): Node;
-
 
   /**
    * Returns a duplicate node, with the specified child updated.  Any value will
@@ -102,12 +100,10 @@ export interface Node {
    */
   isEmpty(): boolean;
 
-
   /**
    * @return {number} The number of children of this node.
    */
   numChildren(): number;
-
 
   /**
    * Calls action for each child.
@@ -174,4 +170,3 @@ export class NamedNode {
     return new NamedNode(name, node);
   }
 }
-

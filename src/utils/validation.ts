@@ -28,12 +28,17 @@ export const validateArgCount = function(fnName, minCount, maxCount, argCount) {
   if (argCount < minCount) {
     argError = 'at least ' + minCount;
   } else if (argCount > maxCount) {
-    argError = (maxCount === 0) ? 'none' : ('no more than ' + maxCount);
+    argError = maxCount === 0 ? 'none' : 'no more than ' + maxCount;
   }
   if (argError) {
-    var error = fnName + ' failed: Was called with ' + argCount +
-      ((argCount === 1) ? ' argument.' : ' arguments.') +
-      ' Expects ' + argError + '.';
+    var error =
+      fnName +
+      ' failed: Was called with ' +
+      argCount +
+      (argCount === 1 ? ' argument.' : ' arguments.') +
+      ' Expects ' +
+      argError +
+      '.';
     throw new Error(error);
   }
 };
@@ -62,14 +67,16 @@ export function errorPrefix(fnName, argumentNumber, optional) {
       argName = optional ? 'fourth' : 'Fourth';
       break;
     default:
-      throw new Error('errorPrefix called with argumentNumber > 4.  Need to update it?');
+      throw new Error(
+        'errorPrefix called with argumentNumber > 4.  Need to update it?'
+      );
   }
 
   var error = fnName + ' failed: ';
 
   error += argName + ' argument ';
   return error;
-};
+}
 
 /**
  * @param {!string} fnName
@@ -77,27 +84,46 @@ export function errorPrefix(fnName, argumentNumber, optional) {
  * @param {!string} namespace
  * @param {boolean} optional
  */
-export const validateNamespace = function(fnName, argumentNumber, namespace, optional) {
-  if (optional && !(namespace))
-    return;
+export const validateNamespace = function(
+  fnName,
+  argumentNumber,
+  namespace,
+  optional
+) {
+  if (optional && !namespace) return;
   if (typeof namespace !== 'string') {
     //TODO: I should do more validation here. We only allow certain chars in namespaces.
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
-      'must be a valid firebase namespace.');
+    throw new Error(
+      errorPrefix(fnName, argumentNumber, optional) +
+        'must be a valid firebase namespace.'
+    );
   }
 };
 
-export const validateCallback = function(fnName, argumentNumber, callback, optional) {
-  if (optional && !(callback))
-    return;
+export const validateCallback = function(
+  fnName,
+  argumentNumber,
+  callback,
+  optional
+) {
+  if (optional && !callback) return;
   if (typeof callback !== 'function')
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) + 'must be a valid function.');
+    throw new Error(
+      errorPrefix(fnName, argumentNumber, optional) +
+        'must be a valid function.'
+    );
 };
 
-export const validateContextObject = function(fnName, argumentNumber, context, optional) {
-  if (optional && !(context))
-    return;
+export const validateContextObject = function(
+  fnName,
+  argumentNumber,
+  context,
+  optional
+) {
+  if (optional && !context) return;
   if (typeof context !== 'object' || context === null)
-    throw new Error(errorPrefix(fnName, argumentNumber, optional) +
-      'must be a valid context object.');
+    throw new Error(
+      errorPrefix(fnName, argumentNumber, optional) +
+        'must be a valid context object.'
+    );
 };

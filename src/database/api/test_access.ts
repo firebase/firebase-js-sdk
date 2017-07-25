@@ -14,10 +14,10 @@
 * limitations under the License.
 */
 
-import { RepoInfo } from "../core/RepoInfo";
-import { PersistentConnection } from "../core/PersistentConnection";
-import { RepoManager } from "../core/RepoManager";
-import { Connection } from "../realtime/Connection";
+import { RepoInfo } from '../core/RepoInfo';
+import { PersistentConnection } from '../core/PersistentConnection';
+import { RepoManager } from '../core/RepoManager';
+import { Connection } from '../realtime/Connection';
 import { Query } from './Query';
 
 export const DataConnection = PersistentConnection;
@@ -26,16 +26,22 @@ export const DataConnection = PersistentConnection;
  * @param {!string} pathString
  * @param {function(*)} onComplete
  */
-(PersistentConnection.prototype as any).simpleListen = function(pathString: string, onComplete: (a: any) => void) {
-  this.sendRequest('q', {'p': pathString}, onComplete);
+(PersistentConnection.prototype as any).simpleListen = function(
+  pathString: string,
+  onComplete: (a: any) => void
+) {
+  this.sendRequest('q', { p: pathString }, onComplete);
 };
 
 /**
  * @param {*} data
  * @param {function(*)} onEcho
  */
-(PersistentConnection.prototype as any).echo = function(data: any, onEcho: (a: any) => void) {
-  this.sendRequest('echo', {'d': data}, onEcho);
+(PersistentConnection.prototype as any).echo = function(
+  data: any,
+  onEcho: (a: any) => void
+) {
+  this.sendRequest('echo', { d: data }, onEcho);
 };
 
 // RealTimeConnection properties that we use in tests.
@@ -47,7 +53,12 @@ export const RealTimeConnection = Connection;
  */
 export const hijackHash = function(newHash: () => string) {
   const oldPut = PersistentConnection.prototype.put;
-  PersistentConnection.prototype.put = function(pathString, data, opt_onComplete, opt_hash) {
+  PersistentConnection.prototype.put = function(
+    pathString,
+    data,
+    opt_onComplete,
+    opt_hash
+  ) {
     if (opt_hash !== undefined) {
       opt_hash = newHash();
     }
@@ -55,7 +66,7 @@ export const hijackHash = function(newHash: () => string) {
   };
   return function() {
     PersistentConnection.prototype.put = oldPut;
-  }
+  };
 };
 
 /**

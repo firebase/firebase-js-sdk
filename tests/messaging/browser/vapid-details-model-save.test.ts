@@ -13,16 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { assert } from "chai";
+import { assert } from 'chai';
 import dbHelpers from './db-helper';
 import Errors from '../../../src/messaging/models/errors';
 import VapidDetailsModel from '../../../src/messaging/models/vapid-details-model';
 
 describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function() {
   const EXAMPLE_SCOPE = '/example-scope';
-  const EXAMPLE_VAPID_STRING = 'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+  const EXAMPLE_VAPID_STRING =
+    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
     '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
-  
+
   let vapidModel;
 
   beforeEach(function() {
@@ -42,44 +43,32 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
   });
 
   it('should throw on bad scope input', function() {
-    const badInputs = [
-      '',
-      [],
-      {},
-      true,
-      null,
-      123
-    ];
-    badInputs.forEach((badInput) => {
+    const badInputs = ['', [], {}, true, null, 123];
+    badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_STRING)
-      .then(() => {
-        throw new Error('Expected promise to reject');
-      }, (err) => {
-        assert.equal('messaging/' + Errors.codes.BAD_SCOPE,
-          err.code);
-      });
+      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_STRING).then(
+        () => {
+          throw new Error('Expected promise to reject');
+        },
+        err => {
+          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+        }
+      );
     });
   });
 
   it('should throw on bad vapid input', function() {
-    const badInputs = [
-      '',
-      [],
-      {},
-      true,
-      null,
-      123
-    ];
-    badInputs.forEach((badInput) => {
+    const badInputs = ['', [], {}, true, null, 123];
+    badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, badInput)
-      .then(() => {
-        throw new Error('Expected promise to reject');
-      }, (err) => {
-        assert.equal('messaging/' + Errors.codes.BAD_VAPID_KEY,
-          err.code);
-      });
+      return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, badInput).then(
+        () => {
+          throw new Error('Expected promise to reject');
+        },
+        err => {
+          assert.equal('messaging/' + Errors.codes.BAD_VAPID_KEY, err.code);
+        }
+      );
     });
   });
 

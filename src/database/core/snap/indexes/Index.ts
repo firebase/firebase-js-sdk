@@ -14,8 +14,8 @@
 * limitations under the License.
 */
 
-import { Node, NamedNode } from "../Node";
-import { MIN_NAME, MAX_NAME } from "../../util/util";
+import { Node, NamedNode } from '../Node';
+import { MIN_NAME, MAX_NAME } from '../../util/util';
 import { Comparator } from '../../util/SortedMap';
 
 /**
@@ -36,7 +36,6 @@ export abstract class Index {
    */
   abstract isDefinedOn(node: Node): boolean;
 
-
   /**
    * @return {function(!NamedNode, !NamedNode):number} A standalone comparison function for
    * this index
@@ -44,7 +43,6 @@ export abstract class Index {
   getCompare(): Comparator<NamedNode> {
     return this.compare.bind(this);
   }
-
 
   /**
    * Given a before and after value for a node, determine if the indexed value has changed. Even if they are different,
@@ -60,7 +58,6 @@ export abstract class Index {
     return this.compare(oldWrapped, newWrapped) !== 0;
   }
 
-
   /**
    * @return {!NamedNode} a node wrapper that will sort equal to or less than
    * any other node wrapper, using this index
@@ -69,13 +66,11 @@ export abstract class Index {
     return (NamedNode as any).MIN;
   }
 
-
   /**
    * @return {!NamedNode} a node wrapper that will sort greater than or equal to
    * any other node wrapper, using this index
    */
   abstract maxPost(): NamedNode;
-
 
   /**
    * @param {*} indexValue
@@ -83,7 +78,6 @@ export abstract class Index {
    * @return {!NamedNode}
    */
   abstract makePost(indexValue: any, name: string): NamedNode;
-
 
   /**
    * @return {!string} String representation for inclusion in a query spec

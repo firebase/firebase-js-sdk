@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { TEST_PROJECT } from "./util";
+import { TEST_PROJECT } from './util';
 import { Reference } from '../../../src/database/api/Reference';
 
 /**
@@ -22,7 +22,6 @@ import { Reference } from '../../../src/database/api/Reference';
  * @type {function()}
  */
 export let eventCleanupHandlers = [];
-
 
 /** Clean up outstanding event handlers */
 export function eventCleanup() {
@@ -91,7 +90,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
         if (waiter()) {
           resolve();
         }
-      } catch(e) {}
+      } catch (e) {}
     };
   };
 
@@ -101,7 +100,15 @@ export function eventTestHelper(pathAndEvents, helperName?) {
   // keep waiting.
   const waiter = function() {
     const pathAndEventToString = function(pathAndEvent) {
-      return '{path: ' + pathAndEvent[0] + ', event:[' + pathAndEvent[1][0] + ', ' + pathAndEvent[1][1] + ']}';
+      return (
+        '{path: ' +
+        pathAndEvent[0] +
+        ', event:[' +
+        pathAndEvent[1][0] +
+        ', ' +
+        pathAndEvent[1][1] +
+        ']}'
+      );
     };
 
     let i = 0;
@@ -109,15 +116,27 @@ export function eventTestHelper(pathAndEvents, helperName?) {
       const expected = expectedPathAndEvents[i];
       const actual = actualPathAndEvents[i];
 
-      if (expected[0] != actual[0] || expected[1][0] != actual[1][0] || expected[1][1] != actual[1][1]) {
-        throw helperName + 'Event ' + i + ' incorrect. Expected: ' + pathAndEventToString(expected) +
-            ' Actual: ' + pathAndEventToString(actual);
+      if (
+        expected[0] != actual[0] ||
+        expected[1][0] != actual[1][0] ||
+        expected[1][1] != actual[1][1]
+      ) {
+        throw helperName +
+          'Event ' +
+          i +
+          ' incorrect. Expected: ' +
+          pathAndEventToString(expected) +
+          ' Actual: ' +
+          pathAndEventToString(actual);
       }
       i++;
     }
 
     if (expectedPathAndEvents.length < actualPathAndEvents.length) {
-      throw helperName + "Extra event detected '" + pathAndEventToString(actualPathAndEvents[i]) + "'.";
+      throw helperName +
+        "Extra event detected '" +
+        pathAndEventToString(actualPathAndEvents[i]) +
+        "'.";
     }
 
     // If we haven't thrown and both arrays are the same length, then we're
@@ -142,14 +161,12 @@ export function eventTestHelper(pathAndEvents, helperName?) {
       path.off('child_moved', movedCB);
       path.off('child_changed', changedCB);
       path.off('value', valueCB);
-    }
+    };
   };
-
 
   const addExpectedEvents = function(pathAndEvents) {
     const pathsToListenOn = [];
     for (let i = 0; i < pathAndEvents.length; i++) {
-
       const pathAndEvent = pathAndEvents[i];
 
       const path = pathAndEvent[0];
@@ -159,8 +176,7 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
       pathAndEvent[0] = rawPath(path);
 
-      if (pathAndEvent[1][0] === 'value')
-        pathAndEvent[1][1] = path.key;
+      if (pathAndEvent[1][0] === 'value') pathAndEvent[1][1] = path.key;
 
       expectedPathAndEvents.push(pathAndEvent);
     }
@@ -177,11 +193,13 @@ export function eventTestHelper(pathAndEvents, helperName?) {
     // Notice the 3rd and 4th events are swapped.
     // To mitigate this, we re-ordeer your event registrations and do them in order of shortest path to longest.
 
-    pathsToListenOn.sort(function(a, b) { return a.toString().length - b.toString().length; });
+    pathsToListenOn.sort(function(a, b) {
+      return a.toString().length - b.toString().length;
+    });
     for (let i = 0; i < pathsToListenOn.length; i++) {
       let path = pathsToListenOn[i];
       if (!pathEventListeners[path.toString()]) {
-        pathEventListeners[path.toString()] = { };
+        pathEventListeners[path.toString()] = {};
         pathEventListeners[path.toString()].initialized = false;
         pathEventListeners[path.toString()].unlisten = listenOnPath(path);
       }
@@ -197,12 +215,14 @@ export function eventTestHelper(pathAndEvents, helperName?) {
 
   const watchesInitializedWaiter = function() {
     for (let path in pathEventListeners) {
-      if (!pathEventListeners[path].initialized)
-        return false;
+      if (!pathEventListeners[path].initialized) return false;
     }
 
     // Remove any initialization events.
-    actualPathAndEvents.splice(actualPathAndEvents.length - initializationEvents, initializationEvents);
+    actualPathAndEvents.splice(
+      actualPathAndEvents.length - initializationEvents,
+      initializationEvents
+    );
     initializationEvents = 0;
 
     resolveInit();

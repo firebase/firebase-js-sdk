@@ -26,10 +26,10 @@ export default {
     return tokenManager.closeDatabase();
   },
   getTokenDetailsFromDB: () => {
-    return tokenManager.openDatabase_()
-    .then(db => {
+    return tokenManager.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
-        const objectStore = db.transaction([FCM_TOKEN_OBJ_STORE])
+        const objectStore = db
+          .transaction([FCM_TOKEN_OBJ_STORE])
           .objectStore(FCM_TOKEN_OBJ_STORE);
 
         const allDetails = [];
@@ -51,8 +51,7 @@ export default {
   },
 
   addObjectToIndexDB: object => {
-    return tokenManager.openDatabase_()
-    .then(db => {
+    return tokenManager.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE], 'readwrite');
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
@@ -68,8 +67,7 @@ export default {
   },
 
   updateObjectInIndexDb: object => {
-    return tokenManager.openDatabase_()
-    .then(db => {
+    return tokenManager.openDatabase_().then(db => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction([FCM_TOKEN_OBJ_STORE], 'readwrite');
         const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);

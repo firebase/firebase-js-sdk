@@ -25,7 +25,7 @@ export class Deferred {
   resolve;
   reject;
   promise;
-  
+
   /** @constructor */
   constructor() {
     var self = this;
@@ -70,8 +70,7 @@ export class Deferred {
     }
     return meta;
   }
-};
-
+}
 
 /**
  * Chrome (and maybe other browsers) report an Error in the console if you reject a promise

@@ -64,9 +64,10 @@ export type Executor<T> = (observer: Observer<T>) => void;
  *     as a proxy.
  * @param onNoObservers Callback when count of Observers goes to zero.
  */
-export function createSubscribe<T>(executor: Executor<T>,
-                                   onNoObservers?: Executor<T>)
-: Subscribe<T> {
+export function createSubscribe<T>(
+  executor: Executor<T>,
+  onNoObservers?: Executor<T>
+): Subscribe<T> {
   let proxy = new ObserverProxy<T>(executor, onNoObservers);
   return proxy.subscribe.bind(proxy);
 }
@@ -75,10 +76,10 @@ export function createSubscribe<T>(executor: Executor<T>,
  * Implement fan-out for any number of Observers attached via a subscribe
  * function.
  */
-class ObserverProxy<T> implements Observer<T>{
-  private observers: Array<Observer<T>>|undefined = [];
+class ObserverProxy<T> implements Observer<T> {
+  private observers: Array<Observer<T>> | undefined = [];
   private unsubscribes: Unsubscribe[] = [];
-  private onNoObservers: Executor<T>|undefined;
+  private onNoObservers: Executor<T> | undefined;
   private observerCount = 0;
   // Micro-task scheduling by calling task.then().
   private task = PromiseImpl.resolve();
@@ -99,7 +100,7 @@ class ObserverProxy<T> implements Observer<T>{
       .then(() => {
         executor(this);
       })
-      .catch((e) => {
+      .catch(e => {
         this.error(e);
       });
   }
@@ -130,15 +131,19 @@ class ObserverProxy<T> implements Observer<T>{
    * - We require that no event is sent to a subscriber sychronously to their
    *   call to subscribe().
    */
-  subscribe(nextOrObserver: PartialObserver<T> | Function,
-            error?: ErrorFn,
-            complete?: CompleteFn)
-  : Unsubscribe {
+  subscribe(
+    nextOrObserver: PartialObserver<T> | Function,
+    error?: ErrorFn,
+    complete?: CompleteFn
+  ): Unsubscribe {
     let observer: Observer<T>;
 
-    if (nextOrObserver === undefined && error === undefined &&
-        complete === undefined) {
-      throw new Error("Missing Observer.");
+    if (
+      nextOrObserver === undefined &&
+      error === undefined &&
+      complete === undefined
+    ) {
+      throw new Error('Missing Observer.');
     }
 
     // Assemble an Observer object when passed as callback functions.
@@ -148,7 +153,7 @@ class ObserverProxy<T> implements Observer<T>{
       observer = {
         next: (nextOrObserver as any) as NextFn<T>,
         error: error,
-        complete: complete,
+        complete: complete
       } as Observer<T>;
     }
 
@@ -191,7 +196,7 @@ class ObserverProxy<T> implements Observer<T>{
   // any unsubscribed Observer.
   private unsubscribeOne(i: number) {
     if (this.observers === undefined || this.observers[i] === undefined) {
-        return;
+      return;
     }
 
     delete this.observers[i];
@@ -228,7 +233,7 @@ class ObserverProxy<T> implements Observer<T>{
           // Ignore exceptions raised in Observers or missing methods of an
           // Observer.
           // Log error to console. b/31404806
-          if (typeof console !== "undefined" && console.error) {
+          if (typeof console !== 'undefined' && console.error) {
             console.error(e);
           }
         }
@@ -271,7 +276,7 @@ export function async(fn: Function, onError?: ErrorFn): Function {
  * Return true if the object passed in implements any of the named methods.
  */
 function implementsAnyMethods(obj: any, methods: string[]): boolean {
-  if (typeof(obj) !== 'object' || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 

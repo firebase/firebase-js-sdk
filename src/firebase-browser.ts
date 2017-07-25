@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import firebase from "./app";
+import firebase from './app';
 import './auth';
 import './database';
 import './storage';

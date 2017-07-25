@@ -19,7 +19,7 @@ import * as type from './type';
  * Returns the Object resulting from parsing the given JSON, or null if the
  * given string does not represent a JSON object.
  */
-export function jsonObjectOrNull(s: string): {[name: string]: any}|null {
+export function jsonObjectOrNull(s: string): { [name: string]: any } | null {
   let obj;
   try {
     obj = JSON.parse(s);

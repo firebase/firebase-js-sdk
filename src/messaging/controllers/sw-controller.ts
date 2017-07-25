@@ -23,7 +23,6 @@ import FCMDetails from '../models/fcm-details';
 const FCM_MSG = 'FCM_MSG';
 
 export default class SWController extends ControllerInterface {
-
   private bgMessageHandler_: (input: Object) => Promise<any>;
 
   constructor(app) {
@@ -31,9 +30,15 @@ export default class SWController extends ControllerInterface {
 
     self.addEventListener('push', e => this.onPush_(e), false);
     self.addEventListener(
-        'pushsubscriptionchange', e => this.onSubChange_(e), false);
+      'pushsubscriptionchange',
+      e => this.onSubChange_(e),
+      false
+    );
     self.addEventListener(
-        'notificationclick', e => this.onNotificationClick_(e), false);
+      'notificationclick',
+      e => this.onNotificationClick_(e),
+      false
+    );
 
     /**
      * @private
@@ -64,26 +69,29 @@ export default class SWController extends ControllerInterface {
       return;
     }
 
-    const handleMsgPromise = this.hasVisibleClients_()
-    .then(hasVisibleClients => {
-      if (hasVisibleClients) {
-        // Do not need to show a notification.
-        if (msgPayload.notification || this.bgMessageHandler_) {
-          // Send to page
-          return this.sendMessageToWindowClients_(msgPayload);
+    const handleMsgPromise = this.hasVisibleClients_().then(
+      hasVisibleClients => {
+        if (hasVisibleClients) {
+          // Do not need to show a notification.
+          if (msgPayload.notification || this.bgMessageHandler_) {
+            // Send to page
+            return this.sendMessageToWindowClients_(msgPayload);
+          }
+          return;
         }
-        return;
-      }
 
-      const notificationDetails = this.getNotificationData_(msgPayload);
-      if (notificationDetails) {
-        const notificationTitle = notificationDetails.title || '';
-        return (self as any).registration
-          .showNotification(notificationTitle, notificationDetails);
-      } else if (this.bgMessageHandler_) {
-        return this.bgMessageHandler_(msgPayload);
+        const notificationDetails = this.getNotificationData_(msgPayload);
+        if (notificationDetails) {
+          const notificationTitle = notificationDetails.title || '';
+          return (self as any).registration.showNotification(
+            notificationTitle,
+            notificationDetails
+          );
+        } else if (this.bgMessageHandler_) {
+          return this.bgMessageHandler_(msgPayload);
+        }
       }
-    });
+    );
 
     event.waitUntil(handleMsgPromise);
   }
@@ -92,17 +100,18 @@ export default class SWController extends ControllerInterface {
   * @private
   */
   onSubChange_(event) {
-    const promiseChain = this.getToken()
-      .then(token => {
-        if (!token) {
-          // We can't resubscribe if we don't have an FCM token for this scope.
-          throw this.errorFactory_.create(
-              Errors.codes.NO_FCM_TOKEN_FOR_RESUBSCRIBE);
-        }
+    const promiseChain = this.getToken().then(token => {
+      if (!token) {
+        // We can't resubscribe if we don't have an FCM token for this scope.
+        throw this.errorFactory_.create(
+          Errors.codes.NO_FCM_TOKEN_FOR_RESUBSCRIBE
+        );
+      }
 
-        let tokenDetails = null;
-        const tokenManager = this.getTokenManager();
-        return tokenManager.getTokenDetailsFromToken(token)
+      let tokenDetails = null;
+      const tokenManager = this.getTokenManager();
+      return tokenManager
+        .getTokenDetailsFromToken(token)
         .then(details => {
           tokenDetails = details;
           if (!tokenDetails) {
@@ -110,7 +119,9 @@ export default class SWController extends ControllerInterface {
           }
 
           // Attempt to get a new subscription
-          return (self as any).registration.pushManager.subscribe(FCMDetails.SUBSCRIPTION_OPTIONS);
+          return (self as any).registration.pushManager.subscribe(
+            FCMDetails.SUBSCRIPTION_OPTIONS
+          );
         })
         .then(newSubscription => {
           // Send new subscription to FCM.
@@ -123,16 +134,16 @@ export default class SWController extends ControllerInterface {
         .catch(err => {
           // The best thing we can do is log this to the terminal so
           // developers might notice the error.
-          return tokenManager.deleteToken(tokenDetails.fcmToken)
-          .then(() => {
+          return tokenManager.deleteToken(tokenDetails.fcmToken).then(() => {
             throw this.errorFactory_.create(
-              Errors.codes.UNABLE_TO_RESUBSCRIBE, {
-                'message': err
+              Errors.codes.UNABLE_TO_RESUBSCRIBE,
+              {
+                message: err
               }
             );
           });
         });
-      });
+    });
 
     event.waitUntil(promiseChain);
   }
@@ -141,8 +152,13 @@ export default class SWController extends ControllerInterface {
   * @private
   */
   onNotificationClick_(event) {
-    if (!(event.notification && event.notification.data &&
-        event.notification.data[FCM_MSG])) {
+    if (
+      !(
+        event.notification &&
+        event.notification.data &&
+        event.notification.data[FCM_MSG]
+      )
+    ) {
       // Not an FCM notification, do nothing.
       return;
     }
@@ -160,30 +176,31 @@ export default class SWController extends ControllerInterface {
     }
 
     const promiseChain = this.getWindowClient_(clickAction)
-    .then(windowClient => {
-      if (!windowClient) {
-        // Unable to find window client so need to open one.
-        return (self as any).clients.openWindow(clickAction);
-      }
-      return windowClient;
-    })
-    .then(windowClient => {
-      if (!windowClient) {
-        // Window Client will not be returned if it's for a third party origin.
-        return;
-      }
+      .then(windowClient => {
+        if (!windowClient) {
+          // Unable to find window client so need to open one.
+          return (self as any).clients.openWindow(clickAction);
+        }
+        return windowClient;
+      })
+      .then(windowClient => {
+        if (!windowClient) {
+          // Window Client will not be returned if it's for a third party origin.
+          return;
+        }
 
-      // Delete notification data from payload before sending to the page.
-      const notificationData = msgPayload['notification'];
-      delete msgPayload['notification'];
+        // Delete notification data from payload before sending to the page.
+        const notificationData = msgPayload['notification'];
+        delete msgPayload['notification'];
 
-      const internalMsg = WorkerPageMessage.createNewMsg(
+        const internalMsg = WorkerPageMessage.createNewMsg(
           WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED,
-          msgPayload);
-      // Attempt to send a message to the client to handle the data
-      // Is affected by: https://github.com/slightlyoff/ServiceWorker/issues/728
-      return this.attemptToMessageClient_(windowClient, internalMsg);
-    });
+          msgPayload
+        );
+        // Attempt to send a message to the client to handle the data
+        // Is affected by: https://github.com/slightlyoff/ServiceWorker/issues/728
+        return this.attemptToMessageClient_(windowClient, internalMsg);
+      });
 
     event.waitUntil(promiseChain);
   }
@@ -232,7 +249,8 @@ export default class SWController extends ControllerInterface {
   setBackgroundMessageHandler(callback) {
     if (callback && typeof callback !== 'function') {
       throw this.errorFactory_.create(
-        Errors.codes.BG_HANDLER_FUNCTION_EXPECTED);
+        Errors.codes.BG_HANDLER_FUNCTION_EXPECTED
+      );
     }
 
     this.bgMessageHandler_ = callback;
@@ -249,25 +267,26 @@ export default class SWController extends ControllerInterface {
     // This at least handles whether to include trailing slashes or not
     const parsedURL = new URL(url).href;
 
-    return (self as any).clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(clientList => {
-      let suitableClient = null;
-      for (let i = 0; i < clientList.length; i++) {
-        const parsedClientUrl = new URL(clientList[i].url).href;
-        if (parsedClientUrl === parsedURL) {
-          suitableClient = clientList[i];
-          break;
+    return (self as any).clients
+      .matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      })
+      .then(clientList => {
+        let suitableClient = null;
+        for (let i = 0; i < clientList.length; i++) {
+          const parsedClientUrl = new URL(clientList[i].url).href;
+          if (parsedClientUrl === parsedURL) {
+            suitableClient = clientList[i];
+            break;
+          }
         }
-      }
 
-      if (suitableClient) {
-        suitableClient.focus();
-        return suitableClient;
-      }
-    });
+        if (suitableClient) {
+          suitableClient.focus();
+          return suitableClient;
+        }
+      });
   }
 
   /**
@@ -282,8 +301,9 @@ export default class SWController extends ControllerInterface {
   attemptToMessageClient_(client, message) {
     return new Promise((resolve, reject) => {
       if (!client) {
-        return reject(this.errorFactory_.create(
-          Errors.codes.NO_WINDOW_CLIENT_TO_MSG));
+        return reject(
+          this.errorFactory_.create(Errors.codes.NO_WINDOW_CLIENT_TO_MSG)
+        );
       }
 
       client.postMessage(message);
@@ -297,13 +317,14 @@ export default class SWController extends ControllerInterface {
    * this method will resolve to true, otherwise false.
    */
   hasVisibleClients_() {
-    return (self as any).clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(clientList => {
-      return clientList.some(client => client.visibilityState === 'visible');
-    });
+    return (self as any).clients
+      .matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      })
+      .then(clientList => {
+        return clientList.some(client => client.visibilityState === 'visible');
+      });
   }
 
   /**
@@ -314,21 +335,23 @@ export default class SWController extends ControllerInterface {
    * has been sent to all WindowClients.
    */
   sendMessageToWindowClients_(msgPayload) {
-    return (self as any).clients.matchAll({
-      type: 'window',
-      includeUncontrolled: true
-    })
-    .then(clientList => {
-      const internalMsg = WorkerPageMessage.createNewMsg(
-        WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED,
-        msgPayload);
+    return (self as any).clients
+      .matchAll({
+        type: 'window',
+        includeUncontrolled: true
+      })
+      .then(clientList => {
+        const internalMsg = WorkerPageMessage.createNewMsg(
+          WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED,
+          msgPayload
+        );
 
-      return Promise.all(
-        clientList.map(client => {
-          return this.attemptToMessageClient_(client, internalMsg);
-        })
-      );
-    });
+        return Promise.all(
+          clientList.map(client => {
+            return this.attemptToMessageClient_(client, internalMsg);
+          })
+        );
+      });
   }
 
   /**

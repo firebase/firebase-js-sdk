@@ -13,18 +13,23 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import {TaskState} from './implementation/taskenums';
+import { TaskState } from './implementation/taskenums';
 import * as type from './implementation/type';
-import {Metadata} from './metadata';
-import {Reference} from './reference';
-import {UploadTask} from './task';
+import { Metadata } from './metadata';
+import { Reference } from './reference';
+import { UploadTask } from './task';
 
 export class UploadTaskSnapshot {
-  constructor(readonly bytesTransferred: number, readonly totalBytes: number,
-      readonly state: TaskState, readonly metadata: Metadata|null, 
-      readonly task: UploadTask, readonly ref: Reference) {}
+  constructor(
+    readonly bytesTransferred: number,
+    readonly totalBytes: number,
+    readonly state: TaskState,
+    readonly metadata: Metadata | null,
+    readonly task: UploadTask,
+    readonly ref: Reference
+  ) {}
 
-  get downloadURL(): string|null {
+  get downloadURL(): string | null {
     if (this.metadata !== null) {
       let urls = this.metadata['downloadURLs'];
       if (urls != null && urls[0] != null) {

@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
-import { Path } from "../util/Path";
+import { Path } from '../util/Path';
 import { Operation, OperationSource, OperationType } from './Operation';
 
 /**
@@ -27,8 +27,7 @@ export class ListenComplete implements Operation {
   /** @inheritDoc */
   type = OperationType.LISTEN_COMPLETE;
 
-  constructor(public source: OperationSource, public path: Path) {
-  }
+  constructor(public source: OperationSource, public path: Path) {}
 
   operationForChild(childName: string): ListenComplete {
     if (this.path.isEmpty()) {
