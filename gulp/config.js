@@ -182,7 +182,8 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     },
     customLaunchers,
     browsers: Object.keys(customLaunchers),
-    reporters: [...configObj.karma.reporters, 'saucelabs']
+    reporters: [...configObj.karma.reporters, 'saucelabs'],
+    concurrency: Infinity
   });
 
   console.log(configObj.karma);
