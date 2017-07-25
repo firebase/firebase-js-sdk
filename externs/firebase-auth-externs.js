@@ -131,6 +131,13 @@ firebase.UserInfo.prototype.displayName;
 firebase.UserInfo.prototype.photoURL;
 
 /**
+ * The user's E.164 formatted phone number (if available).
+ *
+ * @type {?string}
+ */
+firebase.UserInfo.prototype.phoneNumber;
+
+/**
  * A user account.
  *
  * @interface
@@ -480,7 +487,7 @@ firebase.User.prototype.reauthenticateWithCredential = function(credential) {};
  * </dl>
  *
  * @param {!firebase.auth.AuthCredential} credential
- * @return {!firebase.Promise<void>}
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.User.prototype.reauthenticateAndRetrieveDataWithCredential =
     function(credential) {};
@@ -786,6 +793,69 @@ firebase.auth.Auth.prototype.app;
  * @type {firebase.User|null}
  */
 firebase.auth.Auth.prototype.currentUser;
+
+/**
+ * @enum {string}
+ * An enumeration of the possible persistence mechanism types.
+ */
+firebase.auth.Auth.Persistence = {
+  /**
+   * Indicates that the state will be persisted even when the browser window is
+   * closed or the activity is destroyed in react-native.
+   */
+  LOCAL: 'local',
+  /**
+   * Indicates that the state will only be stored in memory and will be cleared
+   * when the window or activity is refreshed.
+   */
+  NONE: 'none',
+  /**
+   * Indicates that the state will only persist in current session/tab, relevant
+   * to web only, and will be cleared when the tab is closed.
+   */
+  SESSION: 'session'
+};
+
+/**
+ * Changes the current type of persistence on the current Auth instance for the
+ * currently saved Auth session and applies this type of persistence for
+ * future sign-in requests, including sign-in with redirect requests. This will
+ * return a promise that will resolve once the state finishes copying from one
+ * type of storage to the other.
+ * Calling a sign-in method after changing persistence will wait for that
+ * persistence change to complete before applying it on the new Auth state.
+ *
+ * This makes it easy for a user signing in to specify whether their session
+ * should be remembered or not. It also makes it easier to never persist the
+ * Auth state for applications that are shared by other users or have sensitive
+ * data.
+ *
+ * The default for web browser apps and React Native apps is 'local' (provided
+ * the browser supports this mechanism) whereas it is 'none' for Node.js backend
+ * apps.
+ *
+ * <h4>Error Codes (thrown synchronously)</h4>
+ * <dl>
+ * <dt>auth/invalid-persistence-type</dt>
+ * <dd>Thrown if the specified persistence type is invalid.</dd>
+ * <dt>auth/unsupported-persistence-type</dt>
+ * <dd>Thrown if the current environment does not support the specified
+ *     persistence type.</dd>
+ * </dl>
+ *
+ * @example
+ * firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
+ *     .then(function() {
+ *   // Existing and future Auth states are now persisted in the current
+ *   // session only. Closing the window would clear any existing state even if
+ *   // a user forgets to sign out.
+ * });
+ *
+ * @param {!firebase.auth.Auth.Persistence} persistence The auth state
+ *     persistence mechanism.
+ * @return {!firebase.Promise<void>}
+ */
+firebase.auth.Auth.prototype.setPersistence = function(persistence) {};
 
 /**
  * Creates a new user account associated with the specified email address and
