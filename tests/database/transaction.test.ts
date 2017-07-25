@@ -56,6 +56,16 @@ describe('Transaction Tests', function() {
     expect(eventHelper.waiter()).to.equal(true);
   });
 
+  it('Transaction result can be converted to JSON.', function() {
+    const node = (getRandomNode() as Reference);
+
+    return node.transaction(() => {
+      return 42;
+    }).then(transactionResult => {
+      expect(transactionResult.toJSON()).to.deep.equal({ committed: true, snapshot: 42 });
+    });
+  });
+
   it('Non-aborted transaction sets committed to true in callback.', function(done) {
     const node = (getRandomNode() as Reference);
 
