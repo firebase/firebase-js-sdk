@@ -206,7 +206,7 @@ export class Reference extends Query {
    */
   transaction(transactionUpdate: (a: any) => any,
               onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => void,
-              applyLocally?: boolean): Promise<any> {
+              applyLocally?: boolean): Promise<TransactionResult> {
     validateArgCount('Reference.transaction', 1, 3, arguments.length);
     validateWritablePath('Reference.transaction', this.path);
     validateCallback('Reference.transaction', 1, transactionUpdate, false);
