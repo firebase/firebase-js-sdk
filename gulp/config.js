@@ -151,16 +151,16 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
       browserName: 'chrome',
       version: 'latest'
     },
-    // sl_firefox: {
-    //   base: 'SauceLabs',
-    //   browserName: 'firefox',
-    //   version: 'latest'
-    // },
-    // sl_safari: {
-    //   base: 'SauceLabs',
-    //   browserName: 'Safari',
-    //   version: '10.0'
-    // },
+    sl_firefox: {
+      base: 'SauceLabs',
+      browserName: 'firefox',
+      version: 'latest'
+    },
+    sl_safari: {
+      base: 'SauceLabs',
+      browserName: 'Safari',
+      version: '10.0'
+    },
     // sl_ie_11: {
     //   base: 'SauceLabs',
     //   browserName: 'internet explorer',
