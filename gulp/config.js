@@ -149,12 +149,12 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     sl_chrome: {
       base: 'SauceLabs',
       browserName: 'chrome',
-      version: 'latest-2'
+      version: 'latest'
     },
     // sl_firefox: {
     //   base: 'SauceLabs',
     //   browserName: 'firefox',
-    //   version: 'latest-2'
+    //   version: 'latest'
     // },
     // sl_safari: {
     //   base: 'SauceLabs',
