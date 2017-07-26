@@ -161,7 +161,7 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
       base: 'SauceLabs',
       browserName: 'Safari',
       platform: 'macOS 10.12',
-      version: 'latest-2'
+      version: '10.0'
     },
     sl_ie_11: {
       base: 'SauceLabs',
@@ -172,7 +172,7 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     sl_ie_10: {
       base: 'SauceLabs',
       browserName: 'internet explorer',
-      platform: 'Windows 8.1',
+      platform: 'Windows 7',
       version: '10'
     }
   }
