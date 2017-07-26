@@ -185,8 +185,6 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     reporters: [...configObj.karma.reporters, 'saucelabs'],
     concurrency: Infinity
   });
-
-  console.log(configObj.karma);
 }
 
 module.exports = configObj;
