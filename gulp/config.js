@@ -179,7 +179,8 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
   Object.assign(configObj.karma, {
     sauceLabs: {
       testName: 'Firebase JS SDK Tests',
-      startConnect: false
+      startConnect: false,
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
     },
     customLaunchers,
     browsers: Object.keys(customLaunchers),
