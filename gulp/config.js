@@ -161,6 +161,11 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
       browserName: 'Safari',
       version: '10.0'
     },
+    sl_edge: {
+      base: 'SauceLabs',
+      browserName: 'MicrosoftEdge',
+      version: 'latest'
+    },
     // sl_ie_11: {
     //   base: 'SauceLabs',
     //   browserName: 'internet explorer',
@@ -185,7 +190,7 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     customLaunchers,
     browsers: Object.keys(customLaunchers),
     reporters: [...configObj.karma.reporters, 'saucelabs'],
-    concurrency: Infinity
+    concurrency: 2
   });
 }
 
