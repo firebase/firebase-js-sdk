@@ -149,32 +149,28 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     sl_chrome: {
       base: 'SauceLabs',
       browserName: 'chrome',
-      platform: 'Windows 7',
       version: 'latest-2'
     },
-    sl_firefox: {
-      base: 'SauceLabs',
-      browserName: 'firefox',
-      version: 'latest-2'
-    },
-    sl_safari: {
-      base: 'SauceLabs',
-      browserName: 'Safari',
-      platform: 'macOS 10.12',
-      version: '10.0'
-    },
-    sl_ie_11: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 8.1',
-      version: '11'
-    },
-    sl_ie_10: {
-      base: 'SauceLabs',
-      browserName: 'internet explorer',
-      platform: 'Windows 7',
-      version: '10'
-    }
+    // sl_firefox: {
+    //   base: 'SauceLabs',
+    //   browserName: 'firefox',
+    //   version: 'latest-2'
+    // },
+    // sl_safari: {
+    //   base: 'SauceLabs',
+    //   browserName: 'Safari',
+    //   version: '10.0'
+    // },
+    // sl_ie_11: {
+    //   base: 'SauceLabs',
+    //   browserName: 'internet explorer',
+    //   version: '11'
+    // },
+    // sl_ie_10: {
+    //   base: 'SauceLabs',
+    //   browserName: 'internet explorer',
+    //   version: '10'
+    // }
   }
   Object.assign(configObj.karma, {
     sauceLabs: {
