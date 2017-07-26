@@ -173,6 +173,7 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     // }
   }
   Object.assign(configObj.karma, {
+    browserNoActivityTimeout: 30000,
     sauceLabs: {
       testName: 'Firebase JS SDK Tests',
       startConnect: false,
