@@ -10,9 +10,6 @@ We'd love for you to contribute to our source code and to help make the Firebase
  - [Coding Rules](#rules)
  - [Signing the CLA](#cla)
 
-Want to contribute? Great! First, read this page (including the small print at
-the end).
-
 ## <a name="coc"></a> Code of Conduct
 
 As contributors and maintainers of the Firebase JS SDK project, we pledge to respect everyone who contributes by posting issues, updating documentation, submitting pull requests, providing feedback in comments, and any other activities.
@@ -38,7 +35,7 @@ See [below](#submit) for some guidelines.
 
 ## <a name="other-issue"></a> Production Issues
 
-If you have a production issue, please [contact support][support]
+If you have a production issue, please [contact Firebase support][support] who will work with you to resolve the issue. 
 
 ## <a name="submit"></a> Submission Guidelines
 
@@ -65,8 +62,7 @@ Also as a great rule of thumb:
 
 ### Before you contribute
 
-Before we can use your code, you must sign the [Google Individual Contributor License Agreement](https://cla.developers.google.com/about/google-individual) (CLA), which you can do online. The CLA is necessary mainly because you own the
-copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
+Before we can use your code, you must sign the [Google Individual Contributor License Agreement][google-cla] (CLA), which you can do online. The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
 
 ### Pull Request Guidelines
 
@@ -119,10 +115,9 @@ you can simply use `git cz` to create properly formatted commit messages.
 [firebase-google-group]: https://groups.google.com/forum/#!forum/firebase-talk
 [github]: https://github.com/firebase/firebase-js-sdk
 [global-gitignore]: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
-[google-cla]: https://cla.developers.google.com
+[google-cla]: https://cla.developers.google.com/about/google-individual
 [js-style-guide]: http://google.github.io/styleguide/javascriptguide.xml
 [jsbin]: http://jsbin.com/rinilu/edit?js,console
-[py-style-guide]: http://google.github.io/styleguide/pyguide.html
 [slack]: https://firebase-community.appspot.com/
 [stackoverflow]: http://stackoverflow.com/questions/tagged/firebase
 [support]: https://firebase.google.com/support/
