@@ -161,6 +161,13 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
       browserName: 'Safari',
       version: '10.0'
     },
+    sl_iphone_safari: {
+      base: 'SauceLabs',
+      browserName: 'Safari',
+      deviceName: 'iPhone Simulator',
+      platformVersion: 'latest',
+      platformName: 'iOS'
+    },
     sl_edge: {
       base: 'SauceLabs',
       browserName: 'MicrosoftEdge',
