@@ -176,7 +176,10 @@ if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS
     sauceLabs: {
       testName: 'Firebase JS SDK Tests',
       startConnect: false,
-      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+      connectOptions: {
+        logger: console.log.bind(console)
+      }
     },
     customLaunchers,
     browsers: Object.keys(customLaunchers),
