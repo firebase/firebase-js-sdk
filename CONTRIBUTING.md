@@ -23,32 +23,36 @@ We promise to extend courtesy and respect to everyone involved in this project r
 
 If any member of the community violates this code of conduct, the maintainers of the Firebase JS SDK project may take action, removing issues, comments, and PRs or blocking accounts as deemed appropriate.
 
-If you are subject to or witness unacceptable behavior, or have any other concerns, please drop us a line at samstern@google.com.
+If you are subject to or witness unacceptable behavior, or have any other concerns, please drop us a line at samstern@google.com. 
 
-## <a name="question"></a> Got a Question or Problem?
 
-If you have questions about how to use the Firebase JS SDK, please direct these to [StackOverflow][stackoverflow] and use the `firebase` tag. We are also available on GitHub issues.
+## <a name="question"></a> Got a Question?
 
-If you feel that we're missing an important bit of documentation, feel free to [file an issue][file-an-issue] explaining what's missing.
+If you have questions about how to use the Firebase JS SDK, please direct these to [StackOverflow][stackoverflow] and use the `firebase` tag. You can also use the [Firebase Google Group][firebase-google-group] or [Slack][slack] to contact members of the Firebase team for help.
 
 ## <a name="issue"></a> Found an Issue?
 
-If you find a bug in the source code or a mistake in the documentation, you can help us by submitting an issue to our [GitHub Repository][file-an-issue]. Even better you can submit a Pull Request with a test demonstrating the bug and a fix!
+If you find a bug in the source code, a mistake in the documentation, or some other issue, you can help us by submitting an issue to our [GitHub Repository][github]. Even better you can submit a Pull Request with a test demonstrating the bug and a fix!
 
 See [below](#submit) for some guidelines.
+
+## <a name="other-issue"></a> Production Issues
+
+If you have a production issue, please [contact support][support]
 
 ## <a name="submit"></a> Submission Guidelines
 
 ### Submitting an Issue
-Before you submit your issue search the [archive][archive], maybe your question was already answered.
+
+Before you submit your issue search [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] maybe your question was already answered.
 
 If your issue appears to be a bug, and hasn't been reported, open a new issue. Help us to maximize the effort we can spend fixing issues and adding new features, by not reporting duplicate issues. Providing the following information will increase the chances of your issue being dealt with quickly:
 
 * **Description of the Issue** - if an error is being thrown a non-minified stack trace helps
 * **Motivation for or Use Case** - explain why this is a bug for you
 * **Related Issues** - has a similar issue been reported before?
-* **Environment Configuration** - is this a problem with Node.js? Is this only in a specific version of the SDK?
-* **Reproduce the Error** - provide a live example (like [JSBin][jsbin]), Github repo, or an unambiguous set of steps
+* **Environment Configuration** - is this a problem with Node.js, or only a specific browser? Is this only in a specific version of the SDK?
+* **Reproduce the Error** - provide a live example (like [JSBin][jsbin]), a Github repo, or an unambiguous set of steps
 * **Suggest a Fix** - if you can't fix the bug yourself, perhaps you can point to what might be causing the problem (line of code or commit)
 
 There is an issue template provided to help capture all of this information. Following the template will also help us to route your issue to the appropriate teams faster, helping us to better help you!
@@ -66,8 +70,8 @@ copyright to your changes, even after your contribution becomes part of our code
 
 ### Pull Request Guidelines
 
-* Search [GitHub](https://github.com/firebase/firebase-js-sdk/pulls) for an open or closed Pull Request
-  that relates to your submission. You don't want to duplicate effort.
+* Search [GitHub](https://github.com/firebase/firebase-js-sdk/pulls) for an open or closed Pull Request that relates to your submission. You don't want to duplicate effort.
+* Create an issue to discuss a change before submitting a PR. We'd hate to have to turn down your contributions because of something that could have been communicated early on.
 * Make your changes in a new git branch:
 
   ```shell
@@ -81,7 +85,7 @@ copyright to your changes, even after your contribution becomes part of our code
      ```shell
      git commit -a
      ```
-  Note: the optional commit `-a` command line option will automatically "add" and "rm" edited files.
+  _Note: the optional commit `-a` command line option will automatically "add" and "rm" edited files._
 
 * Test your changes locally to ensure everything is in good working order:
 
@@ -95,7 +99,7 @@ copyright to your changes, even after your contribution becomes part of our code
     git push origin my-fix-branch
     ```
 
-* In GitHub, send a pull request to `functions-samples:master`.
+* In GitHub, send a pull request to `firebase-js-sdk:master`.
 * All pull requests must be reviewed by a member of the Firebase JS SDK team who will merge it when/if they feel it is good to go.
 
 That's it! Thank you for your contribution!
@@ -111,11 +115,14 @@ We are also Commitizen friendly! If you have the [Commitizen CLI](https://npm.im
 you can simply use `git cz` to create properly formatted commit messages.
 
 [archive]: https://github.com/firebase/firebase-js-sdk/issues?utf8=%E2%9C%93&q=is%3Aissue
+[file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
+[firebase-google-group]: https://groups.google.com/forum/#!forum/firebase-talk
 [github]: https://github.com/firebase/firebase-js-sdk
+[global-gitignore]: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
 [google-cla]: https://cla.developers.google.com
 [js-style-guide]: http://google.github.io/styleguide/javascriptguide.xml
-[py-style-guide]: http://google.github.io/styleguide/pyguide.html
 [jsbin]: http://jsbin.com/rinilu/edit?js,console
+[py-style-guide]: http://google.github.io/styleguide/pyguide.html
+[slack]: https://firebase-community.appspot.com/
 [stackoverflow]: http://stackoverflow.com/questions/tagged/firebase
-[global-gitignore]: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
-[file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
+[support]: https://firebase.google.com/support/
