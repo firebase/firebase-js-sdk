@@ -20,12 +20,11 @@ We promise to extend courtesy and respect to everyone involved in this project r
 
 If any member of the community violates this code of conduct, the maintainers of the Firebase JS SDK project may take action, removing issues, comments, and PRs or blocking accounts as deemed appropriate.
 
-If you are subject to or witness unacceptable behavior, or have any other concerns, please drop us a line at samstern@google.com. 
-
+If you are subject to or witness unacceptable behavior, or have any other concerns, please drop us a line at firebase-code-of-conduct@google.com. 
 
 ## <a name="question"></a> Got a Question?
 
-If you have questions about how to use the Firebase JS SDK, please direct these to [StackOverflow][stackoverflow] and use the `firebase` tag. You can also use the [Firebase Google Group][firebase-google-group] or [Slack][slack] to contact members of the Firebase team for help.
+If you have questions about how to use the Firebase JS SDK, please direct these to [StackOverflow][stackoverflow] and use the `firebase` and `javascript` tags. You can also use the [Firebase Google Group][firebase-google-group] or [Slack][slack] to contact members of the Firebase team for help.
 
 ## <a name="issue"></a> Found an Issue?
 
@@ -41,9 +40,9 @@ If you have a production issue, please [contact Firebase support][support] who w
 
 ### Submitting an Issue
 
-Before you submit your issue search [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] maybe your question was already answered.
+Before you submit your issue, search [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] maybe your question was already answered. You can help us to maximize the effort we spend fixing issues, and adding new features, by not reporting duplicate issues. 
 
-If your issue appears to be a bug, and hasn't been reported, open a new issue. Help us to maximize the effort we can spend fixing issues and adding new features, by not reporting duplicate issues. Providing the following information will increase the chances of your issue being dealt with quickly:
+If your issue appears to be a bug, and hasn't been reported, open a new issue. Providing the following information will increase the chances of your issue being dealt with quickly:
 
 * **Description of the Issue** - if an error is being thrown a non-minified stack trace helps
 * **Motivation for or Use Case** - explain why this is a bug for you
@@ -62,12 +61,15 @@ Also as a great rule of thumb:
 
 ### Before you contribute
 
-Before we can use your code, you must sign the [Google Individual Contributor License Agreement][google-cla] (CLA), which you can do online. The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
+Before we can use your code, you must sign the [Google Individual Contributor License Agreement][google-cla] (CLA), which you can do online. The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things, for instance, that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. 
+
+Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
 
 ### Pull Request Guidelines
 
 * Search [GitHub](https://github.com/firebase/firebase-js-sdk/pulls) for an open or closed Pull Request that relates to your submission. You don't want to duplicate effort.
 * Create an issue to discuss a change before submitting a PR. We'd hate to have to turn down your contributions because of something that could have been communicated early on.
+* [Create a fork of the GitHub repo][fork-repo] to ensure that you can push your changes for us to review.
 * Make your changes in a new git branch:
 
   ```shell
@@ -75,7 +77,7 @@ Before we can use your code, you must sign the [Google Individual Contributor Li
   ```
 
 * Create your patch, **including appropriate test cases**. Patches with tests are more likely to be merged.
-* Avoid checking in files that shouldn't be tracked (e.g `node_modules`, `gulp-cache`, `.tmp`, `.idea`). We recommend using a [global](#global-gitignore) gitignore for this.
+* Avoid checking in files that shouldn't be tracked (e.g `node_modules`, `gulp-cache`, `.tmp`, `.idea`). If your development setup automatically creates some of these files, please add them to the `.gitignore` at the root of the package (click [here][gitignore] to read more on how to add entries to the `.gitignore`).
 * Commit your changes using a commit message that follows our [commit message guidelines](#commit-message-guidelines).
 
      ```shell
@@ -89,14 +91,14 @@ Before we can use your code, you must sign the [Google Individual Contributor Li
    npm test
     ```
 
-* Push your branch to GitHub:
+* Push your branch to your fork on GitHub:
 
     ```shell
     git push origin my-fix-branch
     ```
 
 * In GitHub, send a pull request to `firebase-js-sdk:master`.
-* All pull requests must be reviewed by a member of the Firebase JS SDK team who will merge it when/if they feel it is good to go.
+* All pull requests must be reviewed by a member of the Firebase JS SDK team, who will merge it when/if they feel it is good to go.
 
 That's it! Thank you for your contribution!
 
@@ -113,8 +115,9 @@ you can simply use `git cz` to create properly formatted commit messages.
 [archive]: https://github.com/firebase/firebase-js-sdk/issues?utf8=%E2%9C%93&q=is%3Aissue
 [file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
 [firebase-google-group]: https://groups.google.com/forum/#!forum/firebase-talk
+[fork-repo]: https://github.com/firebase/firebase-js-sdk/fork
 [github]: https://github.com/firebase/firebase-js-sdk
-[global-gitignore]: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
+[gitignore]: https://git-scm.com/docs/gitignore
 [google-cla]: https://cla.developers.google.com/about/google-individual
 [js-style-guide]: http://google.github.io/styleguide/javascriptguide.xml
 [jsbin]: http://jsbin.com/rinilu/edit?js,console
