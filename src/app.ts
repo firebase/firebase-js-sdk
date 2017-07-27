@@ -13,6 +13,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
+// Import the needed shims
+import './utils/shims';
+
 // Import the createFirebaseNamespace function
 import { createFirebaseNamespace, FirebaseNamespace } from './app/firebase_app';
 
