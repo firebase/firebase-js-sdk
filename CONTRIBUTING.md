@@ -40,7 +40,7 @@ If you have a production issue, please [contact Firebase support][support] who w
 
 ### Submitting an Issue
 
-Before you submit your issue, search [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] maybe your question was already answered. You can help us to maximize the effort we spend fixing issues, and adding new features, by not reporting duplicate issues. 
+Before you submit your issue, try searching [past issues][archive], [StackOverflow][stackoverflow], and the [Firebase Google Group][firebase-google-group] for issues similar to your own. You can help us to maximize the effort we spend fixing issues, and adding new features, by not reporting duplicate issues. 
 
 If your issue appears to be a bug, and hasn't been reported, open a new issue. Providing the following information will increase the chances of your issue being dealt with quickly:
 
@@ -61,9 +61,9 @@ Also as a great rule of thumb:
 
 ### Before you contribute
 
-Before we can use your code, you must sign the [Google Individual Contributor License Agreement][google-cla] (CLA), which you can do online. The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things, for instance, that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. 
+Before we can use your code, you must sign the [Google Individual Contributor License Agreement][google-cla] (CLA), which you can do online. The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code. We also need to be sure of various other things, for instance, that you'll tell us if you know that your code infringes on other people's patents. You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase. There is also a nifty CLA bot that will guide you through this process if you are going through it for the first time.
 
-Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
+Before you start working on a larger contribution, you should get in touch with us first through the issue tracker with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on. Some pull requests (large contributions, API additions/changes, etc) may be subject to additional internal review, we appreciate your patience as we fully validate your contribution.
 
 ### Pull Request Guidelines
 
