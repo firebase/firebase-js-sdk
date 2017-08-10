@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 declare namespace firebase {
-  type CompleteFn = ( ) => undefined ;
+  type CompleteFn = ( ) => void ;
 
   interface FirebaseError {
     code : string ;
@@ -47,7 +47,7 @@ declare namespace firebase {
     then (onResolve ? : (a : T ) => any , onReject ? : (a : Error ) => any ) : firebase.Thenable < any > ;
   }
 
-  type Unsubscribe = ( ) => undefined ;
+  type Unsubscribe = ( ) => void ;
 
   interface User extends firebase.UserInfo {
     delete ( ) : firebase.Promise < any > ;
