@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 declare namespace firebase {
-  type CompleteFn = ( ) => undefined ;
+  type CompleteFn = ( ) => void ;
 
   interface FirebaseError {
     code : string ;
@@ -35,7 +35,7 @@ declare namespace firebase {
     static resolve < T > (value ? : T ) : firebase.Promise < T > ;
   }
   class Promise_Instance < T > implements firebase.Thenable < any > {
-    constructor (resolver : (a : (a : T ) => undefined , b : (a : Error ) => undefined ) => any ) ;
+    constructor (resolver : (a : (a : T ) => void , b : (a : Error ) => void ) => any ) ;
     catch (onReject ? : (a : Error ) => any ) : firebase.Thenable < any > ;
     then (onResolve ? : (a : T ) => any , onReject ? : (a : Error ) => any ) : firebase.Promise < any > ;
   }
@@ -47,7 +47,7 @@ declare namespace firebase {
     then (onResolve ? : (a : T ) => any , onReject ? : (a : Error ) => any ) : firebase.Thenable < any > ;
   }
 
-  type Unsubscribe = ( ) => undefined ;
+  type Unsubscribe = ( ) => void ;
 
   interface User extends firebase.UserInfo {
     delete ( ) : firebase.Promise < any > ;
