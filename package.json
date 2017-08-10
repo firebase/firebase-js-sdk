@@ -18,12 +18,12 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "build": "gulp build",
     "build:package": "gulp build && cd dist/package && npm install --production && npm shrinkwrap && npm pack && shx mv *.tgz ../",
-    "test": "gulp build && gulp build:tests && gulp test && gulp test:integration",
-    "dev": "gulp dev",
+    "build": "gulp build",
     "commitmsg": "validate-commit-msg",
-    "precommit": "lint-staged"
+    "dev": "gulp dev",
+    "precommit": "lint-staged",
+    "test": "gulp test"
   },
   "main": "index.js",
   "devDependencies": {
@@ -85,7 +85,8 @@
     "vinyl-named": "^1.1.0",
     "webpack": "^3.0.0",
     "webpack-stream": "^3.2.0",
-    "wrapper-webpack-plugin": "^0.1.11"
+    "wrapper-webpack-plugin": "^0.1.11",
+    "yargs": "^8.0.2"
   },
   "dependencies": {
     "dom-storage": "^2.0.2",

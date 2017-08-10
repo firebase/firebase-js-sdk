@@ -32,8 +32,7 @@ import * as XhrIoExports from './xhrio';
 import { Headers, XhrIo } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 import { FirebaseNamespace } from '../../app/firebase_app';
-
-declare var firebase: FirebaseNamespace;
+import firebase from '../../app';
 
 /**
  * @template T

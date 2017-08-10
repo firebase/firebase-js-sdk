@@ -15,14 +15,13 @@
 */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import firebase from '../../../src/app';
 import { FirebaseNamespace } from '../../../src/app/firebase_app';
 import { makeRequest } from '../../../src/storage/implementation/request';
 import { RequestInfo } from '../../../src/storage/implementation/requestinfo';
 import { Headers, XhrIo } from '../../../src/storage/implementation/xhrio';
 import { makePool } from './testshared';
 import { TestingXhrIo } from './xhrio';
-
-declare var firebase: FirebaseNamespace;
 
 describe('Firebase Storage > Request', () => {
   const versionHeaderName = 'X-Firebase-Storage-Version';
@@ -78,6 +77,7 @@ describe('Firebase Storage > Request', () => {
           const expectedHeaders = {};
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
+          console.log(args[4], expectedHeaders);
           assert.deepEqual(args[4], expectedHeaders);
         },
         error => {
@@ -224,6 +224,7 @@ describe('Firebase Storage > Request', () => {
         const args = spiedSend.getCall(0).args;
         const expectedHeaders = { Authorization: 'Firebase ' + authToken };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
+        console.log(args[4], expectedHeaders);
         assert.deepEqual(args[4], expectedHeaders);
       },
       error => {
