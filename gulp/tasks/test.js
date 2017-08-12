@@ -26,7 +26,7 @@ function runNodeTest(suite = '**') {
    * Custom error handler for "No test files found" errors
    */
   return gulp.src([
-    `tests/${suite}/**/*.test.ts`,
+    `tests/**/${suite}/**/*.test.ts`,
     '!tests/**/browser/**/*.test.ts',
     '!tests/**/binary/**/*.test.ts',
     '!src/firebase-*.ts',
@@ -52,7 +52,7 @@ function runBrowserTest(suite = '**') {
       // list of files / patterns to load in the browser
       files: [
         `./src/**/*.ts`,
-        `./tests/${suite}/**/*.ts`
+        `./tests/**/${suite}/**/*.ts`
       ],
       
       // list of files to exclude from the included globs above

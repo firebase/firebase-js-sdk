@@ -29,23 +29,6 @@ const configObj = {
   paths: {
     outDir: path.resolve(cwd, 'dist'),
     tempDir: path.resolve(cwd, 'temp'),
-    test: {
-      unit: [
-        'tests/**/*.test.ts',
-        '!tests/**/browser/**/*.test.ts',
-        '!tests/**/binary/**/*.test.ts',
-        '!src/firebase-*.ts',
-      ],
-      binary: [
-        'tests/**/binary/**/*.test.ts',
-        '!tests/**/binary/**/browser/**/*.test.ts',    
-      ],
-      integration: [
-        'temp/**/*.test.js',
-        '!temp/**/browser/**/*',
-        '!temp/**/react-native/**/*',
-      ]
-    }
   },
   babel: {
     plugins: [

@@ -20,13 +20,13 @@ before_script:
 script:
   gulp test --suite="$TEST_SUITE" --env="$TEST_ENV"
 
-# Secondary Jobs
+# Integration Test suite
 jobs:
   include:
     - stage: Integration Tests
-      env:
-        - TEST_ENV=*
-      script: echo "Implement Integration Tests"
+      script: ./integration/webpack/runner.sh
+    - script: ./integration/browserify/runner.sh
+    - script: ./integration/typescript/runner.sh
 
 # Misc Addons/Configs
 dist: trusty

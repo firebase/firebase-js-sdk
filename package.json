@@ -47,7 +47,6 @@
     "google-closure-compiler-js": "^20170218.0.0",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-babel": "^6.1.2",
-    "gulp-browserify": "^0.5.1",
     "gulp-clone": "^1.0.0",
     "gulp-concat": "^2.6.1",
     "gulp-env": "^0.4.0",
@@ -89,6 +88,7 @@
     "yargs": "^8.0.2"
   },
   "dependencies": {
+    "browserify": "^14.4.0",
     "dom-storage": "^2.0.2",
     "faye-websocket": "0.9.3",
     "jsonwebtoken": "^7.3.0",
