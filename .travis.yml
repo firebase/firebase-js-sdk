@@ -6,16 +6,13 @@ env:
   - CXX=g++-4.8
 cache: yarn
 addons:
-  firefox: latest
+  sauce_connect: true
   apt:
     sources:
-      - google-chrome
       - ubuntu-toolchain-r-test
     packages:
-      - google-chrome-stable
       - g++-4.8
 before_script:
-  - "export DISPLAY=:99.0"
   - "mkdir -p tests/config && echo \"$PROJECT_CONFIG\" > tests/config/project.json"
 script:
-  - xvfb-run npm test
+  - npm test

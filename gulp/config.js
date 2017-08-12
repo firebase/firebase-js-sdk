@@ -144,4 +144,61 @@ const configObj = {
 configObj.karma.client.mocha.timeout = configObj.testConfig.timeout;
 configObj.karma.client.mocha.retries = configObj.testConfig.retries;
 
+if (process.env.TRAVIS && process.env.SAUCE_USERNAME && process.env.SAUCE_ACCESS_KEY) {
+  const customLaunchers = {
+    sl_chrome: {
+      base: 'SauceLabs',
+      browserName: 'chrome',
+      version: 'latest'
+    },
+    sl_firefox: {
+      base: 'SauceLabs',
+      browserName: 'firefox',
+      version: 'latest'
+    },
+    sl_safari: {
+      base: 'SauceLabs',
+      browserName: 'Safari',
+      version: '10.0'
+    },
+    sl_iphone_safari: {
+      base: 'SauceLabs',
+      browserName: 'Safari',
+      deviceName: 'iPhone Simulator',
+      platformVersion: 'latest',
+      platformName: 'iOS'
+    },
+    sl_edge: {
+      base: 'SauceLabs',
+      browserName: 'MicrosoftEdge',
+      version: 'latest'
+    },
+    // sl_ie_11: {
+    //   base: 'SauceLabs',
+    //   browserName: 'internet explorer',
+    //   version: '11'
+    // },
+    // sl_ie_10: {
+    //   base: 'SauceLabs',
+    //   browserName: 'internet explorer',
+    //   version: '10'
+    // }
+  }
+  Object.assign(configObj.karma, {
+    browserNoActivityTimeout: 30000,
+    sauceLabs: {
+      testName: 'Firebase JS SDK Tests',
+      startConnect: false,
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+      connectOptions: {
+        logger: console.log.bind(console)
+      }
+    },
+    customLaunchers,
+    browsers: Object.keys(customLaunchers),
+    reporters: [...configObj.karma.reporters, 'saucelabs'],
+    concurrency: 2
+  });
+}
+
 module.exports = configObj;
