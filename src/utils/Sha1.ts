@@ -88,7 +88,7 @@ export class Sha1 extends Hash {
     this.blockSize = 512 / 8;
 
     this.pad_[0] = 128;
-    for (var i = 1; i < this.blockSize; ++i) {
+    for (let i = 1; i < this.blockSize; ++i) {
       this.pad_[i] = 0;
     }
 
@@ -117,11 +117,11 @@ export class Sha1 extends Hash {
       opt_offset = 0;
     }
 
-    var W = this.W_;
+    let W = this.W_;
 
     // get 16 big endian words
     if (typeof buf === 'string') {
-      for (var i = 0; i < 16; i++) {
+      for (let i = 0; i < 16; i++) {
         // TODO(user): [bug 8140122] Recent versions of Safari for Mac OS and iOS
         // have a bug that turns the post-increment ++ operator into pre-increment
         // during JIT compilation.  We have code that depends heavily on SHA-1 for
@@ -138,7 +138,7 @@ export class Sha1 extends Hash {
         opt_offset += 4;
       }
     } else {
-      for (var i = 0; i < 16; i++) {
+      for (let i = 0; i < 16; i++) {
         W[i] =
           (buf[opt_offset] << 24) |
           (buf[opt_offset + 1] << 16) |
@@ -149,20 +149,20 @@ export class Sha1 extends Hash {
     }
 
     // expand to 80 words
-    for (var i = 16; i < 80; i++) {
-      var t = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
+    for (let i = 16; i < 80; i++) {
+      const t = W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16];
       W[i] = ((t << 1) | (t >>> 31)) & 0xffffffff;
     }
 
-    var a = this.chain_[0];
-    var b = this.chain_[1];
-    var c = this.chain_[2];
-    var d = this.chain_[3];
-    var e = this.chain_[4];
-    var f, k;
+    let a = this.chain_[0];
+    let b = this.chain_[1];
+    let c = this.chain_[2];
+    let d = this.chain_[3];
+    let e = this.chain_[4];
+    let f, k;
 
     // TODO(user): Try to unroll this loop to speed up the computation.
-    for (var i = 0; i < 80; i++) {
+    for (let i = 0; i < 80; i++) {
       if (i < 40) {
         if (i < 20) {
           f = d ^ (b & (c ^ d));
@@ -181,7 +181,7 @@ export class Sha1 extends Hash {
         }
       }
 
-      var t = (((a << 5) | (a >>> 27)) + f + e + k + W[i]) & 0xffffffff;
+      const t = (((a << 5) | (a >>> 27)) + f + e + k + W[i]) & 0xffffffff;
       e = d;
       d = c;
       c = ((b << 30) | (b >>> 2)) & 0xffffffff;
@@ -206,11 +206,11 @@ export class Sha1 extends Hash {
       opt_length = bytes.length;
     }
 
-    var lengthMinusBlock = opt_length - this.blockSize;
-    var n = 0;
+    const lengthMinusBlock = opt_length - this.blockSize;
+    let n = 0;
     // Using local instead of member variables gives ~5% speedup on Firefox 16.
-    var buf = this.buf_;
-    var inbuf = this.inbuf_;
+    const buf = this.buf_;
+    let inbuf = this.inbuf_;
 
     // The outer while loop should execute at most twice.
     while (n < opt_length) {
@@ -258,8 +258,8 @@ export class Sha1 extends Hash {
 
   /** @override */
   digest() {
-    var digest = [];
-    var totalBits = this.total_ * 8;
+    const digest = [];
+    let totalBits = this.total_ * 8;
 
     // Add pad 0x80 0x00*.
     if (this.inbuf_ < 56) {
@@ -269,16 +269,16 @@ export class Sha1 extends Hash {
     }
 
     // Add # bits.
-    for (var i = this.blockSize - 1; i >= 56; i--) {
+    for (let i = this.blockSize - 1; i >= 56; i--) {
       this.buf_[i] = totalBits & 255;
       totalBits /= 256; // Don't use bit-shifting here!
     }
 
     this.compress_(this.buf_);
 
-    var n = 0;
-    for (var i = 0; i < 5; i++) {
-      for (var j = 24; j >= 0; j -= 8) {
+    let n = 0;
+    for (let i = 0; i < 5; i++) {
+      for (let j = 24; j >= 0; j -= 8) {
         digest[n] = (this.chain_[i] >> j) & 255;
         ++n;
       }

@@ -90,7 +90,7 @@ export class FbsBlob {
 
   static getBlob(...var_args: (string | FbsBlob)[]): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      var blobby: (Blob | Uint8Array | string)[] = var_args.map(function(
+      const blobby: (Blob | Uint8Array | string)[] = var_args.map(function(
         val: string | FbsBlob
       ): Blob | Uint8Array | string {
         if (val instanceof FbsBlob) {

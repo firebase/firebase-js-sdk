@@ -50,7 +50,7 @@ export default class TokenDetailsModel extends DBInterface {
    * @override
    */
   onDBUpgrade(db) {
-    var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+    const objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
       keyPath: 'swScope'
     });
 
