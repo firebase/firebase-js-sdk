@@ -21,7 +21,7 @@ function cleanup {
 }
 
 # register the cleanup function to be called on the EXIT signal
-# trap cleanup EXIT
+trap cleanup EXIT
 
 # Enter work dir
 pushd "$WORK_DIR"
@@ -44,5 +44,3 @@ $BROWSERIFY_CLI namespace.test.js -o build/bundle.js
 
 # Run the tests
 $KARMA_CLI start
-
-echo "$WORK_DIR"

@@ -19,7 +19,7 @@ function cleanup {
 }
 
 # register the cleanup function to be called on the EXIT signal
-# trap cleanup EXIT
+trap cleanup EXIT
 
 # Enter work dir
 pushd "$WORK_DIR"
@@ -40,5 +40,3 @@ KARMA_CLI="./node_modules/.bin/karma"
 
 # Run the tests (this compiles the tests)
 $KARMA_CLI start
-
-echo "$WORK_DIR"

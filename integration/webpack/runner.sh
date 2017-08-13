@@ -21,7 +21,7 @@ function cleanup {
 }
 
 # register the cleanup function to be called on the EXIT signal
-# trap cleanup EXIT
+trap cleanup EXIT
 
 # Enter work dir
 pushd "$WORK_DIR"
@@ -43,5 +43,3 @@ $WEBPACK_CLI
 
 # Run the tests
 $KARMA_CLI start
-
-echo "$WORK_DIR"
