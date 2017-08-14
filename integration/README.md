@@ -22,3 +22,16 @@ These two files can be used to validate the firebase namespace and currently ser
 
 _NOTE: `validator.js` should only be used **after** initializing a test firebase app (i.e. make a call to `firebase.initializeApp` before validating the namespace)_
 
+## Authoring an Integration Test
+
+The point of the integration tests is to be as flexible as possible. The only convention that I would recommend is supplying a `runner.sh` file to do the actual work of the test.
+
+That said, if you are looking for a pattern to follow, the process that was followed for several of the tests, is outlined below:
+
+- Copy the test files to a temporary working directory
+- Setup an `EXIT` trap to cleanup the temporary directory at the end of the script
+- Ensure that the SDK gets built if it doesn't already exist
+- `npm install` the folder `dist/package`, this allows the test to function as if the SDK was installed from NPM
+- (For tests that are only validating the firebase namespace) copy the `shared` directory above into the working directory
+
+The tests are then ran with karma/mocha/webdriver.io/selenium or whatever else you need to accomplish the purpose of your test. Each of these runners requires their own config (and sometimes their own dependencies), supply these config files directly in the test directory (e.g. many of the suites have their own package.json) as the tests are meant to be isolated from each other as much as possible.

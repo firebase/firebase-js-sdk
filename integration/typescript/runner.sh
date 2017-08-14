@@ -36,7 +36,5 @@ cp $DIR/../shared/* ./src
 npm install
 npm install "$ROOT/dist/package"
 
-KARMA_CLI="./node_modules/.bin/karma"
-
 # Run the tests (this compiles the tests)
-$KARMA_CLI start
+./node_modules/.bin/karma start

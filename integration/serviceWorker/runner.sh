@@ -3,8 +3,6 @@
 # Variables
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 GULP_CLI="$ROOT/node_modules/.bin/gulp"
-WEBPACK_CLI="$ROOT/node_modules/.bin/webpack"
-KARMA_CLI="$ROOT/node_modules/.bin/karma"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
 
@@ -38,7 +36,7 @@ npm install
 npm install "$ROOT/dist/package"
 
 # Build the new env
-$WEBPACK_CLI
+./node_modules/.bin/webpack
 
 # Run the tests
-$KARMA_CLI start
+./node_modules/.bin/karma start

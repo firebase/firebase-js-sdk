@@ -88,7 +88,6 @@
     "yargs": "^8.0.2"
   },
   "dependencies": {
-    "browserify": "^14.4.0",
     "dom-storage": "^2.0.2",
     "faye-websocket": "0.9.3",
     "jsonwebtoken": "^7.3.0",

@@ -4,7 +4,6 @@
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../.." && pwd )"
 GULP_CLI="$ROOT/node_modules/.bin/gulp"
 BROWSERIFY_CLI="$ROOT/node_modules/.bin/browserify"
-KARMA_CLI="$ROOT/node_modules/.bin/karma"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
 
@@ -40,7 +39,7 @@ npm install "$ROOT/dist/package"
 
 # Build the new env
 mkdir -p build
-$BROWSERIFY_CLI namespace.test.js -o build/bundle.js
+./node_modules/.bin/browserify namespace.test.js -o build/bundle.js
 
 # Run the tests
-$KARMA_CLI start
+./node_modules/.bin/karma start
