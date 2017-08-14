@@ -77,7 +77,6 @@ describe('Firebase Storage > Request', () => {
           const expectedHeaders = {};
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
-          console.log(args[4], expectedHeaders);
           assert.deepEqual(args[4], expectedHeaders);
         },
         error => {
@@ -224,7 +223,6 @@ describe('Firebase Storage > Request', () => {
         const args = spiedSend.getCall(0).args;
         const expectedHeaders = { Authorization: 'Firebase ' + authToken };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
-        console.log(args[4], expectedHeaders);
         assert.deepEqual(args[4], expectedHeaders);
       },
       error => {
