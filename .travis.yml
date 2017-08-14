@@ -18,7 +18,7 @@ before_script:
   - export PATH=$PATH:./node_modules/.bin
   - mkdir -p tests/config && echo "$PROJECT_CONFIG" > tests/config/project.json
 script:
-  gulp test --suite="$TEST_SUITE" --env="$TEST_ENV"
+  gulp test --env="$TEST_ENV"
 
 # Integration Test suite
 jobs:
