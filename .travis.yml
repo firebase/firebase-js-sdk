@@ -28,6 +28,7 @@ jobs:
     - script: ./integration/browserify/runner.sh
     - script: ./integration/typescript/runner.sh
     - script: ./integration/serviceWorker/runner.sh
+    - script: ./integration/quickstart/runner.sh
 
 # Misc Addons/Configs
 dist: trusty
