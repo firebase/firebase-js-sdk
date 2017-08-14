@@ -27,6 +27,7 @@ jobs:
       script: ./integration/webpack/runner.sh
     - script: ./integration/browserify/runner.sh
     - script: ./integration/typescript/runner.sh
+    - script: ./integration/serviceWorker/runner.sh
 
 # Misc Addons/Configs
 dist: trusty
