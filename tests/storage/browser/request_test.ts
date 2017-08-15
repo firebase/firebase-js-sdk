@@ -15,14 +15,13 @@
 */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import firebase from '../../../src/app';
 import { FirebaseNamespace } from '../../../src/app/firebase_app';
 import { makeRequest } from '../../../src/storage/implementation/request';
 import { RequestInfo } from '../../../src/storage/implementation/requestinfo';
 import { Headers, XhrIo } from '../../../src/storage/implementation/xhrio';
 import { makePool } from './testshared';
 import { TestingXhrIo } from './xhrio';
-
-declare var firebase: FirebaseNamespace;
 
 describe('Firebase Storage > Request', () => {
   const versionHeaderName = 'X-Firebase-Storage-Version';

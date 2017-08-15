@@ -5,7 +5,7 @@ npm-debug.log
 /coverage
 /.nyc_output
 /tests/config
-/temp
+temp/
 /.vscode
 /.ts-node
 /.idea
