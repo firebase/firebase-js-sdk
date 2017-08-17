@@ -290,11 +290,9 @@ export class PersistentConnection extends ServerActions {
           '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
         const indexPath = query.path.toString();
         warn(
-          'Using an unspecified index. Consider adding ' +
-            indexSpec +
-            ' at ' +
-            indexPath +
-            ' to your security rules for better performance'
+          `Using an unspecified index. Your data will be downloaded and ` +
+            `filtered on the client. Consider adding ${indexSpec} at ` +
+            `${indexPath} to your security rules for better performance.`
         );
       }
     }
