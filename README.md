@@ -29,9 +29,6 @@ current running version of Node.js), you can install the dependencies by running
 $ npm install
 ```
 
-_NOTE: This package also maintains a `yarn.lock` so you can get faster installs by installing
-dependencies with `yarn` instead._
-
 ### Pipeline Instructions
 
 The Firebase JS SDK is built and tested through a gulp pipeline. You will need to

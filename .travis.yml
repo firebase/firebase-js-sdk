@@ -1,7 +1,8 @@
 language: node_js
-node_js:
-  - 6
-cache: yarn
+node_js: stable
+cache:
+  directories:
+    - node_modules
 
 # Define global C++ compiler version
 env:
@@ -10,10 +11,6 @@ env:
   matrix:
     - TEST_ENV=node
     - TEST_ENV=browser
-before_install:
-  # Yarn defaults to an old version, make sure we
-  # get an up to date version
-  - npm install -g yarn
 before_script:
   - export PATH=$PATH:./node_modules/.bin
   - mkdir -p tests/config && echo "$PROJECT_CONFIG" > tests/config/project.json
