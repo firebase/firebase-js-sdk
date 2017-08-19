@@ -1,0 +1,21 @@
+{
+  "name": "firebase-quickstart-test",
+  "version": "1.0.0",
+  "main": "runner.sh",
+  "devDependencies": {
+    "@types/chai": "^3.4.35",
+    "@types/mocha": "^2.2.39",
+    "@types/node": "^7.0.8",
+    "chai": "^3.5.0",
+    "firebase-tools": "^3.9.2",
+    "isomorphic-fetch": "^2.2.1",
+    "serve": "^6.0.6",
+    "ts-node": "^3.3.0",
+    "typescript": "^2.4.2",
+    "wdio-mocha-framework": "^0.5.10",
+    "wdio-sauce-service": "^0.4.0",
+    "wdio-selenium-standalone-service": "0.0.9",
+    "wdio-spec-reporter": "^0.1.0",
+    "webdriverio": "^4.8.0"
+  }
+}

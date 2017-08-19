@@ -19,51 +19,40 @@ const setEnv = require('gulp-env').set;
 const karma = require('karma');
 const config = require('../config');
 const buildTasks = require('./build');
-const integrationTests = require('./test.integration');
+const argv = require('yargs').argv;
 
-/**
- * Runs all of the node unit tests
- */
-function runNodeUnitTests() {
-  const envs = setEnv({
-    TS_NODE_PROJECT: 'tsconfig.test.json'
-  });
-  return gulp.src(config.paths.test.unit, { read: false })
-    .pipe(envs)
+function runNodeTest(suite = '**') {
+  /**
+   * Custom error handler for "No test files found" errors
+   */
+  return gulp.src([
+    `tests/**/${suite}/**/*.test.ts`,
+    '!tests/**/browser/**/*.test.ts',
+    '!tests/**/binary/**/*.test.ts',
+    '!src/firebase-*.ts',
+  ], { read: false })
+    .pipe(setEnv({
+      TS_NODE_PROJECT: 'tsconfig.test.json'
+    }))
     .pipe(mocha({
       reporter: 'spec',
       compilers: 'ts:ts-node/register',
       timeout: config.testConfig.timeout,
       retries: config.testConfig.retries
-    }));
+    }))
+    .on('error', err => {
+      if (err && err.message && ~err.message.indexOf('No test files found')) return;
+      throw err;
+    });
 }
 
-/**
- * Runs all of the node binary tests
- */
-function runNodeBinaryTests() {
-  const envs = setEnv({
-    TS_NODE_PROJECT: 'tsconfig.test.json'
-  });
-  return gulp.src(config.paths.test.binary, { read: false })
-    .pipe(envs)
-    .pipe(mocha({
-      reporter: 'spec',
-      compilers: 'ts:ts-node/register',
-      timeout: config.testConfig.timeout,
-      retries: config.testConfig.retries
-    }));
-}
-
-/**
- * Runs all of the browser unit tests in karma
- */
-function runBrowserUnitTests(dev) {
-  return (done) => {
+function runBrowserTest(suite = '**') {
+  return new Promise((resolve, reject) => {
     const karmaConfig = Object.assign({}, config.karma, {
       // list of files / patterns to load in the browser
       files: [
-        './+(src|tests)/**/*.ts'
+        `./src/**/*.ts`,
+        `./tests/**/${suite}/**/*.ts`
       ],
       
       // list of files to exclude from the included globs above
@@ -80,76 +69,29 @@ function runBrowserUnitTests(dev) {
         // Don't include binary test files
         './tests/**/binary/**/*.test.ts',
       ],
-      browsers: !!dev ? ['ChromeHeadless'] : config.karma.browsers,
     });
-    new karma.Server(karmaConfig, done).start();
-  };
-}
-
-/**
- * Runs all of the browser binary tests in karma
- */
-function runBrowserBinaryTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
-    // list of files / patterns to load in the browser
-    files: [
-      './dist/browser/firebase.js',
-      './tests/**/binary/**/*.ts',
-      './tests/**/utils/**/*.ts'
-    ],
-    
-    // list of files to exclude from the included globs above
-    exclude: [
-      // Don't include node test files
-      './tests/**/node/**/*.test.ts',
-    ],
+    new karma.Server(karmaConfig, exitcode => {
+      if (exitcode) return reject(exitcode);
+      resolve();
+    }).start();
   });
-  new karma.Server(karmaConfig, done).start();
 }
 
-/**
- * Runs both the unit and binary tests in karma
- */
-function runAllKarmaTests(done) {
-  const karmaConfig = Object.assign({}, config.karma, {
-    // list of files / patterns to load in the browser
-    files: [
-      './dist/browser/firebase.js',
-      './+(src|tests)/**/*.ts'
-    ],
-    
-    // list of files to exclude from the included globs above
-    exclude: [
-      // we don't want this file as it references files that only exist once compiled
-      `./src/firebase-*.ts`,
+function runTests() {
+  const suite = argv.suite || '**';
+  const env = argv.env || '*';
+  console.log(`Values: ${suite}:${env}`);
 
-      // We don't want to load the node env      
-      `./src/utils/nodePatches.ts`,
-
-      // Don't include node test files
-      './tests/**/node/**/*.test.ts',
-    ],
-  });
-  new karma.Server(karmaConfig, done).start();
+  switch(env) {
+    case 'node': return runNodeTest(suite);
+    case 'browser': return runBrowserTest(suite);
+    default:
+      // Incidentally this works returning a stream and promise value
+      return Promise.all([
+        runNodeTest(suite),
+        runBrowserTest(suite),
+      ]);
+  }
 }
 
-gulp.task('test:unit:node', runNodeUnitTests);
-gulp.task('test:unit:browser', runBrowserUnitTests());
-
-const unitTestSuite = gulp.parallel(runNodeUnitTests, runBrowserUnitTests());
-gulp.task('test:unit', unitTestSuite);
-
-gulp.task('test:binary:browser', runBrowserBinaryTests);
-gulp.task('test:binary:node', runNodeBinaryTests);
-
-const binaryValidationSuite = gulp.parallel(runBrowserBinaryTests, runNodeBinaryTests);
-gulp.task('test:binary', binaryValidationSuite);
-
-gulp.task('test', gulp.parallel([
-  runNodeUnitTests,
-  runNodeBinaryTests,
-  runAllKarmaTests
-]));
-
-exports.runNodeUnitTests = runNodeUnitTests;
-exports.runBrowserUnitTests = runBrowserUnitTests;
+gulp.task('test', runTests);

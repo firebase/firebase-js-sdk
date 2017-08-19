@@ -1,12 +1,39 @@
-sudo: required
-dist: trusty
 language: node_js
-node_js: "6"
-env:
-  - CXX=g++-4.8
+node_js:
+  - 6
 cache: yarn
+
+# Define global C++ compiler version
+env:
+  global:
+    - CXX=g++-4.8
+  matrix:
+    - TEST_ENV=node
+    - TEST_ENV=browser
+before_install:
+  # Yarn defaults to an old version, make sure we
+  # get an up to date version
+  - npm install -g yarn
+before_script:
+  - export PATH=$PATH:./node_modules/.bin
+  - mkdir -p tests/config && echo "$PROJECT_CONFIG" > tests/config/project.json
+script:
+  gulp test --env="$TEST_ENV"
+
+# Integration Test suite
+jobs:
+  include:
+    - stage: Integration Tests
+      script: ./integration/webpack/runner.sh
+    - script: ./integration/browserify/runner.sh
+    - script: ./integration/typescript/runner.sh
+    - script: ./integration/serviceWorker/runner.sh
+    - script: ./integration/quickstart/runner.sh
+
+# Misc Addons/Configs
+dist: trusty
+sudo: required
 addons:
-  firefox: latest
   apt:
     sources:
       - google-chrome
@@ -14,8 +41,3 @@ addons:
     packages:
       - google-chrome-stable
       - g++-4.8
-before_script:
-  - "export DISPLAY=:99.0"
-  - "mkdir -p tests/config && echo \"$PROJECT_CONFIG\" > tests/config/project.json"
-script:
-  - xvfb-run npm test

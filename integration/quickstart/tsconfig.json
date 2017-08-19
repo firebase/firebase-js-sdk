@@ -1,0 +1,24 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "lib": [
+      "es5",
+      "es2015",
+      "es2015.promise",
+      "dom"
+    ],
+    "allowJs": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "outDir": "tmp",
+    "target": "ES5",
+    "sourceMap": true,
+    "typeRoots" : [
+      "node_modules/@types"
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}
