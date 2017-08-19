@@ -33,7 +33,7 @@ export const safeGet = function(obj, key) {
  * @template K,V
  */
 export const forEach = function(obj, fn) {
-  for (var key in obj) {
+  for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       fn(key, obj[key]);
     }
@@ -74,30 +74,30 @@ export const isNonNullObject = function(obj) {
 };
 
 export const isEmpty = function(obj) {
-  for (var key in obj) {
+  for (const key in obj) {
     return false;
   }
   return true;
 };
 
 export const getCount = function(obj) {
-  var rv = 0;
-  for (var key in obj) {
+  let rv = 0;
+  for (const key in obj) {
     rv++;
   }
   return rv;
 };
 
 export const map = function(obj, f, opt_obj?) {
-  var res = {};
-  for (var key in obj) {
+  const res = {};
+  for (const key in obj) {
     res[key] = f.call(opt_obj, obj[key], key, obj);
   }
   return res;
 };
 
 export const findKey = function(obj, fn, opt_this?) {
-  for (var key in obj) {
+  for (const key in obj) {
     if (fn.call(opt_this, obj[key], key, obj)) {
       return key;
     }
@@ -106,20 +106,20 @@ export const findKey = function(obj, fn, opt_this?) {
 };
 
 export const findValue = function(obj, fn, opt_this?) {
-  var key = findKey(obj, fn, opt_this);
+  const key = findKey(obj, fn, opt_this);
   return key && obj[key];
 };
 
 export const getAnyKey = function(obj) {
-  for (var key in obj) {
+  for (const key in obj) {
     return key;
   }
 };
 
 export const getValues = function(obj) {
-  var res = [];
-  var i = 0;
-  for (var key in obj) {
+  const res = [];
+  let i = 0;
+  for (const key in obj) {
     res[i++] = obj[key];
   }
   return res;
@@ -137,7 +137,7 @@ export const every = function<V>(
   obj: Object,
   fn: (k: string, v?: V) => boolean
 ): boolean {
-  for (let key in obj) {
+  for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (!fn(key, obj[key])) {
         return false;

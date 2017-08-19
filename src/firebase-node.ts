@@ -19,8 +19,8 @@ import './auth';
 import './database';
 import './utils/nodePatches';
 
-var Storage = require('dom-storage');
-var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+const Storage = require('dom-storage');
+const XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 
 firebase.INTERNAL.extendNamespace({
   INTERNAL: {
