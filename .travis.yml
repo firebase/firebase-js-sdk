@@ -7,6 +7,7 @@ cache: yarn
 env:
   global:
     - CXX=g++-4.8
+    - secure: H2hHRr8FuJzBqri/q2omzQvKUwxqRAN0M+XtwaLPHwrCz0yylAASAmVFU3Ca1H8V84QDEpbYRIgBMBXc3oAl5W9gMAKt/K34hEwoYyEkaocmK1DcuOz50Touopn1f0jyepEHm8yjbvtQ8bGgtl8rk8NKW2UAi7cwswfntPiRYmKxniMXLSz1TjXi2dXEvh9A5IMJX3m2pTcU522eEpS3Ga2fUaPuCcMYnrKoRikiZhh6Y7N5n/0J4bfehBbLdEsmU19F2wWQxRq4leEfywIZ7UO9cyi5G8c+UI1S/Bxgg/eyotnaPyMeJvPotQtu5MnjbybiN7Xx+uDUn6VnSwybyoxAT54m5tF7fNvNRNYAMHm+HipF9HpZuaMuY+4tF0wE6WFD3gQuc6Sre/RiEiKMNGkYX8fQbkh6ccGC1COZTmM33Lm/xic1/RBzb7t6qfI3fmcioGY/VYTECUNRIzV5L2GiYA1mByRMuZ19shjN8YXrF3FyRjJYRw2dMcb9l2rjKeXUSt5pN2h7Ddvfc4efjD3QDi6MSu/rawVsOuvVEJAZTAotoZ4ZgHxoHKvb879NWYQ95vQaf1kMkkvu0hYEgj7JDrrM1VOiXZKfq753O7We6ZaTrdjXgqZu7vCsIrVe4I72ZQ4K+5C4onyVgAnE8P0i9RYkr/39eqBufBUuiys=
   matrix:
     - TEST_ENV=node
     - TEST_ENV=browser
