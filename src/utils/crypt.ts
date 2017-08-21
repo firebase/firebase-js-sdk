@@ -17,10 +17,10 @@
 import { globalScope } from './globalScope';
 
 const stringToByteArray = function(str) {
-  var output = [],
-    p = 0;
-  for (var i = 0; i < str.length; i++) {
-    var c = str.charCodeAt(i);
+  const output = [];
+  let p = 0;
+  for (let i = 0; i < str.length; i++) {
+    let c = str.charCodeAt(i);
     while (c > 255) {
       output[p++] = c & 255;
       c >>= 8;
@@ -37,7 +37,7 @@ const stringToByteArray = function(str) {
  * @return {string} Stringification of the array.
  */
 const byteArrayToString = function(bytes) {
-  var CHUNK_SIZE = 8192;
+  const CHUNK_SIZE = 8192;
 
   // Special-case the simple case for speed's sake.
   if (bytes.length < CHUNK_SIZE) {
@@ -48,9 +48,9 @@ const byteArrayToString = function(bytes) {
   // Function#apply() has a maximum parameter count.
   // See discussion: http://goo.gl/LrWmZ9
 
-  var str = '';
-  for (var i = 0; i < bytes.length; i += CHUNK_SIZE) {
-    var chunk = bytes.slice(i, i + CHUNK_SIZE);
+  let str = '';
+  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+    const chunk = bytes.slice(i, i + CHUNK_SIZE);
     str += String.fromCharCode.apply(null, chunk);
   }
   return str;
@@ -136,23 +136,23 @@ export const base64 = {
 
     this.init_();
 
-    var byteToCharMap = opt_webSafe
+    const byteToCharMap = opt_webSafe
       ? this.byteToCharMapWebSafe_
       : this.byteToCharMap_;
 
-    var output = [];
+    const output = [];
 
-    for (var i = 0; i < input.length; i += 3) {
-      var byte1 = input[i];
-      var haveByte2 = i + 1 < input.length;
-      var byte2 = haveByte2 ? input[i + 1] : 0;
-      var haveByte3 = i + 2 < input.length;
-      var byte3 = haveByte3 ? input[i + 2] : 0;
+    for (let i = 0; i < input.length; i += 3) {
+      const byte1 = input[i];
+      const haveByte2 = i + 1 < input.length;
+      const byte2 = haveByte2 ? input[i + 1] : 0;
+      const haveByte3 = i + 2 < input.length;
+      const byte3 = haveByte3 ? input[i + 2] : 0;
 
-      var outByte1 = byte1 >> 2;
-      var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
-      var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
-      var outByte4 = byte3 & 0x3f;
+      const outByte1 = byte1 >> 2;
+      const outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
+      let outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
+      let outByte4 = byte3 & 0x3f;
 
       if (!haveByte3) {
         outByte4 = 64;
@@ -225,40 +225,40 @@ export const base64 = {
   decodeStringToByteArray(input, opt_webSafe) {
     this.init_();
 
-    var charToByteMap = opt_webSafe
+    const charToByteMap = opt_webSafe
       ? this.charToByteMapWebSafe_
       : this.charToByteMap_;
 
-    var output = [];
+    const output = [];
 
-    for (var i = 0; i < input.length; ) {
-      var byte1 = charToByteMap[input.charAt(i++)];
+    for (let i = 0; i < input.length; ) {
+      const byte1 = charToByteMap[input.charAt(i++)];
 
-      var haveByte2 = i < input.length;
-      var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
+      const haveByte2 = i < input.length;
+      const byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
       ++i;
 
-      var haveByte3 = i < input.length;
-      var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
+      const haveByte3 = i < input.length;
+      const byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
       ++i;
 
-      var haveByte4 = i < input.length;
-      var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
+      const haveByte4 = i < input.length;
+      const byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
       ++i;
 
       if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
         throw Error();
       }
 
-      var outByte1 = (byte1 << 2) | (byte2 >> 4);
+      const outByte1 = (byte1 << 2) | (byte2 >> 4);
       output.push(outByte1);
 
       if (byte3 != 64) {
-        var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
+        const outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
         output.push(outByte2);
 
         if (byte4 != 64) {
-          var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
+          const outByte3 = ((byte3 << 6) & 0xc0) | byte4;
           output.push(outByte3);
         }
       }
@@ -280,7 +280,7 @@ export const base64 = {
       this.charToByteMapWebSafe_ = {};
 
       // We want quick mappings back and forth, so we precompute two maps.
-      for (var i = 0; i < this.ENCODED_VALS.length; i++) {
+      for (let i = 0; i < this.ENCODED_VALS.length; i++) {
         this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
         this.charToByteMap_[this.byteToCharMap_[i]] = i;
         this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);

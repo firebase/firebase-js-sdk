@@ -7,6 +7,8 @@ cache: yarn
 env:
   global:
     - CXX=g++-4.8
+    - PROJECT_CONFIG='{"apiKey":"AIzaSyB3F1s2VDupQXEMopVv9nvvNskBz5BfyME","authDomain":"web-push-by-fcm.firebaseapp.com","databaseURL":"https://web-push-by-fcm.firebaseio.com","projectId":"web-push-by-fcm","storageBucket":"web-push-by-fcm.appspot.com","messagingSenderId":"1084640982992"}'
+    - FIREBASE_TOKEN=dabZThsO5_0:APA91bEOAmgqKh9ixy6rWPBx_NpUxBe0dl_I3ZDlBvyYjBrSqCX409gmGvY-uu3Y1cb2O2d3IF9SaZFLQnzNaW6BGW0AhndZDOqiGTMpQBlfbHCO15yGDbYdUg0hQoBn_pmkGctEKfSo
   matrix:
     - TEST_ENV=node
     - TEST_ENV=browser
