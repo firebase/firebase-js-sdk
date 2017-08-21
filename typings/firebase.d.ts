@@ -69,7 +69,7 @@ declare namespace firebase {
     reauthenticateWithRedirect (provider : firebase.auth.AuthProvider ) : firebase.Promise < any > ;
     refreshToken : string ;
     reload ( ) : firebase.Promise < any > ;
-    sendEmailVerification ( ) : firebase.Promise < any > ;
+    sendEmailVerification (actionCodeSettings ? : firebase.auth.ActionCodeSettings | null ) : firebase.Promise < any > ;
     toJSON ( ) : Object ;
     unlink (providerId : string ) : firebase.Promise < any > ;
     updateEmail (newEmail : string ) : firebase.Promise < any > ;
@@ -118,6 +118,8 @@ declare namespace firebase.auth {
   interface ActionCodeInfo {
   }
 
+  type ActionCodeSettings = { android ? : { installApp ? : boolean , minimumVersion ? : string , packageName : string } , handleCodeInApp ? : boolean , iOS ? : { bundleId : string } , url : string } ;
+
   type AdditionalUserInfo = { profile : Object | null , providerId : string , username ? : string | null } ;
 
   interface ApplicationVerifier {
@@ -134,9 +136,10 @@ declare namespace firebase.auth {
     currentUser : firebase.User | null ;
     fetchProvidersForEmail (email : string ) : firebase.Promise < any > ;
     getRedirectResult ( ) : firebase.Promise < any > ;
+    languageCode : string | null ;
     onAuthStateChanged (nextOrObserver : firebase.Observer < any , any > | ( (a : firebase.User | null ) => any ) , error ? : (a : firebase.auth.Error ) => any , completed ? : firebase.Unsubscribe ) : firebase.Unsubscribe ;
     onIdTokenChanged (nextOrObserver : firebase.Observer < any , any > | ( (a : firebase.User | null ) => any ) , error ? : (a : firebase.auth.Error ) => any , completed ? : firebase.Unsubscribe ) : firebase.Unsubscribe ;
-    sendPasswordResetEmail (email : string ) : firebase.Promise < any > ;
+    sendPasswordResetEmail (email : string , actionCodeSettings ? : firebase.auth.ActionCodeSettings | null ) : firebase.Promise < any > ;
     setPersistence (persistence : firebase.auth.Auth.Persistence ) : firebase.Promise < any > ;
     signInAndRetrieveDataWithCredential (credential : firebase.auth.AuthCredential ) : firebase.Promise < any > ;
     signInAnonymously ( ) : firebase.Promise < any > ;
@@ -147,6 +150,7 @@ declare namespace firebase.auth {
     signInWithPopup (provider : firebase.auth.AuthProvider ) : firebase.Promise < any > ;
     signInWithRedirect (provider : firebase.auth.AuthProvider ) : firebase.Promise < any > ;
     signOut ( ) : firebase.Promise < any > ;
+    useDeviceLanguage ( ) : any ;
     verifyPasswordResetCode (code : string ) : firebase.Promise < any > ;
   }
 
