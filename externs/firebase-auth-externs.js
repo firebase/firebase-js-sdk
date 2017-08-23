@@ -215,9 +215,59 @@ firebase.User.prototype.reload = function() {};
  * The verification process is completed by calling
  * {@link firebase.auth.Auth#applyActionCode}
  *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/missing-android-pkg-name</dt>
+ * <dd>An Android package name must be provided if the Android app is required
+ *     to be installed.</dd>
+ * <dt>auth/missing-continue-uri</dt>
+ * <dd>A continue URL must be provided in the request.</dd>
+ * <dt>auth/missing-ios-bundle-id</dt>
+ * <dd>An iOS bundle ID must be provided if an App Store ID is provided.</dd>
+ * <dt>auth/invalid-continue-uri</dt>
+ * <dd>The continue URL provided in the request is invalid.</dd>
+ * <dt>auth/unauthorized-continue-uri</dt>
+ * <dd>The domain of the continue URL is not whitelisted. Whitelist
+ *     the domain in the Firebase console.</dd>
+ * </dl>
+ *
+ * @example
+ * var actionCodeSettings = {
+ *   url: 'https://www.example.com/cart?email=user@example.com&cartId=123',
+ *   iOS: {
+ *     bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * firebase.auth().currentUser.sendEmailVerification(actionCodeSettings)
+ *     .then(function() {
+ *       // Verification email sent.
+ *     })
+ *     .catch(function(error) {
+ *       // Error occurred. Inspect error.code.
+ *     });
+ *
+ * @param {?firebase.auth.ActionCodeSettings=} actionCodeSettings The action
+ *     code settings. If specified, the state/continue URL will be set as the
+ *     "continueUrl" parameter in the email verification link. The default email
+ *     verification landing page will use this to display a link to go back to
+ *     the app if it is installed.
+ *     If the actionCodeSettings is not specified, no URL is appended to the
+ *     action URL.
+ *     The state URL provided must belong to a domain that is whitelisted by the
+ *     developer in the console. Otherwise an error will be thrown.
+ *     Mobile app redirects will only be applicable if the developer configures
+ *     and accepts the Firebase Dynamic Links terms of condition.
+ *     The Android package name and iOS bundle ID will be respected only if they
+ *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.sendEmailVerification = function() {};
+firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
 
 
 /**
@@ -710,6 +760,48 @@ firebase.auth.ActionCodeInfo.prototype.data;
 
 
 /**
+ * This is the interface that defines the required continue/state URL with
+ * optional Android and iOS bundle identifiers.
+ * The action code setting fields are:
+ * <ul>
+ * <li><p>url: Sets the link continue/state URL, which has different meanings
+ *     in different contexts:</p>
+ *     <ul>
+ *     <li>When the link is handled in the web action widgets, this is the deep
+ *         link in the continueUrl query parameter.</li>
+ *     <li>When the link is handled in the app directly, this is the continueUrl
+ *         query parameter in the deep link of the Dynamic Link.</li>
+ *     </ul>
+ *     </li>
+ * <li>iOS: Sets the iOS bundle ID. This will try to open the link in an iOS app
+ *     if it is installed.</li>
+ * <li>android: Sets the Android package name. This will try to open the link in
+ *     an android app if it is installed. If installApp is passed, it specifies
+ *     whether to install the Android app if the device supports it and the app
+ *     is not already installed. If this field is provided without a
+ *     packageName, an error is thrown explaining that the packageName must be
+ *     provided in conjunction with this field.
+ *     If minimumVersion is specified, and an older version of the app is
+ *     installed, the user is taken to the Play Store to upgrade the app.</li>
+ * <li>handleCodeInApp: The default is false. When set to true, the action code
+ *     link will be be sent as a Universal Link or Android App Link and will be
+ *     opened by the app if installed. In the false case, the code will be sent
+ *     to the web widget first and then on continue will redirect to the app if
+ *     installed.</li>
+ * </ul>
+ *
+ * @typedef {{
+ *   url: string,
+ *   iOS: ({bundleId: string}|undefined),
+ *   android: ({packageName: string, installApp: (boolean|undefined),
+ *              minimumVersion: (string|undefined)}|undefined),
+ *   handleCodeInApp: (boolean|undefined)
+ * }}
+ */
+firebase.auth.ActionCodeSettings;
+
+
+/**
  * Checks a verification code sent to the user by email or other out-of-band
  * mechanism.
  *
@@ -858,6 +950,24 @@ firebase.auth.Auth.Persistence = {
 firebase.auth.Auth.prototype.setPersistence = function(persistence) {};
 
 /**
+ * The current Auth instance's language code. This is a readable/writable
+ * property. When set to null, the default Firebase Console language setting
+ * is applied. The language code will propagate to email action templates
+ * (password reset, email verification and email change revocation), SMS
+ * templates for phone authentication, reCAPTCHA verifier and OAuth
+ * popup/redirect operations provided the specified providers support
+ * localization with the language code specified.
+ *
+ * @type {string|null}
+ */
+firebase.auth.Auth.prototype.languageCode;
+
+/**
+ * Sets the current language to the default device/browser preference.
+ */
+firebase.auth.Auth.prototype.useDeviceLanguage = function() {};
+
+/**
  * Creates a new user account associated with the specified email address and
  * password.
  *
@@ -987,14 +1097,62 @@ firebase.auth.Auth.prototype.onIdTokenChanged = function(
  * <dl>
  * <dt>auth/invalid-email</dt>
  * <dd>Thrown if the email address is not valid.</dd>
+ * <dt>auth/missing-android-pkg-name</dt>
+ * <dd>An Android package name must be provided if the Android app is required
+ *     to be installed.</dd>
+ * <dt>auth/missing-continue-uri</dt>
+ * <dd>A continue URL must be provided in the request.</dd>
+ * <dt>auth/missing-ios-bundle-id</dt>
+ * <dd>An iOS Bundle ID must be provided if an App Store ID is provided.</dd>
+ * <dt>auth/invalid-continue-uri</dt>
+ * <dd>The continue URL provided in the request is invalid.</dd>
+ * <dt>auth/unauthorized-continue-uri</dt>
+ * <dd>The domain of the continue URL is not whitelisted. Whitelist
+ *     the domain in the Firebase console.</dd>
  * <dt>auth/user-not-found</dt>
  * <dd>Thrown if there is no user corresponding to the email address.</dd>
  * </dl>
  *
+ * @example
+ * var actionCodeSettings = {
+ *   url: 'https://www.example.com/?email=user@example.com',
+ *   iOS: {
+ *     bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   handleCodeInApp: true
+ * };
+ * firebase.auth().sendPasswordResetEmail(
+ *     'user@example.com', actionCodeSettings)
+ *     .then(function() {
+ *       // Password reset email sent.
+ *     })
+ *     .catch(function(error) {
+ *       // Error occurred. Inspect error.code.
+ *     });
+ *
  * @param {string} email The email address with the password to be reset.
+ * @param {?firebase.auth.ActionCodeSettings=} actionCodeSettings The action
+ *     code settings. If specified, the state/continue URL will be set as the
+ *     "continueUrl" parameter in the password reset link. The default password
+ *     reset landing page will use this to display a link to go back to the app
+ *     if it is installed.
+ *     If the actionCodeSettings is not specified, no URL is appended to the
+ *     action URL.
+ *     The state URL provided must belong to a domain that is whitelisted by the
+ *     developer in the console. Otherwise an error will be thrown.
+ *     Mobile app redirects will only be applicable if the developer configures
+ *     and accepts the Firebase Dynamic Links terms of condition.
+ *     The Android package name and iOS bundle ID will be respected only if they
+ *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.sendPasswordResetEmail = function(email) {};
+firebase.auth.Auth.prototype.sendPasswordResetEmail =
+    function(email, actionCodeSettings) {};
 
 
 /**
