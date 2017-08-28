@@ -66,24 +66,6 @@ describe('Firebase Messaging Integration Tests', () => {
         return seleniumBrowser.getSeleniumDriver()
         .then((driver) => {
           currentWebDriver = driver;
-        })
-        .then(() => {
-          // This adds extra code to make notifications auto-grant perission
-          if (seleniumBrowser.getId() === 'firefox') {
-            currentWebDriver.setContext(seleniumFirefox.Context.CHROME);
-            return currentWebDriver.executeScript((url) => {
-              /* global Components, Services */
-              Components.utils.import('resource://gre/modules/Services.jsm');
-              const uri = Services.io.newURI(url, null, null);
-              const principal = Services.scriptSecurityManager
-                .getCodebasePrincipal(uri);
-              Services.perms.addFromPrincipal(
-                principal, 'desktop-notification', Services.perms.ALLOW_ACTION);
-            }, testServer.serverAddress)
-            .then(() => {
-              currentWebDriver.setContext(seleniumFirefox.Context.CONTENT);
-            });
-          }
         });
       });
 

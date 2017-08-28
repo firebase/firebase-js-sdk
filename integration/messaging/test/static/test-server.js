@@ -7,7 +7,7 @@ class MessagingTestServer {
   constructor() {
     this._app = express();
     this._app.use('/', express.static(__dirname));
-    this._app.use('/dist', express.static(path.join(__dirname, '..', '..', '..', '..', '..', 'dist')));
+    this._app.use('/dist', express.static(path.join(__dirname, '..', '..', '..', '..', 'dist')));
     this._app.use('/', express.static(path.join(__dirname, 'shared-files')));
 
     this._server = null;
