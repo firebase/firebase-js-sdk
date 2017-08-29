@@ -1,0 +1,6 @@
+{
+  "*.{js,ts}": [
+    "prettier --write --single-quote",
+    "git add"
+  ]
+}

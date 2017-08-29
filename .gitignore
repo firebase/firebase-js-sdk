@@ -1,12 +1,15 @@
+# Build/Dependencies
+node_modules
+dist
+.awcache
+/config/project.json
+
+# Misc
+*.log
+
+# OS Specific Files
 .DS_Store
-node_modules/
-/dist
-npm-debug.log
-/coverage
-/.nyc_output
-/tests/config
-temp/
-/.vscode
-/.ts-node
-/.idea
-/.awcache
+
+# Editor Configs
+.idea
+.vscode

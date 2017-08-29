@@ -4,24 +4,14 @@
 # These owners will be the default owners for everything in the repo.
 *       @jshcrowthe
 
-# Order is important. The last matching pattern has the most precedence.
-# So if a pull request only touches javascript files, only these owners
-# will be requested to review.
-*.js    @jshcrowthe
-
-# You can also use email addresses if you prefer.
-
 # Database Code
-src/database  @mikelehen @schmidt-sebastian
-tests/database  @mikelehen @schmidt-sebastian
+packages/database  @mikelehen @schmidt-sebastian
 
 # Storage Code
-src/storage  @sphippen
-tests/storage  @sphippen
+packages/storage  @sphippen
 
 # Messaging Code
-src/messaging  @gauntface
-tests/messaging  @gauntface
+packages/messaging  @gauntface
 
 # Auth Code
-src/auth.build.js  @bojeil-google
+packages/auth  @bojeil-google
