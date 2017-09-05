@@ -29,6 +29,7 @@ jobs:
     - script: ./integration/typescript/runner.sh
     - script: ./integration/serviceWorker/runner.sh
     - script: ./integration/quickstart/runner.sh
+    - script: ./integration/messaging/runner.sh
 
 # Misc Addons/Configs
 dist: trusty
