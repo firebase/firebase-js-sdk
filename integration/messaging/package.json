@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "test": "node ./download-browsers.js && mocha"
+  },
+  "devDependencies": {
+    "chai": "^4.1.1",
+    "chromedriver": "^2.31.0",
+    "express": "^4.15.4",
+    "geckodriver": "^1.8.0",
+    "mocha": "^3.5.0",
+    "node-fetch": "^1.7.2",
+    "selenium-assistant": "^5.1.0"
+  }
+}

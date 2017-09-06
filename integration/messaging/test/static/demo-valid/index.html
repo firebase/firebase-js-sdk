@@ -1,0 +1,34 @@
+<html>
+<head>
+  <title>FCM Demo</title>
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+  <h1>Testing</h1>
+
+  <h5>Token</h5>
+  <p class="js-token"></p>
+
+  <button class="js-permissions" disabled>Ensure Permissions</button>
+  <button class="js-get-token" disabled>Call getToken</button>
+  <button class="js-delete-token" disabled>Delete Token</button>
+
+  <h5>Errors</h5>
+  <ul class="js-error-list"></ul>
+
+  <h5>Messaging</h5>
+  <ul class="js-message-list"></ul>
+
+  <h5>cURL Command</h5>
+  <h6>Data Only</h6>
+  <p class="js-data-curl-command"></p>
+
+  <h6>Notification Only</h6>
+  <p class="js-notification-curl-command"></p>
+
+  <script src="/node_modules/firebase/firebase-app.js"></script>
+  <script src="/node_modules/firebase/firebase-messaging.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
