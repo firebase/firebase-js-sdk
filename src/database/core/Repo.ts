@@ -84,7 +84,7 @@ export class Repo {
    * @param {!FirebaseApp} app
    */
   constructor(
-    private repoInfo_: RepoInfo,
+    public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp
   ) {
