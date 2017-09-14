@@ -37,8 +37,8 @@ export class RepoManager {
    * @private {!Object.<string, Object<string, !fb.core.Repo>>}
    */
   private repos_: {
-    [name: string]: {
-      [name: string]: Repo;
+    [appName: string]: {
+      [dbUrl: string]: Repo;
     };
   } = {};
 
@@ -57,17 +57,17 @@ export class RepoManager {
 
   // TODO(koss): Remove these functions unless used in tests?
   interrupt() {
-    for (const instance in this.repos_) {
-      for (const repo in this.repos_[instance]) {
-        this.repos_[instance][repo].interrupt();
+    for (const appName in this.repos_) {
+      for (const dbUrl in this.repos_[appName]) {
+        this.repos_[appName][dbUrl].interrupt();
       }
     }
   }
 
   resume() {
-    for (const instance in this.repos_) {
-      for (const repo in this.repos_[instance]) {
-        this.repos_[instance][repo].resume();
+    for (const appName in this.repos_) {
+      for (const dbUrl in this.repos_[appName]) {
+        this.repos_[appName][dbUrl].resume();
       }
     }
   }
