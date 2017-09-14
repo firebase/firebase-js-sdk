@@ -29,7 +29,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
   const namespace = instance.INTERNAL.registerService(
     'database',
-    app => RepoManager.getInstance().databaseFromApp(app),
+    (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
     // firebase.database namespace properties
     {
       Reference,
@@ -39,7 +39,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
       INTERNAL,
       ServerValue: Database.ServerValue,
       TEST_ACCESS
-    }
+    },
+    null,
+    true
   );
 
   if (isNodeSdk()) {

@@ -45,6 +45,51 @@ describe('Database Tests', function() {
     }).to.throw(/don't call new Database/i);
   });
 
+  it('Can get database with custom URL', function() {
+    var db = defaultApp.database('http://foo.bar.com');
+    expect(db).to.be.ok;
+    // The URL is assumed to be secure if no port is specified.
+    expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+  });
+
+  it('Can get database with custom URL and port', function() {
+    var db = defaultApp.database('http://foo.bar.com:80');
+    expect(db).to.be.ok;
+    expect(db.ref().toString()).to.equal('http://foo.bar.com:80/');
+  });
+
+  it('Can get database with https URL', function() {
+    var db = defaultApp.database('https://foo.bar.com');
+    expect(db).to.be.ok;
+    expect(db.ref().toString()).to.equal('https://foo.bar.com/');
+  });
+
+  it('Different instances for different URLs', function() {
+    var db1 = defaultApp.database('http://foo1.bar.com');
+    var db2 = defaultApp.database('http://foo2.bar.com');
+    expect(db1.ref().toString()).to.equal('https://foo1.bar.com/');
+    expect(db2.ref().toString()).to.equal('https://foo2.bar.com/');
+  });
+
+  it('Cannot use same URL twice', function() {
+    defaultApp.database('http://foo.bar.com');
+    expect(function() {
+      defaultApp.database('http://foo.bar.com/');
+    }).to.throw(/Database initialized multiple times/i);
+  });
+
+  it('Databases with invalid custom URLs', function() {
+    expect(function() {
+      defaultApp.database('not-a-url');
+    }).to.throw(/Cannot parse Firebase url/i);
+    expect(function() {
+      defaultApp.database('http://fblocal.com');
+    }).to.throw(/Cannot parse Firebase url/i);
+    expect(function() {
+      defaultApp.database('http://x.fblocal.com:9000/paths/are/bad');
+    }).to.throw(/Database URL must point to the root of a Firebase Database/i);
+  });
+
   it('Can get app', function() {
     const db = firebase.database();
     expect(db.app).to.not.be.undefined;

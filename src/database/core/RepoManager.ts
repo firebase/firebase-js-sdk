@@ -34,10 +34,12 @@ let _staticInstance: RepoManager;
  */
 export class RepoManager {
   /**
-   * @private {!Object.<string, !Repo>}
+   * @private {!Object.<string, Object<string, !fb.core.Repo>>}
    */
   private repos_: {
-    [name: string]: Repo;
+    [appName: string]: {
+      [dbUrl: string]: Repo;
+    };
   } = {};
 
   /**
@@ -55,14 +57,18 @@ export class RepoManager {
 
   // TODO(koss): Remove these functions unless used in tests?
   interrupt() {
-    for (const repo in this.repos_) {
-      this.repos_[repo].interrupt();
+    for (const appName in this.repos_) {
+      for (const dbUrl in this.repos_[appName]) {
+        this.repos_[appName][dbUrl].interrupt();
+      }
     }
   }
 
   resume() {
-    for (const repo in this.repos_) {
-      this.repos_[repo].resume();
+    for (const appName in this.repos_) {
+      for (const dbUrl in this.repos_[appName]) {
+        this.repos_[appName][dbUrl].resume();
+      }
     }
   }
 
@@ -72,8 +78,8 @@ export class RepoManager {
    * @param {!FirebaseApp} app
    * @return {!Database}
    */
-  databaseFromApp(app: FirebaseApp): Database {
-    const dbUrl: string = app.options[DATABASE_URL_OPTION];
+  databaseFromApp(app: FirebaseApp, url?: string): Database {
+    const dbUrl: string = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
@@ -104,12 +110,15 @@ export class RepoManager {
    * @param {!Repo} repo
    */
   deleteRepo(repo: Repo) {
+    const appRepos = safeGet(this.repos_, repo.app.name);
     // This should never happen...
-    if (safeGet(this.repos_, repo.app.name) !== repo) {
-      fatal('Database ' + repo.app.name + ' has already been deleted.');
+    if (!appRepos || safeGet(appRepos, repo.repoInfo_.toURLString()) !== repo) {
+      fatal(
+        `Database ${repo.app.name}(${repo.repoInfo_}) has already been deleted.`
+      );
     }
     repo.interrupt();
-    delete this.repos_[repo.app.name];
+    delete appRepos[repo.repoInfo_.toURLString()];
   }
 
   /**
@@ -121,12 +130,21 @@ export class RepoManager {
    * @return {!Repo} The Repo object for the specified server / repoName.
    */
   createRepo(repoInfo: RepoInfo, app: FirebaseApp): Repo {
-    let repo = safeGet(this.repos_, app.name);
+    let appRepos = safeGet(this.repos_, app.name);
+
+    if (!appRepos) {
+      appRepos = {};
+      this.repos_[app.name] = appRepos;
+    }
+
+    let repo = safeGet(appRepos, repoInfo.toURLString());
     if (repo) {
-      fatal('FIREBASE INTERNAL ERROR: Database initialized multiple times.');
+      fatal(
+        'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
+      );
     }
     repo = new Repo(repoInfo, this.useRestClient_, app);
-    this.repos_[app.name] = repo;
+    appRepos[repoInfo.toURLString()] = repo;
 
     return repo;
   }
