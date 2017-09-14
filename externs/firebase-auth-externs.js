@@ -143,7 +143,7 @@ firebase.UserInfo.prototype.phoneNumber;
  * @interface
  * @extends {firebase.UserInfo}
  */
-firebase.User;
+firebase.User = function() {};
 
 /**
  * The phone number normalized based on the E.164 standard (e.g. +16505550101)
@@ -1440,7 +1440,7 @@ firebase.auth.Auth.prototype.signInWithPhoneNumber =
  * A result from a phone number sign-in, link, or reauthenticate call.
  * @interface
  */
-firebase.auth.ConfirmationResult;
+firebase.auth.ConfirmationResult = function() {};
 
 
 /**
