@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const merge = require('merge2');
-const rename = require('gulp-rename');
 const path = require('path');
 const sourcemaps = require('gulp-sourcemaps');
 const ts = require('gulp-typescript');

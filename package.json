@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "test": "lerna exec --parallel -- npm test",
+    "test:setup": "node tools/config.js",
     "precommit": "lint-staged",
     "prepublish": "lerna exec -- npm run prepublish"
   },
@@ -27,12 +28,14 @@
     "packages/*"
   ],
   "devDependencies": {
-    "gulp-rename": "^1.2.2",
+    "firebase-tools": "^3.10.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
+    "inquirer": "^3.2.3",
     "lerna": "^2.1.0",
     "lint-staged": "^4.1.3",
     "merge2": "^1.2.0",
+    "mz": "^2.7.0",
     "prettier": "^1.7.0"
   }
 }
