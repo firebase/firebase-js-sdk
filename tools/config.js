@@ -38,15 +38,6 @@ firebaseTools.login
             )
           );
 
-        const config = {
-          database: {
-            rules: {
-              '.read': true,
-              '.write': true
-            }
-          }
-        };
-
         // Deploy database rules
         const deployRules = firebaseTools.deploy({
           project,
