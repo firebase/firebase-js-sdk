@@ -2,9 +2,9 @@
   "name": "@firebase/database",
   "version": "0.1.0",
   "description": "",
-  "main": "dist/index.node.js",
-  "browser": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/cjs/index.node.js",
+  "browser": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "scripts": {
     "dev": "run-p watch:node watch:browser",
     "test": "run-p test:browser test:node",

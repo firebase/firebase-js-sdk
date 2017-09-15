@@ -15,8 +15,8 @@ function buildCjs(root = '') {
 
     const jsPipe = tsResult.js
       .pipe(sourcemaps.write('.'))
-      .pipe(gulp.dest('dist'));
-    const dtsPipe = tsResult.dts.pipe(gulp.dest('dist'));
+      .pipe(gulp.dest('dist/cjs'));
+    const dtsPipe = tsResult.dts.pipe(gulp.dest('dist/cjs'));
 
     return merge([jsPipe, dtsPipe]);
   };
@@ -33,12 +33,9 @@ function buildEsm(root = '') {
       .pipe(tsProject());
 
     const jsPipe = tsResult.js
-      .pipe(rename({ suffix: '.esm' }))
       .pipe(sourcemaps.write('.'))
-      .pipe(gulp.dest('dist'));
-    const dtsPipe = tsResult.dts
-      .pipe(rename({ suffix: '.esm' }))
-      .pipe(gulp.dest('dist'));
+      .pipe(gulp.dest('dist/esm'));
+    const dtsPipe = tsResult.dts.pipe(gulp.dest('dist/esm'));
 
     return merge([jsPipe, dtsPipe]);
   };
