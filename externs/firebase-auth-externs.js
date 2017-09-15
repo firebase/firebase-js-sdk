@@ -143,7 +143,7 @@ firebase.UserInfo.prototype.phoneNumber;
  * @interface
  * @extends {firebase.UserInfo}
  */
-firebase.User;
+firebase.User = function() {};
 
 /**
  * The phone number normalized based on the E.164 standard (e.g. +16505550101)
@@ -712,6 +712,19 @@ firebase.User.prototype.delete = function() {};
  */
 firebase.User.prototype.toJSON = function() {};
 
+/**
+ * The Firebase Auth service interface.
+ *
+ * Do not call this constructor directly. Instead, use
+ * {@link firebase.auth `firebase.auth()`}.
+ *
+ * See
+ * {@link https://firebase.google.com/docs/auth/ Firebase Authentication}
+ * for a full guide on how to use the Firebase Auth service.
+ *
+ * @interface
+ */
+firebase.auth.Auth = function() {};
 
 /**
  * Checks a password reset code sent to the user by email or other out-of-band
@@ -853,20 +866,6 @@ firebase.auth.Auth.prototype.checkActionCode = function(code) {};
  * @return {!firebase.Promise<void>}
  */
 firebase.auth.Auth.prototype.applyActionCode = function(code) {};
-
-/**
- * The Firebase Auth service interface.
- *
- * Do not call this constructor directly. Instead, use
- * {@link firebase.auth `firebase.auth()`}.
- *
- * See
- * {@link https://firebase.google.com/docs/auth/ Firebase Authentication}
- * for a full guide on how to use the Firebase Auth service.
- *
- * @interface
- */
-firebase.auth.Auth = function() {};
 
 /**
  * The {@link firebase.app.App app} associated with the `Auth` service
@@ -1440,7 +1439,7 @@ firebase.auth.Auth.prototype.signInWithPhoneNumber =
  * A result from a phone number sign-in, link, or reauthenticate call.
  * @interface
  */
-firebase.auth.ConfirmationResult;
+firebase.auth.ConfirmationResult = function() {};
 
 
 /**
