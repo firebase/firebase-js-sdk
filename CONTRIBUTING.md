@@ -102,16 +102,6 @@ Before you start working on a larger contribution, you should get in touch with 
 
 That's it! Thank you for your contribution!
 
-## <a name="commit-message-guidelines"></a> Commit Message Guidelines
-
-This repository follows the commit message format defined by the 
-[validate-commit-msg](https://npm.im/validate-commit-msg) package on NPM. This is
-to make the git history easy to follow, and make it easier to identify which
-commits are associated with features, bugfixes, etc.
-
-We are also Commitizen friendly! If you have the [Commitizen CLI](https://npm.im/commitizen) installed
-you can simply use `git cz` to create properly formatted commit messages.
-
 [archive]: https://github.com/firebase/firebase-js-sdk/issues?utf8=%E2%9C%93&q=is%3Aissue
 [file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
 [firebase-google-group]: https://groups.google.com/forum/#!forum/firebase-talk
