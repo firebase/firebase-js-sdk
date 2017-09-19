@@ -5,7 +5,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "outDir": "tmp",
+    "outDir": "dist",
     "target": "ES5",
     "sourceMap": true,
     "typeRoots" : [

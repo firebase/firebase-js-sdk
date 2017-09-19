@@ -1,7 +1,15 @@
 {
   "name": "firebase-typescript-test",
+  "private": true,
   "version": "1.0.0",
-  "main": "runner.sh",
+  "scripts": {
+    "pretest": "tsc",
+    "test:browser": "karma start --single-run",
+    "test": "run-p test:browser"
+  },
+  "dependencies": {
+    "firebase": "latest"
+  },
   "devDependencies": {
     "@types/chai": "^3.4.35",
     "@types/mocha": "^2.2.39",
@@ -13,6 +21,7 @@
     "karma-spec-reporter": "0.0.31",
     "karma-typescript": "^3.0.5",
     "mocha": "^3.5.0",
+    "npm-run-all": "^4.1.1",
     "typescript": "^2.4.2"
   }
 }

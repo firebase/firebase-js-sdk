@@ -25,7 +25,8 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "integration/*"    
   ],
   "devDependencies": {
     "firebase-tools": "^3.10.1",
