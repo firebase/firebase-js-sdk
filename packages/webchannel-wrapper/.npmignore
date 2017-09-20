@@ -1,3 +1,4 @@
 src/
 tools/
 yarn.lock
+*.tgz
