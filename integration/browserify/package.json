@@ -2,13 +2,13 @@
   "name": "firebase-browserify-test",
   "private": true,
   "version": "0.1.0",
-  "main": "runner.sh",
   "scripts": {
+    "prepublish": "echo 'Skipping firebase-browserify-test'",
     "pretest": "mkdirp dist && browserify src/namespace.test.js -o dist/namespace.test.js",
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "latest"
+    "firebase": "^4.3.3"
   },
   "devDependencies": {
     "browserify": "^14.4.0",

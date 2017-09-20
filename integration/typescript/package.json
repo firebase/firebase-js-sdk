@@ -1,14 +1,15 @@
 {
   "name": "firebase-typescript-test",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {
+    "prepublish": "echo 'Skipping firebase-typescript-test'",
     "pretest": "tsc",
     "test:browser": "karma start --single-run",
     "test": "run-p test:browser"
   },
   "dependencies": {
-    "firebase": "latest"
+    "firebase": "^4.3.3"
   },
   "devDependencies": {
     "@types/chai": "^3.4.35",
