@@ -16,11 +16,11 @@
   ],
   "scripts": {
     "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
+    "precommit": "lint-staged",
+    "prepublish": "lerna exec --scope @firebase/* --scope firebase -- npm run prepublish",
     "repl": "node tools/repl.js",
     "test": "lerna exec --parallel -- npm test",
-    "test:setup": "node tools/config.js",
-    "precommit": "lint-staged",
-    "prepublish": "lerna exec -- npm run prepublish"
+    "test:setup": "node tools/config.js"
   },
   "repository": {
     "type": "git",

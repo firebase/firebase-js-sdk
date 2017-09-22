@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prepublish": "echo 'Skipping firebase-webpack-test'",
     "pretest": "webpack",
     "test": "karma start --single-run"
   },

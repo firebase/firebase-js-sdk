@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "prepublish": "echo 'Skipping firebase-messaging-selenium-test'",
     "test": "node ./download-browsers.js && mocha"
   },
   "dependencies": {

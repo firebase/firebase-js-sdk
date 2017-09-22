@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "prepublish": "echo 'Skipping firebase-browserify-test'",
     "pretest": "mkdirp dist && browserify src/namespace.test.js -o dist/namespace.test.js",
     "test": "karma start --single-run"
   },
