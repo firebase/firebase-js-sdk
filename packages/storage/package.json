@@ -5,12 +5,10 @@
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
-    "dev": "run-p watch:browser",
+    "dev": "gulp dev",
     "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
-    "prepublish": "gulp build",
-    "watch:browser": "watch 'karma start --single-run' src test",
-    "watch:browser:debug": "karma start --browsers Chrome"
+    "prepublish": "gulp build"
   },
   "author": "",
   "license": "ISC",
@@ -35,7 +33,6 @@
     "source-map-loader": "^0.2.1",
     "ts-loader": "^2.3.4",
     "typescript": "^2.4.2",
-    "watch": "^1.0.2",
     "webpack": "^3.5.5"
   },
   "typings": "dist/index.d.ts"

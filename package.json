@@ -15,6 +15,7 @@
     "storage"
   ],
   "scripts": {
+    "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
     "test": "lerna exec --parallel -- npm test",
     "test:setup": "node tools/config.js",
     "precommit": "lint-staged",

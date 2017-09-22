@@ -18,6 +18,7 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
+    "dev": "webpack --progress --colors --watch",
     "prepublish": "webpack"
   },
   "main": "index.node.js",

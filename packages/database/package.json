@@ -6,14 +6,11 @@
   "browser": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
-    "dev": "run-p watch:node watch:browser",
+    "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/nodePatches.ts --retries 5 --timeout 5000",
-    "prepublish": "gulp build",
-    "watch:browser": "watch 'karma start --single-run' src test",
-    "watch:browser:debug": "karma start --browsers Chrome",
-    "watch:node": "mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/nodePatches.ts -w"
+    "prepublish": "gulp build"
   },
   "author": "",
   "license": "Apache-2",
@@ -45,7 +42,6 @@
     "ts-loader": "^2.3.4",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
-    "watch": "^1.0.2",
     "webpack": "^3.5.5"
   },
   "typings": "dist/index.d.ts"
