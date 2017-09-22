@@ -3,9 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "pretest": "tsc",
-    "test:browser": "karma start --single-run",
-    "test": "run-p test:browser"
+    "test": "karma start --single-run"
   },
   "dependencies": {
     "firebase": "^4.3.3"

@@ -21,7 +21,7 @@ const karmaBase = require('../../config/karma.base');
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: [{ pattern: `dist/**/*` }],
+    files: ['test/**/*.test.*'],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
