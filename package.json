@@ -28,7 +28,7 @@
   },
   "workspaces": [
     "packages/*",
-    "integration/*"    
+    "integration/*"
   ],
   "devDependencies": {
     "firebase-tools": "^3.10.1",
