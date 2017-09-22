@@ -1,4 +1,5 @@
 var firebase = require('@firebase/app').default;
+require('./auth');
 require('./database');
 require('./storage');
 require('./messaging');
