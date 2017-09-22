@@ -18,6 +18,14 @@ Utility Commands Available:
 `);
 }
 
+function addFirebaseToContext(repl) {
+  Object.defineProperty(repl.context, 'firebase', {
+    configurable: false,
+    enumerable: true,
+    value: firebase
+  });
+}
+
 clearTerminal();
 giveContext();
 
@@ -25,13 +33,10 @@ const replInst = repl.start('> ');
 replInst.on('reset', () => {
   clearTerminal();
   giveContext();
+  addFirebaseToContext(replInst);
 });
 
-Object.defineProperty(replInst.context, 'firebase', {
-  configurable: false,
-  enumerable: true,
-  value: firebase
-});
+addFirebaseToContext(replInst);
 
 replInst.defineCommand('help', () => {
   giveContext();
