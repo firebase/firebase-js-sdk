@@ -1,1 +1,1 @@
-require('@firebase/database');
+module.exports = require('@firebase/database');

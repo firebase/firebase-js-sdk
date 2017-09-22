@@ -16,6 +16,7 @@
   ],
   "scripts": {
     "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
+    "repl": "node tools/repl.js",
     "test": "lerna exec --parallel -- npm test",
     "test:setup": "node tools/config.js",
     "precommit": "lint-staged",
