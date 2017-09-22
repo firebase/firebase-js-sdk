@@ -18,20 +18,25 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "dev": "webpack --progress --colors --watch",
-    "prepublish": "webpack"
+    "dev": "run-p watch:compiler watch:server",
+    "watch:compiler": "webpack -w --colors",
+    "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
+    "prepublish": "webpack --config webpack.config.js"
   },
   "main": "index.node.js",
   "browser": "index.js",
   "dependencies": {
+    "dom-storage": "^2.0.2",
     "@firebase/app": "^0.1.0",
     "@firebase/database": "^0.1.0",
     "@firebase/messaging": "^0.1.0",
-    "@firebase/storage": "^0.1.0"
+    "@firebase/storage": "^0.1.0",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "compression-webpack-plugin": "^1.0.0",
     "git-rev-sync": "^1.9.1",
+    "npm-run-all": "^4.1.1",
     "webpack": "^3.5.6",
     "webpack-dev-server": "^2.8.1",
     "wrapper-webpack-plugin": "^1.0.0"
