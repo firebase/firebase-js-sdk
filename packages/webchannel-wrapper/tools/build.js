@@ -10,8 +10,9 @@ closureBuilder.build({
   out: 'dist/index.js',
   options: {
     closure: {
-      output_wrapper: "module.exports = (function() {%output%; return namespacesToExport}).call(typeof window !== 'undefined' ? window : this)",
-      language_out: 'ECMASCRIPT5'
+      output_wrapper: "(function() {%output%}).call(typeof window !== 'undefined' ? window : this)",
+      language_out: 'ECMASCRIPT5',
+      compilation_level: 'ADVANCED_OPTIMIZATIONS'
     }
   }
 });
