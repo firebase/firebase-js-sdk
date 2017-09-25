@@ -3,20 +3,19 @@
  */
 
 goog.provide('firebase.webchannel.wrapper');
+
 // goog.net.WebChannelTransport
 goog.require('goog.net.createWebChannelTransport');
 goog.require('goog.labs.net.webChannel.WebChannelBaseTransport')
-
 /**
- * TODO: The current issue is that Closure is minifying the inputs to the createWebChannel function
- * we need to figure out how to make it no do that.
+ * NOTE: The `createWebChannel` function takes an options object as a second param
+ * whose properties are typically mangled. We override these in externs/overrides.js
+ * Without those externs, this does not function properly.
  */
 goog.labs.net.webChannel.WebChannelBaseTransport.prototype['createWebChannel'] = goog.labs.net.webChannel.WebChannelBaseTransport.prototype.createWebChannel;
 goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype['send'] = goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype.send;
 goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype['open'] = goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype.open;
 goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype['close'] = goog.labs.net.webChannel.WebChannelBaseTransport.Channel.prototype.close;
-
-
 
 // goog.net.ErrorCode
 goog.require('goog.net.ErrorCode');

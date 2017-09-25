@@ -7,6 +7,9 @@ closureBuilder.build({
   srcs: glob([
     resolve(__dirname, '../src/**/*.js'),
   ]),
+  externs: [
+    resolve(__dirname, '../externs/overrides.js')
+  ],
   out: 'dist/index.js',
   options: {
     closure: {

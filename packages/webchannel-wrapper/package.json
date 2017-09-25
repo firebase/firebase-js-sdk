@@ -4,10 +4,13 @@
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "main": "dist/index.js",
   "scripts": {
-    "prepublish": "node tools/build.js"
+    "dev": "watch 'npm run build' src",
+    "build": "node tools/build.js",
+    "prepublish": "npm run build"
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "closure-builder": "^2.2.23"
+    "closure-builder": "^2.2.23",
+    "watch": "^1.0.2"
   }
 }
