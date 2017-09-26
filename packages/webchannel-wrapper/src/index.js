@@ -42,6 +42,18 @@ goog.require('goog.net.XhrIoPool');
 goog.net.XhrIoPool.prototype['getObject'] = goog.net.XhrIoPool.prototype.getObject;
 goog.net.XhrIoPool.prototype['releaseObject'] = goog.net.XhrIoPool.prototype.releaseObject;
 
+// goog.net.XhrIo
+goog.require('goog.net.XhrIo');
+goog.net.XhrIo.prototype['listenOnce'] = goog.net.XhrIo.prototype.listenOnce;
+goog.net.XhrIo.prototype['getLastError'] = goog.net.XhrIo.prototype.getLastError;
+goog.net.XhrIo.prototype['getLastErrorCode'] = goog.net.XhrIo.prototype.getLastErrorCode;
+goog.net.XhrIo.prototype['getStatus'] = goog.net.XhrIo.prototype.getStatus;
+goog.net.XhrIo.prototype['getStatusText'] = goog.net.XhrIo.prototype.getStatusText;
+goog.net.XhrIo.prototype['getResponseJson'] = goog.net.XhrIo.prototype.getResponseJson;
+goog.net.XhrIo.prototype['getResponseText'] = goog.net.XhrIo.prototype.getResponseText;
+goog.net.XhrIo.prototype['getResponseText'] = goog.net.XhrIo.prototype.getResponseText;
+goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
+
 module['exports'] = {
   'createWebChannelTransport': goog.net.createWebChannelTransport,
   'ErrorCode': goog.net.ErrorCode,
