@@ -28,7 +28,7 @@ async function doPrettierCommit() {
 
   if (!hasDiff) return;
 
-  const gitSpinner = ora('Creating automated style commit').start();  
+  const gitSpinner = ora('Creating automated style commit').start();
   await git.add('.');
 
   await git.commit('[AUTOMATED]: Prettier Code Styling');
