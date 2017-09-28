@@ -131,86 +131,83 @@ describe('.info Tests', function() {
     ref.child('.info/serverTimeOffset').off();
   });
 
-  it.skip(
-    'database.goOffline() / database.goOnline() connection management',
-    function() {
-      const ref = getFreshRepo(TEST_NAMESPACE);
-      const refAlt = getFreshRepo(TEST_ALT_NAMESPACE);
-      let ready;
+  it.skip('database.goOffline() / database.goOnline() connection management', function() {
+    const ref = getFreshRepo(TEST_NAMESPACE);
+    const refAlt = getFreshRepo(TEST_ALT_NAMESPACE);
+    let ready;
 
-      // Wait until we're connected to both Firebases
-      runs(function() {
-        ready = 0;
-        const eventHandler = function(snap) {
-          if (snap.val() === true) {
-            snap.ref.off();
-            ready += 1;
-          }
-        };
-        ref.child('.info/connected').on('value', eventHandler);
-        refAlt.child('.info/connected').on('value', eventHandler);
-      });
-      waitsFor(function() {
-        return ready == 2;
-      });
-
-      runs(function() {
-        ref.database.goOffline();
-        refAlt.database.goOffline();
-      });
-
-      // Ensure we're disconnected from both Firebases
-      runs(function() {
-        ready = 0;
-        const eventHandler = function(snap) {
-          expect(snap.val() === false);
+    // Wait until we're connected to both Firebases
+    runs(function() {
+      ready = 0;
+      const eventHandler = function(snap) {
+        if (snap.val() === true) {
+          snap.ref.off();
           ready += 1;
-        };
-        ref.child('.info/connected').once('value', eventHandler);
-        refAlt.child('.info/connected').once('value', eventHandler);
-      });
-      waitsFor(function() {
-        return ready == 2;
-      });
+        }
+      };
+      ref.child('.info/connected').on('value', eventHandler);
+      refAlt.child('.info/connected').on('value', eventHandler);
+    });
+    waitsFor(function() {
+      return ready == 2;
+    });
 
-      // Ensure that we don't automatically reconnect upon Reference creation
-      runs(function() {
-        ready = 0;
-        const refDup = ref.database.ref();
-        refDup.child('.info/connected').on('value', function(snap) {
-          ready = snap.val() === true || ready;
-        });
-        setTimeout(function() {
-          expect(ready).to.equal(0);
-          refDup.child('.info/connected').off();
-          ready = -1;
-        }, 500);
-      });
-      waitsFor(function() {
-        return ready == -1;
-      });
+    runs(function() {
+      ref.database.goOffline();
+      refAlt.database.goOffline();
+    });
 
-      runs(function() {
-        ref.database.goOnline();
-        refAlt.database.goOnline();
-      });
+    // Ensure we're disconnected from both Firebases
+    runs(function() {
+      ready = 0;
+      const eventHandler = function(snap) {
+        expect(snap.val() === false);
+        ready += 1;
+      };
+      ref.child('.info/connected').once('value', eventHandler);
+      refAlt.child('.info/connected').once('value', eventHandler);
+    });
+    waitsFor(function() {
+      return ready == 2;
+    });
 
-      // Ensure we're connected to both Firebases
-      runs(function() {
-        ready = 0;
-        const eventHandler = function(snap) {
-          if (snap.val() === true) {
-            snap.ref.off();
-            ready += 1;
-          }
-        };
-        ref.child('.info/connected').on('value', eventHandler);
-        refAlt.child('.info/connected').on('value', eventHandler);
+    // Ensure that we don't automatically reconnect upon Reference creation
+    runs(function() {
+      ready = 0;
+      const refDup = ref.database.ref();
+      refDup.child('.info/connected').on('value', function(snap) {
+        ready = snap.val() === true || ready;
       });
+      setTimeout(function() {
+        expect(ready).to.equal(0);
+        refDup.child('.info/connected').off();
+        ready = -1;
+      }, 500);
+    });
+    waitsFor(function() {
+      return ready == -1;
+    });
 
-      waitsFor(function() {
-        return ready == 2;
-      });
-    }
-  );
+    runs(function() {
+      ref.database.goOnline();
+      refAlt.database.goOnline();
+    });
+
+    // Ensure we're connected to both Firebases
+    runs(function() {
+      ready = 0;
+      const eventHandler = function(snap) {
+        if (snap.val() === true) {
+          snap.ref.off();
+          ready += 1;
+        }
+      };
+      ref.child('.info/connected').on('value', eventHandler);
+      refAlt.child('.info/connected').on('value', eventHandler);
+    });
+
+    waitsFor(function() {
+      return ready == 2;
+    });
+  });
 });

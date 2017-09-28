@@ -344,48 +344,45 @@ describe('SortedMap Tests', function() {
     }
   });
 
-  xit(
-    'Perf: Comparison with {}: Insertion and removal with various # of items.',
-    function() {
-      const verifyTraversal = function(tree, max) {
-        const keys = [];
-        for (const k in tree) keys.push(k);
+  xit('Perf: Comparison with {}: Insertion and removal with various # of items.', function() {
+    const verifyTraversal = function(tree, max) {
+      const keys = [];
+      for (const k in tree) keys.push(k);
 
-        keys.sort();
-        expect(keys.length).to.equal(max);
-        for (let i = 0; i < max; i++) expect(tree[i]).to.equal(i);
-      };
+      keys.sort();
+      expect(keys.length).to.equal(max);
+      for (let i = 0; i < max; i++) expect(tree[i]).to.equal(i);
+    };
 
-      for (let N = 10; N <= 100000; N *= 10) {
-        const toInsert = [],
-          toRemove = [];
-        for (let i = 0; i < N; i++) {
-          toInsert.push(i);
-          toRemove.push(i);
-        }
-
-        shuffle(toInsert);
-        shuffle(toRemove);
-
-        const tree = {};
-
-        const start = new Date().getTime();
-        for (let i = 0; i < N; i++) {
-          tree[i] = i;
-        }
-
-        // Ensure order is correct.
-        //verifyTraversal(tree, N);
-
-        for (let i = 0; i < N; i++) {
-          delete tree[i];
-        }
-
-        const elapsed = new Date().getTime() - start;
-        // console.log(N + ": " +elapsed);
+    for (let N = 10; N <= 100000; N *= 10) {
+      const toInsert = [],
+        toRemove = [];
+      for (let i = 0; i < N; i++) {
+        toInsert.push(i);
+        toRemove.push(i);
       }
+
+      shuffle(toInsert);
+      shuffle(toRemove);
+
+      const tree = {};
+
+      const start = new Date().getTime();
+      for (let i = 0; i < N; i++) {
+        tree[i] = i;
+      }
+
+      // Ensure order is correct.
+      //verifyTraversal(tree, N);
+
+      for (let i = 0; i < N; i++) {
+        delete tree[i];
+      }
+
+      const elapsed = new Date().getTime() - start;
+      // console.log(N + ": " +elapsed);
     }
-  );
+  });
 
   it('SortedMapIterator empty test.', function() {
     const map = new SortedMap(defaultCmp);
