@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
-    "prepublish": "lerna exec --scope @firebase/* --scope firebase -- npm run prepublish",
+    "prepare": "lerna exec --scope @firebase/* --scope firebase -- npm run prepare",
     "prepush": "node tools/gitHooks",
     "repl": "node tools/repl.js",
     "test": "lerna exec --parallel -- npm test",

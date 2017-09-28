@@ -21,7 +21,7 @@
     "dev": "run-p watch:compiler watch:server",
     "watch:compiler": "webpack -w --colors",
     "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
-    "prepublish": "webpack --config webpack.config.js"
+    "prepare": "webpack --config webpack.config.js"
   },
   "main": "index.node.js",
   "browser": "index.js",

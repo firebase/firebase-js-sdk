@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "echo 'Skipping @firebase/auth dev step'",
     "test": "echo 'Skipping @firebase/auth test step'",
-    "prepublish": "gulp build"
+    "prepare": "gulp build"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

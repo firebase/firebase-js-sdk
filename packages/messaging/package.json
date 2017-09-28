@@ -8,7 +8,7 @@
     "dev": "gulp dev",
     "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
-    "prepublish": "gulp build"
+    "prepare": "gulp build"
   },
   "author": "",
   "license": "ISC",
