@@ -84,12 +84,7 @@ export function errorPrefix(fnName, argumentNumber, optional) {
  * @param {!string} namespace
  * @param {boolean} optional
  */
-export function validateNamespace(
-  fnName,
-  argumentNumber,
-  namespace,
-  optional
-) {
+export function validateNamespace(fnName, argumentNumber, namespace, optional) {
   if (optional && !namespace) return;
   if (typeof namespace !== 'string') {
     //TODO: I should do more validation here. We only allow certain chars in namespaces.
@@ -100,12 +95,7 @@ export function validateNamespace(
   }
 }
 
-export function validateCallback(
-  fnName,
-  argumentNumber,
-  callback,
-  optional
-) {
+export function validateCallback(fnName, argumentNumber, callback, optional) {
   if (optional && !callback) return;
   if (typeof callback !== 'function')
     throw new Error(

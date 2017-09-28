@@ -276,7 +276,12 @@ describe('Node Tests', function() {
     expect((node.getImmediateChild('c') as LeafNode).getValue()).to.equal(
       false
     );
-    expect(node.getImmediateChild('c').getPriority().val()).to.equal(null);
+    expect(
+      node
+        .getImmediateChild('c')
+        .getPriority()
+        .val()
+    ).to.equal(null);
     expect(node.getPriority().val()).to.equal(1000);
   });
 

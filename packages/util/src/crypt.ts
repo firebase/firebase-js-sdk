@@ -294,7 +294,6 @@ export const base64 = {
   }
 };
 
-
 /**
  * URL-safe base64 encoding
  * @param {!string} str

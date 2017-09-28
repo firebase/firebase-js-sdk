@@ -32,9 +32,7 @@ import {
   validateWritablePath
 } from '../core/util/validation';
 import { validateArgCount, validateCallback } from '@firebase/util';
-import {
-  Deferred
-} from '@firebase/util';
+import { Deferred } from '@firebase/util';
 import { SyncPoint } from '../core/SyncPoint';
 import { Database } from './Database';
 import { DataSnapshot } from './DataSnapshot';

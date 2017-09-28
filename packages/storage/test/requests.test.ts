@@ -23,10 +23,7 @@ import {
 } from '../src/implementation/metadata';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
-import {
-  makeNormalUrl,
-  makeUploadUrl
-} from '../src/implementation/url';
+import { makeNormalUrl, makeUploadUrl } from '../src/implementation/url';
 import * as fbsPromise from '../src/implementation/promise_external';
 import * as errors from '../src/implementation/error';
 import { RequestInfo } from '../src/implementation/requestinfo';

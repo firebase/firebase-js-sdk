@@ -935,31 +935,34 @@ describe('Transaction Tests', function() {
     }
 
     function makeFriend(accountID, friendAccountID, firebase) {
-      firebase.child(accountID).child(friendAccountID).transaction(
-        function(r) {
-          if (r == null) {
-            r = {
-              accountID: accountID,
-              friendAccountID: friendAccountID,
-              percentCommon: 0
-            };
-          }
+      firebase
+        .child(accountID)
+        .child(friendAccountID)
+        .transaction(
+          function(r) {
+            if (r == null) {
+              r = {
+                accountID: accountID,
+                friendAccountID: friendAccountID,
+                percentCommon: 0
+              };
+            }
 
-          return r;
-        },
-        function(error, committed, snapshot) {
-          if (error) {
-            throw error;
-          } else if (!committed) {
-            throw 'All should be committed!';
-          } else {
-            count++;
-            ea.addEvent();
-            snapshot.ref.setPriority(snapshot.val().percentCommon);
-          }
-        },
-        false
-      );
+            return r;
+          },
+          function(error, committed, snapshot) {
+            if (error) {
+              throw error;
+            } else if (!committed) {
+              throw 'All should be committed!';
+            } else {
+              count++;
+              ea.addEvent();
+              snapshot.ref.setPriority(snapshot.val().percentCommon);
+            }
+          },
+          false
+        );
     }
 
     const firebase = getRandomNode() as Reference;
@@ -1336,20 +1339,23 @@ describe('Transaction Tests', function() {
   ) {
     const ref = getRandomNode() as Reference;
     ref.push({ a: 1, b: 2 }, function() {
-      ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-        snap.ref.transaction(
-          function(current) {
-            expect(current).to.deep.equal({ a: 1, b: 2 });
-            return null;
-          },
-          function(error, committed, snapshot) {
-            expect(error).to.equal(null);
-            expect(committed).to.equal(true);
-            expect(snapshot.val()).to.equal(null);
-            done();
-          }
-        );
-      });
+      ref
+        .startAt()
+        .limitToFirst(1)
+        .on('child_added', function(snap) {
+          snap.ref.transaction(
+            function(current) {
+              expect(current).to.deep.equal({ a: 1, b: 2 });
+              return null;
+            },
+            function(error, committed, snapshot) {
+              expect(error).to.equal(null);
+              expect(committed).to.equal(true);
+              expect(snapshot.val()).to.equal(null);
+              done();
+            }
+          );
+        });
     });
   });
 

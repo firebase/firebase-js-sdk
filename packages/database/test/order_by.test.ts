@@ -213,7 +213,10 @@ describe('.orderBy tests', function() {
 
     await ref.set(data);
 
-    const snap = await ref.orderByKey().startAt('c').once('value');
+    const snap = await ref
+      .orderByKey()
+      .startAt('c')
+      .once('value');
 
     let keys = [];
     snap.forEach(function(child) {
@@ -224,10 +227,13 @@ describe('.orderBy tests', function() {
     const ea = EventAccumulatorFactory.waitsForCount(5);
     keys = [];
 
-    ref.orderByKey().limitToLast(5).on('child_added', function(child) {
-      keys.push(child.key);
-      ea.addEvent();
-    });
+    ref
+      .orderByKey()
+      .limitToLast(5)
+      .on('child_added', function(child) {
+        keys.push(child.key);
+        ea.addEvent();
+      });
 
     await ea.promise;
 
@@ -239,10 +245,13 @@ describe('.orderBy tests', function() {
     const ref = getRandomNode() as Reference;
 
     ref.set('leaf-node', function() {
-      ref.orderByChild('foo').limitToLast(1).on('value', function(snap) {
-        expect(snap.val()).to.be.null;
-        done();
-      });
+      ref
+        .orderByChild('foo')
+        .limitToLast(1)
+        .on('value', function(snap) {
+          expect(snap.val()).to.be.null;
+          done();
+        });
     });
   });
 
@@ -260,23 +269,26 @@ describe('.orderBy tests', function() {
     let count = 0;
 
     writer.set(value, function() {
-      reader.orderByChild('index').limitToLast(2).on('value', function(snap) {
-        if (count === 0) {
-          expect(snap.val()).to.deep.equal({
-            two: { index: 2, value: 'two' },
-            three: { index: 3, value: 'three' }
-          });
-          // update child which should trigger value event
-          writer.child('one/index').set(4);
-        } else if (count === 1) {
-          expect(snap.val()).to.deep.equal({
-            three: { index: 3, value: 'three' },
-            one: { index: 4, value: 'one' }
-          });
-          done();
-        }
-        count++;
-      });
+      reader
+        .orderByChild('index')
+        .limitToLast(2)
+        .on('value', function(snap) {
+          if (count === 0) {
+            expect(snap.val()).to.deep.equal({
+              two: { index: 2, value: 'two' },
+              three: { index: 3, value: 'three' }
+            });
+            // update child which should trigger value event
+            writer.child('one/index').set(4);
+          } else if (count === 1) {
+            expect(snap.val()).to.deep.equal({
+              three: { index: 3, value: 'three' },
+              one: { index: 4, value: 'one' }
+            });
+            done();
+          }
+          count++;
+        });
     });
   });
 
@@ -295,7 +307,10 @@ describe('.orderBy tests', function() {
 
     const actual = [];
 
-    const orderedRef = reader.orderByKey().startAt('b').limitToFirst(2);
+    const orderedRef = reader
+      .orderByKey()
+      .startAt('b')
+      .limitToFirst(2);
     writer.set(initial, function() {
       orderedRef.on('value', function(snap) {
         snap.forEach(function(childSnap) {
@@ -325,7 +340,10 @@ describe('.orderBy tests', function() {
     const addedOrder = [];
     const addedPrevNames = [];
 
-    const orderedRef = ref.orderByValue().startAt(52, 'tony').endAt(59);
+    const orderedRef = ref
+      .orderByValue()
+      .startAt(52, 'tony')
+      .endAt(59);
 
     orderedRef.on('value', function(snap) {
       snap.forEach(function(childSnap) {

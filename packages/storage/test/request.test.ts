@@ -160,14 +160,16 @@ describe('Firebase Storage > Request', () => {
       timeout
     );
 
-    return makeRequest(requestInfo, null, makePool(newSend)).getPromise().then(
-      result => {
-        assert.fail('Succeeded when handler gave error');
-      },
-      error => {
-        assert.equal(error.message, errorMessage);
-      }
-    );
+    return makeRequest(requestInfo, null, makePool(newSend))
+      .getPromise()
+      .then(
+        result => {
+          assert.fail('Succeeded when handler gave error');
+        },
+        error => {
+          assert.equal(error.message, errorMessage);
+        }
+      );
   });
 
   it('Cancels properly', () => {

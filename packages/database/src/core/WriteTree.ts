@@ -691,7 +691,9 @@ export class WriteTreeRef {
    * @param {?ChildrenNode} completeServerChildren
    * @return {!ChildrenNode}
    */
-  calcCompleteEventChildren(completeServerChildren: ChildrenNode | null): ChildrenNode {
+  calcCompleteEventChildren(
+    completeServerChildren: ChildrenNode | null
+  ): ChildrenNode {
     return this.writeTree_.calcCompleteEventChildren(
       this.treePath_,
       completeServerChildren

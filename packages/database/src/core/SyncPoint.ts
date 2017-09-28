@@ -142,13 +142,13 @@ export class SyncPoint {
         eventCacheComplete = false;
       }
       const viewCache = new ViewCache(
-        new CacheNode /** @type {!Node} */(
-          eventCache,
+        new CacheNode(
+          /** @type {!Node} */ (eventCache),
           eventCacheComplete,
           false
         ),
-        new CacheNode /** @type {!Node} */(
-          serverCache,
+        new CacheNode(
+          /** @type {!Node} */ (serverCache),
           serverCacheComplete,
           false
         )
@@ -193,7 +193,12 @@ export class SyncPoint {
           delete self.views_[viewQueryId];
 
           // We'll deal with complete views later.
-          if (!view.getQuery().getQueryParams().loadsAllData()) {
+          if (
+            !view
+              .getQuery()
+              .getQueryParams()
+              .loadsAllData()
+          ) {
             removed.push(view.getQuery());
           }
         }
@@ -209,7 +214,12 @@ export class SyncPoint {
           delete this.views_[queryId];
 
           // We'll deal with complete views later.
-          if (!view.getQuery().getQueryParams().loadsAllData()) {
+          if (
+            !view
+              .getQuery()
+              .getQueryParams()
+              .loadsAllData()
+          ) {
             removed.push(view.getQuery());
           }
         }
@@ -232,7 +242,10 @@ export class SyncPoint {
   getQueryViews(): View[] {
     const values = Object.keys(this.views_).map(key => this.views_[key]);
     return values.filter(function(view) {
-      return !view.getQuery().getQueryParams().loadsAllData();
+      return !view
+        .getQuery()
+        .getQueryParams()
+        .loadsAllData();
     });
   }
 
@@ -283,7 +296,10 @@ export class SyncPoint {
    */
   getCompleteView(): View | null {
     const completeView = findValue(this.views_, (view: View) =>
-      view.getQuery().getQueryParams().loadsAllData()
+      view
+        .getQuery()
+        .getQueryParams()
+        .loadsAllData()
     );
     return completeView || null;
   }

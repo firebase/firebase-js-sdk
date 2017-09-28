@@ -22,7 +22,7 @@
  */
 export function jsonEval(str) {
   return JSON.parse(str);
-};
+}
 
 /**
  * Returns JSON representing a javascript object.
@@ -31,4 +31,4 @@ export function jsonEval(str) {
  */
 export function stringify(data) {
   return JSON.stringify(data);
-};
+}

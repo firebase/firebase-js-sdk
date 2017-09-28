@@ -60,24 +60,51 @@ describe('Path Tests', function() {
 
   it('popFront() returns the parent', function() {
     expect(new Path('/a/b/c').popFront().toString()).to.equal('/b/c');
-    expect(new Path('/a/b/c').popFront().popFront().toString()).to.equal('/c');
     expect(
-      new Path('/a/b/c').popFront().popFront().popFront().toString()
+      new Path('/a/b/c')
+        .popFront()
+        .popFront()
+        .toString()
+    ).to.equal('/c');
+    expect(
+      new Path('/a/b/c')
+        .popFront()
+        .popFront()
+        .popFront()
+        .toString()
     ).to.equal('/');
     expect(
-      new Path('/a/b/c').popFront().popFront().popFront().popFront().toString()
+      new Path('/a/b/c')
+        .popFront()
+        .popFront()
+        .popFront()
+        .popFront()
+        .toString()
     ).to.equal('/');
   });
 
   it('parent() returns the parent', function() {
     expect(new Path('/a/b/c').parent().toString()).to.equal('/a/b');
-    expect(new Path('/a/b/c').parent().parent().toString()).to.equal('/a');
-    expect(new Path('/a/b/c').parent().parent().parent().toString()).to.equal(
-      '/'
-    );
-    expect(new Path('/a/b/c').parent().parent().parent().parent()).to.equal(
-      null
-    );
+    expect(
+      new Path('/a/b/c')
+        .parent()
+        .parent()
+        .toString()
+    ).to.equal('/a');
+    expect(
+      new Path('/a/b/c')
+        .parent()
+        .parent()
+        .parent()
+        .toString()
+    ).to.equal('/');
+    expect(
+      new Path('/a/b/c')
+        .parent()
+        .parent()
+        .parent()
+        .parent()
+    ).to.equal(null);
   });
 
   it('comparePaths() works as expected', function() {

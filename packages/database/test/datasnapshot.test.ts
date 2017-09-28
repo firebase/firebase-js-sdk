@@ -82,11 +82,21 @@ describe('DataSnapshot Tests', function() {
     const snap = snapshotForJSON({ x: 5, y: { yy: 3, yz: 4 } });
     expect(snap.child('x').val()).to.equal(5);
     expect(snap.child('y').val()).to.deep.equal({ yy: 3, yz: 4 });
-    expect(snap.child('y').child('yy').val()).to.equal(3);
+    expect(
+      snap
+        .child('y')
+        .child('yy')
+        .val()
+    ).to.equal(3);
     expect(snap.child('y/yz').val()).to.equal(4);
     expect(snap.child('z').val()).to.equal(null);
     expect(snap.child('x/y').val()).to.equal(null);
-    expect(snap.child('x').child('y').val()).to.equal(null);
+    expect(
+      snap
+        .child('x')
+        .child('y')
+        .val()
+    ).to.equal(null);
   });
 
   it('DataSnapshot.hasChild() works.', function() {

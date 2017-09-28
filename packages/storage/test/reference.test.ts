@@ -163,7 +163,12 @@ describe('Firebase Storage > Reference', () => {
     });
     it('works chained multiple times with leading slashes', () => {
       assert.equal(
-        root.child('a').child('/b').child('c').child('d/e').toString(),
+        root
+          .child('a')
+          .child('/b')
+          .child('c')
+          .child('d/e')
+          .toString(),
         'gs://test-bucket/a/b/c/d/e'
       );
     });
@@ -212,11 +217,9 @@ describe('Firebase Storage > Reference', () => {
   describe('putString', () => {
     it('Uses metadata.contentType for RAW format', () => {
       // Regression test for b/30989476
-      const task = child.putString(
-        'hello',
-        StringFormat.RAW,
-        { contentType: 'lol/wut' } as Metadata
-      );
+      const task = child.putString('hello', StringFormat.RAW, {
+        contentType: 'lol/wut'
+      } as Metadata);
       assert.equal(task.snapshot.metadata.contentType, 'lol/wut');
       task.cancel();
     });

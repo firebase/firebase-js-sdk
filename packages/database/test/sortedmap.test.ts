@@ -193,12 +193,18 @@ describe('SortedMap Tests', function() {
     expect(map.count()).to.equal(6);
     expect((map as any).root_.checkMaxDepth_()).to.equal(true);
 
-    const m2 = map.insert(20, 20).insert(18, 18).insert(2, 2);
+    const m2 = map
+      .insert(20, 20)
+      .insert(18, 18)
+      .insert(2, 2);
 
     expect(m2.count()).to.equal(9);
     expect((m2 as any).root_.checkMaxDepth_()).to.equal(true);
 
-    const m3 = m2.insert(71, 71).insert(42, 42).insert(88, 88);
+    const m3 = m2
+      .insert(71, 71)
+      .insert(42, 42)
+      .insert(88, 88);
 
     expect(m3.count()).to.equal(12);
     expect((m3 as any).root_.checkMaxDepth_()).to.equal(true);

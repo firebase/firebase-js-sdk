@@ -9,18 +9,17 @@ const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
 async function doPrettierCommit() {
-  await spawn('prettier', [
-    '--config',
-    `${resolve(root, '.prettierrc')}`,
-    '--write',
-    '**/*.{ts,js}'
-  ], {
-    stdio: 'inherit',
-    cwd: root,
-    env: {
-      PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
+  await spawn(
+    'prettier',
+    ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
+    {
+      stdio: 'inherit',
+      cwd: root,
+      env: {
+        PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
+      }
     }
-  });
+  );
 
   const hasDiff = await git.diff();
 

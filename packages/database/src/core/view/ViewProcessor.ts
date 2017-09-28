@@ -64,11 +64,17 @@ export class ViewProcessor {
    */
   assertIndexed(viewCache: ViewCache) {
     assert(
-      viewCache.getEventCache().getNode().isIndexed(this.filter_.getIndex()),
+      viewCache
+        .getEventCache()
+        .getNode()
+        .isIndexed(this.filter_.getIndex()),
       'Event snap not indexed'
     );
     assert(
-      viewCache.getServerCache().getNode().isIndexed(this.filter_.getIndex()),
+      viewCache
+        .getServerCache()
+        .getNode()
+        .isIndexed(this.filter_.getIndex()),
       'Server snap not indexed'
     );
   }
@@ -199,8 +205,13 @@ export class ViewProcessor {
         accumulator.length > 0 ||
         !oldViewCache.getEventCache().isFullyInitialized() ||
         (isLeafOrEmpty &&
-          !eventSnap.getNode().equals /** @type {!Node} */(oldCompleteSnap)) ||
-        !eventSnap.getNode().getPriority().equals(oldCompleteSnap.getPriority())
+          !eventSnap
+            .getNode()
+            .equals(/** @type {!Node} */ (oldCompleteSnap))) ||
+        !eventSnap
+          .getNode()
+          .getPriority()
+          .equals(oldCompleteSnap.getPriority())
       ) {
         accumulator.push(
           Change.valueChange(
@@ -629,7 +640,10 @@ export class ViewProcessor {
     // If we don't have a cache yet, this merge was intended for a previously listen in the same location. Ignore it and
     // wait for the complete data update coming soon.
     if (
-      viewCache.getServerCache().getNode().isEmpty() &&
+      viewCache
+        .getServerCache()
+        .getNode()
+        .isEmpty() &&
       !viewCache.getServerCache().isFullyInitialized()
     ) {
       return viewCache;
@@ -877,7 +891,12 @@ export class ViewProcessor {
             source,
             accumulator
           );
-        } else if (viewCache.getEventCache().getNode().hasChild(childKey)) {
+        } else if (
+          viewCache
+            .getEventCache()
+            .getNode()
+            .hasChild(childKey)
+        ) {
           // No complete child available, delete the existing one, if any
           newEventCache = this.filter_.updateChild(
             oldEventCache,

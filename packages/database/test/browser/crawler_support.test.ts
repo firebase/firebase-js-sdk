@@ -150,9 +150,12 @@ describe('Crawler Support', function() {
   });
 
   it('Leaf read works. (Promise)', function() {
-    return restRef.child('leaf').once('value').then(function(s) {
-      expect(s.val()).to.equal(initialData.leaf);
-    });
+    return restRef
+      .child('leaf')
+      .once('value')
+      .then(function(s) {
+        expect(s.val()).to.equal(initialData.leaf);
+      });
   });
 
   it('Object read works.', function(done) {
@@ -163,9 +166,12 @@ describe('Crawler Support', function() {
   });
 
   it('Object read works. (Promise)', function() {
-    return restRef.child('obj').once('value').then(function(s) {
-      expect(s.val()).to.deep.equal(initialData.obj);
-    });
+    return restRef
+      .child('obj')
+      .once('value')
+      .then(function(s) {
+        expect(s.val()).to.deep.equal(initialData.obj);
+      });
   });
 
   it('Leaf with priority read works.', function(done) {
@@ -176,9 +182,12 @@ describe('Crawler Support', function() {
   });
 
   it('Leaf with priority read works. (Promise)', function() {
-    return restRef.child('leafWithPriority').once('value').then(function(s) {
-      expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
-    });
+    return restRef
+      .child('leafWithPriority')
+      .once('value')
+      .then(function(s) {
+        expect(s.exportVal()).to.deep.equal(initialData.leafWithPriority);
+      });
   });
 
   it('Null read works.', function(done) {
@@ -189,9 +198,12 @@ describe('Crawler Support', function() {
   });
 
   it('Null read works. (Promise)', function() {
-    return restRef.child('nonexistent').once('value').then(function(s) {
-      expect(s.val()).to.equal(null);
-    });
+    return restRef
+      .child('nonexistent')
+      .once('value')
+      .then(function(s) {
+        expect(s.val()).to.equal(null);
+      });
   });
 
   it('on works.', function(done) {

@@ -16,10 +16,7 @@
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app';
 import * as constants from '../src/implementation/constants';
-import {
-  Code,
-  FirebaseStorageError
-} from '../src/implementation/error';
+import { Code, FirebaseStorageError } from '../src/implementation/error';
 import * as objectUtils from '../src/implementation/object';
 import * as promiseimpl from '../src/implementation/promise_external';
 import * as type from '../src/implementation/type';
@@ -105,7 +102,7 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
       throw e;
     }
   }).to.throw();
-  expect(captured).to.be.an.instanceof(FirebaseStorageError);  
+  expect(captured).to.be.an.instanceof(FirebaseStorageError);
   expect(captured.code).to.equal(code);
   return captured as FirebaseStorageError;
 }

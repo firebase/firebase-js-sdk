@@ -16,11 +16,7 @@
 import { forEach } from '../src/implementation/object';
 import * as promiseimpl from '../src/implementation/promise_external';
 import * as type from '../src/implementation/type';
-import {
-  ErrorCode,
-  Headers,
-  XhrIo
-} from '../src/implementation/xhrio';
+import { ErrorCode, Headers, XhrIo } from '../src/implementation/xhrio';
 
 export type SendHook = (
   xhrio: TestingXhrIo,

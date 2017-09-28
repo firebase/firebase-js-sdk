@@ -28,9 +28,11 @@ import { ChildrenNode } from '../snap/ChildrenNode';
  * @param {?Object} values
  * @return {!Object}
  */
-export const generateWithValues = function(values: {
-  [k: string]: any;
-} | null): { [k: string]: any } {
+export const generateWithValues = function(
+  values: {
+    [k: string]: any;
+  } | null
+): { [k: string]: any } {
   values = values || {};
   values['timestamp'] = values['timestamp'] || new Date().getTime();
   return values;

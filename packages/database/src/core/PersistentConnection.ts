@@ -25,11 +25,7 @@ import { OnlineMonitor } from './util/OnlineMonitor';
 import { isAdmin, isValidFormat } from '@firebase/util';
 import { Connection } from '../realtime/Connection';
 import { CONSTANTS } from '@firebase/util';
-import {
-  isMobileCordova,
-  isReactNative,
-  isNodeSdk
-} from '@firebase/util';
+import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
@@ -287,7 +283,12 @@ export class PersistentConnection extends ServerActions {
       const warnings = safeGet(payload, 'w');
       if (Array.isArray(warnings) && ~warnings.indexOf('no_index')) {
         const indexSpec =
-          '".indexOn": "' + query.getQueryParams().getIndex().toString() + '"';
+          '".indexOn": "' +
+          query
+            .getQueryParams()
+            .getIndex()
+            .toString() +
+          '"';
         const indexPath = query.path.toString();
         warn(
           `Using an unspecified index. Your data will be downloaded and ` +

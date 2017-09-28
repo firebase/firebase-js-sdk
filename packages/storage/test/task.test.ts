@@ -22,10 +22,7 @@ import { getMappings } from '../src/implementation/metadata';
 import { Unsubscribe } from '../src/implementation/observer';
 import * as fbsPromise from '../src/implementation/promise_external';
 import { makeRequest } from '../src/implementation/request';
-import {
-  TaskEvent,
-  TaskState
-} from '../src/implementation/taskenums';
+import { TaskEvent, TaskState } from '../src/implementation/taskenums';
 import { Headers } from '../src/implementation/xhrio';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';

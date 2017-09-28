@@ -21,7 +21,7 @@ import '../../index';
 import { Reference } from '../../src/api/Reference';
 import { Query } from '../../src/api/Query';
 import { ConnectionTarget } from '../../src/api/test_access';
-import { RepoInfo } from "../../src/core/RepoInfo";
+import { RepoInfo } from '../../src/core/RepoInfo';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
 
@@ -219,7 +219,9 @@ export function getVal(path) {
 }
 
 export function canCreateExtraConnections() {
-  return typeof MozWebSocket !== 'undefined' || typeof WebSocket !== 'undefined';
+  return (
+    typeof MozWebSocket !== 'undefined' || typeof WebSocket !== 'undefined'
+  );
 }
 
 export function buildObjFromKey(key) {

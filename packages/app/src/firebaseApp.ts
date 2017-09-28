@@ -14,7 +14,13 @@
 * limitations under the License.
 */
 import { createSubscribe, Observer, Subscribe } from '@firebase/util';
-import { patchProperty, deepCopy, deepExtend, ErrorFactory, FirebaseError } from '@firebase/util';
+import {
+  patchProperty,
+  deepCopy,
+  deepExtend,
+  ErrorFactory,
+  FirebaseError
+} from '@firebase/util';
 
 export interface FirebaseAuthTokenData {
   accessToken: string;

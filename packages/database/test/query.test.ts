@@ -885,12 +885,18 @@ describe('Query Tests', function() {
 
     let added = '',
       removed = '';
-    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) {
-      added += snap.key + ' ';
-    });
-    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) {
-      removed += snap.key + ' ';
-    });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_added', function(snap) {
+        added += snap.key + ' ';
+      });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_removed', function(snap) {
+        removed += snap.key + ' ';
+      });
     node.set({ a: 1, b: 2, c: 3 });
     expect(added).to.equal('a b ');
     expect(removed).to.equal('');
@@ -909,13 +915,19 @@ describe('Query Tests', function() {
 
     let added = '',
       removed = '';
-    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) {
-      added += snap.key + ' ';
-      ea.addEvent();
-    });
-    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) {
-      removed += snap.key + ' ';
-    });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_added', function(snap) {
+        added += snap.key + ' ';
+        ea.addEvent();
+      });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_removed', function(snap) {
+        removed += snap.key + ' ';
+      });
 
     await ea.promise;
 
@@ -934,12 +946,18 @@ describe('Query Tests', function() {
 
     let added = '',
       removed = '';
-    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) {
-      added += snap.key + ' ';
-    });
-    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) {
-      removed += snap.key + ' ';
-    });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_added', function(snap) {
+        added += snap.key + ' ';
+      });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_removed', function(snap) {
+        removed += snap.key + ' ';
+      });
     node.set({ c: 3 });
     expect(added).to.equal('c ');
     expect(removed).to.equal('');
@@ -959,13 +977,19 @@ describe('Query Tests', function() {
 
     let added = '';
     let removed = '';
-    node.startAt(null, 'a').limitToFirst(2).on('child_added', function(snap) {
-      added += snap.key + ' ';
-      ea.addEvent();
-    });
-    node.startAt(null, 'a').limitToFirst(2).on('child_removed', function(snap) {
-      removed += snap.key + ' ';
-    });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_added', function(snap) {
+        added += snap.key + ' ';
+        ea.addEvent();
+      });
+    node
+      .startAt(null, 'a')
+      .limitToFirst(2)
+      .on('child_removed', function(snap) {
+        removed += snap.key + ' ';
+      });
 
     await ea.promise;
 
@@ -1496,9 +1520,12 @@ describe('Query Tests', function() {
     });
 
     const snapAcc = EventAccumulatorFactory.waitsForCount(1);
-    f.startAt(null).endAt(null).on('value', snap => {
-      snapAcc.addEvent(snap.val());
-    });
+    f
+      .startAt(null)
+      .endAt(null)
+      .on('value', snap => {
+        snapAcc.addEvent(snap.val());
+      });
 
     const [val] = await snapAcc.promise;
     expect(val).to.deep.equal({ a: 0, b: 1 });
@@ -1631,13 +1658,19 @@ describe('Query Tests', function() {
     const node = getRandomNode() as Reference;
     expect(dumpListens(node)).to.equal('');
 
-    const aLim1On = node.child('a').limitToLast(1).on('value', function() {});
+    const aLim1On = node
+      .child('a')
+      .limitToLast(1)
+      .on('value', function() {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
     const rootLim1On = node.limitToLast(1).on('value', function() {});
     expect(dumpListens(node)).to.equal(':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"}');
 
-    const aLim5On = node.child('a').limitToLast(5).on('value', function() {});
+    const aLim5On = node
+      .child('a')
+      .limitToLast(5)
+      .on('value', function() {});
     expect(dumpListens(node)).to.equal(
       ':{"l":1,"vf":"r"};/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}'
     );
@@ -1645,18 +1678,30 @@ describe('Query Tests', function() {
     node.limitToLast(1).off('value', rootLim1On);
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"},{"l":5,"vf":"r"}');
 
-    node.child('a').limitToLast(1).off('value', aLim1On);
-    node.child('a').limitToLast(5).off('value', aLim5On);
+    node
+      .child('a')
+      .limitToLast(1)
+      .off('value', aLim1On);
+    node
+      .child('a')
+      .limitToLast(5)
+      .off('value', aLim5On);
     expect(dumpListens(node)).to.equal('');
   });
 
   it('Dedupe queried listens: listen on parent of queried children.', function() {
     const node = getRandomNode() as Reference;
 
-    const aLim1On = node.child('a').limitToLast(1).on('value', function() {});
+    const aLim1On = node
+      .child('a')
+      .limitToLast(1)
+      .on('value', function() {});
     expect(dumpListens(node)).to.equal('/a:{"l":1,"vf":"r"}');
 
-    const bLim1On = node.child('b').limitToLast(1).on('value', function() {});
+    const bLim1On = node
+      .child('b')
+      .limitToLast(1)
+      .on('value', function() {});
     expect(dumpListens(node)).to.equal(
       '/a:{"l":1,"vf":"r"};/b:{"l":1,"vf":"r"}'
     );
@@ -1665,13 +1710,19 @@ describe('Query Tests', function() {
     expect(dumpListens(node)).to.equal(':default');
 
     // remove in slightly random order.
-    node.child('a').limitToLast(1).off('value', aLim1On);
+    node
+      .child('a')
+      .limitToLast(1)
+      .off('value', aLim1On);
     expect(dumpListens(node)).to.equal(':default');
 
     node.off('value', rootOn);
     expect(dumpListens(node)).to.equal('/b:{"l":1,"vf":"r"}');
 
-    node.child('b').limitToLast(1).off('value', bLim1On);
+    node
+      .child('b')
+      .limitToLast(1)
+      .off('value', bLim1On);
     expect(dumpListens(node)).to.equal('');
   });
 
@@ -1837,14 +1888,20 @@ describe('Query Tests', function() {
     const ref = getRandomNode() as Reference;
 
     let c = null;
-    ref.limitToLast(1).endAt(null, 'c').on('value', function(snap) {
-      c = snap.val();
-    });
+    ref
+      .limitToLast(1)
+      .endAt(null, 'c')
+      .on('value', function(snap) {
+        c = snap.val();
+      });
 
     let d = null;
-    ref.limitToLast(1).endAt(null, 'd').on('value', function(snap) {
-      d = snap.val();
-    });
+    ref
+      .limitToLast(1)
+      .endAt(null, 'd')
+      .on('value', function(snap) {
+        d = snap.val();
+      });
 
     ref.set({ a: 1, b: 2, c: 3 });
     expect(c).to.deep.equal({ c: 3 });
@@ -1879,12 +1936,15 @@ describe('Query Tests', function() {
     ref.set({ a: 1, b: 2 });
 
     let val;
-    ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-      val = snap.val();
-      if (val === 1) {
-        done();
-      }
-    });
+    ref
+      .startAt()
+      .limitToFirst(1)
+      .on('child_added', function(snap) {
+        val = snap.val();
+        if (val === 1) {
+          done();
+        }
+      });
   });
 
   it('.startAt().limitToFirst(1) and then remove first child (case 1664).', async function() {
@@ -1893,10 +1953,13 @@ describe('Query Tests', function() {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let val;
-    ref.startAt().limitToFirst(1).on('child_added', function(snap) {
-      val = snap.val();
-      ea.addEvent();
-    });
+    ref
+      .startAt()
+      .limitToFirst(1)
+      .on('child_added', function(snap) {
+        val = snap.val();
+        ea.addEvent();
+      });
 
     await ea.promise;
     expect(val).to.equal(1);
@@ -1925,14 +1988,17 @@ describe('Query Tests', function() {
       }
     };
     ref.set(data, function() {
-      ref.startAt(20, 'Walker').limitToFirst(2).on('value', function(s) {
-        const childNames = [];
-        s.forEach(function(node) {
-          childNames.push(node.key);
+      ref
+        .startAt(20, 'Walker')
+        .limitToFirst(2)
+        .on('value', function(s) {
+          const childNames = [];
+          s.forEach(function(node) {
+            childNames.push(node.key);
+          });
+          expect(childNames).to.deep.equal(['Walker', 'Michael']);
+          done();
         });
-        expect(childNames).to.deep.equal(['Walker', 'Michael']);
-        done();
-      });
     });
   });
 
@@ -2051,16 +2117,19 @@ describe('Query Tests', function() {
     ref.set(
       { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
       function() {
-        ref.endAt(null, 'f').limitToLast(5).on('value', function(s) {
-          expect(s.val()).to.deep.equal({
-            b: 'b',
-            c: 'c',
-            d: 'd',
-            e: 'e',
-            f: 'f'
+        ref
+          .endAt(null, 'f')
+          .limitToLast(5)
+          .on('value', function(s) {
+            expect(s.val()).to.deep.equal({
+              b: 'b',
+              c: 'c',
+              d: 'd',
+              e: 'e',
+              f: 'f'
+            });
+            done();
           });
-          done();
-        });
       }
     );
   });
@@ -2118,22 +2187,25 @@ describe('Query Tests', function() {
     writer
       .child('foo')
       .set({ bar: 'a', baz: 'b', bam: 'c' }, function(error, dummy) {
-        reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-          const val = snapshot.val();
-          if (!readerLoaded) {
-            readerLoaded = true;
-            expect(val.bar).to.equal('a');
-            expect(val.baz).to.equal('b');
-            expect(val.bam).to.equal('c');
-            writer.child('foo').update({ bar: 'd', bam: null, bat: 'e' });
-          } else {
-            expect(val.bar).to.equal('d');
-            expect(val.baz).to.equal('b');
-            expect(val.bat).to.equal('e');
-            expect(val.bam).to.equal(undefined);
-            done();
-          }
-        });
+        reader
+          .child('foo')
+          .limitToLast(10)
+          .on('value', function(snapshot) {
+            const val = snapshot.val();
+            if (!readerLoaded) {
+              readerLoaded = true;
+              expect(val.bar).to.equal('a');
+              expect(val.baz).to.equal('b');
+              expect(val.bam).to.equal('c');
+              writer.child('foo').update({ bar: 'd', bam: null, bat: 'e' });
+            } else {
+              expect(val.bar).to.equal('d');
+              expect(val.baz).to.equal('b');
+              expect(val.bat).to.equal('e');
+              expect(val.bam).to.equal(undefined);
+              done();
+            }
+          });
       });
   });
 
@@ -2147,22 +2219,25 @@ describe('Query Tests', function() {
     writer
       .child('foo')
       .set({ bar: 'a', baz: 'b', bam: 'c' }, function(error, dummy) {
-        reader.child('foo').limitToLast(10).on('value', function(snapshot) {
-          const val = snapshot.val();
-          if (!readerLoaded) {
-            readerLoaded = true;
-            expect(val.bar).to.equal('a');
-            expect(val.baz).to.equal('b');
-            expect(val.bam).to.equal('c');
-            writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
-          } else {
-            expect(val.bar).to.equal('d');
-            expect(val.baz).to.equal('b');
-            expect(val.bat).to.equal('e');
-            expect(val.bam).to.equal(undefined);
-            done();
-          }
-        });
+        reader
+          .child('foo')
+          .limitToLast(10)
+          .on('value', function(snapshot) {
+            const val = snapshot.val();
+            if (!readerLoaded) {
+              readerLoaded = true;
+              expect(val.bar).to.equal('a');
+              expect(val.baz).to.equal('b');
+              expect(val.bam).to.equal('c');
+              writer.child('foo').set({ bar: 'd', baz: 'b', bat: 'e' });
+            } else {
+              expect(val.bar).to.equal('d');
+              expect(val.baz).to.equal('b');
+              expect(val.bat).to.equal('e');
+              expect(val.bam).to.equal(undefined);
+              done();
+            }
+          });
       });
   });
 
@@ -2457,18 +2532,30 @@ describe('Query Tests', function() {
       removedFirst = [],
       addedSecond = [],
       removedSecond = [];
-    ref.startAt(0).endAt(10).on('child_added', function(snap) {
-      addedFirst.push(snap.key);
-    });
-    ref.startAt(0).endAt(10).on('child_removed', function(snap) {
-      removedFirst.push(snap.key);
-    });
-    ref.startAt(10).endAt(20).on('child_added', function(snap) {
-      addedSecond.push(snap.key);
-    });
-    ref.startAt(10).endAt(20).on('child_removed', function(snap) {
-      removedSecond.push(snap.key);
-    });
+    ref
+      .startAt(0)
+      .endAt(10)
+      .on('child_added', function(snap) {
+        addedFirst.push(snap.key);
+      });
+    ref
+      .startAt(0)
+      .endAt(10)
+      .on('child_removed', function(snap) {
+        removedFirst.push(snap.key);
+      });
+    ref
+      .startAt(10)
+      .endAt(20)
+      .on('child_added', function(snap) {
+        addedSecond.push(snap.key);
+      });
+    ref
+      .startAt(10)
+      .endAt(20)
+      .on('child_removed', function(snap) {
+        removedSecond.push(snap.key);
+      });
 
     ref.child('a').setWithPriority('a', 5);
     expect(addedFirst).to.deep.equal(['a']);
@@ -2571,15 +2658,21 @@ describe('Query Tests', function() {
     });
 
     let before;
-    ref.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
-      before = b.val();
-    });
+    ref
+      .startAt(null, 'a')
+      .endAt(null, 'b')
+      .on('value', function(b) {
+        before = b.val();
+      });
 
     ref.child('aa').set('aa', function() {
-      ref2.startAt(null, 'a').endAt(null, 'b').on('value', function(b) {
-        expect(b.val()).to.deep.equal(before);
-        done();
-      });
+      ref2
+        .startAt(null, 'a')
+        .endAt(null, 'b')
+        .on('value', function(b) {
+          expect(b.val()).to.deep.equal(before);
+          done();
+        });
     });
   });
 
@@ -2598,17 +2691,23 @@ describe('Query Tests', function() {
     });
 
     let before;
-    ref.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
-      before = b.val();
-    });
+    ref
+      .startAt(null, 'b')
+      .limitToFirst(3)
+      .on('value', function(b) {
+        before = b.val();
+      });
 
     ref
       .child('aa')
       .update({ a: 5, aa: 4, b: 7, c: 4, d: 4, dd: 3 }, function() {
-        ref2.startAt(null, 'b').limitToFirst(3).on('value', function(b) {
-          expect(b.val()).to.deep.equal(before);
-          done();
-        });
+        ref2
+          .startAt(null, 'b')
+          .limitToFirst(3)
+          .on('value', function(b) {
+            expect(b.val()).to.deep.equal(before);
+            done();
+          });
       });
   });
 
@@ -2657,12 +2756,16 @@ describe('Query Tests', function() {
     });
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
-    readRef.child('a').startAt(1).endAt(1).on('value', function(s) {
-      childData = s.val();
-      if (childData) {
-        ea.addEvent();
-      }
-    });
+    readRef
+      .child('a')
+      .startAt(1)
+      .endAt(1)
+      .on('value', function(s) {
+        childData = s.val();
+        if (childData) {
+          ea.addEvent();
+        }
+      });
 
     await ea.promise;
     expect(childData).to.deep.equal({ aa: 1, ab: 1 });
@@ -2811,12 +2914,15 @@ describe('Query Tests', function() {
 
     const ea = EventAccumulatorFactory.waitsForCount(1);
     let readVal;
-    readRef.endAt(50).limitToLast(2).on('value', function(s) {
-      readVal = s.val();
-      if (readVal) {
-        ea.addEvent();
-      }
-    });
+    readRef
+      .endAt(50)
+      .limitToLast(2)
+      .on('value', function(s) {
+        readVal = s.val();
+        if (readVal) {
+          ea.addEvent();
+        }
+      });
 
     writeRef.set({
       a: { '.priority': 10, '.value': 1 },
@@ -2977,10 +3083,13 @@ describe('Query Tests', function() {
         80: true
       },
       function() {
-        ref.startAt(null, '50').endAt(null, '80').once('value', function(s) {
-          expect(s.val()).to.deep.equal({ 50: true, 70: true, 80: true });
-          done();
-        });
+        ref
+          .startAt(null, '50')
+          .endAt(null, '80')
+          .once('value', function(s) {
+            expect(s.val()).to.deep.equal({ 50: true, 70: true, 80: true });
+            done();
+          });
       }
     );
   });
@@ -3137,18 +3246,24 @@ describe('Query Tests', function() {
     const ref = getRandomNode(1)[0];
 
     ref.child('child').set({ name: 'John' }, function() {
-      ref.orderByChild('name').equalTo('John').on('value', function(snap) {
-        ref.child('child').on('value', function(snap) {
-          ref.child('child').child('favoriteToy').once('value', function(snap) {
+      ref
+        .orderByChild('name')
+        .equalTo('John')
+        .on('value', function(snap) {
+          ref.child('child').on('value', function(snap) {
             ref
               .child('child')
               .child('favoriteToy')
               .once('value', function(snap) {
-                done();
+                ref
+                  .child('child')
+                  .child('favoriteToy')
+                  .once('value', function(snap) {
+                    done();
+                  });
               });
           });
         });
-      });
     });
   });
 

@@ -18,7 +18,7 @@ $ git stash pop
 `;
 
 (async () => {
-  const hasDiff = !!(await git.diff());
+  const hasDiff = !!await git.diff();
 
   if (hasDiff) {
     console.error(notCleanTreeString);
