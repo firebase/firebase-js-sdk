@@ -22,7 +22,9 @@ async function doPrettierCommit() {
       }
     }
   );
-  stylingSpinner.stop();
+  stylingSpinner.stopAndPersist({
+    symbol: '✅'
+  });
 
   const hasDiff = await git.diff();
 
@@ -32,7 +34,9 @@ async function doPrettierCommit() {
   await git.add('.');
 
   await git.commit('[AUTOMATED]: Prettier Code Styling');
-  gitSpinner.stop();
+  gitSpinner.stopAndPersist({
+    symbol: '✅'
+  });
 }
 
 module.exports = {
