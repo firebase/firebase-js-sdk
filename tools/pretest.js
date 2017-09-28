@@ -59,7 +59,7 @@ for upgrade/installation instructions
 async function validateYarnInstall() {
   try {
     await spawn('yarn', ['check', '--integrity']);
-  } catch(err) {
+  } catch (err) {
     throw chalk`
 {red Your yarn workspace didn't pass the integrity check}
 

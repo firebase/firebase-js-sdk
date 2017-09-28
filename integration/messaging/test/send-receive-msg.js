@@ -198,7 +198,9 @@ describe('Firebase Messaging Integration Tests', () => {
           })
           .catch(err => {
             if (seleniumBrowser.getReleaseName() === 'unstable') {
-              console.warn(chalk`{yellow WARNING: Test failed in unstable browser, skipping}`);
+              console.warn(
+                chalk`{yellow WARNING: Test failed in unstable browser, skipping}`
+              );
               console.warn(err);
               if (context) {
                 return context.skip();
@@ -217,13 +219,17 @@ describe('Firebase Messaging Integration Tests', () => {
       });
 
       it('should send and receive messages with notification payload', function() {
-        return performTest(null, {
-          title: 'Test Title',
-          body: 'Test Body',
-          icon: '/test/icon.png',
-          click_action: '/',
-          tag: 'test-tag'
-        }, this);
+        return performTest(
+          null,
+          {
+            title: 'Test Title',
+            body: 'Test Body',
+            icon: '/test/icon.png',
+            click_action: '/',
+            tag: 'test-tag'
+          },
+          this
+        );
       });
 
       it('should send and receive messages with data & notification payload', function() {
