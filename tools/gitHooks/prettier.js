@@ -10,27 +10,29 @@ const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
 async function doPrettierCommit() {
-  const spinner = ora('Formatting code with prettier').start();
+  const stylingSpinner = ora('Formatting code with prettier').start();
   await spawn(
     'prettier',
     ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
     {
-      stderr: 'inherit',
+      stdio: 'inherit',
       cwd: root,
       env: {
         PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
       }
     }
   );
-  spinner.stop();
+  stylingSpinner.stop();
 
   const hasDiff = await git.diff();
 
   if (!hasDiff) return;
 
+  const gitSpinner = ora('Creating automated style commit').start();  
   await git.add('.');
 
   await git.commit('[AUTOMATED]: Prettier Code Styling');
+  gitSpinner.stop();
 }
 
 module.exports = {
