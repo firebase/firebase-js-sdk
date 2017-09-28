@@ -15,11 +15,11 @@
     "storage"
   ],
   "scripts": {
-    "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
-    "prepare": "lerna exec --scope @firebase/* --scope firebase -- npm run prepare",
+    "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
+    "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
     "prepush": "node tools/gitHooks",
     "repl": "node tools/repl.js",
-    "test": "lerna exec --parallel -- npm test",
+    "test": "lerna run --parallel test",
     "test:setup": "node tools/config.js"
   },
   "repository": {
