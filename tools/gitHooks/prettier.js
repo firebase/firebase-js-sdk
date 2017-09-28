@@ -27,7 +27,7 @@ async function doPrettierCommit() {
 
   await git.add('.');
 
-  await git.commit('[AUTOMATED]: Format Styling');
+  await git.commit('[AUTOMATED]: Prettier Code Styling');
 }
 
 module.exports = {
