@@ -19,6 +19,7 @@
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
     "prepush": "node tools/gitHooks",
     "repl": "node tools/repl.js",
+    "pretest": "node tools/pretest.js",
     "test": "lerna run --parallel test",
     "test:setup": "node tools/config.js"
   },
@@ -42,6 +43,7 @@
     "merge2": "^1.2.0",
     "mz": "^2.7.0",
     "prettier": "^1.7.0",
+    "semver": "^5.4.1",
     "simple-git": "^1.77.0",
     "yargs": "^9.0.1"
   }

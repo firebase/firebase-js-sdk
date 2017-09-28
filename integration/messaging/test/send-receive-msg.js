@@ -159,7 +159,7 @@ describe('Firebase Messaging Integration Tests', () => {
           });
       };
 
-      const performTest = (dataPayload, notificationPayload) => {
+      const performTest = (dataPayload, notificationPayload, context) => {
         return currentWebDriver
           .get(`${testServer.serverAddress}/demo-valid/`)
           .then(() => getInPageToken())
@@ -195,15 +195,25 @@ describe('Firebase Messaging Integration Tests', () => {
           })
           .then(() => {
             return new Promise(resolve => setTimeout(resolve, 4000));
+          })
+          .catch(err => {
+            if (seleniumBrowser.getReleaseName() === 'unstable') {
+              console.warn(chalk`{yellow WARNING: Test failed in unstable browser, skipping}`);
+              console.warn(err);
+              if (context) {
+                return context.skip();
+              }
+            }
+            throw err;
           });
       };
 
       it('should send and receive messages with no payload', function() {
-        return performTest(null, null);
+        return performTest(null, null, this);
       });
 
       it('should send and receive messages with data payload', function() {
-        return performTest({ hello: 'world' }, null);
+        return performTest({ hello: 'world' }, null, this);
       });
 
       it('should send and receive messages with notification payload', function() {
@@ -213,7 +223,7 @@ describe('Firebase Messaging Integration Tests', () => {
           icon: '/test/icon.png',
           click_action: '/',
           tag: 'test-tag'
-        });
+        }, this);
       });
 
       it('should send and receive messages with data & notification payload', function() {
@@ -225,7 +235,8 @@ describe('Firebase Messaging Integration Tests', () => {
             icon: '/test/icon.png',
             click_action: '/',
             tag: 'test-tag'
-          }
+          },
+          this
         );
       });
     });
