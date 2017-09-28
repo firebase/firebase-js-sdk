@@ -16,8 +16,8 @@
   ],
   "scripts": {
     "dev": "lerna exec --parallel --scope @firebase/* --scope firebase -- npm run dev",
-    "precommit": "lint-staged",
     "prepublish": "lerna exec --scope @firebase/* --scope firebase -- npm run prepublish",
+    "prepush": "node tools/gitHooks",
     "repl": "node tools/repl.js",
     "test": "lerna exec --parallel -- npm test",
     "test:setup": "node tools/config.js"
@@ -31,15 +31,18 @@
     "integration/*"
   ],
   "devDependencies": {
+    "chalk": "^2.1.0",
+    "child-process-promise": "^2.2.1",
     "firebase-tools": "^3.10.1",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
+    "husky": "^0.14.3",
     "inquirer": "^3.2.3",
     "lerna": "^2.1.0",
-    "lint-staged": "^4.1.3",
     "merge2": "^1.2.0",
     "mz": "^2.7.0",
     "prettier": "^1.7.0",
+    "simple-git": "^1.77.0",
     "yargs": "^9.0.1"
   }
 }
