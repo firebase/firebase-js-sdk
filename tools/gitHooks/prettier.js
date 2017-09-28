@@ -15,7 +15,11 @@ async function doPrettierCommit() {
     'prettier',
     ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
     {
-      stdio: 'inherit',
+      stdio: [
+        'ignore', 
+        'ignore', 
+        process.stderr
+      ],
       cwd: root,
       env: {
         PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
