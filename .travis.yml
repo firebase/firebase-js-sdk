@@ -13,6 +13,8 @@ before_install:
   - npm install -g yarn
 before_script:
   - npm run test:setup -- --token $FIREBASE_TOKEN --projectId $FIREBASE_PROJECT
+script:
+  - xvfb-run npm test
 
 # Misc Addons/Configs
 dist: trusty
