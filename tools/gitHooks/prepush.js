@@ -35,16 +35,30 @@ $ git stash pop
 `;
 
 (async () => {
-  const hasDiff = !!await git.diff();
+  try {
+    const hasDiff = !!await git.diff();
 
-  if (hasDiff) {
-    console.error(notCleanTreeString);
+    if (hasDiff) {
+      console.error(notCleanTreeString);
+      return process.exit(1);
+    }
+
+    // Style the code
+    await doPrettierCommit();
+
+    // Validate License headers exist
+    await doLicenseCommit();
+
+    console.log(chalk`
+Pre-Push Validation Succeeded
+
+`);
+  } catch(err) {
+    console.error(chalk`
+{red Pre-Push Validation Failed, error body below}
+
+`);
+    console.error(err);
     return process.exit(1);
   }
-
-  // Style the code
-  await doPrettierCommit();
-
-  // Validate License headers exist
-  await doLicenseCommit();
 })();

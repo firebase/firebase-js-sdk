@@ -28,7 +28,7 @@ const licenseHeader = `/**
 `;
 
 async function doLicenseCommit() {
-  const licenseSpinner = ora('Validating License Headers').start();
+  const licenseSpinner = ora(' Validating License Headers').start();
 
   const paths = await glob('**/*.+(ts|js)', {
     ignore: ['**/node_modules/**', '**/dist/**']
@@ -56,7 +56,7 @@ async function doLicenseCommit() {
 
   if (!hasDiff) return;
 
-  const gitSpinner = ora('Creating automated license commit').start();
+  const gitSpinner = ora(' Creating automated license commit').start();
   await git.add('.');
 
   await git.commit('[AUTOMATED]: License Headers');

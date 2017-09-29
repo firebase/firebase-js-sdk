@@ -26,7 +26,7 @@ const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 
 async function doPrettierCommit() {
-  const stylingSpinner = ora('Formatting code with prettier').start();
+  const stylingSpinner = ora(' Formatting code with prettier').start();
   await spawn(
     'prettier',
     ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
@@ -46,7 +46,7 @@ async function doPrettierCommit() {
 
   if (!hasDiff) return;
 
-  const gitSpinner = ora('Creating automated style commit').start();
+  const gitSpinner = ora(' Creating automated style commit').start();
   await git.add('.');
 
   await git.commit('[AUTOMATED]: Prettier Code Styling');
