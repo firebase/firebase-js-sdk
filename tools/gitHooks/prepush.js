@@ -1,4 +1,5 @@
 const { doPrettierCommit } = require('./prettier');
+const { doLicenseCommit } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const chalk = require('chalk');
@@ -27,4 +28,7 @@ $ git stash pop
 
   // Style the code
   await doPrettierCommit();
+
+  // Validate License headers exist
+  await doLicenseCommit();
 })();

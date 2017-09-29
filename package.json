@@ -35,6 +35,7 @@
     "chalk": "^2.1.0",
     "child-process-promise": "^2.2.1",
     "firebase-tools": "^3.10.1",
+    "glob": "^7.1.2",
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.2",
     "husky": "^0.14.3",
