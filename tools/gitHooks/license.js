@@ -1,4 +1,4 @@
-const {promisify} = require('util');
+const { promisify } = require('util');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
 const chalk = require('chalk');
@@ -28,32 +28,32 @@ const licenseHeader = `/**
 `;
 
 async function doLicenseCommit() {
-  const licenseSpinner = ora('Validating License Headers').start(); 
+  const licenseSpinner = ora('Validating License Headers').start();
 
-  const paths = await glob('**/*.+(ts|js)', { ignore: [
-    '**/node_modules/**',
-    '**/dist/**',
-  ]});
+  const paths = await glob('**/*.+(ts|js)', {
+    ignore: ['**/node_modules/**', '**/dist/**']
+  });
 
   const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
   const filesMissingPaths = fileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(({ buffer }) => !~String(buffer).indexOf('Copyright 2017 Google Inc.'));
+    .filter(
+      ({ buffer }) => !~String(buffer).indexOf('Copyright 2017 Google Inc.')
+    );
 
-  await Promise.all(filesMissingPaths.map(({ buffer, path }) => {
-    const contents = Buffer.concat([
-      new Buffer(licenseHeader),
-      buffer
-    ]);
-    return fs.writeFile(path, contents, 'utf8');
-  }));
+  await Promise.all(
+    filesMissingPaths.map(({ buffer, path }) => {
+      const contents = Buffer.concat([new Buffer(licenseHeader), buffer]);
+      return fs.writeFile(path, contents, 'utf8');
+    })
+  );
 
   licenseSpinner.stopAndPersist({
     symbol: '✅'
   });
 
   const hasDiff = await git.diff();
-  
+
   if (!hasDiff) return;
 
   const gitSpinner = ora('Creating automated license commit').start();
