@@ -1,4 +1,4 @@
-const firebase = require('./app');
+var firebase = require('./app');
 require('./auth');
 require('./database');
 require('./messaging');
