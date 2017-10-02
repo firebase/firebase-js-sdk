@@ -18,6 +18,24 @@ const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
 
+/**
+ * Custom SauceLabs Launchers
+ */
+const sauceLabsBrowsers = {
+  iOS_Safari: {
+    base: 'SauceLabs',
+    browserName: 'iphone',
+    platform: 'OS X 10.9',
+    version: '7.1'
+  },
+  IE_11: {
+    base: 'SauceLabs',
+    browserName: 'internet explorer',
+    platform: 'Windows 8.1',
+    version: '11'
+  }
+};
+
 module.exports = {
   // disable watcher
   autoWatch: false,
