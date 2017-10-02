@@ -36,7 +36,7 @@ const sauceLabsBrowsers = {
   }
 };
 
-module.exports = {
+const config = {
   // disable watcher
   autoWatch: false,
 
@@ -53,7 +53,7 @@ module.exports = {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['spec'],
+  reporters: ['spec', 'saucelabs'],
 
   // web server port
   port: 8080,
@@ -67,6 +67,8 @@ module.exports = {
 
   // enable / disable watching file and executing tests whenever any file changes
   autoWatch: false,
+
+  customLaunchers: sauceLabsBrowsers,
 
   // start these browsers
   // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
@@ -83,3 +85,10 @@ module.exports = {
 
   singleRun: false
 };
+
+// In CI environment, use saucelabs to test
+if (process.env.TRAVIS) {
+  config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
+}
+
+module.exports = config;
