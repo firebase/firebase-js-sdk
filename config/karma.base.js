@@ -87,11 +87,7 @@ const config = {
     tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
     username: process.env.SAUCE_USERNAME,
     accessKey: process.env.SAUCE_ACCESS_KEY,
-    startConnect: false,
-    connectOptions: {
-      port: 5757,
-      logfile: 'sauce_connect.log'
-    }
+    startConnect: false
   },
 
   singleRun: false
