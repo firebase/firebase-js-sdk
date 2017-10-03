@@ -1,0 +1,78 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { AnyJs } from './misc';
+
+// Untyped Number alias we can use to check for ES6 methods / properties.
+// tslint:disable-next-line:no-any variable-name
+const NumberAsAny = Number as any;
+
+/**
+ * Minimum safe integer in Javascript because of floating point precision.
+ * Added to not rely on ES6 features.
+ */
+export let MIN_SAFE_INTEGER: number =
+  NumberAsAny.MIN_SAFE_INTEGER || -(Math.pow(2, 53) - 1);
+
+/**
+ * Maximum safe integer in Javascript because of floating point precision.
+ * Added to not rely on ES6 features.
+ */
+export let MAX_SAFE_INTEGER: number =
+  NumberAsAny.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
+
+/**
+ * Returns whether an number is an integer, uses native implementation if
+ * available.
+ * Added to not rely on ES6 features.
+ * @param value The value to test for being an integer
+ */
+export let isInteger: (value: AnyJs) => boolean =
+  NumberAsAny.isInteger ||
+  (value =>
+    typeof value === 'number' &&
+    isFinite(value) &&
+    Math.floor(value) === value);
+
+/**
+ * Returns whether a variable is either undefined or null.
+ */
+export function isNullOrUndefined(value: AnyJs): boolean {
+  return value === null || value === undefined;
+}
+
+/**
+ * Returns whether a value is an integer and in the safe integer range
+ * @param value The value to test for being an integer and in the safe range
+ */
+export function isSafeInteger(value: AnyJs): boolean {
+  return (
+    isInteger(value) &&
+    (value as number) <= MAX_SAFE_INTEGER &&
+    (value as number) >= MIN_SAFE_INTEGER
+  );
+}
+
+/**
+ * Safely checks if the number is NaN.
+ */
+export function safeIsNaN(value: AnyJs): boolean {
+  if (NumberAsAny.IsNaN) {
+    return NumberAsAny.IsNaN(value);
+  } else {
+    return typeof value === 'number' && isNaN(value);
+  }
+}
