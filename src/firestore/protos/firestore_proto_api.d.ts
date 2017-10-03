@@ -1,0 +1,1220 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Rather than pull these in from other protos, we just alias them to any.
+// tslint:disable:no-any
+export declare type ApiClientHookFactory = any;
+export declare type ApiClientObjectMap<T> = any;
+export declare type PromiseRequestService = any;
+
+export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
+export interface ICompositeFilterOpEnum {
+  OPERATOR_UNSPECIFIED: CompositeFilterOp;
+  AND: CompositeFilterOp;
+  values(): Array<CompositeFilterOp>;
+}
+export declare const CompositeFilterOpEnum: ICompositeFilterOpEnum;
+export declare type FieldFilterOp =
+  | 'OPERATOR_UNSPECIFIED'
+  | 'LESS_THAN'
+  | 'LESS_THAN_OR_EQUAL'
+  | 'GREATER_THAN'
+  | 'GREATER_THAN_OR_EQUAL'
+  | 'EQUAL';
+export interface IFieldFilterOpEnum {
+  OPERATOR_UNSPECIFIED: FieldFilterOp;
+  LESS_THAN: FieldFilterOp;
+  LESS_THAN_OR_EQUAL: FieldFilterOp;
+  GREATER_THAN: FieldFilterOp;
+  GREATER_THAN_OR_EQUAL: FieldFilterOp;
+  EQUAL: FieldFilterOp;
+  values(): Array<FieldFilterOp>;
+}
+export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
+export declare type FieldTransformSetToServerValue =
+  | 'SERVER_VALUE_UNSPECIFIED'
+  | 'REQUEST_TIME';
+export interface IFieldTransformSetToServerValueEnum {
+  SERVER_VALUE_UNSPECIFIED: FieldTransformSetToServerValue;
+  REQUEST_TIME: FieldTransformSetToServerValue;
+  values(): Array<FieldTransformSetToServerValue>;
+}
+export declare const FieldTransformSetToServerValueEnum: IFieldTransformSetToServerValueEnum;
+export declare type IndexFieldMode =
+  | 'MODE_UNSPECIFIED'
+  | 'ASCENDING'
+  | 'DESCENDING';
+export interface IIndexFieldModeEnum {
+  MODE_UNSPECIFIED: IndexFieldMode;
+  ASCENDING: IndexFieldMode;
+  DESCENDING: IndexFieldMode;
+  values(): Array<IndexFieldMode>;
+}
+export declare const IndexFieldModeEnum: IIndexFieldModeEnum;
+export declare type IndexOperationMetadataOperationType =
+  | 'OPERATION_TYPE_UNSPECIFIED'
+  | 'CREATING_INDEX';
+export interface IIndexOperationMetadataOperationTypeEnum {
+  OPERATION_TYPE_UNSPECIFIED: IndexOperationMetadataOperationType;
+  CREATING_INDEX: IndexOperationMetadataOperationType;
+  values(): Array<IndexOperationMetadataOperationType>;
+}
+export declare const IndexOperationMetadataOperationTypeEnum: IIndexOperationMetadataOperationTypeEnum;
+export declare type IndexState =
+  | 'STATE_UNSPECIFIED'
+  | 'CREATING'
+  | 'READY'
+  | 'ERROR';
+export interface IIndexStateEnum {
+  STATE_UNSPECIFIED: IndexState;
+  CREATING: IndexState;
+  READY: IndexState;
+  ERROR: IndexState;
+  values(): Array<IndexState>;
+}
+export declare const IndexStateEnum: IIndexStateEnum;
+export declare type OrderDirection =
+  | 'DIRECTION_UNSPECIFIED'
+  | 'ASCENDING'
+  | 'DESCENDING';
+export interface IOrderDirectionEnum {
+  DIRECTION_UNSPECIFIED: OrderDirection;
+  ASCENDING: OrderDirection;
+  DESCENDING: OrderDirection;
+  values(): Array<OrderDirection>;
+}
+export declare const OrderDirectionEnum: IOrderDirectionEnum;
+export declare type TargetChangeTargetChangeType =
+  | 'NO_CHANGE'
+  | 'ADD'
+  | 'REMOVE'
+  | 'CURRENT'
+  | 'RESET';
+export interface ITargetChangeTargetChangeTypeEnum {
+  NO_CHANGE: TargetChangeTargetChangeType;
+  ADD: TargetChangeTargetChangeType;
+  REMOVE: TargetChangeTargetChangeType;
+  CURRENT: TargetChangeTargetChangeType;
+  RESET: TargetChangeTargetChangeType;
+  values(): Array<TargetChangeTargetChangeType>;
+}
+export declare const TargetChangeTargetChangeTypeEnum: ITargetChangeTargetChangeTypeEnum;
+export declare type UnaryFilterOp =
+  | 'OPERATOR_UNSPECIFIED'
+  | 'IS_NAN'
+  | 'IS_NULL';
+export interface IUnaryFilterOpEnum {
+  OPERATOR_UNSPECIFIED: UnaryFilterOp;
+  IS_NAN: UnaryFilterOp;
+  IS_NULL: UnaryFilterOp;
+  values(): Array<UnaryFilterOp>;
+}
+export declare const UnaryFilterOpEnum: IUnaryFilterOpEnum;
+export declare type ValueNullValue = 'NULL_VALUE';
+export interface IValueNullValueEnum {
+  NULL_VALUE: ValueNullValue;
+  values(): Array<ValueNullValue>;
+}
+export declare const ValueNullValueEnum: IValueNullValueEnum;
+export declare namespace firestoreV1beta1ApiClientInterfaces {
+  interface ArrayValue {
+    values?: Array<Value>;
+  }
+  interface BatchGetDocumentsRequest {
+    documents?: Array<string>;
+    mask?: DocumentMask;
+    transaction?: string;
+    newTransaction?: TransactionOptions;
+    readTime?: string;
+  }
+  interface BatchGetDocumentsResponse {
+    found?: Document;
+    missing?: string;
+    transaction?: string;
+    readTime?: string;
+  }
+  interface BeginTransactionRequest {
+    options?: TransactionOptions;
+  }
+  interface BeginTransactionResponse {
+    transaction?: string;
+  }
+  interface CollectionSelector {
+    collectionId?: string;
+    allDescendants?: boolean;
+  }
+  interface CommitRequest {
+    writes?: Array<Write>;
+    transaction?: string;
+  }
+  interface CommitResponse {
+    writeResults?: Array<WriteResult>;
+    commitTime?: string;
+  }
+  interface CompositeFilter {
+    op?: CompositeFilterOp;
+    filters?: Array<Filter>;
+  }
+  interface Cursor {
+    values?: Array<Value>;
+    before?: boolean;
+  }
+  interface Document {
+    name?: string;
+    fields?: ApiClientObjectMap<Value>;
+    createTime?: string;
+    updateTime?: string;
+  }
+  interface DocumentChange {
+    document?: Document;
+    targetIds?: Array<number>;
+    removedTargetIds?: Array<number>;
+  }
+  interface DocumentDelete {
+    document?: string;
+    removedTargetIds?: Array<number>;
+    readTime?: string;
+  }
+  interface DocumentMask {
+    fieldPaths?: Array<string>;
+  }
+  interface DocumentRemove {
+    document?: string;
+    removedTargetIds?: Array<number>;
+    readTime?: string;
+  }
+  interface DocumentTransform {
+    document?: string;
+    fieldTransforms?: Array<FieldTransform>;
+  }
+  interface DocumentsTarget {
+    documents?: Array<string>;
+  }
+  interface Empty {}
+  interface ExistenceFilter {
+    targetId?: number;
+    count?: number;
+  }
+  interface FieldFilter {
+    field?: FieldReference;
+    op?: FieldFilterOp;
+    value?: Value;
+  }
+  interface FieldReference {
+    fieldPath?: string;
+  }
+  interface FieldTransform {
+    fieldPath?: string;
+    setToServerValue?: FieldTransformSetToServerValue;
+  }
+  interface Filter {
+    compositeFilter?: CompositeFilter;
+    fieldFilter?: FieldFilter;
+    unaryFilter?: UnaryFilter;
+  }
+  interface Index {
+    name?: string;
+    collectionId?: string;
+    fields?: Array<IndexField>;
+    state?: IndexState;
+  }
+  interface IndexField {
+    fieldPath?: string;
+    mode?: IndexFieldMode;
+  }
+  interface IndexOperationMetadata {
+    startTime?: string;
+    endTime?: string;
+    index?: string;
+    operationType?: IndexOperationMetadataOperationType;
+    cancelled?: boolean;
+    documentProgress?: Progress;
+  }
+  interface LatLng {
+    latitude?: number;
+    longitude?: number;
+  }
+  interface ListCollectionIdsRequest {
+    pageSize?: number;
+    pageToken?: string;
+  }
+  interface ListCollectionIdsResponse {
+    collectionIds?: Array<string>;
+    nextPageToken?: string;
+  }
+  interface ListDocumentsResponse {
+    documents?: Array<Document>;
+    nextPageToken?: string;
+  }
+  interface ListIndexesResponse {
+    indexes?: Array<Index>;
+    nextPageToken?: string;
+  }
+  interface ListenRequest {
+    addTarget?: Target;
+    removeTarget?: number;
+    labels?: ApiClientObjectMap<string>;
+  }
+  interface ListenResponse {
+    targetChange?: TargetChange;
+    documentChange?: DocumentChange;
+    documentDelete?: DocumentDelete;
+    documentRemove?: DocumentRemove;
+    filter?: ExistenceFilter;
+  }
+  interface MapValue {
+    fields?: ApiClientObjectMap<Value>;
+  }
+  interface Operation {
+    name?: string;
+    metadata?: ApiClientObjectMap<any>;
+    done?: boolean;
+    error?: Status;
+    response?: ApiClientObjectMap<any>;
+  }
+  interface Order {
+    field?: FieldReference;
+    direction?: OrderDirection;
+  }
+  interface Precondition {
+    exists?: boolean;
+    updateTime?: string;
+  }
+  interface Progress {
+    workCompleted?: string;
+    workEstimated?: string;
+  }
+  interface Projection {
+    fields?: Array<FieldReference>;
+  }
+  interface QueryTarget {
+    parent?: string;
+    structuredQuery?: StructuredQuery;
+  }
+  interface ReadOnly {
+    readTime?: string;
+  }
+  interface ReadWrite {
+    retryTransaction?: string;
+  }
+  interface RollbackRequest {
+    transaction?: string;
+  }
+  interface RunQueryRequest {
+    structuredQuery?: StructuredQuery;
+    transaction?: string;
+    newTransaction?: TransactionOptions;
+    readTime?: string;
+  }
+  interface RunQueryResponse {
+    transaction?: string;
+    document?: Document;
+    readTime?: string;
+    skippedResults?: number;
+  }
+  interface Status {
+    code?: number;
+    message?: string;
+    details?: Array<ApiClientObjectMap<any>>;
+  }
+  interface StructuredQuery {
+    select?: Projection;
+    from?: Array<CollectionSelector>;
+    where?: Filter;
+    orderBy?: Array<Order>;
+    startAt?: Cursor;
+    endAt?: Cursor;
+    offset?: number;
+    limit?: number;
+  }
+  interface Target {
+    query?: QueryTarget;
+    documents?: DocumentsTarget;
+    resumeToken?: string;
+    readTime?: string;
+    targetId?: number;
+    once?: boolean;
+  }
+  interface TargetChange {
+    targetChangeType?: TargetChangeTargetChangeType;
+    targetIds?: Array<number>;
+    cause?: Status;
+    resumeToken?: string;
+    readTime?: string;
+  }
+  interface TransactionOptions {
+    readOnly?: ReadOnly;
+    readWrite?: ReadWrite;
+  }
+  interface UnaryFilter {
+    op?: UnaryFilterOp;
+    field?: FieldReference;
+  }
+  interface Value {
+    nullValue?: ValueNullValue;
+    booleanValue?: boolean;
+    integerValue?: string;
+    doubleValue?: number;
+    timestampValue?: string;
+    stringValue?: string;
+    bytesValue?: string;
+    referenceValue?: string;
+    geoPointValue?: LatLng;
+    arrayValue?: ArrayValue;
+    mapValue?: MapValue;
+  }
+  interface Write {
+    update?: Document;
+    delete?: string;
+    transform?: DocumentTransform;
+    updateMask?: DocumentMask;
+    currentDocument?: Precondition;
+  }
+  interface WriteRequest {
+    streamId?: string;
+    writes?: Array<Write>;
+    streamToken?: string;
+    labels?: ApiClientObjectMap<string>;
+  }
+  interface WriteResponse {
+    streamId?: string;
+    streamToken?: string;
+    writeResults?: Array<WriteResult>;
+    commitTime?: string;
+  }
+  interface WriteResult {
+    updateTime?: string;
+    transformResults?: Array<Value>;
+  }
+}
+export declare type ArrayValue = firestoreV1beta1ApiClientInterfaces.ArrayValue;
+export declare type BatchGetDocumentsRequest = firestoreV1beta1ApiClientInterfaces.BatchGetDocumentsRequest;
+export declare type BatchGetDocumentsResponse = firestoreV1beta1ApiClientInterfaces.BatchGetDocumentsResponse;
+export declare type BeginTransactionRequest = firestoreV1beta1ApiClientInterfaces.BeginTransactionRequest;
+export declare type BeginTransactionResponse = firestoreV1beta1ApiClientInterfaces.BeginTransactionResponse;
+export declare type CollectionSelector = firestoreV1beta1ApiClientInterfaces.CollectionSelector;
+export declare type CommitRequest = firestoreV1beta1ApiClientInterfaces.CommitRequest;
+export declare type CommitResponse = firestoreV1beta1ApiClientInterfaces.CommitResponse;
+export declare type CompositeFilter = firestoreV1beta1ApiClientInterfaces.CompositeFilter;
+export declare type Cursor = firestoreV1beta1ApiClientInterfaces.Cursor;
+export declare type Document = firestoreV1beta1ApiClientInterfaces.Document;
+export declare type DocumentChange = firestoreV1beta1ApiClientInterfaces.DocumentChange;
+export declare type DocumentDelete = firestoreV1beta1ApiClientInterfaces.DocumentDelete;
+export declare type DocumentMask = firestoreV1beta1ApiClientInterfaces.DocumentMask;
+export declare type DocumentRemove = firestoreV1beta1ApiClientInterfaces.DocumentRemove;
+export declare type DocumentTransform = firestoreV1beta1ApiClientInterfaces.DocumentTransform;
+export declare type DocumentsTarget = firestoreV1beta1ApiClientInterfaces.DocumentsTarget;
+export declare type Empty = firestoreV1beta1ApiClientInterfaces.Empty;
+export declare type ExistenceFilter = firestoreV1beta1ApiClientInterfaces.ExistenceFilter;
+export declare type FieldFilter = firestoreV1beta1ApiClientInterfaces.FieldFilter;
+export declare type FieldReference = firestoreV1beta1ApiClientInterfaces.FieldReference;
+export declare type FieldTransform = firestoreV1beta1ApiClientInterfaces.FieldTransform;
+export declare type Filter = firestoreV1beta1ApiClientInterfaces.Filter;
+export declare type Index = firestoreV1beta1ApiClientInterfaces.Index;
+export declare type IndexField = firestoreV1beta1ApiClientInterfaces.IndexField;
+export declare type IndexOperationMetadata = firestoreV1beta1ApiClientInterfaces.IndexOperationMetadata;
+export declare type LatLng = firestoreV1beta1ApiClientInterfaces.LatLng;
+export declare type ListCollectionIdsRequest = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsRequest;
+export declare type ListCollectionIdsResponse = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsResponse;
+export declare type ListDocumentsResponse = firestoreV1beta1ApiClientInterfaces.ListDocumentsResponse;
+export declare type ListIndexesResponse = firestoreV1beta1ApiClientInterfaces.ListIndexesResponse;
+export declare type ListenRequest = firestoreV1beta1ApiClientInterfaces.ListenRequest;
+export declare type ListenResponse = firestoreV1beta1ApiClientInterfaces.ListenResponse;
+export declare type MapValue = firestoreV1beta1ApiClientInterfaces.MapValue;
+export declare type Operation = firestoreV1beta1ApiClientInterfaces.Operation;
+export declare type Order = firestoreV1beta1ApiClientInterfaces.Order;
+export declare type Precondition = firestoreV1beta1ApiClientInterfaces.Precondition;
+export declare type Progress = firestoreV1beta1ApiClientInterfaces.Progress;
+export declare type Projection = firestoreV1beta1ApiClientInterfaces.Projection;
+export declare type QueryTarget = firestoreV1beta1ApiClientInterfaces.QueryTarget;
+export declare type ReadOnly = firestoreV1beta1ApiClientInterfaces.ReadOnly;
+export declare type ReadWrite = firestoreV1beta1ApiClientInterfaces.ReadWrite;
+export declare type RollbackRequest = firestoreV1beta1ApiClientInterfaces.RollbackRequest;
+export declare type RunQueryRequest = firestoreV1beta1ApiClientInterfaces.RunQueryRequest;
+export declare type RunQueryResponse = firestoreV1beta1ApiClientInterfaces.RunQueryResponse;
+export declare type Status = firestoreV1beta1ApiClientInterfaces.Status;
+export declare type StructuredQuery = firestoreV1beta1ApiClientInterfaces.StructuredQuery;
+export declare type Target = firestoreV1beta1ApiClientInterfaces.Target;
+export declare type TargetChange = firestoreV1beta1ApiClientInterfaces.TargetChange;
+export declare type TransactionOptions = firestoreV1beta1ApiClientInterfaces.TransactionOptions;
+export declare type UnaryFilter = firestoreV1beta1ApiClientInterfaces.UnaryFilter;
+export declare type Value = firestoreV1beta1ApiClientInterfaces.Value;
+export declare type Write = firestoreV1beta1ApiClientInterfaces.Write;
+export declare type WriteRequest = firestoreV1beta1ApiClientInterfaces.WriteRequest;
+export declare type WriteResponse = firestoreV1beta1ApiClientInterfaces.WriteResponse;
+export declare type WriteResult = firestoreV1beta1ApiClientInterfaces.WriteResult;
+export declare type ProjectsDatabasesDocumentsApiClient$Xgafv = '1' | '2';
+export interface IProjectsDatabasesDocumentsApiClient$XgafvEnum {
+  1: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  2: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  values(): Array<ProjectsDatabasesDocumentsApiClient$Xgafv>;
+}
+export declare const ProjectsDatabasesDocumentsApiClient$XgafvEnum: IProjectsDatabasesDocumentsApiClient$XgafvEnum;
+export declare type ProjectsDatabasesDocumentsApiClientAlt =
+  | 'json'
+  | 'media'
+  | 'proto';
+export interface IProjectsDatabasesDocumentsApiClientAltEnum {
+  JSON: ProjectsDatabasesDocumentsApiClientAlt;
+  MEDIA: ProjectsDatabasesDocumentsApiClientAlt;
+  PROTO: ProjectsDatabasesDocumentsApiClientAlt;
+  values(): Array<ProjectsDatabasesDocumentsApiClientAlt>;
+}
+export declare const ProjectsDatabasesDocumentsApiClientAltEnum: IProjectsDatabasesDocumentsApiClientAltEnum;
+export interface ProjectsDatabasesDocumentsBatchGetNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsBeginTransactionNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsCommitNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsCreateDocumentNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  documentId?: string;
+  maskFieldPaths?: Array<string>;
+}
+export interface ProjectsDatabasesDocumentsDeleteNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  currentDocumentExists?: boolean;
+  currentDocumentUpdateTime?: string;
+}
+export interface ProjectsDatabasesDocumentsGetNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  maskFieldPaths?: Array<string>;
+  transaction?: string;
+  readTime?: string;
+}
+export interface ProjectsDatabasesDocumentsListCollectionIdsNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsListNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  pageSize?: number;
+  pageToken?: string;
+  orderBy?: string;
+  maskFieldPaths?: Array<string>;
+  transaction?: string;
+  readTime?: string;
+  showMissing?: boolean;
+}
+export interface ProjectsDatabasesDocumentsListenNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsPatchNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+  updateMaskFieldPaths?: Array<string>;
+  maskFieldPaths?: Array<string>;
+  currentDocumentExists?: boolean;
+  currentDocumentUpdateTime?: string;
+}
+export interface ProjectsDatabasesDocumentsRollbackNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsRunQueryNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export interface ProjectsDatabasesDocumentsWriteNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesDocumentsApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
+}
+export abstract class ProjectsDatabasesDocumentsApiClient {
+  private constructor();
+  abstract batchGet(
+    database: string,
+    $requestBody: BatchGetDocumentsRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsBatchGetNamedParameters & object
+  ): Promise<BatchGetDocumentsResponse>;
+  abstract beginTransaction(
+    database: string,
+    $requestBody: BeginTransactionRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsBeginTransactionNamedParameters &
+      object
+  ): Promise<BeginTransactionResponse>;
+  abstract commit(
+    database: string,
+    $requestBody: CommitRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsCommitNamedParameters & object
+  ): Promise<CommitResponse>;
+  abstract createDocument(
+    parent: string,
+    collectionId: string,
+    $requestBody: Document,
+    __namedParams__?: ProjectsDatabasesDocumentsCreateDocumentNamedParameters &
+      object
+  ): Promise<Document>;
+  abstract delete(
+    name: string,
+    __namedParams__?: ProjectsDatabasesDocumentsDeleteNamedParameters & object
+  ): Promise<Empty>;
+  abstract get(
+    name: string,
+    __namedParams__?: ProjectsDatabasesDocumentsGetNamedParameters & object
+  ): Promise<Document>;
+  abstract list(
+    parent: string,
+    collectionId: string,
+    __namedParams__?: ProjectsDatabasesDocumentsListNamedParameters & object
+  ): Promise<ListDocumentsResponse>;
+  abstract listCollectionIds(
+    parent: string,
+    $requestBody: ListCollectionIdsRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsListCollectionIdsNamedParameters &
+      object
+  ): Promise<ListCollectionIdsResponse>;
+  abstract listen(
+    database: string,
+    $requestBody: ListenRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsListenNamedParameters & object
+  ): Promise<ListenResponse>;
+  abstract patch(
+    name: string,
+    $requestBody: Document,
+    __namedParams__?: ProjectsDatabasesDocumentsPatchNamedParameters & object
+  ): Promise<Document>;
+  abstract rollback(
+    database: string,
+    $requestBody: RollbackRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsRollbackNamedParameters & object
+  ): Promise<Empty>;
+  abstract runQuery(
+    parent: string,
+    $requestBody: RunQueryRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsRunQueryNamedParameters & object
+  ): Promise<RunQueryResponse>;
+  abstract write(
+    database: string,
+    $requestBody: WriteRequest,
+    __namedParams__?: ProjectsDatabasesDocumentsWriteNamedParameters & object
+  ): Promise<WriteResponse>;
+}
+export declare class ProjectsDatabasesDocumentsApiClientImpl
+  implements ProjectsDatabasesDocumentsApiClient {
+  private gapiVersion;
+  private $apiClient;
+  constructor(
+    gapiVersion: string,
+    gapiRequestService: PromiseRequestService,
+    apiClientHookFactory?: ApiClientHookFactory | null
+  );
+  batchGet(
+    database: string,
+    $requestBody: BatchGetDocumentsRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsBatchGetNamedParameters & object
+  ): Promise<BatchGetDocumentsResponse>;
+  beginTransaction(
+    database: string,
+    $requestBody: BeginTransactionRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsBeginTransactionNamedParameters & object
+  ): Promise<BeginTransactionResponse>;
+  commit(
+    database: string,
+    $requestBody: CommitRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsCommitNamedParameters & object
+  ): Promise<CommitResponse>;
+  createDocument(
+    parent: string,
+    collectionId: string,
+    $requestBody: Document,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      documentId,
+      fields,
+      key,
+      maskFieldPaths,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsCreateDocumentNamedParameters & object
+  ): Promise<Document>;
+  delete(
+    name: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      currentDocumentExists,
+      currentDocumentUpdateTime,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsDeleteNamedParameters & object
+  ): Promise<Empty>;
+  get(
+    name: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      maskFieldPaths,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      readTime,
+      transaction,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsGetNamedParameters & object
+  ): Promise<Document>;
+  list(
+    parent: string,
+    collectionId: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      maskFieldPaths,
+      oauth_token,
+      orderBy,
+      pageSize,
+      pageToken,
+      pp,
+      prettyPrint,
+      quotaUser,
+      readTime,
+      showMissing,
+      transaction,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsListNamedParameters & object
+  ): Promise<ListDocumentsResponse>;
+  listCollectionIds(
+    parent: string,
+    $requestBody: ListCollectionIdsRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsListCollectionIdsNamedParameters & object
+  ): Promise<ListCollectionIdsResponse>;
+  listen(
+    database: string,
+    $requestBody: ListenRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsListenNamedParameters & object
+  ): Promise<ListenResponse>;
+  patch(
+    name: string,
+    $requestBody: Document,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      currentDocumentExists,
+      currentDocumentUpdateTime,
+      fields,
+      key,
+      maskFieldPaths,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      updateMaskFieldPaths,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsPatchNamedParameters & object
+  ): Promise<Document>;
+  rollback(
+    database: string,
+    $requestBody: RollbackRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsRollbackNamedParameters & object
+  ): Promise<Empty>;
+  runQuery(
+    parent: string,
+    $requestBody: RunQueryRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsRunQueryNamedParameters & object
+  ): Promise<RunQueryResponse>;
+  write(
+    database: string,
+    $requestBody: WriteRequest,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesDocumentsWriteNamedParameters & object
+  ): Promise<WriteResponse>;
+}
+export declare type ProjectsDatabasesIndexesApiClient$Xgafv = '1' | '2';
+export interface IProjectsDatabasesIndexesApiClient$XgafvEnum {
+  1: ProjectsDatabasesIndexesApiClient$Xgafv;
+  2: ProjectsDatabasesIndexesApiClient$Xgafv;
+  values(): Array<ProjectsDatabasesIndexesApiClient$Xgafv>;
+}
+export declare const ProjectsDatabasesIndexesApiClient$XgafvEnum: IProjectsDatabasesIndexesApiClient$XgafvEnum;
+export declare type ProjectsDatabasesIndexesApiClientAlt =
+  | 'json'
+  | 'media'
+  | 'proto';
+export interface IProjectsDatabasesIndexesApiClientAltEnum {
+  JSON: ProjectsDatabasesIndexesApiClientAlt;
+  MEDIA: ProjectsDatabasesIndexesApiClientAlt;
+  PROTO: ProjectsDatabasesIndexesApiClientAlt;
+  values(): Array<ProjectsDatabasesIndexesApiClientAlt>;
+}
+export declare const ProjectsDatabasesIndexesApiClientAltEnum: IProjectsDatabasesIndexesApiClientAltEnum;
+export interface ProjectsDatabasesIndexesCreateNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesIndexesApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesIndexesApiClient$Xgafv;
+}
+export interface ProjectsDatabasesIndexesDeleteNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesIndexesApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesIndexesApiClient$Xgafv;
+}
+export interface ProjectsDatabasesIndexesGetNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesIndexesApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesIndexesApiClient$Xgafv;
+}
+export interface ProjectsDatabasesIndexesListNamedParameters {
+  access_token?: string;
+  alt?: ProjectsDatabasesIndexesApiClientAlt;
+  bearer_token?: string;
+  callback?: string;
+  fields?: string;
+  key?: string;
+  oauth_token?: string;
+  pp?: boolean;
+  prettyPrint?: boolean;
+  quotaUser?: string;
+  upload_protocol?: string;
+  uploadType?: string;
+  $Xgafv?: ProjectsDatabasesIndexesApiClient$Xgafv;
+  filter?: string;
+  pageSize?: number;
+  pageToken?: string;
+}
+export abstract class ProjectsDatabasesIndexesApiClient {
+  private constructor();
+  abstract create(
+    parent: string,
+    $requestBody: Index,
+    __namedParams__?: ProjectsDatabasesIndexesCreateNamedParameters & object
+  ): Promise<Operation>;
+  abstract delete(
+    name: string,
+    __namedParams__?: ProjectsDatabasesIndexesDeleteNamedParameters & object
+  ): Promise<Empty>;
+  abstract get(
+    name: string,
+    __namedParams__?: ProjectsDatabasesIndexesGetNamedParameters & object
+  ): Promise<Index>;
+  abstract list(
+    parent: string,
+    __namedParams__?: ProjectsDatabasesIndexesListNamedParameters & object
+  ): Promise<ListIndexesResponse>;
+}
+export declare class ProjectsDatabasesIndexesApiClientImpl
+  implements ProjectsDatabasesIndexesApiClient {
+  private gapiVersion;
+  private $apiClient;
+  constructor(
+    gapiVersion: string,
+    gapiRequestService: PromiseRequestService,
+    apiClientHookFactory?: ApiClientHookFactory | null
+  );
+  create(
+    parent: string,
+    $requestBody: Index,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesIndexesCreateNamedParameters & object
+  ): Promise<Operation>;
+  delete(
+    name: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesIndexesDeleteNamedParameters & object
+  ): Promise<Empty>;
+  get(
+    name: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      key,
+      oauth_token,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesIndexesGetNamedParameters & object
+  ): Promise<Index>;
+  list(
+    parent: string,
+    {
+      $Xgafv,
+      access_token,
+      alt,
+      bearer_token,
+      callback,
+      fields,
+      filter,
+      key,
+      oauth_token,
+      pageSize,
+      pageToken,
+      pp,
+      prettyPrint,
+      quotaUser,
+      uploadType,
+      upload_protocol
+    }?: ProjectsDatabasesIndexesListNamedParameters & object
+  ): Promise<ListIndexesResponse>;
+}

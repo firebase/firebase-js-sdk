@@ -57,9 +57,13 @@ const configObj = {
     ]
   },
   karma: {
+    autoWatch: false,
+
     // base path that will be used to resolve all patterns (eg. files, exclude)
     basePath: '',
-    
+
+    browserNoActivityTimeout: 30000,
+
     customHeaders: [{
       match: '.*',
       name: 'Service-Worker-Allowed',

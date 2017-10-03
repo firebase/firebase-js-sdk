@@ -1,0 +1,12 @@
+{
+  // Ruler can't be specified via editorconfig
+  "editor.rulers": [80],
+
+  "search.exclude": {
+    // Exclude gulp build outputs from search results
+    "dist": true,
+
+    // Exclude installed dependencies from searches too
+    "**/node_modules": true
+  }
+}

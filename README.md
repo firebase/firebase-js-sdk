@@ -16,8 +16,8 @@ To get started using Firebase, see
 
 ### Prerequisites
 
-Before you can start working on the Firebase JS SDK, you need to have Node.js 6.0 or 
-greater installed on your machine. After doing this, you must also install the 
+Before you can start working on the Firebase JS SDK, you need to have Node.js 6.0 or
+greater installed on your machine. After doing this, you must also install the
 dependencies for this package.
 
 To download Node.js visit https://nodejs.org/en/download/.
@@ -58,8 +58,8 @@ gulp --tasks
 
 ## Testing the SDK
 
-To run all tests for the SDK you must first supply a firebase project config for 
-your tests. This is done by creating a file called `project.json` and at the 
+To run all tests for the SDK you must first supply a firebase project config for
+your tests. This is done by creating a file called `project.json` and at the
 following path:
 
 ```
@@ -69,15 +69,50 @@ tests/config/project.json
 This file should contain a JSON object with your app information (i.e. the same
 information you would pass to `firebase.initializeApp`).
 
-After you have done this, simply run: `npm test` at the root of this package.
+### Project Config
 
-There are several types of available tests:
+The project supplied in your `project.json` needs to be properly configured to
+succesfully run the tests.
 
-- Unit Tests (`gulp test:unit`)
-- Integration Tests (`gulp test:integration`)
+#### Database Rules
 
-_NOTE: You can execute each of these tasks on their own (e.g. you can run 
-`gulp test:unit` to run exclusively the smoke tests from your CLI)_
+_i.e._
+
+```json
+{
+  "rules": {
+    ".read": "true",
+    ".write": "true"
+  }
+}
+```
+
+#### Authentiaction Support
+
+Enable the `Anonymous` sign-in provider.
+
+### Running the tests
+
+After you have the `project.json` and have properly configured the project,
+simply run: `npm test` at the root of this package.
+
+You can also run the tests by calling `gulp test` if you have gulp installed.
+
+You can decrease the testing scope by providing the optional `suite`/`env` arguments to `npm/gulp test`.
+
+_e.g._
+
+```bash
+$ gulp test --suite=firestore --env=node
+```
+
+Any directory path in the tests directory serves as a valid value for the `--suite` flag.
+
+Valid values for the `--env` flag are `node`/`browser`.
+
+### Integration Tests
+
+These tests are functionally different enough from the normal test suite that they have their own README.md. Please view it [here](./integration/README.md):
 
 ## Building the SDK
 
@@ -117,7 +152,7 @@ These files are processed in the following flow:
 1. Prebuilt browser binaries are ready to consume individually in the browser
 however we need to wrap them in a CJS module wrapper for node/webpack/browserify
 consumption.
-1. The Firebase App binary is generated (from TS) and concatenated with the 
+1. The Firebase App binary is generated (from TS) and concatenated with the
 browser binaries of each individual module to create `firebase.js`.
 
 #### Legacy Files

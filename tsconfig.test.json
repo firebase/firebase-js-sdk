@@ -12,7 +12,9 @@
   "compileOnSave": true,
   "include": [
     "src/**/*.ts",
-    "tests/**/*.ts"
+    "tests/**/*.ts",
+    "typings/firebase.d.ts",
+    "typings-internal/firebase-internal.d.ts"
   ],
   "exclude": [
     "src/firebase.ts"

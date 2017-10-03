@@ -27,6 +27,9 @@ function runNodeTest(suite = '**') {
    */
   return gulp.src([
     `tests/**/${suite}/**/*.test.ts`,
+    'src/firestore/platform_node/node_init.ts',
+    // TODO(b/66918026): Re-enable Firestore integration tests on node.
+    '!tests/firestore/integration/**/*.test.ts',
     '!tests/**/browser/**/*.test.ts',
     '!tests/**/binary/**/*.test.ts',
     '!src/firebase-*.ts',
@@ -38,7 +41,8 @@ function runNodeTest(suite = '**') {
       reporter: 'spec',
       compilers: 'ts:ts-node/register',
       timeout: config.testConfig.timeout,
-      retries: config.testConfig.retries
+      retries: config.testConfig.retries,
+      inspect: true
     }))
     .on('error', err => {
       if (err && err.message && ~err.message.indexOf('No test files found')) return;
@@ -46,13 +50,14 @@ function runNodeTest(suite = '**') {
     });
 }
 
-function runBrowserTest(suite = '**') {
+function runBrowserTest(suite = '.*', debug) {
   return new Promise((resolve, reject) => {
-    const karmaConfig = Object.assign({}, config.karma, {
+    let karmaConfig = Object.assign({}, config.karma, {
       // list of files / patterns to load in the browser
       files: [
         `./src/**/*.ts`,
-        `./tests/**/${suite}/**/*.ts`
+        `./tests/**/*.ts`,
+        { pattern: `./tests/config/**/*`, included: false, served: true }
       ],
       
       // list of files to exclude from the included globs above
@@ -70,6 +75,27 @@ function runBrowserTest(suite = '**') {
         './tests/**/binary/**/*.test.ts',
       ],
     });
+
+    Object.assign(karmaConfig.karmaTypescriptConfig, {
+      bundlerOptions: {
+        entrypoints: new RegExp(`^.*tests/${suite}.*\.test\.ts$|^.*src/firestore/platform_browser/browser_init.ts$`)
+      }
+    });
+
+    if (debug) {
+      karmaConfig = Object.assign({}, karmaConfig, {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['Chrome']
+      });
+
+      Object.assign(karmaConfig.karmaTypescriptConfig, {
+        coverageOptions: {
+          instrumentation: false
+        }
+      });
+    }
+
     new karma.Server(karmaConfig, exitcode => {
       if (exitcode) return reject(exitcode);
       resolve();
@@ -77,21 +103,25 @@ function runBrowserTest(suite = '**') {
   });
 }
 
-function runTests() {
-  const suite = argv.suite || '**';
+function runTests(devMode) {
+  const suite = argv.suite || '';
   const env = argv.env || '*';
+  const debug = !!argv.debug || false;
+  console.log('debug:', debug);
   console.log(`Values: ${suite}:${env}`);
 
   switch(env) {
     case 'node': return runNodeTest(suite);
-    case 'browser': return runBrowserTest(suite);
+    case 'browser': return runBrowserTest(suite, debug);
     default:
       // Incidentally this works returning a stream and promise value
       return Promise.all([
         runNodeTest(suite),
-        runBrowserTest(suite),
+        runBrowserTest(suite, debug),
       ]);
   }
 }
+
+exports.runTests = runTests;
 
 gulp.task('test', runTests);

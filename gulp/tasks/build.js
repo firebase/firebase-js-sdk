@@ -120,6 +120,7 @@ function compileIndvES2015ModulesToBrowser() {
       'firebase-storage': './src/storage.ts',
       'firebase-messaging': './src/messaging.ts',
       'firebase-database': './src/database.ts',
+      'firebase-firestore': './src/firestore.ts',
     },
     output: {
       filename: '[name].js',
@@ -168,7 +169,8 @@ function compileIndvES2015ModulesToBrowser() {
         mangle: {
           props: {
             ignore_quoted: true,
-            regex: /^_|_$/,
+            // NOTE: Firestore uses __foo__ variables that must not be mangled.
+            regex: /^_[^_]|[^_]_$/
           }
         },
         compress: {
@@ -189,7 +191,11 @@ function compileIndvES2015ModulesToBrowser() {
 }
 
 function buildBrowserFirebaseJs() {
-  return gulp.src('./dist/browser/*.js')
+  // Exclude firebase-firestore from combined firebase.js
+  return gulp.src([
+    './dist/browser/*.js',
+    '!./dist/browser/firebase-firestore.js'
+  ])
     .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(concat('firebase.js'))
     .pipe(sourcemaps.write('.'))

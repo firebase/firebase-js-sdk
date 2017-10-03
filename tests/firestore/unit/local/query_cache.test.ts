@@ -1,0 +1,352 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect } from 'chai';
+import { Query } from '../../../../src/firestore/core/query';
+import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
+import { TargetId } from '../../../../src/firestore/core/types';
+import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
+import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
+import { MemoryQueryCache } from '../../../../src/firestore/local/memory_query_cache';
+import { Persistence } from '../../../../src/firestore/local/persistence';
+import {
+  QueryData,
+  QueryPurpose
+} from '../../../../src/firestore/local/query_data';
+import { addEqualityMatcher } from '../../util/equality_matcher';
+import {
+  asyncIt,
+  filter,
+  key,
+  path,
+  resumeTokenForSnapshot,
+  version
+} from '../../util/helpers';
+
+import * as persistenceHelpers from './persistence_test_helpers';
+import { TestGarbageCollector } from './test_garbage_collector';
+import { TestQueryCache } from './test_query_cache';
+
+let persistence: Persistence;
+let cache: TestQueryCache;
+
+describe('MemoryQueryCache', () => {
+  beforeEach(() => {
+    return persistenceHelpers.testMemoryPersistence().then(p => {
+      persistence = p;
+    });
+  });
+
+  genericQueryCacheTests();
+});
+
+describe('IndexedDbQueryCache', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn('No IndexedDB. Skipping IndexedDbQueryCache tests.');
+    return;
+  }
+
+  beforeEach(() => {
+    return persistenceHelpers.testIndexedDbPersistence().then(p => {
+      persistence = p;
+    });
+  });
+
+  afterEach(() => {
+    return persistence.shutdown();
+  });
+
+  genericQueryCacheTests();
+});
+
+/**
+ * Defines the set of tests to run against both query cache implementations.
+ */
+function genericQueryCacheTests() {
+  addEqualityMatcher();
+
+  const QUERY_ROOMS = Query.atPath(path('rooms'));
+  const QUERY_HALLS = Query.atPath(path('halls'));
+  const QUERY_GARAGES = Query.atPath(path('garages'));
+
+  /**
+   * Creates a new QueryData object from the the given parameters, synthesizing
+   * a resume token from the snapshot version.
+   */
+  function testQueryData(query: Query, targetId: TargetId, version?: number) {
+    if (version === undefined) {
+      version = 0;
+    }
+    const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
+    const resumeToken = resumeTokenForSnapshot(snapshotVersion);
+    return new QueryData(
+      query,
+      targetId,
+      QueryPurpose.Listen,
+      snapshotVersion,
+      resumeToken
+    );
+  }
+
+  async function setAndReadQuery(queryData: QueryData): Promise<void> {
+    await cache.addQueryData(queryData);
+    const read = await cache.getQueryData(queryData.query);
+    expect(read).to.deep.equal(queryData);
+  }
+
+  beforeEach(() => {
+    cache = new TestQueryCache(persistence, persistence.getQueryCache());
+  });
+
+  asyncIt('returns null for query not in cache', () => {
+    return cache.getQueryData(QUERY_ROOMS).then(queryData => {
+      expect(queryData).to.equal(null);
+    });
+  });
+
+  asyncIt('can set and read a query', () => {
+    return setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 1));
+  });
+
+  asyncIt('handles canonical ID collisions', async () => {
+    // Type information is currently lost in our canonicalID implementations so
+    // this currently an easy way to force colliding canonicalIDs
+    const q1 = Query.atPath(path('a')).addFilter(filter('foo', '==', 1));
+    const q2 = Query.atPath(path('a')).addFilter(filter('foo', '==', '1'));
+    expect(q1.canonicalId()).to.equal(q2.canonicalId());
+
+    const data1 = testQueryData(q1, 1, 1);
+    await cache.addQueryData(data1);
+
+    // Using the other query should not return the query cache entry despite
+    // equal canonicalIDs.
+    expect(await cache.getQueryData(q2)).to.equal(null);
+    expect(await cache.getQueryData(q1)).to.deep.equal(data1);
+
+    const data2 = testQueryData(q2, 2, 1);
+    await cache.addQueryData(data2);
+
+    expect(await cache.getQueryData(q1)).to.deep.equal(data1);
+    expect(await cache.getQueryData(q2)).to.deep.equal(data2);
+
+    await cache.removeQueryData(data1);
+    expect(await cache.getQueryData(q1)).to.equal(null);
+    expect(await cache.getQueryData(q2)).to.deep.equal(data2);
+
+    await cache.removeQueryData(data2);
+    expect(await cache.getQueryData(q1)).to.equal(null);
+    expect(await cache.getQueryData(q2)).to.equal(null);
+  });
+
+  asyncIt('can set query to new value', async () => {
+    await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
+    await setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 2));
+  });
+
+  asyncIt('can remove a query', async () => {
+    const queryData = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(queryData);
+    await cache.removeQueryData(queryData);
+    const read = await cache.getQueryData(QUERY_ROOMS);
+    expect(read).to.equal(null);
+  });
+
+  asyncIt('can remove nonexistent query', () => {
+    // no-op, but make sure it doesn't fail.
+    return cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
+  });
+
+  asyncIt('can remove matching keys when a query is removed', async () => {
+    const rooms = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(rooms);
+
+    const key1 = key('rooms/foo');
+    const key2 = key('rooms/bar');
+
+    expect(await cache.containsKey(key1)).to.equal(false);
+
+    await cache.addMatchingKeys([key1], rooms.targetId);
+    await cache.addMatchingKeys([key2], rooms.targetId);
+
+    expect(await cache.containsKey(key1)).to.equal(true);
+    expect(await cache.containsKey(key2)).to.equal(true);
+
+    await cache.removeQueryData(rooms);
+    expect(await cache.containsKey(key1)).to.equal(false);
+    expect(await cache.containsKey(key2)).to.equal(false);
+  });
+
+  asyncIt('adds or removes matching keys', async () => {
+    const k = key('foo/bar');
+    expect(await cache.containsKey(k)).to.equal(false);
+
+    await cache.addMatchingKeys([k], 1);
+    expect(await cache.containsKey(k)).to.equal(true);
+
+    await cache.addMatchingKeys([k], 2);
+    expect(await cache.containsKey(k)).to.equal(true);
+
+    await cache.removeMatchingKeys([k], 1);
+    expect(await cache.containsKey(k)).to.equal(true);
+
+    await cache.removeMatchingKeys([k], 2);
+    expect(await cache.containsKey(k)).to.equal(false);
+  });
+
+  asyncIt('can remove matching keys for a targetId', async () => {
+    const key1 = key('foo/bar');
+    const key2 = key('foo/baz');
+    const key3 = key('foo/blah');
+
+    cache.addMatchingKeys([key1, key2], 1);
+    cache.addMatchingKeys([key3], 2);
+    expect(await cache.containsKey(key1)).to.equal(true);
+    expect(await cache.containsKey(key2)).to.equal(true);
+    expect(await cache.containsKey(key3)).to.equal(true);
+
+    cache.removeMatchingKeysForTargetId(1);
+    expect(await cache.containsKey(key1)).to.equal(false);
+    expect(await cache.containsKey(key2)).to.equal(false);
+    expect(await cache.containsKey(key3)).to.equal(true);
+
+    cache.removeMatchingKeysForTargetId(2);
+    expect(await cache.containsKey(key1)).to.equal(false);
+    expect(await cache.containsKey(key2)).to.equal(false);
+    expect(await cache.containsKey(key3)).to.equal(false);
+  });
+
+  asyncIt('emits garbage collection events for removes', async () => {
+    const eagerGc = new EagerGarbageCollector();
+    const testGc = new TestGarbageCollector(persistence, eagerGc);
+    eagerGc.addGarbageSource(cache.cache);
+    expect(await testGc.collectGarbage()).to.deep.equal([]);
+
+    const rooms = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(rooms);
+
+    const room1 = key('rooms/bar');
+    const room2 = key('rooms/foo');
+    await cache.addMatchingKeys([room1, room2], rooms.targetId);
+
+    const halls = testQueryData(QUERY_HALLS, 2, 1);
+    await cache.addQueryData(halls);
+
+    const hall1 = key('halls/bar');
+    const hall2 = key('halls/foo');
+    await cache.addMatchingKeys([hall1, hall2], halls.targetId);
+
+    expect(await testGc.collectGarbage()).to.deep.equal([]);
+
+    cache.removeMatchingKeys([room1], rooms.targetId);
+    expect(await testGc.collectGarbage()).to.deep.equal([room1]);
+
+    cache.removeQueryData(rooms);
+    expect(await testGc.collectGarbage()).to.deep.equal([room2]);
+
+    cache.removeMatchingKeysForTargetId(halls.targetId);
+    expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
+  });
+
+  asyncIt('can get matching keys for targetId', async () => {
+    const key1 = key('foo/bar');
+    const key2 = key('foo/baz');
+    const key3 = key('foo/blah');
+
+    await cache.addMatchingKeys([key1, key2], 1);
+    await cache.addMatchingKeys([key3], 2);
+
+    expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
+      key1,
+      key2
+    ]);
+    expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([key3]);
+
+    cache.addMatchingKeys([key1], 2);
+    expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
+      key1,
+      key2
+    ]);
+    expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([
+      key1,
+      key3
+    ]);
+  });
+
+  asyncIt('can get / set highestTargetId', async () => {
+    expect(cache.getHighestTargetId()).to.deep.equal(0);
+    const queryData1 = testQueryData(QUERY_ROOMS, 1);
+
+    await cache.addQueryData(queryData1);
+    const key1 = key('rooms/bar');
+    const key2 = key('rooms/foo');
+    await cache.addMatchingKeys([key1, key2], 1);
+
+    const queryData2 = testQueryData(QUERY_HALLS, 2);
+    await cache.addQueryData(queryData2);
+    const key3 = key('halls/foo');
+    await cache.addMatchingKeys([key3], 2);
+    expect(cache.getHighestTargetId()).to.deep.equal(2);
+
+    await cache.removeQueryData(queryData2);
+
+    // Target IDs never come down.
+    expect(cache.getHighestTargetId()).to.deep.equal(2);
+
+    // A query with an empty result set still counts.
+    const queryData3 = testQueryData(QUERY_GARAGES, 42);
+    await cache.addQueryData(queryData3);
+    expect(cache.getHighestTargetId()).to.deep.equal(42);
+
+    await cache.removeQueryData(queryData1);
+    expect(cache.getHighestTargetId()).to.deep.equal(42);
+
+    await cache.removeQueryData(queryData3);
+    expect(cache.getHighestTargetId()).to.deep.equal(42);
+
+    // Verify that the highestTargetId persists restarts.
+    const otherCache = new TestQueryCache(
+      persistence,
+      persistence.getQueryCache()
+    );
+    await otherCache.start();
+    expect(otherCache.getHighestTargetId()).to.deep.equal(42);
+  });
+
+  asyncIt('can get / set lastRemoteSnapshotVersion', () => {
+    expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+      SnapshotVersion.MIN
+    );
+
+    // Can set the snapshot version.
+    return cache
+      .setLastRemoteSnapshotVersion(version(42))
+      .then(() => {
+        expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(version(42));
+      })
+      .then(() => {
+        // Verify snapshot version persists restarts.
+        const otherCache = new TestQueryCache(
+          persistence,
+          persistence.getQueryCache()
+        );
+        return otherCache.start().then(() => {
+          expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+            version(42)
+          );
+        });
+      });
+  });
+}

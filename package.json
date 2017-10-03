@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -45,6 +45,7 @@
     "filesize": "^3.5.6",
     "git-rev-sync": "^1.9.0",
     "google-closure-compiler-js": "^20170218.0.0",
+    "grpc": "^1.6.0",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-babel": "^6.1.2",
     "gulp-clone": "^1.0.0",
@@ -72,7 +73,8 @@
     "lint-staged": "^4.0.0",
     "merge2": "^1.0.3",
     "mkdirp": "^0.5.1",
-    "prettier": "^1.5.1",
+    "prettier": "1.7.0",
+    "protobufjs": "^6.8.0",
     "require-dir": "^0.3.1",
     "rimraf": "^2.6.1",
     "shx": "^0.2.2",
@@ -88,6 +90,7 @@
     "yargs": "^8.0.2"
   },
   "dependencies": {
+    "@firebase/webchannel-wrapper": "^0.2.1",
     "dom-storage": "^2.0.2",
     "faye-websocket": "0.9.3",
     "jsonwebtoken": "^7.3.0",

@@ -15,15 +15,21 @@
  */
 const gulp = require('gulp');
 const config = require('../config');
+const argv = require('yargs').argv;
 
 // Ensure that the test tasks get set up
 const testFxns = require('./test');
 
 function watchDevFiles() {
+  // Default to just running browser tests
+  if (!argv.env) {
+    argv.env = 'browser';
+  }
+
   const stream = gulp.watch([
     `${config.root}/src/**/*.ts`,
     'tests/**/*.test.ts'
-  ], testFxns.runBrowserUnitTests(true));
+  ], testFxns.runTests);
 
   stream.on('error', err => {});
   return stream;

@@ -30,6 +30,7 @@ jobs:
     - script: ./integration/serviceWorker/runner.sh
     - script: ./integration/quickstart/runner.sh
     - script: ./integration/messaging/runner.sh
+    - script: ./integration/firestore/runner.sh
 
 # Misc Addons/Configs
 dist: trusty

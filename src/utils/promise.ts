@@ -16,7 +16,8 @@
 
 import { globalScope } from '../utils/globalScope';
 
-export const PromiseImpl = globalScope.Promise || require('promise-polyfill');
+export const PromiseImpl =
+    (globalScope.Promise || require('promise-polyfill')) as PromiseConstructor;
 
 /**
  * A deferred promise implementation.

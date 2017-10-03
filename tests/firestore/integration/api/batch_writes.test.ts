@@ -1,0 +1,348 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect } from 'chai';
+import * as firestore from 'firestore';
+
+import * as testHelpers from '../../util/helpers';
+import firebase from '../util/firebase_export';
+import * as integrationHelpers from '../util/helpers';
+
+const asyncIt = testHelpers.asyncIt;
+const apiDescribe = integrationHelpers.apiDescribe;
+
+apiDescribe('Database batch writes', persistence => {
+  asyncIt('support empty batches', () => {
+    return integrationHelpers.withTestDb(persistence, db => {
+      return db.batch().commit();
+    });
+  });
+
+  asyncIt('can set documents', () => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
+      return doc.firestore
+        .batch()
+        .set(doc, { foo: 'bar' })
+        .commit()
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.exists).to.equal(true);
+          expect(snapshot.data()).to.deep.equal({ foo: 'bar' });
+        });
+    });
+  });
+
+  asyncIt('can set documents with merge', () => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
+      return doc.firestore
+        .batch()
+        .set(doc, { a: 'b', nested: { a: 'b' } }, { merge: true })
+        .commit()
+        .then(() => {
+          return doc.firestore
+            .batch()
+            .set(doc, { c: 'd', nested: { c: 'd' } }, { merge: true })
+            .commit();
+        })
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.exists).to.equal(true);
+          expect(snapshot.data()).to.deep.equal({
+            a: 'b',
+            c: 'd',
+            nested: { a: 'b', c: 'd' }
+          });
+        });
+    });
+  });
+
+  asyncIt('can update documents', () => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
+      return doc
+        .set({ foo: 'bar' })
+        .then(() =>
+          doc.firestore
+            .batch()
+            .update(doc, { baz: 42 })
+            .commit()
+        )
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.exists).to.equal(true);
+          expect(snapshot.data()).to.deep.equal({ foo: 'bar', baz: 42 });
+        });
+    });
+  });
+
+  asyncIt('can delete documents', () => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
+      return doc
+        .set({ foo: 'bar' })
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.exists).to.equal(true);
+        })
+        .then(() =>
+          doc.firestore
+            .batch()
+            .delete(doc)
+            .commit()
+        )
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.exists).to.equal(false);
+        });
+    });
+  });
+
+  asyncIt('commit atomically, raising correct events', () => {
+    return integrationHelpers.withTestCollection(
+      persistence,
+      {},
+      collection => {
+        const docA = collection.doc('a');
+        const docB = collection.doc('b');
+        const accumulator = new testHelpers.EventsAccumulator<
+          firestore.QuerySnapshot
+        >();
+        const unsubscribe = collection.onSnapshot(
+          { includeQueryMetadataChanges: true },
+          accumulator.storeEvent
+        );
+        return accumulator
+          .awaitEvent()
+          .then(initialSnap => {
+            expect(initialSnap.docs.length).to.equal(0);
+
+            // Atomically write two documents.
+            collection.firestore
+              .batch()
+              .set(docA, { a: 1 })
+              .set(docB, { b: 2 })
+              .commit();
+
+            return accumulator.awaitEvent();
+          })
+          .then(localSnap => {
+            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+              { a: 1 },
+              { b: 2 }
+            ]);
+            return accumulator.awaitEvent();
+          })
+          .then(serverSnap => {
+            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
+            expect(testHelpers.toDataArray(serverSnap)).to.deep.equal([
+              { a: 1 },
+              { b: 2 }
+            ]);
+            unsubscribe();
+          });
+      }
+    );
+  });
+
+  asyncIt('fail atomically, raising correct events', () => {
+    return integrationHelpers.withTestCollection(
+      persistence,
+      {},
+      collection => {
+        const docA = collection.doc('a');
+        const docB = collection.doc('b');
+        const accumulator = new testHelpers.EventsAccumulator<
+          firestore.QuerySnapshot
+        >();
+        const unsubscribe = collection.onSnapshot(
+          { includeQueryMetadataChanges: true },
+          accumulator.storeEvent
+        );
+        let batchCommitPromise: Promise<void>;
+        return accumulator
+          .awaitEvent()
+          .then(initialSnap => {
+            expect(initialSnap.docs.length).to.equal(0);
+
+            // Atomically write 1 document and update a nonexistent
+            // document.
+            batchCommitPromise = collection.firestore
+              .batch()
+              .set(docA, { a: 1 })
+              .update(docB, { b: 2 })
+              .commit();
+
+            return accumulator.awaitEvent();
+          })
+          .then(localSnap => {
+            // Local event with the set document.
+            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+              { a: 1 }
+            ]);
+
+            return accumulator.awaitEvent();
+          })
+          .then(serverSnap => {
+            // Server event with the set reverted.
+            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
+            expect(serverSnap.docs.length).to.equal(0);
+
+            return batchCommitPromise;
+          })
+          .then(
+            () => {
+              expect.fail('Batch commit should have failed.');
+            },
+            err => {
+              expect(err.message).to.exist;
+              expect(err.message).to.contain('no entity to update');
+              expect(err.code).to.equal('not-found');
+              unsubscribe();
+            }
+          );
+      }
+    );
+  });
+
+  asyncIt('write the same server timestamp across writes', () => {
+    return integrationHelpers.withTestCollection(
+      persistence,
+      {},
+      collection => {
+        const docA = collection.doc('a');
+        const docB = collection.doc('b');
+        const accumulator = new testHelpers.EventsAccumulator<
+          firestore.QuerySnapshot
+        >();
+        const unsubscribe = collection.onSnapshot(
+          { includeQueryMetadataChanges: true },
+          accumulator.storeEvent
+        );
+        return accumulator
+          .awaitEvent()
+          .then(initialSnap => {
+            expect(initialSnap.docs.length).to.equal(0);
+
+            // Atomically write 2 documents with server timestamps.
+            collection.firestore
+              .batch()
+              .set(docA, {
+                when: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .set(docB, {
+                when: firebase.firestore.FieldValue.serverTimestamp()
+              })
+              .commit();
+
+            return accumulator.awaitEvent();
+          })
+          .then(localSnap => {
+            expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+            expect(localSnap.docs.length).to.equal(2);
+            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+              { when: null },
+              { when: null }
+            ]);
+
+            return accumulator.awaitEvent();
+          })
+          .then(serverSnap => {
+            expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
+            expect(serverSnap.docs.length).to.equal(2);
+            const when = serverSnap.docs[0].data()['when'];
+            expect(when).to.be.an.instanceof(Date);
+            expect(serverSnap.docs[1].data()['when']).to.deep.equal(when);
+            unsubscribe();
+          });
+      }
+    );
+  });
+
+  asyncIt('can write the same document multiple times', () => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
+      const accumulator = new testHelpers.EventsAccumulator<
+        firestore.DocumentSnapshot
+      >();
+      const unsubscribe = doc.onSnapshot(
+        { includeMetadataChanges: true },
+        accumulator.storeEvent
+      );
+      return accumulator
+        .awaitEvent()
+        .then(initialSnap => {
+          expect(initialSnap.exists).to.equal(false);
+
+          doc.firestore
+            .batch()
+            .delete(doc)
+            .set(doc, { a: 1, b: 1, when: 'when' })
+            .update(doc, {
+              b: 2,
+              when: firebase.firestore.FieldValue.serverTimestamp()
+            })
+            .commit();
+
+          return accumulator.awaitEvent();
+        })
+        .then(localSnap => {
+          expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+          expect(localSnap.data()).to.deep.equal({ a: 1, b: 2, when: null });
+
+          return accumulator.awaitEvent();
+        })
+        .then(serverSnap => {
+          expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
+          const when = serverSnap.get('when');
+          expect(when).to.be.an.instanceof(Date);
+          expect(serverSnap.data()).to.deep.equal({ a: 1, b: 2, when });
+          unsubscribe();
+        });
+    });
+  });
+
+  asyncIt('can update nested fields', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian' },
+      'is.admin': true
+    };
+
+    return integrationHelpers.withTestDb(persistence, db => {
+      const doc = db.collection('counters').doc();
+      return doc.firestore
+        .batch()
+        .set(doc, initialData)
+        .update(
+          doc,
+          'owner.name',
+          'Sebastian',
+          new firebase.firestore.FieldPath('is.admin'),
+          true
+        )
+        .commit()
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
+});

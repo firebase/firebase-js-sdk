@@ -19,6 +19,8 @@
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "typings/firebase.d.ts",
+    "typings-internal/firebase-internal.d.ts"
   ]
 }
