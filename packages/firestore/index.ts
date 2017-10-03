@@ -14,10 +14,10 @@
 * limitations under the License.
 */
 
-import firebase from './app';
+import firebase from '@firebase/app';
 import './firestore/platform_browser/browser_init';
-import { Firestore } from './firestore/api/database';
-import { configureForFirebase } from './firestore/platform/config';
+import { Firestore } from './src/api/database';
+import { configureForFirebase } from './src/platform/config';
 
 export function registerFirestore(instance) {
   configureForFirebase(instance);
