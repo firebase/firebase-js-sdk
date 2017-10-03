@@ -16,6 +16,7 @@
 
 import * as firestore from 'firestore';
 
+import { FirebaseApp, FirebaseService } from "@firebase/app";
 import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
@@ -168,7 +169,7 @@ class FirestoreConfig {
   databaseId: DatabaseId;
   persistenceKey: string;
   credentials: CredentialsProvider;
-  firebaseApp: firebase.app.App;
+  firebaseApp: FirebaseApp;
   settings: FirestoreSettings;
   persistence: boolean;
 }
@@ -192,12 +193,12 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     return this._config.databaseId;
   }
 
-  constructor(databaseIdOrApp: FirestoreDatabase | firebase.app.App) {
+  constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
-    if (typeof (databaseIdOrApp as firebase.app.App).options === 'object') {
+    if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
       // TODO(b/34177605): Can we somehow use instanceof?
-      const app = databaseIdOrApp as firebase.app.App;
+      const app = databaseIdOrApp as FirebaseApp;
       config.firebaseApp = app;
       config.databaseId = Firestore.databaseIdFromApp(app);
       config.persistenceKey = config.firebaseApp.name;
@@ -212,7 +213,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       }
 
       config.databaseId = new DatabaseId(external.projectId, external.database);
-      // Use a default persistenceKey that lines up with firebase.app.App.
+      // Use a default persistenceKey that lines up with FirebaseApp.
       config.persistenceKey = '[DEFAULT]';
       config.credentials = new EmptyCredentialsProvider();
     }
@@ -316,7 +317,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     return this._firestoreClient.start(persistence);
   }
 
-  private static databaseIdFromApp(app: firebase.app.App): DatabaseId {
+  private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
     const options = app.options as objUtils.Dict<{}>;
     if (!objUtils.contains(options, 'projectId')) {
       // TODO(b/62673263): We can safely remove the special handling of
@@ -348,13 +349,13 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     if (!projectId || typeof projectId !== 'string') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'projectId must be a string in firebase.app.App.options'
+        'projectId must be a string in FirebaseApp.options'
       );
     }
     return new DatabaseId(projectId);
   }
 
-  get app(): firebase.app.App {
+  get app(): FirebaseApp {
     if (!this._config.firebaseApp) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,

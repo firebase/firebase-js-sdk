@@ -18,6 +18,7 @@ import { User } from '../auth/user';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
+import { FirebaseApp } from "@firebase/app";
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
@@ -143,7 +144,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   /** The User listener registered with setUserChangeListener(). */
   private userListener: UserListener | null = null;
 
-  constructor(private readonly app: firebase.app.App) {
+  constructor(private readonly app: FirebaseApp) {
     // We listen for token changes but all we really care about is knowing when
     // the uid may have changed.
     this.tokenListener = () => {

@@ -21,7 +21,7 @@
 // import * as protobufjs from 'protobufjs';
 // import * as util from 'util';
 
-import firebase from '../../app';
+import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 // Temporary type definition until types work again (see above)
 export type GrpcMetadataCallback = any;

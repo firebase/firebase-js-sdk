@@ -11,6 +11,9 @@
   },
   "author": "",
   "license": "Apache-2.0",
+  "dependencies": {
+    "@firebase/webchannel-wrapper": "^0.2.1"
+  },
   "peerDependencies": {
     "@firebase/app": "^0.1.0"
   },

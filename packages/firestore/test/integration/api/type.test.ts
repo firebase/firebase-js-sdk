@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-
+import * as firestore from 'firestore';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
@@ -25,7 +25,7 @@ const asyncIt = testHelpers.asyncIt;
 
 apiDescribe('Firestore', persistence => {
   function expectRoundtrip(
-    db: firebase.firestore.Firestore,
+    db: firestore.Firestore,
     data: {}
   ): Promise<void> {
     const doc = db.doc('rooms/Eros');
@@ -109,7 +109,7 @@ apiDescribe('Firestore', persistence => {
           expect(docSnap.get('a')).to.equal(42);
           const readDocRef = docSnap.get(
             'ref'
-          ) as firebase.firestore.DocumentReference;
+          ) as firestore.DocumentReference;
           expect(readDocRef.path).to.equal(doc.path);
         });
     });

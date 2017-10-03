@@ -15,7 +15,7 @@
  */
 
 import * as firestore from 'firestore';
-
+import { FirebaseApp, FirebaseNamespace } from "@firebase/app";
 import { PublicBlob } from '../api/blob';
 import {
   Firestore,
@@ -55,7 +55,7 @@ const firestoreNamespace = {
 export function configureForFirebase(firebase: FirebaseNamespace): void {
   firebase.INTERNAL.registerService(
     'firestore',
-    (app: firebase.app.App) => new Firestore(app),
+    (app: FirebaseApp) => new Firestore(app),
     shallowCopy(firestoreNamespace)
   );
 }
