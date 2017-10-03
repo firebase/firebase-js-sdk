@@ -346,51 +346,45 @@ describe('SortedMap Tests', () => {
     }
   });
 
-  xit(
-    'Perf: Comparison with {}: Insertion and removal with various # of items.',
-    () => {
-      const verifyTraversal = (
-        tree: { [key: number]: number },
-        max: number
-      ) => {
-        const keys: number[] = [];
-        obj.forEach(tree, k => keys.push(parseInt(k, 10)));
+  xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
+    const verifyTraversal = (tree: { [key: number]: number }, max: number) => {
+      const keys: number[] = [];
+      obj.forEach(tree, k => keys.push(parseInt(k, 10)));
 
-        keys.sort();
-        expect(keys.length).to.equal(max);
-        for (let i = 0; i < max; i++) expect(tree[i]).to.equal(i);
-      };
+      keys.sort();
+      expect(keys.length).to.equal(max);
+      for (let i = 0; i < max; i++) expect(tree[i]).to.equal(i);
+    };
 
-      for (let N = 10; N <= 100000; N *= 10) {
-        const toInsert: number[] = [],
-          toRemove: number[] = [];
-        for (let i = 0; i < N; i++) {
-          toInsert.push(i);
-          toRemove.push(i);
-        }
-
-        shuffle(toInsert);
-        shuffle(toRemove);
-
-        const tree: { [key: number]: number } = {};
-
-        const start = new Date();
-        for (let i = 0; i < N; i++) {
-          tree[i] = i;
-        }
-
-        // Ensure order is correct.
-        verifyTraversal(tree, N);
-
-        for (let i = 0; i < N; i++) {
-          delete tree[i];
-        }
-
-        const elapsed = new Date().getTime() - start.getTime();
-        console.log(N + ': ' + elapsed);
+    for (let N = 10; N <= 100000; N *= 10) {
+      const toInsert: number[] = [],
+        toRemove: number[] = [];
+      for (let i = 0; i < N; i++) {
+        toInsert.push(i);
+        toRemove.push(i);
       }
+
+      shuffle(toInsert);
+      shuffle(toRemove);
+
+      const tree: { [key: number]: number } = {};
+
+      const start = new Date();
+      for (let i = 0; i < N; i++) {
+        tree[i] = i;
+      }
+
+      // Ensure order is correct.
+      verifyTraversal(tree, N);
+
+      for (let i = 0; i < N; i++) {
+        delete tree[i];
+      }
+
+      const elapsed = new Date().getTime() - start.getTime();
+      console.log(N + ': ' + elapsed);
     }
-  );
+  });
 
   it('SortedMapIterator empty test.', () => {
     const map = new SortedMap(primitiveComparator);

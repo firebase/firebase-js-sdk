@@ -19,13 +19,15 @@ const webpack = require('webpack');
 
 module.exports = {
   module: {
-    rules: [{
-      test: /\.tsx?$/,
-      exclude: /node_modules/,
-      loader: 'ts-loader'
-    }]
+    rules: [
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        loader: 'ts-loader'
+      }
+    ]
   },
   resolve: {
     extensions: ['.js', '.ts']
   }
-}
+};

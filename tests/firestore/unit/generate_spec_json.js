@@ -35,7 +35,7 @@ const describeSpec = require('./specs/describe_spec');
  */
 function writeToJSON(testFile, jsonFile) {
   // Tell the test framework to write to a file instead of running.
-  describeSpec.setSpecJSONHandler((json) => {
+  describeSpec.setSpecJSONHandler(json => {
     const fd = fs.openSync(jsonFile, 'w');
     fs.writeSync(fd, json + '\n', 0, 'utf-8');
   });
@@ -53,7 +53,7 @@ function main(args) {
   }
   outputPath = args[2];
 
-  const testFiles = glob.sync('**/specs/*_spec.test.ts', {cwd: __dirname});
+  const testFiles = glob.sync('**/specs/*_spec.test.ts', { cwd: __dirname });
   if (testFiles.length === 0) {
     throw new Error('No test files found');
   }
