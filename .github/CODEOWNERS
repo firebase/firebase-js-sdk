@@ -8,9 +8,7 @@
 packages/database  @mikelehen @schmidt-sebastian
 
 # Firestore Code
-src/firestore  @mikelehen @schmidt-sebastian
-tests/firestore  @mikelehen @schmidt-sebastian
-integration/firestore  @mikelehen @schmidt-sebastian
+packages/firestore  @mikelehen @schmidt-sebastian
 
 # Storage Code
 packages/storage  @sphippen
