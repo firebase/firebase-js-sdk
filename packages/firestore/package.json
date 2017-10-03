@@ -6,7 +6,7 @@
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
-    "test:node": "mocha test/**/*.test.* --compilers ts:ts-node/register",
+    "test:node": "mocha 'test/{,!(integration)/**/}*.test.ts' --compilers ts:ts-node/register -r src/platform_node/node_init.ts --retries 5 --timeout 5000",
     "prepare": "gulp build"
   },
   "author": "",

@@ -23,7 +23,7 @@ import {
 
 import firebase from './firebase_export';
 
-const PROJECT_CONFIG = require('../../../config/project.json');
+const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
