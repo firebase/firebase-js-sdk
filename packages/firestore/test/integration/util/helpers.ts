@@ -19,7 +19,7 @@ import * as firestore from 'firestore';
 import {
   DatabaseId,
   DatabaseInfo
-} from '../../../../src/firestore/core/database_info';
+} from '../../../src/core/database_info';
 
 import firebase from './firebase_export';
 

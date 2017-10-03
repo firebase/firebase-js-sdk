@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../../src/firestore/core/query';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { RemoteDocumentCache } from '../../../../src/firestore/local/remote_document_cache';
-import { DocumentMap } from '../../../../src/firestore/model/collections';
-import { MaybeDocument } from '../../../../src/firestore/model/document';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
+import { Query } from '../../../src/core/query';
+import { Persistence } from '../../../src/local/persistence';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { DocumentMap } from '../../../src/model/collections';
+import { MaybeDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a

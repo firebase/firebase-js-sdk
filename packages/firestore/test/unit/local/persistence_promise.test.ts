@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { PersistencePromise } from '../../../../src/firestore/local/persistence_promise';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {

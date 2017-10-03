@@ -15,9 +15,9 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { RemoteDocumentChangeBuffer } from '../../../../src/firestore/local/remote_document_change_buffer';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { Persistence } from '../../../src/local/persistence';
+import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { asyncIt, deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
 import { testIndexedDbPersistence } from './persistence_test_helpers';

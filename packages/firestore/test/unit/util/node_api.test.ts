@@ -15,11 +15,11 @@
  */
 
 import { expect } from 'chai';
-import { AnyJs } from '../../../../src/firestore/util/misc';
+import { AnyJs } from '../../../src/util/misc';
 import {
   NodeCallback,
   nodePromise
-} from '../../../../src/firestore/util/node_api';
+} from '../../../src/util/node_api';
 
 describe('nodePromise', () => {
   it('resolves on success value', () => {

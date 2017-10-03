@@ -15,10 +15,10 @@
  */
 
 import { expect } from 'chai';
-import { GeoPoint } from '../../../../src/firestore/api/geo_point';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
-import * as fieldValue from '../../../../src/firestore/model/field_value';
-import * as typeUtils from '../../../../src/firestore/util/types';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { Timestamp } from '../../../src/core/timestamp';
+import * as fieldValue from '../../../src/model/field_value';
+import * as typeUtils from '../../../src/util/types';
 import {
   blob,
   dbId,

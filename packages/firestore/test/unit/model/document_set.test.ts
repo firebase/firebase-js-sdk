@@ -15,8 +15,8 @@
  */
 
 import { expect } from 'chai';
-import { Document } from '../../../../src/firestore/model/document';
-import { DocumentSet } from '../../../../src/firestore/model/document_set';
+import { Document } from '../../../src/model/document';
+import { DocumentSet } from '../../../src/model/document_set';
 import {
   doc,
   DocComparator,

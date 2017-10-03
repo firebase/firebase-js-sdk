@@ -15,9 +15,9 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../../src/firestore/core/query';
-import { Document } from '../../../../src/firestore/model/document';
-import { Code } from '../../../../src/firestore/util/error';
+import { Query } from '../../../src/core/query';
+import { Document } from '../../../src/model/document';
+import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';

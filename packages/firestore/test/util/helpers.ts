@@ -17,14 +17,14 @@
 import { expect } from 'chai';
 import * as firestore from 'firestore';
 
-import { Blob } from '../../../src/firestore/api/blob';
-import { fromDotSeparatedString } from '../../../src/firestore/api/field_path';
-import { FieldValueImpl } from '../../../src/firestore/api/field_value';
+import { Blob } from '../../src/api/blob';
+import { fromDotSeparatedString } from '../../src/api/field_path';
+import { FieldValueImpl } from '../../src/api/field_value';
 import {
   DocumentKeyReference,
   UserDataConverter
-} from '../../../src/firestore/api/user_data_converter';
-import { DatabaseId } from '../../../src/firestore/core/database_info';
+} from '../../src/api/user_data_converter';
+import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
   Direction,
@@ -33,38 +33,38 @@ import {
   OrderBy,
   Query,
   RelationOp
-} from '../../../src/firestore/core/query';
-import { SnapshotVersion } from '../../../src/firestore/core/snapshot_version';
-import { ProtoByteString, TargetId } from '../../../src/firestore/core/types';
+} from '../../src/core/query';
+import { SnapshotVersion } from '../../src/core/snapshot_version';
+import { ProtoByteString, TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
   RemovedLimboDocument,
   View,
   ViewChange
-} from '../../../src/firestore/core/view';
-import { LocalViewChanges } from '../../../src/firestore/local/local_view_changes';
-import { QueryData } from '../../../src/firestore/local/query_data';
+} from '../../src/core/view';
+import { LocalViewChanges } from '../../src/local/local_view_changes';
+import { QueryData } from '../../src/local/query_data';
 import {
   DocumentKeySet,
   documentKeySet,
   MaybeDocumentMap,
   maybeDocumentMap
-} from '../../../src/firestore/model/collections';
+} from '../../src/model/collections';
 import {
   Document,
   DocumentOptions,
   MaybeDocument,
   NoDocument
-} from '../../../src/firestore/model/document';
-import { DocumentComparator } from '../../../src/firestore/model/document_comparator';
-import { DocumentKey } from '../../../src/firestore/model/document_key';
-import { DocumentSet } from '../../../src/firestore/model/document_set';
+} from '../../src/model/document';
+import { DocumentComparator } from '../../src/model/document_comparator';
+import { DocumentKey } from '../../src/model/document_key';
+import { DocumentSet } from '../../src/model/document_set';
 import {
   FieldValue,
   JsonObject,
   ObjectValue
-} from '../../../src/firestore/model/field_value';
+} from '../../src/model/field_value';
 import {
   DeleteMutation,
   FieldTransform,
@@ -74,25 +74,25 @@ import {
   ServerTimestampTransform,
   SetMutation,
   TransformMutation
-} from '../../../src/firestore/model/mutation';
-import { FieldPath, ResourcePath } from '../../../src/firestore/model/path';
-import { emptyByteString } from '../../../src/firestore/platform/platform';
+} from '../../src/model/mutation';
+import { FieldPath, ResourcePath } from '../../src/model/path';
+import { emptyByteString } from '../../src/platform/platform';
 import {
   CurrentStatusUpdate,
   RemoteEvent,
   TargetChange,
   UpdateMapping
-} from '../../../src/firestore/remote/remote_event';
+} from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   WatchChangeAggregator
-} from '../../../src/firestore/remote/watch_change';
-import { assert, fail } from '../../../src/firestore/util/assert';
-import { AnyJs, primitiveComparator } from '../../../src/firestore/util/misc';
-import { forEach } from '../../../src/firestore/util/obj';
-import { Deferred } from '../../../src/firestore/util/promise';
-import { SortedMap } from '../../../src/firestore/util/sorted_map';
-import { SortedSet } from '../../../src/firestore/util/sorted_set';
+} from '../../src/remote/watch_change';
+import { assert, fail } from '../../src/util/assert';
+import { AnyJs, primitiveComparator } from '../../src/util/misc';
+import { forEach } from '../../src/util/obj';
+import { Deferred } from '../../src/util/promise';
+import { SortedMap } from '../../src/util/sorted_map';
+import { SortedSet } from '../../src/util/sorted_set';
 
 export type TestSnapshotVersion = number;
 

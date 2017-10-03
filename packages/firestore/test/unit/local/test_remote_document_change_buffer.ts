@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { RemoteDocumentChangeBuffer } from '../../../../src/firestore/local/remote_document_change_buffer';
-import { MaybeDocument } from '../../../../src/firestore/model/document';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
+import { Persistence } from '../../../src/local/persistence';
+import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
+import { MaybeDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a RemoteDocumentChangeBuffer that automatically creates a

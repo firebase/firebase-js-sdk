@@ -15,14 +15,14 @@
  */
 
 import { expect } from 'chai';
-import { SimpleDb } from '../../../../src/firestore/local/simple_db';
+import { SimpleDb } from '../../../src/local/simple_db';
 import { asyncIt } from '../../util/helpers';
 
-import { PersistencePromise } from '../../../../src/firestore/local/persistence_promise';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDbStore,
   SimpleDbTransaction
-} from '../../../../src/firestore/local/simple_db';
+} from '../../../src/local/simple_db';
 
 interface User {
   id: number;

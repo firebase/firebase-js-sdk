@@ -15,20 +15,20 @@
  */
 
 import { expect } from 'chai';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
+import { Timestamp } from '../../../src/core/timestamp';
 import {
   Document,
   MaybeDocument
-} from '../../../../src/firestore/model/document';
+} from '../../../src/model/document';
 import {
   ServerTimestampValue,
   TimestampValue
-} from '../../../../src/firestore/model/field_value';
+} from '../../../src/model/field_value';
 import {
   Mutation,
   MutationResult,
   Precondition
-} from '../../../../src/firestore/model/mutation';
+} from '../../../src/model/mutation';
 import {
   DELETE_SENTINEL,
   deletedDoc,

@@ -20,16 +20,16 @@ import {
   EventManager,
   ListenOptions,
   QueryListener
-} from '../../../../src/firestore/core/event_manager';
-import { Query } from '../../../../src/firestore/core/query';
-import { OnlineState } from '../../../../src/firestore/core/types';
-import { View } from '../../../../src/firestore/core/view';
+} from '../../../src/core/event_manager';
+import { Query } from '../../../src/core/query';
+import { OnlineState } from '../../../src/core/types';
+import { View } from '../../../src/core/view';
 import {
   ChangeType,
   ViewSnapshot
-} from '../../../../src/firestore/core/view_snapshot';
-import { documentKeySet } from '../../../../src/firestore/model/collections';
-import { DocumentSet } from '../../../../src/firestore/model/document_set';
+} from '../../../src/core/view_snapshot';
+import { documentKeySet } from '../../../src/model/collections';
+import { DocumentSet } from '../../../src/model/document_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   ackTarget,

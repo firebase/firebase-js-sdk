@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { GeoPoint } from '../../../../src/firestore/api/geo_point';
+import { GeoPoint } from '../../../src/api/geo_point';
 import { expectCorrectComparisons } from '../../util/helpers';
 
 describe('GeoPoint', () => {

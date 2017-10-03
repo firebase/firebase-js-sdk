@@ -15,9 +15,9 @@
  */
 
 import { expect } from 'chai';
-import { primitiveComparator } from '../../../../src/firestore/util/misc';
-import * as obj from '../../../../src/firestore/util/obj';
-import { LLRBNode, SortedMap } from '../../../../src/firestore/util/sorted_map';
+import { primitiveComparator } from '../../../src/util/misc';
+import * as obj from '../../../src/util/obj';
+import { LLRBNode, SortedMap } from '../../../src/util/sorted_map';
 
 function shuffle(arr: number[]) {
   for (let i = arr.length - 1; i > 0; i--) {

@@ -15,17 +15,17 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../../src/firestore/core/query';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
-import { TargetId } from '../../../../src/firestore/core/types';
-import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { MemoryQueryCache } from '../../../../src/firestore/local/memory_query_cache';
-import { Persistence } from '../../../../src/firestore/local/persistence';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { TargetId } from '../../../src/core/types';
+import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { MemoryQueryCache } from '../../../src/local/memory_query_cache';
+import { Persistence } from '../../../src/local/persistence';
 import {
   QueryData,
   QueryPurpose
-} from '../../../../src/firestore/local/query_data';
+} from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   asyncIt,

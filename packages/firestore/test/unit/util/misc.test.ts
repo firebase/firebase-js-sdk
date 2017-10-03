@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import {
   immediatePredecessor,
   immediateSuccessor
-} from '../../../../src/firestore/util/misc';
+} from '../../../src/util/misc';
 
 describe('immediatePredecessor', () => {
   it('generates the correct immediate predecessor', () => {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { assert } from '../../../../src/firestore/util/assert';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { assert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { asyncIt, fasyncIt, xasyncIt } from '../../util/helpers';
 

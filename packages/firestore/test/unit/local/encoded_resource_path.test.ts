@@ -15,17 +15,17 @@
  */
 
 import { expect } from 'chai';
-import * as EncodedResourcePath from '../../../../src/firestore/local/encoded_resource_path';
-import { PersistenceTransaction } from '../../../../src/firestore/local/persistence';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { PersistencePromise } from '../../../../src/firestore/local/persistence_promise';
+import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
+import { PersistenceTransaction } from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
   SimpleDbStore,
   SimpleDbTransaction
-} from '../../../../src/firestore/local/simple_db';
-import { ResourcePath } from '../../../../src/firestore/model/path';
-import { fail } from '../../../../src/firestore/util/assert';
+} from '../../../src/local/simple_db';
+import { ResourcePath } from '../../../src/model/path';
+import { fail } from '../../../src/util/assert';
 import { path } from '../../util/helpers';
 import { asyncIt } from '../../util/helpers';
 

@@ -15,16 +15,16 @@
  */
 
 import { expect } from 'chai';
-import { AsyncQueue } from '../../../../src/firestore/util/async_queue';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import {
   getLogLevel,
   LogLevel,
   setLogLevel
-} from '../../../../src/firestore/util/log';
-import { AnyJs } from '../../../../src/firestore/util/misc';
-import { Deferred } from '../../../../src/firestore/util/promise';
-import { Rejecter } from '../../../../src/firestore/util/promise';
-import { Resolver } from '../../../../src/firestore/util/promise';
+} from '../../../src/util/log';
+import { AnyJs } from '../../../src/util/misc';
+import { Deferred } from '../../../src/util/promise';
+import { Rejecter } from '../../../src/util/promise';
+import { Resolver } from '../../../src/util/promise';
 
 describe('AsyncQueue', () => {
   it('schedules ops in right order', () => {

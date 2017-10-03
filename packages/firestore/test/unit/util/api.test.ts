@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { makeConstructorPrivate } from '../../../../src/firestore/util/api';
+import { makeConstructorPrivate } from '../../../src/util/api';
 
 describe('makeConstructorPrivate', () => {
   class PrivateClass {

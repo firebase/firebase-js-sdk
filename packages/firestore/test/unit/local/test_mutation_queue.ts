@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../../src/firestore/core/query';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
-import { BatchId, ProtoByteString } from '../../../../src/firestore/core/types';
-import { GarbageCollector } from '../../../../src/firestore/local/garbage_collector';
-import { MutationQueue } from '../../../../src/firestore/local/mutation_queue';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { DocumentKeySet } from '../../../../src/firestore/model/collections';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
-import { Mutation } from '../../../../src/firestore/model/mutation';
-import { MutationBatch } from '../../../../src/firestore/model/mutation_batch';
-import { AnyDuringMigration } from '../../../../src/firestore/util/misc';
+import { Query } from '../../../src/core/query';
+import { Timestamp } from '../../../src/core/timestamp';
+import { BatchId, ProtoByteString } from '../../../src/core/types';
+import { GarbageCollector } from '../../../src/local/garbage_collector';
+import { MutationQueue } from '../../../src/local/mutation_queue';
+import { Persistence } from '../../../src/local/persistence';
+import { DocumentKeySet } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
+import { Mutation } from '../../../src/model/mutation';
+import { MutationBatch } from '../../../src/model/mutation_batch';
+import { AnyDuringMigration } from '../../../src/util/misc';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a

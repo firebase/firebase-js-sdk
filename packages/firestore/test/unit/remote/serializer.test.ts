@@ -17,45 +17,45 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../../src/firestore/protos/firestore_proto_api';
-import { Blob } from '../../../../src/firestore/api/blob';
-import { GeoPoint } from '../../../../src/firestore/api/geo_point';
-import { DatabaseId } from '../../../../src/firestore/core/database_info';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { Blob } from '../../../src/api/blob';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { DatabaseId } from '../../../src/core/database_info';
 import {
   Direction,
   OrderBy,
   Query,
   RelationFilter,
   RelationOp
-} from '../../../../src/firestore/core/query';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
+} from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Timestamp } from '../../../src/core/timestamp';
 import {
   QueryData,
   QueryPurpose
-} from '../../../../src/firestore/local/query_data';
-import * as fieldValue from '../../../../src/firestore/model/field_value';
+} from '../../../src/local/query_data';
+import * as fieldValue from '../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
   Mutation,
   Precondition,
   SetMutation
-} from '../../../../src/firestore/model/mutation';
+} from '../../../src/model/mutation';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath
-} from '../../../../src/firestore/model/path';
-import { JsonProtoSerializer } from '../../../../src/firestore/remote/serializer';
+} from '../../../src/model/path';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../../src/firestore/remote/watch_change';
-import { Code, FirestoreError } from '../../../../src/firestore/util/error';
-import { AnyJs } from '../../../../src/firestore/util/misc';
-import * as obj from '../../../../src/firestore/util/obj';
-import * as types from '../../../../src/firestore/util/types';
+} from '../../../src/remote/watch_change';
+import { Code, FirestoreError } from '../../../src/util/error';
+import { AnyJs } from '../../../src/util/misc';
+import * as obj from '../../../src/util/obj';
+import * as types from '../../../src/util/types';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,

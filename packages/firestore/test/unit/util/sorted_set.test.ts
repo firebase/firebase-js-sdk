@@ -15,9 +15,9 @@
  */
 
 import { expect } from 'chai';
-import { primitiveComparator } from '../../../../src/firestore/util/misc';
-import { SortedMap } from '../../../../src/firestore/util/sorted_map';
-import { SortedSet } from '../../../../src/firestore/util/sorted_set';
+import { primitiveComparator } from '../../../src/util/misc';
+import { SortedMap } from '../../../src/util/sorted_map';
+import { SortedSet } from '../../../src/util/sorted_set';
 
 import { expectSetToEqual } from '../../util/helpers';
 

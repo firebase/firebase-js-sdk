@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { ReferenceSet } from '../../../../src/firestore/local/reference_set';
+import { ReferenceSet } from '../../../src/local/reference_set';
 import { asyncIt, expectSetToEqual, key } from '../../util/helpers';
 
 describe('ReferenceSet', () => {

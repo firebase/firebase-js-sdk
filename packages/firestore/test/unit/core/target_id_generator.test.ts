@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { TargetIdGenerator } from '../../../../src/firestore/core/target_id_generator';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 
 describe('TargetIdGenerator', () => {
   it('can initialize with increment and "after value"', () => {

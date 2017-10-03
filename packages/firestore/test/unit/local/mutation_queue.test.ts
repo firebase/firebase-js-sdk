@@ -15,20 +15,20 @@
  */
 
 import { expect } from 'chai';
-import { User } from '../../../../src/firestore/auth/user';
-import { Query } from '../../../../src/firestore/core/query';
-import { BatchId } from '../../../../src/firestore/core/types';
-import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
-import { IndexedDbMutationQueue } from '../../../../src/firestore/local/indexeddb_mutation_queue';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { DbMutationBatch } from '../../../../src/firestore/local/indexeddb_schema';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { SimpleDbTransaction } from '../../../../src/firestore/local/simple_db';
+import { User } from '../../../src/auth/user';
+import { Query } from '../../../src/core/query';
+import { BatchId } from '../../../src/core/types';
+import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
+import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
+import { Persistence } from '../../../src/local/persistence';
+import { SimpleDbTransaction } from '../../../src/local/simple_db';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
-} from '../../../../src/firestore/model/mutation_batch';
-import { emptyByteString } from '../../../../src/firestore/platform/platform';
+} from '../../../src/model/mutation_batch';
+import { emptyByteString } from '../../../src/platform/platform';
 import {
   asyncIt,
   expectEqualArrays,

@@ -15,15 +15,15 @@
  */
 
 import { expect } from 'chai';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
-import { TargetId } from '../../../../src/firestore/core/types';
-import { QueryData } from '../../../../src/firestore/local/query_data';
-import { ExistenceFilter } from '../../../../src/firestore/remote/existence_filter';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { TargetId } from '../../../src/core/types';
+import { QueryData } from '../../../src/local/query_data';
+import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
   CurrentStatusUpdate,
   RemoteEvent,
   ResetMapping
-} from '../../../../src/firestore/remote/remote_event';
+} from '../../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -31,8 +31,8 @@ import {
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../../src/firestore/remote/watch_change';
-import * as objUtils from '../../../../src/firestore/util/obj';
+} from '../../../src/remote/watch_change';
+import * as objUtils from '../../../src/util/obj';
 import {
   deletedDoc,
   doc,

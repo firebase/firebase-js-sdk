@@ -15,8 +15,8 @@
  */
 
 import { expect } from 'chai';
-import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
-import { ReferenceSet } from '../../../../src/firestore/local/reference_set';
+import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
+import { ReferenceSet } from '../../../src/local/reference_set';
 import { expectSetToEqual, key } from '../../util/helpers';
 import { asyncIt } from '../../util/helpers';
 

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../../src/firestore/core/query';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
-import { TargetId } from '../../../../src/firestore/core/types';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { QueryCache } from '../../../../src/firestore/local/query_cache';
-import { QueryData } from '../../../../src/firestore/local/query_data';
-import { documentKeySet } from '../../../../src/firestore/model/collections';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { TargetId } from '../../../src/core/types';
+import { Persistence } from '../../../src/local/persistence';
+import { QueryCache } from '../../../src/local/query_cache';
+import { QueryData } from '../../../src/local/query_data';
+import { documentKeySet } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a QueryCache that automatically creates a

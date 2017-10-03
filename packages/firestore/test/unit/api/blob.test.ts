@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { Blob, PublicBlob } from '../../../../src/firestore/api/blob';
+import { Blob, PublicBlob } from '../../../src/api/blob';
 import { blob, expectCorrectComparisons } from '../../util/helpers';
 
 describe('Blob', () => {

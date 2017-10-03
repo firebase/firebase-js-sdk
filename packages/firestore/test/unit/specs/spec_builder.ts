@@ -19,19 +19,19 @@ import {
   Filter,
   Query,
   RelationFilter
-} from '../../../../src/firestore/core/query';
-import { TargetIdGenerator } from '../../../../src/firestore/core/target_id_generator';
-import { TargetId } from '../../../../src/firestore/core/types';
-import { Document, NoDocument } from '../../../../src/firestore/model/document';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
-import { JsonObject } from '../../../../src/firestore/model/field_value';
-import { mapRpcCodeFromCode } from '../../../../src/firestore/remote/rpc_error';
-import { assert } from '../../../../src/firestore/util/assert';
-import { fail } from '../../../../src/firestore/util/assert';
-import { Code } from '../../../../src/firestore/util/error';
-import { AnyJs } from '../../../../src/firestore/util/misc';
-import * as objUtils from '../../../../src/firestore/util/obj';
-import { isNullOrUndefined } from '../../../../src/firestore/util/types';
+} from '../../../src/core/query';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
+import { TargetId } from '../../../src/core/types';
+import { Document, NoDocument } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { JsonObject } from '../../../src/model/field_value';
+import { mapRpcCodeFromCode } from '../../../src/remote/rpc_error';
+import { assert } from '../../../src/util/assert';
+import { fail } from '../../../src/util/assert';
+import { Code } from '../../../src/util/error';
+import { AnyJs } from '../../../src/util/misc';
+import * as objUtils from '../../../src/util/obj';
+import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
 import { RpcError } from './spec_rpc_error';

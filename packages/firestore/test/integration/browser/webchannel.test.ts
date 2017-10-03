@@ -15,11 +15,11 @@
  */
 
 import { expect } from 'chai';
-import { WebChannelConnection } from '../../../../src/firestore/platform_browser/webchannel_connection';
+import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
 import {
   DatabaseId,
   DatabaseInfo
-} from '../../../../src/firestore/core/database_info';
+} from '../../../src/core/database_info';
 import * as utilHelpers from '../util/helpers';
 
 describe('WebChannel', () => {

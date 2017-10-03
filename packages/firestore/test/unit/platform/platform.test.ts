@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { PlatformSupport } from '../../../../src/firestore/platform/platform';
+import { PlatformSupport } from '../../../src/platform/platform';
 
 describe('Platform', () => {
   it('can load the platform at runtime', () => {

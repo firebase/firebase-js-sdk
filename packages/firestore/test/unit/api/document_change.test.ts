@@ -19,12 +19,12 @@ import {
   changesFromSnapshot,
   DocumentSnapshot,
   Firestore
-} from '../../../../src/firestore/api/database';
-import { Query } from '../../../../src/firestore/core/query';
-import { View } from '../../../../src/firestore/core/view';
-import { documentKeySet } from '../../../../src/firestore/model/collections';
-import { Document } from '../../../../src/firestore/model/document';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
+} from '../../../src/api/database';
+import { Query } from '../../../src/core/query';
+import { View } from '../../../src/core/view';
+import { documentKeySet } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import {
   applyDocChanges,
   doc,

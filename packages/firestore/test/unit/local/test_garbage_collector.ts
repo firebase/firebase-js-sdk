@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { GarbageCollector } from '../../../../src/firestore/local/garbage_collector';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
+import { GarbageCollector } from '../../../src/local/garbage_collector';
+import { Persistence } from '../../../src/local/persistence';
+import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a GarbageCollector that automatically creates a transaction

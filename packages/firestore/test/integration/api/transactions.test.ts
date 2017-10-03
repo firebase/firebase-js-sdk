@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import * as firestore from 'firestore';
-import { Deferred } from '../../../../src/firestore/util/promise';
+import { Deferred } from '../../../src/util/promise';
 import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';

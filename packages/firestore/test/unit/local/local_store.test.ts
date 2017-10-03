@@ -15,47 +15,47 @@
  */
 
 import { expect } from 'chai';
-import { User } from '../../../../src/firestore/auth/user';
-import { Query } from '../../../../src/firestore/core/query';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
-import { TargetId } from '../../../../src/firestore/core/types';
-import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
+import { User } from '../../../src/auth/user';
+import { Query } from '../../../src/core/query';
+import { Timestamp } from '../../../src/core/timestamp';
+import { TargetId } from '../../../src/core/types';
+import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   LocalStore,
   LocalWriteResult
-} from '../../../../src/firestore/local/local_store';
-import { LocalViewChanges } from '../../../../src/firestore/local/local_view_changes';
-import { NoOpGarbageCollector } from '../../../../src/firestore/local/no_op_garbage_collector';
-import { Persistence } from '../../../../src/firestore/local/persistence';
+} from '../../../src/local/local_store';
+import { LocalViewChanges } from '../../../src/local/local_view_changes';
+import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
+import { Persistence } from '../../../src/local/persistence';
 import {
   DocumentMap,
   MaybeDocumentMap
-} from '../../../../src/firestore/model/collections';
+} from '../../../src/model/collections';
 import {
   Document,
   MaybeDocument,
   NoDocument
-} from '../../../../src/firestore/model/document';
+} from '../../../src/model/document';
 import {
   DeleteMutation,
   Mutation,
   MutationResult,
   PatchMutation,
   SetMutation
-} from '../../../../src/firestore/model/mutation';
+} from '../../../src/model/mutation';
 import {
   MutationBatch,
   MutationBatchResult
-} from '../../../../src/firestore/model/mutation_batch';
-import { emptyByteString } from '../../../../src/firestore/platform/platform';
-import { RemoteEvent } from '../../../../src/firestore/remote/remote_event';
+} from '../../../src/model/mutation_batch';
+import { emptyByteString } from '../../../src/platform/platform';
+import { RemoteEvent } from '../../../src/remote/remote_event';
 import {
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../../src/firestore/remote/watch_change';
-import { assert, fail } from '../../../../src/firestore/util/assert';
+} from '../../../src/remote/watch_change';
+import { assert, fail } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   asyncIt,

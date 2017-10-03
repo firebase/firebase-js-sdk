@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { mapRpcCodeFromCode } from '../../../../src/firestore/remote/rpc_error';
-import { Code } from '../../../../src/firestore/util/error';
+import { mapRpcCodeFromCode } from '../../../src/remote/rpc_error';
+import { Code } from '../../../src/util/error';
 
 /**
  * An error encountered making RPCs.

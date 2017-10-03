@@ -15,21 +15,21 @@
  */
 
 import { expect } from 'chai';
-import { EmptyCredentialsProvider } from '../../../../src/firestore/api/credentials';
+import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import {
   DatabaseId,
   DatabaseInfo
-} from '../../../../src/firestore/core/database_info';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
+} from '../../../src/core/database_info';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   Document,
   MaybeDocument,
   NoDocument
-} from '../../../../src/firestore/model/document';
-import { MutationResult } from '../../../../src/firestore/model/mutation';
-import { PlatformSupport } from '../../../../src/firestore/platform/platform';
-import { Datastore } from '../../../../src/firestore/remote/datastore';
-import { AsyncQueue } from '../../../../src/firestore/util/async_queue';
+} from '../../../src/model/document';
+import { MutationResult } from '../../../src/model/mutation';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { Datastore } from '../../../src/remote/datastore';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { asyncIt, key, setMutation } from '../../util/helpers';
 import { DEFAULT_PROJECT_ID, getDefaultDatabaseInfo } from '../util/helpers';

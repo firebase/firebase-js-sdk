@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../../../../src/firestore/core/database_info';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { MemoryPersistence } from '../../../../src/firestore/local/memory_persistence';
-import { SimpleDb } from '../../../../src/firestore/local/simple_db';
-import { JsonProtoSerializer } from '../../../../src/firestore/remote/serializer';
+import { DatabaseId } from '../../../src/core/database_info';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying

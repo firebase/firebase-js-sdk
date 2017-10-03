@@ -15,10 +15,10 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../../src/firestore/core/query';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { Persistence } from '../../../../src/firestore/local/persistence';
-import { MaybeDocument } from '../../../../src/firestore/model/document';
+import { Query } from '../../../src/core/query';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { Persistence } from '../../../src/local/persistence';
+import { MaybeDocument } from '../../../src/model/document';
 import {
   asyncIt,
   deletedDoc,

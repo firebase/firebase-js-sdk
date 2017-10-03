@@ -15,10 +15,10 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../../src/firestore/core/query';
-import { View } from '../../../../src/firestore/core/view';
-import { ChangeType } from '../../../../src/firestore/core/view_snapshot';
-import { documentKeySet } from '../../../../src/firestore/model/collections';
+import { Query } from '../../../src/core/query';
+import { View } from '../../../src/core/view';
+import { ChangeType } from '../../../src/core/view_snapshot';
+import { documentKeySet } from '../../../src/model/collections';
 import {
   ackTarget,
   addTargetMapping,

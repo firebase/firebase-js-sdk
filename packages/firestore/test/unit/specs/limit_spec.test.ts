@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../../src/firestore/core/query';
+import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';

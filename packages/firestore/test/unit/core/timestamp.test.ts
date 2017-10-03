@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { Timestamp } from '../../../../src/firestore/core/timestamp';
+import { Timestamp } from '../../../src/core/timestamp';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 describe('Timestamp', () => {

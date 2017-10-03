@@ -15,76 +15,76 @@
  */
 
 import { expect } from 'chai';
-import * as api from '../../../../src/firestore/protos/firestore_proto_api';
-import { EmptyCredentialsProvider } from '../../../../src/firestore/api/credentials';
-import { User } from '../../../../src/firestore/auth/user';
+import * as api from '../../../src/protos/firestore_proto_api';
+import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import { User } from '../../../src/auth/user';
 import {
   DatabaseId,
   DatabaseInfo
-} from '../../../../src/firestore/core/database_info';
+} from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
   QueryListener
-} from '../../../../src/firestore/core/event_manager';
-import { Query } from '../../../../src/firestore/core/query';
-import { SnapshotVersion } from '../../../../src/firestore/core/snapshot_version';
-import { SyncEngine } from '../../../../src/firestore/core/sync_engine';
+} from '../../../src/core/event_manager';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   OnlineState,
   ProtoByteString,
   TargetId
-} from '../../../../src/firestore/core/types';
+} from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange,
   ViewSnapshot
-} from '../../../../src/firestore/core/view_snapshot';
-import { EagerGarbageCollector } from '../../../../src/firestore/local/eager_garbage_collector';
-import { GarbageCollector } from '../../../../src/firestore/local/garbage_collector';
-import { IndexedDbPersistence } from '../../../../src/firestore/local/indexeddb_persistence';
-import { LocalStore } from '../../../../src/firestore/local/local_store';
-import { MemoryPersistence } from '../../../../src/firestore/local/memory_persistence';
-import { NoOpGarbageCollector } from '../../../../src/firestore/local/no_op_garbage_collector';
-import { Persistence } from '../../../../src/firestore/local/persistence';
+} from '../../../src/core/view_snapshot';
+import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
+import { GarbageCollector } from '../../../src/local/garbage_collector';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { LocalStore } from '../../../src/local/local_store';
+import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
+import { Persistence } from '../../../src/local/persistence';
 import {
   QueryData,
   QueryPurpose
-} from '../../../../src/firestore/local/query_data';
-import { SimpleDb } from '../../../../src/firestore/local/simple_db';
-import { DocumentOptions } from '../../../../src/firestore/model/document';
-import { DocumentKey } from '../../../../src/firestore/model/document_key';
-import { JsonObject } from '../../../../src/firestore/model/field_value';
-import { Mutation } from '../../../../src/firestore/model/mutation';
-import { emptyByteString } from '../../../../src/firestore/platform/platform';
+} from '../../../src/local/query_data';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { DocumentOptions } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
+import { JsonObject } from '../../../src/model/field_value';
+import { Mutation } from '../../../src/model/mutation';
+import { emptyByteString } from '../../../src/platform/platform';
 import {
   Connection,
   Stream
-} from '../../../../src/firestore/remote/connection';
-import { Datastore } from '../../../../src/firestore/remote/datastore';
-import { ExistenceFilter } from '../../../../src/firestore/remote/existence_filter';
-import { WriteRequest } from '../../../../src/firestore/remote/persistent_stream';
-import { RemoteStore } from '../../../../src/firestore/remote/remote_store';
+} from '../../../src/remote/connection';
+import { Datastore } from '../../../src/remote/datastore';
+import { ExistenceFilter } from '../../../src/remote/existence_filter';
+import { WriteRequest } from '../../../src/remote/persistent_stream';
+import { RemoteStore } from '../../../src/remote/remote_store';
 import {
   isPermanentError,
   mapCodeFromRpcCode
-} from '../../../../src/firestore/remote/rpc_error';
-import { JsonProtoSerializer } from '../../../../src/firestore/remote/serializer';
-import { StreamBridge } from '../../../../src/firestore/remote/stream_bridge';
+} from '../../../src/remote/rpc_error';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { StreamBridge } from '../../../src/remote/stream_bridge';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
   WatchChange,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../../src/firestore/remote/watch_change';
-import { assert, fail } from '../../../../src/firestore/util/assert';
-import { AsyncQueue } from '../../../../src/firestore/util/async_queue';
-import { FirestoreError } from '../../../../src/firestore/util/error';
-import { AnyDuringMigration, AnyJs } from '../../../../src/firestore/util/misc';
-import * as obj from '../../../../src/firestore/util/obj';
-import { ObjectMap } from '../../../../src/firestore/util/obj_map';
-import { Deferred, sequence } from '../../../../src/firestore/util/promise';
+} from '../../../src/remote/watch_change';
+import { assert, fail } from '../../../src/util/assert';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
+import * as obj from '../../../src/util/obj';
+import { ObjectMap } from '../../../src/util/obj_map';
+import { Deferred, sequence } from '../../../src/util/promise';
 import {
   deleteMutation,
   doc,
