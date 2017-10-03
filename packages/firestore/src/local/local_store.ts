@@ -43,7 +43,6 @@ import {
 import { assert, fail } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { GarbageCollector } from './garbage_collector';
 import { LocalDocumentsView } from './local_documents_view';

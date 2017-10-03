@@ -23,7 +23,6 @@ import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to

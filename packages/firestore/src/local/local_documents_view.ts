@@ -28,7 +28,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { fail } from '../util/assert';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { PromiseImpl as Promise } from '../../utils/promise';
-
 import { AnyDuringMigration } from './misc';
 
 export interface Resolver<R> {

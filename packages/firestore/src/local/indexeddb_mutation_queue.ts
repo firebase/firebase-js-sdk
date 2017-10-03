@@ -25,7 +25,6 @@ import { ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { immediatePredecessor, primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import * as EncodedResourcePath from './encoded_resource_path';
 import { GarbageCollector } from './garbage_collector';

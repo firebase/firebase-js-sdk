@@ -16,7 +16,6 @@
 
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { GarbageCollector } from './garbage_collector';
 import { GarbageSource } from './garbage_source';

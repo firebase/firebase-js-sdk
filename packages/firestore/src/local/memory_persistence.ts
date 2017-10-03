@@ -17,7 +17,6 @@
 import { User } from '../auth/user';
 import { assert } from '../util/assert';
 import { debug } from '../util/log';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { PromiseImpl as Promise } from '../../utils/promise';
-
 import { assert, fail } from './assert';
 import * as log from './log';
 import { AnyDuringMigration, AnyJs } from './misc';

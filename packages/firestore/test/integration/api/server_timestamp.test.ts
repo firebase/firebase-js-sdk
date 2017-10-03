@@ -20,7 +20,6 @@ import * as firestore from 'firestore';
 import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 const asyncIt = testHelpers.asyncIt;
 

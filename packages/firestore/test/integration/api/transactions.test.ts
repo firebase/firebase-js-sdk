@@ -20,7 +20,6 @@ import { Deferred } from '../../../../src/firestore/util/promise';
 import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;

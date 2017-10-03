@@ -27,7 +27,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any

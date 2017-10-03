@@ -25,7 +25,6 @@ import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';

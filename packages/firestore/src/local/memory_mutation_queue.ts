@@ -24,7 +24,6 @@ import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { GarbageCollector } from './garbage_collector';
 import { MutationQueue } from './mutation_queue';

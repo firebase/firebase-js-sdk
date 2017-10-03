@@ -39,7 +39,6 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';

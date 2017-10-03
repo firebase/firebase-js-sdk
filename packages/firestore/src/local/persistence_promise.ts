@@ -15,7 +15,6 @@
  */
 
 import { fail } from '../util/assert';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 export type FulfilledHandler<T, R> =
   | ((result: T) => R | PersistencePromise<R>)

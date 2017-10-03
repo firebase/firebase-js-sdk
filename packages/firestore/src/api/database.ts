@@ -66,7 +66,6 @@ import { LogLevel } from '../util/log';
 import { AnyJs, AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import {
   CredentialsProvider,

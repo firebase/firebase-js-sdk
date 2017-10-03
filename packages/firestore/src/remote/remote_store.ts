@@ -35,7 +35,6 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { Datastore } from './datastore';
 import { ExistenceFilter } from './existence_filter';

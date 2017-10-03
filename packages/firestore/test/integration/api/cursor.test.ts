@@ -23,7 +23,6 @@ import {
   withTestDb,
   withTestDbs
 } from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 apiDescribe('Cursors', persistence => {
   asyncIt('can page through items', () => {

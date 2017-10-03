@@ -35,7 +35,6 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { Rejecter, Resolver } from '../util/promise';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 const LOG_TAG = 'Connection';
 

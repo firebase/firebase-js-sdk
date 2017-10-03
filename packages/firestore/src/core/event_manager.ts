@@ -24,7 +24,6 @@ import { assert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

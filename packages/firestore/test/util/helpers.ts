@@ -93,7 +93,6 @@ import { forEach } from '../../../src/firestore/util/obj';
 import { Deferred } from '../../../src/firestore/util/promise';
 import { SortedMap } from '../../../src/firestore/util/sorted_map';
 import { SortedSet } from '../../../src/firestore/util/sorted_set';
-import { PromiseImpl as Promise } from '../../../src/utils/promise';
 
 export type TestSnapshotVersion = number;
 

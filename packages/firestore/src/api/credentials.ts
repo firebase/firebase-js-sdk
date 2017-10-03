@@ -18,7 +18,6 @@ import { User } from '../auth/user';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.

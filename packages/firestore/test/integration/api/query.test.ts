@@ -21,7 +21,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import { asyncIt, EventsAccumulator, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();

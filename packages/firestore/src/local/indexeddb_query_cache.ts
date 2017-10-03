@@ -23,7 +23,6 @@ import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import * as EncodedResourcePath from './encoded_resource_path';
 import { GarbageCollector } from './garbage_collector';

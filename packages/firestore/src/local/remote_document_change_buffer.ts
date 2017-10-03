@@ -18,7 +18,6 @@ import { MaybeDocumentMap, maybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';

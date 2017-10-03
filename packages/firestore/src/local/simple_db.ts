@@ -17,7 +17,6 @@
 import { assert } from '../util/assert';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { PersistencePromise } from './persistence_promise';
 

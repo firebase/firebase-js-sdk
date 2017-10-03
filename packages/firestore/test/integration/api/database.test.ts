@@ -21,7 +21,6 @@ import { Deferred } from '../../../../src/firestore/util/promise';
 import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {

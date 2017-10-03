@@ -20,7 +20,6 @@ import {
   DatabaseId,
   DatabaseInfo
 } from '../../../../src/firestore/core/database_info';
-import { PromiseImpl as Promise } from '../../../../src/utils/promise';
 
 import firebase from './firebase_export';
 

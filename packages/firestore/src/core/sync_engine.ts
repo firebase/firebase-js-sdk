@@ -37,7 +37,6 @@ import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { isNullOrUndefined } from '../util/types';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';

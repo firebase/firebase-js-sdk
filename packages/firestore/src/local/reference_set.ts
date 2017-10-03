@@ -20,7 +20,6 @@ import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { GarbageCollector } from './garbage_collector';
 import { GarbageSource } from './garbage_source';

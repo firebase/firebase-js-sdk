@@ -18,7 +18,6 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { WebChannelConnection } from './webchannel_connection';
 

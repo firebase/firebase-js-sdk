@@ -15,7 +15,6 @@
  */
 
 import { User } from '../auth/user';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';

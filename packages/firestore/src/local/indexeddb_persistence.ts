@@ -21,7 +21,6 @@ import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AutoId } from '../util/misc';
-import { PromiseImpl as Promise } from '../../utils/promise';
 
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbQueryCache } from './indexeddb_query_cache';
