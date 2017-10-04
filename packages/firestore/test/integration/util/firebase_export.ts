@@ -19,6 +19,7 @@
 // swap in a version that loads firebase from the npm module instead.
 
 import firebase from '@firebase/app';
+import '../../../index';
 
 // TODO(b/66917182): This "as any" removes all of our type-checking in tests and
 // is therefore pretty bad. But I can't figure out how to avoid it right now.

@@ -21,10 +21,19 @@ const karmaBase = require('../../config/karma.base');
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: [{ pattern: `test/**/*` }],
+    files: [{ pattern: `test/browser/bootstrap.ts` }],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+
+    browserNoActivityTimeout: 30000,
+
+    client: {
+      mocha: {
+        timeout: 5000,
+        retries: 3
+      }
+    }
   });
 
   config.set(karmaConfig);
