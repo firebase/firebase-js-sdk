@@ -20,7 +20,6 @@ script:
 dist: trusty
 sudo: required
 addons:
-  sauce_connect: true
   apt:
     sources:
       - google-chrome
