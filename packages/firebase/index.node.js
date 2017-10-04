@@ -19,6 +19,7 @@ require('./auth');
 require('./database');
 require('./storage');
 require('./messaging');
+require('@firebase/polyfill');
 
 var Storage = require('dom-storage');
 var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;

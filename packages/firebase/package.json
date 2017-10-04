@@ -30,6 +30,7 @@
     "@firebase/auth": "0.1.0",
     "@firebase/database": "0.1.0",
     "@firebase/firestore": "0.1.0",
+    "@firebase/polyfill": "0.1.0",
     "@firebase/messaging": "0.1.0",
     "@firebase/storage": "0.1.0",
     "dom-storage": "^2.0.2",

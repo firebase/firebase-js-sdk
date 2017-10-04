@@ -19,5 +19,6 @@ require('./auth');
 require('./database');
 require('./messaging');
 require('./storage');
+require('@firebase/polyfill');
 
 module.exports = firebase;
