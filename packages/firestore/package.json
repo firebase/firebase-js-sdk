@@ -9,7 +9,12 @@
     "test:node": "mocha 'test/{,!(integration)/**/}*.test.ts' --compilers ts:ts-node/register -r src/platform_node/node_init.ts --retries 5 --timeout 5000",
     "prepare": "gulp build"
   },
-  "author": "",
+  "main": "dist/cjs/index.node.js",
+  "browser": {
+    "dist/cjs/index.node.js": "./dist/cjs/index.js",
+    "dist/esm/index.js": "./dist/esm/index.js"
+  },
+  "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/webchannel-wrapper": "^0.2.1"
