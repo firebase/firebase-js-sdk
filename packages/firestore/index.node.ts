@@ -15,7 +15,7 @@
 */
 
 import firebase from '@firebase/app';
-import './src/platform_browser/browser_init';
+import './src/platform_node/node_init';
 import { Firestore } from './src/api/database';
 import { configureForFirebase } from './src/platform/config';
 

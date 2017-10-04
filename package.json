@@ -18,6 +18,7 @@
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
     "prepush": "node tools/gitHooks/prepush.js",
+    "publish:packages": "lerna publish --scope @firebase/* --scope firebase --registry http://localhost:4873",    
     "repl": "node tools/repl.js",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --parallel test",

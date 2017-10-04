@@ -33,7 +33,7 @@ const baseConfig = {
 
 const singleExport = Object.assign({}, baseConfig, {
   entry: {
-    'firebase-dev': resolve(__dirname, 'index.js')
+    'firebase-dev': resolve(__dirname, 'index.dev.js')
   },
   output: Object.assign({}, baseConfig.output, {
     library: 'firebase',
