@@ -24,10 +24,7 @@ import * as testHelpers from '../../util/helpers';
 const asyncIt = testHelpers.asyncIt;
 
 apiDescribe('Firestore', persistence => {
-  function expectRoundtrip(
-    db: firestore.Firestore,
-    data: {}
-  ): Promise<void> {
+  function expectRoundtrip(db: firestore.Firestore, data: {}): Promise<void> {
     const doc = db.doc('rooms/Eros');
     return doc
       .set(data)
@@ -107,9 +104,7 @@ apiDescribe('Firestore', persistence => {
         .then(docSnap => {
           expect(docSnap.exists).to.equal(true);
           expect(docSnap.get('a')).to.equal(42);
-          const readDocRef = docSnap.get(
-            'ref'
-          ) as firestore.DocumentReference;
+          const readDocRef = docSnap.get('ref') as firestore.DocumentReference;
           expect(readDocRef.path).to.equal(doc.path);
         });
     });

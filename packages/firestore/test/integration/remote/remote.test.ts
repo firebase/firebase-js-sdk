@@ -16,10 +16,7 @@
 
 import { expect } from 'chai';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
-import {
-  DatabaseId,
-  DatabaseInfo
-} from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   Document,

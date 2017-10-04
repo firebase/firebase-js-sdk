@@ -81,7 +81,7 @@ const multiExport = Object.assign({}, baseConfig, {
     'firebase-database': resolve(__dirname, 'database/index.js'),
     'firebase-firestore': resolve(__dirname, 'firestore/index.js'),
     'firebase-messaging': resolve(__dirname, 'messaging/index.js'),
-    'firebase-storage': resolve(__dirname, 'storage/index.js'),
+    'firebase-storage': resolve(__dirname, 'storage/index.js')
   },
   plugins: [
     new webpack.optimize.CommonsChunkPlugin({

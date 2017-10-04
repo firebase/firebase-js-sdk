@@ -19,19 +19,19 @@
 // tslint:disable
 
 // Declaration for import statement:
-declare module firestore {
+declare namespace firestore {
   /**
    * Document data (for use with `DocumentReference.set()`) consists of fields
    * mapped to values.
    */
-  export type DocumentData = {[field: string]: any};
+  export type DocumentData = { [field: string]: any };
 
   /**
    * Update data (for use with `DocumentReference.update()`) consists of field
    * paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
    * reference nested fields within the document.
    */
-  export type UpdateData = {[fieldPath: string]: any};
+  export type UpdateData = { [fieldPath: string]: any };
 
   /** Settings used to configure a `Firestore` instance. */
   export interface Settings {
@@ -113,8 +113,9 @@ declare module firestore {
      * transaction failed, a rejected Promise with the corresponding failure
      * error will be returned.
      */
-    runTransaction<T>(updateFunction: (transaction: Transaction) => Promise<T>):
-        Promise<T>;
+    runTransaction<T>(
+      updateFunction: (transaction: Transaction) => Promise<T>
+    ): Promise<T>;
 
     /**
      * Creates a write batch, used for performing multiple writes as a single
@@ -127,7 +128,7 @@ declare module firestore {
      */
     app: any;
 
-    INTERNAL: {delete: () => Promise<void>};
+    INTERNAL: { delete: () => Promise<void> };
   }
 
   /**
@@ -205,8 +206,11 @@ declare module firestore {
      * @param options An object to configure the set behavior.
      * @return This `Transaction` instance. Used for chaining method calls.
      */
-    set(documentRef: DocumentReference, data: DocumentData,
-        options?: SetOptions): Transaction;
+    set(
+      documentRef: DocumentReference,
+      data: DocumentData,
+      options?: SetOptions
+    ): Transaction;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -237,8 +241,11 @@ declare module firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-        documentRef: DocumentReference, field: string|FieldPath, value: any,
-        ...moreFieldsAndValues: any[]): Transaction;
+      documentRef: DocumentReference,
+      field: string | FieldPath,
+      value: any,
+      ...moreFieldsAndValues: any[]
+    ): Transaction;
 
     /**
      * Deletes the document referred to by the provided `DocumentReference`.
@@ -273,8 +280,11 @@ declare module firestore {
      * @param options An object to configure the set behavior.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    set(documentRef: DocumentReference, data: DocumentData,
-        options?: SetOptions): WriteBatch;
+    set(
+      documentRef: DocumentReference,
+      data: DocumentData,
+      options?: SetOptions
+    ): WriteBatch;
 
     /**
      * Updates fields in the document referred to by the provided
@@ -304,8 +314,11 @@ declare module firestore {
      * to the backend (Note that it won't resolve while you're offline).
      */
     update(
-        documentRef: DocumentReference, field: string|FieldPath, value: any,
-        ...moreFieldsAndValues: any[]): WriteBatch;
+      documentRef: DocumentReference,
+      field: string | FieldPath,
+      value: any,
+      ...moreFieldsAndValues: any[]
+    ): WriteBatch;
 
     /**
      * Deletes the document referred to by the provided `DocumentReference`.
@@ -427,8 +440,11 @@ declare module firestore {
      * @return A Promise resolved once the data has been successfully written
      * to the backend (Note that it won't resolve while you're offline).
      */
-    update(field: string|FieldPath, value: any, ...moreFieldsAndValues: any[]):
-        Promise<void>;
+    update(
+      field: string | FieldPath,
+      value: any,
+      ...moreFieldsAndValues: any[]
+    ): Promise<void>;
 
     /**
      * Deletes the document referred to by this `DocumentReference`.
@@ -473,20 +489,25 @@ declare module firestore {
       error?: (error: FirestoreError) => void;
       complete?: () => void;
     }): () => void;
-    onSnapshot(options: DocumentListenOptions, observer: {
-      next?: (snapshot: DocumentSnapshot) => void;
-      error?: (error: Error) => void;
-      complete?: () => void;
-    }): () => void;
     onSnapshot(
-        onNext: (snapshot: DocumentSnapshot) => void,
-        onError?: (error: Error) => void,
-        onCompletion?: () => void): () => void;
+      options: DocumentListenOptions,
+      observer: {
+        next?: (snapshot: DocumentSnapshot) => void;
+        error?: (error: Error) => void;
+        complete?: () => void;
+      }
+    ): () => void;
     onSnapshot(
-        options: DocumentListenOptions,
-        onNext: (snapshot: DocumentSnapshot) => void,
-        onError?: (error: Error) => void,
-        onCompletion?: () => void): () => void;
+      onNext: (snapshot: DocumentSnapshot) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): () => void;
+    onSnapshot(
+      options: DocumentListenOptions,
+      onNext: (snapshot: DocumentSnapshot) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): () => void;
   }
 
   /** Metadata about a snapshot, describing the state of the snapshot. */
@@ -547,7 +568,7 @@ declare module firestore {
      * @return The data at the specified field location or undefined if no such
      * field exists in the document.
      */
-    get(fieldPath: string|FieldPath): any;
+    get(fieldPath: string | FieldPath): any;
   }
 
   /**
@@ -604,7 +625,11 @@ declare module firestore {
      * @param value The value for comparison
      * @return The created Query.
      */
-    where(fieldPath: string|FieldPath, opStr: WhereFilterOp, value: any): Query;
+    where(
+      fieldPath: string | FieldPath,
+      opStr: WhereFilterOp,
+      value: any
+    ): Query;
 
     /**
      * Creates and returns a new Query that's additionally sorted by the
@@ -615,8 +640,10 @@ declare module firestore {
      * not specified, order will be ascending.
      * @return The created Query.
      */
-    orderBy(fieldPath: string|FieldPath, directionStr?: OrderByDirection):
-        Query;
+    orderBy(
+      fieldPath: string | FieldPath,
+      directionStr?: OrderByDirection
+    ): Query;
 
     /**
      * Creates and returns a new Query that's additionally limited to only
@@ -740,21 +767,29 @@ declare module firestore {
      * the snapshot listener.
      */
     onSnapshot(observer: {
-      next?: (snapshot: QuerySnapshot) => void; error?: (error: Error) => void;
-      complete?: () => void;
-    }): () => void;
-    onSnapshot(options: QueryListenOptions, observer: {
-      next?: (snapshot: QuerySnapshot) => void; error?: (error: Error) => void;
+      next?: (snapshot: QuerySnapshot) => void;
+      error?: (error: Error) => void;
       complete?: () => void;
     }): () => void;
     onSnapshot(
-        onNext: (snapshot: QuerySnapshot) => void,
-        onError?: (error: Error) => void,
-        onCompletion?: () => void): () => void;
+      options: QueryListenOptions,
+      observer: {
+        next?: (snapshot: QuerySnapshot) => void;
+        error?: (error: Error) => void;
+        complete?: () => void;
+      }
+    ): () => void;
     onSnapshot(
-        options: QueryListenOptions, onNext: (snapshot: QuerySnapshot) => void,
-        onError?: (error: Error) => void,
-        onCompletion?: () => void): () => void;
+      onNext: (snapshot: QuerySnapshot) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): () => void;
+    onSnapshot(
+      options: QueryListenOptions,
+      onNext: (snapshot: QuerySnapshot) => void,
+      onError?: (error: Error) => void,
+      onCompletion?: () => void
+    ): () => void;
   }
 
   /**
@@ -850,7 +885,7 @@ declare module firestore {
      * A reference to the containing Document if this is a subcollection, else
      * null.
      */
-    readonly parent: DocumentReference|null;
+    readonly parent: DocumentReference | null;
 
     /**
      * A string representing the path of the referenced collection (relative
@@ -958,10 +993,23 @@ declare module firestore {
    * - 'unauthenticated': The request does not have valid authentication
    *   credentials for the operation.
    */
-  export type FirestoreErrorCode = 'cancelled'|'unknown'|'invalid-argument'|
-      'deadline-exceeded'|'not-found'|'already-exists'|'permission-denied'|
-      'resource-exhausted'|'failed-precondition'|'aborted'|'out-of-range'|
-      'unimplemented'|'internal'|'unavailable'|'data-loss'|'unauthenticated';
+  export type FirestoreErrorCode =
+    | 'cancelled'
+    | 'unknown'
+    | 'invalid-argument'
+    | 'deadline-exceeded'
+    | 'not-found'
+    | 'already-exists'
+    | 'permission-denied'
+    | 'resource-exhausted'
+    | 'failed-precondition'
+    | 'aborted'
+    | 'out-of-range'
+    | 'unimplemented'
+    | 'internal'
+    | 'unavailable'
+    | 'data-loss'
+    | 'unauthenticated';
 
   /** An error returned by a Firestore operation. */
   // TODO(b/63008957): FirestoreError should extend firebase.FirebaseError

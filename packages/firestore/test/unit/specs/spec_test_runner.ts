@@ -18,10 +18,7 @@ import { expect } from 'chai';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
-import {
-  DatabaseId,
-  DatabaseInfo
-} from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
   EventManager,
   Observer,
@@ -47,20 +44,14 @@ import { LocalStore } from '../../../src/local/local_store';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
-import {
-  QueryData,
-  QueryPurpose
-} from '../../../src/local/query_data';
+import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
 import { emptyByteString } from '../../../src/platform/platform';
-import {
-  Connection,
-  Stream
-} from '../../../src/remote/connection';
+import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';

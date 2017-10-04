@@ -22,10 +22,7 @@ import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collecto
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryQueryCache } from '../../../src/local/memory_query_cache';
 import { Persistence } from '../../../src/local/persistence';
-import {
-  QueryData,
-  QueryPurpose
-} from '../../../src/local/query_data';
+import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   asyncIt,

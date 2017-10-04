@@ -16,10 +16,7 @@
 
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
-import {
-  DOCUMENT_KEY_NAME,
-  ResourcePath
-} from '../../../src/model/path';
+import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   bound,

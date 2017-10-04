@@ -15,7 +15,7 @@
  */
 
 import * as firestore from 'firestore';
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app';
 import { PublicBlob } from '../api/blob';
 import {
   Firestore,

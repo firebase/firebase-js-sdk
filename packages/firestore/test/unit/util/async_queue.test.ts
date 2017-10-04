@@ -16,11 +16,7 @@
 
 import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import {
-  getLogLevel,
-  LogLevel,
-  setLogLevel
-} from '../../../src/util/log';
+import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { AnyJs } from '../../../src/util/misc';
 import { Deferred } from '../../../src/util/promise';
 import { Rejecter } from '../../../src/util/promise';

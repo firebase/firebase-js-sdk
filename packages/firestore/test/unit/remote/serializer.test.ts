@@ -30,10 +30,7 @@ import {
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Timestamp } from '../../../src/core/timestamp';
-import {
-  QueryData,
-  QueryPurpose
-} from '../../../src/local/query_data';
+import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import * as fieldValue from '../../../src/model/field_value';
 import {
   DeleteMutation,
@@ -42,10 +39,7 @@ import {
   Precondition,
   SetMutation
 } from '../../../src/model/mutation';
-import {
-  DOCUMENT_KEY_NAME,
-  FieldPath
-} from '../../../src/model/path';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   DocumentWatchChange,

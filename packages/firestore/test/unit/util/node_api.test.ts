@@ -16,10 +16,7 @@
 
 import { expect } from 'chai';
 import { AnyJs } from '../../../src/util/misc';
-import {
-  NodeCallback,
-  nodePromise
-} from '../../../src/util/node_api';
+import { NodeCallback, nodePromise } from '../../../src/util/node_api';
 
 describe('nodePromise', () => {
   it('resolves on success value', () => {

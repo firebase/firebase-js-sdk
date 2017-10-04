@@ -16,7 +16,7 @@
 
 import * as firestore from 'firestore';
 
-import { FirebaseApp, FirebaseService } from "@firebase/app";
+import { FirebaseApp, FirebaseService } from '@firebase/app';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';

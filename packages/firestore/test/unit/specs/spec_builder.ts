@@ -15,11 +15,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  Filter,
-  Query,
-  RelationFilter
-} from '../../../src/core/query';
+import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import { Document, NoDocument } from '../../../src/model/document';

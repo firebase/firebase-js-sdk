@@ -24,10 +24,7 @@ import {
 import { Query } from '../../../src/core/query';
 import { OnlineState } from '../../../src/core/types';
 import { View } from '../../../src/core/view';
-import {
-  ChangeType,
-  ViewSnapshot
-} from '../../../src/core/view_snapshot';
+import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentSet } from '../../../src/model/document_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';

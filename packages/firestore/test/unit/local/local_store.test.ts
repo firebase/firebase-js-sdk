@@ -21,17 +21,11 @@ import { Timestamp } from '../../../src/core/timestamp';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  LocalStore,
-  LocalWriteResult
-} from '../../../src/local/local_store';
+import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
-import {
-  DocumentMap,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
 import {
   Document,
   MaybeDocument,
