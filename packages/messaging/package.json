@@ -6,8 +6,7 @@
   "module": "dist/esm/index.js",
   "scripts": {
     "dev": "gulp dev",
-    "test": "run-p test:browser",
-    "test:browser": "karma start --single-run",
+    "test": "karma start --single-run",
     "prepare": "gulp build"
   },
   "author": "",
