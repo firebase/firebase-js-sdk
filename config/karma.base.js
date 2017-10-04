@@ -49,6 +49,8 @@ const config = {
   // disable watcher
   autoWatch: false,
 
+  browserNoActivityTimeout: 30000,  
+
   // preprocess matching files before serving them to the browser
   // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
   preprocessors: {

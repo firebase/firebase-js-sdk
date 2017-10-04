@@ -26,8 +26,6 @@ module.exports = function(config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
 
-    browserNoActivityTimeout: 30000,
-
     client: {
       mocha: {
         timeout: 5000,
