@@ -22,11 +22,20 @@ const webpackTestConfig = require('./webpack.test');
  * Custom SauceLabs Launchers
  */
 const sauceLabsBrowsers = {
-  iOS_Safari: {
+  desktop_Safari: {
     base: 'SauceLabs',
-    browserName: 'iphone',
-    platform: 'OS X 10.9',
-    version: '7.1'
+    browserName: 'safari',
+    platform: 'OS X 10.11',
+    version: '9.0'
+  },
+  iOS_Safari: {
+    appiumVersion: '1.6.5',
+    base: 'SauceLabs',
+    browserName: 'Safari',
+    deviceName: 'iPhone Simulator',
+    deviceOrientation: 'portrait',
+    platformName: 'iOS',
+    platformVersion: '9.0'
   },
   IE_11: {
     base: 'SauceLabs',
