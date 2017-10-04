@@ -103,7 +103,7 @@ const config = {
 };
 
 // In CI environment, use saucelabs to test
-if (false/* process.env.TRAVIS */) {
+if (false /* process.env.TRAVIS */) {
   config.browsers = [...config.browsers, ...Object.keys(sauceLabsBrowsers)];
 }
 
