@@ -4,16 +4,13 @@ const { resolve } = require('path');
 
 closureBuilder.build({
   name: 'firebase.webchannel.wrapper',
-  srcs: glob([
-    resolve(__dirname, '../src/**/*.js'),
-  ]),
-  externs: [
-    resolve(__dirname, '../externs/overrides.js')
-  ],
+  srcs: glob([resolve(__dirname, '../src/**/*.js')]),
+  externs: [resolve(__dirname, '../externs/overrides.js')],
   out: 'dist/index.js',
   options: {
     closure: {
-      output_wrapper: "(function() {%output%}).call(typeof window !== 'undefined' ? window : this)",
+      output_wrapper:
+        "(function() {%output%}).call(typeof window !== 'undefined' ? window : this)",
       language_out: 'ECMASCRIPT5',
       compilation_level: 'ADVANCED_OPTIMIZATIONS'
     }
