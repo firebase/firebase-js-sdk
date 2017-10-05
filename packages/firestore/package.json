@@ -43,6 +43,7 @@
     "ts-loader": "^2.3.4",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
-    "webpack": "^3.5.5"
+    "webpack": "^3.5.5",
+    "yargs": "^9.0.1"
   }
 }

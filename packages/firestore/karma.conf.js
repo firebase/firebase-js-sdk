@@ -17,11 +17,21 @@
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
+const { argv } = require('yargs');
+
+const testFiles = (files => {
+  if (!files) return;
+  if (Array.isArray(files)) return files.map(file => ({ pattern: file }));
+  return [{ pattern: files }];
+})(argv.testFiles);
 
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: [{ pattern: `test/browser/bootstrap.ts` }],
+    files: testFiles ? testFiles : [
+      { pattern: `test/unit/bootstrap.ts` },
+      { pattern: `test/integration/bootstrap.ts` },
+    ],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
