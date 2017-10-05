@@ -17,7 +17,7 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/webchannel-wrapper": "^0.2.1"
+    "@firebase/webchannel-wrapper": "^0.2.2"
   },
   "peerDependencies": {
     "@firebase/app": "^0.1.0"
