@@ -75,6 +75,45 @@ firebase.auth.AuthCredential = function() {};
   */
 firebase.auth.AuthCredential.prototype.providerId;
 
+
+/**
+ * Interface that represents the OAuth credentials returned by an OAuth
+ * provider. Implementations specify the details about each auth provider's
+ * credential requirements.
+ *
+ * @interface
+ * @extends {firebase.auth.AuthCredential}
+ */
+firebase.auth.OAuthCredential = function() {};
+
+
+/**
+ * The OAuth ID token associated with the credential if it belongs to an
+ * OIDC provider, such as `google.com`.
+ *
+ * @type {?string|undefined}
+ */
+firebase.auth.OAuthCredential.prototype.idToken;
+
+
+/**
+ * The OAuth access token associated with the credential if it belongs to an
+ * OAuth provider, such as `facebook.com`, `twitter.com`, etc.
+ *
+ * @type {?string|undefined}
+ */
+firebase.auth.OAuthCredential.prototype.accessToken;
+
+
+/**
+ * The OAuth access token secret associated with the credential if it belongs
+ * to an OAuth 1.0 provider, such as `twitter.com`.
+ *
+ * @type {?string|undefined}
+ */
+firebase.auth.OAuthCredential.prototype.secret;
+
+
 /**
  * Gets the {@link firebase.auth.Auth `Auth`} service for the current app.
  *
@@ -763,13 +802,38 @@ firebase.auth.ActionCodeInfo = function() {};
 
 
 /**
- * The email address associated with the action code.
+ * The data associated with the action code.
+ *
+ * For the PASSWORD_RESET, VERIFY_EMAIL, and RECOVER_EMAIL actions, this object
+ * contains an `email` field with the address the email was sent to.
+ *
+ * For the RECOVER_EMAIL action, which allows a user to undo an email address
+ * change, this object also contains a `fromEmail` field with the user account's
+ * new email address. After the action completes, the user's email address will
+ * revert to the value in the `email` field from the value in `fromEmail` field.
  *
  * @typedef {{
- *   email: string
+ *   email: (?string|undefined),
+ *   fromEmail: (?string|undefined)
  * }}
  */
 firebase.auth.ActionCodeInfo.prototype.data;
+
+
+/**
+ * The type of operation that generated the action code. This could be:
+ * <ul>
+ * <li>`PASSWORD_RESET`: password reset code generated via
+ *     {@link firebase.auth.Auth#sendPasswordResetEmail}.</li>
+ * <li>`VERIFY_EMAIL`: email verification code generated via
+ *     {@link firebase.User#sendEmailVerification}.</li>
+ * <li>`RECOVER_EMAIL`: email change revocation code generated via
+ *     {@link firebase.User#updateEmail}.</li>
+ * </ul>
+ *
+ * @type {string}
+ */
+firebase.auth.ActionCodeInfo.prototype.operation;
 
 
 /**
@@ -1631,6 +1695,87 @@ firebase.auth.AuthProvider.prototype.providerId;
 
 
 /**
+ * Generic OAuth provider.
+ *
+ * @example
+ * // Using a redirect.
+ * firebase.auth().getRedirectResult().then(function(result) {
+ *   if (result.credential) {
+ *     // This gives you the OAuth Access Token for that provider.
+ *     var token = result.credential.accessToken;
+ *   }
+ *   var user = result.user;
+ * });
+ *
+ * // Start a sign in process for an unauthenticated user.
+ * var provider = new firebase.auth.OAuthProvider('google.com');
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * firebase.auth().signInWithRedirect(provider);
+ *
+ * @example
+ * // Using a popup.
+ * var provider = new firebase.auth.OAuthProvider('google.com');
+ * provider.addScope('profile');
+ * provider.addScope('email');
+ * firebase.auth().signInWithPopup(provider).then(function(result) {
+ *  // This gives you the OAuth Access Token for that provider.
+ *  var token = result.credential.accessToken;
+ *  // The signed-in user info.
+ *  var user = result.user;
+ * });
+ *
+ * @see {@link firebase.auth.Auth#onAuthStateChanged} to receive sign in state
+ * changes.
+ * @param {string} providerId The associated provider ID, such as `github.com`.
+ * @constructor
+ * @implements {firebase.auth.AuthProvider}
+ */
+firebase.auth.OAuthProvider = function(providerId) {};
+
+/**
+ * Creates a Firebase credential from a generic OAuth provider's access token or
+ * ID token.
+ *
+ * @example
+ * // `googleUser` from the onsuccess Google Sign In callback.
+ * // Initialize a generate OAuth provider with a `google.com` providerId.
+ * var provider = new firebase.auth.OAuthProvider('google.com');
+ * var credential = provider.credential(
+ *     googleUser.getAuthResponse().id_token);
+ * firebase.auth().signInWithCredential(credential)
+ *
+ * @param {?string=} idToken The OAuth ID token if OIDC compliant.
+ * @param {?string=} accessToken The OAuth access token.
+ * @return {!firebase.auth.OAuthCredential} The auth provider credential.
+ */
+firebase.auth.OAuthProvider.prototype.credential =
+    function(idToken, accessToken) {};
+
+/** @type {string} */
+firebase.auth.OAuthProvider.prototype.providerId;
+
+/**
+ * @param {string} scope Provider OAuth scope to add.
+ * @return {!firebase.auth.OAuthProvider} The provider instance.
+ */
+firebase.auth.OAuthProvider.prototype.addScope = function(scope) {};
+
+/**
+ * Sets the OAuth custom parameters to pass in an OAuth request for popup
+ * and redirect sign-in operations.
+ * For a detailed list, check the
+ * reserved required OAuth 2.0 parameters such as `client_id`, `redirect_uri`,
+ * `scope`, `response_type` and `state` are not allowed and will be ignored.
+ * @param {!Object} customOAuthParameters The custom OAuth parameters to pass
+ *     in the OAuth request.
+ * @return {!firebase.auth.OAuthProvider} The provider instance.
+ */
+firebase.auth.OAuthProvider.prototype.setCustomParameters =
+    function(customOAuthParameters) {};
+
+
+/**
  * Facebook auth provider.
  *
  * @example
@@ -1676,7 +1821,7 @@ firebase.auth.FacebookAuthProvider.PROVIDER_ID;
  * );
  *
  * @param {string} token Facebook access token.
- * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
 firebase.auth.FacebookAuthProvider.credential = function(token) {};
 
@@ -1784,7 +1929,7 @@ firebase.auth.GithubAuthProvider.PROVIDER_ID;
  * );
  *
  * @param {string} token Github access token.
- * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
 firebase.auth.GithubAuthProvider.credential = function(token) {};
 
@@ -1866,7 +2011,7 @@ firebase.auth.GoogleAuthProvider.PROVIDER_ID;
  *
  * @param {?string=} idToken Google ID token.
  * @param {?string=} accessToken Google access token.
- * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
 firebase.auth.GoogleAuthProvider.credential = function(idToken, accessToken) {};
 
@@ -1939,7 +2084,7 @@ firebase.auth.TwitterAuthProvider.PROVIDER_ID;
 /**
  * @param {string} token Twitter access token.
  * @param {string} secret Twitter secret.
- * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
 firebase.auth.TwitterAuthProvider.credential = function(token, secret) {};
 
