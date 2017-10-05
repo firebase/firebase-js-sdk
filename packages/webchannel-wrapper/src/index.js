@@ -84,10 +84,15 @@ goog.net.XhrIo.prototype['getResponseText'] =
   goog.net.XhrIo.prototype.getResponseText;
 goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 
+/**
+ * This ignore statement is required as closure will minify these properties
+ * if done in the typical prettier format
+ */
+// prettier-ignore
 module['exports'] = {
-  createWebChannelTransport: goog.net.createWebChannelTransport,
-  ErrorCode: goog.net.ErrorCode,
-  EventType: goog.net.EventType,
-  WebChannel: goog.net.WebChannel,
-  XhrIoPool: goog.net.XhrIoPool
+  'createWebChannelTransport': goog.net.createWebChannelTransport,
+  'ErrorCode': goog.net.ErrorCode,
+  'EventType': goog.net.EventType,
+  'WebChannel': goog.net.WebChannel,
+  'XhrIoPool': goog.net.XhrIoPool
 };
