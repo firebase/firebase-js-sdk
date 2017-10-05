@@ -28,10 +28,12 @@ const testFiles = (files => {
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: testFiles ? testFiles : [
-      { pattern: `test/unit/bootstrap.ts` },
-      { pattern: `test/integration/bootstrap.ts` },
-    ],
+    files: testFiles
+      ? testFiles
+      : [
+          { pattern: `test/unit/bootstrap.ts` },
+          { pattern: `test/integration/bootstrap.ts` }
+        ],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha'],
