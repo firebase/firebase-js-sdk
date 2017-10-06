@@ -25,7 +25,9 @@ var Buffer = function(a, b) {};
  * @param {string=} encoding
  * @return {!string}
  */
-Buffer.prototype.toString = function(encoding) { return 'dummy'; };
+Buffer.prototype.toString = function(encoding) {
+  return 'dummy';
+};
 
 // Browser externs
 var MozWebSocket;

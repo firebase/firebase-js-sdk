@@ -28,7 +28,12 @@
  * @return {firebase.ServiceNamespace}
  */
 firebase.INTERNAL.registerService = function(
-    name, createService, serviceProperties, appHook, allowMultipleInstances) {};
+  name,
+  createService,
+  serviceProperties,
+  appHook,
+  allowMultipleInstances
+) {};
 
 /** @param {!Object} props */
 firebase.INTERNAL.extendNamespace = function(props) {};
@@ -94,9 +99,8 @@ firebase.INTERNAL.ErrorFactory = function(service, serviceName, errors) {};
  */
 firebase.INTERNAL.ErrorFactory.prototype.create = function(code, data) {};
 
-
 /** @interface */
-firebase.Service = function() {}
+firebase.Service = function() {};
 
 /** @type {!firebase.app.App} */
 firebase.Service.prototype.app;
@@ -114,7 +118,6 @@ firebase.Service.prototype.INTERNAL.delete = function() {};
  */
 firebase.ServiceFactory;
 
-
 /** @interface */
 firebase.ServiceNamespace = function() {};
 
@@ -125,7 +128,7 @@ firebase.ServiceNamespace = function() {};
  * @param {firebase.app.App=} app
  * @return {!firebase.Service}
  */
-firebase.ServiceNamespace.prototype.app = function(app) {}
+firebase.ServiceNamespace.prototype.app = function(app) {};
 
 /**
  * Firebase App.INTERNAL methods - default implementations in firebase-app,
@@ -154,10 +157,8 @@ firebase.AuthTokenListener;
  */
 firebase.AuthTokenData;
 
-
 /** @type {!Object} */
 firebase.app.App.prototype.INTERNAL;
-
 
 /**
  * app.INTERNAL.getUid()
@@ -165,7 +166,6 @@ firebase.app.App.prototype.INTERNAL;
  * @return {?string}
  */
 firebase.app.App.prototype.INTERNAL.getUid = function() {};
-
 
 /**
  * app.INTERNAL.getToken()
@@ -175,20 +175,20 @@ firebase.app.App.prototype.INTERNAL.getUid = function() {};
  */
 firebase.app.App.prototype.INTERNAL.getToken = function(forceRefresh) {};
 
-
 /**
  * Adds an auth state listener.
  *
  * @param {!firebase.AuthTokenListener} listener The auth state listener.
  */
-firebase.app.App.prototype.INTERNAL.addAuthTokenListener =
-    function(listener) {};
-
+firebase.app.App.prototype.INTERNAL.addAuthTokenListener = function(
+  listener
+) {};
 
 /**
  * Removes an auth state listener.
  *
  * @param {!firebase.AuthTokenListener} listener The auth state listener.
  */
-firebase.app.App.prototype.INTERNAL.removeAuthTokenListener =
-    function(listener) {};
+firebase.app.App.prototype.INTERNAL.removeAuthTokenListener = function(
+  listener
+) {};

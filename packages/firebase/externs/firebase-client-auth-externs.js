@@ -121,7 +121,6 @@
  */
 firebase.User.prototype.linkWithPopup = function(provider) {};
 
-
 /**
  * Links the authenticated provider to the user account using a full-page
  * redirect flow.
@@ -152,7 +151,6 @@ firebase.User.prototype.linkWithPopup = function(provider) {};
  * @return {!firebase.Promise<void>}
  */
 firebase.User.prototype.linkWithRedirect = function(provider) {};
-
 
 /**
  * Authenticates a Firebase client using a popup-based OAuth authentication
@@ -243,7 +241,6 @@ firebase.User.prototype.linkWithRedirect = function(provider) {};
  */
 firebase.auth.Auth.prototype.signInWithPopup = function(provider) {};
 
-
 /**
  * Authenticates a Firebase client using a full-page redirect flow. To handle
  * the results and errors for this operation, refer to {@link
@@ -271,7 +268,6 @@ firebase.auth.Auth.prototype.signInWithPopup = function(provider) {};
  * @return {!firebase.Promise<void>}
  */
 firebase.auth.Auth.prototype.signInWithRedirect = function(provider) {};
-
 
 /**
  * Reauthenticates the current user with the specified provider using a pop-up
@@ -336,7 +332,6 @@ firebase.auth.Auth.prototype.signInWithRedirect = function(provider) {};
  */
 firebase.User.prototype.reauthenticateWithPopup = function(provider) {};
 
-
 /**
  * Reauthenticates the current user with the specified OAuth provider using a
  * full-page redirect flow.
@@ -365,7 +360,6 @@ firebase.User.prototype.reauthenticateWithPopup = function(provider) {};
  * @return {!firebase.Promise<void>}
  */
 firebase.User.prototype.reauthenticateWithRedirect = function(provider) {};
-
 
 /**
  * Returns a UserCredential from the redirect-based sign-in flow.
@@ -473,7 +467,6 @@ firebase.User.prototype.reauthenticateWithRedirect = function(provider) {};
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.auth.Auth.prototype.getRedirectResult = function() {};
-
 
 /**
  * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application

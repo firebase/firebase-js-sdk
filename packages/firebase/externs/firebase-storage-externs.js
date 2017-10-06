@@ -232,8 +232,10 @@ firebase.storage.StringFormat = {
  *     doesn't conform to the specified format.
  */
 firebase.storage.Reference.prototype.putString = function(
-    data, format, metadata) {};
-
+  data,
+  format,
+  metadata
+) {};
 
 /**
  * Deletes the object at this reference's location.
@@ -261,7 +263,6 @@ firebase.storage.Reference.prototype.getMetadata = function() {};
  */
 firebase.storage.Reference.prototype.updateMetadata = function(metadata) {};
 
-
 /**
  * Fetches a long lived download URL for this object.
  * @return {!firebase.Promise<string>} A Promise that resolves with the download
@@ -270,14 +271,12 @@ firebase.storage.Reference.prototype.updateMetadata = function(metadata) {};
  */
 firebase.storage.Reference.prototype.getDownloadURL = function() {};
 
-
 /**
  * A reference pointing to the parent location of this reference, or null if
  * this reference is the root.
  * @type {?firebase.storage.Reference}
  */
 firebase.storage.Reference.prototype.parent;
-
 
 /**
  * A reference to the root of this reference's bucket.
@@ -309,7 +308,6 @@ firebase.storage.Reference.prototype.name;
  * @type {!firebase.storage.Storage}
  */
 firebase.storage.Reference.prototype.storage;
-
 
 /**
  * Object metadata that can be set at any time.
@@ -484,8 +482,10 @@ firebase.storage.UploadTask = function() {};
  * @param {(?function(!Error):*)=} onRejected The rejection callback.
  * @return {!firebase.Promise}
  */
-firebase.storage.UploadTask.prototype.then = function(onFulfilled, onRejected) {
-};
+firebase.storage.UploadTask.prototype.then = function(
+  onFulfilled,
+  onRejected
+) {};
 
 /**
  * Equivalent to calling `then(null, onRejected)`.
@@ -602,7 +602,11 @@ firebase.storage.UploadTask.prototype.catch = function(onRejected) {};
  *     callbacks.
  */
 firebase.storage.UploadTask.prototype.on = function(
-    event, nextOrObserver, error, complete) {};
+  event,
+  nextOrObserver,
+  error,
+  complete
+) {};
 
 /**
  * Resumes a paused task. Has no effect on a running or failed task.
