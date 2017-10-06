@@ -1639,11 +1639,13 @@ export class CollectionReference extends Query
 
   doc(pathString?: string): firestore.DocumentReference {
     validateBetweenNumberOfArgs('CollectionReference.doc', arguments, 0, 1);
-    validateOptionalArgType('CollectionReference.doc', 'string', 1, pathString);
-    if (pathString === undefined) {
+    // We allow omission of 'pathString' but explicitly prohibit passing in both
+    // 'undefined' and 'null'.
+    if (arguments.length === 0) {
       pathString = AutoId.newId();
     }
-    if (typeof pathString !== 'string' || pathString === '') {
+    validateArgType('CollectionReference.doc', 'string', 1, pathString);
+    if (pathString === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Document path must be a non-empty string'
