@@ -38,5 +38,12 @@
     "typescript": "^2.4.2",
     "webpack": "^3.5.5"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
   "typings": "dist/index.d.ts"
 }
