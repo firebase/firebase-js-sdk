@@ -14,5 +14,12 @@
   "devDependencies": {
     "gulp": "gulpjs/gulp#4.0",
     "through2": "^2.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
 }
