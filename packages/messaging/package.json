@@ -40,7 +40,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/messaging"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
