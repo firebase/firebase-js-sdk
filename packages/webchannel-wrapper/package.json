@@ -12,5 +12,12 @@
   "devDependencies": {
     "closure-builder": "^2.2.23",
     "watch": "^1.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/webchannel-wrapper"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
 }
