@@ -17,5 +17,12 @@
     "@types/node": "^8.0.31",
     "gulp": "gulpjs/gulp#4.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/polyfill"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
   "typings": "dist/index.d.ts"
 }
