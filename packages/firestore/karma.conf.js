@@ -40,7 +40,8 @@ module.exports = function(config) {
 
     client: {
       mocha: {
-        timeout: 20000
+        timeout: 20000,
+        retries: 3
       }
     }
   });
