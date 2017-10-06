@@ -550,21 +550,21 @@ export class UploadTask {
    * @param onRejected The rejection callback.
    */
   then<U>(
-    onFulfilled?: ((value: UploadTaskSnapshot) => U | PromiseLike<U>) | null,
-    onRejected?: ((error: any) => U | PromiseLike<U>) | null
+    onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
+    onRejected?: ((error: any) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.
     return this.promise_.then<U>(
-      onFulfilled as (value: UploadTaskSnapshot) => U | PromiseLike<U>,
-      onRejected as ((error: any) => PromiseLike<never>) | null
+      onFulfilled as (value: UploadTaskSnapshot) => U | Promise<U>,
+      onRejected as ((error: any) => Promise<never>) | null
     );
   }
 
   /**
    * Equivalent to calling `then(null, onRejected)`.
    */
-  catch<T>(onRejected: (p1: Error) => T | PromiseLike<T>): Promise<T> {
+  catch<T>(onRejected: (p1: Error) => T | Promise<T>): Promise<T> {
     return this.then(null, onRejected);
   }
 
