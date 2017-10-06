@@ -3434,6 +3434,16 @@ grpc@1.4.1:
     node-pre-gyp "^0.6.35"
     protobufjs "^5.0.0"
 
+grpc@^1.6.6:
+  version "1.6.6"
+  resolved "https://registry.yarnpkg.com/grpc/-/grpc-1.6.6.tgz#2051784f6bd6134681fa2c4b5e75dc82c6c23ffa"
+  dependencies:
+    arguejs "^0.2.3"
+    lodash "^4.17.4"
+    nan "^2.7.0"
+    node-pre-gyp "^0.6.38"
+    protobufjs "^5.0.2"
+
 gtoken@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/gtoken/-/gtoken-1.2.2.tgz#172776a1a9d96ac09fc22a00f5be83cee6de8820"
@@ -5452,7 +5462,7 @@ mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.0.0, nan@^2.3.0:
+nan@^2.0.0, nan@^2.3.0, nan@^2.7.0:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.7.0.tgz#d95bf721ec877e08db276ed3fc6eb78f9083ad46"
 
@@ -5550,7 +5560,7 @@ node-localstorage@^1.3.0:
   dependencies:
     write-file-atomic "^1.1.4"
 
-node-pre-gyp@^0.6.35, node-pre-gyp@^0.6.36:
+node-pre-gyp@^0.6.35, node-pre-gyp@^0.6.36, node-pre-gyp@^0.6.38:
   version "0.6.38"
   resolved "https://registry.yarnpkg.com/node-pre-gyp/-/node-pre-gyp-0.6.38.tgz#e92a20f83416415bb4086f6d1fb78b3da73d113d"
   dependencies:
@@ -6176,7 +6186,7 @@ prompt@1.0.0:
     utile "0.3.x"
     winston "2.1.x"
 
-protobufjs@^5.0.0:
+protobufjs@^5.0.0, protobufjs@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-5.0.2.tgz#59748d7dcf03d2db22c13da9feb024e16ab80c91"
   dependencies:

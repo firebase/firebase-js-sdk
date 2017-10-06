@@ -27,7 +27,8 @@
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",      
       "args": [
-        "start", 
+        "start",
+        "--auto-watch",
         "--testFiles", "test/unit/bootstrap.ts",
         "--browsers", "Chrome"
       ]
