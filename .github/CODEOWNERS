@@ -8,7 +8,7 @@
 packages/database  @mikelehen @schmidt-sebastian
 
 # Firestore Code
-packages/firestore  @mikelehen @schmidt-sebastian
+packages/firestore  @mikelehen @schmidt-sebastian @wilhuff
 
 # Storage Code
 packages/storage  @sphippen
@@ -17,4 +17,4 @@ packages/storage  @sphippen
 packages/messaging  @gauntface
 
 # Auth Code
-packages/auth  @bojeil-google
+packages/auth  @bojeil-google @wti806
