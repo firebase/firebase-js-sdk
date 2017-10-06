@@ -46,5 +46,12 @@
     "typescript": "^2.4.2",
     "webpack": "^3.5.5",
     "yargs": "^9.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/firestore"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
 }
