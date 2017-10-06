@@ -28,13 +28,13 @@ import { jsonEval } from './json';
  * @return {{header: *, claims: *, data: *, signature: string}}
  */
 export const decode = function(token) {
-  var header = {},
+  let header = {},
     claims = {},
     data = {},
     signature = '';
 
   try {
-    var parts = token.split('.');
+    const parts = token.split('.');
     header = jsonEval(base64Decode(parts[0]) || '');
     claims = jsonEval(base64Decode(parts[1]) || '');
     signature = parts[2];
@@ -62,10 +62,9 @@ export const decode = function(token) {
  * @return {boolean}
  */
 export const isValidTimestamp = function(token) {
-  var claims = decode(token).claims,
-    now = Math.floor(new Date().getTime() / 1000),
-    validSince,
-    validUntil;
+  const claims = decode(token).claims;
+  const now = Math.floor(new Date().getTime() / 1000);
+  let validSince, validUntil;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
@@ -98,7 +97,7 @@ export const isValidTimestamp = function(token) {
  * @return {?number}
  */
 export const issuedAtTime = function(token) {
-  var claims = decode(token).claims;
+  const claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
     return claims['iat'];
   }
@@ -117,7 +116,7 @@ export const issuedAtTime = function(token) {
  * @return {boolean}
  */
 export const isValidFormat = function(token) {
-  var decoded = decode(token),
+  const decoded = decode(token),
     claims = decoded.claims;
 
   return (
@@ -139,6 +138,6 @@ export const isValidFormat = function(token) {
  * @return {boolean}
  */
 export const isAdmin = function(token) {
-  var claims = decode(token).claims;
+  const claims = decode(token).claims;
   return typeof claims === 'object' && claims['admin'] === true;
 };

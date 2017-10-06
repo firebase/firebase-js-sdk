@@ -29,7 +29,7 @@ export class Deferred {
 
   /** @constructor */
   constructor() {
-    var self = this;
+    const self = this;
     this.resolve = null;
     this.reject = null;
     this.promise = new PromiseImpl(function(resolve, reject) {
@@ -46,7 +46,7 @@ export class Deferred {
    * @return {!function(?(Error), ?=)}
    */
   wrapCallback(opt_nodeCallback?) {
-    var self = this;
+    const self = this;
     /**
        * @param {?Error} error
        * @param {?=} opt_value

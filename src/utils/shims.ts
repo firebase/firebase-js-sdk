@@ -27,10 +27,10 @@ if (!Array.prototype.findIndex) {
         throw new TypeError('"this" is null or not defined');
       }
 
-      var o = Object(this);
+      const o = Object(this);
 
       // 2. Let len be ? ToLength(? Get(O, "length")).
-      var len = o.length >>> 0;
+      const len = o.length >>> 0;
 
       // 3. If IsCallable(predicate) is false, throw a TypeError exception.
       if (typeof predicate !== 'function') {
@@ -38,10 +38,10 @@ if (!Array.prototype.findIndex) {
       }
 
       // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
-      var thisArg = arguments[1];
+      const thisArg = arguments[1];
 
       // 5. Let k be 0.
-      var k = 0;
+      let k = 0;
 
       // 6. Repeat, while k < len
       while (k < len) {
@@ -49,7 +49,7 @@ if (!Array.prototype.findIndex) {
         // b. Let kValue be ? Get(O, Pk).
         // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
         // d. If testResult is true, return k.
-        var kValue = o[k];
+        const kValue = o[k];
         if (predicate.call(thisArg, kValue, k, o)) {
           return k;
         }
@@ -76,10 +76,10 @@ if (!Array.prototype.find) {
         throw new TypeError('"this" is null or not defined');
       }
 
-      var o = Object(this);
+      const o = Object(this);
 
       // 2. Let len be ? ToLength(? Get(O, "length")).
-      var len = o.length >>> 0;
+      const len = o.length >>> 0;
 
       // 3. If IsCallable(predicate) is false, throw a TypeError exception.
       if (typeof predicate !== 'function') {
@@ -87,10 +87,10 @@ if (!Array.prototype.find) {
       }
 
       // 4. If thisArg was supplied, let T be thisArg; else let T be undefined.
-      var thisArg = arguments[1];
+      const thisArg = arguments[1];
 
       // 5. Let k be 0.
-      var k = 0;
+      let k = 0;
 
       // 6. Repeat, while k < len
       while (k < len) {
@@ -98,7 +98,7 @@ if (!Array.prototype.find) {
         // b. Let kValue be ? Get(O, Pk).
         // c. Let testResult be ToBoolean(? Call(predicate, T, « kValue, k, O »)).
         // d. If testResult is true, return kValue.
-        var kValue = o[k];
+        let kValue = o[k];
         if (predicate.call(thisArg, kValue, k, o)) {
           return kValue;
         }

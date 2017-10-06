@@ -25,7 +25,7 @@ import { forEach } from './obj';
  * @return {string}
  */
 export const querystring = function(querystringParams) {
-  var params = [];
+  const params = [];
   forEach(querystringParams, function(key, value) {
     if (Array.isArray(value)) {
       value.forEach(function(arrayVal) {
@@ -47,12 +47,12 @@ export const querystring = function(querystringParams) {
  * @return {!Object}
  */
 export const querystringDecode = function(querystring) {
-  var obj = {};
-  var tokens = querystring.replace(/^\?/, '').split('&');
+  const obj = {};
+  const tokens = querystring.replace(/^\?/, '').split('&');
 
   tokens.forEach(function(token) {
     if (token) {
-      var key = token.split('=');
+      const key = token.split('=');
       obj[key[0]] = key[1];
     }
   });

@@ -57,7 +57,7 @@ export default class DBInterface {
         resolve((<IDBRequest>event.target).result);
       };
       request.onupgradeneeded = event => {
-        var db = (<IDBRequest>event.target).result;
+        const db = (<IDBRequest>event.target).result;
         this.onDBUpgrade(db);
       };
     });

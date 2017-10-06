@@ -56,9 +56,9 @@ export default class TokenManager {
         resolve((<IDBRequest>event.target).result);
       };
       request.onupgradeneeded = event => {
-        var db = (<IDBRequest>event.target).result;
+        const db = (<IDBRequest>event.target).result;
 
-        var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+        const objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
           keyPath: 'swScope'
         });
 

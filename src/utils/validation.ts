@@ -24,14 +24,14 @@
  * @param {!number} argCount The actual number of arguments provided.
  */
 export const validateArgCount = function(fnName, minCount, maxCount, argCount) {
-  var argError;
+  let argError;
   if (argCount < minCount) {
     argError = 'at least ' + minCount;
   } else if (argCount > maxCount) {
     argError = maxCount === 0 ? 'none' : 'no more than ' + maxCount;
   }
   if (argError) {
-    var error =
+    const error =
       fnName +
       ' failed: Was called with ' +
       argCount +
@@ -52,7 +52,7 @@ export const validateArgCount = function(fnName, minCount, maxCount, argCount) {
  * @return {!string} The prefix to add to the error thrown for validation.
  */
 export function errorPrefix(fnName, argumentNumber, optional) {
-  var argName = '';
+  let argName = '';
   switch (argumentNumber) {
     case 1:
       argName = optional ? 'first' : 'First';
@@ -72,7 +72,7 @@ export function errorPrefix(fnName, argumentNumber, optional) {
       );
   }
 
-  var error = fnName + ' failed: ';
+  let error = fnName + ' failed: ';
 
   error += argName + ' argument ';
   return error;

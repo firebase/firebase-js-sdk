@@ -34,7 +34,7 @@ CONSTANTS.NODE_CLIENT = true;
  * @suppress {es5Strict}
  */
 (function() {
-  var version = process['version'];
+  const version = process['version'];
   if (
     version !== 'v0.10.22' &&
     version !== 'v0.10.23' &&
@@ -48,11 +48,11 @@ CONSTANTS.NODE_CLIENT = true;
    * needs to be applied to `Duplex.prototype.write()` (in
    * `/lib/_stream_duplex.js`) as well.
    */
-  var Writable = require('_stream_writable');
+  const Writable = require('_stream_writable');
 
   Writable['prototype']['write'] = function(chunk, encoding, cb) {
-    var state = this['_writableState'];
-    var ret = false;
+    const state = this['_writableState'];
+    let ret = false;
 
     if (typeof encoding === 'function') {
       cb = encoding;
@@ -72,7 +72,7 @@ CONSTANTS.NODE_CLIENT = true;
   };
 
   function writeAfterEnd(stream, state, cb) {
-    var er = new Error('write after end');
+    const er = new Error('write after end');
     // TODO: defer error events consistently everywhere, not just the cb
     stream['emit']('error', er);
     process['nextTick'](function() {
@@ -81,7 +81,7 @@ CONSTANTS.NODE_CLIENT = true;
   }
 
   function validChunk(stream, state, chunk, cb) {
-    var valid = true;
+    let valid = true;
     if (
       !Buffer['isBuffer'](chunk) &&
       'string' !== typeof chunk &&
@@ -89,7 +89,7 @@ CONSTANTS.NODE_CLIENT = true;
       chunk !== undefined &&
       !state['objectMode']
     ) {
-      var er = new TypeError('Invalid non-string/buffer chunk');
+      const er = new TypeError('Invalid non-string/buffer chunk');
       stream['emit']('error', er);
       process['nextTick'](function() {
         cb(er);
@@ -102,11 +102,11 @@ CONSTANTS.NODE_CLIENT = true;
   function writeOrBuffer(stream, state, chunk, encoding, cb) {
     chunk = decodeChunk(state, chunk, encoding);
     if (Buffer['isBuffer'](chunk)) encoding = 'buffer';
-    var len = state['objectMode'] ? 1 : chunk['length'];
+    const len = state['objectMode'] ? 1 : chunk['length'];
 
     state['length'] += len;
 
-    var ret = state['length'] < state['highWaterMark'];
+    const ret = state['length'] < state['highWaterMark'];
     // we must ensure that previous needDrain will not be reset to false.
     if (!ret) state['needDrain'] = true;
 
@@ -146,7 +146,7 @@ CONSTANTS.NODE_CLIENT = true;
     state['sync'] = false;
   }
 
-  var Duplex = require('_stream_duplex');
+  const Duplex = require('_stream_duplex');
   Duplex['prototype']['write'] = Writable['prototype']['write'];
 })();
 
@@ -185,7 +185,7 @@ CONSTANTS.NODE_CLIENT = true;
   url,
   loadCB
 ) {
-  var self = this;
+  const self = this;
   (FirebaseIFrameScriptHolder as any).nodeRestRequest(
     { url: url, forever: true },
     function(body) {
@@ -200,7 +200,7 @@ CONSTANTS.NODE_CLIENT = true;
  * @param {!string} body
  */
 (<any>FirebaseIFrameScriptHolder.prototype).evalBody = function(body) {
-  var jsonpCB;
+  let jsonpCB;
   //jsonpCB is externed in firebase-extern.js
   eval(
     'jsonpCB = function(' +
