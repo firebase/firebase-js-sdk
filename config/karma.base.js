@@ -49,7 +49,8 @@ const config = {
   // disable watcher
   autoWatch: false,
 
-  browserNoActivityTimeout: 30000,
+  // Doing 65 seconds to allow for the 20 second firestore tests
+  browserNoActivityTimeout: 65000,
 
   // preprocess matching files before serving them to the browser
   // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
