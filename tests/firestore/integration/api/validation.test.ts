@@ -194,6 +194,10 @@ apiDescribe('Validation:', persistence => {
         'Function CollectionReference.doc() requires its first ' +
           'argument to be of type string, but it was: null'
       );
+      expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
+        'Function CollectionReference.doc() requires its first ' +
+          'argument to be of type string, but it was: undefined'
+      );
       expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
         'Function CollectionReference.doc() requires between 0 and ' +
           '1 arguments, but was called with 2 arguments.'
