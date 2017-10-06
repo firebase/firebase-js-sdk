@@ -1,7 +1,7 @@
 {
   "name": "@firebase/app",
   "version": "0.1.0",
-  "description": "",
+  "description": "The primary entrypoint to the Firebase JS SDK",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
@@ -11,7 +11,6 @@
     "test:node": "mocha test/**/*.test.* --compilers ts:ts-node/register",
     "prepare": "gulp build"
   },
-  "author": "",
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/util": "^0.1.0"
@@ -38,6 +37,13 @@
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
     "webpack": "^3.5.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/app"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "typings": "dist/index.d.ts"
 }
