@@ -33,7 +33,7 @@ describe('Firebase Messaging Integration Tests', () => {
     return testServer.stop();
   });
 
-  const performTestInBrowser = (seleniumBrowser) => {
+  const performTestInBrowser = seleniumBrowser => {
     // Mocha must have functions in describe and it functions due to its
     // binding behavior
     describe(`Test Messaging in ${seleniumBrowser.getPrettyName()}`, function() {
@@ -47,11 +47,14 @@ describe('Firebase Messaging Integration Tests', () => {
         this.timeout(10 * 1000);
 
         // Configure the notification permissions
-        switch(seleniumBrowser.getId()) {
+        switch (seleniumBrowser.getId()) {
           case 'firefox': {
             const ffProfile = new seleniumFirefox.Profile();
-            ffProfile.setPreference('security.turn_off_all_security_so_that_' +
-              'viruses_can_take_over_this_computer', true);
+            ffProfile.setPreference(
+              'security.turn_off_all_security_so_that_' +
+                'viruses_can_take_over_this_computer',
+              true
+            );
             ffProfile.setPreference('dom.push.testing.ignorePermission', true);
             ffProfile.setPreference('notification.prompt.testing', true);
             ffProfile.setPreference('notification.prompt.testing.allow', true);
@@ -64,23 +67,25 @@ describe('Firebase Messaging Integration Tests', () => {
               profile: {
                 content_settings: {
                   exceptions: {
-                    notifications: {},
-                  },
-                },
-              },
+                    notifications: {}
+                  }
+                }
+              }
             };
-            chromePreferences.profile.content_settings.
-              exceptions.notifications[testServer.serverAddress + ',*'] = {
-              setting: 1,
+            chromePreferences.profile.content_settings.exceptions.notifications[
+              testServer.serverAddress + ',*'
+            ] = {
+              setting: 1
             };
-            seleniumBrowser.getSeleniumOptions().setUserPreferences(chromePreferences);
+            seleniumBrowser
+              .getSeleniumOptions()
+              .setUserPreferences(chromePreferences);
             /* eslint-enable camelcase */
             break;
           }
         }
 
-        return seleniumBrowser.getSeleniumDriver()
-        .then((driver) => {
+        return seleniumBrowser.getSeleniumDriver().then(driver => {
           currentWebDriver = driver;
         });
       });
@@ -94,16 +99,17 @@ describe('Firebase Messaging Integration Tests', () => {
       });
 
       const getInPageToken = () => {
-        return currentWebDriver.wait(() => {
-          return currentWebDriver.executeScript(() => {
-            return document.querySelector('.js-token').textContent.length > 0;
+        return currentWebDriver
+          .wait(() => {
+            return currentWebDriver.executeScript(() => {
+              return document.querySelector('.js-token').textContent.length > 0;
+            });
+          })
+          .then(() => {
+            return currentWebDriver.executeScript(() => {
+              return document.querySelector('.js-token').textContent;
+            });
           });
-        })
-        .then(() => {
-          return currentWebDriver.executeScript(() => {
-            return document.querySelector('.js-token').textContent;
-          });
-        });
       };
 
       const sendFCMMessage = (endpoint, apiBody) => {
@@ -111,116 +117,144 @@ describe('Firebase Messaging Integration Tests', () => {
           method: 'POST',
           body: JSON.stringify(apiBody),
           headers: {
-            'Authorization': 'key=AIzaSyCqJkOa5awRsZ-1EyuAwU4loC3YXDBouIo',
+            Authorization: 'key=AIzaSyCqJkOa5awRsZ-1EyuAwU4loC3YXDBouIo',
             'Content-Type': 'application/json'
           }
         })
-        .then((response) => {
-          // FCM will return HTML is there is an error so we can't parse
-          // the response as JSON, instead have to read as text, then parse
-          // then handle the possible error.
-          return response.text()
-          .then((responseText) => {
-            try {
-              return JSON.parse(responseText);
-            } catch (err) {
-              throw new Error(`Unexpected response: '${responseText}'`);
+          .then(response => {
+            // FCM will return HTML is there is an error so we can't parse
+            // the response as JSON, instead have to read as text, then parse
+            // then handle the possible error.
+            return response.text().then(responseText => {
+              try {
+                return JSON.parse(responseText);
+              } catch (err) {
+                throw new Error(`Unexpected response: '${responseText}'`);
+              }
+            });
+          })
+          .then(responseObj => {
+            if (responseObj.success !== 1) {
+              throw new Error(
+                'Unexpected response: ' + JSON.stringify(responseObj)
+              );
             }
           });
-        })
-        .then((responseObj) => {
-          if (responseObj.success !== 1) {
-            throw new Error('Unexpected response: ' +JSON.stringify(responseObj));
-          }
-        });
       };
 
       const getInPageMessage = () => {
-        return currentWebDriver.wait(() => {
-          return currentWebDriver.executeScript(() => {
-            return document.querySelectorAll('.js-message-list > li').length > 0;
+        return currentWebDriver
+          .wait(() => {
+            return currentWebDriver.executeScript(() => {
+              return (
+                document.querySelectorAll('.js-message-list > li').length > 0
+              );
+            });
+          })
+          .then(() => {
+            return currentWebDriver.executeScript(() => {
+              return document.querySelector('.js-message-list > li:first-child')
+                .textContent;
+            });
           });
-        })
-        .then(() => {
-          return currentWebDriver.executeScript(() => {
-            return document.querySelector('.js-message-list > li:first-child').textContent;
-          });
-        });
       };
 
-      const performTest = (dataPayload, notificationPayload) => {
-        return currentWebDriver.get(`${testServer.serverAddress}/demo-valid/`)
-        .then(() => getInPageToken())
-        .then((fcmToken) => {
-          const fcmAPIPayload = {};
-          fcmAPIPayload.to = fcmToken;
+      const performTest = (dataPayload, notificationPayload, context) => {
+        return currentWebDriver
+          .get(`${testServer.serverAddress}/demo-valid/`)
+          .then(() => getInPageToken())
+          .then(fcmToken => {
+            const fcmAPIPayload = {};
+            fcmAPIPayload.to = fcmToken;
 
-          if (dataPayload != null) {
-            fcmAPIPayload.data = dataPayload;
-          }
+            if (dataPayload != null) {
+              fcmAPIPayload.data = dataPayload;
+            }
 
-          if (notificationPayload != null) {
-            fcmAPIPayload.notification = notificationPayload;
-          }
+            if (notificationPayload != null) {
+              fcmAPIPayload.notification = notificationPayload;
+            }
 
-          return sendFCMMessage(PROD_ENDPOINT, fcmAPIPayload);
-        })
-        .then(() => {
-          return getInPageMessage();
-        })
-        .then((inPageMessage) => {
-          const inPageObj = JSON.parse(inPageMessage);
-          if (dataPayload) {
-            expect(inPageObj.data).to.deep.equal(dataPayload);
-          } else {
-            expect(typeof inPageObj.data).to.equal('undefined');
-          }
-          if (notificationPayload) {
-            expect(inPageObj.notification).to.deep.equal(notificationPayload);
-          } else {
-            expect(typeof inPageObj.notification).to.equal('undefined');
-          }
-        })
-        .then(() => {
-          return new Promise((resolve) => setTimeout(resolve, 4000));
-        });
+            return sendFCMMessage(PROD_ENDPOINT, fcmAPIPayload);
+          })
+          .then(() => {
+            return getInPageMessage();
+          })
+          .then(inPageMessage => {
+            const inPageObj = JSON.parse(inPageMessage);
+            if (dataPayload) {
+              expect(inPageObj.data).to.deep.equal(dataPayload);
+            } else {
+              expect(typeof inPageObj.data).to.equal('undefined');
+            }
+            if (notificationPayload) {
+              expect(inPageObj.notification).to.deep.equal(notificationPayload);
+            } else {
+              expect(typeof inPageObj.notification).to.equal('undefined');
+            }
+          })
+          .then(() => {
+            return new Promise(resolve => setTimeout(resolve, 4000));
+          })
+          .catch(err => {
+            if (seleniumBrowser.getReleaseName() === 'unstable') {
+              console.warn(
+                chalk`{yellow WARNING: Test failed in unstable browser, skipping}`
+              );
+              console.warn(err);
+              if (context) {
+                return context.skip();
+              }
+            }
+            throw err;
+          });
       };
 
       it('should send and receive messages with no payload', function() {
-        return performTest(null, null);
+        return performTest(null, null, this);
       });
 
       it('should send and receive messages with data payload', function() {
-        return performTest({hello: 'world'}, null);
+        return performTest({ hello: 'world' }, null, this);
       });
 
       it('should send and receive messages with notification payload', function() {
-        return performTest(null, {
-          title: 'Test Title',
-          body: 'Test Body',
-          icon: '/test/icon.png',
-          click_action: '/',
-          tag: 'test-tag',
-        });
+        return performTest(
+          null,
+          {
+            title: 'Test Title',
+            body: 'Test Body',
+            icon: '/test/icon.png',
+            click_action: '/',
+            tag: 'test-tag'
+          },
+          this
+        );
       });
 
       it('should send and receive messages with data & notification payload', function() {
-        return performTest({hello: 'world'}, {
-          title: 'Test Title',
-          body: 'Test Body',
-          icon: '/test/icon.png',
-          click_action: '/',
-          tag: 'test-tag',
-        });
+        return performTest(
+          { hello: 'world' },
+          {
+            title: 'Test Title',
+            body: 'Test Body',
+            icon: '/test/icon.png',
+            click_action: '/',
+            tag: 'test-tag'
+          },
+          this
+        );
       });
     });
   };
 
   const availableBrowsers = seleniumAssistant.getLocalBrowsers();
-  availableBrowsers.forEach((assistantBrowser) => {
+  availableBrowsers.forEach(assistantBrowser => {
     // Only test on Chrome and Firefox
-    if (assistantBrowser.getId() !== 'chrome' &&
-      assistantBrowser.getId() !== 'firefox') {
+    if (
+      assistantBrowser.getId() !== 'chrome' &&
+      assistantBrowser.getId() !== 'firefox'
+    ) {
       return;
     }
 

@@ -1,0 +1,25 @@
+{
+  "name": "@firebase/auth",
+  "version": "0.1.0",
+  "main": "dist/auth.js",
+  "scripts": {
+    "dev": "echo 'Skipping @firebase/auth dev step'",
+    "test": "echo 'Skipping @firebase/auth test step'",
+    "prepare": "gulp build"
+  },
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@firebase/app": "^0.1.0"
+  },
+  "devDependencies": {
+    "gulp": "gulpjs/gulp#4.0",
+    "through2": "^2.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

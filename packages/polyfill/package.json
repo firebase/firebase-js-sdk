@@ -1,0 +1,28 @@
+{
+  "name": "@firebase/polyfill",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "scripts": {
+    "dev": "gulp dev",
+    "test": "echo 'No test suite for polyfills'",
+    "prepare": "gulp build"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "promise-polyfill": "^6.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^8.0.31",
+    "gulp": "gulpjs/gulp#4.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/polyfill"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts"
+}

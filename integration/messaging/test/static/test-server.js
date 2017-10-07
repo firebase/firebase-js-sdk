@@ -23,7 +23,11 @@ class MessagingTestServer {
   constructor() {
     this._app = express();
     this._app.use('/', express.static(__dirname));
-    this._app.use('/node_modules', express.static(path.join(__dirname, '..', '..', 'node_modules')));
+    console.log('Firebase Path:', path.dirname(require.resolve('firebase')));
+    this._app.use(
+      '/firebase',
+      express.static(path.dirname(require.resolve('firebase')))
+    );
     this._app.use('/', express.static(path.join(__dirname, 'shared-files')));
 
     this._server = null;
@@ -34,7 +38,7 @@ class MessagingTestServer {
       return null;
     }
 
-    return `http://localhost:${PORT_NUMBER}`
+    return `http://localhost:${PORT_NUMBER}`;
   }
 
   start() {
@@ -43,7 +47,7 @@ class MessagingTestServer {
     }
 
     return new Promise((resolve, reject) => {
-      this._server = this._app.listen(PORT_NUMBER, function () {
+      this._server = this._app.listen(PORT_NUMBER, function() {
         resolve();
       });
     });
@@ -53,7 +57,7 @@ class MessagingTestServer {
   // currently open sockets. So call `closethis._server
   stop() {
     if (!this._server) {
-      return Promise.resolve();;
+      return Promise.resolve();
     }
 
     this._server.close();

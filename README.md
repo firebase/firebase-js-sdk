@@ -16,150 +16,118 @@ To get started using Firebase, see
 
 ### Prerequisites
 
-Before you can start working on the Firebase JS SDK, you need to have Node.js 6.0 or
-greater installed on your machine. After doing this, you must also install the
-dependencies for this package.
+#### Node.js
+
+Before you can start working on the Firebase JS SDK, you need to have Node.js
+`8.0.0` or greater installed on your machine. 
 
 To download Node.js visit https://nodejs.org/en/download/.
 
-Once you've verified that you are using version 6.0 or later (run `node -v` to see your
-current running version of Node.js), you can install the dependencies by running:
+_NOTE: You can use a tool like [`NVM`](https://github.com/creationix/nvm)
+or [`N`](https://github.com/tj/n) to install and manage multiple node versions_
+
+#### Yarn
+
+In addition to Node.js we use `yarn` to facilitate multi package development.
+
+To install `yarn` follow the instructions listed on their website: 
+https://yarnpkg.com/en/docs/install
+
+#### Verify Prerequisites
+
+You can verify your setup by running the following commands in your terminal:
 
 ```bash
-$ npm install
+$ node -v
+$ yarn -v
 ```
 
-_NOTE: This package also maintains a `yarn.lock` so you can get faster installs by installing
-dependencies with `yarn` instead._
+Your Node.js version should be `8.0.0` or greater and your `yarn` version should
+be `1.0.0` or greater.
 
-### Pipeline Instructions
+_NOTE: We will update the documentation as new versions are required, however
+for continuing development on the SDK, staying up to date on the stable versions
+of these packages is advised_
 
-The Firebase JS SDK is built and tested through a gulp pipeline. You will need to
-have the `gulp` command available on your system to run the tasks yourself.
+### Install Dependencies
 
-To install `gulp` simply run:
-
-```bash
-$ npm install -g gulp-cli
-```
-
-_NOTE: Installing `gulp-cli` is optional as you can simply leverage the npm commands
-for most interactions._
-
-## Gulp Pipeline
-
-Most of the tasks for interacting with the SDK are defined through gulp. If you
-installed gulp globally, you can run the following to see all of the available
-gulp tasks:
+Once you have Node.js and `yarn` installed on your machine and have validated
+that you are running the proper version, you can set up the development environment
+by running the following at the root of the SDK:
 
 ```bash
-gulp --tasks
+$ yarn
 ```
 
 ## Testing the SDK
 
-To run all tests for the SDK you must first supply a firebase project config for
-your tests. This is done by creating a file called `project.json` and at the
-following path:
+### Test Setup
 
-```
-tests/config/project.json
-```
+A production project is required to test the Firebase JS SDK. You can create a
+new project by visiting the [Firebase Console](https://console.firebase.google.com/).
 
-This file should contain a JSON object with your app information (i.e. the same
-information you would pass to `firebase.initializeApp`).
+#### Automated Setup
 
-### Project Config
+Most of the test setup can be done by running the following command at the root
+of the package:
 
-The project supplied in your `project.json` needs to be properly configured to
-succesfully run the tests.
-
-#### Database Rules
-
-_i.e._
-
-```json
-{
-  "rules": {
-    ".read": "true",
-    ".write": "true"
-  }
-}
+```bash
+yarn test:setup
 ```
 
-#### Authentiaction Support
+#### Authentication Support
 
-Enable the `Anonymous` sign-in provider.
+This is the only piece of config that must be done manually. Visit the 
+authentication config in your project and enable the `Anonymous` sign-in
+provider to complete your project config.
 
 ### Running the tests
 
-After you have the `project.json` and have properly configured the project,
-simply run: `npm test` at the root of this package.
-
-You can also run the tests by calling `gulp test` if you have gulp installed.
-
-You can decrease the testing scope by providing the optional `suite`/`env` arguments to `npm/gulp test`.
-
-_e.g._
+Each of the directories in the `integration` directory as well as the `packages`
+directory have their own test suites. These can be run altogether by running the
+following command at the root of the package:
 
 ```bash
-$ gulp test --suite=firestore --env=node
+$ yarn test
 ```
 
-Any directory path in the tests directory serves as a valid value for the `--suite` flag.
-
-Valid values for the `--env` flag are `node`/`browser`.
-
-### Integration Tests
-
-These tests are functionally different enough from the normal test suite that they have their own README.md. Please view it [here](./integration/README.md):
+In addition, you can run any of the tests individually by running `yarn test` in
+an individaul package directory.
 
 ## Building the SDK
 
 ### Introduction
 
-The Javascript SDK is built through a gulp pipeline.
+The Firebase JS SDK is built with a series of individual packages that are all
+contained in this repository. Development is coordinated via [yarn 
+workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and 
+[Lerna](https://lernajs.io/) (a monorepo management tool).
 
-To build the project run `npm run build` in your CLI.
+Each package in the `packages` directory, constitute a piece of our
+implementation. The SDK is built via a combination of all of these packages
+which are published under the [`firebase` 
+scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
-This will generate all of the output assets in a `/dist` folder available at the
-root of this project.
+### Helper Scripts
 
-Each of the different types of source files are explained more in detail below.
+Each package in the `packages` directory exposes a `dev` script. This script
+will set up a watcher for development on the indiviual piece of the SDK. In
+addition, there is a top level `dev` script that can be run to start all of the
+watch tasks as well as a sandbox server.
 
-### Source File Handling
+You can run the dev script by running the following at the root of the package:
 
-Our source files are all located in the `/src` directory. This currently contains
-a variety of different sources (typescript, prebuilt binaries, legacy). We handle
-each of these cases in our gulp pipeline.
+```bash
+yarn dev
+```
 
-#### Typescript Source
+### Prepush Hooks
 
-This is the planned source language for this repo. As we are able, all components
-will be migrated to typescript and processed in the following flow:
+As part of this repo, we use the NPM package [`husky`](https://npm.im/husky) to 
+implement git hooks. We leverage the prepush hook to do two things:
 
-1. TS Files are compiled to ES6 using the Typescript compiler
-1. ES6 Files are transpiled to CJS Modules using Babel
-1. ES6 Files are processed with webpack to attach to the window global
-
-#### Prebuilt Binaries
-
-To allow firebase to build from Github we consume prebuilt binaries of our components
-until the source is migrated to this repo.
-
-These files are processed in the following flow:
-
-1. Prebuilt browser binaries are ready to consume individually in the browser
-however we need to wrap them in a CJS module wrapper for node/webpack/browserify
-consumption.
-1. The Firebase App binary is generated (from TS) and concatenated with the
-browser binaries of each individual module to create `firebase.js`.
-
-#### Legacy Files
-
-These files are built in this repo but are being migrated to typescript as we are able.
-Once these files are migrated, the associated build process, will be removed.
-
+- Automated code styling (using [`prettier`](https://npm.im/prettier))
+- Automated LICENSE header insertion
 
 ## Contributing
 

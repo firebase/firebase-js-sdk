@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-importScripts('/node_modules/firebase/firebase-app.js');
-importScripts('/node_modules/firebase/firebase-messaging.js');
+importScripts('/firebase/firebase-app.js');
+importScripts('/firebase/firebase-messaging.js');
 
 firebase.initializeApp({
-  messagingSenderId: "153517668099"
+  messagingSenderId: '153517668099'
 });
 
 const messaging = firebase.messaging();

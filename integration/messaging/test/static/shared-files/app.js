@@ -35,19 +35,21 @@ class DemoApp {
     this._getTokenBtn = document.querySelector('.js-get-token');
     this._deleteTokenBtn = document.querySelector('.js-delete-token');
     this._dataCurlCommandElement = document.querySelector(
-      '.js-data-curl-command');
+      '.js-data-curl-command'
+    );
     this._notificationCurlCommandElement = document.querySelector(
-      '.js-notification-curl-command');
+      '.js-notification-curl-command'
+    );
 
     this.disableAllButtons_();
 
     // Initialize Firebase
     var config = {
-      apiKey: "AIzaSyA_hMf2etaedqV5eJC9Hyv7_YoA3zJIKhc",
-      authDomain: "fcm-sdk-testing.firebaseapp.com",
-      databaseURL: "https://fcm-sdk-testing.firebaseio.com",
-      storageBucket: "fcm-sdk-testing.appspot.com",
-      messagingSenderId: "153517668099"
+      apiKey: 'AIzaSyA_hMf2etaedqV5eJC9Hyv7_YoA3zJIKhc',
+      authDomain: 'fcm-sdk-testing.firebaseapp.com',
+      databaseURL: 'https://fcm-sdk-testing.firebaseio.com',
+      storageBucket: 'fcm-sdk-testing.appspot.com',
+      messagingSenderId: '153517668099'
     };
     firebase.initializeApp(config);
 
@@ -61,12 +63,14 @@ class DemoApp {
     this.initializeBtnListeners_();
 
     // Initializa state of token
-    this._messaging.getToken()
-    .then(token => {
-      this.updateUI_(token);
-    }, () => {
-      this.updateUI_();
-    });
+    this._messaging.getToken().then(
+      token => {
+        this.updateUI_(token);
+      },
+      () => {
+        this.updateUI_();
+      }
+    );
   }
 
   /**
@@ -78,33 +82,36 @@ class DemoApp {
     this._permissionsBtn.addEventListener('click', () => {
       this.disableAllButtons_();
 
-      this._messaging.requestPermission()
-      .then(() => this.updateUI_())
-      .catch(err => {
-        this.handleError_(err);
-        this.updateUI_();
-      });
+      this._messaging
+        .requestPermission()
+        .then(() => this.updateUI_())
+        .catch(err => {
+          this.handleError_(err);
+          this.updateUI_();
+        });
     });
 
     this._deleteTokenBtn.addEventListener('click', () => {
       this.disableAllButtons_();
 
-      this._messaging.getToken()
-      .then(token => {
-        if (token) {
-          return this._messaging.deleteToken(token);
-        }
-      })
-      .then(() => this.updateUI_())
-      .catch(err => this.handleError_(err));
+      this._messaging
+        .getToken()
+        .then(token => {
+          if (token) {
+            return this._messaging.deleteToken(token);
+          }
+        })
+        .then(() => this.updateUI_())
+        .catch(err => this.handleError_(err));
     });
 
     this._getTokenBtn.addEventListener('click', () => {
       this.disableAllButtons_();
 
-      this._messaging.getToken()
-      .then(token => this.updateUI_(token))
-      .catch(err => this.handleError_(err));
+      this._messaging
+        .getToken()
+        .then(token => this.updateUI_(token))
+        .catch(err => this.handleError_(err));
     });
   }
 
@@ -122,12 +129,14 @@ class DemoApp {
   populateCurlDetails_(token) {
     const serverKey = 'AIzaSyCqJkOa5awRsZ-1EyuAwU4loC3YXDBouIo';
     const endpoint = 'https://jmt17.google.com';
-    const dataCurlCommand = `curl ` +
+    const dataCurlCommand =
+      `curl ` +
       `--header "Authorization: key=${serverKey}" ` +
       `--header "Content-Type: application/json" ` +
       `-d '{\"to\": \"${token}\", \"data\": {\"Hello\": \"World\"}}' ` +
       `${endpoint}/gcm/send`;
-    const notificationCurlCommand = `curl ` +
+    const notificationCurlCommand =
+      `curl ` +
       `--header "Authorization: key=${serverKey}" ` +
       `--header "Content-Type: application/json" ` +
       `-d '{\"to\": \"${token}\", \"notification\": ` +
@@ -152,7 +161,7 @@ class DemoApp {
    * if available.
    */
   updateUI_(currentToken) {
-    switch(Notification.permission) {
+    switch (Notification.permission) {
       case 'granted':
         this._permissionsBtn.disabled = true;
 

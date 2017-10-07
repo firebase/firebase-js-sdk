@@ -1,18 +1,18 @@
 {
+  "extends": "../../config/tsconfig.base.json",
   "compileOnSave": false,
   "compilerOptions": {
     "allowJs": true,
+    "declaration": false,
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": true,
-    "outDir": "tmp",
+    "outDir": "dist",
     "target": "ES5",
-    "sourceMap": true,
-    "typeRoots" : [
-      "node_modules/@types"
-    ]
+    "sourceMap": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "dist"
   ]
 }

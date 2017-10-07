@@ -21,14 +21,10 @@ module.exports = function(config) {
   config.set({
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: [
-      'mocha',
-    ],
+    frameworks: ['mocha'],
 
     // list of files / patterns to load in the browser
-    files: [
-      { pattern: 'tests/**/*.test.ts' }
-    ],
+    files: [{ pattern: 'tests/**/*.test.ts' }],
 
     client: {
       mocha: {
@@ -43,7 +39,7 @@ module.exports = function(config) {
     },
 
     mime: {
-      'text/x-typescript': ['ts','tsx']
+      'text/x-typescript': ['ts', 'tsx']
     },
 
     // test results reporter to use
@@ -70,5 +66,5 @@ module.exports = function(config) {
     singleRun: true,
 
     webpack: webpackConfig
-  })
-}
+  });
+};

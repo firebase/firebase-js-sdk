@@ -1,0 +1,48 @@
+{
+  "name": "firebase",
+  "version": "4.5.1",
+  "description": "Firebase JavaScript library for web and Node.js",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "homepage": "https://firebase.google.com/",
+  "keywords": [
+    "authentication",
+    "database",
+    "Firebase",
+    "firebase",
+    "realtime",
+    "storage"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "scripts": {
+    "dev": "run-p watch:compiler watch:server",
+    "watch:compiler": "webpack -w --colors",
+    "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
+    "prepare": "webpack --config webpack.config.js"
+  },
+  "main": "index.node.js",
+  "browser": "index.js",
+  "dependencies": {
+    "@firebase/app": "0.1.0",
+    "@firebase/auth": "0.1.0",
+    "@firebase/database": "0.1.0",
+    "@firebase/firestore": "0.1.0",
+    "@firebase/polyfill": "0.1.0",
+    "@firebase/messaging": "0.1.0",
+    "@firebase/storage": "0.1.0",
+    "dom-storage": "^2.0.2",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {
+    "compression-webpack-plugin": "^1.0.0",
+    "git-rev-sync": "^1.9.1",
+    "npm-run-all": "^4.1.1",
+    "webpack": "^3.5.6",
+    "webpack-dev-server": "^2.8.1",
+    "wrapper-webpack-plugin": "^1.0.0"
+  },
+  "typings": "index.d.ts"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@firebase/webchannel-wrapper",
+  "version": "0.2.2",
+  "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "watch 'npm run build' src",
+    "build": "node tools/build.js",
+    "prepare": "npm run build"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "closure-builder": "^2.2.23",
+    "watch": "^1.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/webchannel-wrapper"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

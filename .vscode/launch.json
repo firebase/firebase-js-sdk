@@ -8,24 +8,43 @@
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Node)",
-      "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
-      "args": ["test", "--suite=firestore/unit/", "--env=node"],
-      "port": 9229,
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "args": [
+        "--compilers", "ts:ts-node/register",
+        "-r", "src/platform_node/node_init.ts",
+        "--retries", "5",
+        "--timeout", "5000",
+        "test/{,!(integration|browser)/**/}*.test.ts"
+      ],
+      "sourceMaps": true,
       "protocol": "inspector"
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
-      "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
-      "args": ["test", "--suite=firestore/unit/", "--env=browser", "--debug"]
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "cwd": "${workspaceRoot}/packages/firestore",      
+      "args": [
+        "start",
+        "--auto-watch",
+        "--testFiles", "test/unit/bootstrap.ts",
+        "--browsers", "Chrome"
+      ]
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Firestore Integration Tests (Browser)",
-      "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
-      "args": ["test", "--suite=firestore/integration", "--env=browser", "--debug"]
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
+      "cwd": "${workspaceRoot}/packages/firestore",      
+      "args": [
+        "start",
+        "--auto-watch",
+        "--testFiles", "test/integration/bootstrap.ts",
+        "--browsers", "Chrome"
+      ]
     }
   ]
 }

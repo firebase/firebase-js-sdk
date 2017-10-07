@@ -33,8 +33,12 @@ function validateNamespace(definition, candidate) {
      * Grab all of the keys that aren't meta properties and capture 
      * them for more testing later
      */
-    const internalKeys = Object.keys(definitionChunk).filter(iKey => !~iKey.indexOf('__'));
-    const returnKeys = Object.keys(definitionChunk).filter(iKey => ~iKey.indexOf('__return'));
+    const internalKeys = Object.keys(definitionChunk).filter(
+      iKey => !~iKey.indexOf('__')
+    );
+    const returnKeys = Object.keys(definitionChunk).filter(
+      iKey => ~iKey.indexOf('__return')
+    );
     describe(`${key}`, function() {
       /**
        * Tests of the actual API
@@ -49,7 +53,7 @@ function validateNamespace(definition, candidate) {
        * If both the definition and candidate pieces are truthy
        * then we can continue validation of the nested layers
        */
-      if(definitionChunk && candidateChunk) {
+      if (definitionChunk && candidateChunk) {
         validateNamespace(definitionChunk, candidateChunk);
       }
 
@@ -67,8 +71,13 @@ function validateNamespace(definition, candidate) {
        *   }
        * }
        */
-      if (definitionChunk.__type === 'function' && definitionChunk.__return && candidateChunk()) {
-        validateNamespace(definitionChunk.__return, candidateChunk());        
+      if (
+        definitionChunk.__type === 'function' &&
+        definitionChunk.__return &&
+        typeof candidateChunk === 'function' &&
+        candidateChunk()
+      ) {
+        validateNamespace(definitionChunk.__return, candidateChunk());
       }
     });
   });

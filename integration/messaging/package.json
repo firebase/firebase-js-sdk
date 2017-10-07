@@ -1,6 +1,12 @@
 {
+  "name": "firebase-messaging-selenium-test",
+  "private": true,
+  "version": "0.1.0",
   "scripts": {
     "test": "node ./download-browsers.js && mocha"
+  },
+  "dependencies": {
+    "firebase": "^4.3.3"
   },
   "devDependencies": {
     "chai": "^4.1.1",
