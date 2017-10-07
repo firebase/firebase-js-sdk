@@ -12,8 +12,7 @@
     "test:node": "mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/nodePatches.ts --retries 5 --timeout 5000",
     "prepare": "gulp build"
   },
-  "author": "",
-  "license": "Apache-2",
+  "license": "Apache-2.0",
   "peerDependencies": {
     "@firebase/app": "^0.1.0"
   },

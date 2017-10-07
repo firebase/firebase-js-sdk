@@ -12,8 +12,7 @@
     "test:node": "mocha test/**/*.test.* --compilers ts:ts-node/register",
     "prepare": "gulp build"
   },
-  "author": "",
-  "license": "Apache-2",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/chai": "^4.0.4",
     "@types/mocha": "^2.2.42",
