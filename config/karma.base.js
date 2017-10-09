@@ -102,7 +102,14 @@ const config = {
     startConnect: false
   },
 
-  singleRun: false
+  singleRun: false,
+
+  client: {
+    mocha: {
+      timeout: 20000,
+      retries: 3
+    }
+  }
 };
 
 // In CI environment, use saucelabs to test
