@@ -56,7 +56,7 @@ function concatFiles() {
     ])
     .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(concat('firebase.js'))
-    .pipe(sourcemaps.write())
+    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('.'));
 }
 
