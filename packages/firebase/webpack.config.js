@@ -59,16 +59,6 @@ const baseConfig = {
   }
 };
 
-const singleExport = Object.assign({}, baseConfig, {
-  entry: {
-    firebase: resolve(__dirname, 'index.js')
-  },
-  output: Object.assign({}, baseConfig.output, {
-    library: 'firebase',
-    libraryTarget: 'window'
-  })
-});
-
 function isFirebaseApp(fileName) {
   const pathObj = parse(fileName);
   return pathObj.name === 'firebase-app';
@@ -114,4 +104,4 @@ const multiExport = Object.assign({}, baseConfig, {
   ]
 });
 
-module.exports = [singleExport, multiExport];
+module.exports = [multiExport];
