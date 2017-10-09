@@ -67,15 +67,15 @@ const buildSdk = gulp.series(compileWebpack(), concatFiles);
 
 gulp.task('build', buildSdk);
 gulp.task('watch', () => {
-  compileWebpack(true)(),
-    gulp.watch(
-      [
-        './firebase-app.js',
-        './firebase-auth.js',
-        './firebase-database.js',
-        './firebase-messaging.js',
-        './firebase-storage.js'
-      ],
-      concatFiles
-    );
+  compileWebpack(true)();
+  gulp.watch(
+    [
+      './firebase-app.js',
+      './firebase-auth.js',
+      './firebase-database.js',
+      './firebase-messaging.js',
+      './firebase-storage.js'
+    ],
+    concatFiles
+  );
 });
