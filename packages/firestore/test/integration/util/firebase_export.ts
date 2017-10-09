@@ -15,8 +15,9 @@
  */
 
 // Imports firebase via the raw sources and re-exports it.
-// This file exists so that the "<repo-root>/integration/firestore" test can
-// swap in a version that loads firebase from the npm module instead.
+// This file exists so that the "<repo-root>/integration/firestore" test suite
+// can replace this file reference with a reference to the minified sources
+// instead.
 
 import firebase from '@firebase/app';
 import '../../../index';
