@@ -190,7 +190,6 @@ export class Firestore implements firestore.Firestore, FirebaseService {
   private _firestoreClient: FirestoreClient | undefined;
   public _dataConverter: UserDataConverter;
 
-
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
