@@ -178,7 +178,8 @@ class FirestoreConfig {
  * The root reference to the database.
  */
 export class Firestore implements firestore.Firestore, FirebaseService {
-  private _config: FirestoreConfig;
+  private readonly _config: FirestoreConfig;
+  public readonly _databaseId: DatabaseId;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -189,9 +190,6 @@ export class Firestore implements firestore.Firestore, FirebaseService {
   private _firestoreClient: FirestoreClient | undefined;
   public _dataConverter: UserDataConverter;
 
-  public get _databaseId(): DatabaseId {
-    return this._config.databaseId;
-  }
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
@@ -220,6 +218,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
 
     config.settings = new FirestoreSettings({});
     this._config = config;
+    this._databaseId = config.databaseId;
   }
 
   settings(settingsLiteral: firestore.Settings): void {
