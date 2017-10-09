@@ -19,9 +19,9 @@
   },
   "scripts": {
     "dev": "run-p watch:compiler watch:server",
-    "watch:compiler": "webpack -w --colors",
+    "watch:compiler": "gulp watch",
     "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
-    "prepare": "webpack --config webpack.config.js"
+    "prepare": "gulp build"
   },
   "main": "index.node.js",
   "browser": "index.js",
@@ -30,8 +30,8 @@
     "@firebase/auth": "0.1.0",
     "@firebase/database": "0.1.0",
     "@firebase/firestore": "0.1.0",
-    "@firebase/polyfill": "0.1.0",
     "@firebase/messaging": "0.1.0",
+    "@firebase/polyfill": "0.1.0",
     "@firebase/storage": "0.1.0",
     "dom-storage": "^2.0.2",
     "xmlhttprequest": "^1.8.0"
@@ -39,9 +39,13 @@
   "devDependencies": {
     "compression-webpack-plugin": "^1.0.0",
     "git-rev-sync": "^1.9.1",
+    "gulp": "gulpjs/gulp#4.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-sourcemaps": "^2.6.1",
     "npm-run-all": "^4.1.1",
     "webpack": "^3.5.6",
     "webpack-dev-server": "^2.8.1",
+    "webpack-stream": "^4.0.0",
     "wrapper-webpack-plugin": "^1.0.0"
   },
   "typings": "index.d.ts"
