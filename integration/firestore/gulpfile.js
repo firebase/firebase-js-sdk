@@ -19,6 +19,7 @@ const replace = require('gulp-replace');
 const { resolve } = require('path');
 const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
+const filter = require('gulp-filter');
 
 function reworkFirebasePaths() {
   return gulp
@@ -64,6 +65,7 @@ function compileWebpack() {
       webpack
     )
   )
+  .pipe(filter(['**', '!**/*.d.ts']))
   .pipe(gulp.dest('dist'));
 }
 

@@ -9,6 +9,7 @@
     "@types/mocha": "^2.2.39",
     "@types/node": "^7.0.8",
     "gulp": "gulpjs/gulp#4.0",
+    "gulp-filter": "^5.0.1",
     "gulp-replace": "^0.6.1",
     "karma": "^1.7.0",
     "karma-chrome-launcher": "^2.2.0",
