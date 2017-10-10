@@ -160,6 +160,15 @@ export class FirestoreClient {
     return persistenceResult.promise;
   }
 
+  /** Enables the network connection and requeues all pending operations. */
+  public enableNetwork() : Promise<void> {
+    return this.asyncQueue
+        .schedule(() => {
+          this.remoteStore.enableNetwork();
+          return Promise.resolve();
+        });
+  }
+
   /**
    * Initializes persistent storage, attempting to use IndexedDB if
    * usePersistence is true or memory-only if false.
@@ -312,6 +321,15 @@ export class FirestoreClient {
 
     debug(LOG_TAG, 'User Changed: ' + user.uid);
     return this.syncEngine.handleUserChange(user);
+  }
+
+  /** Disabled the network connection. Pending operations will not complete. */
+  public disableNetwork() : Promise<void> {
+    return this.asyncQueue
+      .schedule(() => {
+        this.remoteStore.disableNetwork();
+        return Promise.resolve();
+      });
   }
 
   shutdown(): Promise<void> {

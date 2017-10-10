@@ -18,9 +18,10 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt } from '../../util/helpers';
+import { fasyncIt, asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
+import {Firestore} from '../../../src/api/database';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -513,5 +514,51 @@ apiDescribe('Database', persistence => {
       expect(nullDoc).to.equal(null);
       return Promise.resolve();
     });
+  });
+
+  fasyncIt('can queue writes while offline', () => {
+    return withTestDb(persistence, db => {
+      const docRef = db.collection('rooms').doc();
+      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+
+      console.log(firestoreClient);
+      console.log(docRef.firestore);
+
+      return firestoreClient.disableNetwork().then(() => {
+        return Promise.all([
+            docRef.delete(),
+            firestoreClient.enableNetwork()
+            ]);
+      }).then(() => Promise.resolve());
+    });
+  });
+
+  fasyncIt('can get documents while offline', () => {
+    return withTestDb(persistence, db => {
+      const docRef = db.collection('rooms').doc();
+      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+
+      return firestoreClient.disableNetwork().then(() => {
+        const promises = [];
+        let done : () => void;
+
+        promises.push(docRef.set({a:1}));
+        promises.push(new Promise(resolve => {
+          done = resolve;
+        }));
+
+        docRef.get().then(snapshot => {
+          expect(snapshot.metadata.fromCache).to.be.true;
+          firestoreClient.enableNetwork().then(() => {
+            return docRef.get().then(snapshot => {
+              expect(snapshot.metadata.fromCache).to.be.false;
+              done();
+            });
+          });
+        });
+
+        return Promise.all(promises);
+      }).then(() => Promise.resolve());;
+    })
   });
 });
