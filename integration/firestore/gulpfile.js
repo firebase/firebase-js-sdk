@@ -23,14 +23,17 @@ const filter = require('gulp-filter');
 
 function reworkFirebasePaths() {
   return gulp
-  .src([
-    resolve(__dirname, '../../packages/firestore/**/*.ts'),
-    `!${resolve(__dirname, '../../packages/firestore/node_modules/**/*')}`,
-    `!${resolve(__dirname, '../../packages/firestore/dist/**/*')}`
-  ], { base: '../../packages/firestore' })
-  .pipe(
-    replace(
-      /**
+    .src(
+      [
+        resolve(__dirname, '../../packages/firestore/**/*.ts'),
+        `!${resolve(__dirname, '../../packages/firestore/node_modules/**/*')}`,
+        `!${resolve(__dirname, '../../packages/firestore/dist/**/*')}`
+      ],
+      { base: '../../packages/firestore' }
+    )
+    .pipe(
+      replace(
+        /**
       * This regex is designed to match the following statement used in our
       * firestore integratino test suites:
       * 
@@ -39,34 +42,38 @@ function reworkFirebasePaths() {
       * It will handle variations in whitespace, single/double quote
       * differences, as well as different paths to a valid firebase_export
       */
-      /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-      'declare var firebase;'
+        /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
+        'declare var firebase;'
+      )
     )
-  )
-  .pipe(
-    /**
+    .pipe(
+      /**
      * Fixing the project.json require to properly reference the file
      */
-    replace('../../../../../config/project.json', '../../../../../../config/project.json')
-  )
-  .pipe(gulp.dest('temp'));
+      replace(
+        '../../../../../config/project.json',
+        '../../../../../../config/project.json'
+      )
+    )
+    .pipe(gulp.dest('temp'));
 }
 
 function compileWebpack() {
   const config = require('../../config/webpack.test');
-  return gulp.src('./temp/test/integration/**/*.ts')
-  .pipe(
-    webpackStream(
-      Object.assign({}, config, {
-        output: {
-          filename: 'test-harness.js'
-        }
-      }),
-      webpack
+  return gulp
+    .src('./temp/test/integration/**/*.ts')
+    .pipe(
+      webpackStream(
+        Object.assign({}, config, {
+          output: {
+            filename: 'test-harness.js'
+          }
+        }),
+        webpack
+      )
     )
-  )
-  .pipe(filter(['**', '!**/*.d.ts']))
-  .pipe(gulp.dest('dist'));
+    .pipe(filter(['**', '!**/*.d.ts']))
+    .pipe(gulp.dest('dist'));
 }
 
 gulp.task('compile-tests', gulp.series(reworkFirebasePaths, compileWebpack));
