@@ -189,15 +189,24 @@ export class RemoteStore {
     }
   }
 
-  private isNetworkEnabled() : boolean {
-    assert((this.watchStream == null) == (this.writeStream == null), 'WatchStream and WriteStream should both be null or non-null');
+  private isNetworkEnabled(): boolean {
+    assert(
+      (this.watchStream == null) == (this.writeStream == null),
+      'WatchStream and WriteStream should both be null or non-null'
+    );
     return this.watchStream != null;
   }
 
   /** Re-enables the network. Only to be called as the counterpart to disableNetwork(). */
-   enableNetwork() : Promise<void> {
-    assert(this.watchStream == null, "enableNetwork() called with non-null watchStream.");
-    assert(this.writeStream == null, "enableNetwork() called with non-null writeStream.");
+  enableNetwork(): Promise<void> {
+    assert(
+      this.watchStream == null,
+      'enableNetwork() called with non-null watchStream.'
+    );
+    assert(
+      this.writeStream == null,
+      'enableNetwork() called with non-null writeStream.'
+    );
 
     // Create new streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream({
@@ -225,7 +234,6 @@ export class RemoteStore {
       return this.fillWritePipeline(); // This may start the writeStream.
     });
   }
-
 
   /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
   disableNetwork() {
@@ -309,7 +317,10 @@ export class RemoteStore {
   }
 
   private startWatchStream(): void {
-    assert(this.shouldStartWatchStream(), "startWriteStream() called when shouldStartWatchStream() is false.");
+    assert(
+      this.shouldStartWatchStream(),
+      'startWriteStream() called when shouldStartWatchStream() is false.'
+    );
     this.watchStream.start();
   }
 
@@ -318,7 +329,11 @@ export class RemoteStore {
    * active targets trying to be listened too
    */
   private shouldStartWatchStream(): boolean {
-    return  this.isNetworkEnabled() && !this.watchStream.isStarted() && !objUtils.isEmpty(this.listenTargets);
+    return (
+      this.isNetworkEnabled() &&
+      !this.watchStream.isStarted() &&
+      !objUtils.isEmpty(this.listenTargets)
+    );
   }
 
   private cleanUpWatchStreamState(): void {
@@ -340,8 +355,10 @@ export class RemoteStore {
   }
 
   private onWatchStreamClose(error: FirestoreError | null): Promise<void> {
-    assert(this.isNetworkEnabled(),
-        "onWatchStreamClose() should only be called when the network is enabled");
+    assert(
+      this.isNetworkEnabled(),
+      'onWatchStreamClose() should only be called when the network is enabled'
+    );
 
     this.cleanUpWatchStreamState();
 
@@ -577,7 +594,9 @@ export class RemoteStore {
    * writes complete the backend will be able to accept more.
    */
   canWriteMutations(): boolean {
-    return this.isNetworkEnabled() && this.pendingWrites.length < MAX_PENDING_WRITES;
+    return (
+      this.isNetworkEnabled() && this.pendingWrites.length < MAX_PENDING_WRITES
+    );
   }
 
   // For testing
@@ -606,12 +625,19 @@ export class RemoteStore {
     }
   }
 
-  private shouldStartWriteStream() : boolean {
-    return this.isNetworkEnabled() && !this.writeStream.isStarted() && this.pendingWrites.length > 0;
+  private shouldStartWriteStream(): boolean {
+    return (
+      this.isNetworkEnabled() &&
+      !this.writeStream.isStarted() &&
+      this.pendingWrites.length > 0
+    );
   }
 
   private startWriteStream(): void {
-    assert(this.shouldStartWriteStream(), "startWriteStream() called when shouldStartWriteStream() is false.");
+    assert(
+      this.shouldStartWriteStream(),
+      'startWriteStream() called when shouldStartWriteStream() is false.'
+    );
     this.writeStream.start();
   }
 
@@ -670,8 +696,10 @@ export class RemoteStore {
   }
 
   private onWriteStreamClose(error?: FirestoreError): Promise<void> {
-    assert(this.isNetworkEnabled(),
-        "onWriteStreamClose() should only be called when the network is enabled");
+    assert(
+      this.isNetworkEnabled(),
+      'onWriteStreamClose() should only be called when the network is enabled'
+    );
 
     // Ignore close if there are no pending writes.
     if (this.pendingWrites.length > 0) {

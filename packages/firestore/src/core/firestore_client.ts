@@ -161,12 +161,11 @@ export class FirestoreClient {
   }
 
   /** Enables the network connection and requeues all pending operations. */
-  public enableNetwork() : Promise<void> {
-    return this.asyncQueue
-        .schedule(() => {
-          this.remoteStore.enableNetwork();
-          return Promise.resolve();
-        });
+  public enableNetwork(): Promise<void> {
+    return this.asyncQueue.schedule(() => {
+      this.remoteStore.enableNetwork();
+      return Promise.resolve();
+    });
   }
 
   /**
@@ -324,12 +323,11 @@ export class FirestoreClient {
   }
 
   /** Disabled the network connection. Pending operations will not complete. */
-  public disableNetwork() : Promise<void> {
-    return this.asyncQueue
-      .schedule(() => {
-        this.remoteStore.disableNetwork();
-        return Promise.resolve();
-      });
+  public disableNetwork(): Promise<void> {
+    return this.asyncQueue.schedule(() => {
+      this.remoteStore.disableNetwork();
+      return Promise.resolve();
+    });
   }
 
   shutdown(): Promise<void> {
