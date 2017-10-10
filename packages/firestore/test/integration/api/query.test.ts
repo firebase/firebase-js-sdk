@@ -18,11 +18,7 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import {
-  asyncIt,
-  EventsAccumulator,
-  toDataArray
-} from '../../util/helpers';
+import { asyncIt, EventsAccumulator, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
 import { Firestore } from '../../../src/api/database';

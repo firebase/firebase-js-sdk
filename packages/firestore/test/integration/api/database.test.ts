@@ -521,9 +521,6 @@ apiDescribe('Database', persistence => {
       const docRef = db.collection('rooms').doc();
       const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
 
-      console.log(firestoreClient);
-      console.log(docRef.firestore);
-
       return firestoreClient
         .disableNetwork()
         .then(() => {
