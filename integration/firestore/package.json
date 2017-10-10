@@ -6,8 +6,10 @@
     "test": "karma start --single-run"
   },
   "devDependencies": {
+    "@types/chai": "^4.0.4",
     "@types/mocha": "^2.2.39",
-    "@types/node": "^7.0.8",
+    "@types/node": "^8.0.34",
+    "chai": "^4.1.2",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-filter": "^5.0.1",
     "gulp-replace": "^0.6.1",
@@ -15,10 +17,12 @@
     "karma-chrome-launcher": "^2.2.0",
     "karma-mocha": "^1.3.0",
     "karma-spec-reporter": "0.0.31",
-    "mocha": "^3.5.0",
+    "karma-typescript": "^3.0.6",
+    "karma-webpack": "^2.0.4",
+    "mocha": "^4.0.1",
     "ts-loader": "^2.3.6",
     "typescript": "^2.4.2",
-    "webpack": "^3.6.0",
+    "webpack": "^3.7.1",
     "webpack-stream": "^4.0.0"
   }
 }

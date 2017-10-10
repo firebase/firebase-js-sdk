@@ -6,14 +6,14 @@
     "test": "node ./download-browsers.js && mocha"
   },
   "dependencies": {
-    "firebase": "^4.3.3"
+    "firebase": "^4.5.1"
   },
   "devDependencies": {
     "chai": "^4.1.1",
     "chromedriver": "^2.31.0",
     "express": "^4.15.4",
     "geckodriver": "^1.8.0",
-    "mocha": "^3.5.0",
+    "mocha": "^4.0.1",
     "node-fetch": "^1.7.2",
     "selenium-assistant": "^5.1.0"
   }
