@@ -1,6 +1,6 @@
 # `@firebase/storage`
 
-This is the authentication component for the Firebase JS SDK. It has a peer 
+This is the storage component for the Firebase JS SDK. It has a peer
 dependency on the [`@firebase/app`](https://npm.im) package on NPM. This package
 is included by default in the [`firebase`](https://npm.im/firebase) wrapper
 package.
@@ -24,7 +24,7 @@ below:
 import firebase from '@firebase/app';
 import '@firebase/storage'
 
-// Do stuff w/ `firebase` and `firebase.auth`
+// Do stuff w/ `firebase` and `firebase.storage`
 ```
 
 **CommonJS Modules**
@@ -33,7 +33,7 @@ import '@firebase/storage'
 const firebase = require('@firebase/app').default;
 require('@firebase/storage');
 
-// Do stuff with `firebase` and `firebase.auth`
+// Do stuff with `firebase` and `firebase.storage`
 ```
 
 ## Documentation
