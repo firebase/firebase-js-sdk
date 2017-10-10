@@ -20,38 +20,51 @@ const { resolve } = require('path');
 const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
 
-function compileIntTests() {
-  const config = require('../../config/webpack.test');
+function reworkFirebasePaths() {
   return gulp
-    .src(
-      resolve(__dirname, '../../packages/firestore/test/integration/**/*.ts')
+  .src([
+    resolve(__dirname, '../../packages/firestore/**/*.ts'),
+    `!${resolve(__dirname, '../../packages/firestore/node_modules/**/*')}`,
+    `!${resolve(__dirname, '../../packages/firestore/dist/**/*')}`
+  ], { base: '../../packages/firestore' })
+  .pipe(
+    replace(
+      /**
+      * This regex is designed to match the following statement used in our
+      * firestore integratino test suites:
+      * 
+      * import firebase from '../../util/firebase_export';
+      * 
+      * It will handle variations in whitespace, single/double quote
+      * differences, as well as different paths to a valid firebase_export
+      */
+      /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
+      'declare var firebase;'
     )
-    .pipe(
-      replace(
-        /**
-         * This regex is designed to match the following statement used in our
-         * firestore integratino test suites:
-         * 
-         * import firebase from '../../util/firebase_export';
-         * 
-         * It will handle variations in whitespace, single/double quote
-         * differences, as well as different paths to a valid firebase_export
-         */
-        /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
-        'declare var firebase;'
-      )
-    )
-    .pipe(
-      webpackStream(
-        Object.assign({}, config, {
-          output: {
-            filename: 'test-harness.js'
-          }
-        }),
-        webpack
-      )
-    )
-    .pipe(gulp.dest('dist'));
+  )
+  .pipe(
+    /**
+     * Fixing the project.json require to properly reference the file
+     */
+    replace('../../../../../config/project.json', '../../../../../../config/project.json')
+  )
+  .pipe(gulp.dest('temp'));
 }
 
-gulp.task('compile-tests', compileIntTests);
+function compileWebpack() {
+  const config = require('../../config/webpack.test');
+  return gulp.src('./temp/test/integration/**/*.ts')
+  .pipe(
+    webpackStream(
+      Object.assign({}, config, {
+        output: {
+          filename: 'test-harness.js'
+        }
+      }),
+      webpack
+    )
+  )
+  .pipe(gulp.dest('dist'));
+}
+
+gulp.task('compile-tests', gulp.series(reworkFirebasePaths, compileWebpack));
