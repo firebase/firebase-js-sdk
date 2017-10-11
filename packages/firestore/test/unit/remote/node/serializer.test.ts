@@ -70,19 +70,14 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
+import { loadProtos } from '../../../src/platform_node/load_protos';
 
-// TODO(b/66916481): Import protos and re-enable serializer tests.
-describe.skip('Serializer Beta', () => {
+describe('Serializer Beta', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
-  // TODO(b/66916481): Import protos and re-enable serializer tests.
-  // tslint:disable-next-line:no-any
-  //const protos: any = loadProtos().build();
-  //const ds = protos.google.firestore.v1beta1;
-
-  const protos = null;
-  const ds = null;
+  const protos: any = loadProtos().build();
+  const ds = protos.google.firestore.v1beta1;
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
