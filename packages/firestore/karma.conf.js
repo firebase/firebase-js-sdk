@@ -36,14 +36,7 @@ module.exports = function(config) {
         ],
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha'],
-
-    client: {
-      mocha: {
-        timeout: 20000,
-        retries: 3
-      }
-    }
+    frameworks: ['mocha']
   });
 
   config.set(karmaConfig);
