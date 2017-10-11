@@ -21,6 +21,7 @@ import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
+import { Firestore } from '../../../src/api/database';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -512,6 +513,49 @@ apiDescribe('Database', persistence => {
       const nullDoc = collection.parent;
       expect(nullDoc).to.equal(null);
       return Promise.resolve();
+    });
+  });
+
+  asyncIt('can queue writes while offline', () => {
+    return withTestDb(persistence, db => {
+      const docRef = db.collection('rooms').doc();
+      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+
+      return firestoreClient
+        .disableNetwork()
+        .then(() => {
+          return Promise.all([
+            docRef.set({ foo: 'bar' }),
+            firestoreClient.enableNetwork()
+          ]);
+        })
+        .then(() => docRef.get())
+        .then(doc => {
+          expect(doc.data()).to.deep.equal({ foo: 'bar' });
+        });
+    });
+  });
+
+  asyncIt('can get documents while offline', () => {
+    return withTestDb(persistence, db => {
+      const docRef = db.collection('rooms').doc();
+      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+
+      return firestoreClient.disableNetwork().then(() => {
+        const writePromise = docRef.set({ foo: 'bar' });
+
+        return docRef.get().then(snapshot => {
+          expect(snapshot.metadata.fromCache).to.be.true;
+          return firestoreClient.enableNetwork().then(() => {
+            return writePromise.then(() => {
+              docRef.get().then(doc => {
+                expect(snapshot.metadata.fromCache).to.be.false;
+                expect(doc.data()).to.deep.equal({ foo: 'bar' });
+              });
+            });
+          });
+        });
+      });
     });
   });
 });

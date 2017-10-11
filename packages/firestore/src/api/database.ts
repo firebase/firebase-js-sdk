@@ -187,7 +187,9 @@ export class Firestore implements firestore.Firestore, FirebaseService {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  private _firestoreClient: FirestoreClient | undefined;
+  //
+  // This is public for testing.
+  public _firestoreClient: FirestoreClient | undefined;
   public _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {

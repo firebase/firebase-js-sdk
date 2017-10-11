@@ -21,6 +21,8 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import { asyncIt, EventsAccumulator, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
+import { Firestore } from '../../../src/api/database';
+import { Deferred } from '../../../src/util/promise';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -449,6 +451,30 @@ apiDescribe('Queries', persistence => {
             testDocs['ba']
           ]);
         });
+    });
+  });
+
+  asyncIt('can query while reconnecting to network', () => {
+    return withTestCollection(persistence, /* docs= */ {}, coll => {
+      const firestoreClient = (coll.firestore as Firestore)._firestoreClient;
+
+      const deferred = new Deferred<void>();
+
+      const unregister = coll.onSnapshot(
+        { includeQueryMetadataChanges: true },
+        snapshot => {
+          if (!snapshot.empty && !snapshot.metadata.fromCache) {
+            deferred.resolve();
+          }
+        }
+      );
+
+      firestoreClient.disableNetwork().then(() => {
+        coll.doc().set({ a: 1 });
+        firestoreClient.enableNetwork();
+      });
+
+      return deferred.promise.then(unregister);
     });
   });
 });
