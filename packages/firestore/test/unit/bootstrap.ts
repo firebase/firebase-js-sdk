@@ -23,4 +23,7 @@ import '../../src/platform_browser/browser_init';
  * https://github.com/webpack-contrib/karma-webpack#alternative-usage
  */
 var testsContext = (require as any).context('.', true, /.test$/);
-testsContext.keys().forEach(testsContext);
+var browserTests = testsContext
+  .keys()
+  .filter(file => file.indexOf('/node/') < 0);
+browserTests.forEach(testsContext);
