@@ -456,7 +456,9 @@ apiDescribe('Queries', persistence => {
 
   asyncIt('can query while reconnecting to network', () => {
     return withTestCollection(persistence, /* docs= */ {}, coll => {
-      const firestoreClient = (coll.firestore as Firestore)._firestoreClient;
+      // TODO(mikelehen): Find better way to expose this to tests.
+      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
+      const firestoreInternal = coll.firestore.INTERNAL as any;
 
       const deferred = new Deferred<void>();
 
@@ -469,9 +471,9 @@ apiDescribe('Queries', persistence => {
         }
       );
 
-      firestoreClient.disableNetwork().then(() => {
+      firestoreInternal.disableNetwork().then(() => {
         coll.doc().set({ a: 1 });
-        firestoreClient.enableNetwork();
+        firestoreInternal.enableNetwork();
       });
 
       return deferred.promise.then(unregister);
