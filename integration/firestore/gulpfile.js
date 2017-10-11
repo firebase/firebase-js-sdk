@@ -34,22 +34,22 @@ function reworkFirebasePaths() {
     .pipe(
       replace(
         /**
-      * This regex is designed to match the following statement used in our
-      * firestore integratino test suites:
-      * 
-      * import firebase from '../../util/firebase_export';
-      * 
-      * It will handle variations in whitespace, single/double quote
-      * differences, as well as different paths to a valid firebase_export
-      */
+         * This regex is designed to match the following statement used in our
+         * firestore integratino test suites:
+         * 
+         * import firebase from '../../util/firebase_export';
+         *  
+         * It will handle variations in whitespace, single/double quote
+         * differences, as well as different paths to a valid firebase_export
+         */
         /import\s+firebase\s+from\s+('|")[^\1]+firebase_export\1;?/,
         'declare var firebase;'
       )
     )
     .pipe(
       /**
-     * Fixing the project.json require to properly reference the file
-     */
+       * Fixing the project.json require to properly reference the file
+       */
       replace(
         '../../../../../config/project.json',
         '../../../../../../config/project.json'
