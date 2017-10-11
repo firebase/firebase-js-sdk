@@ -525,11 +525,14 @@ apiDescribe('Database', persistence => {
         .disableNetwork()
         .then(() => {
           return Promise.all([
-            docRef.delete(),
+            docRef.set({ foo: 'bar' }),
             firestoreClient.enableNetwork()
           ]);
         })
-        .then(() => Promise.resolve());
+          .then(() => docRef.get())
+          .then(doc =>{
+            expect(doc.data()).to.deep.equal({ foo: 'bar' });
+          });
     });
   });
 
@@ -541,29 +544,20 @@ apiDescribe('Database', persistence => {
       return firestoreClient
         .disableNetwork()
         .then(() => {
-          const promises = [];
-          let done: () => void;
+          const writePromise = docRef.set({foo: 'bar'});
 
-          promises.push(docRef.set({ a: 1 }));
-          promises.push(
-            new Promise(resolve => {
-              done = resolve;
-            })
-          );
-
-          docRef.get().then(snapshot => {
+          return docRef.get().then(snapshot => {
             expect(snapshot.metadata.fromCache).to.be.true;
-            firestoreClient.enableNetwork().then(() => {
-              return docRef.get().then(snapshot => {
-                expect(snapshot.metadata.fromCache).to.be.false;
-                done();
+            return firestoreClient.enableNetwork().then(() => {
+              return writePromise.then(() => {
+                docRef.get().then(doc => {
+                  expect(snapshot.metadata.fromCache).to.be.false;
+                  expect(doc.data()).to.deep.equal({foo: 'bar'});
+                });
               });
             });
-          });
-
-          return Promise.all(promises);
-        })
-        .then(() => Promise.resolve());
+          })
+        });
     });
   });
 });

@@ -163,8 +163,7 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   public enableNetwork(): Promise<void> {
     return this.asyncQueue.schedule(() => {
-      this.remoteStore.enableNetwork();
-      return Promise.resolve();
+      return this.remoteStore.enableNetwork();
     });
   }
 
@@ -322,11 +321,10 @@ export class FirestoreClient {
     return this.syncEngine.handleUserChange(user);
   }
 
-  /** Disabled the network connection. Pending operations will not complete. */
+  /** Disables the network connection. Pending operations will not complete. */
   public disableNetwork(): Promise<void> {
     return this.asyncQueue.schedule(() => {
-      this.remoteStore.disableNetwork();
-      return Promise.resolve();
+      return this.remoteStore.disableNetwork();
     });
   }
 

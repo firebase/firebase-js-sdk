@@ -22,6 +22,7 @@ import { asyncIt, EventsAccumulator, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
 import { Firestore } from '../../../src/api/database';
+import { Deferred } from '../../../src/util/promise';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -457,14 +458,11 @@ apiDescribe('Queries', persistence => {
     return withTestCollection(persistence, /* docs= */ {}, coll => {
       const firestoreClient = (coll.firestore as Firestore)._firestoreClient;
 
-      let done: () => void;
-      const promise = new Promise<void>(resolve => {
-        done = resolve;
-      });
+      const deferred = new Deferred<void>();
 
-      coll.onSnapshot({ includeQueryMetadataChanges: true }, snapshot => {
+      const unregister = coll.onSnapshot({ includeQueryMetadataChanges: true }, snapshot => {
         if (!snapshot.empty && !snapshot.metadata.fromCache) {
-          done();
+          deferred.resolve();
         }
       });
 
@@ -473,7 +471,7 @@ apiDescribe('Queries', persistence => {
         firestoreClient.enableNetwork();
       });
 
-      return promise;
+      return deferred.promise.then(unregister);
     });
   });
 });
