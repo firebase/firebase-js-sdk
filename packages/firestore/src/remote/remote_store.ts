@@ -236,7 +236,7 @@ export class RemoteStore {
   }
 
   /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
-  disableNetwork() : Promise<void> {
+  disableNetwork(): Promise<void> {
     this.updateAndBroadcastOnlineState(OnlineState.Failed);
 
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close

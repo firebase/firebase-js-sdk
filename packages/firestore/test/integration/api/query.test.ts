@@ -460,11 +460,14 @@ apiDescribe('Queries', persistence => {
 
       const deferred = new Deferred<void>();
 
-      const unregister = coll.onSnapshot({ includeQueryMetadataChanges: true }, snapshot => {
-        if (!snapshot.empty && !snapshot.metadata.fromCache) {
-          deferred.resolve();
+      const unregister = coll.onSnapshot(
+        { includeQueryMetadataChanges: true },
+        snapshot => {
+          if (!snapshot.empty && !snapshot.metadata.fromCache) {
+            deferred.resolve();
+          }
         }
-      });
+      );
 
       firestoreClient.disableNetwork().then(() => {
         coll.doc().set({ a: 1 });

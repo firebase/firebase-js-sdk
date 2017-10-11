@@ -529,10 +529,10 @@ apiDescribe('Database', persistence => {
             firestoreClient.enableNetwork()
           ]);
         })
-          .then(() => docRef.get())
-          .then(doc =>{
-            expect(doc.data()).to.deep.equal({ foo: 'bar' });
-          });
+        .then(() => docRef.get())
+        .then(doc => {
+          expect(doc.data()).to.deep.equal({ foo: 'bar' });
+        });
     });
   });
 
@@ -541,23 +541,21 @@ apiDescribe('Database', persistence => {
       const docRef = db.collection('rooms').doc();
       const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
 
-      return firestoreClient
-        .disableNetwork()
-        .then(() => {
-          const writePromise = docRef.set({foo: 'bar'});
+      return firestoreClient.disableNetwork().then(() => {
+        const writePromise = docRef.set({ foo: 'bar' });
 
-          return docRef.get().then(snapshot => {
-            expect(snapshot.metadata.fromCache).to.be.true;
-            return firestoreClient.enableNetwork().then(() => {
-              return writePromise.then(() => {
-                docRef.get().then(doc => {
-                  expect(snapshot.metadata.fromCache).to.be.false;
-                  expect(doc.data()).to.deep.equal({foo: 'bar'});
-                });
+        return docRef.get().then(snapshot => {
+          expect(snapshot.metadata.fromCache).to.be.true;
+          return firestoreClient.enableNetwork().then(() => {
+            return writePromise.then(() => {
+              docRef.get().then(doc => {
+                expect(snapshot.metadata.fromCache).to.be.false;
+                expect(doc.data()).to.deep.equal({ foo: 'bar' });
               });
             });
-          })
+          });
         });
+      });
     });
   });
 });
