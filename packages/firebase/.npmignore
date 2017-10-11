@@ -1,6 +1,7 @@
 .gitignore
 *.gz
-webpack.config.js
+webpack.*.js
 index.html
 dev.js
 index.dev.js
+gulpfile.js
