@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#TODO(jshcrowthe): Consider migrating this to gulpfile.js
-
 set -euo pipefail
 IFS=$'\n\t'
 
