@@ -44,7 +44,7 @@ export function initStandalone(app, url) {
       ServerValue: Database.ServerValue,
       TEST_ACCESS
     }
-  }
+  };
 }
 
 export function registerDatabase(instance: FirebaseNamespace) {
