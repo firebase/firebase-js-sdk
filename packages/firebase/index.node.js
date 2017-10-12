@@ -17,8 +17,6 @@
 var firebase = require('@firebase/app').default;
 require('./auth');
 require('./database');
-require('./storage');
-require('./messaging');
 require('@firebase/polyfill');
 
 var Storage = require('dom-storage');

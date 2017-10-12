@@ -1,4 +1,4 @@
-# `@firebase/util`
+# @firebase/util
 
 _NOTE: This is specifically tailored for Firebase JS SDK usage, if you are not a
 member of the Firebase team, please avoid using this package_
@@ -18,7 +18,7 @@ $ npm install @firebase/util
 **ES Modules**
 
 ```javascript
-import { Deferrred } from '@firebase/util';
+import { Deferred } from '@firebase/util';
 
 // Do stuff with Deferred or any of the other Utils you import
 ```

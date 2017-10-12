@@ -519,14 +519,16 @@ apiDescribe('Database', persistence => {
   asyncIt('can queue writes while offline', () => {
     return withTestDb(persistence, db => {
       const docRef = db.collection('rooms').doc();
-      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+      // TODO(mikelehen): Find better way to expose this to tests.
+      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
+      const firestoreInternal = docRef.firestore.INTERNAL as any;
 
-      return firestoreClient
+      return firestoreInternal
         .disableNetwork()
         .then(() => {
           return Promise.all([
             docRef.set({ foo: 'bar' }),
-            firestoreClient.enableNetwork()
+            firestoreInternal.enableNetwork()
           ]);
         })
         .then(() => docRef.get())
@@ -539,14 +541,16 @@ apiDescribe('Database', persistence => {
   asyncIt('can get documents while offline', () => {
     return withTestDb(persistence, db => {
       const docRef = db.collection('rooms').doc();
-      const firestoreClient = (docRef.firestore as Firestore)._firestoreClient;
+      // TODO(mikelehen): Find better way to expose this to tests.
+      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
+      const firestoreInternal = docRef.firestore.INTERNAL as any;
 
-      return firestoreClient.disableNetwork().then(() => {
+      return firestoreInternal.disableNetwork().then(() => {
         const writePromise = docRef.set({ foo: 'bar' });
 
         return docRef.get().then(snapshot => {
           expect(snapshot.metadata.fromCache).to.be.true;
-          return firestoreClient.enableNetwork().then(() => {
+          return firestoreInternal.enableNetwork().then(() => {
             return writePromise.then(() => {
               docRef.get().then(doc => {
                 expect(snapshot.metadata.fromCache).to.be.false;

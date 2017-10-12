@@ -187,9 +187,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
   //
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
-  //
-  // This is public for testing.
-  public _firestoreClient: FirestoreClient | undefined;
+  private _firestoreClient: FirestoreClient | undefined;
   public _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
@@ -373,7 +371,10 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       } else {
         return Promise.resolve();
       }
-    }
+    },
+    // Exposed via INTERNAL for use in tests.
+    disableNetwork: () => this._firestoreClient.disableNetwork(),
+    enableNetwork: () => this._firestoreClient.enableNetwork()
   };
 
   collection(pathString: string): firestore.CollectionReference {
