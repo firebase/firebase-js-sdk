@@ -54,5 +54,6 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
-  }
+  },
+  "typings": "dist/esm/index.d.ts"
 }
