@@ -14,18 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euo pipefail
+IFS=$'\n\t'
 
 # Variables
 PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
-
-# check if tmp dir was created
-if [[ ! "$WORK_DIR" || ! -d "$WORK_DIR" ]]; then
-  echo "Could not create temp dir"
-  exit 1
-fi
 
 # deletes the temp directory on exit
 function cleanup {
@@ -40,8 +34,8 @@ trap cleanup EXIT
 pushd "$WORK_DIR"
 
 # Clone necessary git repos.
-git clone git@github.com:googleapis/googleapis.git
-git clone git@github.com:google/protobuf.git
+git clone https://github.com/googleapis/googleapis.git
+git clone https://github.com/google/protobuf.git
 
 # Copy necessary protos.
 mkdir -p "${PROTOS_DIR}/google/api"
@@ -61,7 +55,7 @@ cp googleapis/google/type/latlng.proto \
    "${PROTOS_DIR}/google/type/"
 
 mkdir -p "${PROTOS_DIR}/google/protobuf"
-cp protobuf/src/google/protobuf/{any.proto,empty.proto,struct.proto,timestamp.proto,wrappers.proto} \
+cp protobuf/src/google/protobuf/{any,empty,struct,timestamp,wrappers}.proto \
    "${PROTOS_DIR}/google/protobuf/"
 
 popd
