@@ -17,40 +17,40 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Blob } from '../../../src/api/blob';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { DatabaseId } from '../../../src/core/database_info';
+import * as api from '../../../../src/protos/firestore_proto_api';
+import { Blob } from '../../../../src/api/blob';
+import { GeoPoint } from '../../../../src/api/geo_point';
+import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
   OrderBy,
   Query,
   RelationFilter,
   RelationOp
-} from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Timestamp } from '../../../src/core/timestamp';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
-import * as fieldValue from '../../../src/model/field_value';
+} from '../../../../src/core/query';
+import { SnapshotVersion } from '../../../../src/core/snapshot_version';
+import { Timestamp } from '../../../../src/core/timestamp';
+import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
+import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
   Mutation,
   Precondition,
   SetMutation
-} from '../../../src/model/mutation';
-import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+} from '../../../../src/model/mutation';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../src/remote/watch_change';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { AnyJs } from '../../../src/util/misc';
-import * as obj from '../../../src/util/obj';
-import * as types from '../../../src/util/types';
-import { addEqualityMatcher } from '../../util/equality_matcher';
+} from '../../../../src/remote/watch_change';
+import { Code, FirestoreError } from '../../../../src/util/error';
+import { AnyJs } from '../../../../src/util/misc';
+import * as obj from '../../../../src/util/obj';
+import * as types from '../../../../src/util/types';
+import { addEqualityMatcher } from '../../../util/equality_matcher';
 import {
   bound,
   dbId,
@@ -69,8 +69,8 @@ import {
   version,
   wrap,
   wrapObject
-} from '../../util/helpers';
-import { loadProtos } from '../../../src/platform_node/load_protos';
+} from '../../../util/helpers';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
 
 describe('Serializer Beta', () => {
   const partition = new DatabaseId('p', 'd');
