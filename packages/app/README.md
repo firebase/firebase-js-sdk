@@ -1,4 +1,4 @@
-# `@firebase/app`
+# @firebase/app
 
 This is the primary entrypoint to the Firebase JS SDK. **All apps using firebase
 will need this package**. Other `@firebase` packages are typically mounted on to
