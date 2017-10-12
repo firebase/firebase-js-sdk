@@ -25,32 +25,6 @@ import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import './src/nodePatches';
 
-export function registerDatabase(instance: FirebaseNamespace) {
-  // Register the Database Service with the 'firebase' namespace.
-  const namespace = instance.INTERNAL.registerService(
-    'database',
-    (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
-    // firebase.database namespace properties
-    {
-      Reference,
-      Query,
-      Database,
-      enableLogging,
-      INTERNAL,
-      ServerValue: Database.ServerValue,
-      TEST_ACCESS
-    },
-    null,
-    true
-  );
-
-  if (isNodeSdk()) {
-    module.exports = namespace;
-  }
-}
-
-registerDatabase(firebase);
-
 /**
  * A one off register function which returns a database based on the app and
  * passed database URL.
@@ -72,3 +46,29 @@ export function initStandalone(app, url) {
     }
   }
 }
+
+export function registerDatabase(instance: FirebaseNamespace) {
+  // Register the Database Service with the 'firebase' namespace.
+  const namespace = instance.INTERNAL.registerService(
+    'database',
+    (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
+    // firebase.database namespace properties
+    {
+      Reference,
+      Query,
+      Database,
+      enableLogging,
+      INTERNAL,
+      ServerValue: Database.ServerValue,
+      TEST_ACCESS
+    },
+    null,
+    true
+  );
+
+  if (isNodeSdk()) {
+    module.exports = Object.assign({}, namespace, { initStandalone });
+  }
+}
+
+registerDatabase(firebase);
