@@ -35,7 +35,7 @@ import './src/nodePatches';
 export function initStandalone(app, url) {
   return {
     instance: RepoManager.getInstance().databaseFromApp(app, url),
-    namespaces: {
+    namespace: {
       Reference,
       Query,
       Database,
