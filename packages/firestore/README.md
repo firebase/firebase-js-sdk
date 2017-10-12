@@ -1,7 +1,7 @@
-# `@firebase/firestore`
+# @firebase/firestore
 
 This is the Firestore component for the Firebase JS SDK. It has a peer
-dependency on the [`@firebase/app`](https://npm.im) package on NPM. This package
+dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM. This package
 **is not** included by default in the [`firebase`](https://npm.im/firebase)
 wrapper package.
 
