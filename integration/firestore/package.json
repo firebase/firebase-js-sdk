@@ -1,6 +1,7 @@
 {
   "name": "firebase-firestore-integration-test",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "pretest": "gulp compile-tests",
     "test": "karma start --single-run"
