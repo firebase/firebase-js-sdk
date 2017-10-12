@@ -43,7 +43,7 @@ export function loadProtos(
     // fields in oneof groups (!!!).
     convertFieldsToCamelCase: true
   });
-  const root = __dirname + '/../proto';
+  const root = __dirname + '/../protos';
   const firestoreProtoFile = {
     root: root,
     file: 'google/firestore/v1beta1/firestore.proto'

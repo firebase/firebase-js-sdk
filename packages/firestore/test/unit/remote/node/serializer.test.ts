@@ -17,40 +17,40 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../src/protos/firestore_proto_api';
-import { Blob } from '../../../src/api/blob';
-import { GeoPoint } from '../../../src/api/geo_point';
-import { DatabaseId } from '../../../src/core/database_info';
+import * as api from '../../../../src/protos/firestore_proto_api';
+import { Blob } from '../../../../src/api/blob';
+import { GeoPoint } from '../../../../src/api/geo_point';
+import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
   OrderBy,
   Query,
   RelationFilter,
   RelationOp
-} from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Timestamp } from '../../../src/core/timestamp';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
-import * as fieldValue from '../../../src/model/field_value';
+} from '../../../../src/core/query';
+import { SnapshotVersion } from '../../../../src/core/snapshot_version';
+import { Timestamp } from '../../../../src/core/timestamp';
+import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
+import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
   FieldMask,
   Mutation,
   Precondition,
   SetMutation
-} from '../../../src/model/mutation';
-import { DOCUMENT_KEY_NAME, FieldPath } from '../../../src/model/path';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+} from '../../../../src/model/mutation';
+import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
   WatchTargetChange,
   WatchTargetChangeState
-} from '../../../src/remote/watch_change';
-import { Code, FirestoreError } from '../../../src/util/error';
-import { AnyJs } from '../../../src/util/misc';
-import * as obj from '../../../src/util/obj';
-import * as types from '../../../src/util/types';
-import { addEqualityMatcher } from '../../util/equality_matcher';
+} from '../../../../src/remote/watch_change';
+import { Code, FirestoreError } from '../../../../src/util/error';
+import { AnyJs } from '../../../../src/util/misc';
+import * as obj from '../../../../src/util/obj';
+import * as types from '../../../../src/util/types';
+import { addEqualityMatcher } from '../../../util/equality_matcher';
 import {
   bound,
   dbId,
@@ -69,20 +69,15 @@ import {
   version,
   wrap,
   wrapObject
-} from '../../util/helpers';
+} from '../../../util/helpers';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
 
-// TODO(b/66916481): Import protos and re-enable serializer tests.
-describe.skip('Serializer Beta', () => {
+describe('Serializer Beta', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
-  // TODO(b/66916481): Import protos and re-enable serializer tests.
-  // tslint:disable-next-line:no-any
-  //const protos: any = loadProtos().build();
-  //const ds = protos.google.firestore.v1beta1;
-
-  const protos = null;
-  const ds = null;
+  const protos: any = loadProtos().build();
+  const ds = protos.google.firestore.v1beta1;
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
