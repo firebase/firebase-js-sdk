@@ -1587,4 +1587,4 @@ declare namespace firebase.firestore {
   }
 }
 
-export default firebase;
+export = firebase;
