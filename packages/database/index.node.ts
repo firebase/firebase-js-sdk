@@ -50,3 +50,25 @@ export function registerDatabase(instance: FirebaseNamespace) {
 }
 
 registerDatabase(firebase);
+
+/**
+ * A one off register function which returns a database based on the app and
+ * passed database URL.
+ * 
+ * @param app A valid FirebaseApp-like object
+ * @param url A valid Firebase databaseURL 
+ */
+export function initStandalone(app, url) {
+  return {
+    instance: RepoManager.getInstance().databaseFromApp(app, url),
+    namespaces: {
+      Reference,
+      Query,
+      Database,
+      enableLogging,
+      INTERNAL,
+      ServerValue: Database.ServerValue,
+      TEST_ACCESS
+    }
+  }
+}
