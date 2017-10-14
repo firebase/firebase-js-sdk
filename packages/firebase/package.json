@@ -25,6 +25,7 @@
   },
   "main": "index.node.js",
   "browser": "index.js",
+  "react-native": "index.react-native.js",
   "dependencies": {
     "@firebase/app": "0.1.0",
     "@firebase/auth": "0.1.0",
