@@ -742,6 +742,13 @@ export class DocumentReference implements firestore.DocumentReference {
     return new CollectionReference(this._key.path.child(path), this.firestore);
   }
 
+  isEqual(other: firestore.DocumentReference): boolean {
+    if (!(other instanceof DocumentReference)) {
+      throw invalidClassError('isEqual', 'DocumentReference', 1, other);
+    }
+    return this.firestore === other.firestore && this._key.equals(other._key);
+  }
+
   set(
     value: firestore.DocumentData,
     options?: firestore.SetOptions
@@ -1238,6 +1245,15 @@ export class Query implements firestore.Query {
       /*before=*/ false
     );
     return new Query(this._query.withEndAt(bound), this.firestore);
+  }
+
+  isEqual(other: firestore.Query): boolean {
+    if (!(other instanceof Query)) {
+      throw invalidClassError('isEqual', 'Query', 1, other);
+    }
+    return (
+      this.firestore === other.firestore && this._query.equals(other._query)
+    );
   }
 
   /** Helper function to create a bound from a document or fields */

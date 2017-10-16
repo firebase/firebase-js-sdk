@@ -468,17 +468,63 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('exposes "database" on document references.', () => {
+  asyncIt('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
       return Promise.resolve();
     });
   });
 
-  asyncIt('exposes "database" on query references.', () => {
+  asyncIt('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
       return Promise.resolve();
+    });
+  });
+
+  asyncIt('can compare DocumentReference instances with isEqual().', () => {
+    return withTestDb(persistence, firestore => {
+      return withTestDb(persistence, otherFirestore => {
+        const docRef = firestore.doc('foo/bar');
+        expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
+        expect(docRef.collection('baz').parent.isEqual(docRef)).to.be.true;
+
+        expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
+
+        expect(otherFirestore.doc('foo/bar').isEqual(docRef)).to.be.false;
+
+        return Promise.resolve();
+      });
+    });
+  });
+
+  asyncIt('can compare Query instances with isEqual().', () => {
+    return withTestDb(persistence, firestore => {
+      return withTestDb(persistence, otherFirestore => {
+        const query = firestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        const query2 = firestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        expect(query.isEqual(query2)).to.be.true;
+
+        const query3 = firestore
+          .collection('foo')
+          .orderBy('BAR')
+          .where('baz', '==', 42);
+        expect(query.isEqual(query3)).to.be.false;
+
+        const query4 = otherFirestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        expect(query4.isEqual(query)).to.be.false;
+
+        return Promise.resolve();
+      });
     });
   });
 
