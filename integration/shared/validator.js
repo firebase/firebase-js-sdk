@@ -23,7 +23,9 @@ function validateNamespace(definition, candidate) {
   if (!validatedVersion) {
     describe('Firebase SDK Version', function() {
       it('Should be properly defined', function() {
-        __expect(candidate.SDK_VERSION).to.equal(require('../../packages/firebase/package.json').version);
+        __expect(candidate.SDK_VERSION).to.equal(
+          require('../../packages/firebase/package.json').version
+        );
       });
     });
     validatedVersion = true;
@@ -50,7 +52,7 @@ function validateNamespace(definition, candidate) {
     const returnKeys = Object.keys(definitionChunk).filter(
       iKey => ~iKey.indexOf('__return')
     );
-    
+
     describe(`${key}`, function() {
       /**
        * Tests of the actual API

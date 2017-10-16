@@ -21,20 +21,20 @@ const sourcemaps = require('gulp-sourcemaps');
 const tools = require('../../tools/build');
 
 function postProcess() {
-  return gulp.src(resolve(__dirname, 'dist/**/*.js'), { base: '.' })
+  return gulp
+    .src(resolve(__dirname, 'dist/**/*.js'), { base: '.' })
     .pipe(sourcemaps.init({ loadMaps: true }))
-    .pipe(replace('${JSCORE_VERSION}', require('../firebase/package.json').version))
+    .pipe(
+      replace('${JSCORE_VERSION}', require('../firebase/package.json').version)
+    )
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest('.'));
 }
 
 const buildModule = gulp.series(
-  gulp.parallel([
-    tools.buildCjs(__dirname),
-    tools.buildEsm(__dirname)
-  ]),
+  gulp.parallel([tools.buildCjs(__dirname), tools.buildEsm(__dirname)]),
   postProcess
-)
+);
 
 const setupWatcher = () => {
   gulp.watch('src/**/*', buildModule);
