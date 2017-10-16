@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "dist/cjs/index.node.js",
   "browser": "dist/cjs/index.js",
@@ -17,7 +17,7 @@
     "@firebase/app": "^0.1.0"
   },
   "dependencies": {
-    "@firebase/util": "^0.1.0",
+    "@firebase/util": "^0.1.1",
     "faye-websocket": "0.9.3"
   },
   "devDependencies": {

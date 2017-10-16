@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "dist/auth.js",
   "scripts": {
     "dev": "echo 'Skipping @firebase/auth dev step'",
