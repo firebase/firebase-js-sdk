@@ -21,6 +21,8 @@
     "@types/sinon": "^2.3.3",
     "chai": "^4.1.1",
     "gulp": "gulpjs/gulp#4.0",
+    "gulp-replace": "^0.6.1",
+    "gulp-sourcemaps": "^2.6.1",
     "karma": "^1.7.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-cli": "^1.0.1",
