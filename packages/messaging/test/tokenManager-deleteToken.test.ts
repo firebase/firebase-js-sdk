@@ -14,34 +14,36 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import dbTMHelper from './db-token-manager';
+import dbTMHelper from './testing-utils/db-token-manager';
 import TokenManager from '../src/models/token-manager';
+import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 
 describe('Firebase Messaging > tokenManager.deleteToken()', function() {
   let globalTokenManager = null;
-  let stubs = [];
+
+  const cleanUp = () => {
+    const promises = [dbTMHelper.closeDatabase()];
+    if (globalTokenManager) {
+      promises.push(globalTokenManager.closeDatabase());
+    }
+    return Promise.all(promises)
+    .then(() => deleteDatabase(TokenManager.DB_NAME))
+    .then(() => globalTokenManager = null);
+  }
 
   beforeEach(function() {
-    globalTokenManager = null;
-    return dbTMHelper.deleteDB();
+    return cleanUp();
   });
 
-  afterEach(function() {
-    stubs.forEach(stub => {
-      stub.restore();
-    });
-    stubs = [];
-
-    return Promise.all([
-      globalTokenManager.closeDatabase(),
-      dbTMHelper.closeDatabase()
-    ]);
+  after(function() {
+    return cleanUp();
   });
 
   it('should handle nothing', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken().then(
+    return globalTokenManager.deleteToken()
+    .then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -56,7 +58,8 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
 
   it('should handle empty string', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken('').then(
+    return globalTokenManager.deleteToken('')
+    .then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },

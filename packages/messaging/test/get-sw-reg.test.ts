@@ -22,24 +22,30 @@ import Errors from '../src/models/errors';
 import WindowController from '../src/controllers/window-controller';
 import SWController from '../src/controllers/sw-controller';
 
-let stubs = [];
 const EXAMPLE_SENDER_ID = '1234567890';
 
 const app = makeFakeApp({
   messagingSenderId: EXAMPLE_SENDER_ID
 });
 
-const mockWindowRegistration = registration => {
-  const regStub = sinon.stub(navigator.serviceWorker, 'register');
-  regStub.callsFake(() => Promise.resolve(registration));
-  stubs.push(regStub);
-};
-
 describe('Firebase Messaging > *Controller.getSWReg_()', function() {
-  afterEach(function() {
-    stubs.forEach(stub => {
-      stub.restore();
-    });
+  const sandbox = sinon.sandbox.create();
+
+  const mockWindowRegistration = registration => {
+    sandbox.stub(navigator.serviceWorker, 'register')
+      .callsFake(() => Promise.resolve(registration));
+  };
+
+  const cleanUp = () => {
+    sandbox.restore();
+  };
+
+  beforeEach(function() {
+    return cleanUp();
+  })
+
+  after(function() {
+    return cleanUp();
   });
 
   it('should get sw reg in window', function() {
@@ -105,7 +111,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
 
   it('should make registration error available to developer', function() {
     const errorMsg = 'test-reg-error-1234567890';
-    const mockRegisterMethod = sinon.stub(navigator.serviceWorker, 'register');
+    const mockRegisterMethod = sandbox.stub(navigator.serviceWorker, 'register');
     mockRegisterMethod.callsFake(() => Promise.reject(new Error(errorMsg)));
 
     const messagingService = new WindowController(app);

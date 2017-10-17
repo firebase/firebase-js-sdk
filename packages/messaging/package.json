@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "gulp dev",
     "test": "karma start --single-run",
+    "test:manual": "karma start --browsers=Chrome --auto-watch",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",

@@ -177,7 +177,7 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    this.tokenManager_.closeDatabase();
+    return this.tokenManager_.closeDatabase();
   }
 
   /**

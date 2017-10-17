@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import dbHelpers from './db-helper';
+import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import VapidDetailsModel from '../src/models/vapid-details-model';
 
@@ -26,20 +26,23 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
 
   let vapidModel;
 
-  beforeEach(function() {
-    vapidModel = null;
-    return dbHelpers.deleteDb(VapidDetailsModel.dbName);
-  });
-
-  afterEach(function() {
+  const cleanUp = () => {
     let promiseChain = Promise.resolve();
     if (vapidModel) {
       promiseChain = promiseChain.then(() => vapidModel.closeDatabase());
     }
 
-    return promiseChain.then(() => {
-      return dbHelpers.deleteDb(VapidDetailsModel.dbName);
-    });
+    return promiseChain
+      .then(() => deleteDatabase(VapidDetailsModel.dbName))
+      .then(() => vapidModel = null);
+  };
+
+  beforeEach(function() {
+    return cleanUp();
+  });
+
+  after(function() {
+    return cleanUp();
   });
 
   it('should throw on bad scope input', function() {
