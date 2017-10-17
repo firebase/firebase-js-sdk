@@ -128,24 +128,29 @@ class ParseContext {
    * Initializes a ParseContext with the given source and path.
    *
    * @param dataSource Indicates what kind of API method this data came from.
+   * @param methodName The name of the method the user called to create this
+   *     ParseContext.
    * @param path A path within the object being parsed. This could be an empty
-   * path (in which case the context represents the root of the data being
-   * parsed), or a nonempty path (indicating the context represents a nested
-   * location within the data).
+   *     path (in which case the context represents the root of the data being
+   *     parsed), or a nonempty path (indicating the context represents a nested
+   *     location within the data).
+   * @param arrayElement Whether or not this context corresponds to an element
+   *     of an array.
+   * @param fieldTransforms A mutable list of field transforms encountered while
+   *     parsing the data.
+   * @param fieldMask A mutable list of field paths encountered while parsing 
+   *     the data.
    *
    * TODO(b/34871131): We don't support array paths right now, so path can be
    * null to indicate the context represents any location within an array (in
    * which case certain features will not work and errors will be somewhat
    * compromised).
-   * @param fieldTransforms A mutable list of field transforms encountered while
-   * parsing the data.
-   * @param fieldMask A mutable list of field paths encountered while parsing 
-   * the data.
    */
   constructor(
     readonly dataSource: UserDataSource,
     readonly methodName: string,
     readonly path: FieldPath | null,
+    readonly arrayElement?: boolean,
     fieldTransforms?: FieldTransform[],
     fieldMask?: FieldPath[]
   ) {
@@ -154,34 +159,50 @@ class ParseContext {
     if (fieldTransforms === undefined) {
       this.validatePath();
     }
+    this.arrayElement = arrayElement !== undefined ? arrayElement : false;
     this.fieldTransforms = fieldTransforms || [];
     this.fieldMask = fieldMask || [];
   }
 
-  childContext(field: string | FieldPath | number): ParseContext {
-    let childPath: FieldPath | null;
-    if (typeof field === 'number') {
-      // TODO(b/34871131): We don't support array paths right now; so make path
-      // null.
-      childPath = null;
-    } else {
-      childPath = this.path == null ? null : this.path.child(field);
-    }
+  childContextForField(field: string): ParseContext {
+    const childPath = this.path == null ? null : this.path.child(field);
     const context = new ParseContext(
       this.dataSource,
       this.methodName,
       childPath,
+      /*arrayElement=*/ false,
       this.fieldTransforms,
       this.fieldMask
     );
-    if (typeof field === 'string') {
-      // We only need to validate the new segment.
-      context.validatePathSegment(field);
-    } else if (typeof field === 'object' && field instanceof FieldPath) {
-      // Validate the whole path.
-      context.validatePath();
-    }
+    context.validatePathSegment(field);
     return context;
+  }
+
+  childContextForFieldPath(field: FieldPath): ParseContext {
+    const childPath = this.path == null ? null : this.path.child(field);
+    const context = new ParseContext(
+      this.dataSource,
+      this.methodName,
+      childPath,
+      /*arrayElement=*/ false,
+      this.fieldTransforms,
+      this.fieldMask
+    );
+    context.validatePath();
+    return context;
+  }
+
+  childContextForArray(index: number): ParseContext {
+    // TODO(b/34871131): We don't support array paths right now; so make path
+    // null.
+    return new ParseContext(
+      this.dataSource,
+      this.methodName,
+      /*path=*/ null,
+      /*arrayElement=*/ true,
+      this.fieldTransforms,
+      this.fieldMask
+    );
   }
 
   createError(reason: string): Error {
@@ -272,7 +293,7 @@ export class UserDataConverter {
     objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
       const path = new ExternalFieldPath(key)._internalPath;
 
-      const childContext = context.childContext(path);
+      const childContext = context.childContextForFieldPath(path);
       value = this.runPreConverter(value, childContext);
 
       const parsedValue = this.parseData(value, childContext);
@@ -299,7 +320,7 @@ export class UserDataConverter {
     objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
-      const childContext = context.childContext(path);
+      const childContext = context.childContextForFieldPath(path);
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
@@ -354,7 +375,7 @@ export class UserDataConverter {
 
     for (let i = 0; i < keys.length; ++i) {
       const path = keys[i];
-      const childContext = context.childContext(path);
+      const childContext = context.childContextForFieldPath(path);
       const value = this.runPreConverter(values[i], childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
@@ -413,15 +434,16 @@ export class UserDataConverter {
   private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
     if (input instanceof Array) {
-      // TODO(b/34871131): We may need a different way to detect nested arrays
-      // once we support array paths (at which point we should include the path
-      // containing the array in the error message).
-      if (!context.path) {
+      // TODO(b/34871131): Include the path containing the array in the error
+      // message.
+      if (context.arrayElement) {
         throw context.createError('Nested arrays are not supported');
       }
-      // We don't support field mask paths more granular than the top-level
-      // array.
-      context.fieldMask.push(context.path);
+      // If context.path is null we are already inside an array and we don't
+      // support field mask paths more granular than the top-level array.
+      if (context.path) {
+        context.fieldMask.push(context.path);
+      }
       return this.parseArray(input as AnyJs[], context);
     } else if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
@@ -440,7 +462,10 @@ export class UserDataConverter {
     const result = [] as FieldValue[];
     let entryIndex = 0;
     for (const entry of array) {
-      let parsedEntry = this.parseData(entry, context.childContext(entryIndex));
+      let parsedEntry = this.parseData(
+        entry,
+        context.childContextForArray(entryIndex)
+      );
       if (parsedEntry == null) {
         // Just include nulls in the array for fields being replaced with a
         // sentinel.
@@ -455,7 +480,10 @@ export class UserDataConverter {
   private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
     objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(val, context.childContext(key));
+      const parsedValue = this.parseData(
+        val,
+        context.childContextForField(key)
+      );
       if (parsedValue != null) {
         result = result.insert(key, parsedValue);
       }
