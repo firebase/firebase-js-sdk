@@ -170,7 +170,7 @@ class ParseContext {
       this.dataSource,
       this.methodName,
       childPath,
-      false,
+      /*arrayElement=*/ false,
       this.fieldTransforms,
       this.fieldMask
     );
@@ -184,7 +184,7 @@ class ParseContext {
       this.dataSource,
       this.methodName,
       childPath,
-      false,
+      /*arrayElement=*/ false,
       this.fieldTransforms,
       this.fieldMask
     );
@@ -198,8 +198,8 @@ class ParseContext {
     return new ParseContext(
       this.dataSource,
       this.methodName,
-      null,
-      true,
+      /*path=*/ null,
+      /*arrayElement=*/ true,
       this.fieldTransforms,
       this.fieldMask
     );
