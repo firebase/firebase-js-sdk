@@ -304,12 +304,49 @@ apiDescribe('Validation:', persistence => {
       }
     );
 
-    validationIt(persistence, 'must not contain nested arrays.', db => {
-      return expectWriteToFail(
-        db,
-        { 'nested-array': [1, [2]] },
-        'Nested arrays are not supported'
-      );
+    validationIt(
+      persistence,
+      'must not contain directly nested arrays.',
+      db => {
+        return expectWriteToFail(
+          db,
+          { 'nested-array': [1, [2]] },
+          'Nested arrays are not supported'
+        );
+      }
+    );
+
+    validationIt(persistence, 'may contain indirectly nested arrays.', db => {
+      const data = { 'nested-array': [1, { foo: [2] }] };
+
+      const ref = db.doc('foo/bar');
+      const ref2 = db.doc('foo/quux');
+
+      ref
+        .set(data)
+        .then(() => {
+          return ref.firestore
+            .batch()
+            .set(ref, data)
+            .commit();
+        })
+        .then(() => {
+          return ref.update(data);
+        })
+        .then(() => {
+          return ref.firestore
+            .batch()
+            .update(ref, data)
+            .commit();
+        })
+        .then(() => {
+          return ref.firestore.runTransaction(txn => {
+            // Note ref2 does not exist at this point so set that and update ref.
+            txn.update(ref, data);
+            txn.set(ref2, data);
+            return Promise.resolve();
+          });
+        });
     });
 
     validationIt(persistence, 'must not contain undefined.', db => {
