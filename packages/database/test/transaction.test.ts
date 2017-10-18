@@ -32,6 +32,20 @@ import firebase from '@firebase/app';
 import '../index';
 
 describe('Transaction Tests', function() {
+  // Tests that use hijackHash() should set restoreHash to the restore function
+  // and be sure to call it (and set restoreHash back to null) before the test
+  // exits. In the case that the test fails to do so, we'll log a warning and
+  // call restoreHash() manually to ensure subsequent tests aren't affected.
+  let restoreHash = null;
+
+  afterEach(() => {
+    if (restoreHash) {
+      console.warn("Prior test didn't properly call restoreHash()!");
+      restoreHash();
+      restoreHash = null;
+    }
+  });
+
   it('New value is immediately visible.', function() {
     const node = getRandomNode() as Reference;
     node.child('foo').transaction(function() {
@@ -45,7 +59,7 @@ describe('Transaction Tests', function() {
     expect(val).to.equal(42);
   });
 
-  it.skip('Event is raised for new value.', function() {
+  it('Event is raised for new value.', function() {
     const node = getRandomNode() as Reference;
     const fooNode = node.child('foo');
     const eventHelper = eventTestHelper([[fooNode, ['value', '']]]);
@@ -475,7 +489,7 @@ describe('Transaction Tests', function() {
   });
 
   it('Transaction aborts after 25 retries.', function(done) {
-    const restoreHash = hijackHash(function() {
+    restoreHash = hijackHash(function() {
       return 'duck, duck, goose.';
     });
 
@@ -492,6 +506,7 @@ describe('Transaction Tests', function() {
         expect(committed).to.equal(false);
         expect(tries).to.equal(25);
         restoreHash();
+        restoreHash = null;
         done();
       }
     );
@@ -526,7 +541,7 @@ describe('Transaction Tests', function() {
     const node = getRandomNode() as Reference;
     let fooTransactionDone = false;
     let barTransactionDone = false;
-    const restoreHash = hijackHash(function() {
+    restoreHash = hijackHash(function() {
       return 'foobar';
     });
 
@@ -569,6 +584,7 @@ describe('Transaction Tests', function() {
     expect(fooTransactionDone).to.equal(true);
     expect(barTransactionDone).to.equal(false);
     restoreHash();
+    restoreHash = null;
   });
 
   it('Test transaction on wacky unicode data.', function(done) {
@@ -793,11 +809,14 @@ describe('Transaction Tests', function() {
 
   // This test is meant to ensure that with applyLocally=false, while the transaction is outstanding, we continue
   // to get events from other clients.
-  it('Transaction without local events (2)', function(done) {
+  // TODO(mikelehen): Unfortunately this test is currently flaky.  It's inherently a racey test since it's
+  // trying to do 4 sets before the transaction retries 25 times (and fails), using two different connections.
+  // Disabling for now until we rework the approach.
+  it.skip('Transaction without local events (2)', function(done) {
     const refPair = getRandomNode(2) as Reference[],
       ref1 = refPair[0],
       ref2 = refPair[1];
-    const restoreHash = hijackHash(function() {
+    restoreHash = hijackHash(function() {
       return 'badhash';
     });
     const SETS = 4;
@@ -818,6 +837,7 @@ describe('Transaction Tests', function() {
 
           if (current === SETS - 1) {
             restoreHash();
+            restoreHash = null;
           }
           return 'txn result';
         },
@@ -856,7 +876,10 @@ describe('Transaction Tests', function() {
             }
             expect(events[SETS]).to.equal('txn result');
 
-            restoreHash();
+            if (restoreHash) {
+              restoreHash();
+              restoreHash = null;
+            }
             done();
           });
         }
