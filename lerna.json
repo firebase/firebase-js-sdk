@@ -1,6 +1,11 @@
 {
   "lerna": "2.1.0",
   "version": "independent",
+  "commands": {
+    "publish": {
+      "exact": true
+    }
+  },
   "npmClient": "yarn",
   "packages": [
     "packages/*",
