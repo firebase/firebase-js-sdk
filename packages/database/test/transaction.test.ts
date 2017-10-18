@@ -31,7 +31,7 @@ import { hijackHash } from '../src/api/test_access';
 import firebase from '@firebase/app';
 import '../index';
 
-describe('Transaction Tests', function() {
+describe.skip('Transaction Tests', function() {
   it('New value is immediately visible.', function() {
     const node = getRandomNode() as Reference;
     node.child('foo').transaction(function() {
