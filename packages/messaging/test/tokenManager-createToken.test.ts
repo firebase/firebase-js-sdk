@@ -16,12 +16,15 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeSWReg from './make-fake-sw-reg';
-import dbTMHelper from './db-token-manager';
+import dbTMHelper from './testing-utils/db-token-manager';
+import { deleteDatabase } from './testing-utils/db-helper';
 import TokenManager from '../src/models/token-manager';
 import Errors from '../src/models/errors';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
 
 describe('Firebase Messaging > tokenManager.createToken()', function() {
+  const sandbox = sinon.sandbox.create();
+
   const AUTH_BUFFER = new Uint8Array([1, 2, 3]);
   const P256DH_BUFFER = new Uint8Array([1, 2, 3]);
   const EXAMPLE_SENDER_ID = '1234567890';
@@ -41,23 +44,25 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
   };
 
   let globalTokenManager = null;
-  let stubs = [];
+
+  const cleanUp = () => {
+    sandbox.restore();
+
+    const promises =[dbTMHelper.closeDatabase()];
+    if (globalTokenManager) {
+      promises.push(globalTokenManager.closeDatabase());
+    }
+
+    return Promise.all(promises)
+    .then(() => deleteDatabase(TokenManager.DB_NAME));
+  }
 
   beforeEach(function() {
-    globalTokenManager = null;
-    return dbTMHelper.deleteDB();
+    return cleanUp();
   });
 
-  afterEach(function() {
-    stubs.forEach(stub => {
-      stub.restore();
-    });
-    stubs = [];
-
-    return Promise.all([
-      globalTokenManager.closeDatabase(),
-      dbTMHelper.closeDatabase()
-    ]);
+  after(function() {
+    return cleanUp();
   });
 
   it('should test bad input', function() {
@@ -150,10 +155,8 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    const subscribeStub = sinon
-      .stub(TokenManager.prototype, 'subscribeToFCM')
+    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
       .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN_DETAILS));
-    stubs.push(subscribeStub);
 
     globalTokenManager = new TokenManager();
     return globalTokenManager
@@ -188,10 +191,8 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    const subscribeStub = sinon
-      .stub(TokenManager.prototype, 'subscribeToFCM')
+    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
       .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN_DETAILS));
-    stubs.push(subscribeStub);
 
     globalTokenManager = new TokenManager();
     return globalTokenManager
@@ -269,24 +270,21 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    stubs.push(
-      sinon
-        .stub(TokenManager.prototype, 'subscribeToFCM')
-        .onCall(0)
-        .returns(
-          Promise.resolve({
-            token: EXAMPLE_FCM_TOKEN_DETAILS.token + '1',
-            pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '1'
-          })
-        )
-        .onCall(1)
-        .returns(
-          Promise.resolve({
-            token: EXAMPLE_FCM_TOKEN_DETAILS.token + '2',
-            pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '2'
-          })
-        )
-    );
+    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
+    .onCall(0)
+    .returns(
+      Promise.resolve({
+        token: EXAMPLE_FCM_TOKEN_DETAILS.token + '1',
+        pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '1'
+      })
+    )
+    .onCall(1)
+    .returns(
+      Promise.resolve({
+        token: EXAMPLE_FCM_TOKEN_DETAILS.token + '2',
+        pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '2'
+      })
+    )
 
     const validCombos = [
       {
@@ -364,14 +362,13 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
     };
     const secondSenderId = EXAMPLE_SENDER_ID + '2';
 
-    const methodStub = sinon.stub(TokenManager.prototype, 'subscribeToFCM');
+    const methodStub = sandbox.stub(TokenManager.prototype, 'subscribeToFCM');
     methodStub
       .withArgs(EXAMPLE_SENDER_ID, EXAMPLE_SUBSCRIPTION)
       .returns(Promise.resolve(EXAMPLE_FCM_TOKEN_DETAILS));
     methodStub
       .withArgs(secondSenderId, EXAMPLE_SUBSCRIPTION)
       .returns(Promise.resolve(secondDetails));
-    stubs.push(methodStub);
 
     globalTokenManager = new TokenManager();
     return globalTokenManager

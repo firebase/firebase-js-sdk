@@ -15,33 +15,41 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import dbTMHelper from './db-token-manager';
+import dbTMHelper from './testing-utils/db-token-manager';
+import { deleteDatabase } from './testing-utils/db-helper';
 import TokenManager from '../src/models/token-manager';
 import Errors from '../src/models/errors';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
 
 describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
+  const sandbox = sinon.sandbox.create();
   let globalTokenManager = null;
-  let stubs = [];
+
+  const cleanUp = () => {
+    sandbox.restore();
+
+    const promises = [dbTMHelper.closeDatabase()];
+    if (globalTokenManager) {
+      promises.push(globalTokenManager.closeDatabase());
+    }
+    return Promise.all(promises)
+    .then(() => deleteDatabase(TokenManager.DB_NAME))
+    .then(() => globalTokenManager = null);
+  };
 
   beforeEach(function() {
-    globalTokenManager = null;
-    return dbTMHelper.deleteDB();
+    return cleanUp();
   });
 
-  afterEach(function() {
-    return Promise.all([
-      globalTokenManager.closeDatabase(),
-      dbTMHelper.closeDatabase()
-    ]);
+  after(function() {
+    return cleanUp();
   });
 
-  it('should handle bad send ID input', function() {
-    const FakeRegistration = function() {};
-    FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
+  ['', [], {}, true, null].forEach((badInput) => {
+    it(`should handle bad send ID input ${JSON.stringify(badInput)}`, function() {
+      const FakeRegistration = function() {};
+      FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
-    const badInputs = ['', [], {}, true, null];
-    const promises = badInputs.map(badInput => {
       globalTokenManager = new TokenManager();
       return globalTokenManager
         .getSavedToken(badInput, new FakeRegistration())
@@ -54,12 +62,10 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
           }
         );
     });
-    return Promise.all(promises);
   });
 
-  it('should handle bad registration input', function() {
-    const badInputs = ['invalid', [], {}, true, null];
-    const promises = badInputs.map(badInput => {
+  ['invalid', [], {}, true, null].forEach((badInput) => {
+    it(`should handle bad registration input ${JSON.stringify(badInput)}`, function() {
       globalTokenManager = new TokenManager();
       return globalTokenManager.getSavedToken('1234567890', badInput).then(
         () => {
@@ -73,10 +79,9 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
         }
       );
     });
-    return Promise.all(promises);
   });
 
-  it('should handle sw mismatch', function() {
+  /** it('should handle sw mismatch', function() {
     const swScope = 'sw-scope';
 
     const FakeRegistration = function() {};
@@ -295,5 +300,5 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
       .then(token => {
         assert.equal('current-token', token);
       });
-  });
+  });**/
 });

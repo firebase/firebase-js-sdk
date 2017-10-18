@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export default {
-  deleteDb: dbName => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.deleteDatabase(dbName);
-      request.onerror = event => {
-        reject((event.target as any).error);
-      };
-      request.onsuccess = event => {
-        resolve();
-      };
-      request.onblocked = event => {
-        console.warn('deleteDb blocked.');
-      };
-    });
-  }
-};
+const deleteDatabase = (dbName) => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.deleteDatabase(dbName);
+    request.onerror = event => {
+      reject((event.target as any).error);
+    };
+    request.onsuccess = event => {
+      resolve();
+    };
+    request.onblocked = event => {
+      console.warn('deleteDb blocked.');
+    };
+  });
+}
+export { deleteDatabase };

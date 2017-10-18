@@ -15,7 +15,7 @@
  */
 import { assert } from 'chai';
 import makeFakeSubscription from './make-fake-subscription';
-import dbHelpers from './db-helper';
+import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
@@ -32,27 +32,32 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     fcmPushSet: '7654321'
   };
 
-  let tokenModel;
+  let globalTokenModel;
 
-  beforeEach(function() {
-    tokenModel = null;
-    return dbHelpers.deleteDb(TokenDetailsModel.dbName);
-  });
+  const cleanUp = () => {
+    let promises = [];
 
-  afterEach(function() {
-    let promiseChain = Promise.resolve();
-    if (tokenModel) {
-      promiseChain = promiseChain.then(() => tokenModel.closeDatabase());
+    if (globalTokenModel) {
+      promises.push(globalTokenModel.closeDatabase());
     }
 
-    return promiseChain.then(() => {
-      return dbHelpers.deleteDb(TokenDetailsModel.dbName);
-    });
+    return Promise.all(promises)
+      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => globalTokenModel = null);
+  }
+
+  beforeEach(function() {
+    return cleanUp();
+  });
+
+  after(function() {
+    return cleanUp();
   });
 
   it('should handle no input', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel.deleteToken().then(
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel.deleteToken()
+    .then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -66,8 +71,9 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
   });
 
   it('should handle empty string', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel.deleteToken('').then(
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel.deleteToken('')
+    .then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -81,11 +87,11 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
   });
 
   it('should delete current token', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel
       .saveTokenDetails(EXAMPLE_INPUT)
       .then(() => {
-        return tokenModel.deleteToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.deleteToken(EXAMPLE_INPUT.fcmToken);
       })
       .then(details => {
         const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
@@ -109,7 +115,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
           assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
         });
 
-        return tokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
       })
       .then(tokenDetails => {
         assert.equal(null, tokenDetails);
@@ -117,8 +123,8 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
   });
 
   it('should handle deleting a non-existant token', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel.deleteToken('bad-token').then(
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel.deleteToken('bad-token').then(
       () => {
         throw new Error('Expected this delete to throw and error.');
       },

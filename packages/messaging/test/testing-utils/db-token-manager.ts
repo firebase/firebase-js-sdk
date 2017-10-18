@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import TokenManager from '../src/models/token-manager';
+import TokenManager from '../../src/models/token-manager';
 
 const FCM_TOKEN_DETAILS_DB = 'fcm_token_details_db';
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
@@ -81,19 +81,4 @@ export default {
       });
     });
   },
-
-  deleteDB: () => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.deleteDatabase(FCM_TOKEN_DETAILS_DB);
-      request.onerror = event => {
-        reject((event.target as any).error);
-      };
-      request.onsuccess = event => {
-        resolve();
-      };
-      request.onblocked = event => {
-        console.warn('deleteDatabase onblocked.');
-      };
-    });
-  }
 };

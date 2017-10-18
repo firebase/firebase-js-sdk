@@ -15,7 +15,7 @@
  */
 import { assert } from 'chai';
 import makeFakeSubscription from './make-fake-subscription';
-import dbHelpers from './db-helper';
+import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
@@ -32,29 +32,31 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
     fcmPushSet: '7654321'
   };
 
-  let tokenModel;
+  let globalTokenModel;
 
-  beforeEach(function() {
-    tokenModel = null;
-    return dbHelpers.deleteDb(TokenDetailsModel.dbName);
-  });
-
-  afterEach(function() {
-    let promiseChain = Promise.resolve();
-    if (tokenModel) {
-      promiseChain = promiseChain.then(() => tokenModel.closeDatabase());
+  const cleanUp = () => {
+    let promises = [];
+    if (globalTokenModel) {
+      promises.push(globalTokenModel.closeDatabase());
     }
 
-    return promiseChain.then(() => {
-      return dbHelpers.deleteDb(TokenDetailsModel.dbName);
-    });
+    return Promise.all(promises)
+      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => globalTokenModel = null);
+  };
+
+  beforeEach(function() {
+    return cleanUp();
   });
 
-  it('should throw on bad scope input', function() {
-    const badInputs = ['', [], {}, true, null, 123];
-    const promises = badInputs.map(badInput => {
-      tokenModel = new TokenDetailsModel();
-      return tokenModel.getTokenDetailsFromSWScope(badInput).then(
+  after(function() {
+    return cleanUp();
+  });
+
+  ['', [], {}, true, null, 123].forEach((badInput) => {
+    it(`should throw on bad scope input ${JSON.stringify(badInput)}`, function() {
+      globalTokenModel = new TokenDetailsModel();
+      return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -63,15 +65,12 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
         }
       );
     });
-
-    return Promise.all(promises);
   });
 
-  it('should throw on bad FCM Token input', function() {
-    const badInputs = ['', [], {}, true, null, 123];
-    const promises = badInputs.map(badInput => {
-      tokenModel = new TokenDetailsModel();
-      return tokenModel.getTokenDetailsFromToken(badInput).then(
+  ['', [], {}, true, null, 123].forEach((badInput) => {
+    it('should throw on bad FCM Token input', function() {
+      globalTokenModel = new TokenDetailsModel();
+      return globalTokenModel.getTokenDetailsFromToken(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -80,21 +79,19 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
         }
       );
     });
-
-    return Promise.all(promises);
   });
 
   it('should get from scope', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel
       .getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope)
       .then(details => {
         assert.equal(null, details);
 
-        return tokenModel.saveTokenDetails(EXAMPLE_INPUT);
+        return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
-        return tokenModel.getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope);
+        return globalTokenModel.getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope);
       })
       .then(details => {
         const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
@@ -121,16 +118,16 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
   });
 
   it('should get from token', function() {
-    tokenModel = new TokenDetailsModel();
-    return tokenModel
+    globalTokenModel = new TokenDetailsModel();
+    return globalTokenModel
       .getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken)
       .then(details => {
         assert.equal(null, details);
 
-        return tokenModel.saveTokenDetails(EXAMPLE_INPUT);
+        return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
-        return tokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
       })
       .then(details => {
         const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];

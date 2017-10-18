@@ -26,6 +26,8 @@ import TokenManager from '../src/models/token-manager';
 import NotificationPermission from '../src/models/notification-permission';
 
 describe('Firebase Messaging > *Controller.getToken()', function() {
+  const sandbox = sinon.sandbox.create();
+
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
   const app = makeFakeApp({
@@ -36,31 +38,32 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
   const mockGetReg = fakeReg => {
     servicesToTest.forEach(serviceClass => {
-      const getSwMock = sinon.stub(
+      sandbox.stub(
         serviceClass.prototype,
         'getSWRegistration_'
-      );
-      getSwMock.callsFake(() => fakeReg);
-      stubs.push(getSwMock);
+      )
+      .callsFake(() => fakeReg);
     });
   };
 
-  let stubs = [];
+  const cleanUp = () => {
+    sandbox.restore();
+  };
 
-  beforeEach(function() {});
+  beforeEach(function() {
+    return cleanUp();
+  })
 
-  afterEach(function() {
-    stubs.forEach(stub => stub.restore());
-    stubs = [];
+  after(function() {
+    return cleanUp();
   });
 
   it('should throw on unsupported browsers', function() {
-    const isSupportedStub = sinon.stub(
+    sandbox.stub(
       WindowController.prototype,
       'isSupported_'
-    );
-    isSupportedStub.callsFake(() => false);
-    stubs.push(isSupportedStub);
+    )
+    .callsFake(() => false);
 
     const messagingService = new WindowController(app);
     return messagingService.getToken().then(
@@ -74,16 +77,14 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   });
 
   it('should handle a failure to get registration', function() {
-    const notificationStub = sinon.stub(
+    sandbox.stub(
       ControllerInterface.prototype,
       'getNotificationPermission_'
-    );
-    notificationStub.callsFake(() => NotificationPermission.granted);
-    stubs.push(notificationStub);
+    )
+    .callsFake(() => NotificationPermission.granted);
 
-    const registerStub = sinon.stub(navigator.serviceWorker, 'register');
-    registerStub.callsFake(() => Promise.reject('No Service Worker'));
-    stubs.push(registerStub);
+    sandbox.stub(navigator.serviceWorker, 'register')
+    .callsFake(() => Promise.reject('No Service Worker'));
 
     const messagingService = new WindowController(app);
     return messagingService
@@ -105,7 +106,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   });
 
   it('should handle the notification permission', function() {
-    const notificationStub = sinon.stub(
+    const notificationStub = sandbox.stub(
       ControllerInterface.prototype,
       'getNotificationPermission_'
     );
@@ -113,7 +114,6 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     notificationStub.onCall(1).returns(NotificationPermission.default);
     notificationStub.onCall(2).returns(NotificationPermission.denied);
     notificationStub.onCall(3).returns(NotificationPermission.default);
-    stubs.push(notificationStub);
 
     return servicesToTest.reduce((chain, ServiceClass) => {
       const serviceInstance = new ServiceClass(app);
@@ -144,18 +144,16 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   it('should get saved token', function() {
     const registration = makeFakeSWReg();
 
-    const notificationStub = sinon.stub(
+    sandbox.stub(
       ControllerInterface.prototype,
       'getNotificationPermission_'
-    );
-    notificationStub.callsFake(() => NotificationPermission.granted);
-    stubs.push(notificationStub);
+    )
+    .callsFake(() => NotificationPermission.granted);
 
     mockGetReg(Promise.resolve(registration));
 
-    const getTokenStub = sinon.stub(TokenManager.prototype, 'getSavedToken');
-    getTokenStub.callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
-    stubs.push(getTokenStub);
+    sandbox.stub(TokenManager.prototype, 'getSavedToken')
+    .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
 
     return Promise.all(
       servicesToTest.map(ServiceClass => {
@@ -170,22 +168,19 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   it('should get a new token', function() {
     const registration = makeFakeSWReg();
 
-    const notificationStub = sinon.stub(
+    sandbox.stub(
       ControllerInterface.prototype,
       'getNotificationPermission_'
-    );
-    notificationStub.callsFake(() => NotificationPermission.granted);
-    stubs.push(notificationStub);
+    )
+    .callsFake(() => NotificationPermission.granted);
 
     mockGetReg(Promise.resolve(registration));
 
-    const getTokenStub = sinon.stub(TokenManager.prototype, 'getSavedToken');
-    getTokenStub.callsFake(() => Promise.resolve(null));
-    stubs.push(getTokenStub);
+    sandbox.stub(TokenManager.prototype, 'getSavedToken')
+    .callsFake(() => Promise.resolve(null));
 
-    const createTokenStub = sinon.stub(TokenManager.prototype, 'createToken');
-    createTokenStub.callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
-    stubs.push(createTokenStub);
+    sandbox.stub(TokenManager.prototype, 'createToken')
+    .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
 
     return Promise.all(
       servicesToTest.map(ServiceClass => {
