@@ -48,14 +48,15 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
   const cleanUp = () => {
     sandbox.restore();
 
-    const promises =[dbTMHelper.closeDatabase()];
+    const promises = [dbTMHelper.closeDatabase()];
     if (globalTokenManager) {
       promises.push(globalTokenManager.closeDatabase());
     }
 
-    return Promise.all(promises)
-    .then(() => deleteDatabase(TokenManager.DB_NAME));
-  }
+    return Promise.all(promises).then(() =>
+      deleteDatabase(TokenManager.DB_NAME)
+    );
+  };
 
   beforeEach(function() {
     return cleanUp();
@@ -155,7 +156,8 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
+    sandbox
+      .stub(TokenManager.prototype, 'subscribeToFCM')
       .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN_DETAILS));
 
     globalTokenManager = new TokenManager();
@@ -191,7 +193,8 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
+    sandbox
+      .stub(TokenManager.prototype, 'subscribeToFCM')
       .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN_DETAILS));
 
     globalTokenManager = new TokenManager();
@@ -270,21 +273,22 @@ describe('Firebase Messaging > tokenManager.createToken()', function() {
       }
     });
 
-    sandbox.stub(TokenManager.prototype, 'subscribeToFCM')
-    .onCall(0)
-    .returns(
-      Promise.resolve({
-        token: EXAMPLE_FCM_TOKEN_DETAILS.token + '1',
-        pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '1'
-      })
-    )
-    .onCall(1)
-    .returns(
-      Promise.resolve({
-        token: EXAMPLE_FCM_TOKEN_DETAILS.token + '2',
-        pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '2'
-      })
-    )
+    sandbox
+      .stub(TokenManager.prototype, 'subscribeToFCM')
+      .onCall(0)
+      .returns(
+        Promise.resolve({
+          token: EXAMPLE_FCM_TOKEN_DETAILS.token + '1',
+          pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '1'
+        })
+      )
+      .onCall(1)
+      .returns(
+        Promise.resolve({
+          token: EXAMPLE_FCM_TOKEN_DETAILS.token + '2',
+          pushSet: EXAMPLE_FCM_TOKEN_DETAILS.pushSet + '2'
+        })
+      );
 
     const validCombos = [
       {

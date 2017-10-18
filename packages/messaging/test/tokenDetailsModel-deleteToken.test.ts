@@ -43,8 +43,8 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
 
     return Promise.all(promises)
       .then(() => deleteDatabase(TokenDetailsModel.dbName))
-      .then(() => globalTokenModel = null);
-  }
+      .then(() => (globalTokenModel = null));
+  };
 
   beforeEach(function() {
     return cleanUp();
@@ -56,8 +56,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
 
   it('should handle no input', function() {
     globalTokenModel = new TokenDetailsModel();
-    return globalTokenModel.deleteToken()
-    .then(
+    return globalTokenModel.deleteToken().then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -72,8 +71,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
 
   it('should handle empty string', function() {
     globalTokenModel = new TokenDetailsModel();
-    return globalTokenModel.deleteToken('')
-    .then(
+    return globalTokenModel.deleteToken('').then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -115,7 +113,9 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
           assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
         });
 
-        return globalTokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.getTokenDetailsFromToken(
+          EXAMPLE_INPUT.fcmToken
+        );
       })
       .then(tokenDetails => {
         assert.equal(null, tokenDetails);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const deleteDatabase = (dbName) => {
+const deleteDatabase = dbName => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.deleteDatabase(dbName);
     request.onerror = event => {
@@ -26,5 +26,5 @@ const deleteDatabase = (dbName) => {
       console.warn('deleteDb blocked.');
     };
   });
-}
+};
 export { deleteDatabase };

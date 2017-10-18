@@ -33,8 +33,8 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
       promises.push(globalTokenManager.closeDatabase());
     }
     return Promise.all(promises)
-    .then(() => deleteDatabase(TokenManager.DB_NAME))
-    .then(() => globalTokenManager = null);
+      .then(() => deleteDatabase(TokenManager.DB_NAME))
+      .then(() => (globalTokenManager = null));
   };
 
   beforeEach(function() {
@@ -45,8 +45,10 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
     return cleanUp();
   });
 
-  ['', [], {}, true, null].forEach((badInput) => {
-    it(`should handle bad send ID input ${JSON.stringify(badInput)}`, function() {
+  ['', [], {}, true, null].forEach(badInput => {
+    it(`should handle bad send ID input ${JSON.stringify(
+      badInput
+    )}`, function() {
       const FakeRegistration = function() {};
       FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
@@ -64,8 +66,10 @@ describe('Firebase Messaging > tokenManager.getSavedToken()', function() {
     });
   });
 
-  ['invalid', [], {}, true, null].forEach((badInput) => {
-    it(`should handle bad registration input ${JSON.stringify(badInput)}`, function() {
+  ['invalid', [], {}, true, null].forEach(badInput => {
+    it(`should handle bad registration input ${JSON.stringify(
+      badInput
+    )}`, function() {
       globalTokenManager = new TokenManager();
       return globalTokenManager.getSavedToken('1234567890', badInput).then(
         () => {

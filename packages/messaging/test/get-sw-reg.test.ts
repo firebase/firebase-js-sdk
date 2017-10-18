@@ -32,7 +32,8 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
   const sandbox = sinon.sandbox.create();
 
   const mockWindowRegistration = registration => {
-    sandbox.stub(navigator.serviceWorker, 'register')
+    sandbox
+      .stub(navigator.serviceWorker, 'register')
       .callsFake(() => Promise.resolve(registration));
   };
 
@@ -42,7 +43,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
 
   beforeEach(function() {
     return cleanUp();
-  })
+  });
 
   after(function() {
     return cleanUp();
@@ -111,7 +112,10 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
 
   it('should make registration error available to developer', function() {
     const errorMsg = 'test-reg-error-1234567890';
-    const mockRegisterMethod = sandbox.stub(navigator.serviceWorker, 'register');
+    const mockRegisterMethod = sandbox.stub(
+      navigator.serviceWorker,
+      'register'
+    );
     mockRegisterMethod.callsFake(() => Promise.reject(new Error(errorMsg)));
 
     const messagingService = new WindowController(app);
