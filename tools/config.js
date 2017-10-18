@@ -15,6 +15,7 @@
  */
 
 const { argv } = require('yargs');
+const { homedir } = require('os');
 const firebaseTools = require('firebase-tools');
 const inquirer = require('inquirer');
 const fs = require('mz/fs');
@@ -24,7 +25,17 @@ const path = require('path');
 const userToken = argv.token;
 const projectId = argv.projectId;
 
-Promise.resolve(userToken)
+let cachedToken;
+
+try {
+  const config = require(path.resolve(
+    homedir(),
+    '.config/configstore/firebase-tools.json'
+  ));
+  cachedToken = config.tokens.refresh_token;
+} catch (err) {}
+
+Promise.resolve(userToken || cachedToken)
   // Log in to firebase-tools
   .then(async userToken => {
     if (userToken) return userToken;
