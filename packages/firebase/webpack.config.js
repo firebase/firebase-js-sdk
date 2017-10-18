@@ -40,7 +40,7 @@ const baseConfig = {
       mangle: {
         props: {
           ignore_quoted: true,
-          regex: /^_[^_]|[^_]_$/
+          regex: /^_[^_][^lat]|[^_]_$/
         }
       },
       compress: {
