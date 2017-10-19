@@ -1,6 +1,6 @@
 # @firebase/firestore
 
-This is the Firestore component for the Firebase JS SDK. It has a peer
+This is the Cloud Firestore component for the Firebase JS SDK. It has a peer
 dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM. This package
 **is not** included by default in the [`firebase`](https://npm.im/firebase)
 wrapper package.
@@ -42,3 +42,7 @@ For comprehensive documentation please see the [Firebase Reference
 Docs][reference-docs].
 
 [reference-docs]: https://firebase.google.com/docs/reference/js/
+
+## Contributing
+See [Contributing](./CONTRIBUTING.md) for more information on contributing to
+the Cloud Firestore component of the Firebase JavaScript SDK.
