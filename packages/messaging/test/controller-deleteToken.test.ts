@@ -41,10 +41,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
   });
 
   const configureRegistrationMocks = (ServiceClass, fakeReg) => {
-    sandbox.stub(
-      ServiceClass.prototype,
-      'getSWRegistration_'
-    ).callsFake(() => {
+    sandbox.stub(ServiceClass.prototype, 'getSWRegistration_').callsFake(() => {
       return fakeReg;
     });
   };
@@ -59,7 +56,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
           }
 
           return getSubResult;
-        },
+        }
       }
     });
     return Promise.resolve(registration);
@@ -75,8 +72,8 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     }
     return Promise.all(deletePromises)
       .then(() => deleteDatabase(TokenManager.DB_NAME))
-      .then(() => globalMessagingService = null);
-  }
+      .then(() => (globalMessagingService = null));
+  };
 
   beforeEach(function() {
     return cleanUp();
@@ -88,8 +85,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
   it('should handle no token to delete', function() {
     globalMessagingService = new WindowController(app);
-    return globalMessagingService.deleteToken()
-    .then(
+    return globalMessagingService.deleteToken().then(
       () => {
         throw new Error('Expected error to be thrown.');
       },
@@ -105,15 +101,15 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
   it('should handle no registration', function() {
     configureRegistrationMocks(WindowController, Promise.resolve(null));
 
-    return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE)
-    .then(() => {
+    return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE).then(() => {
       globalMessagingService = new WindowController(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
   });
 
   it('should handle get subscription error', function() {
-    configureRegistrationMocks(WindowController,
+    configureRegistrationMocks(
+      WindowController,
       generateFakeReg(() => Promise.reject(new Error('Unknown error')))
     );
 
@@ -130,12 +126,14 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     );
   });
 
-  [WindowController, SWController].forEach((ServiceClass) => {
+  [WindowController, SWController].forEach(ServiceClass => {
     it(`should handle null getSubscription() ${ServiceClass.name}`, function() {
-      configureRegistrationMocks(ServiceClass, generateFakeReg(Promise.resolve(null)));
+      configureRegistrationMocks(
+        ServiceClass,
+        generateFakeReg(Promise.resolve(null))
+      );
 
-      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE)
-      .then(() => {
+      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE).then(() => {
         globalMessagingService = new ServiceClass(app);
         return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
       });
@@ -153,18 +151,18 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         generateFakeReg(Promise.resolve(fakeSubscription))
       );
 
-      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE)
-      .then(() => {
+      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE).then(() => {
         globalMessagingService = new ServiceClass(app);
-        return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
-        .then(
-          () => {
-            throw new Error('Expected this to reject');
-          },
-          err => {
-            assert.equal(errorMsg, err.message);
-          }
-        );
+        return globalMessagingService
+          .deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
+          .then(
+            () => {
+              throw new Error('Expected this to reject');
+            },
+            err => {
+              assert.equal(errorMsg, err.message);
+            }
+          );
       });
     });
 
@@ -179,8 +177,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         generateFakeReg(Promise.resolve(fakeSubscription))
       );
 
-      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE)
-      .then(() => {
+      return dbTMHelper.addObjectToIndexDB(EXAMPLE_TOKEN_SAVE).then(() => {
         globalMessagingService = new ServiceClass(app);
         return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
       });

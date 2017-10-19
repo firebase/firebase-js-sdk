@@ -122,6 +122,29 @@ firebase.auth.OAuthCredential.prototype.secret;
 firebase.app.App.prototype.auth = function() {};
 
 /**
+ * Interface representing a user's metadata.
+ *
+ * @interface
+ */
+firebase.auth.UserMetadata = function() {};
+
+/**
+ * The date the user last signed in, formatted as a UTC string.
+ * For example, 'Fri, 22 Sep 2017 01:49:58 GMT'.
+ *
+ * @type {?string}
+ */
+firebase.auth.UserMetadata.prototype.lastSignInTime;
+
+/**
+ * The date the user was created, formatted as a UTC string.
+ * For example, 'Fri, 22 Sep 2017 01:49:58 GMT'.
+ *
+ * @type {?string}
+ */
+firebase.auth.UserMetadata.prototype.creationTime;
+
+/**
  * User profile information, visible only to the Firebase project's
  * apps.
  *
@@ -195,6 +218,12 @@ firebase.User.prototype.isAnonymous;
  * @type {boolean}
  */
 firebase.User.prototype.emailVerified;
+
+/**
+ * Additional metadata about the user.
+ * @type {!firebase.auth.UserMetadata}
+ */
+firebase.User.prototype.metadata;
 
 /**
  * Additional provider-specific information about the user.
@@ -1572,7 +1601,8 @@ firebase.auth.UserCredential;
  * @typedef {{
  *   providerId: string,
  *   profile: ?Object,
- *   username: (?string|undefined)
+ *   username: (?string|undefined),
+ *   isNewUser: boolean
  * }}
  */
 firebase.auth.AdditionalUserInfo;

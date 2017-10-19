@@ -42,7 +42,7 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
 
     return Promise.all(promises)
       .then(() => deleteDatabase(TokenDetailsModel.dbName))
-      .then(() => globalTokenModel = null);
+      .then(() => (globalTokenModel = null));
   };
 
   beforeEach(function() {
@@ -53,8 +53,10 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
     return cleanUp();
   });
 
-  ['', [], {}, true, null, 123].forEach((badInput) => {
-    it(`should throw on bad scope input ${JSON.stringify(badInput)}`, function() {
+  ['', [], {}, true, null, 123].forEach(badInput => {
+    it(`should throw on bad scope input ${JSON.stringify(
+      badInput
+    )}`, function() {
       globalTokenModel = new TokenDetailsModel();
       return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
         () => {
@@ -67,7 +69,7 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
     });
   });
 
-  ['', [], {}, true, null, 123].forEach((badInput) => {
+  ['', [], {}, true, null, 123].forEach(badInput => {
     it('should throw on bad FCM Token input', function() {
       globalTokenModel = new TokenDetailsModel();
       return globalTokenModel.getTokenDetailsFromToken(badInput).then(
@@ -91,7 +93,9 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
         return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
-        return globalTokenModel.getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope);
+        return globalTokenModel.getTokenDetailsFromSWScope(
+          EXAMPLE_INPUT.swScope
+        );
       })
       .then(details => {
         const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
@@ -127,7 +131,9 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
         return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
-        return globalTokenModel.getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.getTokenDetailsFromToken(
+          EXAMPLE_INPUT.fcmToken
+        );
       })
       .then(details => {
         const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
