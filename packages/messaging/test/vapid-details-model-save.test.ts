@@ -34,7 +34,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
 
     return promiseChain
       .then(() => deleteDatabase(VapidDetailsModel.dbName))
-      .then(() => vapidModel = null);
+      .then(() => (vapidModel = null));
   };
 
   beforeEach(function() {

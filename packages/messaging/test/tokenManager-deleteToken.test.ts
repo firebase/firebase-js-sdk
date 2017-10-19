@@ -28,9 +28,9 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
       promises.push(globalTokenManager.closeDatabase());
     }
     return Promise.all(promises)
-    .then(() => deleteDatabase(TokenManager.DB_NAME))
-    .then(() => globalTokenManager = null);
-  }
+      .then(() => deleteDatabase(TokenManager.DB_NAME))
+      .then(() => (globalTokenManager = null));
+  };
 
   beforeEach(function() {
     return cleanUp();
@@ -42,8 +42,7 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
 
   it('should handle nothing', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken()
-    .then(
+    return globalTokenManager.deleteToken().then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
@@ -58,8 +57,7 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
 
   it('should handle empty string', function() {
     globalTokenManager = new TokenManager();
-    return globalTokenManager.deleteToken('')
-    .then(
+    return globalTokenManager.deleteToken('').then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
