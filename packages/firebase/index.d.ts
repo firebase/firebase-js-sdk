@@ -49,6 +49,7 @@ declare namespace firebase {
     ): Promise<any>;
     linkWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
+    metadata: firebase.auth.UserMetadata;
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     reauthenticateAndRetrieveDataWithCredential(
@@ -136,6 +137,7 @@ declare namespace firebase.auth {
   };
 
   type AdditionalUserInfo = {
+    isNewUser: boolean;
     profile: Object | null;
     providerId: string;
     username?: string | null;
@@ -316,6 +318,11 @@ declare namespace firebase.auth {
     operationType?: string | null;
     user: firebase.User | null;
   };
+
+  interface UserMetadata {
+    creationTime?: string;
+    lastSignInTime?: string;
+  }
 }
 
 declare namespace firebase.auth.Auth {
