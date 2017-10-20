@@ -17,6 +17,7 @@
 const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
+const { argv } = require('yargs');
 
 /**
  * Custom SauceLabs Launchers
@@ -68,7 +69,7 @@ const config = {
   reporters: ['spec' /*, 'saucelabs' */],
 
   // web server port
-  port: 8080,
+  port: 8089,
 
   // enable / disable colors in the output (reporters and logs)
   colors: true,
@@ -108,7 +109,10 @@ const config = {
     mocha: {
       timeout: 20000,
       retries: 3
-    }
+    },
+
+    // Pass through --grep option to filter the tests that run.
+    args: argv.grep ? ['--grep', argv.grep] : []
   }
 };
 

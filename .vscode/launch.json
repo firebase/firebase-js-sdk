@@ -29,7 +29,7 @@
       "args": [
         "start",
         "--auto-watch",
-        "--testFiles", "test/unit/bootstrap.ts",
+        "--unit",
         "--browsers", "Chrome"
       ]
     },
@@ -42,7 +42,7 @@
       "args": [
         "start",
         "--auto-watch",
-        "--testFiles", "test/integration/bootstrap.ts",
+        "--integration",
         "--browsers", "Chrome"
       ]
     }
