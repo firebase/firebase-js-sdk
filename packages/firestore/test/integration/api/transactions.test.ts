@@ -511,7 +511,7 @@ apiDescribe('Database transactions', persistence => {
 
   asyncIt('cannot have a get without mutations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.doc('foo/bar');
+      const docRef = db.collection('foo').doc();
       return (
         docRef
           .set({ foo: 'bar' })
