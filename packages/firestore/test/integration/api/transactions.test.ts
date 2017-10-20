@@ -510,13 +510,12 @@ apiDescribe('Database transactions', persistence => {
   });
 
   asyncIt('cannot have a get without mutations', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.doc('foo/bar');
+    return integrationHelpers.withTestDoc(persistence, docRef => {
       return (
         docRef
           .set({ foo: 'bar' })
           .then(() => {
-            return db.runTransaction(txn => {
+            return docRef.firestore.runTransaction(txn => {
               return txn.get(docRef);
             });
           })

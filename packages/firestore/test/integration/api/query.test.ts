@@ -106,28 +106,16 @@ apiDescribe('Queries', persistence => {
   });
 
   asyncIt('can use unary filters', () => {
-    return withTestDbs(persistence, 2, ([writerDb, readerDb]) => {
-      return Promise.all([
-        writerDb
-          .collection('query_test')
-          .doc('a')
-          .set({ null: null, nan: NaN }),
-        writerDb
-          .collection('query_test')
-          .doc('b')
-          .set({ null: null, nan: 0 }),
-        writerDb
-          .collection('query_test')
-          .doc('c')
-          .set({ null: false, nan: NaN })
-      ])
-        .then(() => {
-          return readerDb
-            .collection('query_test')
-            .where('null', '==', null)
-            .where('nan', '==', NaN)
-            .get();
-        })
+    const testDocs = {
+      a: { null: null, nan: NaN },
+      b: { null: null, nan: 0 },
+      c: { null: false, nan: NaN }
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return coll
+        .where('null', '==', null)
+        .where('nan', '==', NaN)
+        .get()
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ null: null, nan: NaN }]);
         });
@@ -135,23 +123,14 @@ apiDescribe('Queries', persistence => {
   });
 
   asyncIt('can filter on infinity', () => {
-    return withTestDbs(persistence, 2, ([writerDb, readerDb]) => {
-      return Promise.all([
-        writerDb
-          .collection('query_test')
-          .doc('a')
-          .set({ inf: Infinity }),
-        writerDb
-          .collection('query_test')
-          .doc('b')
-          .set({ inf: -Infinity })
-      ])
-        .then(() => {
-          return readerDb
-            .collection('query_test')
-            .where('inf', '==', Infinity)
-            .get();
-        })
+    const testDocs = {
+      a: { inf: Infinity },
+      b: { inf: -Infinity }
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return coll
+        .where('inf', '==', Infinity)
+        .get()
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ inf: Infinity }]);
         });
