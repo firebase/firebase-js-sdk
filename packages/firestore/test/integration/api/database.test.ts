@@ -29,9 +29,9 @@ import {
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
-    return withTestDb(persistence, db => {
-      return db.doc('rooms/Eros').set({
-        desc: 'Stuff related to Eros project...',
+    return withTestDoc(persistence, docRef => {
+      return docRef.set({
+        desc: 'Stuff related to Firestore project...',
         owner: {
           name: 'Jonny',
           title: 'scallywag'
@@ -50,8 +50,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can delete a document', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.doc('rooms/Eros');
+    return withTestDoc(persistence, docRef => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
@@ -71,8 +70,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can update existing document', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
@@ -97,8 +95,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can merge data with an existing document using set', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'description',
         'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
@@ -144,8 +141,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can delete field using merge', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         untouched: true,
         foo: 'bar',
@@ -171,8 +167,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can replace an array by merging using set', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         untouched: true,
         data: 'old',
@@ -202,8 +197,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('cannot update nonexistent document', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.collection('rooms').doc();
+    return withTestDoc(persistence, doc => {
       return doc
         .update({ owner: 'abc' })
         .then(
@@ -222,8 +216,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can delete a field with an update', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
@@ -249,8 +242,7 @@ apiDescribe('Database', persistence => {
   asyncIt('can update nested fields', () => {
     const FieldPath = firebase.firestore.FieldPath;
 
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny' },
@@ -278,8 +270,7 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       asyncIt('set/update should reject: ' + val, () => {
-        return withTestDb(persistence, db => {
-          const doc = db.collection('rooms').doc();
+        return withTestDoc(persistence, doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
@@ -367,10 +358,9 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('Local document events are fired with hasLocalChanges=true.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDoc(persistence, docRef => {
       let gotLocalDocEvent = false;
       const remoteDocEventDeferred = new Deferred();
-      const docRef = db.collection('rooms').doc();
       const unlisten = docRef.onSnapshot(
         { includeMetadataChanges: true },
         doc => {
@@ -396,10 +386,9 @@ apiDescribe('Database', persistence => {
   asyncIt(
     'Metadata only changes are not fired when no options provided',
     () => {
-      return withTestDb(persistence, db => {
+      return withTestDoc(persistence, docRef => {
         const secondUpdateFound = new Deferred();
         let count = 0;
-        const docRef = db.collection('rooms').doc();
         const unlisten = docRef.onSnapshot(doc => {
           if (doc) {
             count++;
@@ -593,8 +582,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can queue writes while offline', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('rooms').doc();
+    return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
@@ -615,8 +603,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can get documents while offline', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('rooms').doc();
+    return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;

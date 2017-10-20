@@ -25,7 +25,7 @@ const asyncIt = testHelpers.asyncIt;
 
 apiDescribe('Firestore', persistence => {
   function expectRoundtrip(db: firestore.Firestore, data: {}): Promise<void> {
-    const doc = db.doc('rooms/Eros');
+    const doc = db.collection('rooms').doc();
     return doc
       .set(data)
       .then(() => doc.get())
@@ -47,8 +47,7 @@ apiDescribe('Firestore', persistence => {
   });
 
   asyncIt('can read and write geo point fields', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       return doc
         .set({ geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) })
         .then(() => {
@@ -64,8 +63,7 @@ apiDescribe('Firestore', persistence => {
   });
 
   asyncIt('can read and write bytes fields', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       return doc
         .set({
           bytes: firebase.firestore.Blob.fromUint8Array(

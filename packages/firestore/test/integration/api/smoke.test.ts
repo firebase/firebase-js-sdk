@@ -51,9 +51,8 @@ apiDescribe('Smoke Test', persistence => {
   });
 
   asyncIt('can read a written document with DocumentKey', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const ref1 = db.doc('rooms/eros/messages/2');
-      const ref2 = db.doc('users/patryk');
+    return integrationHelpers.withTestDoc(persistence, ref1 => {
+      const ref2 = ref1.firestore.collection('users').doc();
       const data = { user: ref2, message: 'We are writing data' };
       return ref2.set({ name: 'patryk' }).then(() => {
         return ref1
@@ -79,8 +78,8 @@ apiDescribe('Smoke Test', persistence => {
       persistence,
       2,
       ([reader, writer]) => {
-        const readerRef = reader.doc('rooms/eros/messages/1');
-        const writerRef = writer.doc('rooms/eros/messages/1');
+        const readerRef = reader.collection('rooms/firestore/messages').doc();
+        const writerRef = writer.doc(readerRef.path);
         const data = {
           name: 'Patryk',
           message: 'We are actually writing data!'
@@ -95,27 +94,29 @@ apiDescribe('Smoke Test', persistence => {
               expect(docSnap.exists).to.equal(true);
               expect(docSnap.data()).to.deep.equal(data);
             })
-            .then(() => unlisten(), () => unlisten());
+            .then(() => unlisten());
         });
       }
     );
   });
 
   asyncIt('will fire value events for empty collections', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const collection = db.collection('empty-collection');
-
-      const accum = new EventsAccumulator<firestore.QuerySnapshot>();
-      const unlisten = collection.onSnapshot(accum.storeEvent);
-      return accum
-        .awaitEvent()
-        .then(querySnap => {
-          expect(querySnap.empty).to.equal(true);
-          expect(querySnap.size).to.equal(0);
-          expect(querySnap.docs.length).to.equal(0);
-        })
-        .then(() => unlisten(), () => unlisten());
-    });
+    return integrationHelpers.withTestCollection(
+      persistence,
+      {},
+      collection => {
+        const accum = new EventsAccumulator<firestore.QuerySnapshot>();
+        const unlisten = collection.onSnapshot(accum.storeEvent);
+        return accum
+          .awaitEvent()
+          .then(querySnap => {
+            expect(querySnap.empty).to.equal(true);
+            expect(querySnap.size).to.equal(0);
+            expect(querySnap.docs.length).to.equal(0);
+          })
+          .then(() => unlisten());
+      }
+    );
   });
 
   asyncIt('can get collection query', () => {

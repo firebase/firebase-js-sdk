@@ -319,8 +319,8 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'may contain indirectly nested arrays.', db => {
       const data = { 'nested-array': [1, { foo: [2] }] };
 
-      const ref = db.doc('foo/bar');
-      const ref2 = db.doc('foo/quux');
+      const ref = db.collection('foo').doc();
+      const ref2 = db.collection('foo').doc();
 
       ref
         .set(data)
