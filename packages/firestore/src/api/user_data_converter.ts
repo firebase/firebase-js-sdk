@@ -117,11 +117,11 @@ export class ParsedUpdateData {
 enum UserDataSource {
   Set,
   Update,
-      MergeSet,
+  MergeSet,
   QueryValue // from a where clause or cursor bound
 }
 
-function isWrite(dataSource:UserDataSource) {
+function isWrite(dataSource: UserDataSource) {
   switch (dataSource) {
     case UserDataSource.Set: // fall through
     case UserDataSource.MergeSet: // fall through
@@ -288,9 +288,7 @@ export class UserDataConverter {
   constructor(private preConverter: DataPreConverter) {}
 
   /** Parse document data from a non-merge set() call.*/
-  parseSetData(
-    methodName: string,
-    input: AnyJs): ParsedSetData {
+  parseSetData(methodName: string, input: AnyJs): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.Set,
       methodName,
@@ -312,18 +310,19 @@ export class UserDataConverter {
       }
     });
 
-    return new ParsedSetData(updateData, /* fieldMask= */ null, context.fieldTransforms);
+    return new ParsedSetData(
+      updateData,
+      /* fieldMask= */ null,
+      context.fieldTransforms
+    );
   }
 
   /** Parse document data from a set() call with SetOptions.merge() set. */
-  parseMergeData(
-      methodName: string,
-      input: AnyJs,
-  ): ParsedSetData {
+  parseMergeData(methodName: string, input: AnyJs): ParsedSetData {
     const context = new ParseContext(
-        UserDataSource.MergeSet,
-        methodName,
-        FieldPath.EMPTY_PATH
+      UserDataSource.MergeSet,
+      methodName,
+      FieldPath.EMPTY_PATH
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
@@ -344,7 +343,6 @@ export class UserDataConverter {
     const fieldMask = new FieldMask(context.fieldMask);
     return new ParsedSetData(updateData, fieldMask, context.fieldTransforms);
   }
-
 
   /** Parse update data from an update() call. */
   parseUpdateData(methodName: string, input: AnyJs): ParsedUpdateData {
@@ -567,12 +565,12 @@ export class UserDataConverter {
           return null;
         } else if (context.dataSource === UserDataSource.Update) {
           assert(
-              context.path == null || context.path.length > 0,
-              'FieldValue.delete() at the top level should have already' +
+            context.path == null || context.path.length > 0,
+            'FieldValue.delete() at the top level should have already' +
               ' been handled.'
           );
           throw context.createError(
-              'FieldValue.delete() can only appear at the top level ' +
+            'FieldValue.delete() can only appear at the top level ' +
               'of your update data'
           );
         } else {
