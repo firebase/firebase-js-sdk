@@ -94,7 +94,7 @@ apiDescribe('Smoke Test', persistence => {
               expect(docSnap.exists).to.equal(true);
               expect(docSnap.data()).to.deep.equal(data);
             })
-            .then(() => unlisten(), () => unlisten());
+            .then(() => unlisten());
         });
       }
     );
@@ -114,7 +114,7 @@ apiDescribe('Smoke Test', persistence => {
             expect(querySnap.size).to.equal(0);
             expect(querySnap.docs.length).to.equal(0);
           })
-          .then(() => unlisten(), () => unlisten());
+          .then(() => unlisten());
       }
     );
   });
