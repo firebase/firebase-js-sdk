@@ -20,8 +20,7 @@ import * as firestore from 'firestore';
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
-import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
-import { Firestore } from '../../../src/api/database';
+import { apiDescribe, withTestCollection, withTestDb, withTestDoc } from '../util/helpers';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -120,8 +119,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can merge server timestamps', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         updated: false
       };
