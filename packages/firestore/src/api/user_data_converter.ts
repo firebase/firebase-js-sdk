@@ -316,7 +316,11 @@ export class UserDataConverter {
 
     let updateData = this.parseData(input, context);
     const fieldMask = new FieldMask(context.fieldMask);
-    return new ParsedSetData(updateData as ObjectValue, fieldMask, context.fieldTransforms);
+    return new ParsedSetData(
+      updateData as ObjectValue,
+      fieldMask,
+      context.fieldTransforms
+    );
   }
 
   /** Parse update data from an update() call. */
