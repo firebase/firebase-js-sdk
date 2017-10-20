@@ -140,6 +140,33 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  asyncIt('can delete field using merge', () => {
+    return withTestDb(persistence, db => {
+      const doc = db.doc('rooms/Eros');
+      const initialData = {
+        untouched: true,
+        foo: 'bar',
+        nested: {untouched: true, foo: 'bar' }
+      };
+      const mergeData = {
+        foo: firebase.firestore.FieldValue.delete(),
+        nested: { foo: firebase.firestore.FieldValue.delete() }
+      };
+      const finalData = {
+        untouched: true,
+        nested: {untouched: true }
+      };
+      return doc
+          .set(initialData)
+          .then(() => doc.set(mergeData, { merge: true }))
+          .then(() => doc.get())
+          .then(docSnapshot => {
+            expect(docSnapshot.exists).to.be.ok;
+            expect(docSnapshot.data()).to.deep.equal(finalData);
+          });
+    });
+  });
+
   asyncIt('can replace an array by merging using set', () => {
     return withTestDb(persistence, db => {
       const doc = db.doc('rooms/Eros');
