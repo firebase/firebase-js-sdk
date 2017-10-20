@@ -4,7 +4,7 @@ See [Contributing](../../CONTRIBUTING.md) for general information on
 contributing to the Firebase JavaScript SDK (including Cloud Firestore).
 
 # Running Firestore Tests
-All commands must be run from this packages/firestore/ directory.
+All commands must be run from this `packages/firestore/` directory.
 ```
 # Run all tests once (browser and node)
 yarn test

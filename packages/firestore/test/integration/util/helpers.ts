@@ -21,7 +21,7 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import firebase from './firebase_export';
 
 // tslint:disable-next-line:no-any __karma__ is an untyped global
-declare let __karma__: any;
+declare const __karma__: any;
 
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
@@ -31,7 +31,7 @@ export const ALT_PROJECT_ID = 'test-db2';
 const DEFAULT_SETTINGS = getDefaultSettings();
 
 function getDefaultSettings(): firestore.Settings {
-  let karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
+  const karma = __karma__; //typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
     return karma.config.firestoreSettings;
   } else {
