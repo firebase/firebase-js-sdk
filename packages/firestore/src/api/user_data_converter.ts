@@ -296,28 +296,16 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let updateData = ObjectValue.EMPTY;
-
-    objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
-      const path = new ExternalFieldPath(key)._internalPath;
-
-      const childContext = context.childContextForFieldPath(path);
-      value = this.runPreConverter(value, childContext);
-
-      const parsedValue = this.parseData(value, childContext);
-      if (parsedValue) {
-        updateData = updateData.set(path, parsedValue);
-      }
-    });
+    let updateData = this.parseData(input, context);
 
     return new ParsedSetData(
-      updateData,
+      updateData as ObjectValue,
       /* fieldMask= */ null,
       context.fieldTransforms
     );
   }
 
-  /** Parse document data from a set() call with SetOptions.merge() set. */
+  /** Parse document data from a set() call with '{merge:true}'. */
   parseMergeData(methodName: string, input: AnyJs): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.MergeSet,
@@ -326,22 +314,9 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let updateData = ObjectValue.EMPTY;
-
-    objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
-      const path = new ExternalFieldPath(key)._internalPath;
-
-      const childContext = context.childContextForFieldPath(path);
-      value = this.runPreConverter(value, childContext);
-
-      const parsedValue = this.parseData(value, childContext);
-      if (parsedValue) {
-        updateData = updateData.set(path, parsedValue);
-      }
-    });
-
+    let updateData = this.parseData(input, context);
     const fieldMask = new FieldMask(context.fieldMask);
-    return new ParsedSetData(updateData, fieldMask, context.fieldTransforms);
+    return new ParsedSetData(updateData as ObjectValue, fieldMask, context.fieldTransforms);
   }
 
   /** Parse update data from an update() call. */
@@ -576,7 +551,7 @@ export class UserDataConverter {
         } else {
           // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
           throw context.createError(
-            'FieldValue.delete() can only be used with update() and set() with SetOptions.merge()'
+            'FieldValue.delete() can only be used with update() and set() with {merge:true}'
           );
         }
       } else if (value instanceof ServerTimestampFieldValueImpl) {
