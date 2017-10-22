@@ -501,11 +501,9 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    const parsed = this._firestore._dataConverter.parseSetData(
-      'Transaction.set',
-      value,
-      options
-    );
+    const parsed = options.merge
+      ? this._firestore._dataConverter.parseMergeData('Transaction.set', value)
+      : this._firestore._dataConverter.parseSetData('Transaction.set', value);
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -593,11 +591,9 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    const parsed = this._firestore._dataConverter.parseSetData(
-      'WriteBatch.set',
-      value,
-      options
-    );
+    const parsed = options.merge
+      ? this._firestore._dataConverter.parseMergeData('WriteBatch.set', value)
+      : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.NONE)
     );
@@ -756,11 +752,15 @@ export class DocumentReference implements firestore.DocumentReference {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
 
-    const parsed = this.firestore._dataConverter.parseSetData(
-      'DocumentReference.set',
-      value,
-      options
-    );
+    const parsed = options.merge
+      ? this.firestore._dataConverter.parseMergeData(
+          'DocumentReference.set',
+          value
+        )
+      : this.firestore._dataConverter.parseSetData(
+          'DocumentReference.set',
+          value
+        );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
     );

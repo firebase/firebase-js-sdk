@@ -26,7 +26,6 @@ import {
   withTestDb,
   withTestDoc
 } from '../util/helpers';
-import { Firestore } from '../../../src/api/database';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -137,6 +136,32 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.get('updated')).to.be.false;
           expect(docSnapshot.get('time')).to.be.a('Date');
+        });
+    });
+  });
+
+  asyncIt('can delete field using merge', () => {
+    return withTestDoc(persistence, doc => {
+      const initialData = {
+        untouched: true,
+        foo: 'bar',
+        nested: { untouched: true, foo: 'bar' }
+      };
+      const mergeData = {
+        foo: firebase.firestore.FieldValue.delete(),
+        nested: { foo: firebase.firestore.FieldValue.delete() }
+      };
+      const finalData = {
+        untouched: true,
+        nested: { untouched: true }
+      };
+      return doc
+        .set(initialData)
+        .then(() => doc.set(mergeData, { merge: true }))
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
         });
     });
   });

@@ -117,7 +117,21 @@ export class ParsedUpdateData {
 enum UserDataSource {
   Set,
   Update,
+  MergeSet,
   QueryValue // from a where clause or cursor bound
+}
+
+function isWrite(dataSource: UserDataSource) {
+  switch (dataSource) {
+    case UserDataSource.Set: // fall through
+    case UserDataSource.MergeSet: // fall through
+    case UserDataSource.Update:
+      return true;
+    case UserDataSource.QueryValue:
+      return false;
+    default:
+      throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
+  }
 }
 
 /** A "context" object passed around while parsing user data. */
@@ -230,7 +244,7 @@ class ParseContext {
   }
 
   private validatePathSegment(segment: string) {
-    if (this.isWrite() && RESERVED_FIELD_REGEX.test(segment)) {
+    if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
       throw this.createError('Document fields cannot begin and end with __');
     }
   }
@@ -273,12 +287,8 @@ export class DocumentKeyReference {
 export class UserDataConverter {
   constructor(private preConverter: DataPreConverter) {}
 
-  /** Parse document data (e.g. from a set() call). */
-  parseSetData(
-    methodName: string,
-    input: AnyJs,
-    options: firestore.SetOptions
-  ): ParsedSetData {
+  /** Parse document data from a non-merge set() call.*/
+  parseSetData(methodName: string, input: AnyJs): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.Set,
       methodName,
@@ -286,27 +296,34 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const merge = options.merge !== undefined ? options.merge : false;
+    let updateData = this.parseData(input, context);
 
-    let updateData = ObjectValue.EMPTY;
-
-    objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
-      const path = new ExternalFieldPath(key)._internalPath;
-
-      const childContext = context.childContextForFieldPath(path);
-      value = this.runPreConverter(value, childContext);
-
-      const parsedValue = this.parseData(value, childContext);
-      if (parsedValue) {
-        updateData = updateData.set(path, parsedValue);
-      }
-    });
-
-    const fieldMask = merge ? new FieldMask(context.fieldMask) : null;
-    return new ParsedSetData(updateData, fieldMask, context.fieldTransforms);
+    return new ParsedSetData(
+      updateData as ObjectValue,
+      /* fieldMask= */ null,
+      context.fieldTransforms
+    );
   }
 
-  /** Parse update data (e.g. from an update() call). */
+  /** Parse document data from a set() call with '{merge:true}'. */
+  parseMergeData(methodName: string, input: AnyJs): ParsedSetData {
+    const context = new ParseContext(
+      UserDataSource.MergeSet,
+      methodName,
+      FieldPath.EMPTY_PATH
+    );
+    validatePlainObject('Data must be an object, but it was:', context, input);
+
+    let updateData = this.parseData(input, context);
+    const fieldMask = new FieldMask(context.fieldMask);
+    return new ParsedSetData(
+      updateData as ObjectValue,
+      fieldMask,
+      context.fieldTransforms
+    );
+  }
+
+  /** Parse update data from an update() call. */
   parseUpdateData(methodName: string, input: AnyJs): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
@@ -523,12 +540,9 @@ export class UserDataConverter {
       return new RefValue(value.databaseId, value.key);
     } else if (value instanceof FieldValueImpl) {
       if (value instanceof DeleteFieldValueImpl) {
-        // We shouldn't encounter delete sentinels here. Provide a good error.
-        if (context.dataSource !== UserDataSource.Update) {
-          throw context.createError(
-            'FieldValue.delete() can only be used with update()'
-          );
-        } else {
+        if (context.dataSource == UserDataSource.MergeSet) {
+          return null;
+        } else if (context.dataSource === UserDataSource.Update) {
           assert(
             context.path == null || context.path.length > 0,
             'FieldValue.delete() at the top level should have already' +
@@ -538,12 +552,14 @@ export class UserDataConverter {
             'FieldValue.delete() can only appear at the top level ' +
               'of your update data'
           );
+        } else {
+          // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+          throw context.createError(
+            'FieldValue.delete() can only be used with update() and set() with {merge:true}'
+          );
         }
       } else if (value instanceof ServerTimestampFieldValueImpl) {
-        if (
-          context.dataSource !== UserDataSource.Set &&
-          context.dataSource !== UserDataSource.Update
-        ) {
+        if (!isWrite(context.dataSource)) {
           throw context.createError(
             'FieldValue.serverTimestamp() can only be used with set()' +
               ' and update()'
