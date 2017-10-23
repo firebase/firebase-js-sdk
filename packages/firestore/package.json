@@ -38,6 +38,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "^0.0.31",
     "karma-webpack": "^2.0.4",
+    "mkdirp": "^0.5.1",
     "mocha": "^3.5.0",
     "npm-run-all": "^4.1.1",
     "sinon": "^3.2.1",

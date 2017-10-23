@@ -25,6 +25,7 @@
  */
 var glob = require('glob');
 var fs = require('fs');
+var mkdirp = require('mkdirp');
 
 const describeSpec = require('./specs/describe_spec');
 
@@ -52,17 +53,20 @@ function main(args) {
     return;
   }
   outputPath = args[2];
+  mkdirp.sync(outputPath);
 
   const testFiles = glob.sync('**/specs/*_spec.test.ts', { cwd: __dirname });
   if (testFiles.length === 0) {
     throw new Error('No test files found');
   }
   for (var i = 0; i < testFiles.length; ++i) {
-    var specName = testFiles[i].replace(/\.js$/, '');
+    var specName = testFiles[i].replace(/\.ts$/, '');
     var testName = specName.replace(/^specs\//, '');
     var filename = testName.replace(/[^A-Za-z\d]/g, '_') + '.json';
     writeToJSON(testFiles[i], outputPath + '/' + filename);
   }
+
+  console.log('JSON spec files successfully generated to:', outputPath);
 }
 
 main(process.argv);
