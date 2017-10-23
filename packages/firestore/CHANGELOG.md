@@ -1,4 +1,6 @@
 # Unreleased
+
+# v0.1.2
 - [fixed] Fixed validation of nested arrays to allow indirect nesting
 
 # v0.1.1
