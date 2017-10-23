@@ -24,4 +24,4 @@ NPM_BIN_DIR="$(npm bin)"
 TSNODE="$NPM_BIN_DIR/ts-node"
 GENERATE_SPEC_JS="$DIR/generate_spec_json.js"
 
-TS_NODE_PROJECT="$DIR/../../../tsconfig.test.json" $TSNODE $GENERATE_SPEC_JS "$@"
+TS_NODE_PROJECT="$DIR/../../tsconfig.json" $TSNODE $GENERATE_SPEC_JS "$@"
