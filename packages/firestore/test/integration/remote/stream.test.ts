@@ -88,7 +88,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
   }
 
   /**
-   * Returns a Promise that resolves when the 'expectedCallback' fires.
+   * Returns a Promise that resolves when 'expectedCallback' fires.
    * Resolves the returned Promise immediately if there is already an
    * unprocessed callback.
    * Fails the test if the expected callback does not match the name of the
