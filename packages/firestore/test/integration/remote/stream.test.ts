@@ -96,7 +96,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
    */
   awaitCallback(expectedCallback: StreamStatusCallback): Promise<void> {
     if (this.pendingStates.length > 0) {
-      expect(this.pendingStates.shift()).to.eq(expectedCallback);
+      expect(this.pendingStates.shift()).to.equal(expectedCallback);
       return Promise.resolve();
     } else {
       const deferred = new Deferred<StreamStatusCallback>();
