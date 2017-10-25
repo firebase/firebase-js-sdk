@@ -51,5 +51,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts"
+  "typings": "dist/cjs/index.d.ts"
 }
