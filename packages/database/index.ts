@@ -56,4 +56,4 @@ registerDatabase(firebase);
 export { Database, Query, Reference, enableLogging, ServerValue };
 
 export { DataSnapshot } from './src/api/DataSnapshot';
-export { OnDisconnect } from './src/api/OnDisconnect';
+export { OnDisconnect } from './src/api/onDisconnect';
