@@ -15,8 +15,6 @@
  */
 
 import { expect } from 'chai';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import {
   Document,
@@ -24,37 +22,15 @@ import {
   NoDocument
 } from '../../../src/model/document';
 import { MutationResult } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { Datastore } from '../../../src/remote/datastore';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { asyncIt, key, setMutation } from '../../util/helpers';
-import { DEFAULT_PROJECT_ID, getDefaultDatabaseInfo } from '../util/helpers';
+import { withTestDatastore } from '../util/helpers';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
 
-  function initializeDatastore(): Promise<Datastore> {
-    const databaseInfo = getDefaultDatabaseInfo();
-    const queue = new AsyncQueue();
-    return PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(conn => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        return new Datastore(
-          databaseInfo,
-          queue,
-          conn,
-          new EmptyCredentialsProvider(),
-          serializer
-        );
-      });
-  }
-
   asyncIt('can write', () => {
-    return initializeDatastore().then(ds => {
+    return withTestDatastore(ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
 
       return ds.commit([mutation]).then((result: MutationResult[]) => {
@@ -67,7 +43,7 @@ describe('Remote Storage', () => {
   });
 
   asyncIt('can read', () => {
-    return initializeDatastore().then(ds => {
+    return withTestDatastore(ds => {
       const k = key('docs/1');
       const mutation = setMutation('docs/1', { sort: 10 });
 
@@ -93,7 +69,7 @@ describe('Remote Storage', () => {
   });
 
   asyncIt('can read deleted documents', () => {
-    return initializeDatastore().then(ds => {
+    return withTestDatastore(ds => {
       const k = key('docs/2');
       return ds.lookup([k]).then((docs: MaybeDocument[]) => {
         expect(docs.length).to.equal(1);

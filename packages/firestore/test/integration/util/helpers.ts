@@ -17,8 +17,12 @@
 import * as firestore from 'firestore';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { Datastore } from '../../../src/remote/datastore';
 
 import firebase from './firebase_export';
+import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { AsyncQueue } from '../../../src/util/async_queue';
 
 // tslint:disable-next-line:no-any __karma__ is an untyped global
 declare const __karma__: any;
@@ -80,6 +84,29 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     DEFAULT_SETTINGS.host,
     DEFAULT_SETTINGS.ssl
   );
+}
+
+export function withTestDatastore(
+  fn: (datastore: Datastore, queue: AsyncQueue) => Promise<void>
+): Promise<void> {
+  const databaseInfo = getDefaultDatabaseInfo();
+  const queue = new AsyncQueue();
+  return PlatformSupport.getPlatform()
+    .loadConnection(databaseInfo)
+    .then(conn => {
+      const serializer = PlatformSupport.getPlatform().newSerializer(
+        databaseInfo.databaseId
+      );
+      const datastore = new Datastore(
+        databaseInfo,
+        queue,
+        conn,
+        new EmptyCredentialsProvider(),
+        serializer
+      );
+
+      return fn(datastore, queue);
+    });
 }
 
 export function withTestDb(
