@@ -27,7 +27,3 @@ addons:
     packages:
       - google-chrome-stable
       - g++-4.8
-
-branches:
-  only:
-    - master

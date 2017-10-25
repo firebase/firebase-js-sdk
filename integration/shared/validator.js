@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
+let validatedVersion = false;
+
 function validateNamespace(definition, candidate) {
   const __expect = require('chai').expect;
   const keys = Object.keys(definition).filter(key => !~key.indexOf('__'));
+
+  if (!validatedVersion) {
+    describe('Firebase SDK Version', function() {
+      it('Should be properly defined', function() {
+        __expect(candidate.SDK_VERSION).to.equal(
+          require('../../packages/firebase/package.json').version
+        );
+      });
+    });
+    validatedVersion = true;
+  }
 
   // Validate Keys
   keys.forEach(key => {
@@ -39,6 +52,7 @@ function validateNamespace(definition, candidate) {
     const returnKeys = Object.keys(definitionChunk).filter(
       iKey => ~iKey.indexOf('__return')
     );
+
     describe(`${key}`, function() {
       /**
        * Tests of the actual API

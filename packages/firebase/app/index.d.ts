@@ -49,6 +49,7 @@ declare namespace firebase {
     ): Promise<any>;
     linkWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
+    metadata: firebase.auth.UserMetadata;
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     reauthenticateAndRetrieveDataWithCredential(
@@ -118,6 +119,7 @@ declare namespace firebase.app {
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
+    firestore(): firebase.firestore.Firestore;
   }
 }
 
@@ -136,6 +138,7 @@ declare namespace firebase.auth {
   };
 
   type AdditionalUserInfo = {
+    isNewUser: boolean;
     profile: Object | null;
     providerId: string;
     username?: string | null;
@@ -316,6 +319,11 @@ declare namespace firebase.auth {
     operationType?: string | null;
     user: firebase.User | null;
   };
+
+  interface UserMetadata {
+    creationTime?: string;
+    lastSignInTime?: string;
+  }
 }
 
 declare namespace firebase.auth.Auth {
@@ -970,6 +978,14 @@ declare namespace firebase.firestore {
     collection(collectionPath: string): CollectionReference;
 
     /**
+     * Returns true if this `DocumentReference` is equal to the provided one.
+     *
+     * @param other The `DocumentReference` to compare against.
+     * @return true if this `DocumentReference` is equal to the provided one.
+     */
+    isEqual(other: DocumentReference): boolean;
+
+    /**
      * Writes to the document referred to by this `DocumentReference`. If the
      * document does not yet exist, it will be created. If you pass
      * `SetOptions`, the provided data can be merged into an existing document.
@@ -1307,6 +1323,14 @@ declare namespace firebase.firestore {
      * @return The created Query.
      */
     endAt(...fieldValues: any[]): Query;
+
+    /**
+     * Returns true if this `Query` is equal to the provided one.
+     *
+     * @param other The `Query` to compare against.
+     * @return true if this `Query` is equal to the provided one.
+     */
+    isEqual(other: Query): boolean;
 
     /**
      * Executes the query and returns the results as a QuerySnapshot.

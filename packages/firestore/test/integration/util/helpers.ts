@@ -20,16 +20,27 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 
 import firebase from './firebase_export';
 
+// tslint:disable-next-line:no-any __karma__ is an untyped global
+declare const __karma__: any;
+
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
-// TODO(b/66917388): Reintroduce way to test against localhost.
-const DEFAULT_SETTINGS = {
-  host: 'firestore.googleapis.com',
-  ssl: true
-};
+const DEFAULT_SETTINGS = getDefaultSettings();
+
+function getDefaultSettings(): firestore.Settings {
+  const karma = __karma__; //typeof __karma__ !== 'undefined' ? __karma__ : undefined;
+  if (karma && karma.config.firestoreSettings) {
+    return karma.config.firestoreSettings;
+  } else {
+    return {
+      host: 'firestore.googleapis.com',
+      ssl: true
+    };
+  }
+}
 
 function isIeOrEdge(): boolean {
   const ua = window.navigator.userAgent;

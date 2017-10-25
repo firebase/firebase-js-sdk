@@ -21,13 +21,14 @@ import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
 import FCMDetails from './fcm-details';
 
-const FCM_TOKEN_DETAILS_DB = 'fcm_token_details_db';
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
 const FCM_TOKEN_DETAILS_DB_VERSION = 1;
 
 export default class TokenManager {
   private errorFactory_: ErrorFactory<string>;
   private openDbPromise_: Promise<IDBDatabase>;
+
+  static DB_NAME: 'fcm_token_details_db';
 
   constructor() {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
@@ -46,7 +47,7 @@ export default class TokenManager {
 
     this.openDbPromise_ = new Promise((resolve, reject) => {
       const request = indexedDB.open(
-        FCM_TOKEN_DETAILS_DB,
+        TokenManager.DB_NAME,
         FCM_TOKEN_DETAILS_DB_VERSION
       );
       request.onerror = event => {

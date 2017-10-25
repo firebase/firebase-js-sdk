@@ -27,8 +27,12 @@ function customDeepEqual(left, right) {
   /**
    * START: Custom compare logic
    */
+  // Internally we use .equals(), but our public API uses .isEqual() so
+  // we handle both.
   if (left && typeof left.equals === 'function') return left.equals(right);
+  if (left && typeof left.isEqual === 'function') return left.isEqual(right);
   if (right && typeof right.equals === 'function') return right.equals(left);
+  if (right && typeof right.isEqual === 'function') return right.isEqual(left);
   /**
    * END: Custom compare logic
    */

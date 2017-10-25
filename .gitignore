@@ -13,3 +13,4 @@ dist
 # Editor Configs
 .idea
 .vscode
+*.iml

@@ -19,25 +19,53 @@ const path = require('path');
 const karmaBase = require('../../config/karma.base');
 const { argv } = require('yargs');
 
-const testFiles = (files => {
-  if (!files) return;
-  if (Array.isArray(files)) return files.map(file => ({ pattern: file }));
-  return [{ pattern: files }];
-})(argv.testFiles);
-
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: testFiles
-      ? testFiles
-      : [
-          { pattern: `test/unit/bootstrap.ts` },
-          { pattern: `test/integration/bootstrap.ts` }
-        ],
+    files: getTestFiles(argv),
+
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
+    frameworks: ['mocha'],
+
+    client: Object.assign({}, karmaBase.client, {
+      firestoreSettings: getFirestoreSettings(argv)
+    })
   });
 
   config.set(karmaConfig);
 };
+
+/**
+ * Gets the list of files to execute, based on existence of the
+ * --unit and --integration command-line arguments.
+ */
+function getTestFiles(argv) {
+  const unitTests = 'test/unit/bootstrap.ts';
+  const integrationTests = 'test/integration/bootstrap.ts';
+  if (argv.unit) {
+    return [unitTests];
+  } else if (argv.integration) {
+    return [integrationTests];
+  } else {
+    return [unitTests, integrationTests];
+  }
+}
+
+/**
+ * If the --local argument is passed, returns a {host, ssl} FirestoreSettings
+ * object that point to localhost instead of production.
+ */
+function getFirestoreSettings(argv) {
+  if (argv.local) {
+    return {
+      host: 'localhost:8080',
+      ssl: false
+    };
+  } else {
+    return {
+      host: 'firestore.googleapis.com',
+      ssl: true
+    };
+  }
+}

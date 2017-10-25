@@ -25,7 +25,7 @@ const asyncIt = testHelpers.asyncIt;
 
 apiDescribe('Firestore', persistence => {
   function expectRoundtrip(db: firestore.Firestore, data: {}): Promise<void> {
-    const doc = db.doc('rooms/Eros');
+    const doc = db.collection('rooms').doc();
     return doc
       .set(data)
       .then(() => doc.get())
@@ -47,8 +47,7 @@ apiDescribe('Firestore', persistence => {
   });
 
   asyncIt('can read and write geo point fields', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       return doc
         .set({ geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) })
         .then(() => {
@@ -64,8 +63,7 @@ apiDescribe('Firestore', persistence => {
   });
 
   asyncIt('can read and write bytes fields', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       return doc
         .set({
           bytes: firebase.firestore.Blob.fromUint8Array(
@@ -93,20 +91,14 @@ apiDescribe('Firestore', persistence => {
   });
 
   asyncIt('can read and write document references', () => {
-    // TODO(b/62143881): Implement DocumentReference.equals() so we can use
-    // expectRoundtrip()
     return withTestDoc(persistence, doc => {
-      return doc
-        .set({ a: 42, ref: doc })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnap => {
-          expect(docSnap.exists).to.equal(true);
-          expect(docSnap.get('a')).to.equal(42);
-          const readDocRef = docSnap.get('ref') as firestore.DocumentReference;
-          expect(readDocRef.path).to.equal(doc.path);
-        });
+      return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
+    });
+  });
+
+  asyncIt('can read and write document references in an array', () => {
+    return withTestDoc(persistence, doc => {
+      return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
     });
   });
 });

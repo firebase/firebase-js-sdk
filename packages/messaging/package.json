@@ -1,12 +1,13 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
     "dev": "gulp dev",
     "test": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
@@ -14,7 +15,7 @@
     "@firebase/app": "^0.1.0"
   },
   "dependencies": {
-    "@firebase/util": "^0.1.0"
+    "@firebase/util": "^0.1.1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",

@@ -20,14 +20,18 @@ import * as firestore from 'firestore';
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
-import { apiDescribe, withTestCollection, withTestDb } from '../util/helpers';
-import { Firestore } from '../../../src/api/database';
+import {
+  apiDescribe,
+  withTestCollection,
+  withTestDb,
+  withTestDoc
+} from '../util/helpers';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
-    return withTestDb(persistence, db => {
-      return db.doc('rooms/Eros').set({
-        desc: 'Stuff related to Eros project...',
+    return withTestDoc(persistence, docRef => {
+      return docRef.set({
+        desc: 'Stuff related to Firestore project...',
         owner: {
           name: 'Jonny',
           title: 'scallywag'
@@ -46,8 +50,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can delete a document', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.doc('rooms/Eros');
+    return withTestDoc(persistence, docRef => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
@@ -67,8 +70,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can update existing document', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
@@ -93,8 +95,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can merge data with an existing document using set', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'description',
         'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
@@ -120,8 +121,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can merge server timestamps', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         updated: false
       };
@@ -140,9 +140,34 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  asyncIt('can delete field using merge', () => {
+    return withTestDoc(persistence, doc => {
+      const initialData = {
+        untouched: true,
+        foo: 'bar',
+        nested: { untouched: true, foo: 'bar' }
+      };
+      const mergeData = {
+        foo: firebase.firestore.FieldValue.delete(),
+        nested: { foo: firebase.firestore.FieldValue.delete() }
+      };
+      const finalData = {
+        untouched: true,
+        nested: { untouched: true }
+      };
+      return doc
+        .set(initialData)
+        .then(() => doc.set(mergeData, { merge: true }))
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
+
   asyncIt('can replace an array by merging using set', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         untouched: true,
         data: 'old',
@@ -172,8 +197,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('cannot update nonexistent document', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.collection('rooms').doc();
+    return withTestDoc(persistence, doc => {
       return doc
         .update({ owner: 'abc' })
         .then(
@@ -192,8 +216,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can delete a field with an update', () => {
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
@@ -219,8 +242,7 @@ apiDescribe('Database', persistence => {
   asyncIt('can update nested fields', () => {
     const FieldPath = firebase.firestore.FieldPath;
 
-    return withTestDb(persistence, db => {
-      const doc = db.doc('rooms/Eros');
+    return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
         owner: { name: 'Jonny' },
@@ -248,8 +270,7 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       asyncIt('set/update should reject: ' + val, () => {
-        return withTestDb(persistence, db => {
-          const doc = db.collection('rooms').doc();
+        return withTestDoc(persistence, doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
@@ -337,10 +358,9 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('Local document events are fired with hasLocalChanges=true.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDoc(persistence, docRef => {
       let gotLocalDocEvent = false;
       const remoteDocEventDeferred = new Deferred();
-      const docRef = db.collection('rooms').doc();
       const unlisten = docRef.onSnapshot(
         { includeMetadataChanges: true },
         doc => {
@@ -366,10 +386,9 @@ apiDescribe('Database', persistence => {
   asyncIt(
     'Metadata only changes are not fired when no options provided',
     () => {
-      return withTestDb(persistence, db => {
+      return withTestDoc(persistence, docRef => {
         const secondUpdateFound = new Deferred();
         let count = 0;
-        const docRef = db.collection('rooms').doc();
         const unlisten = docRef.onSnapshot(doc => {
           if (doc) {
             count++;
@@ -468,17 +487,63 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('exposes "database" on document references.', () => {
+  asyncIt('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
       return Promise.resolve();
     });
   });
 
-  asyncIt('exposes "database" on query references.', () => {
+  asyncIt('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
       return Promise.resolve();
+    });
+  });
+
+  asyncIt('can compare DocumentReference instances with isEqual().', () => {
+    return withTestDb(persistence, firestore => {
+      return withTestDb(persistence, otherFirestore => {
+        const docRef = firestore.doc('foo/bar');
+        expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
+        expect(docRef.collection('baz').parent.isEqual(docRef)).to.be.true;
+
+        expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
+
+        expect(otherFirestore.doc('foo/bar').isEqual(docRef)).to.be.false;
+
+        return Promise.resolve();
+      });
+    });
+  });
+
+  asyncIt('can compare Query instances with isEqual().', () => {
+    return withTestDb(persistence, firestore => {
+      return withTestDb(persistence, otherFirestore => {
+        const query = firestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        const query2 = firestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        expect(query.isEqual(query2)).to.be.true;
+
+        const query3 = firestore
+          .collection('foo')
+          .orderBy('BAR')
+          .where('baz', '==', 42);
+        expect(query.isEqual(query3)).to.be.false;
+
+        const query4 = otherFirestore
+          .collection('foo')
+          .orderBy('bar')
+          .where('baz', '==', 42);
+        expect(query4.isEqual(query)).to.be.false;
+
+        return Promise.resolve();
+      });
     });
   });
 
@@ -517,8 +582,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can queue writes while offline', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('rooms').doc();
+    return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
@@ -539,8 +603,7 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can get documents while offline', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('rooms').doc();
+    return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;

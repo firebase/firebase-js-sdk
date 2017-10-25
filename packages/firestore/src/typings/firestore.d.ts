@@ -404,6 +404,14 @@ declare namespace firestore {
     collection(collectionPath: string): CollectionReference;
 
     /**
+     * Returns true if this `DocumentReference` is equal to the provided one.
+     *
+     * @param other The `DocumentReference` to compare against.
+     * @return true if this `DocumentReference` is equal to the provided one.
+     */
+    isEqual(other: DocumentReference): boolean;
+
+    /**
      * Writes to the document referred to by this `DocumentReference`. If the
      * document does not yet exist, it will be created. If you pass
      * `SetOptions`, the provided data can be merged into an existing document.
@@ -741,6 +749,14 @@ declare namespace firestore {
      * @return The created Query.
      */
     endAt(...fieldValues: any[]): Query;
+
+    /**
+     * Returns true if this `Query` is equal to the provided one.
+     *
+     * @param other The `Query` to compare against.
+     * @return true if this `Query` is equal to the provided one.
+     */
+    isEqual(other: Query): boolean;
 
     /**
      * Executes the query and returns the results as a QuerySnapshot.
