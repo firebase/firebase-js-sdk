@@ -34,7 +34,7 @@ import { asyncIt, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/helpers';
 
 /**
- * StreamEventType combines the events that can be observed by a
+ * StreamEventType combines the events that can be observed by the
  * WatchStreamListener and WriteStreamListener.
  */
 type StreamEventType =
@@ -52,7 +52,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
    * Returns a Promise that resolves when the next callback fires. Resolves the
    * returned Promise immediately if there is already an unprocessed callback.
    *
-   * The Promise is rejected if the received callback doesn't match
+   * This method asserts that the observed callback type matches
    * `expectedCallback`.
    */
   awaitCallback(expectedCallback: StreamEventType): Promise<void> {
@@ -68,11 +68,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     }
 
     return promise.then(actualCallback => {
-      if (actualCallback !== expectedCallback) {
-        return Promise.reject(
-          `Unexpected callback encountered. Expected '${expectedCallback}', but got '${actualCallback}'.`
-        );
-      }
+      expect(actualCallback).to.equal(expectedCallback);
     });
   }
 
@@ -146,7 +142,7 @@ describe('Watch Stream', () => {
       watchStream.start();
 
       return streamListener.awaitCallback('open').then(() => {
-        // Stop must not call onClose because the full implementation of the delegate could
+        // Stop must not call onClose because the full implementation of the callback could
         // attempt to restart the stream in the event it had pending watches.
         watchStream.stop();
       });
@@ -181,8 +177,8 @@ describe('Write Stream', () => {
     }).then(() => {
       // Don't start the handshake.
 
-      // Stop must not call onClose because the full implementation of the delegate could
-      // attempt to restart the stream in the event it had pending watches.
+      // Stop must not call onClose because the full implementation of the callback could
+      // attempt to restart the stream in the event it had pending writes.
       writeStream.stop();
     });
   });
