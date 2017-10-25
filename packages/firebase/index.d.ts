@@ -119,6 +119,7 @@ declare namespace firebase.app {
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
+    firestore(): firebase.firestore.Firestore;
   }
 }
 
