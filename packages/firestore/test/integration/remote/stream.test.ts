@@ -15,11 +15,8 @@
  */
 
 import { expect } from 'chai';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { Datastore } from '../../../src/remote/datastore';
 import {
   PersistentListenStream,
   PersistentWriteStream,
@@ -33,40 +30,66 @@ import {
 } from '../../../src/remote/watch_change';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt } from '../../util/helpers';
-import { getDefaultDatabaseInfo } from '../util/helpers';
-import FirestoreError = firestore.FirestoreError;
+import { asyncIt, setMutation } from '../../util/helpers';
+import { withTestDatastore } from '../util/helpers';
 
-type StreamStatusCallback =
-  | 'onHandshakeComplete'
-  | 'onMutationResult'
-  | 'onWatchChange'
-  | 'onOpen'
-  | 'onClose';
+/**
+ * StreamEventType combines the events that can be observed by a
+ * WatchStreamListener and WriteStreamListener.
+ */
+type StreamEventType =
+  | 'handshakeComplete'
+  | 'mutationResult'
+  | 'watchChange'
+  | 'open'
+  | 'close';
 
 class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
-  private pendingStates: StreamStatusCallback[] = [];
-  private pendingPromises: Deferred<StreamStatusCallback>[] = [];
+  private pendingCallbacks: StreamEventType[] = [];
+  private pendingPromises: Deferred<StreamEventType>[] = [];
 
-  private resolvePending(actualCallback: StreamStatusCallback) {
-    let pendingPromise = this.pendingPromises.shift();
-    if (pendingPromise) {
-      pendingPromise.resolve(actualCallback);
+  /**
+   * Returns a Promise that resolves when the next callback fires. Resolves the
+   * returned Promise immediately if there is already an unprocessed callback.
+   *
+   * The Promise is rejected if the received callback doesn't match
+   * `expectedCallback`.
+   */
+  awaitCallback(expectedCallback: StreamEventType): Promise<void> {
+    let promise : Promise<StreamEventType>;
+
+    if (this.pendingCallbacks.length > 0) {
+      let pendingCallback = this.pendingCallbacks.shift();
+      promise = Promise.resolve(pendingCallback);
     } else {
-      this.pendingStates.push(actualCallback);
+      const deferred = new Deferred<StreamEventType>();
+      this.pendingPromises.push(deferred);
+      promise = deferred.promise;
     }
-    return Promise.resolve();
+
+    return promise.then(actualCallback => {
+      if (actualCallback !== expectedCallback) {
+        return Promise.reject(`Unexpected callback encountered. Expected '${expectedCallback}', but got '${actualCallback}'.`);
+      }
+    });
+  }
+
+  /**
+   * Verifies that we did not encounter any unexpected callbacks.
+   */
+  verifyNoPendingCallbacks(): void {
+    expect(this.pendingCallbacks).to.be.empty;
   }
 
   onHandshakeComplete(): Promise<void> {
-    return this.resolvePending('onHandshakeComplete');
+    return this.resolvePending('handshakeComplete');
   }
 
   onMutationResult(
     commitVersion: SnapshotVersion,
     results: MutationResult[]
   ): Promise<void> {
-    return this.resolvePending('onMutationResult');
+    return this.resolvePending('mutationResult');
   }
 
   onWatchChange(
@@ -76,48 +99,32 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
       | ExistenceFilterChange,
     snapshot: SnapshotVersion
   ): Promise<void> {
-    return this.resolvePending('onWatchChange');
+    return this.resolvePending('watchChange');
   }
 
   onOpen(): Promise<void> {
-    return this.resolvePending('onOpen');
+    return this.resolvePending('open');
   }
 
-  onClose(err?: FirestoreError): Promise<void> {
-    return this.resolvePending('onClose');
+  onClose(err?: firestore.FirestoreError): Promise<void> {
+    return this.resolvePending('close');
   }
 
-  /**
-   * Returns a Promise that resolves when 'expectedCallback' fires.
-   * Resolves the returned Promise immediately if there is already an
-   * unprocessed callback.
-   * Fails the test if the expected callback does not match the name of the
-   * actual callback function.
-   */
-  awaitCallback(expectedCallback: StreamStatusCallback): Promise<void> {
-    if (this.pendingStates.length > 0) {
-      expect(this.pendingStates.shift()).to.equal(expectedCallback);
-      return Promise.resolve();
+  private resolvePending(actualCallback: StreamEventType): Promise<void>  {
+    if (this.pendingPromises.length > 0) {
+      let pendingPromise = this.pendingPromises.shift();
+      pendingPromise.resolve(actualCallback);
     } else {
-      const deferred = new Deferred<StreamStatusCallback>();
-      this.pendingPromises.push(deferred);
-      return deferred.promise.then(actualCallback => {
-        expect(actualCallback).to.equal(expectedCallback);
-      });
+      this.pendingCallbacks.push(actualCallback);
     }
-  }
-
-  verifyNoPendingCallbacks(): void {
-    expect(this.pendingStates).to.be.empty;
+    return Promise.resolve();
   }
 }
 
 describe('Watch Stream', () => {
-  let queue: AsyncQueue;
   let streamListener: StreamStatusListener;
 
   beforeEach(() => {
-    queue = new AsyncQueue();
     streamListener = new StreamStatusListener();
   });
 
@@ -125,40 +132,23 @@ describe('Watch Stream', () => {
     streamListener.verifyNoPendingCallbacks();
   });
 
-  function initializeWatchStream(): Promise<PersistentListenStream> {
-    const databaseInfo = getDefaultDatabaseInfo();
-
-    return PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(conn => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        return new Datastore(
-          databaseInfo,
-          queue,
-          conn,
-          new EmptyCredentialsProvider(),
-          serializer
-        );
-      })
-      .then(ds => {
-        return ds.newPersistentWatchStream(streamListener);
-      });
-  }
-
+  /**
+   * Verifies that the watch stream does not issue an onClose callback after a
+   * call to stop().
+   */
   asyncIt('can be stopped before handshake', () => {
-    let watchStream: PersistentListenStream;
+    let watchStream : PersistentListenStream;
 
-    return initializeWatchStream()
-      .then(ws => {
-        watchStream = ws;
-        watchStream.start();
-        return streamListener.awaitCallback('onOpen');
-      })
-      .then(() => {
+    return withTestDatastore(ds => {
+      watchStream = ds.newPersistentWatchStream(streamListener);
+      watchStream.start();
+
+      return streamListener.awaitCallback('open').then(() => {
+        // Stop must not call onClose because the full implementation of the delegate could
+        // attempt to restart the stream in the event it had pending watches.
         watchStream.stop();
       });
+    });
   });
 });
 
@@ -175,56 +165,48 @@ describe('Write Stream', () => {
     streamListener.verifyNoPendingCallbacks();
   });
 
-  function initializeWriteStream(): Promise<PersistentWriteStream> {
-    const databaseInfo = getDefaultDatabaseInfo();
-
-    return PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(conn => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-          databaseInfo.databaseId
-        );
-        return new Datastore(
-          databaseInfo,
-          queue,
-          conn,
-          new EmptyCredentialsProvider(),
-          serializer
-        );
-      })
-      .then(ds => {
-        return ds.newPersistentWriteStream(streamListener);
-      });
-  }
-
+  /**
+   * Verifies that the write stream does not issue an onClose callback after a
+   * call to stop().
+   */
   asyncIt('can be stopped before handshake', () => {
-    let writeStream: PersistentWriteStream;
+    let writeStream : PersistentWriteStream;
 
-    return initializeWriteStream()
-      .then(ws => {
-        writeStream = ws;
+    return withTestDatastore(ds => {
+        writeStream = ds.newPersistentWriteStream(streamListener);
         writeStream.start();
-        return streamListener.awaitCallback('onOpen');
+        return streamListener.awaitCallback('open');
       })
       .then(() => {
+        // Don't start the handshake.
+
+        // Stop must not call onClose because the full implementation of the delegate could
+        // attempt to restart the stream in the event it had pending watches.
         writeStream.stop();
       });
   });
 
   asyncIt('can be stopped after handshake', () => {
-    let writeStream: PersistentWriteStream;
+    const mutations = [setMutation('docs/1', { foo: 'bar' })];
 
-    return initializeWriteStream()
-      .then(ws => {
-        writeStream = ws;
+    let writeStream : PersistentWriteStream;
+
+    return withTestDatastore(ds=> {
+      writeStream = ds.newPersistentWriteStream(streamListener);
         writeStream.start();
-        return streamListener.awaitCallback('onOpen');
+        return streamListener.awaitCallback('open');
       })
       .then(() => {
+        // Writing before the handshake should throw
+        expect(() => writeStream.writeMutations(mutations)).to.throw('Handshake must be complete before writing mutations');
         writeStream.writeHandshake();
-        return streamListener.awaitCallback('onHandshakeComplete');
+        return streamListener.awaitCallback('handshakeComplete');
       })
       .then(() => {
+        // Now writes should succeed
+        writeStream.writeMutations(mutations);
+        return streamListener.awaitCallback('mutationResult');
+      }).then(() => {
         writeStream.stop();
       });
   });
