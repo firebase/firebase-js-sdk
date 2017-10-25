@@ -56,7 +56,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
    * `expectedCallback`.
    */
   awaitCallback(expectedCallback: StreamEventType): Promise<void> {
-    let promise : Promise<StreamEventType>;
+    let promise: Promise<StreamEventType>;
 
     if (this.pendingCallbacks.length > 0) {
       let pendingCallback = this.pendingCallbacks.shift();
@@ -69,7 +69,9 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 
     return promise.then(actualCallback => {
       if (actualCallback !== expectedCallback) {
-        return Promise.reject(`Unexpected callback encountered. Expected '${expectedCallback}', but got '${actualCallback}'.`);
+        return Promise.reject(
+          `Unexpected callback encountered. Expected '${expectedCallback}', but got '${actualCallback}'.`
+        );
       }
     });
   }
@@ -110,7 +112,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('close');
   }
 
-  private resolvePending(actualCallback: StreamEventType): Promise<void>  {
+  private resolvePending(actualCallback: StreamEventType): Promise<void> {
     if (this.pendingPromises.length > 0) {
       let pendingPromise = this.pendingPromises.shift();
       pendingPromise.resolve(actualCallback);
@@ -137,7 +139,7 @@ describe('Watch Stream', () => {
    * call to stop().
    */
   asyncIt('can be stopped before handshake', () => {
-    let watchStream : PersistentListenStream;
+    let watchStream: PersistentListenStream;
 
     return withTestDatastore(ds => {
       watchStream = ds.newPersistentWatchStream(streamListener);
@@ -170,35 +172,36 @@ describe('Write Stream', () => {
    * call to stop().
    */
   asyncIt('can be stopped before handshake', () => {
-    let writeStream : PersistentWriteStream;
+    let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-        writeStream = ds.newPersistentWriteStream(streamListener);
-        writeStream.start();
-        return streamListener.awaitCallback('open');
-      })
-      .then(() => {
-        // Don't start the handshake.
+      writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream.start();
+      return streamListener.awaitCallback('open');
+    }).then(() => {
+      // Don't start the handshake.
 
-        // Stop must not call onClose because the full implementation of the delegate could
-        // attempt to restart the stream in the event it had pending watches.
-        writeStream.stop();
-      });
+      // Stop must not call onClose because the full implementation of the delegate could
+      // attempt to restart the stream in the event it had pending watches.
+      writeStream.stop();
+    });
   });
 
   asyncIt('can be stopped after handshake', () => {
     const mutations = [setMutation('docs/1', { foo: 'bar' })];
 
-    let writeStream : PersistentWriteStream;
+    let writeStream: PersistentWriteStream;
 
-    return withTestDatastore(ds=> {
+    return withTestDatastore(ds => {
       writeStream = ds.newPersistentWriteStream(streamListener);
-        writeStream.start();
-        return streamListener.awaitCallback('open');
-      })
+      writeStream.start();
+      return streamListener.awaitCallback('open');
+    })
       .then(() => {
         // Writing before the handshake should throw
-        expect(() => writeStream.writeMutations(mutations)).to.throw('Handshake must be complete before writing mutations');
+        expect(() => writeStream.writeMutations(mutations)).to.throw(
+          'Handshake must be complete before writing mutations'
+        );
         writeStream.writeHandshake();
         return streamListener.awaitCallback('handshakeComplete');
       })
@@ -206,7 +209,8 @@ describe('Write Stream', () => {
         // Now writes should succeed
         writeStream.writeMutations(mutations);
         return streamListener.awaitCallback('mutationResult');
-      }).then(() => {
+      })
+      .then(() => {
         writeStream.stop();
       });
   });

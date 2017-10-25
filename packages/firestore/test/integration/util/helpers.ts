@@ -87,26 +87,26 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 }
 
 export function withTestDatastore(
-    fn: (datastore: Datastore, queue: AsyncQueue) => Promise<void>
+  fn: (datastore: Datastore, queue: AsyncQueue) => Promise<void>
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   const queue = new AsyncQueue();
   return PlatformSupport.getPlatform()
-      .loadConnection(databaseInfo)
-      .then(conn => {
-        const serializer = PlatformSupport.getPlatform().newSerializer(
-            databaseInfo.databaseId
-        );
-        const datastore = new Datastore(
-            databaseInfo,
-            queue,
-            conn,
-            new EmptyCredentialsProvider(),
-            serializer
-        );
+    .loadConnection(databaseInfo)
+    .then(conn => {
+      const serializer = PlatformSupport.getPlatform().newSerializer(
+        databaseInfo.databaseId
+      );
+      const datastore = new Datastore(
+        databaseInfo,
+        queue,
+        conn,
+        new EmptyCredentialsProvider(),
+        serializer
+      );
 
-        return fn(datastore, queue);
-      });
+      return fn(datastore, queue);
+    });
 }
 
 export function withTestDb(
