@@ -12,9 +12,9 @@ before_install:
   # get an up to date version
   - npm install -g yarn
 before_script:
-  - npm run test:setup -- --token $FIREBASE_TOKEN --projectId $FIREBASE_PROJECT
+  - yarn test:setup -- --token $FIREBASE_TOKEN --projectId $FIREBASE_PROJECT
 script:
-  - xvfb-run npm test
+  - xvfb-run yarn test
 after_script:
   - yarn test:coverage
 
