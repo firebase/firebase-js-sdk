@@ -24,6 +24,8 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 
+const ServerValue = Database.ServerValue;
+
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
   const namespace = instance.INTERNAL.registerService(
@@ -36,7 +38,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
       Database,
       enableLogging,
       INTERNAL,
-      ServerValue: Database.ServerValue,
+      ServerValue,
       TEST_ACCESS
     },
     null,
@@ -49,3 +51,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
 }
 
 registerDatabase(firebase);
+
+// Types to export for the admin SDK
+export { Database, Query, Reference, enableLogging, ServerValue };
+
+export { DataSnapshot } from './src/api/DataSnapshot';
+export { OnDisconnect } from './src/api/onDisconnect';

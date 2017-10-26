@@ -32,6 +32,9 @@ import './src/nodePatches';
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL 
  */
+
+const ServerValue = Database.ServerValue;
+
 export function initStandalone(app, url) {
   return {
     instance: RepoManager.getInstance().databaseFromApp(app, url),
@@ -41,7 +44,7 @@ export function initStandalone(app, url) {
       Database,
       enableLogging,
       INTERNAL,
-      ServerValue: Database.ServerValue,
+      ServerValue,
       TEST_ACCESS
     }
   };
@@ -59,7 +62,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
       Database,
       enableLogging,
       INTERNAL,
-      ServerValue: Database.ServerValue,
+      ServerValue,
       TEST_ACCESS
     },
     null,
@@ -72,3 +75,9 @@ export function registerDatabase(instance: FirebaseNamespace) {
 }
 
 registerDatabase(firebase);
+
+// Types to export for the admin SDK
+export { Database, Query, Reference, enableLogging, ServerValue };
+
+export { DataSnapshot } from './src/api/DataSnapshot';
+export { OnDisconnect } from './src/api/onDisconnect';
