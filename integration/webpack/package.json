@@ -17,6 +17,6 @@
     "karma-sauce-launcher": "^1.2.0",
     "karma-spec-reporter": "0.0.31",
     "mocha": "^4.0.1",
-    "webpack": "^3.0.0"
+    "webpack": "^3.8.1"
   }
 }
