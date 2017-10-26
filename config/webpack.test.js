@@ -38,7 +38,7 @@ module.exports = {
           options: { esModules: true }
         },
         enforce: 'post',
-        include: path.resolve(process.cwd(), 'src'),
+        include: path.resolve(process.cwd(), 'src')
       }
     ]
   },

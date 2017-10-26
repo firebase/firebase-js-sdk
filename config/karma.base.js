@@ -118,7 +118,7 @@ const config = {
   coverageIstanbulReporter: {
     dir: path.resolve(process.cwd(), 'coverage/browser'),
     fixWebpackSourcePaths: true,
-    reports: ['lcovonly'],
+    reports: ['lcovonly']
   }
 };
 
