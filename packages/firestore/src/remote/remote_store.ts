@@ -209,17 +209,8 @@ export class RemoteStore {
     );
 
     // Create new streams (but note they're not started yet).
-    this.watchStream = this.datastore.newPersistentWatchStream({
-      onOpen: this.onWatchStreamOpen.bind(this),
-      onClose: this.onWatchStreamClose.bind(this),
-      onWatchChange: this.onWatchStreamChange.bind(this)
-    });
-    this.writeStream = this.datastore.newPersistentWriteStream({
-      onOpen: this.onWriteStreamOpen.bind(this),
-      onClose: this.onWriteStreamClose.bind(this),
-      onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
-      onMutationResult: this.onMutationResult.bind(this)
-    });
+    this.watchStream = this.datastore.newPersistentWatchStream();
+    this.writeStream = this.datastore.newPersistentWriteStream();
 
     // Load any saved stream token from persistent storage
     return this.localStore.getLastStreamToken().then(token => {
@@ -282,10 +273,12 @@ export class RemoteStore {
       objUtils.contains(this.listenTargets, targetId),
       'unlisten called without assigned target ID!'
     );
-    const queryData = this.listenTargets[targetId];
     delete this.listenTargets[targetId];
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
+    }
+    if (objUtils.isEmpty(this.listenTargets)) {
+      this.watchStream.markIdle();
     }
   }
 
@@ -323,7 +316,11 @@ export class RemoteStore {
       this.shouldStartWatchStream(),
       'startWriteStream() called when shouldStartWatchStream() is false.'
     );
-    this.watchStream.start();
+    this.watchStream.start({
+      onOpen: this.onWatchStreamOpen.bind(this),
+      onClose: this.onWatchStreamClose.bind(this),
+      onWatchChange: this.onWatchStreamChange.bind(this)
+    });
   }
 
   /**
@@ -566,7 +563,6 @@ export class RemoteStore {
   /**
    * Notifies that there are new mutations to process in the queue. This is
    * typically called by SyncEngine after it has sent mutations to LocalStore.
-   *
    */
   fillWritePipeline(): Promise<void> {
     if (!this.canWriteMutations()) {
@@ -576,6 +572,7 @@ export class RemoteStore {
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
           if (batch === null) {
+            this.writeStream.markIdle();
             return Promise.resolve();
           } else {
             this.commit(batch);
@@ -640,7 +637,12 @@ export class RemoteStore {
       this.shouldStartWriteStream(),
       'startWriteStream() called when shouldStartWriteStream() is false.'
     );
-    this.writeStream.start();
+    this.writeStream.start({
+      onOpen: this.onWriteStreamOpen.bind(this),
+      onClose: this.onWriteStreamClose.bind(this),
+      onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
+      onMutationResult: this.onMutationResult.bind(this)
+    });
   }
 
   private onWriteStreamOpen(): Promise<void> {

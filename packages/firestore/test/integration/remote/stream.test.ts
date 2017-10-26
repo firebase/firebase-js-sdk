@@ -138,8 +138,8 @@ describe('Watch Stream', () => {
     let watchStream: PersistentListenStream;
 
     return withTestDatastore(ds => {
-      watchStream = ds.newPersistentWatchStream(streamListener);
-      watchStream.start();
+      watchStream = ds.newPersistentWatchStream();
+      watchStream.start(streamListener);
 
       return streamListener.awaitCallback('open').then(() => {
         // Stop must not call onClose because the full implementation of the callback could
@@ -171,8 +171,8 @@ describe('Write Stream', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
+      writeStream = ds.newPersistentWriteStream();
+      writeStream.start(streamListener);
       return streamListener.awaitCallback('open');
     }).then(() => {
       // Don't start the handshake.
@@ -189,8 +189,8 @@ describe('Write Stream', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream(streamListener);
-      writeStream.start();
+      writeStream = ds.newPersistentWriteStream();
+      writeStream.start(streamListener);
       return streamListener.awaitCallback('open');
     })
       .then(() => {

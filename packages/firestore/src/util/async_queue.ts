@@ -20,13 +20,15 @@ import { AnyDuringMigration, AnyJs } from './misc';
 
 import { Deferred } from './promise';
 
+const LOG_TAG = 'AsyncQueue';
+
 export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
   // The number of ops that are queued to be run in the future (i.e. they had a
   // delay that has not yet elapsed).
-  private delayedOpCount = 0;
+  private queuedOperations : number[] = [];
 
   // visible for testing
   failure: Error;
@@ -39,7 +41,8 @@ export class AsyncQueue {
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    *
-   * Can optionally specify a delay to wait before queuing the operation.
+   * Can optionally specify a delay (in milliseconds) to wait before queuing the
+   * operation.
    */
   schedule<T>(op: () => Promise<T>, delay?: number): Promise<T> {
     if (this.failure) {
@@ -47,16 +50,17 @@ export class AsyncQueue {
     }
 
     if ((delay || 0) > 0) {
-      this.delayedOpCount++;
       const deferred = new Deferred<T>();
-      setTimeout(() => {
+      const nextOperationIndex = this.queuedOperations.length;
+      const queuedHandle = window.setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
           });
         });
-        this.delayedOpCount--; // decrement once it's actually queued.
+        this.queuedOperations.splice(nextOperationIndex, 1);
       }, delay);
+      this.queuedOperations[nextOperationIndex] = queuedHandle;
       return deferred.promise;
     } else {
       return this.scheduleInternal(op);
@@ -94,10 +98,13 @@ export class AsyncQueue {
   }
 
   drain(): Promise<void> {
-    // TODO(mikelehen): This should perhaps also drain items that are queued to
-    // run in the future (perhaps by artificially running them early), but since
-    // no tests need that yet, I didn't bother for now.
-    assert(this.delayedOpCount === 0, "draining doesn't handle delayed ops.");
+    let cancelledCount = 0;
+    this.queuedOperations.forEach(handle => {
+      window.clearTimeout(handle);
+      ++cancelledCount;
+    });
+    log.debug(LOG_TAG, `Cancelled ${cancelledCount} pending operations during queue drain.`);
+    this.queuedOperations = [];
     return this.schedule(() => Promise.resolve(undefined));
   }
 }
