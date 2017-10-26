@@ -625,4 +625,39 @@ apiDescribe('Database', persistence => {
       });
     });
   });
+
+  asyncIt('can write document after idle timeout', () => {
+    return withTestDb(persistence, (db, queue) => {
+      const docRef = db.collection('test-collection').doc();
+      return queue
+        .awaitIdleTimeout(() => {
+          return docRef.set({ foo: 'bar' });
+        })
+        .then(() => docRef.set({ foo: 'bar' }));
+    });
+  });
+
+  asyncIt('can watch documents after idle timeout', () => {
+    return withTestDb(persistence, (db, queue) => {
+      const awaitOnlineSnapshot = () => {
+        const docRef = db.collection('test-collection').doc();
+        const deferred = new Deferred<void>();
+        const unregister = docRef.onSnapshot(
+          { includeMetadataChanges: true },
+          snapshot => {
+            if (!snapshot.metadata.fromCache) {
+              deferred.resolve();
+            }
+          }
+        );
+        return deferred.promise.then(unregister);
+      };
+
+      return queue
+        .awaitIdleTimeout(() => {
+          return awaitOnlineSnapshot();
+        })
+        .then(() => awaitOnlineSnapshot());
+    });
+  });
 });

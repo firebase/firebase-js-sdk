@@ -17,18 +17,17 @@
 import { assert, fail } from './assert';
 import * as log from './log';
 import { AnyDuringMigration, AnyJs } from './misc';
-
 import { Deferred } from './promise';
-
-const LOG_TAG = 'AsyncQueue';
+import { Code, FirestoreError } from './error';
 
 export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
-  // The number of ops that are queued to be run in the future (i.e. they had a
-  // delay that has not yet elapsed).
-  private queuedOperations : number[] = [];
+  // A map of timeout handles to the respective deferred promises. Contains an
+  // entry for each operation that is still queued to be run in the future
+  // (i.e. it has a delay that has not yet elapsed).
+  private delayedOperations: Map<number, Deferred<any>> = new Map();
 
   // visible for testing
   failure: Error;
@@ -51,16 +50,15 @@ export class AsyncQueue {
 
     if ((delay || 0) > 0) {
       const deferred = new Deferred<T>();
-      const nextOperationIndex = this.queuedOperations.length;
-      const queuedHandle = window.setTimeout(() => {
+      let handle = window.setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
           });
         });
-        this.queuedOperations.splice(nextOperationIndex, 1);
+        this.delayedOperations.delete(handle);
       }, delay);
-      this.queuedOperations[nextOperationIndex] = queuedHandle;
+      this.delayedOperations.set(handle, deferred);
       return deferred.promise;
     } else {
       return this.scheduleInternal(op);
@@ -97,14 +95,18 @@ export class AsyncQueue {
     );
   }
 
+  /**
+   * Waits for tasks that are scheduled for immediate execution and rejects any
+   * tasks that are pending with a non-zero delay.
+   */
   drain(): Promise<void> {
-    let cancelledCount = 0;
-    this.queuedOperations.forEach(handle => {
+    this.delayedOperations.forEach((deferred, handle) => {
       window.clearTimeout(handle);
-      ++cancelledCount;
+      deferred.reject(
+        new FirestoreError(Code.CANCELLED, 'Cancelled during queue drain')
+      );
     });
-    log.debug(LOG_TAG, `Cancelled ${cancelledCount} pending operations during queue drain.`);
-    this.queuedOperations = [];
-    return this.schedule(() => Promise.resolve(undefined));
+    this.delayedOperations.clear();
+    return this.schedule(() => Promise.resolve());
   }
 }

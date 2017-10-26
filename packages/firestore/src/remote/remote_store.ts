@@ -273,12 +273,13 @@ export class RemoteStore {
       objUtils.contains(this.listenTargets, targetId),
       'unlisten called without assigned target ID!'
     );
+    const queryData = this.listenTargets[targetId];
     delete this.listenTargets[targetId];
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
-    }
-    if (objUtils.isEmpty(this.listenTargets)) {
-      this.watchStream.markIdle();
+      if (objUtils.isEmpty(this.listenTargets)) {
+        this.watchStream.markIdle();
+      }
     }
   }
 
@@ -572,7 +573,9 @@ export class RemoteStore {
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
           if (batch === null) {
-            this.writeStream.markIdle();
+            if (this.pendingWrites.length == 0) {
+              this.writeStream.markIdle();
+            }
             return Promise.resolve();
           } else {
             this.commit(batch);

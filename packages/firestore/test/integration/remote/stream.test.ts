@@ -32,6 +32,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/helpers';
+import { TestQueue } from '../util/test_queue';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -43,6 +44,8 @@ type StreamEventType =
   | 'watchChange'
   | 'open'
   | 'close';
+
+const SINGLE_MUTATION = [setMutation('docs/1', { foo: 'bar' })];
 
 class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
   private pendingCallbacks: StreamEventType[] = [];
@@ -184,8 +187,6 @@ describe('Write Stream', () => {
   });
 
   asyncIt('can be stopped after handshake', () => {
-    const mutations = [setMutation('docs/1', { foo: 'bar' })];
-
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
@@ -195,7 +196,7 @@ describe('Write Stream', () => {
     })
       .then(() => {
         // Writing before the handshake should throw
-        expect(() => writeStream.writeMutations(mutations)).to.throw(
+        expect(() => writeStream.writeMutations(SINGLE_MUTATION)).to.throw(
           'Handshake must be complete before writing mutations'
         );
         writeStream.writeHandshake();
@@ -203,11 +204,58 @@ describe('Write Stream', () => {
       })
       .then(() => {
         // Now writes should succeed
-        writeStream.writeMutations(mutations);
+        writeStream.writeMutations(SINGLE_MUTATION);
         return streamListener.awaitCallback('mutationResult');
       })
       .then(() => {
         writeStream.stop();
       });
   });
+
+  asyncIt('closes when idle', () => {
+    let writeStream: PersistentWriteStream;
+    let queue: TestQueue;
+
+    return withTestDatastore((ds, testQueue) => {
+      queue = testQueue;
+      writeStream = ds.newPersistentWriteStream();
+      writeStream.start(streamListener);
+      return streamListener.awaitCallback('open');
+    })
+      .then(() => {
+        writeStream.writeHandshake();
+        return streamListener.awaitCallback('handshakeComplete');
+      })
+      .then(() => queue.awaitIdleTimeout(() => {
+           writeStream.markIdle();
+          return streamListener.awaitCallback('close');
+        }).then(() => {
+          expect(writeStream.isOpen()).to.be.false;
+        }));
+  });
+
+  asyncIt('cancels idle on write', () => {
+    let writeStream: PersistentWriteStream;
+    let queue: TestQueue;
+
+    return withTestDatastore((ds, testQueue) => {
+      queue = testQueue;
+      writeStream = ds.newPersistentWriteStream();
+      writeStream.start(streamListener);
+      return streamListener.awaitCallback('open');
+    })
+      .then(() => {
+        writeStream.writeHandshake();
+        return streamListener.awaitCallback('handshakeComplete');
+      })
+      .then(() => queue.awaitIdleTimeout(() => {
+            // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
+            writeStream.markIdle();
+            writeStream.writeMutations(SINGLE_MUTATION);
+            return streamListener.awaitCallback('mutationResult');
+          })
+          .then(() => {
+            expect(writeStream.isOpen()).to.be.true;
+          }));
+      });
 });

@@ -15,22 +15,22 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
-import {CredentialsProvider, Token} from '../api/credentials';
-import {DatabaseInfo} from '../core/database_info';
-import {SnapshotVersion} from '../core/snapshot_version';
-import {ProtoByteString, TargetId} from '../core/types';
-import {QueryData} from '../local/query_data';
-import {Mutation, MutationResult} from '../model/mutation';
-import {assert} from '../util/assert';
-import {AsyncQueue} from '../util/async_queue';
-import {Code, FirestoreError} from '../util/error';
+import { CredentialsProvider, Token } from '../api/credentials';
+import { DatabaseInfo } from '../core/database_info';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { ProtoByteString, TargetId } from '../core/types';
+import { QueryData } from '../local/query_data';
+import { Mutation, MutationResult } from '../model/mutation';
+import { assert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
-import {ExponentialBackoff} from './backoff';
-import {Connection, Stream} from './connection';
-import {JsonProtoSerializer} from './serializer';
-import {WatchChange} from './watch_change';
-import {isNullOrUndefined} from '../util/types';
+import { ExponentialBackoff } from './backoff';
+import { Connection, Stream } from './connection';
+import { JsonProtoSerializer } from './serializer';
+import { WatchChange } from './watch_change';
+import { isNullOrUndefined } from '../util/types';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -40,7 +40,6 @@ const LOG_TAG = 'PersistentStream';
 interface ListenRequest extends api.ListenRequest {
   database?: string;
 }
-
 export interface WriteRequest extends api.WriteRequest {
   database?: string;
 }
@@ -116,7 +115,7 @@ const BACKOFF_MAX_DELAY_MS = 60 * 1000;
 const BACKOFF_FACTOR = 1.5;
 
 /** The time a stream stays open after it is marked idle. */
-const IDLE_TIMEOUT_MS = 60 * 10000;
+const IDLE_TIMEOUT_MS = 60 * 1000;
 
 /**
  * A PersistentStream is an abstract base class that represents a streaming RPC
@@ -149,27 +148,30 @@ const IDLE_TIMEOUT_MS = 60 * 10000;
  *    connection stream
  *  ListenerType: The type of the listener that will be used for callbacks
  */
-export abstract class PersistentStream<SendType,
-    ReceiveType,
-    ListenerType extends PersistentStreamListener> {
+export abstract class PersistentStream<
+  SendType,
+  ReceiveType,
+  ListenerType extends PersistentStreamListener
+> {
   private state: PersistentStreamState;
   private idle: boolean = false;
-
-  protected stream: Stream<SendType, ReceiveType> | null = null;
+  private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
 
   protected listener: ListenerType | null = null;
 
-  constructor(private queue: AsyncQueue,
-              protected connection: Connection,
-              private credentialsProvider: CredentialsProvider,
-              // Used for faster retries in testing
-              initialBackoffDelay?: number) {
+  constructor(
+    private queue: AsyncQueue,
+    protected connection: Connection,
+    private credentialsProvider: CredentialsProvider,
+    // Used for faster retries in testing
+    initialBackoffDelay?: number
+  ) {
     this.backoff = new ExponentialBackoff(
-        initialBackoffDelay ? initialBackoffDelay : BACKOFF_INITIAL_DELAY_MS,
-        BACKOFF_FACTOR,
-        BACKOFF_MAX_DELAY_MS
+      initialBackoffDelay ? initialBackoffDelay : BACKOFF_INITIAL_DELAY_MS,
+      BACKOFF_FACTOR,
+      BACKOFF_MAX_DELAY_MS
     );
     this.state = PersistentStreamState.Initial;
   }
@@ -183,9 +185,9 @@ export abstract class PersistentStream<SendType,
    */
   isStarted(): boolean {
     return (
-        this.state === PersistentStreamState.Backoff ||
-        this.state === PersistentStreamState.Auth ||
-        this.state === PersistentStreamState.Open
+      this.state === PersistentStreamState.Backoff ||
+      this.state === PersistentStreamState.Auth ||
+      this.state === PersistentStreamState.Open
     );
   }
 
@@ -245,9 +247,24 @@ export abstract class PersistentStream<SendType,
    * WebChannel stream will be closed.
    */
   markIdle(): void {
-    this.queue.schedule(() => {
-      return this.handleIdleCloseTimer();
-    }, IDLE_TIMEOUT_MS);
+    this.idle = true;
+    this.queue
+      .schedule(() => {
+        return this.handleIdleCloseTimer();
+      }, IDLE_TIMEOUT_MS)
+      .catch((err: FirestoreError) => {
+        // We ignore Promise rejections for cancelled idle checks.
+        assert(
+          err.code === Code.CANCELLED,
+          'Received unexpected error in idle timeout closure.'
+        );
+      });
+  }
+
+  /** Sends a message to the underlying stream. */
+  protected sendRequest(msg: SendType): void {
+    this.cancelIdleCheck();
+    this.stream!.send(msg);
   }
 
   /** Called by the idle timer when the stream should close due to inactivity. */
@@ -260,6 +277,7 @@ export abstract class PersistentStream<SendType,
     return Promise.resolve();
   }
 
+  /** Marks the stream as active again. */
   private cancelIdleCheck() {
     this.idle = false;
   }
@@ -275,13 +293,19 @@ export abstract class PersistentStream<SendType,
    * </ul>
    *
    * A new stream can be opened by calling `start` unless `finalState` is set to
-   * `FSTStreamStateStopped`.
+   * `PersistentStreamState.Stoppen`.
    *
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
    */
-  private close(finalState: PersistentStreamState, error?: FirestoreError): Promise<void> {//(FSTStreamState)finalState error:(NSError *_Nullable)error {
-    assert(finalState == PersistentStreamState.Error || isNullOrUndefined(error), "Can't provide an error when not in an error state.");
+  private close(
+    finalState: PersistentStreamState,
+    error?: FirestoreError
+  ): Promise<void> {
+    assert(
+      finalState == PersistentStreamState.Error || isNullOrUndefined(error),
+      "Can't provide an error when not in an error state."
+    );
 
     this.cancelIdleCheck();
 
@@ -290,13 +314,13 @@ export abstract class PersistentStream<SendType,
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
       log.debug(
-          LOG_TAG,
-          'Using maximum backoff delay to prevent overloading the backend.'
+        LOG_TAG,
+        'Using maximum backoff delay to prevent overloading the backend.'
       );
       this.backoff.resetToMax();
     }
 
-    // This state must be assigned before calling `notifyStreamInterrupted` to allow the callback to
+    // This state must be assigned before calling onClose() to allow the callback to
     // inhibit backoff or otherwise manipulate the state in its non-started state.
     this.state = finalState;
 
@@ -326,7 +350,9 @@ export abstract class PersistentStream<SendType,
    * Used by subclasses to start the concrete RPC and return the underlying
    * connection stream.
    */
-  protected abstract startRpc(token: Token | null): Stream<SendType, ReceiveType>;
+  protected abstract startRpc(
+    token: Token | null
+  ): Stream<SendType, ReceiveType>;
 
   /**
    * Called after the stream has received a message. The function will be
@@ -337,33 +363,33 @@ export abstract class PersistentStream<SendType,
 
   private auth(): void {
     assert(
-        this.state === PersistentStreamState.Initial,
-        'Must be in initial state to auth'
+      this.state === PersistentStreamState.Initial,
+      'Must be in initial state to auth'
     );
 
     this.state = PersistentStreamState.Auth;
 
     this.credentialsProvider.getToken(/*forceRefresh=*/ false).then(
-        token => {
-          // Normally we'd have to schedule the callback on the AsyncQueue.
-          // However, the following calls are safe to be called outside the
-          // AsyncQueue since they don't chain asynchronous calls
-          this.startStream(token);
-        },
-        (error: Error) => {
-          this.queue.schedule(() => {
-            if (this.state !== PersistentStreamState.Stopped) {
-              // Stream can be stopped while waiting for authorization.
-              const rpcError = new FirestoreError(
-                  Code.UNKNOWN,
-                  'Fetching auth token failed: ' + error.message
-              );
-              return this.handleStreamClose(rpcError);
-            } else {
-              return Promise.resolve();
-            }
-          });
-        }
+      token => {
+        // Normally we'd have to schedule the callback on the AsyncQueue.
+        // However, the following calls are safe to be called outside the
+        // AsyncQueue since they don't chain asynchronous calls
+        this.startStream(token);
+      },
+      (error: Error) => {
+        this.queue.schedule(() => {
+          if (this.state !== PersistentStreamState.Stopped) {
+            // Stream can be stopped while waiting for authorization.
+            const rpcError = new FirestoreError(
+              Code.UNKNOWN,
+              'Fetching auth token failed: ' + error.message
+            );
+            return this.handleStreamClose(rpcError);
+          } else {
+            return Promise.resolve();
+          }
+        });
+      }
     );
   }
 
@@ -374,16 +400,19 @@ export abstract class PersistentStream<SendType,
     }
 
     assert(
-        this.state === PersistentStreamState.Auth,
-        'Trying to start stream in a non-auth state'
+      this.state === PersistentStreamState.Auth,
+      'Trying to start stream in a non-auth state'
     );
     // Helper function to dispatch to AsyncQueue and make sure that any
     // close will seem instantaneous and events are prevented from being
     // raised after the close call
-    const dispatchIfNotStopped = (fn: () => Promise<void>) => {
+    const dispatchIfStillActive = (
+      stream: Stream<SendType, ReceiveType>,
+      fn: () => Promise<void>
+    ) => {
       this.queue.schedule(() => {
-        // Only raise events if the listener has not changed
-        if (this.state !== PersistentStreamState.Stopped) {
+        // Only raise events if the stream instance has not changed
+        if (this.stream === stream) {
           return fn();
         } else {
           return Promise.resolve();
@@ -393,24 +422,25 @@ export abstract class PersistentStream<SendType,
 
     // Only start stream if listener has not changed
     if (this.listener !== null) {
-      this.stream = this.startRpc(token);
+      const currentStream = this.startRpc(token);
+      this.stream = currentStream;
       this.stream.onOpen(() => {
-        dispatchIfNotStopped(() => {
+        dispatchIfStillActive(currentStream, () => {
           assert(
-              this.state === PersistentStreamState.Auth,
-              'Expected stream to be in state auth, but was ' + this.state
+            this.state === PersistentStreamState.Auth,
+            'Expected stream to be in state auth, but was ' + this.state
           );
           this.state = PersistentStreamState.Open;
           return this.listener!.onOpen();
         });
       });
       this.stream.onClose((error: FirestoreError) => {
-        dispatchIfNotStopped(() => {
+        dispatchIfStillActive(currentStream, () => {
           return this.handleStreamClose(error);
         });
       });
       this.stream.onMessage((msg: ReceiveType) => {
-        dispatchIfNotStopped(() => {
+        dispatchIfStillActive(currentStream, () => {
           return this.onMessage(msg);
         });
       });
@@ -419,8 +449,8 @@ export abstract class PersistentStream<SendType,
 
   private performBackoff(listener: ListenerType): void {
     assert(
-        this.state === PersistentStreamState.Error,
-        'Should only perform backoff in an error case'
+      this.state === PersistentStreamState.Error,
+      'Should only perform backoff in an error case'
     );
     this.state = PersistentStreamState.Backoff;
 
@@ -445,6 +475,8 @@ export abstract class PersistentStream<SendType,
     assert(this.isStarted(), "Can't handle server close on non-started stream");
     log.debug(LOG_TAG, `close with error: ${error}`);
 
+    this.stream = null;
+
     // In theory the stream could close cleanly, however, in our current model
     // we never expect this to happen because if we stop a stream ourselves,
     // this callback will never be called. To prevent cases where we retry
@@ -459,8 +491,10 @@ export interface WatchStreamListener extends PersistentStreamListener {
    * Called on a watchChange. The snapshot parameter will be MIN if the watch
    * change did not have a snapshot associated with it.
    */
-  onWatchChange: (watchChange: WatchChange,
-                  snapshot: SnapshotVersion) => Promise<void>;
+  onWatchChange: (
+    watchChange: WatchChange,
+    snapshot: SnapshotVersion
+  ) => Promise<void>;
 }
 
 /**
@@ -470,19 +504,25 @@ export interface WatchStreamListener extends PersistentStreamListener {
  * unlisten calls calls can be sent to control what changes will be sent from
  * the server for ListenResponses.
  */
-export class PersistentListenStream extends PersistentStream<api.ListenRequest,
-    api.ListenResponse,
-    WatchStreamListener> {
-  constructor(private databaseInfo: DatabaseInfo,
-              queue: AsyncQueue,
-              connection: Connection,
-              credentials: CredentialsProvider,
-              private serializer: JsonProtoSerializer,
-              initialBackoffDelay?: number) {
+export class PersistentListenStream extends PersistentStream<
+  api.ListenRequest,
+  api.ListenResponse,
+  WatchStreamListener
+> {
+  constructor(
+    private databaseInfo: DatabaseInfo,
+    queue: AsyncQueue,
+    connection: Connection,
+    credentials: CredentialsProvider,
+    private serializer: JsonProtoSerializer,
+    initialBackoffDelay?: number
+  ) {
     super(queue, connection, credentials, initialBackoffDelay);
   }
 
-  protected startRpc(token: Token | null): Stream<api.ListenRequest, api.ListenResponse> {
+  protected startRpc(
+    token: Token | null
+  ): Stream<api.ListenRequest, api.ListenResponse> {
     return this.connection.openStream('Listen', token);
   }
 
@@ -492,7 +532,7 @@ export class PersistentListenStream extends PersistentStream<api.ListenRequest,
 
     const watchChange = this.serializer.fromWatchChange(watchChangeProto);
     const snapshot = this.serializer.versionFromListenResponse(
-        watchChangeProto
+      watchChangeProto
     );
     return this.listener!.onWatchChange(watchChange, snapshot);
   }
@@ -513,7 +553,7 @@ export class PersistentListenStream extends PersistentStream<api.ListenRequest,
       request.labels = labels;
     }
 
-    this.stream!.send(request);
+    this.sendRequest(request);
   }
 
   /**
@@ -524,7 +564,7 @@ export class PersistentListenStream extends PersistentStream<api.ListenRequest,
     const request: ListenRequest = {};
     request.database = this.serializer.encodedDatabaseId;
     request.removeTarget = targetId;
-    this.stream!.send(request);
+    this.sendRequest(request);
   }
 }
 
@@ -540,8 +580,10 @@ export interface WriteStreamListener extends PersistentStreamListener {
    * Called by the PersistentWriteStream upon receiving a StreamingWriteResponse
    * from the server that contains a mutation result.
    */
-  onMutationResult: (commitVersion: SnapshotVersion,
-                     results: MutationResult[]) => Promise<void>;
+  onMutationResult: (
+    commitVersion: SnapshotVersion,
+    results: MutationResult[]
+  ) => Promise<void>;
 }
 
 /**
@@ -561,17 +603,21 @@ export interface WriteStreamListener extends PersistentStreamListener {
  *
  * TODO(b/33271235): Use proto types
  */
-export class PersistentWriteStream extends PersistentStream<api.WriteRequest,
-    api.WriteResponse,
-    WriteStreamListener> {
+export class PersistentWriteStream extends PersistentStream<
+  api.WriteRequest,
+  api.WriteResponse,
+  WriteStreamListener
+> {
   private handshakeComplete_ = false;
 
-  constructor(private databaseInfo: DatabaseInfo,
-              queue: AsyncQueue,
-              connection: Connection,
-              credentials: CredentialsProvider,
-              private serializer: JsonProtoSerializer,
-              initialBackoffDelay?: number) {
+  constructor(
+    private databaseInfo: DatabaseInfo,
+    queue: AsyncQueue,
+    connection: Connection,
+    credentials: CredentialsProvider,
+    private serializer: JsonProtoSerializer,
+    initialBackoffDelay?: number
+  ) {
     super(queue, connection, credentials, initialBackoffDelay);
   }
 
@@ -599,23 +645,25 @@ export class PersistentWriteStream extends PersistentStream<api.WriteRequest,
     super.start(listener);
   }
 
-  protected startRpc(token: Token | null): Stream<api.WriteRequest, api.WriteResponse> {
+  protected startRpc(
+    token: Token | null
+  ): Stream<api.WriteRequest, api.WriteResponse> {
     return this.connection.openStream('Write', token);
   }
 
   protected onMessage(responseProto: api.WriteResponse): Promise<void> {
     // Always capture the last stream token.
     assert(
-        !!responseProto.streamToken,
-        'Got a write response without a stream token'
+      !!responseProto.streamToken,
+      'Got a write response without a stream token'
     );
     this.lastStreamToken = responseProto.streamToken!;
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response
       assert(
-          !responseProto.writeResults || responseProto.writeResults.length === 0,
-          'Got mutation results for handshake'
+        !responseProto.writeResults || responseProto.writeResults.length === 0,
+        'Got mutation results for handshake'
       );
       this.handshakeComplete_ = true;
       return this.listener!.onHandshakeComplete();
@@ -626,10 +674,10 @@ export class PersistentWriteStream extends PersistentStream<api.WriteRequest,
       this.backoff.reset();
 
       const results = this.serializer.fromWriteResults(
-          responseProto.writeResults
+        responseProto.writeResults
       );
       const commitVersion = this.serializer.fromVersion(
-          responseProto.commitTime!
+        responseProto.commitTime!
       );
       return this.listener!.onMutationResult(commitVersion, results);
     }
@@ -647,19 +695,19 @@ export class PersistentWriteStream extends PersistentStream<api.WriteRequest,
     // stream token on the handshake, ignoring any stream token we might have.
     const request: WriteRequest = {};
     request.database = this.serializer.encodedDatabaseId;
-    this.stream!.send(request);
+    this.sendRequest(request);
   }
 
   /** Sends a group of mutations to the Firestore backend to apply. */
   writeMutations(mutations: Mutation[]): void {
     assert(this.isOpen(), 'Writing mutations requires an opened stream');
     assert(
-        this.handshakeComplete_,
-        'Handshake must be complete before writing mutations'
+      this.handshakeComplete_,
+      'Handshake must be complete before writing mutations'
     );
     assert(
-        this.lastStreamToken.length > 0,
-        'Trying to write mutation without a token'
+      this.lastStreamToken.length > 0,
+      'Trying to write mutation without a token'
     );
 
     const request: WriteRequest = {
@@ -669,6 +717,6 @@ export class PersistentWriteStream extends PersistentStream<api.WriteRequest,
       writes: mutations.map(mutation => this.serializer.toMutation(mutation))
     };
 
-    this.stream!.send(request);
+    this.sendRequest(request);
   }
 }

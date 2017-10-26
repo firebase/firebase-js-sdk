@@ -310,7 +310,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       PlatformSupport.getPlatform(),
       databaseInfo,
       this._config.credentials,
-      new AsyncQueue()
+      this.initializeAsyncQueue()
     );
     return this._firestoreClient.start(persistence);
   }
@@ -454,6 +454,11 @@ export class Firestore implements firestore.Firestore, FirebaseService {
           'Invalid log level: ' + level
         );
     }
+  }
+
+  /** Creates a new AsyncQueue. Can be overwritten to provide a custom queue. */
+  protected initializeAsyncQueue(): AsyncQueue {
+    return new AsyncQueue();
   }
 }
 
