@@ -23,7 +23,7 @@
     "pretest": "node tools/pretest.js",
     "test": "lerna run --parallel test",
     "pretest:coverage": "mkdirp coverage",
-    "test:coverage": "lcov-result-merger 'packages/**/lcov.info' 'coverage/lcov.info'",
+    "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js"
   },
   "repository": {
