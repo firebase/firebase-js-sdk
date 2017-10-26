@@ -7,7 +7,7 @@
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "mocha 'test/{,!(integration|browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/platform_node/node_init.ts --retries 5 --timeout 5000",
+    "test:node": "nyc mocha 'test/{,!(integration|browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/platform_node/node_init.ts --retries 5 --timeout 5000",
     "prepare": "gulp build"
   },
   "main": "dist/cjs/index.node.js",
@@ -41,6 +41,7 @@
     "mkdirp": "^0.5.1",
     "mocha": "^3.5.0",
     "npm-run-all": "^4.1.1",
+    "nyc": "^11.2.1",    
     "sinon": "^3.2.1",
     "source-map-loader": "^0.2.1",
     "ts-loader": "^2.3.4",
@@ -55,5 +56,11 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
   }
 }
