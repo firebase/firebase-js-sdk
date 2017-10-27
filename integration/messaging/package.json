@@ -3,7 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "test": "node ./download-browsers.js && mocha"
+    "pretest": "node ./download-browsers.js",
+    "test": "mocha --retries 3"
   },
   "dependencies": {
     "firebase": "^4.3.3"
