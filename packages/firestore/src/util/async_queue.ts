@@ -24,9 +24,9 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
-  // A map of timeout handles to the respective deferred promises. Contains an
-  // entry for each operation that is still queued to be run in the future
-  // (i.e. it has a delay that has not yet elapsed).
+  // A map of timeout handles to their respective deferred promises. Contains an
+  // entry for each operation that is still queued to run in the future (i.e. it
+  // has a delay that has not yet elapsed).
   private delayedOperations: Map<number, Deferred<any>> = new Map();
 
   // visible for testing

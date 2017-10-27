@@ -22,6 +22,10 @@ const IDLE_DISPATCH_DELAY_MS = 60.0 * 1000;
 /** The maximum delay we use in a test run. */
 const TEST_DISPATCH_DELAY_MS = 1.0 * 1000;
 
+/**
+ * Dispatch queue used in the integration tests that caps delayed executions at
+ * 1.0 seconds.
+ */
 export class TestQueue extends AsyncQueue {
   idleTimeoutDeferred: Deferred<void> | null = null;
 

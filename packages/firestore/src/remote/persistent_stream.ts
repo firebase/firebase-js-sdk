@@ -224,7 +224,9 @@ export abstract class PersistentStream<
    * When stop returns, isStarted and isOpen will both return false.
    */
   stop(): void {
-    this.close(PersistentStreamState.Stopped);
+    if (this.isStarted()) {
+      this.close(PersistentStreamState.Stopped);
+    }
   }
 
   /**
@@ -256,7 +258,7 @@ export abstract class PersistentStream<
         // We ignore Promise rejections for cancelled idle checks.
         assert(
           err.code === Code.CANCELLED,
-          'Received unexpected error in idle timeout closure.'
+          `Received unexpected error in idle timeout closure. Expected CANCELLED, but was: ${err}`
         );
       });
   }
@@ -293,7 +295,7 @@ export abstract class PersistentStream<
    * </ul>
    *
    * A new stream can be opened by calling `start` unless `finalState` is set to
-   * `PersistentStreamState.Stoppen`.
+   * `PersistentStreamState.Stopped`.
    *
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
@@ -324,8 +326,7 @@ export abstract class PersistentStream<
     // inhibit backoff or otherwise manipulate the state in its non-started state.
     this.state = finalState;
 
-    // Clean up the underlying stream because we are no longer interested in
-    // events
+    // Clean up the underlying stream because we are no longer interested in events.
     if (this.stream !== null) {
       this.stream.close();
       this.stream = null;
@@ -333,8 +334,7 @@ export abstract class PersistentStream<
 
     const listener = this.listener!;
 
-    // Clear the listener to avoid bleeding of events from the underlying
-    // streams
+    // Clear the listener to avoid bleeding of events from the underlying streams.
     this.listener = null;
 
     // If the caller explicitly requested a stream stop, don't notify them of a closing stream (it
