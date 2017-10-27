@@ -226,12 +226,16 @@ describe('Write Stream', () => {
         writeStream.writeHandshake();
         return streamListener.awaitCallback('handshakeComplete');
       })
-      .then(() => queue.awaitIdleTimeout(() => {
-           writeStream.markIdle();
-          return streamListener.awaitCallback('close');
-        }).then(() => {
-          expect(writeStream.isOpen()).to.be.false;
-        }));
+      .then(() =>
+        queue
+          .awaitIdleTimeout(() => {
+            writeStream.markIdle();
+            return streamListener.awaitCallback('close');
+          })
+          .then(() => {
+            expect(writeStream.isOpen()).to.be.false;
+          })
+      );
   });
 
   asyncIt('cancels idle on write', () => {
@@ -248,7 +252,9 @@ describe('Write Stream', () => {
         writeStream.writeHandshake();
         return streamListener.awaitCallback('handshakeComplete');
       })
-      .then(() => queue.awaitIdleTimeout(() => {
+      .then(() =>
+        queue
+          .awaitIdleTimeout(() => {
             // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
             writeStream.markIdle();
             writeStream.writeMutations(SINGLE_MUTATION);
@@ -256,6 +262,7 @@ describe('Write Stream', () => {
           })
           .then(() => {
             expect(writeStream.isOpen()).to.be.true;
-          }));
-      });
+          })
+      );
+  });
 });
