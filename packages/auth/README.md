@@ -5,40 +5,81 @@ dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM
 is included by default in the [`firebase`](https://npm.im/firebase) wrapper
 package.
 
-## Installation
+## Table of Contents
 
-You can install this package by running the following in your project:
+1. [Developer Setup](#developer-setup)
+
+## Developer Setup
+
+### Dependencies
+
+To set up a development environment to build Firebase-auth from source, you must
+have the following installed:
+- Node.js (>= 6.0.0)
+- npm (should be included with Node.js)
+- Java Runtime Environment
+
+In order to run the tests, you must also have:
+- Python (2.7)
+
+Download the Firebase source and its dependencies with:
 
 ```bash
-$ npm install @firebase/auth
+git clone https://github.com/firebase/firebase-js-sdk.git
+cd firebase-js-sdk
+yarn install
 ```
 
-## Usage
+### Building Firebase-auth
 
-You can then use the firebase namespace exposed by this package as illustrated
-below:
-
-**ES Modules**
-
-```javascript
-import firebase from '@firebase/app';
-import '@firebase/auth'
-
-// Do stuff w/ `firebase` and `firebase.auth`
+To build the library, run:
+```bash
+cd packages/auth
+yarn build
 ```
 
-**CommonJS Modules**
+This will create output files in the `dist/` folder.
 
-```javascript
-const firebase = require('@firebase/app').default;
-require('@firebase/auth');
+### Running unit tests.
 
-// Do stuff with `firebase` and `firebase.auth`
+All unit tests can be run on the command line (via Chrome and Firefox) with:
+
+```bash
+yarn test
 ```
 
-## Documentation
+Alternatively, the unit tests can be run manually by running
 
-For comprehensive documentation please see the [Firebase Reference
-Docs][reference-docs].
+```bash
+yarn run serve
+```
 
-[reference-docs]: https://firebase.google.com/docs/reference/js/
+Then, all unit tests can be run at: http://localhost:4000/buildtools/all_tests.html
+You can also run tests individually by accessing each HTML file under
+`generated/tests`, for example: http://localhost:4000/generated/tests/test/auth_test.html
+
+### Run tests using SauceLabs
+
+*You need a [SauceLabs](https://saucelabs.com/) account to run tests on
+SauceLabs.*
+
+Go to your SauceLab account, under "My Account", and copy paste the access key.
+Now export the following variables, *in two Terminal windows*:
+
+```bash
+export SAUCE_USERNAME=<your username>
+export SAUCE_ACCESS_KEY=<the copy pasted access key>
+```
+
+ Then, in one Terminal window, start SauceConnect:
+
+ ```bash
+./buildtools/sauce_connect.sh
+```
+
+Take note of the "Tunnel Identifier" value logged in the terminal,at the top. In
+the other terminal that has the exported variables, run the tests:
+
+```bash
+yarn test -- --saucelabs --tunnelIdentifier=<the tunnel identifier>
+```

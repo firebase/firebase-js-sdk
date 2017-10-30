@@ -2,24 +2,33 @@
   "name": "@firebase/auth",
   "version": "0.2.0",
   "main": "dist/auth.js",
+  "description": "Javascript library for Firebase Auth SDK",
+  "files": [
+    "dist/**",
+    "LICENSE",
+    "README.md",
+    "package.json"
+  ],
   "scripts": {
-    "dev": "echo 'Skipping @firebase/auth dev step'",
-    "test": "echo 'Skipping @firebase/auth test step'",
-    "prepare": "gulp build"
+    "build": "gulp",
+    "test": "npm run build && npm run generate-test-files && ./buildtools/run_tests.sh",
+    "serve": "npm run build && npm run generate-test-files && gulp serve",
+    "generate-test-files": "./buildtools/generate_test_files.sh",
+    "prepare": "npm run build"
   },
+  "author": "Google",
   "license": "Apache-2.0",
+  "devDependencies": {
+    "closure-builder": "^2.0.17",
+    "del": "^2.2.2",
+    "express": "^4.16.2",
+    "google-closure-compiler": "^20170910.0.0",
+    "google-closure-library": "^20170910.0.0",
+    "gulp": "^3.9.1",
+    "gulp-closure-compiler": "^0.4.0",
+    "protractor": "^5.1.2"
+  },
   "peerDependencies": {
     "@firebase/app": "^0.1.0"
-  },
-  "devDependencies": {
-    "gulp": "gulpjs/gulp#4.0",
-    "through2": "^2.0.3"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
-  },
-  "bugs": {
-    "url": "https://github.com/firebase/firebase-js-sdk/issues"
   }
 }

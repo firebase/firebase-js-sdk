@@ -1,4 +1,4 @@
 # This file is pre-built and need not be formatted
-packages/auth/src/auth.js
+packages/auth
 packages/firebase/firebase*
 dist
