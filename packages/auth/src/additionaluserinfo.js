@@ -58,7 +58,7 @@ fireauth.AdditionalUserInfo.fromPlainObject = function(resp) {
       fireauth.GithubAdditionalUserInfo;
   factory[fireauth.idp.ProviderId.TWITTER] =
       fireauth.TwitterAdditionalUserInfo;
-  // Provider id and uid are required.
+  // Provider ID and UID are required.
   var providerId =
       resp &&
       resp[fireauth.AdditionalUserInfo.VerifyAssertionField.PROVIDER_ID];
@@ -174,7 +174,7 @@ fireauth.FacebookAdditionalUserInfo = function(info) {
   fireauth.FacebookAdditionalUserInfo.base(this, 'constructor', info);
   // This should not happen as this object is initialized via fromPlainObject.
   if (this['providerId'] != fireauth.idp.ProviderId.FACEBOOK) {
-    throw new Error('Invalid provider id!');
+    throw new Error('Invalid provider ID!');
   }
 };
 goog.inherits(
@@ -193,7 +193,7 @@ fireauth.GithubAdditionalUserInfo = function(info) {
   fireauth.GithubAdditionalUserInfo.base(this, 'constructor', info);
   // This should not happen as this object is initialized via fromPlainObject.
   if (this['providerId'] != fireauth.idp.ProviderId.GITHUB) {
-    throw new Error('Invalid provider id!');
+    throw new Error('Invalid provider ID!');
   }
   // GitHub username.
   fireauth.object.setReadonlyProperty(
@@ -217,7 +217,7 @@ fireauth.GoogleAdditionalUserInfo = function(info) {
   fireauth.GoogleAdditionalUserInfo.base(this, 'constructor', info);
   // This should not happen as this object is initialized via fromPlainObject.
   if (this['providerId'] != fireauth.idp.ProviderId.GOOGLE) {
-    throw new Error('Invalid provider id!');
+    throw new Error('Invalid provider ID!');
   }
 };
 goog.inherits(
@@ -236,7 +236,7 @@ fireauth.TwitterAdditionalUserInfo = function(info) {
   fireauth.TwitterAdditionalUserInfo.base(this, 'constructor', info);
   // This should not happen as this object is initialized via fromPlainObject.
   if (this['providerId'] != fireauth.idp.ProviderId.TWITTER) {
-    throw new Error('Invalid provider id!');
+    throw new Error('Invalid provider ID!');
   }
   // Twitter user name.
   fireauth.object.setReadonlyProperty(

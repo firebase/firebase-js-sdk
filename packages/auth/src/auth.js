@@ -51,7 +51,7 @@ goog.require('goog.object');
 
 
 /**
- * Creates the Firebase Auth corresponding for the app provided.
+ * Creates the Firebase Auth corresponding for the App provided.
  *
  * @param {!firebase.app.App} app The corresponding Firebase App.
  * @constructor
@@ -62,10 +62,10 @@ goog.require('goog.object');
 fireauth.Auth = function(app) {
   /** @private {boolean} Whether this instance is deleted. */
   this.deleted_ = false;
-  /** Auth's corresponding app. */
+  /** Auth's corresponding App. */
   fireauth.object.setReadonlyProperty(this, 'app', app);
-  // Initialize rpc handler.
-  // Api key is required for web client rpc calls.
+  // Initialize RPC handler.
+  // API key is required for web client RPC calls.
   if (this.app_().options && this.app_().options['apiKey']) {
     var clientFullVersion = firebase.SDK_VERSION ?
         fireauth.util.getClientVersion(
@@ -159,7 +159,7 @@ fireauth.Auth = function(app) {
   this.INTERNAL['delete'] = goog.bind(this.delete, this);
   this.INTERNAL['logFramework'] = goog.bind(this.logFramework, this);
   /**
-   * @private {number} The number of Firebase services subscribed to auth
+   * @private {number} The number of Firebase services subscribed to Auth
    *     changes.
    */
   this.firebaseServices_ = 0;
@@ -206,7 +206,7 @@ goog.inherits(fireauth.Auth.FrameworkChangeEvent, goog.events.Event);
 
 /**
  * Changes the Auth state persistence to the specified one.
- * @param {!fireauth.authStorage.Persistence} persistence The auth state
+ * @param {!fireauth.authStorage.Persistence} persistence The Auth state
  *     persistence mechanism.
  * @return {!goog.Promise<void>}
  */
@@ -349,7 +349,7 @@ fireauth.Auth.prototype.notifyLanguageCodeListeners_ = function() {
  */
 fireauth.Auth.prototype.toJSON = function() {
   // Return the plain object representation in case JSON.stringify is called on
-  // an auth instance.
+  // an Auth instance.
   return {
     'apiKey': this.app_().options['apiKey'],
     'authDomain': this.app_().options['authDomain'],
@@ -365,8 +365,8 @@ fireauth.Auth.prototype.toJSON = function() {
  * @private
  */
 fireauth.Auth.prototype.getAuthEventManager_ = function() {
-  // Either return cached auth event manager promise provider if available or a
-  // promise that rejects with missing auth domain error.
+  // Either return cached Auth event manager promise provider if available or a
+  // promise that rejects with missing Auth domain error.
   return this.eventManagerProviderPromise_ ||
       goog.Promise.reject(
           new fireauth.AuthError(fireauth.authenum.Error.MISSING_AUTH_DOMAIN));
@@ -378,13 +378,13 @@ fireauth.Auth.prototype.getAuthEventManager_ = function() {
  * @private
  */
 fireauth.Auth.prototype.initAuthEventManager_ = function() {
-  // Initialize auth event manager on initState.
+  // Initialize Auth event manager on initState.
   var self = this;
   var authDomain = this.app_().options['authDomain'];
   var apiKey = this.app_().options['apiKey'];
   // Make sure environment also supports popup and redirect.
   if (authDomain && fireauth.util.isPopupRedirectSupported()) {
-    // auth domain is required for auth event manager to resolve.
+    // Auth domain is required for Auth event manager to resolve.
     // Auth state has to be loaded first. One reason is to process link events.
     this.eventManagerProviderPromise_ = this.authStateLoaded_.then(function() {
       if (self.deleted_) {
@@ -427,7 +427,7 @@ fireauth.Auth.prototype.initAuthEventManager_ = function() {
 
 /**
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
- * @param {?string=} opt_eventId The event id.
+ * @param {?string=} opt_eventId The event ID.
  * @return {boolean} Whether the auth event handler can handler the provided
  *     event.
  * @override
@@ -442,7 +442,7 @@ fireauth.Auth.prototype.canHandleAuthEvent = function(mode, opt_eventId) {
     case fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT:
       return true;
     case fireauth.AuthEvent.Type. SIGN_IN_VIA_POPUP:
-      // Pending sign in with popup event must match the stored popup event id.
+      // Pending sign in with popup event must match the stored popup event ID.
       return this.popupEventId_ == opt_eventId &&
           !!this.pendingPopupResolvePromise_;
     default:
@@ -454,16 +454,16 @@ fireauth.Auth.prototype.canHandleAuthEvent = function(mode, opt_eventId) {
 /**
  * Completes the pending popup operation. If error is not null, rejects with the
  * error. Otherwise, it resolves with the popup redirect result.
- * @param {!fireauth.AuthEvent.Type} mode The auth type mode.
+ * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?fireauth.AuthEventManager.Result} popupRedirectResult The result
  *     to resolve with when no error supplied.
  * @param {?fireauth.AuthError} error When supplied, the promise will reject.
- * @param {?string=} opt_eventId The event id.
+ * @param {?string=} opt_eventId The event ID.
  * @override
  */
 fireauth.Auth.prototype.resolvePendingPopupEvent =
     function(mode, popupRedirectResult, error, opt_eventId) {
-  // Only handles popup events of type sign in and which match popup event id.
+  // Only handles popup events of type sign in and which match popup event ID.
   if (mode != fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP ||
       this.popupEventId_ != opt_eventId) {
     return;
@@ -492,7 +492,7 @@ fireauth.Auth.prototype.resolvePendingPopupEvent =
  * Returns the handler's appropriate popup and redirect sign in operation
  * finisher.
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
- * @param {?string=} opt_eventId The optional event id.
+ * @param {?string=} opt_eventId The optional event ID.
  * @return {?function(string,
  *     string):!goog.Promise<!fireauth.AuthEventManager.Result>}
  * @override
@@ -549,7 +549,7 @@ fireauth.Auth.prototype.finishPopupAndRedirectSignIn =
   var p = self.authStateLoaded_.then(function() {
     return idTokenResolver;
   }).then(function(idTokenResponse) {
-    // Use ID token response to sign in the auth user.
+    // Use ID token response to sign in the Auth user.
     return self.signInWithIdTokenResponse(idTokenResponse);
   }).then(function() {
     // On sign in success, construct redirect and popup result and return a
@@ -597,7 +597,7 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
   // There could multiple sign in with popup events in different windows.
   // We need to match the correct popup to the correct pending promise.
   var eventId = this.generateEventId_();
-  // If incapable of redirecting popup from opener, popup destination url
+  // If incapable of redirecting popup from opener, popup destination URL
   // directly. This could also happen in a sandboxed iframe.
   var oauthHelperWidgetUrl = null;
   if ((!fireauth.util.runsInBackground() || fireauth.util.isIframe()) &&
@@ -730,7 +730,7 @@ fireauth.Auth.prototype.getRedirectResult = function() {
 
 /**
  * Completes the headless sign in with the server response containing the STS
- * access and refresh tokens, and sets the auth user as current user while
+ * access and refresh tokens, and sets the Auth user as current user while
  * setting all listeners to it and saving it to storage.
  * @param {!Object<string, string>} idTokenResponse The ID token response from
  *     the server.
@@ -823,7 +823,7 @@ fireauth.Auth.prototype.signOut = function() {
     return /** @type {!fireauth.storage.UserManager} */ (
         self.userStorageManager_).removeCurrentUser()
         .then(function() {
-          // Notify external auth listeners of this auth change event.
+          // Notify external Auth listeners of this Auth change event.
           self.notifyAuthListeners_();
         });
   });
@@ -862,7 +862,7 @@ fireauth.Auth.prototype.initRedirectUser_ = function() {
 
 
 /**
- * Loads the initial auth state for current application from web storage and
+ * Loads the initial Auth state for current application from web storage and
  * initializes Auth user accordingly to reflect that state. This routine does
  * not wait for any pending redirect result to be resolved.
  * @return {!goog.Promise<undefined>} Promise that resolves when state is ready,
@@ -934,7 +934,7 @@ fireauth.Auth.prototype.initAuthState_ = function() {
 
 /**
  * After initial Auth state is loaded, waits for any pending redirect result,
- * resolves it and then adds the external auth state change listeners and
+ * resolves it and then adds the external Auth state change listeners and
  * triggers first state of all observers.
  * @return {!goog.Promise<undefined>} Promise that resolves when state is ready
  *     taking into account any pending redirect result.
@@ -954,7 +954,7 @@ fireauth.Auth.prototype.initAuthRedirectState_ = function() {
     if (self.deleted_) {
       return;
     }
-    // Between init auth state and get redirect result resolution there
+    // Between init Auth state and get redirect result resolution there
     // could have been a sign in attempt in another window.
     // Force sync and then add listener to run sync on change below.
     return self.getSyncAuthUserChanges_();
@@ -1149,7 +1149,7 @@ fireauth.Auth.prototype.attachEventListeners_ = function(user) {
         fireauth.UserEventType.USER_INVALIDATED,
         this.userInvalidatedListener_);
     // Start proactive token refresh on new user if there is at least one
-    // Firebase service subscribed to auth changes.
+    // Firebase service subscribed to Auth changes.
     if (this.firebaseServices_ > 0) {
       user.startProactiveRefresh();
     }
@@ -1230,14 +1230,14 @@ fireauth.Auth.prototype.initUserStateObserver_ = function(observer) {
 
 
 /**
- * Adds an observer for auth state changes, we need to wrap the call as
+ * Adds an observer for Auth state changes, we need to wrap the call as
  * the args checking code needs a method defined on the prototype this way,
  * not within the constructor, and we also have to implement the behavior
  * that will trigger an observer right away if state is ready.
  * @param {!firebase.Observer|function(?fireauth.AuthUser)}
  *     nextOrObserver An observer object or a function triggered on change.
  * @param {function(!fireauth.AuthError)=} opt_error Optional A function
- *     triggered on auth error.
+ *     triggered on Auth error.
  * @param {function()=} opt_completed Optional A function triggered when the
  *     observer is removed.
  * @return {!function()} The unsubscribe function for the observer.
@@ -1360,7 +1360,7 @@ fireauth.Auth.prototype.getIdTokenInternal = function(opt_forceRefresh) {
 fireauth.Auth.prototype.signInWithCustomToken = function(token) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
-  // errors like web storage unsupported are detected, fail before rpc, instead
+  // errors like web storage unsupported are detected, fail before RPC, instead
   // of after.
   return this.redirectStateIsReady_.then(function() {
     return self.signInWithIdTokenProvider_(
@@ -1388,7 +1388,7 @@ fireauth.Auth.prototype.signInWithEmailAndPassword =
     function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
-  // errors like web storage unsupported are detected, fail before rpc, instead
+  // errors like web storage unsupported are detected, fail before RPC, instead
   // of after.
   return this.redirectStateIsReady_.then(function() {
     return self.signInWithIdTokenProvider_(
@@ -1409,7 +1409,7 @@ fireauth.Auth.prototype.createUserWithEmailAndPassword =
     function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
-  // errors like web storage unsupported are detected, fail before rpc, instead
+  // errors like web storage unsupported are detected, fail before RPC, instead
   // of after.
   return this.redirectStateIsReady_.then(function() {
     return self.signInWithIdTokenProvider_(
@@ -1446,7 +1446,7 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
   // decide how to retrieve ID token.
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
-  // errors like web storage unsupported are detected, fail before rpc, instead
+  // errors like web storage unsupported are detected, fail before RPC, instead
   // of after.
   return this.redirectStateIsReady_.then(function() {
     // Return the full response object and not just the user.
@@ -1463,7 +1463,7 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
 fireauth.Auth.prototype.signInAnonymously = function() {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
-  // errors like web storage unsupported are detected, fail before rpc, instead
+  // errors like web storage unsupported are detected, fail before RPC, instead
   // of after.
   return this.redirectStateIsReady_.then(function() {
     var user = self.currentUser_();
@@ -1494,7 +1494,7 @@ fireauth.Auth.prototype.signInAnonymously = function() {
 
 
 /**
- * @return {string} The key used for storing auth state.
+ * @return {string} The key used for storing Auth state.
  */
 fireauth.Auth.prototype.getStorageKey = function() {
   return fireauth.util.createStorageKey(
@@ -1514,7 +1514,7 @@ fireauth.Auth.prototype.app_ = function() {
 
 
 /**
- * @return {!fireauth.RpcHandler} The rpc handler.
+ * @return {!fireauth.RpcHandler} The RPC handler.
  */
 fireauth.Auth.prototype.getRpcHandler = function() {
   return this.rpcHandler_;

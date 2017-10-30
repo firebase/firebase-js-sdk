@@ -20,6 +20,7 @@ goog.require('fireauth.storage.AsyncStorage');
 goog.require('fireauth.storage.Factory');
 goog.require('fireauth.storage.Factory.EnvConfig');
 goog.require('fireauth.storage.InMemoryStorage');
+goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.LocalStorage');
 goog.require('fireauth.storage.NullStorage');
 goog.require('fireauth.storage.SessionStorage');

@@ -73,7 +73,7 @@ fireauth.XmlHttpFactory.prototype.createInstance = function() {
 
 
 /**
- * @return {!Object} Options describing how xhr objects obtained from this
+ * @return {!Object} Options describing how XHR objects obtained from this
  *     factory should be used.
  * @override
  */
@@ -368,7 +368,7 @@ fireauth.RpcHandler.prototype.updateClientVersion = function(clientVersion) {
 
 /**
  * Sends XhrIo request using goog.net.XhrIo.
- * @param {string} url The url to make a request to.
+ * @param {string} url The URL to make a request to.
  * @param {function(?Object)=} opt_callback The callback to run on completion.
  * @param {fireauth.RpcHandler.HttpMethod=} opt_httpMethod The HTTP send method.
  * @param {?ArrayBuffer|?ArrayBufferView|?Blob|?Document|?FormData|string=}
@@ -636,7 +636,7 @@ fireauth.RpcHandler.prototype.validateStsTokenRequest_ = function(data) {
 /**
  * Handles the request for the STS access token.
  *
- * @param {!Object} data The sts token request body.
+ * @param {!Object} data The STS token request body.
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.requestStsToken = function(data) {
@@ -1982,11 +1982,10 @@ fireauth.RpcHandler.hasError_ = function(resp) {
 /**
  * Converts a server response with errors to a developer-facing AuthError.
  * @param {!Object} response The server response.
- * @param {?fireauth.RpcHandler.ServerErrorMap=} opt_customErrorMap  A map of
+ * @param {?fireauth.RpcHandler.ServerErrorMap=} opt_customErrorMap A map of
  *     backend error codes to client-side errors. Any entries set here
  *     override the default handling of the backend error code.
- * @return {!fireauth.AuthError} The corresponding error
- *     object.
+ * @return {!fireauth.AuthError} The corresponding error object.
  * @private
  */
 fireauth.RpcHandler.getDeveloperError_ =
@@ -2156,7 +2155,7 @@ fireauth.RpcHandler.getDeveloperError_ =
   }
 
   // No error message found, return the serialized response as the message.
-  // This is likely to be an apiary error for unexpected cases like keyExpired,
+  // This is likely to be an Apiary error for unexpected cases like keyExpired,
   // etc.
   if (!errorMessage && response) {
      errorMessage = fireauth.util.stringifyJSON(response);

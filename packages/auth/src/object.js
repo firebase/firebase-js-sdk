@@ -33,7 +33,7 @@ goog.require('fireauth.deprecation.Deprecations');
  */
 fireauth.object.isReadonlyConfigurable_ = function() {
   // Android 2.3 stock browser doesn't allow to change the value of
-  // a readonly property once defined.
+  // a read-only property once defined.
   try {
     var obj = {};
     Object.defineProperty(obj, 'abcd', {
@@ -192,10 +192,10 @@ fireauth.object.hasNonEmptyFields = function(opt_obj, opt_fields) {
 
 
 /**
- * Traverses the specified object and creates a read only deep copy of it.
+ * Traverses the specified object and creates a read-only deep copy of it.
  * This will fail when circular references are contained within the object.
- * @param {*} obj The object to make a read only copy from.
- * @return {*} A Read only copy of the obj specified.
+ * @param {*} obj The object to make a read-only copy from.
+ * @return {*} A Read-only copy of the obj specified.
  */
 fireauth.object.unsafeCreateReadOnlyCopy = function(obj) {
   var copy = obj;

@@ -118,7 +118,7 @@ function testActionCodeSettings_success_partialParameters_ios() {
 
 
 function testActionCodeSettings_error_continueUrl() {
-  // Missing continue url.
+  // Missing continue URL.
   assertActionCodeSettingsErrorThrown(
       {
         'android': {
@@ -126,7 +126,7 @@ function testActionCodeSettings_error_continueUrl() {
         }
       },
       'auth/missing-continue-uri');
-  // Invalid continue url.
+  // Invalid continue URL.
   assertActionCodeSettingsErrorThrown(
       {
         'url': '',
@@ -135,7 +135,7 @@ function testActionCodeSettings_error_continueUrl() {
         }
       },
       'auth/invalid-continue-uri');
-  // Invalid continue url.
+  // Invalid continue URL.
   assertActionCodeSettingsErrorThrown(
       {
         'url': ['https://www.example.com/?state=abc'],

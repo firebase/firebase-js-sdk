@@ -99,7 +99,7 @@ function testDifferentTypes_node() {
 function testNotAvailable_node() {
   // Compatibility libraries not included.
   stubs.replace(firebase.INTERNAL, 'node', {});
-  // Simulate node.js environment.
+  // Simulate Node.js environment.
   simulateNodeEnvironment();
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.INTERNAL_ERROR,

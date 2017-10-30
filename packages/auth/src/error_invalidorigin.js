@@ -56,7 +56,7 @@ fireauth.InvalidOriginError = function(origin) {
         fireauth.InvalidOriginError.HTTP_MESSAGE_TEMPLATE_,
         domain);
   } else {
-    // Throw operation not supported when non http, https or chrome extension
+    // Throw operation not supported when non http, https or Chrome extension
     // protocol.
     code = fireauth.authenum.Error.OPERATION_NOT_SUPPORTED;
   }
@@ -72,7 +72,7 @@ fireauth.InvalidOriginError.HTTP_MESSAGE_TEMPLATE_ = 'This domain (%s) is no' +
 
 
 /**
- * @private @const {string} The chrome extension invalid origin message
+ * @private @const {string} The Chrome extension invalid origin message
  *     template.
  */
 fireauth.InvalidOriginError.CHROME_EXTENSION_MESSAGE_TEMPLATE_ = 'This chrom' +

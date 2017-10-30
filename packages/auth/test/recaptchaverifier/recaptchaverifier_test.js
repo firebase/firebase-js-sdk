@@ -56,17 +56,17 @@ var loaderInstance;
  */
 function initializeRecaptchaMocks() {
   var recaptcha = {
-    // Recaptcha challenge id
+    // Recaptcha challenge ID.
     'challengesId': 0,
     // Recaptcha array of instances.
     'instances': [],
     // Render reCAPTCHA instance.
     'render': function(container, parameters) {
-      // New widget id.
+      // New widget ID.
       var id = recaptcha.instances.length;
       // Element container.
       var ele = goog.dom.getElement(container);
-      // Store new recaptcha instance and its parameters.
+      // Store new reCAPTCHA instance and its parameters.
       recaptcha.instances.push({
         'container': container,
         'response': 'response-' + recaptcha.challengesId,
@@ -76,7 +76,7 @@ function initializeRecaptchaMocks() {
         'expired-callback': parameters['expired-callback'] || null,
         'execute': false
       });
-      // Increment challenges id.
+      // Increment challenges ID.
       recaptcha.challengesId++;
       if (parameters.size !== 'invisible') {
         // recaptcha can only be rendered on an empty element.
@@ -84,12 +84,12 @@ function initializeRecaptchaMocks() {
         // Fill container with some HTML to simulate rendered widget.
         ele.innerHTML = '<div id="recaptchaInstance' + id + '"></div>';
       }
-      // Return the reCAPTCHA widget Id.
+      // Return the reCAPTCHA widget ID.
       return id;
     },
     // Reset reCAPTCHA instance
     'reset': function(opt_id) {
-      // If widget id not provided, use last created one.
+      // If widget ID not provided, use last created one.
       var id = typeof opt_id !== 'undefined' ?
           opt_id : recaptcha.instances.length - 1;
       // Assert instance exists.
@@ -105,12 +105,12 @@ function initializeRecaptchaMocks() {
         'expired-callback': parameters['expired-callback'],
         'execute': false
       };
-      // Increment challenges id.
+      // Increment challenges ID.
       recaptcha.challengesId++;
     },
-    // Returns recaptcha instance's user response.
+    // Returns reCAPTCHA instance's user response.
     'getResponse': function(opt_id) {
-      // If widget id not provided, use last created one.
+      // If widget ID not provided, use last created one.
       var id = typeof opt_id !== 'undefined' ?
           opt_id : recaptcha.instances.length - 1;
       // Assert instance exists.
@@ -139,7 +139,7 @@ function initializeRecaptchaMocks() {
     // For internal testing, simulates the reCAPTCHA corresponding to ID passed
     // is solved.
     'solveResponse': function(opt_id) {
-      // If widget id not provided, use last created one.
+      // If widget ID not provided, use last created one.
       var id = typeof opt_id !== 'undefined' ?
           opt_id : recaptcha.instances.length - 1;
       // Assert instance exists.
@@ -164,7 +164,7 @@ function initializeRecaptchaMocks() {
     // For internal testing, simulates the reCAPTCHA token corresponding to ID
     // passed is expired.
     'expireResponse': function(opt_id) {
-      // If widget id not provided, use last created one.
+      // If widget ID not provided, use last created one.
       var id = typeof opt_id !== 'undefined' ?
           opt_id : recaptcha.instances.length - 1;
       // Assert instance exists.
@@ -224,10 +224,10 @@ function setUp() {
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
   mockControl.$resetAll();
   app = null;
-  // Create div test element and add to document.
+  // Create DIV test element and add to document.
   myElement = goog.dom.createDom(goog.dom.TagName.DIV, {'id': 'recaptcha'});
   document.body.appendChild(myElement);
-  // Create another div test element and add to document.
+  // Create another DIV test element and add to document.
   myElement2 = goog.dom.createDom(goog.dom.TagName.DIV, {'id': 'recaptcha2'});
   document.body.appendChild(myElement2);
   // Bypass singleton for tests so loaders are not shared among different tests.
@@ -273,7 +273,7 @@ function tearDown() {
 function initializeAuthServiceOnApp(app) {
   // Do nothing if auth() already exists.
   if (typeof app.auth !== 'function') {
-    // Use set as auth doesn't exist on the app instance.
+    // Use set as Auth doesn't exist on the App instance.
     stubs.set(app, 'auth', function() {
       if (!this.auth_) {
         this.auth_ = {};
@@ -285,8 +285,8 @@ function initializeAuthServiceOnApp(app) {
 
 
 /**
- * Simulates the current Auth language on the specified app instance.
- * @param {!firebase.app.App} app The expected Firebase app instance.
+ * Simulates the current Auth language on the specified App instance.
+ * @param {!firebase.app.App} app The expected Firebase App instance.
  * @param {?string} languageCode The default Auth language.
  */
 function simulateAuthLanguage(app, languageCode) {
@@ -298,7 +298,7 @@ function simulateAuthLanguage(app, languageCode) {
 
 
 /**
- * Simulates the current Auth frameworks on the specified app instance.
+ * Simulates the current Auth frameworks on the specified App instance.
  * @param {!firebase.app.App} app The expected Firebase app instance.
  * @param {!Array<string>} frameworks The current frameworks set on the Auth
  *     instance.
@@ -1206,7 +1206,7 @@ function testBaseRecaptchaVerifier_invisible_clear() {
     rpcHandler.getRecaptchaParam().$once().$returns(recaptchaConfig);
     mockControl.$replayAll();
 
-    // Append 2 divs to the container. This is fine for invisible reCAPTCHAs.
+    // Append 2 DIVs to the container. This is fine for invisible reCAPTCHAs.
     myElement.appendChild(goog.dom.createDom(goog.dom.TagName.DIV));
     myElement.appendChild(goog.dom.createDom(goog.dom.TagName.DIV));
     var recaptchaVerifier = new fireauth.BaseRecaptchaVerifier(
@@ -1397,7 +1397,7 @@ function testBaseRecaptchaVerifier_localization_alreadyLoaded() {
     // Simulate grecaptcha loaded.
     initializeRecaptchaMocks();
     // Initialize after simulated reCAPTCHA dependency is loaded to make sure
-    // internal counter knows about the existance of grecaptcha.
+    // internal counter knows about the existence of grecaptcha.
     loaderInstance = new fireauth.BaseRecaptchaVerifier.Loader();
     var recaptchaConfig = {
       'recaptchaSiteKey': 'SITE_KEY'
@@ -1557,7 +1557,7 @@ function testRecaptchaVerifier_defaultApp() {
       return app;
     });
     var returnValue = assertNotThrows(function() {
-      // Do not pass the app instance explicitly.
+      // Do not pass the App instance explicitly.
       return new fireauth.RecaptchaVerifier('recaptcha', {'size': 'compact'});
     });
     assertTrue(returnValue instanceof fireauth.RecaptchaVerifier);

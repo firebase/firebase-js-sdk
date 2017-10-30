@@ -42,7 +42,7 @@ fireauth.authStorage.NAMESPACE_ = 'firebase';
 
 
 /**
- * The separator for Firebase Auth storage with app ID key.
+ * The separator for Firebase Auth storage with App ID key.
  * @private @const {string}
  */
 fireauth.authStorage.SEPARATOR_ = ':';
@@ -102,7 +102,7 @@ fireauth.authStorage.validatePersistenceArgument =
       }
       break;
     case fireauth.util.Env.NODE:
-      // Only none is supported in node.js.
+      // Only none is supported in Node.js.
       if (arg !== fireauth.authStorage.Persistence.NONE) {
         throw unsupportedTypeError;
       }

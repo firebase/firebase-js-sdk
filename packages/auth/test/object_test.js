@@ -240,7 +240,7 @@ function testUnsafeCreateReadOnlyCopy() {
       {}
     ]
   };
-  // Create read only copy.
+  // Create read-only copy.
   var copy = fireauth.object.unsafeCreateReadOnlyCopy(myObj);
   // Confirm object copied.
   assertObjectEquals(myObj, copy);

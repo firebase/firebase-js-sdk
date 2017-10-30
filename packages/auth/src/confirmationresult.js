@@ -47,7 +47,7 @@ fireauth.ConfirmationResult = function(verificationId, credentialResolver) {
    *     UserCredential object.
    */
   this.credentialResolver_ = credentialResolver;
-  // Set verificationId as readonly property.
+  // Set verificationId as read-only property.
   fireauth.object.setReadonlyProperty(this, 'verificationId', verificationId);
 };
 

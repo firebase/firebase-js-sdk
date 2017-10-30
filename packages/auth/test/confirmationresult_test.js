@@ -108,7 +108,7 @@ function testConfirmationResult() {
       expectedVerificationId, credentialResolver);
   // Check verificationId property.
   assertEquals(expectedVerificationId, confirmationResult['verificationId']);
-  // Confirm readonly.
+  // Confirm read-only.
   confirmationResult['verificationId'] = 'not readonly';
   assertEquals(expectedVerificationId, confirmationResult['verificationId']);
   // Confirm expected credential resolver promise returned on confirmation.

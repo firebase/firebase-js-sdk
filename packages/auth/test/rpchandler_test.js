@@ -191,7 +191,7 @@ function testRpcHandler_XMLHttpRequest_notSupported() {
 
 
 function testRpcHandler_XMLHttpRequest_node() {
-  // Test node environment that node implementation is used in xhrfactory.
+  // Test node environment that Node.js implementation is used in xhrfactory.
   // Install mock clock.
   clock = new goog.testing.MockClock(true);
   var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);

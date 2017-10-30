@@ -105,7 +105,7 @@ function testValidatePersistenceArgument_invalid() {
 
 
 function testValidatePersistenceArgument_node() {
-  // Simulate node.js.
+  // Simulate Node.js.
   stubs.replace(
       fireauth.util,
       'getEnvironment',
@@ -134,7 +134,7 @@ function testValidatePersistenceArgument_node() {
 
 
 function testValidatePersistenceArgument_reactNative() {
-  // Simulate react-native.
+  // Simulate React-Native.
   stubs.replace(
       fireauth.util,
       'getEnvironment',

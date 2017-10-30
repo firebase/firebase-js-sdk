@@ -204,7 +204,7 @@ fireauth.AuthUser =
   /** @private {string} The API key. */
   this.apiKey_ = /** @type {string} */ (appOptions['apiKey']);
   // This is needed to associate a user to the corresponding Auth instance.
-  /** @private {string} The app name. */
+  /** @private {string} The App name. */
   this.appName_ = /** @type {string} */ (appOptions['appName']);
   /** @private {?string} The Auth domain. */
   this.authDomain_ = appOptions['authDomain'] || null;
@@ -248,7 +248,7 @@ fireauth.AuthUser =
   }
   /** @private {!Array<!function(!fireauth.AuthUser):!goog.Promise>} The list of
    *      state change listeners. This is needed to make sure state changes are
-   *      resolved before resolving user api promises. For example redirect
+   *      resolved before resolving user API promises. For example redirect
    *      operations should make sure the associated event ID is saved before
    *      redirecting.
    */
@@ -425,8 +425,8 @@ fireauth.AuthUser.prototype.handleUserTokenChange_ = function(event) {
  */
 fireauth.AuthUser.prototype.getAuth_ = function() {
   try {
-    // Get the Auth instance for the current app identified by the app name.
-    // This could fail if, for example, the app instance was deleted.
+    // Get the Auth instance for the current app identified by the App name.
+    // This could fail if, for example, the App instance was deleted.
     return firebase['app'](this.appName_)['auth']();
   } catch (e) {
     // Throw appropriate error.
@@ -924,8 +924,7 @@ fireauth.AuthUser.prototype.reloadWithoutSaving_ = function() {
 /**
  * This operation resolves with the Firebase ID token.
  * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
- * @return {!goog.Promise<string>} A Promise
- *     for the STS access token.
+ * @return {!goog.Promise<string>} A Promise that resolves with the ID token.
  */
 fireauth.AuthUser.prototype.getIdToken = function(opt_forceRefresh) {
   var self = this;
@@ -953,8 +952,7 @@ fireauth.AuthUser.prototype.getIdToken = function(opt_forceRefresh) {
  * This operation resolves with the Firebase ID token. It has been deprecated in
  * favor of getIdToken.
  * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
- * @return {!goog.Promise<string>} A Promise
- *     for the STS access token.
+ * @return {!goog.Promise<string>} A Promise that resolves with the ID token.
  */
 fireauth.AuthUser.prototype.getToken = function(opt_forceRefresh) {
   fireauth.deprecation.log(fireauth.deprecation.Deprecations.USER_GET_TOKEN);
@@ -978,7 +976,7 @@ fireauth.AuthUser.isUserInvalidated_ = function(error) {
 
 /**
  * Updates the current tokens using a server response, if new tokens are
- * present and are different from the current ones, and notify the auth
+ * present and are different from the current ones, and notify the Auth
  * listeners.
  * @param {!Object} response The response from the server.
  * @private
@@ -1227,7 +1225,7 @@ fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential =
 
 /**
  * Links a provider to the current user.
- * @param {!fireauth.AuthCredential} credential The credential from the auth
+ * @param {!fireauth.AuthCredential} credential The credential from the Auth
  *     provider.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
@@ -1241,7 +1239,7 @@ fireauth.AuthUser.prototype.linkWithCredential = function(credential) {
 
 
 /**
- * Links a phone number using the app verifier instance and returns a
+ * Links a phone number using the App verifier instance and returns a
  * promise that resolves with the confirmation result which on confirmation
  * will resolve with the UserCredential object.
  * @param {string} phoneNumber The phone number to authenticate with.
@@ -1270,7 +1268,7 @@ fireauth.AuthUser.prototype.linkWithPhoneNumber =
 
 
 /**
- * Reauthenticates a user with a phone number using the app verifier instance
+ * Reauthenticates a user with a phone number using the App verifier instance
  * and returns a promise that resolves with the confirmation result which on
  * confirmation will resolve with the UserCredential object.
  * @param {string} phoneNumber The phone number to authenticate with.

@@ -6852,7 +6852,7 @@ function testUser_linkWithPopup_success_iframeCanRunInBackground() {
       fireauth.util,
       'popup',
       function(url, name, width, height) {
-         // Destination url popped directly without the second redirect.
+         // Destination URL popped directly without the second redirect.
         assertEquals(expectedUrl, url);
         assertEquals('87654321', name);
         assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
@@ -9671,7 +9671,7 @@ function testUser_proactiveRefresh_destroy() {
 function testLinkWithPhoneNumber_success() {
   app = firebase.initializeApp(config1, config1['appName']);
   auth = new fireauth.Auth(app);
-  // Stub Auth on the app instance above.
+  // Stub Auth on the App instance above.
   stubs.set(app, 'auth', function() {
     return auth;
   });
@@ -9768,7 +9768,7 @@ function testLinkWithPhoneNumber_error_noAuthInstance() {
 function testLinkWithPhoneNumber_error_alreadyLinked() {
   app = firebase.initializeApp(config1, config1['appName']);
   auth = new fireauth.Auth(app);
-  // Stub Auth on the app instance above.
+  // Stub Auth on the App instance above.
   stubs.set(app, 'auth', function() {
     return auth;
   });
@@ -9803,7 +9803,7 @@ function testLinkWithPhoneNumber_error_alreadyLinked() {
 function testReauthenticateWithPhoneNumber_success() {
   app = firebase.initializeApp(config1, config1['appName']);
   auth = new fireauth.Auth(app);
-  // Stub Auth on the app instance above.
+  // Stub Auth on the App instance above.
   stubs.set(app, 'auth', function() {
     return auth;
   });
@@ -9878,7 +9878,7 @@ function testReauthenticateWithPhoneNumber_success_skipInvalidation() {
   // expiration.
   app = firebase.initializeApp(config1, config1['appName']);
   auth = new fireauth.Auth(app);
-  // Stub Auth on the app instance above.
+  // Stub Auth on the App instance above.
   stubs.set(app, 'auth', function() {
     return auth;
   });
@@ -10082,7 +10082,7 @@ function testUser_customLocaleChanges() {
           .getArgument(0));
   assertNull(user.getLanguageCode());
 
-  // Set disptcher1 as language code dispatcher.
+  // Set dispatcher1 as language code dispatcher.
   user.setLanguageCodeChangeDispatcher(dispatcher1);
   dispatcher1.dispatchEvent(new fireauth.Auth.LanguageCodeChangeEvent('fr'));
   dispatcher2.dispatchEvent(new fireauth.Auth.LanguageCodeChangeEvent('ru'));
@@ -10236,7 +10236,7 @@ function testUserMetadata() {
   assertEquals(
       fireauth.util.utcTimestampToDateString(createdAt),
       userMetadata1['creationTime']);
-  // Confirm readonly.
+  // Confirm read-only.
   userMetadata1['lastSignInTime'] = 'bla';
   userMetadata1['creationTime'] = 'bla';
   assertEquals(

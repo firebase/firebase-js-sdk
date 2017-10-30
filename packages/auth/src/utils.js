@@ -377,7 +377,7 @@ fireauth.util.isAuthorizedDomain = function(authorizedDomains, url) {
   for (var i = 0; i < authorizedDomains.length; i++) {
     // Currently this corresponds to: domain.com = *://*.domain.com:* or
     // exact domain match.
-    // In the case of chrome extensions, the authorizedDomain will be formatted
+    // In the case of Chrome extensions, the authorizedDomain will be formatted
     // as 'chrome-extension://abcdefghijklmnopqrstuvwxyz123456'.
     // The URL to check must have a chrome extension scheme and the domain
     // must be an exact match domain == 'abcdefghijklmnopqrstuvwxyz123456'.
@@ -469,7 +469,7 @@ fireauth.util.matchDomain = function(domainPattern, domain, scheme) {
 
 
 /**
- * @return {!goog.Promise<void>} A promise that resolves when dom is ready.
+ * @return {!goog.Promise<void>} A promise that resolves when DOM is ready.
  */
 fireauth.util.onDomReady = function() {
   var resolver = null;
@@ -496,7 +496,7 @@ fireauth.util.onDomReady = function() {
 
 
 /**
- * The default ondeviceready cordova timeout in ms.
+ * The default ondeviceready Cordova timeout in ms.
  * @const {number}
  * @private
  */
@@ -650,7 +650,7 @@ fireauth.util.isNativeEnvironment = function() {
 
 
 /**
- * The separator for storage keys to concatenate app name and API key.
+ * The separator for storage keys to concatenate App name and API key.
  * @const {string}
  * @private
  */
@@ -659,7 +659,7 @@ fireauth.util.STORAGE_KEY_SEPARATOR_ = ':';
 
 /**
  * @param {string} apiKey The API Key of the app.
- * @param {string} appName The app name.
+ * @param {string} appName The App name.
  * @return {string} The key used for identifying the app owner of the user.
  */
 fireauth.util.createStorageKey = function(apiKey, appName) {

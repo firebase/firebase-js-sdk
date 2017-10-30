@@ -157,7 +157,7 @@ fireauth.DynamicLink.Platform = {
  * Constructs the common FDL link base used for building the button link or the
  * automatic redirect link.
  * @param {string} fallbackUrl The fallback URL to use.
- * @return {!goog.Uri} The partial uri of the FDL link used to build the final
+ * @return {!goog.Uri} The partial URI of the FDL link used to build the final
  *     button link or the automatic redirect link.
  * @private
  */

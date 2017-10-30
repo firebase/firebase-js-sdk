@@ -62,7 +62,7 @@ fireauth.iframeclient.PORT_NUMBER = null;
  * The iframe URL builder used to build the iframe widget URL.
  * @param {string} authDomain The application authDomain.
  * @param {string} apiKey The API key.
- * @param {string} appName The app name.
+ * @param {string} appName The App name.
  * @constructor
  */
 fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName) {
@@ -70,7 +70,7 @@ fireauth.iframeclient.IframeUrlBuilder = function(authDomain, apiKey, appName) {
   this.authDomain_ = authDomain;
   /** @private {string} The API key. */
   this.apiKey_ = apiKey;
-  /** @private {string} The app name. */
+  /** @private {string} The App name. */
   this.appName_ = appName;
   /** @private {?string|undefined} The client version. */
   this.v_ = null;
@@ -395,7 +395,7 @@ fireauth.iframeclient.OAuthUrlBuilder.getAuthFrameworksForApp_ =
 
 
 /**
- * Initializes the ifc handler which provides the mechanism to listen to Auth
+ * Initializes the ifcHandler which provides the mechanism to listen to Auth
  * events on the hidden iframe.
  * @param {string} authDomain The firebase authDomain used to determine the
  *     OAuth helper page domain.

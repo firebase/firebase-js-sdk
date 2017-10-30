@@ -17,7 +17,7 @@
 /**
  * @fileoverview Defines the reCAPTCHA app verifier and its base class. The
  * former is currently used for web phone authentication whereas the latter is
- * used for the mobile app verification web fallback..
+ * used for the mobile app verification web fallback.
  */
 goog.provide('fireauth.BaseRecaptchaVerifier');
 goog.provide('fireauth.RecaptchaVerifier');
@@ -38,9 +38,9 @@ goog.require('goog.string.Const');
 
 /**
  * Creates the firebase base reCAPTCHA app verifier independent of Firebase
- * app or auth instances.
+ * App or Auth instances.
  *
- * @param {string} apiKey The API key used to initialize the rpc handler for
+ * @param {string} apiKey The API key used to initialize the RPC handler for
  *     querying the Auth backend.
  * @param {!Element|string} container The reCAPTCHA container parameter. This
  *     has different meaning depending on whether the reCAPTCHA is hidden or
@@ -50,7 +50,7 @@ goog.require('goog.string.Const');
  *     function.
  * @param {?string=} opt_clientVersion The optional client version to append to
  *     RPC header.
- * @param {?Object=} opt_rpcHandlerConfig The optional rpc handler
+ * @param {?Object=} opt_rpcHandlerConfig The optional RPC handler
  *     configuration, typically passed when different Auth endpoints are to be
  *     used.
  * @constructor
@@ -105,7 +105,7 @@ fireauth.BaseRecaptchaVerifier = function(apiKey, container, opt_parameters,
         'elements!');
   }
   /**
-   * @private {!fireauth.RpcHandler} The rpc handler for querying the auth
+   * @private {!fireauth.RpcHandler} The RPC handler for querying the auth
    *     backend.
    */
   this.rpcHandler_ = new fireauth.RpcHandler(
@@ -311,9 +311,9 @@ fireauth.BaseRecaptchaVerifier.prototype.render = function() {
       if (!self.isInvisible_) {
         // Get outer container (the developer provided container).
         var outerContainer = goog.dom.getElement(container);
-        // Create wrapper temp div container.
+        // Create wrapper temp DIV container.
         container = goog.dom.createDom(goog.dom.TagName.DIV);
-        // Add temp div to outer container.
+        // Add temp DIV to outer container.
         outerContainer.appendChild(container);
       }
       // If not initialized, initialize reCAPTCHA and return its widget ID.
@@ -558,7 +558,7 @@ fireauth.RecaptchaVerifier = function(container, opt_parameters, opt_app) {
         fireauth.authenum.Error.ARGUMENT_ERROR,
         'No firebase.app.App instance is currently initialized.');
   }
-  // API key is required for web client rpc calls.
+  // API key is required for web client RPC calls.
   if (this.app_.options && this.app_.options['apiKey']) {
     apiKey = this.app_.options['apiKey'];
   } else {

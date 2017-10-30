@@ -52,7 +52,7 @@ goog.require('goog.crypt.Sha256');
  * Cordova environment utility and helper functions.
  * @param {string} authDomain The application authDomain.
  * @param {string} apiKey The API key.
- * @param {string} appName The app name.
+ * @param {string} appName The App name.
  * @param {?string=} opt_clientVersion The optional client version string.
  * @param {number=} opt_initialTimeout Initial Auth event timeout.
  * @param {number=} opt_redirectTimeout Redirect result timeout.

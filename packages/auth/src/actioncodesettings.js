@@ -72,7 +72,7 @@ fireauth.ActionCodeSettings.prototype.initialize_ = function(settingsObj) {
     var amv = androidSettings[
       fireauth.ActionCodeSettings.AndroidRawField.MINIMUM_VERSION];
     if (typeof apn === 'string' && apn.length) {
-      this.apn_ = /** @type {string}*/ (apn);
+      this.apn_ = /** @type {string} */ (apn);
       if (typeof installApp !== 'undefined' &&
           typeof installApp !== 'boolean') {
         throw new fireauth.AuthError(
@@ -97,7 +97,7 @@ fireauth.ActionCodeSettings.prototype.initialize_ = function(settingsObj) {
           ' property must be a non empty string when specified.');
     } else if (typeof installApp !== 'undefined' ||
                typeof amv !== 'undefined') {
-      // If installApp or amv specified with no valid apn, fail quickly.
+      // If installApp or amv specified with no valid APN, fail quickly.
       throw new fireauth.AuthError(
           fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME);
     }

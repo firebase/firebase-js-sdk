@@ -469,7 +469,7 @@ function testAuthEventManager_initialize_automatically_volatileStorage() {
       'http://www.example.com/#response',
       'SESSION_ID');
   var isInitialized = false;
-  // Used to trigger the auth event.
+  // Used to trigger the Auth event.
   stubs.replace(
       OAuthSignInHandler.prototype,
       'addAuthEventListener',
@@ -2073,7 +2073,7 @@ function testStartPopupTimeout_webStorageNotSupported() {
   // Browser only environment.
   setOAuthSignInHandlerEnvironment(false);
   asyncTestCase.waitForSignals(1);
-  // No auth event used to resolve redirect result promise.
+  // No Auth event used to resolve redirect result promise.
   var expectedAuthEvent = new fireauth.AuthEvent(
       'unknown',
       null,

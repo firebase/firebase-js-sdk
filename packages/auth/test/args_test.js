@@ -251,7 +251,7 @@ function testValidate_authProvider_valid() {
   var expectedArgs = [fireauth.args.authProvider()];
   var args = [new fireauth.GoogleAuthProvider()];
   fireauth.args.validate('myFunc', expectedArgs, args);
-  // Test with email and password auth provider.
+  // Test with email and password Auth provider.
   args = [new fireauth.EmailAuthProvider()];
   fireauth.args.validate('myFunc', expectedArgs, args);
 }
@@ -533,7 +533,7 @@ function testValidate_optionalUndefined_single() {
   // Optional valid parameter passed as undefined.
   args = ['foo@bar.com', 'hunter2', undefined];
   fireauth.args.validate('myFunc', expectedArgs, args);
-  // Optional parameter passed as invalid
+  // Optional parameter passed as invalid.
   var error = assertThrows(function() {
     args = ['foo@bar.com', 'hunter2', 'invalid'];
     fireauth.args.validate('myFunc', expectedArgs, args);

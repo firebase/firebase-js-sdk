@@ -116,7 +116,7 @@ function getDefaultStorageManagerInstance() {
 
 
 function testGetSetRemoveCurrentUser() {
-  // Avoid triggering getProjectConfig rpc.
+  // Avoid triggering getProjectConfig RPC.
   fireauth.AuthEventManager.ENABLED = false;
   var storageManager = getDefaultStorageManagerInstance();
   var userManager = new fireauth.storage.UserManager(appId, storageManager);
@@ -549,7 +549,7 @@ function testUserManager_switchToLocalOnExternalEvents_noExistingUser() {
         window.localStorage.setItem(
             storageKey, JSON.stringify(testUser2.toPlainObject()));
         storageEvent.newValue = JSON.stringify(testUser2.toPlainObject());
-        // This should trigger listener and switch storage from sesison to
+        // This should trigger listener and switch storage from session to
         // local.
         goog.testing.events.fireBrowserEvent(storageEvent);
         // Listener should be called.

@@ -26,7 +26,7 @@ goog.require('fireauth.AuthEvent');
 /**
  * Defines the OAuth helper widget state.
  * @param {string} apiKey The API key.
- * @param {string} appName The app name.
+ * @param {string} appName The App name.
  * @param {!fireauth.AuthEvent.Type} type The OAuth helper mode
  * @param {?string=} opt_eventId The event identifier.
  * @param {?string=} opt_redirectUrl The optional redirect URL for redirect
@@ -47,7 +47,7 @@ fireauth.OAuthHelperState = function(
     opt_sha1Cert) {
   /** @private {string} The API key. */
   this.apiKey_ = apiKey;
-  /** @private {string} The app name. */
+  /** @private {string} The App name. */
   this.appName_ = appName;
   /** @private {!fireauth.AuthEvent.Type} The OAuth helper mode. */
   this.type_ = type;
@@ -104,7 +104,7 @@ fireauth.OAuthHelperState.prototype.getApiKey = function() {
 };
 
 
-/** @return {string} The app name. */
+/** @return {string} The App name. */
 fireauth.OAuthHelperState.prototype.getAppName = function() {
   return this.appName_;
 };

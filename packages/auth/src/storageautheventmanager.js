@@ -87,7 +87,7 @@ fireauth.storage.AuthEventManager.prototype.removeAuthEvent = function() {
 
 
 /**
- * Adds a listener to Auth event for app ID provided.
+ * Adds a listener to Auth event for App ID provided.
  * @param {!function()} listener The listener to run on Auth event.
  */
 fireauth.storage.AuthEventManager.prototype.addAuthEventListener =
@@ -98,7 +98,7 @@ fireauth.storage.AuthEventManager.prototype.addAuthEventListener =
 
 
 /**
- * Removes a listener to Auth event for app ID provided.
+ * Removes a listener to Auth event for App ID provided.
  * @param {!function()} listener The listener to run on Auth event.
  */
 fireauth.storage.AuthEventManager.prototype.removeAuthEventListener =

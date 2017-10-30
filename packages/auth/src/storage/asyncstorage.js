@@ -17,6 +17,7 @@
 goog.provide('fireauth.storage.AsyncStorage');
 
 goog.require('fireauth.AuthError');
+goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.Storage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');

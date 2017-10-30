@@ -52,7 +52,7 @@ fireauth.common.testHelper.assertUserCredentialResponse = function(expectedUser,
         response['credential'] === null ||
         response['credential'] === undefined);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['credential'] = 'should not modify property';
     assertObjectEquals(expectedCred, response['credential']);
   }
@@ -61,7 +61,7 @@ fireauth.common.testHelper.assertUserCredentialResponse = function(expectedUser,
         response['additionalUserInfo'] === null ||
         response['additionalUserInfo'] === undefined);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['additionalUserInfo'] = 'should not modify property';
     assertObjectEquals(expectedAdditionalData, response['additionalUserInfo']);
   }
@@ -70,14 +70,14 @@ fireauth.common.testHelper.assertUserCredentialResponse = function(expectedUser,
         response['operationType'] === null ||
         response['operationType'] === undefined);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['operationType'] = 'should not modify property';
     assertEquals(expectedOperationType, response['operationType']);
   }
   if (!expectedUser) {
     assertNull(response['user']);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['user'] = 'should not modify property';
     assertEquals(expectedUser, response['user']);
   }
@@ -97,14 +97,14 @@ fireauth.common.testHelper.assertDeprecatedUserCredentialResponse = function(
         response['credential'] === null ||
         response['credential'] === undefined);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['credential'] = 'should not modify property';
     assertObjectEquals(expectedCred, response['credential']);
   }
   if (!expectedUser) {
     assertNull(response['user']);
   } else {
-    // Confirm property is readonly.
+    // Confirm property is read-only.
     response['user'] = 'should not modify property';
     assertEquals(expectedUser, response['user']);
   }

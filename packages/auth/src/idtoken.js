@@ -174,7 +174,7 @@ fireauth.IdToken.prototype.getPhoneNumber = function() {
  * @return {?fireauth.IdToken} The decoded token.
  */
 fireauth.IdToken.parse = function(tokenString) {
-  // token format is <algorithm>.<info>.<sig>
+  // Token format is <algorithm>.<info>.<sig>
   var fields = tokenString.split('.');
   if (fields.length != 3) {
     return null;

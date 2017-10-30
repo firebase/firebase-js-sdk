@@ -140,7 +140,7 @@ function initializeIdTokenMocks(expectedIdToken, expectedUid) {
 
 
 /**
- * Assert that the correct request is sent to rpc handler
+ * Assert that the correct request is sent to RPC handler
  * verifyAssertionFor.
  * @param {?Object} request The verifyAssertion request.
  */
@@ -157,7 +157,7 @@ function assertRpcHandlerVerifyAssertion(request) {
 
 
 /**
- * Assert that the correct request is sent to rpc handler verifyPassword.
+ * Assert that the correct request is sent to RPC handler verifyPassword.
  * @param {!string} email The email in verifyPassword request.
  * @param {!string} password The password in verifyPassword request.
  */
@@ -179,7 +179,7 @@ function assertRpcHandlerVerifyPassword(email, password) {
 
 
 /**
- * Assert that the correct request is sent to rpc handler
+ * Assert that the correct request is sent to RPC handler
  * verifyAssertionForLinking.
  * @param {?Object} request The verifyAssertionForLinking request.
  */
@@ -196,7 +196,7 @@ function assertRpcHandlerVerifyAssertionForLinking(request) {
 
 
 /**
- * Assert that the correct request is sent to rpc handler
+ * Assert that the correct request is sent to RPC handler
  * verifyAssertionForExisting.
  * @param {?Object} request The verifyAssertionForLinking request.
  */
@@ -213,7 +213,7 @@ function assertRpcHandlerVerifyAssertionForExisting(request) {
 
 
 /**
- * Assert that the correct request is sent to rpc handler
+ * Assert that the correct request is sent to RPC handler
  * updateEmailAndPassword.
  * @param {!string} idToken The ID token in updateEmailAndPassword request.
  * @param {!string} email The email in updateEmailAndPassword request.

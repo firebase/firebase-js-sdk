@@ -44,7 +44,7 @@ goog.require('goog.array');
  * @param {string} authDomain The Firebase authDomain used to determine the
  *     OAuth helper page domain.
  * @param {string} apiKey The API key for sending backend Auth requests.
- * @param {string} appName The app ID for the Auth instance that triggered this
+ * @param {string} appName The App ID for the Auth instance that triggered this
  *     request.
  * @constructor
  */
@@ -53,7 +53,7 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
   this.authDomain_ = authDomain;
   /** @private {string} The browser API key. */
   this.apiKey_ = apiKey;
-  /** @private {string} The app name. */
+  /** @private {string} The App name. */
   this.appName_ = appName;
   /**
    * @private {!Array<!fireauth.AuthEventHandler>} List of subscribed handlers.
@@ -116,7 +116,7 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
  * @param {string} authDomain The Firebase authDomain used to determine the
  *     OAuth helper page domain.
  * @param {string} apiKey The API key for sending backend Auth requests.
- * @param {string} appName The app ID for the Auth instance that triggered this
+ * @param {string} appName The App ID for the Auth instance that triggered this
  *     request.
  * @param {?string} version The SDK client version.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
@@ -397,7 +397,7 @@ fireauth.AuthEventManager.prototype.getRedirectResult = function() {
  * @param {?Window} popupWin The popup window reference.
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {string=} opt_eventId The optional event id.
+ * @param {string=} opt_eventId The optional event ID.
  * @param {boolean=} opt_alreadyRedirected Whether popup is already redirected
  *     to final destination.
  * @return {!goog.Promise} The popup window promise.
@@ -476,7 +476,7 @@ fireauth.AuthEventManager.prototype.processRedirect =
           if (!self.oauthSignInHandler_.unloadsOnRedirect()) {
             // Relevant to Cordova case, will not matter in web case where
             // browser redirects.
-            // In cordova, the activity could still be running in the background
+            // In Cordova, the activity could still be running in the background
             // so we need to wait for getRedirectResult to resolve before
             // resolving this current promise.
             // Otherwise, if the activity is destroyed, getRedirectResult would
@@ -1049,7 +1049,7 @@ fireauth.AuthEventHandler.prototype.canHandleAuthEvent =
  * @param {?fireauth.AuthEventManager.Result} popupRedirectResult The result
  *     to resolve with when no error supplied.
  * @param {?fireauth.AuthError} error When supplied, the promise will reject.
- * @param {?string=} opt_eventId The event id.
+ * @param {?string=} opt_eventId The event ID.
  */
 fireauth.AuthEventHandler.prototype.resolvePendingPopupEvent =
     function(mode, popupRedirectResult, error, opt_eventId) {};

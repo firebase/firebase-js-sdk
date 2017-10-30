@@ -58,11 +58,11 @@ fireauth.AuthCredential = function() {};
 
 
 /**
- * Returns a promise to retrieve ID token using the underlying rpc handler API
+ * Returns a promise to retrieve ID token using the underlying RPC handler API
  * for the current credential.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @return {!goog.Promise<!Object, !fireauth.AuthError>}
- *     idTokenPromise The rpc handler method that returns a promise which
+ *     idTokenPromise The RPC handler method that returns a promise which
  *     resolves with an ID token.
  */
 fireauth.AuthCredential.prototype.getIdTokenProvider;
@@ -70,7 +70,7 @@ fireauth.AuthCredential.prototype.getIdTokenProvider;
 
 /**
  * Links the credential to an existing account, identified by an ID token.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} idToken The ID token of the existing account.
  * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
  *     are linked.
@@ -80,7 +80,7 @@ fireauth.AuthCredential.prototype.linkToIdToken;
 
 /**
  * Tries to match the credential's idToken with the provided UID.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} uid The UID of the user to reauthenticate.
  * @return {!goog.Promise<!Object>} A Promise that resolves when
  *     idToken UID match succeeds and returns the server response.
@@ -190,11 +190,11 @@ fireauth.OAuthCredential = function(providerId, oauthResponse) {
 
 
 /**
- * Returns a promise to retrieve ID token using the underlying rpc handler API
+ * Returns a promise to retrieve ID token using the underlying RPC handler API
  * for the current credential.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @return {!goog.Promise<!Object, !fireauth.AuthError>}
- *     idTokenPromise The rpc handler method that returns a promise which
+ *     idTokenPromise The RPC handler method that returns a promise which
  *     resolves with an ID token.
  * @override
  */
@@ -224,7 +224,7 @@ fireauth.OAuthCredential.prototype.linkToIdToken =
 
 /**
  * Tries to match the credential's idToken with the provided UID.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} uid The UID of the user to reauthenticate.
  * @return {!goog.Promise<!Object>} A Promise that resolves when
  *     idToken UID match succeeds and returns the server response.
@@ -345,7 +345,7 @@ fireauth.FederatedProvider.prototype.setDefaultLanguage =
  */
 fireauth.FederatedProvider.prototype.getCustomParameters = function() {
   // The backend already checks for these values and makes sure no reserved
-  // fields like client ID, redirect uri, state are overwritten by these
+  // fields like client ID, redirect URI, state are overwritten by these
   // fields.
   var params =
       fireauth.util.copyWithoutNullsOrUndefined(this.customParameters_);
@@ -512,8 +512,6 @@ fireauth.GoogleAuthProvider = function() {
 
   // Add profile scope to Google Auth provider as default scope.
   // This is to ensure profile info is populated in current user.
-  // TODO: remove this when account chip is rolled out and backend
-  // has added this scope automatically.
   this.addScope('profile');
 };
 goog.inherits(fireauth.GoogleAuthProvider, fireauth.OAuthProvider);
@@ -605,11 +603,11 @@ fireauth.EmailAuthCredential = function(email, password) {
 
 
 /**
- * Returns a promise to retrieve ID token using the underlying rpc handler API
+ * Returns a promise to retrieve ID token using the underlying RPC handler API
  * for the current credential.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @return {!goog.Promise<!Object, !fireauth.AuthError>}
- *     idTokenPromise The rpc handler method that returns a promise which
+ *     idTokenPromise The RPC handler method that returns a promise which
  *     resolves with an ID token.
  * @override
  */
@@ -622,7 +620,7 @@ fireauth.EmailAuthCredential.prototype.getIdTokenProvider =
 /**
  * Adds an email and password account to an existing account, identified by an
  * ID token.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} idToken The ID token of the existing account.
  * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
  *     are linked, returning the backend response.
@@ -672,7 +670,7 @@ fireauth.EmailAuthCredential.prototype.toPlainObject = function() {
  * @implements {fireauth.AuthProvider}
  */
 fireauth.EmailAuthProvider = function() {
-  // Set read only instance providerId and isOAuthProvider property.
+  // Set read-only instance providerId and isOAuthProvider property.
   fireauth.object.setReadonlyProperties(this, {
     'providerId': fireauth.idp.ProviderId.PASSWORD,
     'isOAuthProvider': false
@@ -763,7 +761,7 @@ fireauth.PhoneAuthCredential.Parameters_;
 
 /**
  * Retrieves an ID token from the backend given the current credential.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @return {!goog.Promise<!Object>} A Promise that resolves with the
  *     backend response.
  * @override
@@ -776,7 +774,7 @@ fireauth.PhoneAuthCredential.prototype.getIdTokenProvider =
 
 /**
  * Adds a phone credential to an existing account identified by an ID token.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} idToken The ID token of the existing account.
  * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
  *     are linked, returning the backend response.
@@ -792,7 +790,7 @@ fireauth.PhoneAuthCredential.prototype.linkToIdToken =
 
 /**
  * Tries to match the credential's idToken with the provided UID.
- * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
  * @param {string} uid The UID of the user to reauthenticate.
  * @return {!goog.Promise<!Object>} A Promise that resolves when
  *     reauthentication succeeds.
