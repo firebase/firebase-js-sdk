@@ -15,27 +15,69 @@
  */
 
 const gulp = require('gulp');
-const through2 = require('through2');
+const closureCompiler = require('gulp-closure-compiler');
+const del = require('del');
+const express = require('express');
+const path = require('path');
 
-function buildModule() {
-  return gulp
-    .src('src/auth.js')
-    .pipe(
-      through2.obj(function(file, encoding, callback) {
-        file.contents = Buffer.concat([
-          new Buffer(
-            `var firebase = require('@firebase/app').default; (function(){`
-          ),
-          file.contents,
-          new Buffer(
-            `}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`
-          )
-        ]);
+// The optimization level for the JS compiler.
+// Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
+// TODO: Add ability to pass this in as a flag.
+const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
-        return callback(null, file);
-      })
-    )
-    .pipe(gulp.dest('dist'));
-}
+// For minified builds, wrap the output so we avoid leaking global variables.
+const OUTPUT_WRAPPER = `(function() {
+  var firebase = require('@firebase/app').default;
+  %output%
+}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`;
 
-gulp.task('build', buildModule);
+// The path to Closure Compiler.
+const COMPILER_PATH = `${path.dirname(require.resolve('google-closure-compiler/package.json'))}/compiler.jar`;
+
+const closureLibRoot = path.dirname(require.resolve('google-closure-library/package.json'));
+// Builds the core Firebase-auth JS.
+gulp.task('build-firebase-auth-js', () =>
+    gulp
+    .src([
+      `${closureLibRoot}/closure/goog/**/*.js`,
+      `${closureLibRoot}/third_party/closure/goog/**/*.js`,
+      'src/**/*.js'
+    ])
+    .pipe(closureCompiler({
+      compilerPath: COMPILER_PATH,
+      fileName: 'auth.js',
+      compilerFlags: {
+        closure_entry_point: 'fireauth.exports',
+        compilation_level: OPTIMIZATION_LEVEL,
+        externs: [
+          'externs/externs.js',
+          'externs/grecaptcha.js',
+          'externs/gapi.iframes.js',
+          path.resolve(__dirname, '../firebase/externs/firebase-app-externs.js'),
+          path.resolve(__dirname, '../firebase/externs/firebase-error-externs.js'),
+          path.resolve(__dirname, '../firebase/externs/firebase-app-internal-externs.js')
+        ],
+        language_out: 'ES5',
+        only_closure_dependencies: true,
+        output_wrapper: OUTPUT_WRAPPER
+      }
+    }))
+    .pipe(gulp.dest('dist')));
+
+// Deletes intermediate files.
+gulp.task('clean', () => del(['dist/*', 'dist']));
+
+// Creates a webserver that serves all files from the root of the package.
+gulp.task('serve', () => {
+  const app = express();
+
+  app.use('/node_modules', express.static(path.resolve(__dirname, '../../node_modules')));
+  app.use(express.static(__dirname));
+
+  app.listen(4000);
+});
+
+
+gulp.task(
+    'default',
+    ['build-firebase-auth-js']);
