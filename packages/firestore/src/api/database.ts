@@ -456,7 +456,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     }
   }
 
-  /** Creates a new AsyncQueue. Can be overwritten to provide a custom queue. */
+  /** Creates a new AsyncQueue. Can be overridden to provide a custom queue. */
   protected initializeAsyncQueue(): AsyncQueue {
     return new AsyncQueue();
   }

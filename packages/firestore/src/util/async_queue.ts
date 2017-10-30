@@ -50,7 +50,7 @@ export class AsyncQueue {
 
     if ((delay || 0) > 0) {
       const deferred = new Deferred<T>();
-      let handle = window.setTimeout(() => {
+      const handle = window.setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
@@ -103,7 +103,7 @@ export class AsyncQueue {
     this.delayedOperations.forEach((deferred, handle) => {
       window.clearTimeout(handle);
       deferred.reject(
-        new FirestoreError(Code.CANCELLED, 'Cancelled during queue drain')
+        new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
       );
     });
     this.delayedOperations.clear();

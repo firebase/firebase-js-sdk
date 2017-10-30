@@ -255,7 +255,10 @@ export abstract class PersistentStream<
         return this.handleIdleCloseTimer();
       }, IDLE_TIMEOUT_MS)
       .catch((err: FirestoreError) => {
-        // We ignore Promise rejections for cancelled idle checks.
+        // When the AsyncQueue gets drained during a shutdown, pending Promises
+        // (including these idle checks) will get rejected. We special-case
+        // these cancelled idle checks to make sure that these specific Promise
+        // rejections are not considered unhandled.
         assert(
           err.code === Code.CANCELLED,
           `Received unexpected error in idle timeout closure. Expected CANCELLED, but was: ${err}`
@@ -287,12 +290,10 @@ export abstract class PersistentStream<
   /**
    * Closes the stream and cleans up as necessary:
    *
-   * <ul>
-   *   <li>closes the underlying GRPC stream;
-   *   <li>calls the onClose handler with the given 'error';
-   *   <li>sets internal stream state to 'finalState';
-   *   <li>adjusts the backoff timer based on the error
-   * </ul>
+   * * closes the underlying GRPC stream;
+   * * calls the onClose handler with the given 'error';
+   * * sets internal stream state to 'finalState';
+   * * adjusts the backoff timer based on the error
    *
    * A new stream can be opened by calling `start` unless `finalState` is set to
    * `PersistentStreamState.Stopped`.

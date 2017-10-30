@@ -16,6 +16,8 @@
 
 import * as firestore from 'firestore';
 
+import { FirebaseApp } from '@firebase/app';
+
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
@@ -24,7 +26,6 @@ import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Firestore, FirestoreDatabase } from '../../../src/api/database';
-import { FirebaseApp } from '../../../../app/index';
 import { TestQueue } from './test_queue';
 
 // tslint:disable-next-line:no-any __karma__ is an untyped global
