@@ -122,7 +122,7 @@ describe('Firebase Messaging Integration Tests', () => {
           }
         })
           .then(response => {
-            // FCM will return HTML is there is an error so we can't parse
+            // FCM will return HTML if there is an error so we can't parse
             // the response as JSON, instead have to read as text, then parse
             // then handle the possible error.
             return response.text().then(responseText => {
