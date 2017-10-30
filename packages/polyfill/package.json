@@ -14,7 +14,7 @@
     "promise-polyfill": "^6.0.2"
   },
   "devDependencies": {
-    "@types/node": "^8.0.31",
+    "@types/node": "^8.0.47",
     "gulp": "gulpjs/gulp#4.0"
   },
   "repository": {

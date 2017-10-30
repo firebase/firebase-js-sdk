@@ -10,7 +10,7 @@
     "firebase": "^4.3.3"
   },
   "devDependencies": {
-    "browserify": "^14.4.0",
+    "browserify": "^14.5.0",
     "chai": "^4.1.1",
     "karma": "^1.7.0",
     "karma-chrome-launcher": "^2.2.0",
@@ -18,6 +18,6 @@
     "karma-sauce-launcher": "^1.2.0",
     "karma-spec-reporter": "0.0.31",
     "mkdirp": "^0.5.1",
-    "mocha": "^3.5.0"
+    "mocha": "^4.0.1"
   }
 }
