@@ -16,8 +16,8 @@
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
-    "@types/mocha": "^2.2.42",
-    "@types/sinon": "^2.3.3",
+    "@types/mocha": "^2.2.44",
+    "@types/sinon": "^2.3.7",
     "chai": "^4.1.1",
     "gulp": "gulpjs/gulp#4.0",
     "karma": "^1.7.0",
@@ -29,11 +29,11 @@
     "karma-spec-reporter": "^0.0.31",
     "karma-webpack": "^2.0.4",
     "npm-run-all": "^4.1.1",
-    "sinon": "^3.2.1",
-    "source-map-loader": "^0.2.1",
-    "ts-loader": "^2.3.4",
+    "sinon": "^4.0.2",
+    "source-map-loader": "^0.2.3",
+    "ts-loader": "^3.1.0",
     "typescript": "^2.4.2",
-    "webpack": "^3.5.5"
+    "webpack": "^3.8.1"
   },
   "repository": {
     "type": "git",
