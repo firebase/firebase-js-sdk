@@ -1,0 +1,43 @@
+[
+  {
+    "browserName" : "firefox",
+    "platform" : "OS X 10.9",
+    "version": "49.0",
+    "name": "firefox-latest-mac"
+  },
+  {
+    "browserName" : "chrome",
+    "platform" : "OS X 10.9",
+    "timeZone": "Pacific",
+    "version" : "54.0",
+    "name": "chrome-latest-mac"
+  },
+  {
+    "browserName" : "internet explorer",
+    "version" : "11.0",
+    "platform" : "Windows 7",
+    "timeZone": "Pacific",
+    "name": "ie-11-windows"
+  },
+  {
+    "browserName" : "internet explorer",
+    "version" : "10.0",
+    "timeZone": "Pacific",
+    "platform" : "Windows 7",
+    "name": "ie-10-windows"
+  },
+  {
+    "browserName" : "MicrosoftEdge",
+    "platform" : "Windows 10",
+    "timeZone": "Pacific",
+    "version" : "14.14393",
+    "name": "edge-14-windows"
+  },
+  {
+    "browserName" : "safari",
+    "version" : "10.0",
+    "platform" : "OS X 10.11",
+    "timeZone": "Pacific",
+    "name": "safari-10-mac"
+  }
+]
