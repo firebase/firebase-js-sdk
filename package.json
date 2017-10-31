@@ -18,7 +18,7 @@
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
     "prepush": "node tools/gitHooks/prepush.js",
-    "publish:packages": "lerna publish --scope @firebase/* --scope firebase --registry http://localhost:4873",    
+    "publish:packages": "lerna publish --scope @firebase/* --scope firebase --registry http://localhost:4873",
     "repl": "node tools/repl.js",
     "pretest": "node tools/pretest.js",
     "test": "lerna run --parallel test",
@@ -33,12 +33,12 @@
     "integration/*"
   ],
   "devDependencies": {
-    "chalk": "^2.1.0",
+    "chalk": "^2.3.0",
     "child-process-promise": "^2.2.1",
     "firebase-tools": "^3.10.1",
     "glob": "^7.1.2",
     "gulp-sourcemaps": "^2.6.1",
-    "gulp-typescript": "^3.2.2",
+    "gulp-typescript": "^3.2.3",
     "husky": "^0.14.3",
     "inquirer": "^3.2.3",
     "lerna": "^2.1.0",
@@ -47,7 +47,7 @@
     "ora": "^1.3.0",
     "prettier": "^1.7.0",
     "semver": "^5.4.1",
-    "simple-git": "^1.77.0",
-    "yargs": "^9.0.1"
+    "simple-git": "^1.80.1",
+    "yargs": "^10.0.3"
   }
 }

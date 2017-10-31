@@ -1,5 +1,0 @@
-# Directories not needed by end users
-/src
-
-# Files not needed by end users
-gulpfile.js
