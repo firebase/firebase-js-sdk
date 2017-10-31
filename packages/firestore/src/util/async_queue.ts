@@ -53,12 +53,12 @@ export class AsyncQueue {
       // Note that the Node typings indicate that setTimeout returns a Timer,
       // while the browser-based setTimeout() function returns a number. We
       // forcefully cast to the number type.
-      const handle : number = setTimeout(() => {
+      const handle: number = setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
           });
-        }) ;
+        });
         this.delayedOperations.delete(handle);
       }, delay) as any;
       this.delayedOperations.set(handle, deferred);
