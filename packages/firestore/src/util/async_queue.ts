@@ -24,10 +24,21 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
-  // A map of timeout handles to their respective deferred promises. Contains an
-  // entry for each operation that is still queued to run in the future (i.e. it
-  // has a delay that has not yet elapsed).
-  private delayedOperations: Map<number, Deferred<any>> = new Map();
+  // A list with timeout handles and their respective deferred promises.
+  // Contains an entry for each operation that is queued to run future (i.e. it
+  // has a delay that has not yet elapsed). Prior to cleanup, this list may also
+  // contain entries that have already been run (in which case `handle` is
+  // null).
+  private delayedOperations: {
+    // tslint:disable-next-line:no-any Accept any return type from setTimeout().
+    handle: any;
+    deferred: Deferred<AnyJs | void>;
+  }[] = [];
+
+  // The number of operations that are queued to be run in the future (i.e. they
+  // have a delay that has not yet elapsed). Unlike `delayedOperations`, this
+  // is guaranteed to only contain operations that have not yet been run.
+  private delayedOperationsCount = 0;
 
   // visible for testing
   failure: Error;
@@ -49,19 +60,23 @@ export class AsyncQueue {
     }
 
     if ((delay || 0) > 0) {
+      this.delayedOperationsCount++;
       const deferred = new Deferred<T>();
-      // Note that the Node typings indicate that setTimeout returns a Timer,
-      // while the browser-based setTimeout() function returns a number. We
-      // forcefully cast to the number type.
-      const handle: number = setTimeout(() => {
+      const opIndex = this.delayedOperations.length;
+      const handle = setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
           });
         });
-        this.delayedOperations.delete(handle);
-      }, delay) as any;
-      this.delayedOperations.set(handle, deferred);
+        this.delayedOperationsCount--;
+        if (this.delayedOperationsCount > 0) {
+          this.delayedOperations[opIndex].handle = null;
+        } else {
+          this.delayedOperations = [];
+        }
+      }, delay);
+      this.delayedOperations[opIndex] = { handle, deferred };
       return deferred.promise;
     } else {
       return this.scheduleInternal(op);
@@ -103,13 +118,15 @@ export class AsyncQueue {
    * tasks that are pending with a non-zero delay.
    */
   drain(): Promise<void> {
-    this.delayedOperations.forEach((deferred, handle) => {
-      clearTimeout(handle);
-      deferred.reject(
-        new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
-      );
+    this.delayedOperations.forEach(entry => {
+      if (entry.handle) {
+        clearTimeout(entry.handle);
+        entry.deferred.reject(
+          new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
+        );
+      }
     });
-    this.delayedOperations.clear();
+    this.delayedOperations = [];
     return this.schedule(() => Promise.resolve());
   }
 }
