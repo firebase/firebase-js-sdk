@@ -3,8 +3,9 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "pretest": "node ./download-browsers.js",
-    "test": "mocha --retries 3 --exit"
+    "pretest:manual": "node ./download-browsers.js",
+    "test": "echo 'Automated tests temporarily disabled, run `npm run test:manual` to execute these tests'",
+    "test:manual": "mocha --retries 3 --exit"
   },
   "dependencies": {
     "firebase": "^4.3.3"
