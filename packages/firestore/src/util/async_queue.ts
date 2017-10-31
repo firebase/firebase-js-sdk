@@ -50,14 +50,17 @@ export class AsyncQueue {
 
     if ((delay || 0) > 0) {
       const deferred = new Deferred<T>();
-      const handle = window.setTimeout(() => {
+      // Note that the Node typings indicate that setTimeout returns a Timer,
+      // while the browser-based setTimeout() function returns a number. We
+      // forcefully cast to the number type.
+      const handle : number = setTimeout(() => {
         this.scheduleInternal(() => {
           return op().then(result => {
             deferred.resolve(result);
           });
-        });
+        }) ;
         this.delayedOperations.delete(handle);
-      }, delay);
+      }, delay) as any;
       this.delayedOperations.set(handle, deferred);
       return deferred.promise;
     } else {
@@ -101,7 +104,7 @@ export class AsyncQueue {
    */
   drain(): Promise<void> {
     this.delayedOperations.forEach((deferred, handle) => {
-      window.clearTimeout(handle);
+      clearTimeout(handle);
       deferred.reject(
         new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
       );
