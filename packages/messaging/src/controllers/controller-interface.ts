@@ -75,34 +75,38 @@ export default class ControllerInterface {
       return Promise.resolve(null);
     }
 
-    return this.getSWRegistration_()
-    .then(registration => {
-      return this.tokenDetailsModel_.getTokenDetailsFromSWScope(registration.scope)
-      .then(details => {
-        if (details) {
-          // TODO Validate the details are still accurate
-          return details['fcmToken'];
-        }
+    return this.getSWRegistration_().then(registration => {
+      return this.tokenDetailsModel_
+        .getTokenDetailsFromSWScope(registration.scope)
+        .then(details => {
+          if (details) {
+            // TODO Validate the details are still accurate
+            return details['fcmToken'];
+          }
 
-        let subscription;
-        return this.getPushSubscription_()
-        .then((sub) => {
-          subscription = sub;
-          return this.iidModel_.getToken(this.messagingSenderId_, subscription);
-        })
-        .then((tokenDetails) => {
-          const allDetails = {
-            swScope: registration.scope,
-            vapidKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
-            subscription: subscription,
-            fcmSenderId: this.messagingSenderId_,
-            fcmToken: tokenDetails['token'],
-            fcmPushSet: tokenDetails['pushset'],
-          };
-          return this.tokenDetailsModel_.saveTokenDetails(allDetails)
-            .then(() => tokenDetails['token']);
+          let subscription;
+          return this.getPushSubscription_()
+            .then(sub => {
+              subscription = sub;
+              return this.iidModel_.getToken(
+                this.messagingSenderId_,
+                subscription
+              );
+            })
+            .then(tokenDetails => {
+              const allDetails = {
+                swScope: registration.scope,
+                vapidKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
+                subscription: subscription,
+                fcmSenderId: this.messagingSenderId_,
+                fcmToken: tokenDetails['token'],
+                fcmPushSet: tokenDetails['pushset']
+              };
+              return this.tokenDetailsModel_
+                .saveTokenDetails(allDetails)
+                .then(() => tokenDetails['token']);
+            });
         });
-      });
     });
   }
 
@@ -206,9 +210,7 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return Promise.all([
-      this.tokenDetailsModel_.closeDatabase(),
-    ]);
+    return Promise.all([this.tokenDetailsModel_.closeDatabase()]);
   }
 
   /**

@@ -102,7 +102,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
     sandbox
       .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake((token) => {
+      .callsFake(token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
         return Promise.resolve();
       });
@@ -119,7 +119,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
     sandbox
       .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake((token) => {
+      .callsFake(token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
         return Promise.resolve();
       });
@@ -144,11 +144,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake((token) => {
+        .callsFake(token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
           return Promise.resolve();
         });
-      
+
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
@@ -167,7 +167,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake((token) => {
+        .callsFake(token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
           return Promise.resolve();
         });
@@ -197,11 +197,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       );
 
       sandbox
-      .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake((token) => {
-        assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve();
-      });
+        .stub(TokenDetailsModel.prototype, 'deleteToken')
+        .callsFake(token => {
+          assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
+          return Promise.resolve();
+        });
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);

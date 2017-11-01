@@ -31,7 +31,7 @@ import NotificationPermission from '../src/models/notification-permission';
 
 describe('Firebase Messaging > *Controller.getToken()', function() {
   const sandbox = sinon.sandbox.create();
-  
+
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
   const EXAMPLE_INPUT = {
@@ -153,21 +153,19 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   servicesToTest.forEach(ServiceClass => {
     it(`should get saved token in ${ServiceClass.name}`, function() {
       const registration = makeFakeSWReg();
-  
+
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
         .callsFake(() => NotificationPermission.granted);
-  
+
       mockGetReg(Promise.resolve(registration));
-  
+
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
         .callsFake(() => Promise.resolve(EXAMPLE_INPUT));
-  
-      
+
       const serviceInstance = new ServiceClass(app);
-      return serviceInstance.getToken()
-      .then(token => {
+      return serviceInstance.getToken().then(token => {
         assert.equal(EXAMPLE_INPUT['fcmToken'], token);
       });
     });
@@ -179,7 +177,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       const subscription = makeFakeSubscription();
       const TOKEN_DETAILS = {
         token: 'example-token',
-        pushset: 'example-pushset',
+        pushset: 'example-pushset'
       };
 
       sandbox
@@ -207,10 +205,15 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       const serviceInstance = new ServiceClass(app);
       return serviceInstance.getToken().then(token => {
         assert.equal('example-token', token);
-        
+
         // Ensure save token is called.
-        assert.equal(TokenDetailsModel.prototype.saveTokenDetails['callCount'], 1);
-        const saveArgs = TokenDetailsModel.prototype.saveTokenDetails['getCall'](0)['args'][0];
+        assert.equal(
+          TokenDetailsModel.prototype.saveTokenDetails['callCount'],
+          1
+        );
+        const saveArgs = TokenDetailsModel.prototype.saveTokenDetails[
+          'getCall'
+        ](0)['args'][0];
         assert.equal(saveArgs.swScope, registration.scope);
         assert.equal(saveArgs.vapidKey, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
         assert.equal(saveArgs.subscription, subscription);
