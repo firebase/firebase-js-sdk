@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "pretest": "gulp compile-tests",
-    "test": "karma start --single-run"
+    "build": "gulp compile-tests",
+    "pretest": "npm run build",
+    "pretest:debug": "npm run build",
+    "test": "karma start --single-run",
+    "test:debug": "karma start --auto-watch --browsers Chrome"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.44",
