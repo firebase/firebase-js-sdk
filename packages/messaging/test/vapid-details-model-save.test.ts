@@ -17,12 +17,14 @@ import { assert } from 'chai';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import VapidDetailsModel from '../src/models/vapid-details-model';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function() {
   const EXAMPLE_SCOPE = '/example-scope';
   const EXAMPLE_VAPID_STRING =
     'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
     '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
 
   let vapidModel;
 
@@ -33,7 +35,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
     }
 
     return promiseChain
-      .then(() => deleteDatabase(VapidDetailsModel.dbName))
+      .then(() => deleteDatabase(VapidDetailsModel.DB_NAME))
       .then(() => (vapidModel = null));
   };
 
@@ -49,7 +51,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_STRING).then(
+      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_KEY).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -77,6 +79,6 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', function()
 
   it('should save valid details', function() {
     vapidModel = new VapidDetailsModel();
-    return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_STRING);
+    return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY);
   });
 });

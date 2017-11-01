@@ -107,7 +107,7 @@ const config = {
 
   client: {
     mocha: {
-      timeout: 20000,
+      timeout: 3000,
       retries: 3
     },
 
@@ -118,7 +118,7 @@ const config = {
   coverageIstanbulReporter: {
     dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
     fixWebpackSourcePaths: true,
-    reports: ['lcovonly']
+    reports: ['html', 'lcovonly']
   }
 };
 

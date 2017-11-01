@@ -17,17 +17,24 @@
 
 import { ErrorFactory } from '@firebase/util';
 import Errors from '../models/errors';
-import TokenManager from '../models/token-manager';
+import TokenDetailsModel from '../models/token-details-model';
+import VapidDetailsModel from '../models/vapid-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
+import IIDModel from '../models/iid-model';
+import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
+// Database cache should be invalidated once a week.
+export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default class ControllerInterface {
   public app;
   public INTERNAL;
   protected errorFactory_;
   private messagingSenderId_: string;
-  private tokenManager_: TokenManager;
+  private tokenDetailsModel_: TokenDetailsModel;
+  private vapidDetailsModel_: VapidDetailsModel;
+  private iidModel_: IIDModel;
 
   /**
    * An interface of the Messaging Service API
@@ -45,19 +52,19 @@ export default class ControllerInterface {
 
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
 
-    this.tokenManager_ = new TokenManager();
+    this.tokenDetailsModel_ = new TokenDetailsModel();
+    this.vapidDetailsModel_ = new VapidDetailsModel();
+    this.iidModel_ = new IIDModel();
 
     this.app = app;
     this.INTERNAL = {};
-    this.INTERNAL.delete = () => this.delete;
+    this.INTERNAL.delete = () => this.delete();
   }
 
   /**
    * @export
-   * @return {Promise<string> | Promise<null>} Returns a promise that
-   * resolves to an FCM token.
    */
-  getToken() {
+  getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
@@ -70,47 +77,191 @@ export default class ControllerInterface {
       // We must wait for permission to be granted
       return Promise.resolve(null);
     }
-
-    return this.getSWRegistration_().then(registration => {
-      return this.tokenManager_
-        .getSavedToken(this.messagingSenderId_, registration)
-        .then(token => {
-          if (token) {
-            return token;
-          }
-
-          return this.tokenManager_.createToken(
-            this.messagingSenderId_,
-            registration
-          );
-        });
-    });
+    let swReg: ServiceWorkerRegistration;
+    return this.getSWRegistration_()
+      .then(reg => {
+        swReg = reg;
+        return this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
+      })
+      .then(tokenDetails => {
+        if (tokenDetails) {
+          return this.manageExistingToken(tokenDetails, swReg);
+        }
+        return this.getNewToken(swReg);
+      });
   }
 
   /**
-   * This method deletes tokens that the token manager looks after and then
-   * unregisters the push subscription if it exists.
-   * @export
-   * @param {string} token
-   * @return {Promise<void>}
+   * manageExistingToken is triggered if there's an existing FCM token in the
+   * database and it can take 3 different actions:
+   * 1) Retrieve the existing FCM token from the database.
+   * 2) If VAPID details have changed: Delete the existing token and create a
+   * new one with the new VAPID key.
+   * 3) If the database cache is invalidated: Send a request to FCM to update
+   * the token, and to check if the token is still valid on FCM-side.
    */
-  deleteToken(token) {
-    return this.tokenManager_.deleteToken(token).then(() => {
-      return this.getSWRegistration_()
-        .then(registration => {
-          if (registration) {
-            return registration.pushManager.getSubscription();
-          }
-        })
-        .then(subscription => {
-          if (subscription) {
-            return subscription.unsubscribe();
-          }
+  private manageExistingToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
+    return this.isTokenStillValid(tokenDetails).then(isValid => {
+      if (isValid) {
+        const now = Date.now();
+        if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
+          return tokenDetails['fcmToken'];
+        } else {
+          return this.updateToken(tokenDetails, swReg);
+        }
+      } else {
+        // If the VAPID details are updated, delete the existing token,
+        // and create a new one.
+        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+          return this.getNewToken(swReg);
         });
+      }
     });
   }
 
+  /*
+   * Checks if the tokenDetails match the details provided in the clients.
+   */
+  private isTokenStillValid(tokenDetails: Object): Promise<Boolean> {
+    // TODO Validate rest of the details.
+    return this.getPublicVapidKey_().then(publicKey => {
+      if (arrayBufferToBase64(publicKey) !== tokenDetails['vapidKey']) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  private updateToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
+    let publicVapidKey: Uint8Array;
+    let updatedToken: string;
+    let subscription: PushSubscription;
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.updateToken(
+          this.messagingSenderId_,
+          tokenDetails['fcmToken'],
+          tokenDetails['fcmPushSet'],
+          subscription,
+          publicVapidKey
+        );
+      })
+      .catch(err => {
+        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+          throw err;
+        });
+      })
+      .then(token => {
+        updatedToken = token;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: updatedToken,
+          fcmPushSet: tokenDetails['fcmPushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
+      })
+      .then(() => {
+        return updatedToken;
+      });
+  }
+
+  private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
+    let publicVapidKey: Uint8Array;
+    let subscription: PushSubscription;
+    let tokenDetails: Object;
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.getToken(
+          this.messagingSenderId_,
+          subscription,
+          publicVapidKey
+        );
+      })
+      .then(iidTokenDetails => {
+        tokenDetails = iidTokenDetails;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: tokenDetails['token'],
+          fcmPushSet: tokenDetails['pushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
+      })
+      .then(() => {
+        return tokenDetails['token'];
+      });
+  }
+
+  /**
+   * This method deletes tokens that the token manager looks after,
+   * unsubscribes the token from FCM  and then unregisters the push
+   * subscription if it exists. It returns a promise that indicates
+   * whether or not the unsubscribe request was processed successfully.
+   * @export
+   */
+  deleteToken(token: string): Promise<Boolean> {
+    return this.tokenDetailsModel_
+      .deleteToken(token)
+      .then(details => {
+        return this.iidModel_.deleteToken(
+          details['fcmSenderId'],
+          details['fcmToken'],
+          details['fcmPushSet']
+        );
+      })
+      .then(() => {
+        return this.getSWRegistration_()
+          .then(registration => {
+            if (registration) {
+              return registration.pushManager.getSubscription();
+            }
+          })
+          .then(subscription => {
+            if (subscription) {
+              return subscription.unsubscribe();
+            }
+          });
+      });
+  }
+
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {
+    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+  }
+
+  getPublicVapidKey_(): Promise<Uint8Array> {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
@@ -122,11 +273,26 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
+  getPushSubscription_(
+    registration,
+    publicVapidKey
+  ): Promise<PushSubscription> {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  }
+
   /**
    * @export
    * @param {!ServiceWorkerRegistration} registration
    */
   useServiceWorker(registration) {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  }
+
+  /**
+   * @export
+   * @param {!string} b64PublicKey
+   */
+  usePublicVapidKey(b64PublicKey) {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
@@ -177,7 +343,10 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return this.tokenManager_.closeDatabase();
+    return Promise.all([
+      this.tokenDetailsModel_.closeDatabase(),
+      this.vapidDetailsModel_.closeDatabase()
+    ]);
   }
 
   /**
@@ -189,11 +358,19 @@ export default class ControllerInterface {
     return (Notification as any).permission;
   }
 
+  getTokenDetailsModel(): TokenDetailsModel {
+    return this.tokenDetailsModel_;
+  }
+
+  getVapidDetailsModel(): VapidDetailsModel {
+    return this.vapidDetailsModel_;
+  }
+
   /**
    * @protected
-   * @returns {TokenManager}
+   * @returns {IIDModel}
    */
-  getTokenManager() {
-    return this.tokenManager_;
+  getIIDModel() {
+    return this.iidModel_;
   }
 }

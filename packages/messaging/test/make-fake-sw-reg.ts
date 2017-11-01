@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as sinon from 'sinon';
+
 const FakeRegistration = function() {};
 FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
 export default function(selectedState?, desiredValue?) {
   const fakeReg = new FakeRegistration();
+  sinon.stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];
   states.forEach(state => {
     let finalValue = undefined;
@@ -28,6 +31,8 @@ export default function(selectedState?, desiredValue?) {
       value: finalValue
     });
   });
+
+  fakeReg['showNotification'] = () => {};
 
   return fakeReg;
 }
