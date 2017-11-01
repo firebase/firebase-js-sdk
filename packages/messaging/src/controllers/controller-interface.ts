@@ -84,8 +84,9 @@ export default class ControllerInterface {
             return details['fcmToken'];
           }
 
+          const publicVapidKey = this.getPublicVapidKey_();
           let subscription;
-          return this.getPushSubscription_(registration)
+          return this.getPushSubscription_(registration, publicVapidKey)
             .then(sub => {
               subscription = sub;
               return this.iidModel_.getToken(
@@ -96,7 +97,7 @@ export default class ControllerInterface {
             .then(tokenDetails => {
               const allDetails = {
                 swScope: registration.scope,
-                vapidKey: this.getPublicVapidKey_(),
+                vapidKey: publicVapidKey,
                 subscription: subscription,
                 fcmSenderId: this.messagingSenderId_,
                 fcmToken: tokenDetails['token'],
@@ -149,7 +150,7 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
-  getPushSubscription_(registration): Promise<PushSubscription> {
+  getPushSubscription_(registration, publicVapidKey): Promise<PushSubscription> {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 

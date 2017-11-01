@@ -371,7 +371,7 @@ export default class WindowController extends ControllerInterface {
    * @param {ServiceWorkerRegistration} registration
    * @return {Promise<PushSubscription>}
    */
-  getPushSubscription_(swRegistration) {
+  getPushSubscription_(swRegistration, publicVapidKey) {
     // Check for existing subscription first
     let subscription;
     let fcmTokenDetails;
@@ -380,9 +380,10 @@ export default class WindowController extends ControllerInterface {
         return subscription;
       }
 
-      return swRegistration.pushManager.subscribe(
-        FCMDetails.SUBSCRIPTION_OPTIONS
-      );
+      return swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicVapidKey,
+      });
     });
   }
 
