@@ -176,6 +176,20 @@ export class SpecBuilder {
     return this;
   }
 
+  closeWriteStream(state: fsate, error?: Code): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      writeStreamClose: {
+        error: {
+          code: mapRpcCodeFromCode(error),
+          message: 'Simulated Backend Error'
+        }
+      }
+    };
+    return this;
+  }
+
+
   restart(): SpecBuilder {
     this.nextStep();
     this.currentStep = {

@@ -1051,6 +1051,8 @@ export interface SpecStep {
   writeAck?: SpecWriteAck;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
+  /**  */
+  closeWriteStream?: SpecWriteStreamClose;
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
@@ -1112,6 +1114,10 @@ export type SpecSnapshotVersion = TestSnapshotVersion;
 
 export type SpecWatchStreamClose = {
   error: SpecError;
+};
+
+export type SpecWriteStreamClose = {
+  state: PersistentStreamState
 };
 
 export type SpecWriteAck = {

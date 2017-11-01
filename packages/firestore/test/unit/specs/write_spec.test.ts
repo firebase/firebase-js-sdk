@@ -564,4 +564,27 @@ describeSpec('Writes:', [], () => {
       );
     }
   );
+
+  specTest('Empty write is sent as write stream closes', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/a', 1000, { key: 'a' });
+    return (
+        spec()
+            .withGCEnabled(false)
+            .userListens(query)
+            .userSets('collection/key', { foo: 'bar' })
+            .expectEvents(query, {
+              fromCache: true,
+              hasPendingWrites: true,
+              added: [doc1]
+            })
+            .watchStreamCloses()
+            // Close before we get an ack, this should reset our pending
+            // target counts.
+            .watchStreamCloses(Code.UNAVAILABLE)
+            // This should work now.
+            .watchAcksFull(query, 1001, doc1)
+            .expectEvents(query, { added: [doc1] })
+    );
+  });
 });
