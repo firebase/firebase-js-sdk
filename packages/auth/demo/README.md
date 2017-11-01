@@ -6,9 +6,7 @@ You need to have created a Firebase Project in the
 [Firebase Console](https://firebase.google.com/console/) as well as configured a web app.
 
 ## Installation
-
-Install the Firebase command line tool with `npm install -g firebase-tools` (See
-[docs](https://firebase.google.com/docs/cli/#setup)).
+Make sure you run `yarn` to install all dependencies in the root directory.
 
 Enable the Auth providers you would like to offer your users in the console, under
 Auth > Sign-in methods.

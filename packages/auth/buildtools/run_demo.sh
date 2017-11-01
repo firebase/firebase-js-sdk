@@ -23,7 +23,7 @@
 cd "$(dirname $(dirname "$0"))"
 # Go back to repo root and build all binaries needed for the demo app.
 cd ../..
-yarn
+yarn prepare
 # Go back to Auth package.
 cd packages/auth
 # Make dist directory if not already there.
@@ -34,4 +34,4 @@ cp ../firebase/firebase-auth.js demo/public/dist/firebase-auth.js
 cp ../firebase/firebase-database.js demo/public/dist/firebase-database.js
 # Serve demo app.
 cd demo
-firebase serve
+`yarn bin`/firebase serve
