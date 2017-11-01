@@ -382,7 +382,7 @@ export default class WindowController extends ControllerInterface {
 
       return swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: publicVapidKey,
+        applicationServerKey: publicVapidKey
       });
     });
   }

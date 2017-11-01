@@ -150,7 +150,10 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
-  getPushSubscription_(registration, publicVapidKey): Promise<PushSubscription> {
+  getPushSubscription_(
+    registration,
+    publicVapidKey
+  ): Promise<PushSubscription> {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 

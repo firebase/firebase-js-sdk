@@ -54,7 +54,9 @@ class DemoApp {
     firebase.initializeApp(config);
 
     this._messaging = firebase.messaging();
-    this._messaging.usePublicVapidKey('BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw');
+    /** this._messaging.usePublicVapidKey(
+      'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw'
+    );**/
     this._messaging.onMessage(payload => {
       const liElement = document.createElement('li');
       liElement.textContent = JSON.stringify(payload);

@@ -85,11 +85,11 @@ const DEFAULT_PUBLIC_VAPID_KEY = new Uint8Array([
 
 const SUBSCRIPTION_DETAILS = {
   userVisibleOnly: true,
-  applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY,
+  applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY
 };
 
 export default {
   DEFAULT_PUBLIC_VAPID_KEY,
   SUBSCRIPTION_DETAILS,
-  ENDPOINT: 'https://fcm.googleapis.com',
+  ENDPOINT: 'https://fcm.googleapis.com'
 };
