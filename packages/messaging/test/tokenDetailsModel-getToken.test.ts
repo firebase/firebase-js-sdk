@@ -20,7 +20,7 @@ import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
 
-describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
+describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
     vapidKey:
@@ -41,7 +41,7 @@ describe('Firebase Messaging > TokenDetailsModel.getToken()', function() {
     }
 
     return Promise.all(promises)
-      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => deleteDatabase(TokenDetailsModel.DB_NAME))
       .then(() => (globalTokenModel = null));
   };
 

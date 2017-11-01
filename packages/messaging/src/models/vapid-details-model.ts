@@ -23,10 +23,10 @@ const DB_VERSION = 1;
 
 export default class VapidDetailsModel extends DBInterface {
   constructor() {
-    super(VapidDetailsModel.dbName, DB_VERSION);
+    super(VapidDetailsModel.DB_NAME, DB_VERSION);
   }
 
-  static get dbName() {
+  static get DB_NAME() {
     return 'fcm_vapid_details_db';
   }
 

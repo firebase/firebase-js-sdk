@@ -17,21 +17,35 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
 import makeFakeSWReg from './make-fake-sw-reg';
+import makeFakeSubscription from './make-fake-subscription';
 import Errors from '../src/models/errors';
 import WindowController from '../src/controllers/window-controller';
 import SWController from '../src/controllers/sw-controller';
 import ControllerInterface from '../src/controllers/controller-interface';
 import DefaultSW from '../src/models/default-sw';
+import FCMDetails from '../src/models/fcm-details';
 import TokenManager from '../src/models/token-manager';
+import TokenDetailsModel from '../src/models/token-details-model';
+import IIDModel from '../src/models/iid-model';
 import NotificationPermission from '../src/models/notification-permission';
 
 describe('Firebase Messaging > *Controller.getToken()', function() {
   const sandbox = sinon.sandbox.create();
-
+  
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
+  const EXAMPLE_INPUT = {
+    swScope: '/example-scope',
+    vapidKey:
+      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+    subscription: makeFakeSubscription(),
+    fcmSenderId: '1234567890',
+    fcmToken: 'qwerty',
+    fcmPushSet: '7654321'
+  };
   const app = makeFakeApp({
-    messagingSenderId: EXAMPLE_SENDER_ID
+    messagingSenderId: EXAMPLE_INPUT.fcmSenderId
   });
 
   const servicesToTest = [WindowController, SWController];
@@ -136,53 +150,74 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     }, Promise.resolve());
   });
 
-  it('should get saved token', function() {
-    const registration = makeFakeSWReg();
-
-    sandbox
-      .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-      .callsFake(() => NotificationPermission.granted);
-
-    mockGetReg(Promise.resolve(registration));
-
-    sandbox
-      .stub(TokenManager.prototype, 'getSavedToken')
-      .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
-
-    return Promise.all(
-      servicesToTest.map(ServiceClass => {
-        const serviceInstance = new ServiceClass(app);
-        return serviceInstance.getToken().then(token => {
-          assert.equal(EXAMPLE_FCM_TOKEN, token);
-        });
-      })
-    );
+  servicesToTest.forEach(ServiceClass => {
+    it(`should get saved token in ${ServiceClass.name}`, function() {
+      const registration = makeFakeSWReg();
+  
+      sandbox
+        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .callsFake(() => NotificationPermission.granted);
+  
+      mockGetReg(Promise.resolve(registration));
+  
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+        .callsFake(() => Promise.resolve(EXAMPLE_INPUT));
+  
+      
+      const serviceInstance = new ServiceClass(app);
+      return serviceInstance.getToken()
+      .then(token => {
+        assert.equal(EXAMPLE_INPUT['fcmToken'], token);
+      });
+    });
   });
 
-  it('should get a new token', function() {
-    const registration = makeFakeSWReg();
+  servicesToTest.forEach(ServiceClass => {
+    it('should get a new token', function() {
+      const registration = makeFakeSWReg();
+      const subscription = makeFakeSubscription();
+      const TOKEN_DETAILS = {
+        token: 'example-token',
+        pushset: 'example-pushset',
+      };
 
-    sandbox
-      .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-      .callsFake(() => NotificationPermission.granted);
+      sandbox
+        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .callsFake(() => NotificationPermission.granted);
 
-    mockGetReg(Promise.resolve(registration));
+      sandbox
+        .stub(ControllerInterface.prototype, 'getPushSubscription_')
+        .callsFake(() => Promise.resolve(subscription));
 
-    sandbox
-      .stub(TokenManager.prototype, 'getSavedToken')
-      .callsFake(() => Promise.resolve(null));
+      sandbox
+        .stub(IIDModel.prototype, 'getToken')
+        .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
-    sandbox
-      .stub(TokenManager.prototype, 'createToken')
-      .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
+      mockGetReg(Promise.resolve(registration));
 
-    return Promise.all(
-      servicesToTest.map(ServiceClass => {
-        const serviceInstance = new ServiceClass(app);
-        return serviceInstance.getToken().then(token => {
-          assert.equal(EXAMPLE_FCM_TOKEN, token);
-        });
-      })
-    );
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+        .callsFake(() => Promise.resolve(null));
+
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
+        .callsFake(() => Promise.resolve());
+
+      const serviceInstance = new ServiceClass(app);
+      return serviceInstance.getToken().then(token => {
+        assert.equal('example-token', token);
+        
+        // Ensure save token is called.
+        assert.equal(TokenDetailsModel.prototype.saveTokenDetails['callCount'], 1);
+        const saveArgs = TokenDetailsModel.prototype.saveTokenDetails['getCall'](0)['args'][0];
+        assert.equal(saveArgs.swScope, registration.scope);
+        assert.equal(saveArgs.vapidKey, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+        assert.equal(saveArgs.subscription, subscription);
+        assert.equal(saveArgs.fcmSenderId, EXAMPLE_SENDER_ID);
+        assert.equal(saveArgs.fcmToken, TOKEN_DETAILS['token']);
+        assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushset']);
+      });
+    });
   });
 });

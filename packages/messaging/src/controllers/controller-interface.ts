@@ -17,8 +17,10 @@
 
 import { ErrorFactory } from '@firebase/util';
 import Errors from '../models/errors';
-import TokenManager from '../models/token-manager';
+import TokenDetailsModel from '../models/token-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
+import IIDModel from '../models/iid-model';
+import FCMDetails from '../models/fcm-details';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 
@@ -27,7 +29,8 @@ export default class ControllerInterface {
   public INTERNAL;
   protected errorFactory_;
   private messagingSenderId_: string;
-  private tokenManager_: TokenManager;
+  private tokenDetailsModel_: TokenDetailsModel;
+  private iidModel_: IIDModel;
 
   /**
    * An interface of the Messaging Service API
@@ -45,7 +48,8 @@ export default class ControllerInterface {
 
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
 
-    this.tokenManager_ = new TokenManager();
+    this.tokenDetailsModel_ = new TokenDetailsModel();
+    this.iidModel_ = new IIDModel();
 
     this.app = app;
     this.INTERNAL = {};
@@ -71,20 +75,45 @@ export default class ControllerInterface {
       return Promise.resolve(null);
     }
 
-    return this.getSWRegistration_().then(registration => {
-      return this.tokenManager_
-        .getSavedToken(this.messagingSenderId_, registration)
-        .then(token => {
-          if (token) {
-            return token;
-          }
+    return this.getSWRegistration_()
+    .then(registration => {
+      return this.tokenDetailsModel_.getTokenDetailsFromSWScope(registration.scope)
+      .then(details => {
+        if (details) {
+          // TODO Validate the details are still accurate
+          return details['fcmToken'];
+        }
 
-          return this.tokenManager_.createToken(
-            this.messagingSenderId_,
-            registration
-          );
+        let subscription;
+        return this.getPushSubscription_()
+        .then((sub) => {
+          subscription = sub;
+          return this.iidModel_.getToken(this.messagingSenderId_, subscription);
+        })
+        .then((tokenDetails) => {
+          const allDetails = {
+            swScope: registration.scope,
+            vapidKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
+            subscription: subscription,
+            fcmSenderId: this.messagingSenderId_,
+            fcmToken: tokenDetails['token'],
+            fcmPushSet: tokenDetails['pushset'],
+          };
+          return this.tokenDetailsModel_.saveTokenDetails(allDetails)
+            .then(() => tokenDetails['token']);
         });
+      });
     });
+  }
+
+  /**
+   * Gets a PushSubscription for the current user.
+   * @return {Promise<PushSubscription>}
+   */
+  getPushSubscription_() {
+    // TODO: Get subscription
+    // TODO: If no subscription, subscribe
+    return Promise.resolve(null);
   }
 
   /**
@@ -95,7 +124,7 @@ export default class ControllerInterface {
    * @return {Promise<void>}
    */
   deleteToken(token) {
-    return this.tokenManager_.deleteToken(token).then(() => {
+    return this.tokenDetailsModel_.deleteToken(token).then(() => {
       return this.getSWRegistration_()
         .then(registration => {
           if (registration) {
@@ -177,7 +206,9 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return this.tokenManager_.closeDatabase();
+    return Promise.all([
+      this.tokenDetailsModel_.closeDatabase(),
+    ]);
   }
 
   /**
@@ -191,9 +222,17 @@ export default class ControllerInterface {
 
   /**
    * @protected
-   * @returns {TokenManager}
+   * @returns {TokenDetailsModel}
    */
-  getTokenManager() {
-    return this.tokenManager_;
+  getTokenDetailsModel() {
+    return this.tokenDetailsModel_;
+  }
+
+  /**
+   * @protected
+   * @returns {IIDModel}
+   */
+  getIIDModel() {
+    return this.iidModel_;
   }
 }

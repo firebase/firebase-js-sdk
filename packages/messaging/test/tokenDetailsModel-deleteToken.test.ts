@@ -42,7 +42,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     }
 
     return Promise.all(promises)
-      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => deleteDatabase(TokenDetailsModel.DB_NAME))
       .then(() => (globalTokenModel = null));
   };
 

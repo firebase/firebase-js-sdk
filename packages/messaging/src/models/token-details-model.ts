@@ -39,10 +39,10 @@ ValidateInput.prototype.fcmPushSet;
 
 export default class TokenDetailsModel extends DBInterface {
   constructor() {
-    super(TokenDetailsModel.dbName, DB_VERSION);
+    super(TokenDetailsModel.DB_NAME, DB_VERSION);
   }
 
-  static get dbName() {
+  static get DB_NAME() {
     return 'fcm_token_details_db';
   }
 

@@ -100,7 +100,7 @@ export default class SWController extends ControllerInterface {
    * @private
    */
   onSubChange_(event) {
-    const promiseChain = this.getToken().then(token => {
+    /** const promiseChain = this.getToken().then(token => {
       if (!token) {
         // We can't resubscribe if we don't have an FCM token for this scope.
         throw this.errorFactory_.create(
@@ -109,8 +109,8 @@ export default class SWController extends ControllerInterface {
       }
 
       let tokenDetails = null;
-      const tokenManager = this.getTokenManager();
-      return tokenManager
+      const tokenDetailsModel = this.getTokenDetailsModel();
+      return tokenDetailsModel
         .getTokenDetailsFromToken(token)
         .then(details => {
           tokenDetails = details;
@@ -118,23 +118,18 @@ export default class SWController extends ControllerInterface {
             throw this.errorFactory_.create(Errors.codes.INVALID_SAVED_TOKEN);
           }
 
-          // Attempt to get a new subscription
-          return (self as any).registration.pushManager.subscribe(
-            FCMDetails.SUBSCRIPTION_OPTIONS
-          );
-        })
-        .then(newSubscription => {
+          //TODO: Check syntax for new subscription
           // Send new subscription to FCM.
-          return tokenManager.subscribeToFCM(
+          return this.getIIDModel().getToken(
             tokenDetails.fcmSenderId,
-            newSubscription,
+            event.newSubscription,
             tokenDetails.fcmPushSet
           );
         })
         .catch(err => {
           // The best thing we can do is log this to the terminal so
           // developers might notice the error.
-          return tokenManager.deleteToken(tokenDetails.fcmToken).then(() => {
+          return tokenDetailsModel.deleteToken(tokenDetails.fcmToken).then(() => {
             throw this.errorFactory_.create(
               Errors.codes.UNABLE_TO_RESUBSCRIBE,
               {
@@ -143,9 +138,9 @@ export default class SWController extends ControllerInterface {
             );
           });
         });
-    });
+    });**/
 
-    event.waitUntil(promiseChain);
+    event.waitUntil(Promise.resolve());
   }
 
   /**

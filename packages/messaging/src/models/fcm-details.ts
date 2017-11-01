@@ -15,6 +15,7 @@
  */
 'use strict';
 
+const DEFAULT_PUBLIC_VAPID_KEY = 'default-public-vapid-key';
 const FCM_APPLICATION_SERVER_KEY = [
   0x04,
   0x33,
@@ -89,7 +90,9 @@ const SUBSCRIPTION_DETAILS = {
 };
 
 export default {
+  DEFAULT_PUBLIC_VAPID_KEY,
   ENDPOINT: 'https://fcm.googleapis.com',
+  // TODO: Remove this key
   APPLICATION_SERVER_KEY: FCM_APPLICATION_SERVER_KEY,
   SUBSCRIPTION_OPTIONS: SUBSCRIPTION_DETAILS
 };
