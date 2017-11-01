@@ -176,14 +176,21 @@ export class SpecBuilder {
     return this;
   }
 
-  closeWriteStream(): SpecBuilder {
+  disableNetwork(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      closeWriteStream: {}
+      disableNetwork: {}
     };
     return this;
   }
 
+  enableNetwork(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      enableNetwork: {}
+    };
+    return this;
+  }
 
   restart(): SpecBuilder {
     this.nextStep();
@@ -510,11 +517,11 @@ export class SpecBuilder {
     return this;
   }
 
-  expectNumBatchesSent(num: number): SpecBuilder {
+  expectNumWriteRequestsSent(num: number): SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numBatchesSent = num;
+    currentStep.stateExpect.numWriteRequestsSent = num;
     return this;
   }
 

@@ -565,23 +565,23 @@ describeSpec('Writes:', [], () => {
     }
   );
 
-  specTest('Empty write is sent as write stream closes', [], () => {
+  specTest('Empty write is sent as write stream closes', ['exclusive'], () => {
     const query = Query.atPath(path('collection'));
-    const doc1 = doc('collection/a', 1000, { key: 'a' });
+    const doc1 = doc('collection/foo', 1000, { foo: 'bar' });
     return (
         spec()
             .withGCEnabled(false)
             .userListens(query)
-            .userSets('collection/key', { foo: 'bar' })
+            .userSets('collection/foo', { foo: 'bar' })
             .expectEvents(query, {
               fromCache: true,
               hasPendingWrites: true,
               added: [doc1]
             })
-            .writeAcks(1000)
-            .expectNumBatchesSent(1)
-            .closeWriteStream()
-            .expectNumBatchesSent(2)
+            // .writeAcks(1000)
+            // .expectNumWriteRequestsSent(1)
+            // .disableNetwork()
+            // .expectNumWriteRequestsSent(2)
     );
   });
 });

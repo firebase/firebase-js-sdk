@@ -458,6 +458,10 @@ abstract class TestRunner {
       return this.doWriteAck(step.writeAck!);
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
+    } else if ('disableNetwork' in step) {
+      return this.doDisableNetwork();
+    }  else if ('enableNetwork' in step) {
+      return this.doEnableNetwork();
     } else if ('restart' in step) {
       assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
@@ -745,6 +749,18 @@ abstract class TestRunner {
     });
   }
 
+  private async doDisableNetwork(): Promise<void> {
+    // Reinitialize everything, except the persistence.
+    // No local store to shutdown.
+    await this.remoteStore.disableNetwork()
+  }
+
+  private async doEnableNetwork(): Promise<void> {
+    // Reinitialize everything, except the persistence.
+    // No local store to shutdown.
+    await this.remoteStore.enableNetwork()
+  }
+
   private async doRestart(): Promise<void> {
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
@@ -794,10 +810,12 @@ abstract class TestRunner {
         );
       }
       if ('numWriteRequestsSent' in expectation) {
-        expect(this.connection.writeStream.messagesSent).to.equal(expectation.numWriteRequestsSent);
+        console.log('here1');
+        expect(this.connection.writeStream.messagesSent).to.deep.equal(expectation.numWriteRequestsSent);
       }
       if ('numWatchRequestsSent' in expectation) {
-        expect(this.connection.watchStream.messagesSent).to.equal(expectation.numWatchRequestsSent);
+        console.log('here2');
+        expect(this.connection.watchStream.messagesSent).to.deep.equal(expectation.numWatchRequestsSent);
       }
       if ('limboDocs' in expectation) {
         this.expectedLimboDocs = expectation.limboDocs!.map(key);
@@ -1058,7 +1076,10 @@ export interface SpecStep {
   /** Fail a write */
   failWrite?: SpecWriteFailure;
   /**  */
-  closeWriteStream?: SpecWriteStreamClose;
+  disableNetwork?: SpecDisableNetwork;
+  /**  */
+  enableNetwork?: SpecEnableNetwork;
+
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
@@ -1122,7 +1143,10 @@ export type SpecWatchStreamClose = {
   error: SpecError;
 };
 
-export type SpecWriteStreamClose = {
+export type SpecDisableNetwork = {
+};
+
+export type SpecEnableNetwork = {
 };
 
 export type SpecWriteAck = {

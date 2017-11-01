@@ -90,7 +90,7 @@ export function apiDescribe(
 ): void {
   const persistenceModes = [false];
   if (isPersistenceAvailable()) {
-    persistenceModes.push(true);
+   // persistenceModes.push(true);
   }
 
   for (const enabled of persistenceModes) {
