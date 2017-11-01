@@ -85,7 +85,7 @@ export default class ControllerInterface {
           }
 
           let subscription;
-          return this.getPushSubscription_()
+          return this.getPushSubscription_(registration)
             .then(sub => {
               subscription = sub;
               return this.iidModel_.getToken(
@@ -96,11 +96,11 @@ export default class ControllerInterface {
             .then(tokenDetails => {
               const allDetails = {
                 swScope: registration.scope,
-                vapidKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
+                vapidKey: this.getPublicVapidKey_(),
                 subscription: subscription,
                 fcmSenderId: this.messagingSenderId_,
                 fcmToken: tokenDetails['token'],
-                fcmPushSet: tokenDetails['pushset']
+                fcmPushSet: tokenDetails['pushSet']
               };
               return this.tokenDetailsModel_
                 .saveTokenDetails(allDetails)
@@ -108,16 +108,6 @@ export default class ControllerInterface {
             });
         });
     });
-  }
-
-  /**
-   * Gets a PushSubscription for the current user.
-   * @return {Promise<PushSubscription>}
-   */
-  getPushSubscription_() {
-    // TODO: Get subscription
-    // TODO: If no subscription, subscribe
-    return Promise.resolve(null);
   }
 
   /**
@@ -147,6 +137,10 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
+  getPublicVapidKey_(): Promise<Uint8Array> {
+    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+  }
+
   //
   // The following methods should only be available in the window.
   //
@@ -155,11 +149,23 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
+  getPushSubscription_(registration): Promise<PushSubscription> {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  }
+
   /**
    * @export
    * @param {!ServiceWorkerRegistration} registration
    */
   useServiceWorker(registration) {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  }
+
+  /**
+   * @export
+   * @param {!string} b64PublicKey
+   */
+  usePublicVapidKey(b64PublicKey) {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 

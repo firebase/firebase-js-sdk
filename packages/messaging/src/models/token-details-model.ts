@@ -90,7 +90,7 @@ export default class TokenDetailsModel extends DBInterface {
     }
 
     if (input.vapidKey) {
-      if (typeof input.vapidKey !== 'string' || input.vapidKey.length === 0) {
+      if (!(input.vapidKey instanceof Uint8Array) || input.vapidKey.length !== 65) {
         return Promise.reject(
           this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
         );
@@ -262,7 +262,7 @@ export default class TokenDetailsModel extends DBInterface {
          */
         const details = {
           swScope: swScope,
-          vapidKey: vapidKey,
+          vapidKey: arrayBufferToBase64(vapidKey),
           endpoint: subscription.endpoint,
           auth: arrayBufferToBase64(subscription['getKey']('auth')),
           p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),

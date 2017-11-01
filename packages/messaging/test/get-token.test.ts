@@ -24,7 +24,6 @@ import SWController from '../src/controllers/sw-controller';
 import ControllerInterface from '../src/controllers/controller-interface';
 import DefaultSW from '../src/models/default-sw';
 import FCMDetails from '../src/models/fcm-details';
-import TokenManager from '../src/models/token-manager';
 import TokenDetailsModel from '../src/models/token-details-model';
 import IIDModel from '../src/models/iid-model';
 import NotificationPermission from '../src/models/notification-permission';
@@ -177,7 +176,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       const subscription = makeFakeSubscription();
       const TOKEN_DETAILS = {
         token: 'example-token',
-        pushset: 'example-pushset'
+        pushSet: 'example-pushSet'
       };
 
       sandbox
@@ -219,7 +218,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         assert.equal(saveArgs.subscription, subscription);
         assert.equal(saveArgs.fcmSenderId, EXAMPLE_SENDER_ID);
         assert.equal(saveArgs.fcmToken, TOKEN_DETAILS['token']);
-        assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushset']);
+        assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
       });
     });
   });

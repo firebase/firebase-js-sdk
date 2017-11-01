@@ -20,12 +20,15 @@ import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
 import DefaultSW from '../models/default-sw';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
+import FCMDetails from '../models/fcm-details';
+import base64ToArrayBuffer from '../helpers/base64-to-array-buffer';
 import { createSubscribe } from '@firebase/util';
 
 declare const firebase: any;
 
 export default class WindowController extends ControllerInterface {
   private registrationToUse_;
+  private publicVapidKeyToUse_;
   private manifestCheckPromise_;
   private messageObserver_;
   private onMessage_;
@@ -210,6 +213,30 @@ export default class WindowController extends ControllerInterface {
   }
 
   /**
+   * This method allows a developer to override the default vapid key
+   * and instead use a custom VAPID public key.
+   * @export
+   * @param {!string} publicKey A URL safe base64 encoded string.
+   */
+  usePublicVapidKey(publicKey) {
+    if (!(typeof publicKey !== 'string')) {
+      // TODO: throw error
+      // throw this.errorFactory_.create(Errors.codes.INVALID_VAPID_PUBLIC_KEY);
+    }
+
+    if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
+      // TODO: throw error
+      // throw this.errorFactory_.create(Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
+    }
+
+    const parsedKey = base64ToArrayBuffer(publicKey);
+    
+    // TODO: Validate length of parsed key
+    
+    this.publicVapidKeyToUse_ = parsedKey;
+  }
+
+  /**
    * @export
    * @param {!firebase.Observer|function(*)} nextOrObserver An observer object
    * or a function triggered on message.
@@ -322,6 +349,43 @@ export default class WindowController extends ControllerInterface {
           return registration;
         });
       });
+  }
+
+  /**
+   * This will return the default VAPID key or the uint8array version of the public VAPID key
+   * provided by the developer.
+   * @private
+   * @return {Promise<!Uint8Array>} The VAPID public key to use to subscribe the user.
+   */
+  getPublicVapidKey_() {
+    if (this.publicVapidKeyToUse_) {
+      return this.publicVapidKeyToUse_;
+    }
+
+    return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+  }
+
+  /**
+   * Gets a PushSubscription for the current user.
+   * @private
+   * @param {ServiceWorkerRegistration} registration
+   * @return {Promise<PushSubscription>}
+   */
+  getPushSubscription_(swRegistration) {
+    // Check for existing subscription first
+    let subscription;
+    let fcmTokenDetails;
+    return swRegistration.pushManager
+      .getSubscription()
+      .then(subscription => {
+        if (subscription) {
+          return subscription;
+        }
+
+        return swRegistration.pushManager.subscribe(
+          FCMDetails.SUBSCRIPTION_OPTIONS
+        );
+      })
   }
 
   /**

@@ -15,8 +15,7 @@
  */
 'use strict';
 
-const DEFAULT_PUBLIC_VAPID_KEY = 'default-public-vapid-key';
-const FCM_APPLICATION_SERVER_KEY = [
+const DEFAULT_PUBLIC_VAPID_KEY = new Uint8Array([
   0x04,
   0x33,
   0x94,
@@ -82,17 +81,15 @@ const FCM_APPLICATION_SERVER_KEY = [
   0xc0,
   0x9c,
   0x6e
-];
+]);
 
 const SUBSCRIPTION_DETAILS = {
   userVisibleOnly: true,
-  applicationServerKey: new Uint8Array(FCM_APPLICATION_SERVER_KEY)
+  applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY
 };
 
 export default {
   DEFAULT_PUBLIC_VAPID_KEY,
   ENDPOINT: 'https://fcm.googleapis.com',
-  // TODO: Remove this key
-  APPLICATION_SERVER_KEY: FCM_APPLICATION_SERVER_KEY,
   SUBSCRIPTION_OPTIONS: SUBSCRIPTION_DETAILS
 };

@@ -152,7 +152,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad pushset input', function() {
+  it('should throw on bad pushSet input', function() {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {

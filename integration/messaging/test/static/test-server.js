@@ -47,7 +47,8 @@ class MessagingTestServer {
     }
 
     return new Promise((resolve, reject) => {
-      this._server = this._app.listen(PORT_NUMBER, function() {
+      this._server = this._app.listen(PORT_NUMBER, () => {
+        console.log(`Test server started, visit: ${this.serverAddress}/demo-valid/`);
         resolve();
       });
     });

@@ -120,7 +120,7 @@ const ERROR_MAP = {
     'The service worker scope must be a string with at ' +
     'least one character.',
   [CODES.BAD_VAPID_KEY]:
-    'The public VAPID key must be a string with at ' + 'least one character.',
+    'The public VAPID key is not a Uint8Array with 65 bytes.',
   [CODES.BAD_SUBSCRIPTION]:
     'The subscription must be a valid ' + 'PushSubscription.',
   [CODES.BAD_TOKEN]:
