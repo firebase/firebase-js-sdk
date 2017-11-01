@@ -75,7 +75,7 @@ Finally, ensure you are in the `demo/` folder (and not the root directory of Fir
 and run:
 
 ```bash
-firebase serve
+yarn run demo
 ```
 
 This will start a Firebase server locally at [http://localhost:5000](http://localhost:5000).
