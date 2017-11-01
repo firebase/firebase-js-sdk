@@ -90,7 +90,10 @@ export default class TokenDetailsModel extends DBInterface {
     }
 
     if (input.vapidKey) {
-      if (!(input.vapidKey instanceof Uint8Array) || input.vapidKey.length !== 65) {
+      if (
+        !(input.vapidKey instanceof Uint8Array) ||
+        input.vapidKey.length !== 65
+      ) {
         return Promise.reject(
           this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
         );

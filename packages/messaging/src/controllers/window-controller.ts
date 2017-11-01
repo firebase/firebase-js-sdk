@@ -230,9 +230,9 @@ export default class WindowController extends ControllerInterface {
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
-    
+
     // TODO: Validate length of parsed key
-    
+
     this.publicVapidKeyToUse_ = parsedKey;
   }
 
@@ -375,17 +375,15 @@ export default class WindowController extends ControllerInterface {
     // Check for existing subscription first
     let subscription;
     let fcmTokenDetails;
-    return swRegistration.pushManager
-      .getSubscription()
-      .then(subscription => {
-        if (subscription) {
-          return subscription;
-        }
+    return swRegistration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        return subscription;
+      }
 
-        return swRegistration.pushManager.subscribe(
-          FCMDetails.SUBSCRIPTION_OPTIONS
-        );
-      })
+      return swRegistration.pushManager.subscribe(
+        FCMDetails.SUBSCRIPTION_OPTIONS
+      );
+    });
   }
 
   /**
