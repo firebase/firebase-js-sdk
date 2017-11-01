@@ -793,6 +793,12 @@ abstract class TestRunner {
           expectation.numOutstandingWrites
         );
       }
+      if ('numWriteRequestsSent' in expectation) {
+        expect(this.connection.writeStream.messagesSent).to.equal(expectation.numWriteRequestsSent);
+      }
+      if ('numWatchRequestsSent' in expectation) {
+        expect(this.connection.watchStream.messagesSent).to.equal(expectation.numWatchRequestsSent);
+      }
       if ('limboDocs' in expectation) {
         this.expectedLimboDocs = expectation.limboDocs!.map(key);
       }
@@ -1117,7 +1123,6 @@ export type SpecWatchStreamClose = {
 };
 
 export type SpecWriteStreamClose = {
-  state: PersistentStreamState
 };
 
 export type SpecWriteAck = {
@@ -1199,6 +1204,10 @@ export interface SpecExpectation {
 export interface StateExpectation {
   /** Number of outstanding writes in the datastore queue. */
   numOutstandingWrites?: number;
+  /** Number of total write batch sent. */
+  numWriteRequestsSent?: number;
+  /** Number of total write batch sent. */
+  numWatchRequestsSent?: number;
   /** Current documents in limbo. Verified in each step until overwritten. */
   limboDocs?: string[];
   /**

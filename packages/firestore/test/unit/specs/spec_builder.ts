@@ -176,15 +176,10 @@ export class SpecBuilder {
     return this;
   }
 
-  closeWriteStream(state: fsate, error?: Code): SpecBuilder {
+  closeWriteStream(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      writeStreamClose: {
-        error: {
-          code: mapRpcCodeFromCode(error),
-          message: 'Simulated Backend Error'
-        }
-      }
+      closeWriteStream: {}
     };
     return this;
   }
@@ -512,6 +507,14 @@ export class SpecBuilder {
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
     currentStep.stateExpect.numOutstandingWrites = num;
+    return this;
+  }
+
+  expectNumBatchesSent(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.numBatchesSent = num;
     return this;
   }
 

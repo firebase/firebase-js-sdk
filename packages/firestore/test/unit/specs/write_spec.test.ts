@@ -578,13 +578,10 @@ describeSpec('Writes:', [], () => {
               hasPendingWrites: true,
               added: [doc1]
             })
-            .watchStreamCloses()
-            // Close before we get an ack, this should reset our pending
-            // target counts.
-            .watchStreamCloses(Code.UNAVAILABLE)
-            // This should work now.
-            .watchAcksFull(query, 1001, doc1)
-            .expectEvents(query, { added: [doc1] })
+            .writeAcks(1000)
+            .expectNumBatchesSent(1)
+            .closeWriteStream()
+            .expectNumBatchesSent(2)
     );
   });
 });

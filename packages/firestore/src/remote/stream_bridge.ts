@@ -26,9 +26,11 @@ import { Stream } from './connection';
  * interface. The stream callbacks are invoked with the callOn... methods.
  */
 export class StreamBridge<I, O> implements Stream<I, O> {
+
   private wrappedOnOpen: () => void = null as any;
   private wrappedOnClose: (err?: FirestoreError) => void = null as any;
   private wrappedOnMessage: (msg: O) => void = null as any;
+  private _messagesSent: number = 0;
 
   private sendFn: (msg: I) => void;
   private closeFn: () => void;
@@ -36,6 +38,10 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   constructor(args: { sendFn: (msg: I) => void; closeFn: () => void }) {
     this.sendFn = args.sendFn;
     this.closeFn = args.closeFn;
+  }
+
+  get messagesSent() {
+    return this._messagesSent;
   }
 
   onOpen(callback: () => void): void {
@@ -58,6 +64,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   send(msg: I): void {
+    ++this._messagesSent;
     this.sendFn(msg);
   }
 
