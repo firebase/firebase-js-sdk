@@ -19,15 +19,14 @@ import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
-import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
   withTestDb,
   withTestDoc
 } from '../util/helpers';
-import { PublicFieldValue } from '../../../src/api/field_value';
 import { FieldPath } from '../../../src/api/field_path';
+import { PublicFieldValue } from '../../../src/api/field_value';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {

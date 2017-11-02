@@ -18,10 +18,9 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import * as testHelpers from '../../util/helpers';
-import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
-import { PublicFieldValue } from '../../../src/api/field_value';
 import { FieldPath } from '../../../src/api/field_path';
+import { PublicFieldValue } from '../../../src/api/field_value';
 
 const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
