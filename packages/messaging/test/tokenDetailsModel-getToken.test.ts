@@ -19,13 +19,15 @@ import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
-    vapidKey:
+    vapidKey: base64ToArrayBuffer(
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+    ),
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567',
     fcmToken: 'qwerty',
@@ -116,7 +118,11 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
             return;
           }
 
-          assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
+          if (keyName === 'vapidKey') {
+            assert.equal(details[keyName], arrayBufferToBase64(EXAMPLE_INPUT[keyName]));
+          } else {
+            assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
+          }
         });
       });
   });
@@ -154,7 +160,11 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
             return;
           }
 
-          assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
+          if (keyName === 'vapidKey') {
+            assert.equal(details[keyName], arrayBufferToBase64(EXAMPLE_INPUT[keyName]));
+          } else {
+            assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
+          }
         });
       });
   });
