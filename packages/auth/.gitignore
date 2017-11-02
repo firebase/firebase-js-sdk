@@ -13,5 +13,6 @@ dist/
 *~
 *.swp
 
-#Local config.
+# Local config.
 **/.firebaserc
+demo/public/config.js
