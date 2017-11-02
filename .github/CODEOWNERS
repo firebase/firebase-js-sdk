@@ -17,4 +17,4 @@ packages/storage  @sphippen
 packages/messaging  @gauntface
 
 # Auth Code
-packages/auth  @bojeil-google @wti806
+packages/auth  @bojeil-google @wti806 @tmsch
