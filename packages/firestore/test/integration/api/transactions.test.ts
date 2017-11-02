@@ -20,6 +20,7 @@ import { Deferred } from '../../../src/util/promise';
 import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
+import { FieldPath } from '../../../src/api/field_path';
 
 const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
@@ -365,7 +366,7 @@ apiDescribe('Database transactions', persistence => {
             doc,
             'owner.name',
             'Sebastian',
-            new firebase.firestore.FieldPath('is.admin'),
+            new FieldPath('is.admin'),
             true
           );
           return Promise.resolve();

@@ -20,6 +20,8 @@ import * as firestore from 'firestore';
 import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
+import { PublicFieldValue } from '../../../src/api/field_value';
+import { FieldPath } from '../../../src/api/field_path';
 
 const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
@@ -240,10 +242,10 @@ apiDescribe('Database batch writes', persistence => {
             collection.firestore
               .batch()
               .set(docA, {
-                when: firebase.firestore.FieldValue.serverTimestamp()
+                when: PublicFieldValue.serverTimestamp()
               })
               .set(docB, {
-                when: firebase.firestore.FieldValue.serverTimestamp()
+                when: PublicFieldValue.serverTimestamp()
               })
               .commit();
 
@@ -291,7 +293,7 @@ apiDescribe('Database batch writes', persistence => {
             .set(doc, { a: 1, b: 1, when: 'when' })
             .update(doc, {
               b: 2,
-              when: firebase.firestore.FieldValue.serverTimestamp()
+              when: PublicFieldValue.serverTimestamp()
             })
             .commit();
 
@@ -330,13 +332,7 @@ apiDescribe('Database batch writes', persistence => {
       return doc.firestore
         .batch()
         .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore.FieldPath('is.admin'),
-          true
-        )
+        .update(doc, 'owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .commit()
         .then(() => doc.get())
         .then(docSnapshot => {

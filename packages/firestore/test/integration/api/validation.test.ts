@@ -27,6 +27,8 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { PublicFieldValue } from '../../../src/api/field_value';
+import { FieldPath } from '../../../src/api/field_path';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
@@ -418,7 +420,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectSetToFail(
           db,
-          { foo: firebase.firestore.FieldValue.delete() },
+          { foo: PublicFieldValue.delete() },
           'FieldValue.delete() can only be used with update() and set() with {merge:true} (found in field foo)'
         );
       }
@@ -430,7 +432,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectUpdateToFail(
           db,
-          { foo: { bar: firebase.firestore.FieldValue.delete() } },
+          { foo: { bar: PublicFieldValue.delete() } },
           'FieldValue.delete() can only appear at the top level of your ' +
             'update data (found in field foo.bar)'
         );
@@ -577,9 +579,7 @@ apiDescribe('Validation:', persistence => {
       'order-by-key bounds must be strings without slashes.',
       db => {
         const collection = db.collection('collection');
-        const query = collection.orderBy(
-          firebase.firestore.FieldPath.documentId()
-        );
+        const query = collection.orderBy(FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'
@@ -659,25 +659,21 @@ apiDescribe('Validation:', persistence => {
       db => {
         const collection = db.collection('test');
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', '')
+          collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it was an empty string.'
         );
         expect(() =>
-          collection.where(
-            firebase.firestore.FieldPath.documentId(),
-            '>=',
-            'foo/bar/baz'
-          )
+          collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it contains a slash.'
         );
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', 1)
+          collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
