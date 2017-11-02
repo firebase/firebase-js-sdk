@@ -13,6 +13,7 @@
     "build": "gulp",
     "test": "npm run build && npm run generate-test-files && ./buildtools/run_tests.sh",
     "serve": "npm run build && npm run generate-test-files && gulp serve",
+    "demo": "./buildtools/run_demo.sh",
     "generate-test-files": "./buildtools/generate_test_files.sh",
     "prepare": "npm run build"
   },
@@ -22,6 +23,7 @@
     "closure-builder": "^2.0.17",
     "del": "^2.2.2",
     "express": "^4.16.2",
+    "firebase-tools": "^3.10.1",
     "google-closure-compiler": "^20170910.0.0",
     "google-closure-library": "^20170910.0.0",
     "gulp": "^3.9.1",
