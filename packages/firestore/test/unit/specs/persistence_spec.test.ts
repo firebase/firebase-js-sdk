@@ -183,12 +183,12 @@ describeSpec('Persistence:', ['persistence'], () => {
     );
   });
 
-  specTest('Writes are resent after network disconnect', ['exclusive'], () => {
+  specTest('Writes are resent after network disconnect', [], () => {
     return spec()
         .userSets('collection/key', { foo: 'bar' })
         .expectNumOutstandingWrites(1)
          .disableNetwork()
-         .expectEmptyWrite()
+        .expectEmptyWrite()
          .enableNetwork()
          .expectNumOutstandingWrites(1)
          .writeAcks(1, { expectUserCallback: false })

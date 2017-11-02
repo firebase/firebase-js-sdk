@@ -99,13 +99,15 @@ class MockConnection implements Connection {
    * Used to make sure a write was actually sent out on the network before the
    * test runner continues.
    */
-  writeSendBarriers: Array<Deferred<api.Write[]>> = [];
+  writeSendBarriers: Array<Deferred<api.Write>> = [];
 
   /**
    * The set of mutations sent out before there was a corresponding
    * writeSendBarrier.
    */
-  earlyWrites: api.Write[][] = [];
+  earlyWrites: api.Write[] = [];
+
+  numEmptyWrites: number = 0;
 
   nextWriteStreamToken = 0;
 
@@ -120,29 +122,17 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
-  reset() {
-    this.earlyWrites = [];
-    this.writeSendBarriers =[];
-    this.activeTargets = [];
-    this.watchOpen = new Deferred<void>();
-  }
-
   invoke(rpcName: string, request: any): Promise<any> {
     throw new Error('Not implemented!');
   }
 
-  waitForWritesSend(): Promise<api.Write[]> {
-    console.log('EARLY WRIETS COUNT ' + this.earlyWrites.length);
+  waitForWriteSend(): Promise<api.Write> {
     if (this.earlyWrites.length > 0) {
       return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
     }
     const barrier = new Deferred<api.Write>();
     this.writeSendBarriers.push(barrier);
     return barrier.promise;
-  }
-
-  waitForWriteSend(): Promise<api.Write> {
-    return this.waitForWritesSend().then(([write]) => write);
   }
 
   waitForWatchOpen(): Promise<void> {
@@ -159,22 +149,22 @@ class MockConnection implements Connection {
   }
 
   failWrite(err: FirestoreError): void {
-    this.earlyWrites = [];
-    this.writeSendBarriers = [];
     this.resetAndCloseWriteStream(err);
   }
 
   private resetAndCloseWriteStream(err?: FirestoreError) {
+    this.writeSendBarriers = [];
+    this.earlyWrites = [];
     this.writeStream!.callOnClose(err);
     this.writeStream = null;
   }
 
   failWatchStream(err?: FirestoreError) {
-    this.activeTargets = {};
     this.resetAndCloseWatchStream(err);
   }
 
   private resetAndCloseWatchStream(err?: FirestoreError) {
+    this.activeTargets = {};
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
     this.watchStream = null;
@@ -185,8 +175,7 @@ class MockConnection implements Connection {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
       }
-      this.earlyWrites = [];
-      this.writeSendBarriers =[];
+      this.numEmptyWrites = 0;
       let firstCall = true;
       const writeStream = new StreamBridge<WriteRequest, api.WriteResponse>({
         sendFn: (request: WriteRequest) => {
@@ -209,9 +198,11 @@ class MockConnection implements Connection {
             'streamToken must be set on all writes'
           );
           assert(!!request.writes, 'writes must be set on all writes');
-          if (request.writes!.length > 1) {
+          if (request.writes!.length === 0) {
+            ++this.numEmptyWrites;
+          } else {
             // TODO(dimond): support batching?
-            fail('Unexpected batched mutation found!');
+            assert(request.writes!.length === 1, 'Unexpected batched mutation found!');
           }
 
           const barrier = this.writeSendBarriers.shift();
@@ -219,13 +210,13 @@ class MockConnection implements Connection {
             // The test runner hasn't set up the barrier yet, so we queue
             // up this mutation to provide to the barrier promise when it
             // arrives.
-            this.earlyWrites.push(request.writes!);
+            this.earlyWrites.push(request.writes![0]);
           } else {
             // The test runner is waiting on a write invocation, now that we
             // have it we can resolve the write send barrier. If we add
             // (automatic) batching support we need to make sure the number of
             // batches matches the number of calls to waitForWriteSend.
-            barrier.resolve(request.writes!);
+            barrier.resolve(request.writes![0]);
           }
         },
         closeFn: () => {
@@ -241,8 +232,6 @@ class MockConnection implements Connection {
       this.writeStream = writeStream;
       return writeStream;
     } else {
-      this.activeTargets = [];
-      this.watchOpen = new Deferred<void>();
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
         throw new Error('Stream opened twice!');
@@ -431,9 +420,7 @@ abstract class TestRunner {
   }
 
   run(steps: SpecStep[]): Promise<void> {
-    this.connection.reset();
     console.log('Running spec: ' + this.name);
-
     return sequence(steps, async step => {
       await this.doStep(step);
       await this.queue.drain();
@@ -710,20 +697,13 @@ abstract class TestRunner {
     }
   }
 
-  private async validateOutstandingWrites() : Promise<void> {
-    for (let write of this.outstandingWrites) {
-      await this.validateNextWriteSent(write.mutations);
-    }
-  }
   /** Validates that a write was sent and matches the expected write. */
   private validateNextWriteSent(mutations: Mutation[]): Promise<void> {
     // Make sure this write was sent on the wire and it matches the expected
     // write.
-    return this.connection.waitForWritesSend().then(writes => {
-      // expect(writes.length).to.be.equal(mutations.length);
-      // for (let i = 0; i < writes.length; ++i) {
-      //   expect(writes[i]).to.deep.equal(this.serializer.toMutation(mutations[i]));
-      // }
+    return this.connection.waitForWriteSend().then(write => {
+      assert(mutations.length === 1, "We don't support multiple mutations.");
+      expect(write).to.deep.equal(this.serializer.toMutation(mutations[0]));
     });
   }
 
@@ -775,14 +755,7 @@ abstract class TestRunner {
   }
 
   private async doExpectEmptyWrites(n : number): Promise<void>  {
-    for (let i = 0; i < n; ++i) {
-      const userCallback = new Deferred<void>();
-      this.outstandingWrites.push({mutations: [], userCallback});
-    }
-    await this.validateOutstandingWrites();
-    for (let i = 0; i < n; ++i) {
-      this.outstandingWrites.pop();
-    }
+    expect(this.connection.numEmptyWrites).to.equal(n);
   }
 
   private async doEnableNetwork(): Promise<void> {
