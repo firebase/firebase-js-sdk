@@ -53,11 +53,9 @@ const firestoreNamespace = {
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  */
 export function configureForFirebase(firebase: FirebaseNamespace): void {
-  console.log('I am called');
   firebase.INTERNAL.registerService(
     'firestore',
     (app: FirebaseApp) => {
-      console.log('I am not called');
       return new Firestore(app);
     },
     shallowCopy(firestoreNamespace),

@@ -90,7 +90,7 @@ export function apiDescribe(
 ): void {
   const persistenceModes = [false];
   if (isPersistenceAvailable()) {
-   // persistenceModes.push(true);
+    persistenceModes.push(true);
   }
 
   for (const enabled of persistenceModes) {
@@ -101,7 +101,7 @@ export function apiDescribe(
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
-    'persistenceKey',
+    'persistenceKey' + Math.random(),
     DEFAULT_SETTINGS.host,
     DEFAULT_SETTINGS.ssl
   );

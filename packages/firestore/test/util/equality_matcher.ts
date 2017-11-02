@@ -71,8 +71,8 @@ export function addEqualityMatcher() {
 
           this.assert(
             customDeepEqual(left, right),
-            'expected #{this} to roughly deeply equal #{exp}',
-            'expected #{this} to not roughly deeply equal #{exp}',
+            'expected #{act} to roughly deeply equal #{exp}',
+            'expected #{act} to not roughly deeply equal #{exp}',
             left,
             right,
             true
