@@ -23,7 +23,7 @@
     "closure-builder": "^2.0.17",
     "del": "^2.2.2",
     "express": "^4.16.2",
-    "firebase-tools": "^3.14.0",
+    "firebase-tools": "^3.10.1",
     "google-closure-compiler": "^20170910.0.0",
     "google-closure-library": "^20170910.0.0",
     "gulp": "^3.9.1",
