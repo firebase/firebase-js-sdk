@@ -77,6 +77,12 @@ export function apiDescribe(
   }
 }
 
+/** Drains the AsyncQueue. Delayed tasks are executed immediately. */
+export function drainAsyncQueue(db: firestore.Firestore) : Promise<void> {
+  const firestoreInternal = db.INTERNAL as any;
+  return firestoreInternal.drainAsyncQueue( /* executeDelayedTasks= */ true);
+}
+
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
@@ -87,10 +93,10 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 }
 
 export function withTestDatastore(
-  fn: (datastore: Datastore, queue: AsyncQueue) => Promise<void>
+  fn: (datastore: Datastore) => Promise<void>,
+  queue? : AsyncQueue
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  const queue = new AsyncQueue();
   return PlatformSupport.getPlatform()
     .loadConnection(databaseInfo)
     .then(conn => {
@@ -99,31 +105,29 @@ export function withTestDatastore(
       );
       const datastore = new Datastore(
         databaseInfo,
-        queue,
+          queue ||  new AsyncQueue(),
         conn,
         new EmptyCredentialsProvider(),
         serializer
       );
 
-      return fn(datastore, queue);
+      return fn(datastore);
     });
 }
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
+  fn: (db: firestore.Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
-    // tslint:disable-next-line:no-any queue isn't exposed via d.ts
-    const firestoreInternal = db.INTERNAL as any;
-    return fn(db, firestoreInternal.queue);
+    return fn(db);
   });
 }
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
+  fn: (db: firestore.Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -131,9 +135,7 @@ export function withAlternateTestDb(
     DEFAULT_SETTINGS,
     1,
     ([db]) => {
-      // tslint:disable-next-line:no-any queue isn't exposed via d.ts
-      const firestoreInternal = db.INTERNAL as any;
-      return fn(db, firestoreInternal.queue);
+      return fn(db);
     }
   );
 }
