@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt } from '../../util/helpers';
+import {asyncIt, fasyncIt} from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -629,11 +629,11 @@ apiDescribe('Database', persistence => {
   asyncIt('can write document after idle timeout', () => {
     return withTestDb(persistence, (db, queue) => {
       const docRef = db.collection('test-collection').doc();
-      return queue
-        .awaitIdleTimeout(() => {
-          return docRef.set({ foo: 'bar' });
-        })
-        .then(() => docRef.set({ foo: 'bar' }));
+      return docRef.set({ foo: 'bar' }).then(() => {
+        console.log(JSON.stringify(queue));
+        expect(queue.delayedOperationsCount).to.be.equal(1);
+        return queue.drain(/* executeDelayedTasks= */ true);
+      }).then(() => docRef.set({ foo: 'bar' }));
     });
   });
 
@@ -653,11 +653,10 @@ apiDescribe('Database', persistence => {
         return deferred.promise.then(unregister);
       };
 
-      return queue
-        .awaitIdleTimeout(() => {
-          return awaitOnlineSnapshot();
-        })
-        .then(() => awaitOnlineSnapshot());
+      return awaitOnlineSnapshot().then(() => {
+        expect(queue.delayedOperationsCount).to.be.equal(1);
+        return queue.drain(/* executeDelayedTasks= */ true);
+      }).then(() => awaitOnlineSnapshot());
     });
   });
 });
