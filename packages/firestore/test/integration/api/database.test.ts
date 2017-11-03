@@ -18,14 +18,15 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
-import {asyncIt, fasyncIt} from '../../util/helpers';
-import firebase from '../util/firebase_export';
+import { asyncIt } from '../../util/helpers';
 import {
   apiDescribe,
   withTestCollection,
   withTestDb,
   withTestDoc
 } from '../util/helpers';
+import { FieldPath } from '../../../src/api/field_path';
+import { PublicFieldValue } from '../../../src/api/field_value';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -126,7 +127,7 @@ apiDescribe('Database', persistence => {
         updated: false
       };
       const mergeData = {
-        time: firebase.firestore.FieldValue.serverTimestamp()
+        time: PublicFieldValue.serverTimestamp()
       };
       return doc
         .set(initialData)
@@ -148,8 +149,8 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: firebase.firestore.FieldValue.delete(),
-        nested: { foo: firebase.firestore.FieldValue.delete() }
+        foo: PublicFieldValue.delete(),
+        nested: { foo: PublicFieldValue.delete() }
       };
       const finalData = {
         untouched: true,
@@ -222,7 +223,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
       };
       const updateData = {
-        'owner.email': firebase.firestore.FieldValue.delete()
+        'owner.email': PublicFieldValue.delete()
       };
       const finalData = {
         desc: 'Description',
@@ -240,8 +241,6 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can update nested fields', () => {
-    const FieldPath = firebase.firestore.FieldPath;
-
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',

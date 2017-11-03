@@ -18,8 +18,7 @@ import { expect } from 'chai';
 import { asyncIt, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDoc } from '../util/helpers';
-
-const FieldPath = firebase.firestore.FieldPath;
+import { FieldPath } from '../../../src/api/field_path';
 
 apiDescribe('Nested Fields', persistence => {
   const testData = (n?: number): any => {

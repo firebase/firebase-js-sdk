@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "pretest": "gulp compile-tests",
-    "test": "karma start --single-run"
+    "build": "gulp compile-tests",
+    "pretest:manual": "npm run build",
+    "pretest:debug": "npm run build",
+    "test": "echo 'Automated tests temporarily disabled, run `npm run test:manual` to execute these tests'",
+    "test:manual": "karma start --single-run",
+    "test:debug": "karma start --auto-watch --browsers Chrome"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.44",

@@ -20,6 +20,8 @@ import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
 import * as testHelpers from '../../util/helpers';
+import { GeoPoint } from '../../../src/api/geo_point';
+import { PublicBlob } from '../../../src/api/blob';
 
 const asyncIt = testHelpers.asyncIt;
 
@@ -49,13 +51,13 @@ apiDescribe('Firestore', persistence => {
   asyncIt('can read and write geo point fields', () => {
     return withTestDoc(persistence, doc => {
       return doc
-        .set({ geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) })
+        .set({ geopoint: new GeoPoint(1.23, 4.56) })
         .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
           const latLong = docSnapshot.data()['geopoint'];
-          expect(latLong instanceof firebase.firestore.GeoPoint).to.equal(true);
+          expect(latLong instanceof GeoPoint).to.equal(true);
           expect(latLong.latitude).to.equal(1.23);
           expect(latLong.longitude).to.equal(4.56);
         });
@@ -66,16 +68,14 @@ apiDescribe('Firestore', persistence => {
     return withTestDoc(persistence, doc => {
       return doc
         .set({
-          bytes: firebase.firestore.Blob.fromUint8Array(
-            new Uint8Array([0, 1, 255])
-          )
+          bytes: PublicBlob.fromUint8Array(new Uint8Array([0, 1, 255]))
         })
         .then(() => {
           return doc.get();
         })
         .then(docSnapshot => {
           const blob = docSnapshot.data()['bytes'];
-          expect(blob instanceof firebase.firestore.Blob).to.equal(true);
+          expect(blob instanceof PublicBlob).to.equal(true);
           expect(blob.toUint8Array()).to.deep.equal(
             new Uint8Array([0, 1, 255])
           );
