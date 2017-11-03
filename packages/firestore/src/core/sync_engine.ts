@@ -226,6 +226,7 @@ export class SyncEngine implements RemoteSyncer {
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
       .then(() => {
+      console.log('calling fillWritePipeline');
         return this.remoteStore.fillWritePipeline();
       });
   }

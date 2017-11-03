@@ -325,6 +325,7 @@ export abstract class PersistentStream<
 
     // Clean up the underlying stream because we are no longer interested in events.
     if (this.stream !== null) {
+      console.log('tearing down stream');
       this.tearDown();
       this.stream.close();
       this.stream = null;
@@ -348,7 +349,13 @@ export abstract class PersistentStream<
     }
   }
 
-  protected abstract tearDown() : void;
+  /**
+   * Can be overridden to perform additional cleanup before the stream is closed.
+   * Calling super.tearDowm() is not required.
+   */
+  protected tearDown() : void {
+  }
+
   /**
    * Used by subclasses to start the concrete RPC and return the underlying
    * connection stream.
@@ -523,10 +530,6 @@ export class PersistentListenStream extends PersistentStream<
     super(queue, connection, credentials, initialBackoffDelay);
   }
 
-  protected tearDown() {
-
-  }
-
   protected startRpc(
     token: Token | null
   ): Stream<api.ListenRequest, api.ListenResponse> {
@@ -665,6 +668,7 @@ export class PersistentWriteStream extends PersistentStream<
   }
 
   protected onMessage(responseProto: api.WriteResponse): Promise<void> {
+    console.log('receivedd response ' + JSON.stringify(responseProto));
     // Always capture the last stream token.
     assert(
       !!responseProto.streamToken,
@@ -702,6 +706,7 @@ export class PersistentWriteStream extends PersistentStream<
    * calls should wait until onHandshakeComplete was called.
    */
   writeHandshake(): void {
+    console.log('sending handshake ' + JSON.stringify(mutations));
     assert(this.isOpen(), 'Writing handshake requires an opened stream');
     assert(!this.handshakeComplete_, 'Handshake already completed');
     // TODO(dimond): Support stream resumption. We intentionally do not set the
@@ -713,6 +718,8 @@ export class PersistentWriteStream extends PersistentStream<
 
   /** Sends a group of mutations to the Firestore backend to apply. */
   writeMutations(mutations: Mutation[]): void {
+
+    console.log('sending mutations ' + JSON.stringify(mutations));
     assert(this.isOpen(), 'Writing mutations requires an opened stream');
     assert(
       this.handshakeComplete_,

@@ -184,14 +184,6 @@ export class SpecBuilder {
     return this;
   }
 
-  expectEmptyWrite(): SpecBuilder {
-    this.nextStep();
-    this.currentStep = {
-      expectEmptyWrites: 1
-    };
-    return this;
-  }
-
   enableNetwork(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
@@ -514,6 +506,22 @@ export class SpecBuilder {
       fromCache: events.fromCache || false,
       hasPendingWrites: events.hasPendingWrites || false
     });
+    return this;
+  }
+
+  expectNumWriteStreamRequests(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.numWriteStreamRequests = num;
+    return this;
+  }
+
+  expectNumWatchStreamRequests(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.numWatchStreamRequests = num;
     return this;
   }
 

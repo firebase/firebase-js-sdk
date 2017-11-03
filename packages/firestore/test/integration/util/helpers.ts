@@ -101,7 +101,7 @@ export function apiDescribe(
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
-    'persistenceKey' + Math.random(),
+    'persistenceKey',
     DEFAULT_SETTINGS.host,
     DEFAULT_SETTINGS.ssl
   );

@@ -282,6 +282,7 @@ export class LocalStore {
 
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
+    console.log('Adding mutation to local storage ' + JSON.stringify(mutations));
     return this.persistence.runTransaction('Locally write mutations', txn => {
       let batch: MutationBatch;
       const localWriteTime = Timestamp.now();
@@ -588,7 +589,9 @@ export class LocalStore {
    */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction('Get next mutation batch', txn => {
+      console.log('grabbing mutatation bach')
       if (afterBatchId === undefined) {
+        console.log('unknown');
         afterBatchId = BATCHID_UNKNOWN;
       }
       return this.mutationQueue.getNextMutationBatchAfterBatchId(

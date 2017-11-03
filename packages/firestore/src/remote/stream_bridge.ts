@@ -39,16 +39,19 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   onOpen(callback: () => void): void {
+    console.log("GOT onOpen");
     assert(!this.wrappedOnOpen, 'Called onOpen on stream twice!');
     this.wrappedOnOpen = callback;
   }
 
   onClose(callback: (err?: FirestoreError) => void): void {
+    console.log("GOT onClose");
     assert(!this.wrappedOnClose, 'Called onClose on stream twice!');
     this.wrappedOnClose = callback;
   }
 
   onMessage(callback: (msg: O) => void): void {
+    console.log("GOT onMessage");
     assert(!this.wrappedOnMessage, 'Called onMessage on stream twice!');
     this.wrappedOnMessage = callback;
   }
@@ -58,6 +61,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   send(msg: I): void {
+    console.log("GOT send " + JSON.stringify(msg));
     this.sendFn(msg);
   }
 
@@ -78,6 +82,7 @@ export class StreamBridge<I, O> implements Stream<I, O> {
   }
 
   callOnMessage(msg: O): void {
+    console.log("GOT callOnMessage" + msg);
     assert(
       this.wrappedOnMessage !== null,
       'Cannot call onMessage because no ' + 'callback was set'

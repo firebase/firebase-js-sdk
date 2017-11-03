@@ -55,10 +55,8 @@ const firestoreNamespace = {
 export function configureForFirebase(firebase: FirebaseNamespace): void {
   firebase.INTERNAL.registerService(
     'firestore',
-    (app: FirebaseApp) => {
-      return new Firestore(app);
-    },
-    shallowCopy(firestoreNamespace),
+    (app: FirebaseApp) => new Firestore(app),
+    shallowCopy(firestoreNamespace)
   );
 }
 
