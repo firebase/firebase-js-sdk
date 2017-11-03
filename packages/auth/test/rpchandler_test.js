@@ -2436,6 +2436,48 @@ function testVerifyAssertion_success() {
 
 
 /**
+ * Tests verifyAssertion RPC call with no recovery errorMessage.
+ */
+function testVerifyAssertion_returnIdpCredential_noRecoveryError() {
+  // Simulate server response containing unrecoverable errorMessage.
+  var serverResponse = {
+    'federatedId': 'FEDERATED_ID',
+    'providerId': 'google.com',
+    'email': 'user@example.com',
+    'emailVerified': true,
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE',
+    'errorMessage': 'USER_DISABLED'
+  };
+  // Expected error thrown.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.USER_DISABLED);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests verifyAssertion RPC call with no sessionId passed.
  */
 function testVerifyAssertion_error() {
@@ -2486,6 +2528,50 @@ function testVerifyAssertionForLinking_success() {
         assertEquals(expectedResponse, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests verifyAssertion for linking RPC call with no recovery errorMessage.
+ */
+function testVerifyAssertionForLinking_returnIdpCredential_noRecoveryError() {
+  // Simulate server response containing unrecoverable errorMessage.
+  var serverResponse = {
+    'federatedId': 'FEDERATED_ID',
+    'providerId': 'google.com',
+    'email': 'user@example.com',
+    'emailVerified': true,
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE',
+    'errorMessage': 'USER_DISABLED'
+  };
+  // Expected error thrown.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.USER_DISABLED);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertionForLinking({
+    'idToken': 'ID_TOKEN',
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -2820,6 +2906,49 @@ function testVerifyAssertionForExisting_success() {
         assertEquals(expectedResponse, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests verifyAssertion for existing RPC call with no recovery errorMessage.
+ */
+function testVerifyAssertionForExisting_returnIdpCredential_noRecoveryError() {
+  // Simulate server response containing unrecoverable errorMessage.
+  var serverResponse = {
+    'federatedId': 'FEDERATED_ID',
+    'providerId': 'google.com',
+    'email': 'user@example.com',
+    'emailVerified': true,
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE',
+    'errorMessage': 'USER_DISABLED'
+  };
+  // Expected error thrown.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.USER_DISABLED);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
 }
 
 

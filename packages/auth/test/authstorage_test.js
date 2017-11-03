@@ -77,7 +77,7 @@ function tearDown() {
  *     synchronized manager instance used for testing.
  */
 function getDefaultManagerInstance() {
-  return new fireauth.authStorage.Manager('firebase', ':', false, true);
+  return new fireauth.authStorage.Manager('firebase', ':', false, true, true);
 }
 
 
@@ -404,7 +404,8 @@ function testGetSet_persistentStorage_noId() {
 
 
 function testAddRemoveListeners_localStorage() {
-  var manager = new fireauth.authStorage.Manager('name', ':', false, true);
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
   var listener2 = goog.testing.recordFunction();
   var listener3 = goog.testing.recordFunction();
@@ -470,7 +471,8 @@ function testAddRemoveListeners_localStorage() {
 
 
 function testAddRemoveListeners_localStorage_nullKey() {
-  var manager = new fireauth.authStorage.Manager('name', ':', false, true);
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
   var listener2 = goog.testing.recordFunction();
   var listener3 = goog.testing.recordFunction();
@@ -522,7 +524,8 @@ function testAddRemoveListeners_localStorage_ie10() {
       function() {
         return true;
       });
-  var manager = new fireauth.authStorage.Manager('name', ':', false, true);
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
   var listener2 = goog.testing.recordFunction();
   var listener3 = goog.testing.recordFunction();
@@ -637,7 +640,8 @@ function testAddRemoveListeners_indexeddb() {
       function() {
         return mockIndexeddb;
       });
-  var manager = new fireauth.authStorage.Manager('name', ':', false, true);
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
   var listener2 = goog.testing.recordFunction();
   var listener3 = goog.testing.recordFunction();
@@ -714,7 +718,8 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
         return mockIndexeddb;
       });
   // Cannot run in the background.
-  var manager = new fireauth.authStorage.Manager('name', ':', false, false);
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, false, true);
   var listener1 = goog.testing.recordFunction();
   var listener2 = goog.testing.recordFunction();
   var listener3 = goog.testing.recordFunction();
@@ -757,7 +762,7 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
 
 function testSafariLocalStorageSync_newEvent() {
   var manager =
-      new fireauth.authStorage.Manager('firebase', ':', true, true);
+      new fireauth.authStorage.Manager('firebase', ':', true, true, true);
   // Simulate Safari bug.
   stubs.replace(
       fireauth.util,
@@ -797,7 +802,7 @@ function testSafariLocalStorageSync_cannotRunInBackground() {
   // Realistically only storage event should trigger here.
   // Test when new data is added to storage.
   var manager =
-      new fireauth.authStorage.Manager('firebase', ':', true, false);
+      new fireauth.authStorage.Manager('firebase', ':', true, false, true);
   // Simulate Safari bug.
   stubs.replace(
       fireauth.util,
@@ -837,7 +842,7 @@ function testSafariLocalStorageSync_deletedEvent() {
   // Realistically only storage event should trigger here.
   // Test when old data is deleted from storage.
   var manager =
-      new fireauth.authStorage.Manager('firebase', ':', true, true);
+      new fireauth.authStorage.Manager('firebase', ':', true, true, true);
   var key1 = {'name': 'authEvent', 'persistent': true};
   // Simulate Safari bug.
   stubs.replace(
@@ -879,7 +884,7 @@ function testRunsInBackground_storageEventMode() {
   var key = {name: 'authEvent', persistent: 'local'};
   var storageKey = 'firebase:authEvent:appId1';
   var manager = new fireauth.authStorage.Manager(
-      'firebase', ':', false, false);
+      'firebase', ':', false, false, true);
   var listener1 = goog.testing.recordFunction();
   var expectedEvent = {
       type: 'signInViaPopup',
@@ -923,6 +928,49 @@ function testRunsInBackground_storageEventMode() {
 }
 
 
+function testRunsInBackground_webStorageNotSupported() {
+  // Test when browser does not run in the background and web storage is not
+  // supported. Polling should not be turned on.
+  var key = {name: 'authEvent', persistent: 'local'};
+  var storageKey = 'firebase:authEvent:appId1';
+  // Simulate manager doesn't support web storage and can't run in the
+  // background. Normally when a browser can't run in the background, polling is
+  // enabled.
+  var manager = new fireauth.authStorage.Manager(
+      'firebase', ':', false, false, false);
+  var listener1 = goog.testing.recordFunction();
+  var expectedEvent = {
+      type: 'signInViaPopup',
+      eventId: '1234',
+      callbackUrl: 'http://www.example.com/#oauthResponse',
+      sessionId: 'SESSION_ID'
+  };
+
+  // Add listener.
+  manager.addListener(key, appId, listener1);
+  // Test that polling function is not set by updating localStorage with some
+  // data. This should not happen realistically when web storage is disabled.
+  window.localStorage.setItem(storageKey, JSON.stringify(expectedEvent));
+  // Run clock.
+  clock.tick(1000);
+  // Listener should not trigger.
+  assertEquals(0, listener1.getCallCount());
+  // Clear storage.
+  window.localStorage.clear();
+  // Run clock.
+  clock.tick(1000);
+  // Listener should not trigger.
+  assertEquals(0, listener1.getCallCount());
+  // Save Auth event and confirm listener not triggered.
+  // This normally simulates polling.
+  window.localStorage.setItem(storageKey, JSON.stringify(expectedEvent));
+  // Run clock.
+  clock.tick(1000);
+  // Listener should not trigger.
+  assertEquals(0, listener1.getCallCount());
+}
+
+
 function testRunsInBackground_pollingMode() {
   // Test when browser does not run in the background while another tab is in
   // foreground.
@@ -932,7 +980,7 @@ function testRunsInBackground_pollingMode() {
   var key = {name: 'authEvent', persistent: 'local'};
   var storageKey = 'firebase:authEvent:appId1';
   var manager = new fireauth.authStorage.Manager(
-      'firebase', ':', false, false);
+      'firebase', ':', false, false, true);
   var listener1 = goog.testing.recordFunction();
   var expectedEvent = {
       type: 'signInViaPopup',
@@ -984,7 +1032,7 @@ function testRunsInBackground_currentTabChangesIgnored() {
   var key = {name: 'authEvent', persistent: 'local'};
   var storageKey = 'firebase:authEvent:appId1';
   var manager = new fireauth.authStorage.Manager(
-      'firebase', ':', false, false);
+      'firebase', ':', false, false, true);
   var listener1 = goog.testing.recordFunction();
   var expectedEvent = {
       type: 'signInViaPopup',
