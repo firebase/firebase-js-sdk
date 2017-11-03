@@ -311,7 +311,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       PlatformSupport.getPlatform(),
       databaseInfo,
       this._config.credentials,
-      this._queue,
+      this._queue
     );
     return this._firestoreClient.start(persistence);
   }
@@ -376,7 +376,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     // Exposed via INTERNAL for use in tests.
     disableNetwork: () => this._firestoreClient.disableNetwork(),
     enableNetwork: () => this._firestoreClient.enableNetwork(),
-    queue :  this._queue,
+    queue: this._queue
   };
 
   collection(pathString: string): firestore.CollectionReference {

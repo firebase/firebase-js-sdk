@@ -229,11 +229,11 @@ describe('Write Stream', () => {
       .then(() => {
         writeStream.markIdle();
         expect(queue.delayedOperationsCount).to.be.equal(1);
-          return Promise.all([
-           streamListener.awaitCallback('close'),
-              queue.drain(/*executeDelayedTasks=*/ true)
-              ]);
-        })
+        return Promise.all([
+          streamListener.awaitCallback('close'),
+          queue.drain(/*executeDelayedTasks=*/ true)
+        ]);
+      })
       .then(() => {
         expect(writeStream.isOpen()).to.be.false;
       });
@@ -259,9 +259,10 @@ describe('Write Stream', () => {
         expect(queue.delayedOperationsCount).to.be.equal(1);
         writeStream.writeMutations(SINGLE_MUTATION);
         return streamListener.awaitCallback('mutationResult');
-      }).then(() => queue.drain(/*executeDelayedTasks=*/ true))
-        .then(() => {
-          expect(writeStream.isOpen()).to.be.true;
-    });
+      })
+      .then(() => queue.drain(/*executeDelayedTasks=*/ true))
+      .then(() => {
+        expect(writeStream.isOpen()).to.be.true;
+      });
   });
 });

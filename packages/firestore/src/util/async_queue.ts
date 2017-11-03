@@ -20,12 +20,12 @@ import { AnyDuringMigration, AnyJs } from './misc';
 import { Deferred } from './promise';
 import { Code, FirestoreError } from './error';
 
-type DelayedOperation <T> = {
+type DelayedOperation<T> = {
   // tslint:disable-next-line:no-any Accept any return type from setTimeout().
   handle: any;
-  op:() => Promise<T>,
+  op: () => Promise<T>;
   deferred: Deferred<T>;
-}
+};
 
 export class AsyncQueue {
   // The last promise in the queue.
@@ -69,7 +69,7 @@ export class AsyncQueue {
     if ((delay || 0) > 0) {
       this.delayedOperationsCount++;
       const nextIndex = this.delayedOperations.length;
-      const delayedOp : DelayedOperation<T> = {
+      const delayedOp: DelayedOperation<T> = {
         handle: null,
         op: op,
         deferred: new Deferred<T>()
@@ -135,10 +135,16 @@ export class AsyncQueue {
       if (entry.handle) {
         clearTimeout(entry.handle);
         if (executeDelayedTasks) {
-          this.scheduleInternal(entry.op).then(entry.deferred.resolve, entry.deferred.reject);
+          this.scheduleInternal(entry.op).then(
+            entry.deferred.resolve,
+            entry.deferred.reject
+          );
         } else {
           entry.deferred.reject(
-              new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
+            new FirestoreError(
+              Code.CANCELLED,
+              'Operation cancelled by shutdown'
+            )
           );
         }
       }
