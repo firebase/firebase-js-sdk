@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt, fasyncIt } from '../../util/helpers';
+import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -632,7 +632,6 @@ apiDescribe('Database', persistence => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
-          console.log(JSON.stringify(queue));
           expect(queue.delayedOperationsCount).to.be.equal(1);
           return queue.drain(/* executeDelayedTasks= */ true);
         })

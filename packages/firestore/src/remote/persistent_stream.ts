@@ -255,7 +255,7 @@ export abstract class PersistentStream<
         return this.handleIdleCloseTimer();
       }, IDLE_TIMEOUT_MS)
       .catch((err: FirestoreError) => {
-        // When the AsyncQueue gets drained during a shutdown, pending Promises
+        // When the AsyncQueue gets drained during testing, pending Promises
         // (including these idle checks) will get rejected. We special-case
         // these cancelled idle checks to make sure that these specific Promise
         // rejections are not considered unhandled.

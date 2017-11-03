@@ -708,8 +708,8 @@ export class RemoteStore {
       'onWriteStreamClose() should only be called when the network is enabled'
     );
 
-    // If the write stream closed due to an error, invoke the error callbacks if there are pending
-    // writes.
+    // If the write stream closed due to an error, invoke the error callbacks if
+    // there are pending writes.
     if (error && this.pendingWrites.length > 0) {
       assert(
         !!error,

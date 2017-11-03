@@ -32,9 +32,9 @@ export class AsyncQueue {
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
   // A list with timeout handles and their respective deferred promises.
-  // Contains an entry for each operation that is queued to run future (i.e. it
-  // has a delay that has not yet elapsed). Prior to cleanup, this list may also
-  // contain entries that have already been run (in which case `handle` is
+  // Contains an entry for each operation that is queued to run in the future
+  // (i.e. it has a delay that has not yet elapsed). Prior to cleanup, this list
+  // may also contain entries that have already been run (in which case `handle` is
   // null).
   //
   // tslint:disable-next-line:no-any Accept any type of delayed operation.
@@ -127,8 +127,6 @@ export class AsyncQueue {
   /**
    * Waits until all currently scheduled tasks are finished executing. Tasks
    * schedule with a delay can be rejected or queued for immediate execution.
-   *
-   * @param executeDelayedTasks
    */
   drain(executeDelayedTasks: boolean): Promise<void> {
     this.delayedOperations.forEach(entry => {
@@ -150,6 +148,7 @@ export class AsyncQueue {
       }
     });
     this.delayedOperations = [];
+    this.delayedOperationsCount = 0;
     return this.schedule(() => Promise.resolve());
   }
 }

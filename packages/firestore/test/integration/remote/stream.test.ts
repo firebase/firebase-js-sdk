@@ -30,9 +30,8 @@ import {
 } from '../../../src/remote/watch_change';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt, fasyncIt, setMutation } from '../../util/helpers';
+import { asyncIt, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/helpers';
-import { TestQueue } from '../util/test_queue';
 
 /**
  * StreamEventType combines the events that can be observed by the
