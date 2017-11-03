@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { CheckerPlugin } = require('awesome-typescript-loader')
+const { CheckerPlugin } = require('awesome-typescript-loader');
 const { resolve } = require('path');
 const webpack = require('webpack');
 
@@ -63,7 +63,7 @@ const baseConfig = {
         unsafe: true,
         warnings: false
       }
-    }),
+    })
   ],
   resolve: {
     modules: ['node_modules', resolve(__dirname, '../../node_modules')],
