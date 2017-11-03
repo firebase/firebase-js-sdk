@@ -255,7 +255,7 @@ export abstract class PersistentStream<
         return this.handleIdleCloseTimer();
       }, IDLE_TIMEOUT_MS)
       .catch((err: FirestoreError) => {
-        // When the AsyncQueue gets drained during a shutdown, pending Promises
+        // When the AsyncQueue gets drained during testing, pending Promises
         // (including these idle checks) will get rejected. We special-case
         // these cancelled idle checks to make sure that these specific Promise
         // rejections are not considered unhandled.
@@ -325,7 +325,6 @@ export abstract class PersistentStream<
 
     // Clean up the underlying stream because we are no longer interested in events.
     if (this.stream !== null) {
-      console.log('tearing down stream');
       this.tearDown();
       this.stream.close();
       this.stream = null;
@@ -706,7 +705,7 @@ export class PersistentWriteStream extends PersistentStream<
    * calls should wait until onHandshakeComplete was called.
    */
   writeHandshake(): void {
-    console.log('sending handshake ' + JSON.stringify(mutations));
+    console.log('sending handshake');
     assert(this.isOpen(), 'Writing handshake requires an opened stream');
     assert(!this.handshakeComplete_, 'Handshake already completed');
     // TODO(dimond): Support stream resumption. We intentionally do not set the

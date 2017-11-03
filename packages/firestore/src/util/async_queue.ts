@@ -20,25 +20,32 @@ import { AnyDuringMigration, AnyJs } from './misc';
 import { Deferred } from './promise';
 import { Code, FirestoreError } from './error';
 
+type DelayedOperation<T> = {
+  // tslint:disable-next-line:no-any Accept any return type from setTimeout().
+  handle: any;
+  op: () => Promise<T>;
+  deferred: Deferred<T>;
+};
+
 export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
   // A list with timeout handles and their respective deferred promises.
-  // Contains an entry for each operation that is queued to run future (i.e. it
-  // has a delay that has not yet elapsed). Prior to cleanup, this list may also
-  // contain entries that have already been run (in which case `handle` is
+  // Contains an entry for each operation that is queued to run in the future
+  // (i.e. it has a delay that has not yet elapsed). Prior to cleanup, this list
+  // may also contain entries that have already been run (in which case `handle` is
   // null).
-  private delayedOperations: {
-    // tslint:disable-next-line:no-any Accept any return type from setTimeout().
-    handle: any;
-    deferred: Deferred<AnyJs | void>;
-  }[] = [];
+  //
+  // tslint:disable-next-line:no-any Accept any type of delayed operation.
+  private delayedOperations: DelayedOperation<any>[] = [];
 
   // The number of operations that are queued to be run in the future (i.e. they
   // have a delay that has not yet elapsed). Unlike `delayedOperations`, this
   // is guaranteed to only contain operations that have not yet been run.
-  private delayedOperationsCount = 0;
+  //
+  // Visible for testing.
+  delayedOperationsCount = 0;
 
   // visible for testing
   failure: Error;
@@ -61,23 +68,27 @@ export class AsyncQueue {
 
     if ((delay || 0) > 0) {
       this.delayedOperationsCount++;
-      const deferred = new Deferred<T>();
-      const opIndex = this.delayedOperations.length;
-      const handle = setTimeout(() => {
+      const nextIndex = this.delayedOperations.length;
+      const delayedOp: DelayedOperation<T> = {
+        handle: null,
+        op: op,
+        deferred: new Deferred<T>()
+      };
+      delayedOp.handle = setTimeout(() => {
         this.scheduleInternal(() => {
-          return op().then(result => {
-            deferred.resolve(result);
+          return delayedOp.op().then(result => {
+            delayedOp.deferred.resolve(result);
           });
         });
         this.delayedOperationsCount--;
         if (this.delayedOperationsCount > 0) {
-          this.delayedOperations[opIndex].handle = null;
+          delayedOp.handle = null;
         } else {
           this.delayedOperations = [];
         }
       }, delay);
-      this.delayedOperations[opIndex] = { handle, deferred };
-      return deferred.promise;
+      this.delayedOperations[nextIndex] = delayedOp;
+      return delayedOp.deferred.promise;
     } else {
       return this.scheduleInternal(op);
     }
@@ -114,19 +125,30 @@ export class AsyncQueue {
   }
 
   /**
-   * Waits for tasks that are scheduled for immediate execution and rejects any
-   * tasks that are pending with a non-zero delay.
+   * Waits until all currently scheduled tasks are finished executing. Tasks
+   * schedule with a delay can be rejected or queued for immediate execution.
    */
-  drain(): Promise<void> {
+  drain(executeDelayedTasks: boolean): Promise<void> {
     this.delayedOperations.forEach(entry => {
       if (entry.handle) {
         clearTimeout(entry.handle);
-        entry.deferred.reject(
-          new FirestoreError(Code.CANCELLED, 'Operation cancelled by shutdown')
-        );
+        if (executeDelayedTasks) {
+          this.scheduleInternal(entry.op).then(
+            entry.deferred.resolve,
+            entry.deferred.reject
+          );
+        } else {
+          entry.deferred.reject(
+            new FirestoreError(
+              Code.CANCELLED,
+              'Operation cancelled by shutdown'
+            )
+          );
+        }
       }
     });
     this.delayedOperations = [];
+    this.delayedOperationsCount = 0;
     return this.schedule(() => Promise.resolve());
   }
 }

@@ -32,7 +32,6 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/helpers';
-import { TestQueue } from '../util/test_queue';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -214,10 +213,10 @@ describe('Write Stream', () => {
 
   asyncIt('closes when idle', () => {
     let writeStream: PersistentWriteStream;
-    let queue: TestQueue;
+    let queue: AsyncQueue;
 
-    return withTestDatastore((ds, testQueue) => {
-      queue = testQueue;
+    return withTestDatastore((ds, q) => {
+      queue = q;
       writeStream = ds.newPersistentWriteStream();
       writeStream.start(streamListener);
       return streamListener.awaitCallback('open');
@@ -226,24 +225,25 @@ describe('Write Stream', () => {
         writeStream.writeHandshake();
         return streamListener.awaitCallback('handshakeComplete');
       })
-      .then(() =>
-        queue
-          .awaitIdleTimeout(() => {
-            writeStream.markIdle();
-            return streamListener.awaitCallback('close');
-          })
-          .then(() => {
-            expect(writeStream.isOpen()).to.be.false;
-          })
-      );
+      .then(() => {
+        writeStream.markIdle();
+        expect(queue.delayedOperationsCount).to.be.equal(1);
+        return Promise.all([
+          streamListener.awaitCallback('close'),
+          queue.drain(/*executeDelayedTasks=*/ true)
+        ]);
+      })
+      .then(() => {
+        expect(writeStream.isOpen()).to.be.false;
+      });
   });
 
   asyncIt('cancels idle on write', () => {
     let writeStream: PersistentWriteStream;
-    let queue: TestQueue;
+    let queue: AsyncQueue;
 
-    return withTestDatastore((ds, testQueue) => {
-      queue = testQueue;
+    return withTestDatastore((ds, q) => {
+      queue = q;
       writeStream = ds.newPersistentWriteStream();
       writeStream.start(streamListener);
       return streamListener.awaitCallback('open');
@@ -252,17 +252,16 @@ describe('Write Stream', () => {
         writeStream.writeHandshake();
         return streamListener.awaitCallback('handshakeComplete');
       })
-      .then(() =>
-        queue
-          .awaitIdleTimeout(() => {
-            // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
-            writeStream.markIdle();
-            writeStream.writeMutations(SINGLE_MUTATION);
-            return streamListener.awaitCallback('mutationResult');
-          })
-          .then(() => {
-            expect(writeStream.isOpen()).to.be.true;
-          })
-      );
+      .then(() => {
+        // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
+        writeStream.markIdle();
+        expect(queue.delayedOperationsCount).to.be.equal(1);
+        writeStream.writeMutations(SINGLE_MUTATION);
+        return streamListener.awaitCallback('mutationResult');
+      })
+      .then(() => queue.drain(/*executeDelayedTasks=*/ true))
+      .then(() => {
+        expect(writeStream.isOpen()).to.be.true;
+      });
   });
 });

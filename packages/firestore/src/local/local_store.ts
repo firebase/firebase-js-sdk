@@ -282,7 +282,6 @@ export class LocalStore {
 
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
-    console.log('Adding mutation to local storage ' + JSON.stringify(mutations));
     return this.persistence.runTransaction('Locally write mutations', txn => {
       let batch: MutationBatch;
       const localWriteTime = Timestamp.now();

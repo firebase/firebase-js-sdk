@@ -256,7 +256,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    console.log('INDEX DB: getNextMutationBatchAfterBatchId');
     const range = IDBKeyRange.lowerBound(this.keyForBatchId(batchId + 1));
     let foundBatch: MutationBatch | null = null;
     return mutationsStore(transaction)
@@ -268,7 +267,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
           );
           foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
         }
-        console.log('INDEX DB: getNextMutationBatchAfterBatchId done: '  + JSON.stringify(foundBatch.mutations));
         control.done();
       })
       .next(() => foundBatch);

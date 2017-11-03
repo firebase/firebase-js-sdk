@@ -18,8 +18,8 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import * as testHelpers from '../../util/helpers';
+import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
-import { PublicFieldValue } from '../../../src/api/field_value';
 
 const asyncIt = testHelpers.asyncIt;
 
@@ -27,15 +27,15 @@ apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
   const setData = {
     a: 42,
-    when: PublicFieldValue.serverTimestamp(),
-    deep: { when: PublicFieldValue.serverTimestamp() }
+    when: firebase.firestore.FieldValue.serverTimestamp(),
+    deep: { when: firebase.firestore.FieldValue.serverTimestamp() }
   };
 
   // base and update data used for update() tests.
   const initialData = { a: 42 };
   const updateData = {
-    when: PublicFieldValue.serverTimestamp(),
-    deep: { when: PublicFieldValue.serverTimestamp() }
+    when: firebase.firestore.FieldValue.serverTimestamp(),
+    deep: { when: firebase.firestore.FieldValue.serverTimestamp() }
   };
 
   // A document reference to read and write to.

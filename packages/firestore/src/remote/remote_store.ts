@@ -566,12 +566,9 @@ export class RemoteStore {
    * typically called by SyncEngine after it has sent mutations to LocalStore.
    */
   fillWritePipeline(): Promise<void> {
-    console.log('fillWritePipeline');
     if (!this.canWriteMutations()) {
-      console.log('!canWriteMutations');
       return Promise.resolve();
     } else {
-      console.log('grabbing  batch ' + this.lastBatchSeen);
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
@@ -581,7 +578,6 @@ export class RemoteStore {
             }
             return Promise.resolve();
           } else {
-            console.log('RECEIVED BATCH ' + JSON.stringify(batch));
             this.commit(batch);
             return this.fillWritePipeline();
           }
@@ -625,7 +621,6 @@ export class RemoteStore {
     this.pendingWrites.push(batch);
 
     if (this.shouldStartWriteStream()) {
-      console.log('start write stream');
       this.startWriteStream();
     } else if (this.isNetworkEnabled() && this.writeStream.handshakeComplete) {
       this.writeStream.writeMutations(batch.mutations);
@@ -713,8 +708,8 @@ export class RemoteStore {
       'onWriteStreamClose() should only be called when the network is enabled'
     );
 
-    // If the write stream closed due to an error, invoke the error callbacks if there are pending
-    // writes.
+    // If the write stream closed due to an error, invoke the error callbacks if
+    // there are pending writes.
     if (error && this.pendingWrites.length > 0) {
       assert(
         !!error,

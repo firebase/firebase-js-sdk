@@ -19,14 +19,13 @@ import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
+import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   withTestCollection,
   withTestDb,
   withTestDoc
 } from '../util/helpers';
-import { FieldPath } from '../../../src/api/field_path';
-import { PublicFieldValue } from '../../../src/api/field_value';
 
 apiDescribe('Database', persistence => {
   asyncIt('can set a document', () => {
@@ -127,7 +126,7 @@ apiDescribe('Database', persistence => {
         updated: false
       };
       const mergeData = {
-        time: PublicFieldValue.serverTimestamp()
+        time: firebase.firestore.FieldValue.serverTimestamp()
       };
       return doc
         .set(initialData)
@@ -149,8 +148,8 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: PublicFieldValue.delete(),
-        nested: { foo: PublicFieldValue.delete() }
+        foo: firebase.firestore.FieldValue.delete(),
+        nested: { foo: firebase.firestore.FieldValue.delete() }
       };
       const finalData = {
         untouched: true,
@@ -223,7 +222,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
       };
       const updateData = {
-        'owner.email': PublicFieldValue.delete()
+        'owner.email': firebase.firestore.FieldValue.delete()
       };
       const finalData = {
         desc: 'Description',
@@ -241,6 +240,8 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can update nested fields', () => {
+    const FieldPath = firebase.firestore.FieldPath;
+
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
@@ -628,9 +629,11 @@ apiDescribe('Database', persistence => {
   asyncIt('can write document after idle timeout', () => {
     return withTestDb(persistence, (db, queue) => {
       const docRef = db.collection('test-collection').doc();
-      return queue
-        .awaitIdleTimeout(() => {
-          return docRef.set({ foo: 'bar' });
+      return docRef
+        .set({ foo: 'bar' })
+        .then(() => {
+          expect(queue.delayedOperationsCount).to.be.equal(1);
+          return queue.drain(/* executeDelayedTasks= */ true);
         })
         .then(() => docRef.set({ foo: 'bar' }));
     });
@@ -652,9 +655,10 @@ apiDescribe('Database', persistence => {
         return deferred.promise.then(unregister);
       };
 
-      return queue
-        .awaitIdleTimeout(() => {
-          return awaitOnlineSnapshot();
+      return awaitOnlineSnapshot()
+        .then(() => {
+          expect(queue.delayedOperationsCount).to.be.equal(1);
+          return queue.drain(/* executeDelayedTasks= */ true);
         })
         .then(() => awaitOnlineSnapshot());
     });

@@ -16,8 +16,6 @@
 
 import * as firestore from 'firestore';
 
-import { FirebaseApp } from '@firebase/app';
-
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
@@ -25,8 +23,6 @@ import firebase from './firebase_export';
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { Firestore, FirestoreDatabase } from '../../../src/api/database';
-import { TestQueue } from './test_queue';
 
 // tslint:disable-next-line:no-any __karma__ is an untyped global
 declare const __karma__: any;
@@ -57,23 +53,6 @@ function isIeOrEdge(): boolean {
     ua.indexOf('Trident/') > 0 ||
     ua.indexOf('Edge/') > 0
   );
-}
-
-/** Implementation of Firestore that offers access to the underlying queue. */
-class TestFirestore extends Firestore {
-  _queue = new TestQueue();
-
-  constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
-    super(databaseIdOrApp);
-  }
-
-  get queue() {
-    return this._queue;
-  }
-
-  protected initializeAsyncQueue(): AsyncQueue {
-    return this._queue;
-  }
 }
 
 export function isPersistenceAvailable(): boolean {
@@ -108,10 +87,10 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 }
 
 export function withTestDatastore(
-  fn: (datastore: Datastore, queue: TestQueue) => Promise<void>
+  fn: (datastore: Datastore, queue: AsyncQueue) => Promise<void>
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
-  const queue = new TestQueue();
+  const queue = new AsyncQueue();
   return PlatformSupport.getPlatform()
     .loadConnection(databaseInfo)
     .then(conn => {
@@ -132,17 +111,19 @@ export function withTestDatastore(
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: TestQueue) => Promise<void>
+  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
-    return fn(db, (db as TestFirestore).queue);
+    // tslint:disable-next-line:no-any queue isn't exposed via d.ts
+    const firestoreInternal = db.INTERNAL as any;
+    return fn(db, firestoreInternal.queue);
   });
 }
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: TestQueue) => Promise<void>
+  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -150,7 +131,9 @@ export function withAlternateTestDb(
     DEFAULT_SETTINGS,
     1,
     ([db]) => {
-      return fn(db, (db as TestFirestore).queue);
+      // tslint:disable-next-line:no-any queue isn't exposed via d.ts
+      const firestoreInternal = db.INTERNAL as any;
+      return fn(db, firestoreInternal.queue);
     }
   );
 }
@@ -189,10 +172,13 @@ export function withTestDbsSettings(
       { apiKey: 'fake-api-key', projectId },
       'test-app-' + appCount++
     );
-    const firestore = new TestFirestore(app);
+
+    // tslint:disable-next-line:no-any Firestore is not exposed in firebase.d.ts
+    const firebaseAny = firebase as any;
+    const firestore = firebaseAny.firestore(app);
     firestore.settings(settings);
 
-    let ready: Promise<TestFirestore>;
+    let ready: Promise<firestore.Firestore>;
     if (persistence) {
       ready = firestore.enablePersistence().then(() => firestore);
     } else {
@@ -202,7 +188,7 @@ export function withTestDbsSettings(
     promises.push(ready);
   }
 
-  return Promise.all(promises).then((dbs: TestFirestore[]) => {
+  return Promise.all(promises).then((dbs: firestore.Firestore[]) => {
     return fn(dbs)
       .then(wipeDb.bind(null, dbs[0]), error => {
         return wipeDb(dbs[0]).then(() => {

@@ -114,8 +114,11 @@ class MockConnection implements Connection {
    */
   earlyWrites: MutationBatch[] = [];
 
-  state : CurrentConnectionState = {};
+  /** The total number of requests sent to the write stream. */
+  numWatchStreamRequests = 0;
 
+  /** The total number of requests sent to the watch stream. */
+  numWriteStreamRequests = 0;
 
   nextWriteStreamToken = 0;
 
@@ -131,11 +134,8 @@ class MockConnection implements Connection {
   watchOpen = new Deferred<void>();
 
   reset() : void {
-    console.log('reset');
-    this.state = {
-      numWatchStreamRequests: 0,
-      numWriteStreamRequests:0
-    };
+    this.numWatchStreamRequests = 0;
+    this.numWriteStreamRequests = 0;
     this.earlyWrites = [];
     this.activeTargets = [];
   }
@@ -189,8 +189,6 @@ class MockConnection implements Connection {
   }
 
   openStream(rpcName: string): Stream<any, any> {
-    console.log("OPEN STREAM ");
-    let currentState = this.state;
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
@@ -198,8 +196,7 @@ class MockConnection implements Connection {
       let firstCall = true;
       const writeStream = new StreamBridge<WriteRequest, api.WriteResponse>({
         sendFn: (request: WriteRequest) => {
-          console.log("SENDING REQUEST" +  JSON.stringify(request));
-          ++currentState.numWriteStreamRequests;
+          ++this.numWriteStreamRequests;
           if (firstCall) {
             assert(
               !!request.database,
@@ -256,7 +253,7 @@ class MockConnection implements Connection {
         api.ListenResponse
       >({
         sendFn: (request: api.ListenRequest) => {
-          ++currentState.numWatchStreamRequests;  /// where to reset
+          ++this.numWatchStreamRequests;
           if (request.addTarget) {
             const targetId = request.addTarget.targetId!;
             this.activeTargets[targetId] = request.addTarget;
@@ -440,7 +437,7 @@ abstract class TestRunner {
     this.connection.reset();
     return sequence(steps, async step => {
       await this.doStep(step);
-      await this.queue.drain();
+      await this.queue.drain(/* executeDelayedTasks */ false);
       this.validateStepExpectations(step.expect!);
       this.validateStateExpectations(step.stateExpect!);
       this.eventList = [];
@@ -537,9 +534,7 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
-    console.log('pushing mutation');
     return this.queue.schedule(() => {
-          console.log('in mutation');
           return this.syncEngine.write(mutations, userCallback)
         }
     );
@@ -771,6 +766,10 @@ abstract class TestRunner {
   }
 
   private async doDisableNetwork(): Promise<void> {
+    // Make sure to execute all writes that are currently queued. This allows us
+    // to assert on the total number of write requests sent to a a stream after
+    // shutdown.
+    await this.remoteStore.fillWritePipeline();
     await this.remoteStore.disableNetwork();
   }
 
@@ -827,7 +826,6 @@ abstract class TestRunner {
         );
       }
       if ('numWriteStreamRequests' in expectation) {
-        console.log('validation ' + this.connection.state.numWriteStreamRequests + ' vs ' + expectation.numWriteStreamRequests);
         expect(this.connection.state.numWriteStreamRequests).to.deep.equal(
             expectation.numWriteStreamRequests
         );
