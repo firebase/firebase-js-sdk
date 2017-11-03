@@ -137,13 +137,16 @@ fireauth.authStorage.Key;
  *     some mobile browsers. A localStorage change in the foreground window
  *     will not be detected in the background window via the storage event.
  *     This was detected in iOS 7.x mobile browsers.
+ * @param {boolean} webStorageSupported Whether browser web storage is
+ *     supported.
  * @constructor @struct @final
  */
 fireauth.authStorage.Manager = function(
     namespace,
     separator,
     safariLocalStorageNotSynced,
-    runsInBackground) {
+    runsInBackground,
+    webStorageSupported) {
   /** @const @private {string} Storage namespace. */
   this.namespace_ = namespace;
   /** @const @private {string} Storage namespace key separator. */
@@ -159,6 +162,8 @@ fireauth.authStorage.Manager = function(
    *     mobile browsers.
    */
   this.runsInBackground_ = runsInBackground;
+  /**  @const @private {boolean} Whether browser web storage is supported. */
+  this.webStorageSupported_ = webStorageSupported;
 
   /**
    * @const @private {!Object.<string, !Array<function()>>} The storage event
@@ -223,7 +228,8 @@ fireauth.authStorage.Manager.getInstance = function() {
         fireauth.authStorage.NAMESPACE_,
         fireauth.authStorage.SEPARATOR_,
         fireauth.util.isSafariLocalStorageNotSynced(),
-        fireauth.util.runsInBackground());
+        fireauth.util.runsInBackground(),
+        fireauth.util.isWebStorageSupported());
   }
   return fireauth.authStorage.Manager.instance_;
 };
@@ -337,8 +343,7 @@ fireauth.authStorage.Manager.prototype.addListener =
     function(dataKey, id, listener) {
   var key = this.getKeyName_(dataKey, id);
   // Initialize local map for current key if web storage is supported.
-  if (typeof goog.global['localStorage'] !== 'undefined' &&
-      typeof goog.global['localStorage']['getItem'] === 'function') {
+  if (this.webStorageSupported_) {
     this.localMap_[key] = goog.global['localStorage']['getItem'](key);
   }
   if (goog.object.isEmpty(this.listeners_)) {
@@ -401,7 +406,9 @@ fireauth.authStorage.Manager.prototype.startListeners_ = function() {
   if (!this.runsInBackground_ &&
       // Add an exception for IE11 and Edge browsers, we should stick to
       // indexedDB in that case.
-      !fireauth.util.isLocalStorageNotSynchronized()) {
+      !fireauth.util.isLocalStorageNotSynchronized() &&
+      // Confirm browser web storage is supported as polling relies on it.
+      this.webStorageSupported_) {
     this.startManualListeners_();
   }
 };
