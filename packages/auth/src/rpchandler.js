@@ -1499,6 +1499,11 @@ fireauth.RpcHandler.validateVerifyAssertionForExistingResponse_ =
           fireauth.RpcHandler.ServerError.USER_NOT_FOUND) {
     // This corresponds to user-not-found.
     throw new fireauth.AuthError(fireauth.authenum.Error.USER_DELETED);
+  } else if (response[fireauth.RpcHandler.AuthServerField.ERROR_MESSAGE]) {
+    // Construct developer facing error message from server code in errorMessage
+    // field.
+    throw fireauth.RpcHandler.getDeveloperErrorFromCode_(
+        response[fireauth.RpcHandler.AuthServerField.ERROR_MESSAGE]);
   }
   // Need confirmation should not be returned when do not create new user flag
   // is set.
@@ -1543,6 +1548,11 @@ fireauth.RpcHandler.validateVerifyAssertionResponse_ = function(response) {
     // owner of the account and then link to the returned credential here.
     response['code'] = fireauth.authenum.Error.EMAIL_EXISTS;
     error = fireauth.AuthErrorWithCredential.fromPlainObject(response);
+  } else if (response[fireauth.RpcHandler.AuthServerField.ERROR_MESSAGE]) {
+    // Construct developer facing error message from server code in errorMessage
+    // field.
+    error = fireauth.RpcHandler.getDeveloperErrorFromCode_(
+        response[fireauth.RpcHandler.AuthServerField.ERROR_MESSAGE]);
   }
   // If error found, throw it.
   if (error) {
@@ -1976,6 +1986,30 @@ fireauth.RpcHandler.prototype.invokeRpc_ = function(method, request) {
  */
 fireauth.RpcHandler.hasError_ = function(resp) {
   return !!resp['error'];
+};
+
+
+/**
+ * Returns the developer facing error corresponding to the server code provided.
+ * @param {string} serverErrorCode The server error message.
+ * @return {!fireauth.AuthError} The corresponding error object.
+ * @private
+ */
+fireauth.RpcHandler.getDeveloperErrorFromCode_ = function(serverErrorCode) {
+  // Encapsulate the server error code in a typical server error response with
+  // the code populated within. This will convert the response to a developer
+  // facing one.
+  return fireauth.RpcHandler.getDeveloperError_({
+    'error': {
+      'errors': [
+        {
+          'message': serverErrorCode
+        }
+      ],
+      'code': 400,
+      'message': serverErrorCode
+    }
+  });
 };
 
 

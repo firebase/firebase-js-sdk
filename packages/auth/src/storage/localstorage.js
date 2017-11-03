@@ -55,7 +55,20 @@ fireauth.storage.LocalStorage = function() {
 
 /** @return {?Storage|undefined} The global localStorage instance. */
 fireauth.storage.LocalStorage.getGlobalStorage = function() {
-  return goog.global['localStorage'];
+  try {
+    var storage = goog.global['localStorage'];
+    // Try editing web storage. If an error is thrown, it may be disabled.
+    var key = fireauth.util.generateEventId();
+    if (storage) {
+      storage['setItem'](key, '1');
+      storage['removeItem'](key);
+    }
+    return storage;
+  } catch (e) {
+    // In some cases, browsers with web storage disabled throw an error simply
+    // on access.
+    return null;
+  }
 };
 
 
