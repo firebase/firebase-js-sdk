@@ -188,6 +188,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
+  private _queue = new AsyncQueue();
   public _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
@@ -310,7 +311,7 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       PlatformSupport.getPlatform(),
       databaseInfo,
       this._config.credentials,
-      new AsyncQueue()
+      this._queue
     );
     return this._firestoreClient.start(persistence);
   }
@@ -374,7 +375,9 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     },
     // Exposed via INTERNAL for use in tests.
     disableNetwork: () => this._firestoreClient.disableNetwork(),
-    enableNetwork: () => this._firestoreClient.enableNetwork()
+    enableNetwork: () => this._firestoreClient.enableNetwork(),
+    drainAsyncQueue: (executeDelayedTasks: boolean) =>
+      this._queue.drain(executeDelayedTasks)
   };
 
   collection(pathString: string): firestore.CollectionReference {
