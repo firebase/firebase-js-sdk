@@ -117,19 +117,17 @@ export function withTestDatastore(
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
+  fn: (db: firestore.Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
-    // tslint:disable-next-line:no-any queue isn't exposed via d.ts
-    const firestoreInternal = db.INTERNAL as any;
-    return fn(db, firestoreInternal.queue);
+    return fn(db);
   });
 }
 
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore, queue: AsyncQueue) => Promise<void>
+  fn: (db: firestore.Firestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -137,9 +135,7 @@ export function withAlternateTestDb(
     DEFAULT_SETTINGS,
     1,
     ([db]) => {
-      // tslint:disable-next-line:no-any queue isn't exposed via d.ts
-      const firestoreInternal = db.INTERNAL as any;
-      return fn(db, firestoreInternal.queue);
+      return fn(db);
     }
   );
 }
