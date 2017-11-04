@@ -91,11 +91,6 @@ import {
 
 type MutationBatch = api.Write[];
 
-interface CurrentConnectionState {
-  numWriteStreamRequests?: number;
-  numWatchStreamRequests?: number;
-}
-
 class MockConnection implements Connection {
   watchStream: StreamBridge<
     api.ListenRequest,
@@ -770,7 +765,7 @@ abstract class TestRunner {
 
   private async doDisableNetwork(): Promise<void> {
     // Make sure to execute all writes that are currently queued. This allows us
-    // to assert on the total number of write requests sent to a a stream after
+    // to assert on the total number of write requests sent to a stream before
     // shutdown.
     await this.remoteStore.fillWritePipeline();
     await this.remoteStore.disableNetwork();
