@@ -565,14 +565,15 @@ describeSpec('Writes:', [], () => {
     }
   );
 
-  specTest('Writes are resent after network disconnect', ['exclusive'], () => {
-    return spec()
-        .userSets('collection/key', { foo: 'bar' })
+  specTest('Writes are resent after network disconnect', [], () => {
+    const expectRequests = (handshakes, writes, closes) => (handshakes + writes + closes);
+
+    return spec().userSets('collection/key', { foo: 'bar' })
         .expectNumOutstandingWrites(1)
         .disableNetwork()
-        .expectNumWriteStreamRequests(3) // Handshake + Write
+        .expectNumWriteStreamRequests(expectRequests(1,1,1))
         .enableNetwork()
-       // .expectNumWriteStreamRequests(5) // Handshake + Write + Close + Handshake + Write
+        .expectNumWriteStreamRequests(expectRequests(2,2,1))
         .expectNumOutstandingWrites(1)
         .writeAcks(1, { expectUserCallback: false })
         .expectNumOutstandingWrites(0)

@@ -237,4 +237,22 @@ describeSpec('Listens:', [], () => {
         .expectEvents(allQuery, { fromCache: false })
     );
   });
+
+
+  specTest('Listens are reestablished after network disconnect', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    return spec()
+        .userListens(query)
+        .expectNumWatchStreamRequests(1)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .disableNetwork()
+        .enableNetwork()
+        .restoreListen(query, 'resume-token-1000')
+        .expectNumWatchStreamRequests(2)
+        .watchAcksFull(query, 2000, docB)
+        .expectEvents(query, { added: [docB] });
+  });
 });

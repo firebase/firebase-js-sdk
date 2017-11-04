@@ -588,9 +588,7 @@ export class LocalStore {
    */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction('Get next mutation batch', txn => {
-      console.log('grabbing mutatation bach')
       if (afterBatchId === undefined) {
-        console.log('unknown');
         afterBatchId = BATCHID_UNKNOWN;
       }
       return this.mutationQueue.getNextMutationBatchAfterBatchId(

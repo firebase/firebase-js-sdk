@@ -826,12 +826,12 @@ abstract class TestRunner {
         );
       }
       if ('numWriteStreamRequests' in expectation) {
-        expect(this.connection.state.numWriteStreamRequests).to.deep.equal(
+        expect(this.connection.numWriteStreamRequests).to.deep.equal(
             expectation.numWriteStreamRequests
         );
       }
       if ('numWatchStreamRequests' in expectation) {
-        expect(this.connection.state.numWatchStreamRequests).to.deep.equal(
+        expect(this.connection.numWatchStreamRequests).to.deep.equal(
             expectation.numWatchStreamRequests
         );
       }
