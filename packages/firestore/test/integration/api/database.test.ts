@@ -21,7 +21,8 @@ import { Deferred } from '../../../src/util/promise';
 import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
-  apiDescribe, drainAsyncQueue,
+  apiDescribe,
+  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc

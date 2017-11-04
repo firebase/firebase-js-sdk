@@ -78,9 +78,9 @@ export function apiDescribe(
 }
 
 /** Drains the AsyncQueue. Delayed tasks are executed immediately. */
-export function drainAsyncQueue(db: firestore.Firestore) : Promise<void> {
+export function drainAsyncQueue(db: firestore.Firestore): Promise<void> {
   const firestoreInternal = db.INTERNAL as any;
-  return firestoreInternal.drainAsyncQueue( /* executeDelayedTasks= */ true);
+  return firestoreInternal.drainAsyncQueue(/* executeDelayedTasks= */ true);
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {
@@ -94,7 +94,7 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  queue? : AsyncQueue
+  queue?: AsyncQueue
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   return PlatformSupport.getPlatform()
@@ -105,7 +105,7 @@ export function withTestDatastore(
       );
       const datastore = new Datastore(
         databaseInfo,
-          queue ||  new AsyncQueue(),
+        queue || new AsyncQueue(),
         conn,
         new EmptyCredentialsProvider(),
         serializer
