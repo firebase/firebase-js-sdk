@@ -422,7 +422,7 @@ abstract class TestRunner {
     console.log('Running spec: ' + this.name);
     return sequence(steps, async step => {
       await this.doStep(step);
-      await this.queue.drain();
+      await this.queue.drain(/* executeDelayedTasks */ false);
       this.validateStepExpectations(step.expect!);
       this.validateStateExpectations(step.stateExpect!);
       this.eventList = [];
