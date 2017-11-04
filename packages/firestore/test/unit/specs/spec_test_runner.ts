@@ -92,8 +92,8 @@ import {
 type MutationBatch = api.Write[];
 
 interface CurrentConnectionState {
-  numWriteStreamRequests?:  number;
-  numWatchStreamRequests?:  number;
+  numWriteStreamRequests?: number;
+  numWatchStreamRequests?: number;
 }
 
 class MockConnection implements Connection {
@@ -133,7 +133,7 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
-  reset() : void {
+  reset(): void {
     this.numWatchStreamRequests = 0;
     this.numWriteStreamRequests = 0;
     this.earlyWrites = [];
@@ -474,7 +474,9 @@ abstract class TestRunner {
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
     } else if ('enableNetwork' in step) {
-      return step.enableNetwork! ? this.doEnableNetwork() : this.doDisableNetwork();
+      return step.enableNetwork!
+        ? this.doEnableNetwork()
+        : this.doDisableNetwork();
     } else if ('restart' in step) {
       assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
@@ -535,9 +537,8 @@ abstract class TestRunner {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
     return this.queue.schedule(() => {
-          return this.syncEngine.write(mutations, userCallback)
-        }
-    );
+      return this.syncEngine.write(mutations, userCallback);
+    });
   }
 
   private doWatchAck(
@@ -717,7 +718,9 @@ abstract class TestRunner {
     return this.connection.waitForMutationsSend().then(writes => {
       expect(writes.length).to.equal(mutations.length);
       for (let i = 0; i < writes.length; ++i) {
-        expect(writes[i]).to.deep.equal(this.serializer.toMutation(mutations[i]));
+        expect(writes[i]).to.deep.equal(
+          this.serializer.toMutation(mutations[i])
+        );
       }
     });
   }
@@ -774,7 +777,7 @@ abstract class TestRunner {
   }
 
   private async doEnableNetwork(): Promise<void> {
-    await this.remoteStore.enableNetwork()
+    await this.remoteStore.enableNetwork();
   }
 
   private async doRestart(): Promise<void> {
@@ -827,12 +830,12 @@ abstract class TestRunner {
       }
       if ('numWriteStreamRequests' in expectation) {
         expect(this.connection.numWriteStreamRequests).to.deep.equal(
-            expectation.numWriteStreamRequests
+          expectation.numWriteStreamRequests
         );
       }
       if ('numWatchStreamRequests' in expectation) {
         expect(this.connection.numWatchStreamRequests).to.deep.equal(
-            expectation.numWatchStreamRequests
+          expectation.numWatchStreamRequests
         );
       }
       if ('limboDocs' in expectation) {

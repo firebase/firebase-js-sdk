@@ -144,7 +144,9 @@ export class SpecBuilder {
 
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(this.activeTargets);
+    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+      this.activeTargets
+    );
     return this;
   }
 
