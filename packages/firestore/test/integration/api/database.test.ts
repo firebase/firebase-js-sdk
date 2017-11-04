@@ -22,6 +22,7 @@ import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc
@@ -627,20 +628,19 @@ apiDescribe('Database', persistence => {
   });
 
   asyncIt('can write document after idle timeout', () => {
-    return withTestDb(persistence, (db, queue) => {
+    return withTestDb(persistence, db => {
       const docRef = db.collection('test-collection').doc();
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
-          expect(queue.delayedOperationsCount).to.be.equal(1);
-          return queue.drain(/* executeDelayedTasks= */ true);
+          return drainAsyncQueue(db);
         })
         .then(() => docRef.set({ foo: 'bar' }));
     });
   });
 
   asyncIt('can watch documents after idle timeout', () => {
-    return withTestDb(persistence, (db, queue) => {
+    return withTestDb(persistence, db => {
       const awaitOnlineSnapshot = () => {
         const docRef = db.collection('test-collection').doc();
         const deferred = new Deferred<void>();
@@ -657,8 +657,7 @@ apiDescribe('Database', persistence => {
 
       return awaitOnlineSnapshot()
         .then(() => {
-          expect(queue.delayedOperationsCount).to.be.equal(1);
-          return queue.drain(/* executeDelayedTasks= */ true);
+          return drainAsyncQueue(db);
         })
         .then(() => awaitOnlineSnapshot());
     });

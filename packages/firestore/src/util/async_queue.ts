@@ -36,9 +36,7 @@ export class AsyncQueue {
   // (i.e. it has a delay that has not yet elapsed). Prior to cleanup, this list
   // may also contain entries that have already been run (in which case `handle` is
   // null).
-  //
-  // tslint:disable-next-line:no-any Accept any type of delayed operation.
-  private delayedOperations: DelayedOperation<any>[] = [];
+  private delayedOperations: DelayedOperation<AnyJs>[] = [];
 
   // The number of operations that are queued to be run in the future (i.e. they
   // have a delay that has not yet elapsed). Unlike `delayedOperations`, this
@@ -68,7 +66,6 @@ export class AsyncQueue {
 
     if ((delay || 0) > 0) {
       this.delayedOperationsCount++;
-      const nextIndex = this.delayedOperations.length;
       const delayedOp: DelayedOperation<T> = {
         handle: null,
         op: op,
@@ -80,14 +77,14 @@ export class AsyncQueue {
             delayedOp.deferred.resolve(result);
           });
         });
+        delayedOp.handle = null;
+
         this.delayedOperationsCount--;
-        if (this.delayedOperationsCount > 0) {
-          delayedOp.handle = null;
-        } else {
+        if (this.delayedOperationsCount === 0) {
           this.delayedOperations = [];
         }
       }, delay);
-      this.delayedOperations[nextIndex] = delayedOp;
+      this.delayedOperations.push(delayedOp);
       return delayedOp.deferred.promise;
     } else {
       return this.scheduleInternal(op);
@@ -126,7 +123,7 @@ export class AsyncQueue {
 
   /**
    * Waits until all currently scheduled tasks are finished executing. Tasks
-   * schedule with a delay can be rejected or queued for immediate execution.
+   * scheduled with a delay can be rejected or queued for immediate execution.
    */
   drain(executeDelayedTasks: boolean): Promise<void> {
     this.delayedOperations.forEach(entry => {
