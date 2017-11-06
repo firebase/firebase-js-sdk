@@ -142,7 +142,7 @@ export class SpecBuilder {
 
     this.activeTargets[targetId] = {
       query: SpecBuilder.queryToSpec(query),
-      resumeToken: resumeToken || ''
+      resumeToken: resumeToken
     };
 
     const currentStep = this.currentStep!;
