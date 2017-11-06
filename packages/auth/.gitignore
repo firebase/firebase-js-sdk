@@ -1,0 +1,18 @@
+# Node modules.
+node_modules/
+
+# Generated directories.
+generated/
+out/
+dist/
+
+# Generated files.
+*.log
+*.pyc
+.DS_Store
+*~
+*.swp
+
+# Local config.
+**/.firebaserc
+demo/public/config.js

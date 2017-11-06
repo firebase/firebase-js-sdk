@@ -58,30 +58,24 @@ export class Datastore {
     private initialBackoffDelay?: number
   ) {}
 
-  public newPersistentWriteStream(
-    listener: WriteStreamListener
-  ): PersistentWriteStream {
+  public newPersistentWriteStream(): PersistentWriteStream {
     return new PersistentWriteStream(
       this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
       this.serializer,
-      listener,
       this.initialBackoffDelay
     );
   }
 
-  public newPersistentWatchStream(
-    listener: WatchStreamListener
-  ): PersistentListenStream {
+  public newPersistentWatchStream(): PersistentListenStream {
     return new PersistentListenStream(
       this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
       this.serializer,
-      listener,
       this.initialBackoffDelay
     );
   }

@@ -582,9 +582,9 @@ export class LocalStore {
 
   /**
    * Gets the mutation batch after the passed in batchId in the mutation queue
-   *  or null if empty.
-   *  @param afterBatchId If provided, the batch to search after.
-   *  @returns The next mutation or null if there wasn't one.
+   * or null if empty.
+   * @param afterBatchId If provided, the batch to search after.
+   * @returns The next mutation or null if there wasn't one.
    */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction('Get next mutation batch', txn => {

@@ -22,6 +22,7 @@ import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc
@@ -611,18 +612,55 @@ apiDescribe('Database', persistence => {
       return firestoreInternal.disableNetwork().then(() => {
         const writePromise = docRef.set({ foo: 'bar' });
 
-        return docRef.get().then(snapshot => {
-          expect(snapshot.metadata.fromCache).to.be.true;
-          return firestoreInternal.enableNetwork().then(() => {
-            return writePromise.then(() => {
-              docRef.get().then(doc => {
-                expect(snapshot.metadata.fromCache).to.be.false;
-                expect(doc.data()).to.deep.equal({ foo: 'bar' });
-              });
-            });
+        return docRef
+          .get()
+          .then(doc => {
+            expect(doc.metadata.fromCache).to.be.true;
+            return firestoreInternal.enableNetwork();
+          })
+          .then(() => writePromise)
+          .then(() => docRef.get())
+          .then(doc => {
+            expect(doc.metadata.fromCache).to.be.false;
+            expect(doc.data()).to.deep.equal({ foo: 'bar' });
           });
-        });
       });
+    });
+  });
+
+  asyncIt('can write document after idle timeout', () => {
+    return withTestDb(persistence, db => {
+      const docRef = db.collection('test-collection').doc();
+      return docRef
+        .set({ foo: 'bar' })
+        .then(() => {
+          return drainAsyncQueue(db);
+        })
+        .then(() => docRef.set({ foo: 'bar' }));
+    });
+  });
+
+  asyncIt('can watch documents after idle timeout', () => {
+    return withTestDb(persistence, db => {
+      const awaitOnlineSnapshot = () => {
+        const docRef = db.collection('test-collection').doc();
+        const deferred = new Deferred<void>();
+        const unregister = docRef.onSnapshot(
+          { includeMetadataChanges: true },
+          snapshot => {
+            if (!snapshot.metadata.fromCache) {
+              deferred.resolve();
+            }
+          }
+        );
+        return deferred.promise.then(unregister);
+      };
+
+      return awaitOnlineSnapshot()
+        .then(() => {
+          return drainAsyncQueue(db);
+        })
+        .then(() => awaitOnlineSnapshot());
     });
   });
 });
