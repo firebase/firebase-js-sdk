@@ -239,18 +239,21 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest('Listens are reestablished after network disconnect', [], () => {
+    const expectRequestCount = (requestCounts) =>
+        requestCounts.addTarget + requestCounts.removeTarget;
+
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
     return spec()
       .userListens(query)
-      .expectNumWatchStreamRequests(1)
+      .expectWatchStreamRequestCount(expectRequestCount( { addTarget: 1, removeTarget: 0 }))
       .watchAcksFull(query, 1000, docA)
       .expectEvents(query, { added: [docA] })
       .disableNetwork()
       .enableNetwork()
       .restoreListen(query, 'resume-token-1000')
-      .expectNumWatchStreamRequests(2)
+      .expectWatchStreamRequestCount(expectRequestCount( { addTarget: 2, removeTarget: 0 }))
       .watchAcksFull(query, 2000, docB)
       .expectEvents(query, { added: [docB] });
   });

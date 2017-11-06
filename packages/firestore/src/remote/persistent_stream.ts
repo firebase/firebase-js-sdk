@@ -349,7 +349,7 @@ export abstract class PersistentStream<
 
   /**
    * Can be overridden to perform additional cleanup before the stream is closed.
-   * Calling super.tearDowm() is not required.
+   * Calling super.tearDown() is not required.
    */
   protected tearDown(): void {}
 

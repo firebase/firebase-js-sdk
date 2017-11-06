@@ -129,7 +129,10 @@ export class SpecBuilder {
     return this;
   }
 
-  /** Registers a previously active target after a stream disconnect. */
+  /**
+   * Registers a previously active target with the test expectations after a
+   * stream disconnect.
+   */
   restoreListen(query: Query, resumeToken: string): SpecBuilder {
     let targetId = this.queryMapping[query.canonicalId()];
 
@@ -534,19 +537,26 @@ export class SpecBuilder {
     return this;
   }
 
-  expectNumWriteStreamRequests(num: number): SpecBuilder {
+  /**
+   * Verifies fhe total number of requests sent to the write backend since test
+   * initialization.
+   */
+  expectWriteStreamRequestCount(num: number): SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numWriteStreamRequests = num;
+    currentStep.stateExpect.writeStreamRequestCount = num;
     return this;
   }
-
-  expectNumWatchStreamRequests(num: number): SpecBuilder {
+  /**
+   * Verifies fhe total number of requests sent to the watch backend since test
+   * initialization.
+   */
+  expectWatchStreamRequestCount(num: number): SpecBuilder {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numWatchStreamRequests = num;
+    currentStep.stateExpect.watchStreamRequestCount = num;
     return this;
   }
 

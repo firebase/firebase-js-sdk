@@ -109,11 +109,11 @@ class MockConnection implements Connection {
    */
   earlyWrites: MutationBatch[] = [];
 
-  /** The total number of requests sent to the write stream. */
-  numWatchStreamRequests = 0;
-
   /** The total number of requests sent to the watch stream. */
-  numWriteStreamRequests = 0;
+  watchStreamRequestCount = 0;
+
+  /** The total number of requests sent to the write stream. */
+  writeStreamRequestCount = 0;
 
   nextWriteStreamToken = 0;
 
@@ -129,8 +129,8 @@ class MockConnection implements Connection {
   watchOpen = new Deferred<void>();
 
   reset(): void {
-    this.numWatchStreamRequests = 0;
-    this.numWriteStreamRequests = 0;
+    this.watchStreamRequestCount = 0;
+    this.writeStreamRequestCount = 0;
     this.earlyWrites = [];
     this.activeTargets = [];
   }
@@ -191,7 +191,7 @@ class MockConnection implements Connection {
       let firstCall = true;
       const writeStream = new StreamBridge<WriteRequest, api.WriteResponse>({
         sendFn: (request: WriteRequest) => {
-          ++this.numWriteStreamRequests;
+          ++this.writeStreamRequestCount;
           if (firstCall) {
             assert(
               !!request.database,
@@ -248,7 +248,7 @@ class MockConnection implements Connection {
         api.ListenResponse
       >({
         sendFn: (request: api.ListenRequest) => {
-          ++this.numWatchStreamRequests;
+          ++this.watchStreamRequestCount;
           if (request.addTarget) {
             const targetId = request.addTarget.targetId!;
             this.activeTargets[targetId] = request.addTarget;
@@ -416,6 +416,7 @@ abstract class TestRunner {
   protected abstract destroyPersistence(): Promise<void>;
 
   async start(): Promise<void> {
+    this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
@@ -429,7 +430,6 @@ abstract class TestRunner {
 
   run(steps: SpecStep[]): Promise<void> {
     console.log('Running spec: ' + this.name);
-    this.connection.reset();
     return sequence(steps, async step => {
       await this.doStep(step);
       await this.queue.drain(/* executeDelayedTasks */ false);
@@ -822,14 +822,14 @@ abstract class TestRunner {
           expectation.numOutstandingWrites
         );
       }
-      if ('numWriteStreamRequests' in expectation) {
-        expect(this.connection.numWriteStreamRequests).to.deep.equal(
-          expectation.numWriteStreamRequests
+      if ('writeStreamRequestCount' in expectation) {
+        expect(this.connection.writeStreamRequestCount).to.deep.equal(
+          expectation.writeStreamRequestCount
         );
       }
-      if ('numWatchStreamRequests' in expectation) {
-        expect(this.connection.numWatchStreamRequests).to.deep.equal(
-          expectation.numWatchStreamRequests
+      if ('watchStreamRequestCount' in expectation) {
+        expect(this.connection.watchStreamRequestCount).to.deep.equal(
+          expectation.watchStreamRequestCount
         );
       }
       if ('limboDocs' in expectation) {
@@ -1236,9 +1236,9 @@ export interface StateExpectation {
   /** Number of outstanding writes in the datastore queue. */
   numOutstandingWrites?: number;
   /** Number of requests sent to the write stream. */
-  numWriteStreamRequests?: number;
+  writeStreamRequestCount?: number;
   /** Number of requests sent to the watch stream. */
-  numWatchStreamRequests?: number;
+  watchStreamRequestCount?: number;
   /** Current documents in limbo. Verified in each step until overwritten. */
   limboDocs?: string[];
   /**
