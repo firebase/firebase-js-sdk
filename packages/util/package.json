@@ -9,7 +9,7 @@
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
-    "test:node": "nyc mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
+    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
