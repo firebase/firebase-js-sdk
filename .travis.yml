@@ -15,7 +15,7 @@ before_script:
   - yarn test:setup -- --token $FIREBASE_TOKEN --projectId $FIREBASE_PROJECT
 script:
   - xvfb-run yarn test
-after_script:
+after_success:
   - yarn test:coverage
 
 # Misc Addons/Configs
