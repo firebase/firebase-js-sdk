@@ -134,7 +134,7 @@ export class SpecBuilder {
     let targetId = this.queryMapping[query.canonicalId()];
 
     if (isNullOrUndefined(targetId)) {
-      throw new Error("Can't restore an unkonown query: " + query);
+      throw new Error("Can't restore an unknown query: " + query);
     }
 
     this.activeTargets[targetId] = {
