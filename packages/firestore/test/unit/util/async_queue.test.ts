@@ -82,7 +82,7 @@ describe('AsyncQueue', () => {
       })
       .then(
         () => {
-          expect.fail('expected an error');
+          expect.fail('expected op1 to fail');
         },
         (err: AnyJs) => {
           expect(err).to.equal(expected);
@@ -102,7 +102,7 @@ describe('AsyncQueue', () => {
       })
       .then(
         () => {
-          expect.fail('expected an error');
+          expect.fail('expected op2 to fail');
         },
         (err: AnyJs) => {
           // should be the original failure still.
