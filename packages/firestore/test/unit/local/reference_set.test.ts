@@ -16,10 +16,10 @@
 
 import { expect } from 'chai';
 import { ReferenceSet } from '../../../src/local/reference_set';
-import { asyncIt, expectSetToEqual, key } from '../../util/helpers';
+import { expectSetToEqual, key } from '../../util/helpers';
 
 describe('ReferenceSet', () => {
-  asyncIt('can add/remove references', async () => {
+  it('can add/remove references', async () => {
     const documentKey = key('foo/bar');
 
     const refSet = new ReferenceSet();
@@ -51,7 +51,7 @@ describe('ReferenceSet', () => {
     expect(refSet.isEmpty()).to.equal(true);
   });
 
-  asyncIt('can remove all references for a target ID', async () => {
+  it('can remove all references for a target ID', async () => {
     const key1 = key('foo/bar');
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');

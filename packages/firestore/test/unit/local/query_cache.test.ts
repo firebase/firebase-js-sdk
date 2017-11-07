@@ -25,7 +25,6 @@ import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
-  asyncIt,
   filter,
   key,
   path,
@@ -108,17 +107,17 @@ function genericQueryCacheTests() {
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
   });
 
-  asyncIt('returns null for query not in cache', () => {
+  it('returns null for query not in cache', () => {
     return cache.getQueryData(QUERY_ROOMS).then(queryData => {
       expect(queryData).to.equal(null);
     });
   });
 
-  asyncIt('can set and read a query', () => {
+  it('can set and read a query', () => {
     return setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 1));
   });
 
-  asyncIt('handles canonical ID collisions', async () => {
+  it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
     const q1 = Query.atPath(path('a')).addFilter(filter('foo', '==', 1));
@@ -148,12 +147,12 @@ function genericQueryCacheTests() {
     expect(await cache.getQueryData(q2)).to.equal(null);
   });
 
-  asyncIt('can set query to new value', async () => {
+  it('can set query to new value', async () => {
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
     await setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 2));
   });
 
-  asyncIt('can remove a query', async () => {
+  it('can remove a query', async () => {
     const queryData = testQueryData(QUERY_ROOMS, 1, 1);
     await cache.addQueryData(queryData);
     await cache.removeQueryData(queryData);
@@ -161,12 +160,12 @@ function genericQueryCacheTests() {
     expect(read).to.equal(null);
   });
 
-  asyncIt('can remove nonexistent query', () => {
+  it('can remove nonexistent query', () => {
     // no-op, but make sure it doesn't fail.
     return cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
   });
 
-  asyncIt('can remove matching keys when a query is removed', async () => {
+  it('can remove matching keys when a query is removed', async () => {
     const rooms = testQueryData(QUERY_ROOMS, 1, 1);
     await cache.addQueryData(rooms);
 
@@ -186,7 +185,7 @@ function genericQueryCacheTests() {
     expect(await cache.containsKey(key2)).to.equal(false);
   });
 
-  asyncIt('adds or removes matching keys', async () => {
+  it('adds or removes matching keys', async () => {
     const k = key('foo/bar');
     expect(await cache.containsKey(k)).to.equal(false);
 
@@ -203,7 +202,7 @@ function genericQueryCacheTests() {
     expect(await cache.containsKey(k)).to.equal(false);
   });
 
-  asyncIt('can remove matching keys for a targetId', async () => {
+  it('can remove matching keys for a targetId', async () => {
     const key1 = key('foo/bar');
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
@@ -225,7 +224,7 @@ function genericQueryCacheTests() {
     expect(await cache.containsKey(key3)).to.equal(false);
   });
 
-  asyncIt('emits garbage collection events for removes', async () => {
+  it('emits garbage collection events for removes', async () => {
     const eagerGc = new EagerGarbageCollector();
     const testGc = new TestGarbageCollector(persistence, eagerGc);
     eagerGc.addGarbageSource(cache.cache);
@@ -257,7 +256,7 @@ function genericQueryCacheTests() {
     expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
   });
 
-  asyncIt('can get matching keys for targetId', async () => {
+  it('can get matching keys for targetId', async () => {
     const key1 = key('foo/bar');
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
@@ -282,7 +281,7 @@ function genericQueryCacheTests() {
     ]);
   });
 
-  asyncIt('can get / set highestTargetId', async () => {
+  it('can get / set highestTargetId', async () => {
     expect(cache.getHighestTargetId()).to.deep.equal(0);
     const queryData1 = testQueryData(QUERY_ROOMS, 1);
 
@@ -322,7 +321,7 @@ function genericQueryCacheTests() {
     expect(otherCache.getHighestTargetId()).to.deep.equal(42);
   });
 
-  asyncIt('can get / set lastRemoteSnapshotVersion', () => {
+  it('can get / set lastRemoteSnapshotVersion', () => {
     expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(
       SnapshotVersion.MIN
     );

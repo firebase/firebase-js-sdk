@@ -21,8 +21,6 @@ import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
 import * as testHelpers from '../../util/helpers';
 
-const asyncIt = testHelpers.asyncIt;
-
 apiDescribe('Firestore', persistence => {
   function expectRoundtrip(db: firestore.Firestore, data: {}): Promise<void> {
     const doc = db.collection('rooms').doc();
@@ -34,19 +32,19 @@ apiDescribe('Firestore', persistence => {
       });
   }
 
-  asyncIt('can read and write null fields', () => {
+  it('can read and write null fields', () => {
     return withTestDb(persistence, db => {
       return expectRoundtrip(db, { a: 1, b: null });
     });
   });
 
-  asyncIt('can read and write array fields', () => {
+  it('can read and write array fields', () => {
     return withTestDb(persistence, db => {
       return expectRoundtrip(db, { array: [1, 'foo', { deep: true }, null] });
     });
   });
 
-  asyncIt('can read and write geo point fields', () => {
+  it('can read and write geo point fields', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set({ geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) })
@@ -62,7 +60,7 @@ apiDescribe('Firestore', persistence => {
     });
   });
 
-  asyncIt('can read and write bytes fields', () => {
+  it('can read and write bytes fields', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set({
@@ -83,20 +81,20 @@ apiDescribe('Firestore', persistence => {
     });
   });
 
-  asyncIt('can read and write timestamp fields', () => {
+  it('can read and write timestamp fields', () => {
     return withTestDb(persistence, db => {
       const dateValue = new Date('2017-04-10T09:10:11.123Z');
       return expectRoundtrip(db, { timestamp: dateValue });
     });
   });
 
-  asyncIt('can read and write document references', () => {
+  it('can read and write document references', () => {
     return withTestDoc(persistence, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
     });
   });
 
-  asyncIt('can read and write document references in an array', () => {
+  it('can read and write document references in an array', () => {
     return withTestDoc(persistence, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
     });

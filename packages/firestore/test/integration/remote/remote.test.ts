@@ -23,13 +23,13 @@ import {
 } from '../../../src/model/document';
 import { MutationResult } from '../../../src/model/mutation';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { asyncIt, key, setMutation } from '../../util/helpers';
+import { key, setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/helpers';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
 
-  asyncIt('can write', () => {
+  it('can write', () => {
     return withTestDatastore(ds => {
       const mutation = setMutation('docs/1', { sort: 1 });
 
@@ -42,7 +42,7 @@ describe('Remote Storage', () => {
     });
   });
 
-  asyncIt('can read', () => {
+  it('can read', () => {
     return withTestDatastore(ds => {
       const k = key('docs/1');
       const mutation = setMutation('docs/1', { sort: 10 });
@@ -68,7 +68,7 @@ describe('Remote Storage', () => {
     });
   });
 
-  asyncIt('can read deleted documents', () => {
+  it('can read deleted documents', () => {
     return withTestDatastore(ds => {
       const k = key('docs/2');
       return ds.lookup([k]).then((docs: MaybeDocument[]) => {

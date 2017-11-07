@@ -30,7 +30,6 @@ import {
 } from '../../../src/model/mutation_batch';
 import { emptyByteString } from '../../../src/platform/platform';
 import {
-  asyncIt,
   expectEqualArrays,
   expectSetToEqual,
   key,
@@ -93,17 +92,17 @@ describe('IndexedDbMutationQueue', () => {
       });
     }
 
-    asyncIt('returns zero when no mutations.', async () => {
+    it('returns zero when no mutations.', async () => {
       const batchId = await loadNextBatchId();
       expect(batchId).to.equal(0);
     });
 
-    asyncIt('finds next id after single mutation batch', async () => {
+    it('finds next id after single mutation batch', async () => {
       await addDummyBatch('foo', 6);
       expect(await loadNextBatchId()).to.equal(7);
     });
 
-    asyncIt('finds max across users', async () => {
+    it('finds max across users', async () => {
       await addDummyBatch('fo', 5);
       await addDummyBatch('food', 3);
 
@@ -133,7 +132,7 @@ function genericMutationQueueTests() {
     return persistence.shutdown();
   });
 
-  asyncIt('can count batches', async () => {
+  it('can count batches', async () => {
     expect(await mutationQueue.countBatches()).to.equal(0);
     expect(await mutationQueue.checkEmpty()).to.equal(true);
 
@@ -151,7 +150,7 @@ function genericMutationQueueTests() {
     expect(await mutationQueue.countBatches()).to.equal(0);
   });
 
-  asyncIt('can acknowledge batches through batchId', async () => {
+  it('can acknowledge batches through batchId', async () => {
     // Initial state of an empty queue
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
       BATCHID_UNKNOWN
@@ -196,7 +195,7 @@ function genericMutationQueueTests() {
     );
   });
 
-  asyncIt('can acknowledge then remove', async () => {
+  it('can acknowledge then remove', async () => {
     const batch1 = await addMutationBatch();
     expect(await mutationQueue.countBatches()).to.equal(1);
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
@@ -212,7 +211,7 @@ function genericMutationQueueTests() {
     );
   });
 
-  asyncIt(
+  it(
     'getHighestAcknowledgedBatchId() never exceeds getNextBatchId()',
     async () => {
       const batch1 = await addMutationBatch();
@@ -269,7 +268,7 @@ function genericMutationQueueTests() {
     }
   );
 
-  asyncIt('can lookup mutation batch', async () => {
+  it('can lookup mutation batch', async () => {
     // Searching on an empty queue should not find a non-existent batch
     let notFound = await mutationQueue.lookupMutationBatch(42);
     expect(notFound).to.be.null;
@@ -294,7 +293,7 @@ function genericMutationQueueTests() {
     expect(notFound).to.be.null;
   });
 
-  asyncIt('can getNextMutationBatchAfterBatchId()', async () => {
+  it('can getNextMutationBatchAfterBatchId()', async () => {
     const batches = await createBatches(10);
 
     // This is an array of successors assuming the removals below will happen:
@@ -332,7 +331,7 @@ function genericMutationQueueTests() {
     expect(notFound).to.be.null;
   });
 
-  asyncIt('can getAllMutationBatchesThroughBatchId()', async () => {
+  it('can getAllMutationBatchesThroughBatchId()', async () => {
     const batches = await createBatches(10);
     await makeHolesInBatches([2, 6, 7], batches);
 
@@ -353,7 +352,7 @@ function genericMutationQueueTests() {
     }
   });
 
-  asyncIt('can getAllMutationBatchesAffectingDocumentKey()', async () => {
+  it('can getAllMutationBatchesAffectingDocumentKey()', async () => {
     const mutations = [
       setMutation('fob/bar', { a: 1 }),
       setMutation('foo/bar', { a: 1 }),
@@ -376,7 +375,7 @@ function genericMutationQueueTests() {
     expectEqualArrays(matches, expected);
   });
 
-  asyncIt('can getAllMutationBatchesAffectingQuery()', async () => {
+  it('can getAllMutationBatchesAffectingQuery()', async () => {
     const mutations = [
       setMutation('fob/bar', { a: 1 }),
       setMutation('foo/bar', { a: 1 }),
@@ -399,7 +398,7 @@ function genericMutationQueueTests() {
     expectEqualArrays(matches, expected);
   });
 
-  asyncIt(
+  it(
     'can getAllMutationBatchesAffectingQuery() with compound batches',
     async () => {
       const value = { a: 1 };
@@ -420,7 +419,7 @@ function genericMutationQueueTests() {
     }
   );
 
-  asyncIt(
+  it(
     'can emits garbage events while removing mutation batches',
     async () => {
       const gc = new EagerGarbageCollector();
@@ -463,7 +462,7 @@ function genericMutationQueueTests() {
     }
   );
 
-  asyncIt('can save the last stream token', async () => {
+  it('can save the last stream token', async () => {
     const streamToken1 = 'token1';
     const streamToken2 = 'token2';
 
@@ -485,7 +484,7 @@ function genericMutationQueueTests() {
     );
   });
 
-  asyncIt('can removeMutationBatches()', async () => {
+  it('can removeMutationBatches()', async () => {
     const batches = await createBatches(10);
     const last = batches[batches.length - 1];
 

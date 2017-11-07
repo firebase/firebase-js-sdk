@@ -16,7 +16,6 @@
 
 import { expect } from 'chai';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { asyncIt } from '../../util/helpers';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
@@ -97,7 +96,7 @@ describe('SimpleDb', () => {
     db.close();
   });
 
-  asyncIt('can get', async () => {
+  it('can get', async () => {
     await runTransaction(store => {
       return store
         .get(42)
@@ -111,7 +110,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can put', async () => {
+  it('can put', async () => {
     await runTransaction(store => {
       return store.put(dummyUser);
     });
@@ -122,7 +121,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('lets you explicitly abort transactions', async () => {
+  it('lets you explicitly abort transactions', async () => {
     await runTransaction((store, txn) => {
       return store.put(dummyUser).next(() => {
         txn.abort(); // JUST KIDDING!
@@ -136,7 +135,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('aborts transactions when an error happens', async () => {
+  it('aborts transactions when an error happens', async () => {
     let gotError = false;
     try {
       await runTransaction(store => {
@@ -157,7 +156,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt(
+  it(
     'still propagates error if you throw after aborting an exception.',
     async () => {
       let gotError = false;
@@ -182,7 +181,7 @@ describe('SimpleDb', () => {
     }
   );
 
-  asyncIt('can delete', async () => {
+  it('can delete', async () => {
     await runTransaction(store => {
       return store.delete(3);
     });
@@ -194,7 +193,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('loadAll', async () => {
+  it('loadAll', async () => {
     const range = IDBKeyRange.bound(3, 5);
     await runTransaction(store => {
       return store.loadAll(range).next(users => {
@@ -220,7 +219,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('deleteAll', async () => {
+  it('deleteAll', async () => {
     await runTransaction(store => {
       return store
         .deleteAll()
@@ -233,7 +232,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('deleteAll in key range', async () => {
+  it('deleteAll in key range', async () => {
     const range = IDBKeyRange.bound(3, 5);
     await runTransaction(store => {
       return store
@@ -249,7 +248,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('deleteAll in index range', async () => {
+  it('deleteAll in index range', async () => {
     const indexRange = IDBKeyRange.bound([8], [10, 're']);
     await runTransaction(store => {
       return store
@@ -265,7 +264,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate', async () => {
+  it('can iterate', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
       return store
@@ -278,7 +277,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate and skip keys', async () => {
+  it('can iterate and skip keys', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
       // Just pull out all the even keys
@@ -293,7 +292,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate in reverse', async () => {
+  it('can iterate in reverse', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
       return store
@@ -308,7 +307,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate and skip keys in reverse', async () => {
+  it('can iterate and skip keys in reverse', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
       // Only get the odd keys
@@ -325,7 +324,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate and skip over the index', async () => {
+  it('can iterate and skip over the index', async () => {
     return runTransaction(store => {
       const range = IDBKeyRange.lowerBound([10, 'greg']);
       const iterated: User[] = [];
@@ -348,7 +347,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate using index and range and stop before end', async () => {
+  it('can iterate using index and range and stop before end', async () => {
     return runTransaction(store => {
       const range = IDBKeyRange.lowerBound([10, 'greg']);
       const iterated: User[] = [];
@@ -368,7 +367,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate over index as keys-only', () => {
+  it('can iterate over index as keys-only', () => {
     return runTransaction(store => {
       const iterated: number[] = [];
       return store
@@ -391,7 +390,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can iterate over index using a partial bound', () => {
+  it('can iterate over index using a partial bound', () => {
     return runTransaction(store => {
       // All the users at least 10 but less than 11.
       const range = IDBKeyRange.bound([10], [11], false, true);
@@ -413,7 +412,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  asyncIt('can use arrays as keys and do partial bounds ranges', async () => {
+  it('can use arrays as keys and do partial bounds ranges', async () => {
     const keys = [
       ['fo'],
       ['foo'],

@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import { asyncIt, deletedDoc, doc, expectEqual, key } from '../../util/helpers';
+import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
 import { testIndexedDbPersistence } from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
@@ -58,18 +58,18 @@ describe('RemoteDocumentChangeBuffer', () => {
     return persistence.shutdown();
   });
 
-  asyncIt('can read unchanged entry', async () => {
+  it('can read unchanged entry', async () => {
     const maybeDoc = await buffer.getEntry(key('coll/a'));
     expectEqual(maybeDoc, INITIAL_DOC);
   });
 
-  asyncIt('can add entry and read it back', async () => {
+  it('can add entry and read it back', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     buffer.addEntry(newADoc);
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
   });
 
-  asyncIt('can apply changes', async () => {
+  it('can apply changes', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     buffer.addEntry(newADoc);
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
@@ -82,7 +82,7 @@ describe('RemoteDocumentChangeBuffer', () => {
     expectEqual(await cache.getEntry(key('coll/a')), newADoc);
   });
 
-  asyncIt('methods fail after apply.', async () => {
+  it('methods fail after apply.', async () => {
     await buffer.apply();
 
     expect(() => buffer.addEntry(INITIAL_DOC)).to.throw();

@@ -473,69 +473,6 @@ type MochaTestRunner = (
 ) => Mocha.ITest;
 
 /**
- * Wrapper for Async (Promise-returning) tests.
- * TODO(b/66916896): This was necessary when we used Jasmine but should now be
- * removed since Mocha supports Promises directly.
- *
- * @example
- *
- *   asyncIt('can do anything', () => {
- *     ...
- *   });
- *
- *   You can optionally specify a timeout as the 3rd argument to override
- *   the default timeout.
- */
-export function asyncIt(
-  message: string,
-  testFunction: () => Promise<AnyJs | void>,
-  timeout?: number
-): void {
-  asyncItHelper(it, message, testFunction, timeout);
-}
-
-/**
- * Same as asyncIt() except it uses it.only() instead of it(), which runs only
- * this test and no others (useful when debugging a test failure).
- */
-export function fasyncIt(
-  message: string,
-  testFunction: () => Promise<AnyJs | void>,
-  timeout?: number
-): void {
-  asyncItHelper(it.only, message, testFunction, timeout);
-}
-
-/**
- * Same as asyncIt() except it uses xit() instead of it(), which disables this
- * test.
- */
-export function xasyncIt(
-  message: string,
-  testFunction: () => Promise<AnyJs | void>,
-  timeout?: number
-): void {
-  asyncItHelper(xit, message, testFunction, timeout);
-}
-
-function asyncItHelper(
-  testRunner: MochaTestRunner,
-  message: string,
-  testFunction: () => Promise<AnyJs | void>,
-  timeout?: number
-): void {
-  testRunner(message, () => {
-    if (timeout) {
-      this.timeout(timeout);
-    }
-    const result = testFunction();
-    // Should return a Thenable
-    expect(typeof result.then).to.equal('function');
-    return result;
-  });
-}
-
-/**
  * Two helper functions to simplify testing equals() method.
  */
 // tslint:disable-next-line:no-any so we can dynamically call .equals().
