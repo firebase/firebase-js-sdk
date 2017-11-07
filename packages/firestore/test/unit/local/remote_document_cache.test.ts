@@ -19,13 +19,7 @@ import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { MaybeDocument } from '../../../src/model/document';
-import {
-  deletedDoc,
-  doc,
-  expectEqual,
-  key,
-  path
-} from '../../util/helpers';
+import { deletedDoc, doc, expectEqual, key, path } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';

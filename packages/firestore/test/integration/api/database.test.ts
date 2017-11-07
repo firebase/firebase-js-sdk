@@ -383,33 +383,30 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it(
-    'Metadata only changes are not fired when no options provided',
-    () => {
-      return withTestDoc(persistence, docRef => {
-        const secondUpdateFound = new Deferred();
-        let count = 0;
-        const unlisten = docRef.onSnapshot(doc => {
-          if (doc) {
-            count++;
-            if (count === 1) {
-              expect(doc.data()).to.deep.equal({ a: 1 });
-            } else {
-              expect(doc.data()).to.deep.equal({ b: 1 });
-              secondUpdateFound.resolve();
-            }
+  it('Metadata only changes are not fired when no options provided', () => {
+    return withTestDoc(persistence, docRef => {
+      const secondUpdateFound = new Deferred();
+      let count = 0;
+      const unlisten = docRef.onSnapshot(doc => {
+        if (doc) {
+          count++;
+          if (count === 1) {
+            expect(doc.data()).to.deep.equal({ a: 1 });
+          } else {
+            expect(doc.data()).to.deep.equal({ b: 1 });
+            secondUpdateFound.resolve();
           }
-        });
-
-        docRef.set({ a: 1 }).then(() => {
-          docRef.set({ b: 1 });
-        });
-        return secondUpdateFound.promise.then(() => {
-          unlisten();
-        });
+        }
       });
-    }
-  );
+
+      docRef.set({ a: 1 }).then(() => {
+        docRef.set({ b: 1 });
+      });
+      return secondUpdateFound.promise.then(() => {
+        unlisten();
+      });
+    });
+  });
 
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we

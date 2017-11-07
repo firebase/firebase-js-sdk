@@ -156,30 +156,27 @@ describe('SimpleDb', () => {
     });
   });
 
-  it(
-    'still propagates error if you throw after aborting an exception.',
-    async () => {
-      let gotError = false;
-      try {
-        await runTransaction((store, txn) => {
-          return store.put(dummyUser).next(() => {
-            txn.abort();
-            throw new Error('error');
-          });
-        });
-      } catch (error) {
-        expect(error.message).to.equal('error');
-        gotError = true;
-      }
-      expect(gotError).to.equal(true);
-
-      await runTransaction(store => {
-        return store.get(dummyUser.id).next(user => {
-          expect(user).to.deep.equal(null);
+  it('still propagates error if you throw after aborting an exception.', async () => {
+    let gotError = false;
+    try {
+      await runTransaction((store, txn) => {
+        return store.put(dummyUser).next(() => {
+          txn.abort();
+          throw new Error('error');
         });
       });
+    } catch (error) {
+      expect(error.message).to.equal('error');
+      gotError = true;
     }
-  );
+    expect(gotError).to.equal(true);
+
+    await runTransaction(store => {
+      return store.get(dummyUser.id).next(user => {
+        expect(user).to.deep.equal(null);
+      });
+    });
+  });
 
   it('can delete', async () => {
     await runTransaction(store => {

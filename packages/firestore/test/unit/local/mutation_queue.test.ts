@@ -211,62 +211,55 @@ function genericMutationQueueTests() {
     );
   });
 
-  it(
-    'getHighestAcknowledgedBatchId() never exceeds getNextBatchId()',
-    async () => {
-      const batch1 = await addMutationBatch();
-      const batch2 = await addMutationBatch();
-      await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
-      await mutationQueue.acknowledgeBatch(batch2, emptyByteString());
-      expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-        batch2.batchId
-      );
+  it('getHighestAcknowledgedBatchId() never exceeds getNextBatchId()', async () => {
+    const batch1 = await addMutationBatch();
+    const batch2 = await addMutationBatch();
+    await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
+    await mutationQueue.acknowledgeBatch(batch2, emptyByteString());
+    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
+      batch2.batchId
+    );
 
-      await mutationQueue.removeMutationBatches([batch1, batch2]);
-      expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-        batch2.batchId
-      );
+    await mutationQueue.removeMutationBatches([batch1, batch2]);
+    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
+      batch2.batchId
+    );
 
-      // Restart the queue so that nextBatchID will be reset.
-      mutationQueue = new TestMutationQueue(
-        persistence,
-        persistence.getMutationQueue(new User('user'))
-      );
-      await mutationQueue.start();
+    // Restart the queue so that nextBatchID will be reset.
+    mutationQueue = new TestMutationQueue(
+      persistence,
+      persistence.getMutationQueue(new User('user'))
+    );
+    await mutationQueue.start();
 
-      // Verify that on restart with an empty queue, nextBatchID falls to a
-      // lower value.
-      expect(await mutationQueue.getNextBatchId()).to.be.lessThan(
-        batch2.batchId
-      );
+    // Verify that on restart with an empty queue, nextBatchID falls to a
+    // lower value.
+    expect(await mutationQueue.getNextBatchId()).to.be.lessThan(batch2.batchId);
 
-      // As a result highestAcknowledgedBatchID must also reset lower.
-      expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-        BATCHID_UNKNOWN
-      );
+    // As a result highestAcknowledgedBatchID must also reset lower.
+    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
+      BATCHID_UNKNOWN
+    );
 
-      // The mutation queue will reset the next batchID after all mutations
-      // are removed so adding another mutation will cause a collision.
-      const newBatch = await addMutationBatch();
-      expect(newBatch.batchId).to.equal(batch1.batchId);
+    // The mutation queue will reset the next batchID after all mutations
+    // are removed so adding another mutation will cause a collision.
+    const newBatch = await addMutationBatch();
+    expect(newBatch.batchId).to.equal(batch1.batchId);
 
-      // Restart the queue with one unacknowledged batch in it.
-      mutationQueue = new TestMutationQueue(
-        persistence,
-        persistence.getMutationQueue(new User('user'))
-      );
-      await mutationQueue.start();
+    // Restart the queue with one unacknowledged batch in it.
+    mutationQueue = new TestMutationQueue(
+      persistence,
+      persistence.getMutationQueue(new User('user'))
+    );
+    await mutationQueue.start();
 
-      expect(await mutationQueue.getNextBatchId()).to.equal(
-        newBatch.batchId + 1
-      );
+    expect(await mutationQueue.getNextBatchId()).to.equal(newBatch.batchId + 1);
 
-      // highestAcknowledgedBatchID must still be BATCHID_UNKNOWN.
-      expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-        BATCHID_UNKNOWN
-      );
-    }
-  );
+    // highestAcknowledgedBatchID must still be BATCHID_UNKNOWN.
+    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
+      BATCHID_UNKNOWN
+    );
+  });
 
   it('can lookup mutation batch', async () => {
     // Searching on an empty queue should not find a non-existent batch
@@ -398,69 +391,61 @@ function genericMutationQueueTests() {
     expectEqualArrays(matches, expected);
   });
 
-  it(
-    'can getAllMutationBatchesAffectingQuery() with compound batches',
-    async () => {
-      const value = { a: 1 };
-      const batch1 = await mutationQueue.addMutationBatch([
-        setMutation('foo/bar', value),
-        setMutation('foo/bar/baz/quux', value)
-      ]);
-      const batch2 = await mutationQueue.addMutationBatch([
-        setMutation('foo/bar', value),
-        setMutation('foo/baz', value)
-      ]);
-      const expected = [batch1, batch2];
-      const query = Query.atPath(path('foo'));
-      const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
-        query
-      );
-      expectEqualArrays(matches, expected);
-    }
-  );
+  it('can getAllMutationBatchesAffectingQuery() with compound batches', async () => {
+    const value = { a: 1 };
+    const batch1 = await mutationQueue.addMutationBatch([
+      setMutation('foo/bar', value),
+      setMutation('foo/bar/baz/quux', value)
+    ]);
+    const batch2 = await mutationQueue.addMutationBatch([
+      setMutation('foo/bar', value),
+      setMutation('foo/baz', value)
+    ]);
+    const expected = [batch1, batch2];
+    const query = Query.atPath(path('foo'));
+    const matches = await mutationQueue.getAllMutationBatchesAffectingQuery(
+      query
+    );
+    expectEqualArrays(matches, expected);
+  });
 
-  it(
-    'can emits garbage events while removing mutation batches',
-    async () => {
-      const gc = new EagerGarbageCollector();
-      gc.addGarbageSource(mutationQueue.queue);
-      const batches = [
-        await addMutationBatch('foo/bar'),
-        await addMutationBatch('foo/ba'),
-        await addMutationBatch('foo/bar2'),
-        await addMutationBatch('foo/bar'),
-        await addMutationBatch('foo/bar/suffix/baz'),
-        await addMutationBatch('foo/baz')
-      ];
+  it('can emits garbage events while removing mutation batches', async () => {
+    const gc = new EagerGarbageCollector();
+    gc.addGarbageSource(mutationQueue.queue);
+    const batches = [
+      await addMutationBatch('foo/bar'),
+      await addMutationBatch('foo/ba'),
+      await addMutationBatch('foo/bar2'),
+      await addMutationBatch('foo/bar'),
+      await addMutationBatch('foo/bar/suffix/baz'),
+      await addMutationBatch('foo/baz')
+    ];
 
-      await mutationQueue.removeMutationBatches([batches[0]]);
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
+    await mutationQueue.removeMutationBatches([batches[0]]);
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
 
-      await mutationQueue.removeMutationBatches([batches[1]]);
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/ba')]);
+    await mutationQueue.removeMutationBatches([batches[1]]);
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/ba')]);
 
-      await mutationQueue.removeMutationBatches([batches[5]]);
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), [
-        key('foo/baz')
-      ]);
+    await mutationQueue.removeMutationBatches([batches[5]]);
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/baz')]);
 
-      await mutationQueue.removeMutationBatches([batches[2], batches[3]]);
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), [
-        key('foo/bar'),
-        key('foo/bar2')
-      ]);
+    await mutationQueue.removeMutationBatches([batches[2], batches[3]]);
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), [
+      key('foo/bar'),
+      key('foo/bar2')
+    ]);
 
-      batches.push(await addMutationBatch('foo/bar/suffix/baz'));
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
+    batches.push(await addMutationBatch('foo/bar/suffix/baz'));
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
 
-      await mutationQueue.removeMutationBatches([batches[4], batches[6]]);
-      expectSetToEqual(await mutationQueue.collectGarbage(gc), [
-        key('foo/bar/suffix/baz')
-      ]);
+    await mutationQueue.removeMutationBatches([batches[4], batches[6]]);
+    expectSetToEqual(await mutationQueue.collectGarbage(gc), [
+      key('foo/bar/suffix/baz')
+    ]);
 
-      gc.removeGarbageSource(mutationQueue.queue);
-    }
-  );
+    gc.removeGarbageSource(mutationQueue.queue);
+  });
 
   it('can save the last stream token', async () => {
     const streamToken1 = 'token1';
