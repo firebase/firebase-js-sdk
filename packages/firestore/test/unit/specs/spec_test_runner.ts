@@ -89,8 +89,6 @@ import {
   version
 } from '../../util/helpers';
 
-type MutationBatch = api.Write[];
-
 class MockConnection implements Connection {
   watchStream: StreamBridge<
     api.ListenRequest,
@@ -101,13 +99,13 @@ class MockConnection implements Connection {
    * Used to make sure a write was actually sent out on the network before the
    * test runner continues.
    */
-  writeSendBarriers: Array<Deferred<MutationBatch>> = [];
+  writeSendBarriers: Array<Deferred<api.WriteRequest>> = [];
 
   /**
    * The set of mutations sent out before there was a corresponding
    * writeSendBarrier.
    */
-  earlyWrites: MutationBatch[] = [];
+  earlyWrites: api.WriteRequest[] = [];
 
   /** The total number of requests sent to the watch stream. */
   watchStreamRequestCount = 0;
@@ -139,11 +137,11 @@ class MockConnection implements Connection {
     throw new Error('Not implemented!');
   }
 
-  waitForMutationsSend(): Promise<MutationBatch> {
+  waitForWriteRequest(): Promise<api.WriteRequest> {
     if (this.earlyWrites.length > 0) {
       return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
     }
-    const barrier = new Deferred<MutationBatch>();
+    const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
     return barrier.promise;
   }
@@ -217,13 +215,13 @@ class MockConnection implements Connection {
             // The test runner hasn't set up the barrier yet, so we queue
             // up this mutation to provide to the barrier promise when it
             // arrives.
-            this.earlyWrites.push(request.writes!);
+            this.earlyWrites.push(request);
           } else {
             // The test runner is waiting on a write invocation, now that we
             // have it we can resolve the write send barrier. If we add
             // (automatic) batching support we need to make sure the number of
-            // batches matches the number of calls to waitForMutationsSend.
-            barrier.resolve(request.writes!);
+            // batches matches the number of calls to waitForWriteRequest.
+            barrier.resolve(request);
           }
         },
         closeFn: () => {
@@ -707,10 +705,11 @@ abstract class TestRunner {
   }
 
   /** Validates that a write was sent and matches the expected write. */
-  private validateNextWritesSent(mutations: Mutation[]): Promise<void> {
+  private validateNextWriteRequest(mutations: Mutation[]): Promise<void> {
     // Make sure this write was sent on the wire and it matches the expected
     // write.
-    return this.connection.waitForMutationsSend().then(writes => {
+    return this.connection.waitForWriteRequest().then(request => {
+      const writes = request.writes!;
       expect(writes.length).to.equal(mutations.length);
       for (let i = 0; i < writes.length; ++i) {
         expect(writes[i]).to.deep.equal(
@@ -723,7 +722,7 @@ abstract class TestRunner {
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
     const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWritesSent(nextWrite.mutations).then(() => {
+    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         return nextWrite.userCallback.promise;
@@ -740,7 +739,7 @@ abstract class TestRunner {
       specError.message
     );
     const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWritesSent(nextWrite.mutations).then(() => {
+    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
       // If this is not a permanent error, the write is expected to be sent
       // again.
       if (!isPermanentError(error.code)) {

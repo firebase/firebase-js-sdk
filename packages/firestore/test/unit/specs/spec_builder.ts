@@ -538,7 +538,7 @@ export class SpecBuilder {
   }
 
   /**
-   * Verifies fhe total number of requests sent to the write backend since test
+   * Verifies the total number of requests sent to the write backend since test
    * initialization.
    */
   expectWriteStreamRequestCount(num: number): SpecBuilder {
@@ -548,8 +548,9 @@ export class SpecBuilder {
     currentStep.stateExpect.writeStreamRequestCount = num;
     return this;
   }
+
   /**
-   * Verifies fhe total number of requests sent to the watch backend since test
+   * Verifies the total number of requests sent to the watch backend since test
    * initialization.
    */
   expectWatchStreamRequestCount(num: number): SpecBuilder {
