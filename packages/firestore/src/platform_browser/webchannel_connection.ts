@@ -114,14 +114,15 @@ export class WebChannelConnection implements Connection {
                 resolve(json);
                 break;
               case ErrorCode.TIMEOUT:
-                log.error('RPC "' + rpcName + '" timed out, retrying.');
+                log.debug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
                 reject(
                   new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
                 );
                 break;
               case ErrorCode.HTTP_ERROR:
                 const status = xhr.getStatus();
-                log.error(
+                log.debug(
+                  LOG_TAG,
                   'RPC "' + rpcName + '" failed with status:',
                   status,
                   'response text:',
@@ -136,8 +137,8 @@ export class WebChannelConnection implements Connection {
                   );
                 } else {
                   // If we received an HTTP_ERROR but there's no status code,
-                  // it's most probably a connection issue, let's retry.
-                  log.error(LOG_TAG, 'RPC "' + rpcName + '" failed, retrying.');
+                  // it's most probably a connection issue
+                  log.debug(LOG_TAG, 'RPC "' + rpcName + '" failed');
                   reject(
                     new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                   );

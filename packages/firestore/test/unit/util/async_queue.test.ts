@@ -18,9 +18,7 @@ import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { AnyJs } from '../../../src/util/misc';
-import { Deferred } from '../../../src/util/promise';
-import { Rejecter } from '../../../src/util/promise';
-import { Resolver } from '../../../src/util/promise';
+import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 describe('AsyncQueue', () => {
   it('schedules ops in right order', () => {
@@ -68,12 +66,14 @@ describe('AsyncQueue', () => {
 
   it('handles failures', () => {
     const queue = new AsyncQueue();
-    const expected = new Error('Simulated error');
+    const expected = new Error('Firestore Test Simulated Error');
 
     // Disable logging for this test to avoid the assertion being logged
     const oldLogLevel = getLogLevel();
     setLogLevel(LogLevel.SILENT);
-    return queue
+
+    // Schedule a failing operation and make sure it's handled correctly.
+    const op1Promise = queue
       .schedule(() => {
         // This promise represents something that is rejected
         return defer(() => {
@@ -82,7 +82,7 @@ describe('AsyncQueue', () => {
       })
       .then(
         () => {
-          expect.fail('expected an error');
+          expect.fail('expected op1 to fail');
         },
         (err: AnyJs) => {
           expect(err).to.equal(expected);
@@ -90,10 +90,38 @@ describe('AsyncQueue', () => {
       )
       .then(() => {
         expect(queue.failure).to.equal(expected);
-      })
-      .then(() => {
-        setLogLevel(oldLogLevel);
       });
+
+    // Schedule a second failing operation (before the first one has actually
+    // executed and failed). It should not be run.
+    const op2Promise = queue
+      .schedule(() => {
+        return defer(() => {
+          expect.fail('op2 should not be executed.');
+        });
+      })
+      .then(
+        () => {
+          expect.fail('expected op2 to fail');
+        },
+        (err: AnyJs) => {
+          // should be the original failure still.
+          expect(err).to.equal(expected);
+          expect(queue.failure).to.equal(expected);
+        }
+      );
+
+    return Promise.all([op1Promise, op2Promise]).then(() => {
+      // Once the queue is failed, trying to queue new operations will
+      // synchronously throw with "already failed" error.
+      const dummyOp = () => Promise.reject('dummyOp should not be run');
+      expect(() => {
+        queue.schedule(dummyOp);
+      }).to.throw(/already failed:.*Simulated Error/);
+
+      // Finally, restore log level.
+      setLogLevel(oldLogLevel);
+    });
   });
 });
 
