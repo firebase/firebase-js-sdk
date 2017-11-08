@@ -323,16 +323,16 @@ export abstract class PersistentStream<
       this.backoff.resetToMax();
     }
 
-    // This state must be assigned before calling onClose() to allow the callback to
-    // inhibit backoff or otherwise manipulate the state in its non-started state.
-    this.state = finalState;
-
     // Clean up the underlying stream because we are no longer interested in events.
     if (this.stream !== null) {
+      this.tearDown();
       this.stream.close();
       this.stream = null;
     }
 
+    // This state must be assigned before calling onClose() to allow the callback to
+    // inhibit backoff or otherwise manipulate the state in its non-started state.
+    this.state = finalState;
     const listener = this.listener!;
 
     // Clear the listener to avoid bleeding of events from the underlying streams.
@@ -346,6 +346,12 @@ export abstract class PersistentStream<
       return Promise.resolve();
     }
   }
+
+  /**
+   * Can be overridden to perform additional cleanup before the stream is closed.
+   * Calling super.tearDown() is not required.
+   */
+  protected tearDown(): void {}
 
   /**
    * Used by subclasses to start the concrete RPC and return the underlying
@@ -644,6 +650,12 @@ export class PersistentWriteStream extends PersistentStream<
   start(listener: WriteStreamListener): void {
     this.handshakeComplete_ = false;
     super.start(listener);
+  }
+
+  protected tearDown() {
+    if (this.handshakeComplete_) {
+      this.writeMutations([]);
+    }
   }
 
   protected startRpc(
