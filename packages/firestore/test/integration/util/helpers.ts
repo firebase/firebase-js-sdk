@@ -191,18 +191,25 @@ export function withTestDbsSettings(
   }
 
   return Promise.all(promises).then((dbs: firestore.Firestore[]) => {
-    return fn(dbs)
-      .then(wipeDb.bind(null, dbs[0]), error => {
-        return wipeDb(dbs[0]).then(() => {
-          throw error;
-        });
-      })
-      .then(() => {
-        return dbs.reduce(
+    const cleanup = () => {
+      return wipeDb(dbs[0]).then(() =>
+        dbs.reduce(
           (chain, db) => chain.then(() => db.INTERNAL.delete()),
-          Promise.resolve(undefined)
+          Promise.resolve()
+        )
+      );
+    };
+
+    return fn(dbs).then(
+      () => cleanup(),
+      err => {
+        // Do cleanup but propagate original error.
+        return cleanup().then(
+          () => Promise.reject(err),
+          () => Promise.reject(err)
         );
-      });
+      }
+    );
   });
 }
 
