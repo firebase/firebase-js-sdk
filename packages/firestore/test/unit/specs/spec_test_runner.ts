@@ -99,13 +99,19 @@ class MockConnection implements Connection {
    * Used to make sure a write was actually sent out on the network before the
    * test runner continues.
    */
-  writeSendBarriers: Array<Deferred<api.Write>> = [];
+  writeSendBarriers: Array<Deferred<api.WriteRequest>> = [];
 
   /**
    * The set of mutations sent out before there was a corresponding
    * writeSendBarrier.
    */
-  earlyWrites: api.Write[] = [];
+  earlyWrites: api.WriteRequest[] = [];
+
+  /** The total number of requests sent to the watch stream. */
+  watchStreamRequestCount = 0;
+
+  /** The total number of requests sent to the write stream. */
+  writeStreamRequestCount = 0;
 
   nextWriteStreamToken = 0;
 
@@ -120,15 +126,22 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
+  reset(): void {
+    this.watchStreamRequestCount = 0;
+    this.writeStreamRequestCount = 0;
+    this.earlyWrites = [];
+    this.activeTargets = [];
+  }
+
   invoke(rpcName: string, request: any): Promise<any> {
     throw new Error('Not implemented!');
   }
 
-  waitForWriteSend(): Promise<api.Write> {
+  waitForWriteRequest(): Promise<api.WriteRequest> {
     if (this.earlyWrites.length > 0) {
       return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
     }
-    const barrier = new Deferred<api.Write>();
+    const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
     return barrier.promise;
   }
@@ -176,6 +189,7 @@ class MockConnection implements Connection {
       let firstCall = true;
       const writeStream = new StreamBridge<WriteRequest, api.WriteResponse>({
         sendFn: (request: WriteRequest) => {
+          ++this.writeStreamRequestCount;
           if (firstCall) {
             assert(
               !!request.database,
@@ -195,27 +209,19 @@ class MockConnection implements Connection {
             'streamToken must be set on all writes'
           );
           assert(!!request.writes, 'writes must be set on all writes');
-          assert(
-            request.writes!.length > 0,
-            'there must be non-zero mutations'
-          );
-          if (request.writes!.length !== 1) {
-            // TODO(dimond): support batching?
-            fail('Unexpected batched mutation found!');
-          }
 
           const barrier = this.writeSendBarriers.shift();
           if (!barrier) {
             // The test runner hasn't set up the barrier yet, so we queue
             // up this mutation to provide to the barrier promise when it
             // arrives.
-            this.earlyWrites.push(request.writes![0]);
+            this.earlyWrites.push(request);
           } else {
             // The test runner is waiting on a write invocation, now that we
             // have it we can resolve the write send barrier. If we add
             // (automatic) batching support we need to make sure the number of
-            // batches matches the number of calls to waitForWriteSend.
-            barrier.resolve(request.writes![0]);
+            // batches matches the number of calls to waitForWriteRequest.
+            barrier.resolve(request);
           }
         },
         closeFn: () => {
@@ -240,6 +246,7 @@ class MockConnection implements Connection {
         api.ListenResponse
       >({
         sendFn: (request: api.ListenRequest) => {
+          ++this.watchStreamRequestCount;
           if (request.addTarget) {
             const targetId = request.addTarget.targetId!;
             this.activeTargets[targetId] = request.addTarget;
@@ -407,6 +414,7 @@ abstract class TestRunner {
   protected abstract destroyPersistence(): Promise<void>;
 
   async start(): Promise<void> {
+    this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
@@ -458,6 +466,10 @@ abstract class TestRunner {
       return this.doWriteAck(step.writeAck!);
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
+    } else if ('enableNetwork' in step) {
+      return step.enableNetwork!
+        ? this.doEnableNetwork()
+        : this.doDisableNetwork();
     } else if ('restart' in step) {
       assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
@@ -517,9 +529,9 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
-    return this.queue.schedule(() =>
-      this.syncEngine.write(mutations, userCallback)
-    );
+    return this.queue.schedule(() => {
+      return this.syncEngine.write(mutations, userCallback);
+    });
   }
 
   private doWatchAck(
@@ -693,19 +705,24 @@ abstract class TestRunner {
   }
 
   /** Validates that a write was sent and matches the expected write. */
-  private validateNextWriteSent(mutations: Mutation[]): Promise<void> {
+  private validateNextWriteRequest(mutations: Mutation[]): Promise<void> {
     // Make sure this write was sent on the wire and it matches the expected
     // write.
-    return this.connection.waitForWriteSend().then(write => {
-      assert(mutations.length === 1, "We don't support multiple mutations.");
-      expect(write).to.deep.equal(this.serializer.toMutation(mutations[0]));
+    return this.connection.waitForWriteRequest().then(request => {
+      const writes = request.writes!;
+      expect(writes.length).to.equal(mutations.length);
+      for (let i = 0; i < writes.length; ++i) {
+        expect(writes[i]).to.deep.equal(
+          this.serializer.toMutation(mutations[i])
+        );
+      }
     });
   }
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
     const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteSent(nextWrite.mutations).then(() => {
+    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         return nextWrite.userCallback.promise;
@@ -722,7 +739,7 @@ abstract class TestRunner {
       specError.message
     );
     const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteSent(nextWrite.mutations).then(() => {
+    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
       // If this is not a permanent error, the write is expected to be sent
       // again.
       if (!isPermanentError(error.code)) {
@@ -743,6 +760,17 @@ abstract class TestRunner {
         return Promise.resolve();
       }
     });
+  }
+
+  private async doDisableNetwork(): Promise<void> {
+    // Make sure to execute all writes that are currently queued. This allows us
+    // to assert on the total number of requests sent before shutdown.
+    await this.remoteStore.fillWritePipeline();
+    await this.remoteStore.disableNetwork();
+  }
+
+  private async doEnableNetwork(): Promise<void> {
+    await this.remoteStore.enableNetwork();
   }
 
   private async doRestart(): Promise<void> {
@@ -791,6 +819,16 @@ abstract class TestRunner {
       if ('numOutstandingWrites' in expectation) {
         expect(this.remoteStore.outstandingWrites()).to.deep.equal(
           expectation.numOutstandingWrites
+        );
+      }
+      if ('writeStreamRequestCount' in expectation) {
+        expect(this.connection.writeStreamRequestCount).to.deep.equal(
+          expectation.writeStreamRequestCount
+        );
+      }
+      if ('watchStreamRequestCount' in expectation) {
+        expect(this.connection.watchStreamRequestCount).to.deep.equal(
+          expectation.watchStreamRequestCount
         );
       }
       if ('limboDocs' in expectation) {
@@ -1052,6 +1090,9 @@ export interface SpecStep {
   /** Fail a write */
   failWrite?: SpecWriteFailure;
 
+  /** Enable or disable RemoteStore's network connection. */
+  enableNetwork?: boolean;
+
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
 
@@ -1193,6 +1234,10 @@ export interface SpecExpectation {
 export interface StateExpectation {
   /** Number of outstanding writes in the datastore queue. */
   numOutstandingWrites?: number;
+  /** Number of requests sent to the write stream. */
+  writeStreamRequestCount?: number;
+  /** Number of requests sent to the watch stream. */
+  watchStreamRequestCount?: number;
   /** Current documents in limbo. Verified in each step until overwritten. */
   limboDocs?: string[];
   /**
