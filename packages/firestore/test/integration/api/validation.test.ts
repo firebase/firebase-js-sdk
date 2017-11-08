@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import * as firestore from 'firestore';
 
-import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   DEFAULT_PROJECT_ID,
@@ -32,13 +31,13 @@ import {
 // tslint:disable:no-any
 
 // Since most of our tests are "synchronous" but require a Firestore instance,
-// we have a helper wrapper around asyncIt and withTestDb to optimize for that.
+// we have a helper wrapper around it() and withTestDb() to optimize for that.
 function validationIt(
   persistence: boolean,
   message: string,
   testFunction: (db: firestore.Firestore) => void | Promise<any>
 ) {
-  asyncIt(message, () => {
+  it(message, () => {
     return withTestDb(persistence, db => {
       const maybePromise = testFunction(db);
       if (maybePromise) {
@@ -114,7 +113,7 @@ apiDescribe('Validation:', persistence => {
       }
     );
 
-    asyncIt("fails transaction if function doesn't return a Promise.", () => {
+    it("fails transaction if function doesn't return a Promise.", () => {
       return withTestDb(persistence, db => {
         return db.runTransaction(() => 5 as any).then(
           x => expect.fail('Transaction should fail'),
@@ -534,7 +533,7 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    asyncIt('cannot be created from documents missing sort values', () => {
+    it('cannot be created from documents missing sort values', () => {
       const testDocs = {
         f: { k: 'f', nosort: 1 } // should not show up
       };

@@ -21,8 +21,6 @@ import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
-const asyncIt = testHelpers.asyncIt;
-
 apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
   const setData = {
@@ -122,7 +120,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   }
 
-  asyncIt('work via set()', () => {
+  it('work via set()', () => {
     return withTestSetup(() => {
       return docRef
         .set(setData)
@@ -131,7 +129,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   });
 
-  asyncIt('work via update()', () => {
+  it('work via update()', () => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
@@ -140,7 +138,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   });
 
-  asyncIt('work via transaction set()', () => {
+  it('work via transaction set()', () => {
     return withTestSetup(() => {
       return docRef.firestore
         .runTransaction(txn => {
@@ -151,7 +149,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   });
 
-  asyncIt('work via transaction update()', () => {
+  it('work via transaction update()', () => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() =>
@@ -164,7 +162,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   });
 
-  asyncIt('fail via update() on nonexistent document.', () => {
+  it('fail via update() on nonexistent document.', () => {
     return withTestSetup(() => {
       return docRef.update(updateData).then(
         () => {
@@ -177,7 +175,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   });
 
-  asyncIt('fail via transaction update() on nonexistent document.', () => {
+  it('fail via transaction update() on nonexistent document.', () => {
     return withTestSetup(() => {
       return docRef.firestore
         .runTransaction(txn => {

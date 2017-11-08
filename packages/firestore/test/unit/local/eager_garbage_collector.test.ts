@@ -18,10 +18,9 @@ import { expect } from 'chai';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { expectSetToEqual, key } from '../../util/helpers';
-import { asyncIt } from '../../util/helpers';
 
 describe('EagerGarbageCollector', () => {
-  asyncIt('can add or remove references', () => {
+  it('can add or remove references', () => {
     const gc = new EagerGarbageCollector();
     const referenceSet = new ReferenceSet();
     gc.addGarbageSource(referenceSet);
@@ -44,7 +43,7 @@ describe('EagerGarbageCollector', () => {
       });
   });
 
-  asyncIt('can remove all references for ID', () => {
+  it('can remove all references for ID', () => {
     const gc = new EagerGarbageCollector();
     const referenceSet = new ReferenceSet();
     gc.addGarbageSource(referenceSet);
@@ -74,7 +73,7 @@ describe('EagerGarbageCollector', () => {
       });
   });
 
-  asyncIt('can handle two reference sets at the same time', () => {
+  it('can handle two reference sets at the same time', () => {
     const remoteTargets = new ReferenceSet();
     const localViews = new ReferenceSet();
     const mutations = new ReferenceSet();

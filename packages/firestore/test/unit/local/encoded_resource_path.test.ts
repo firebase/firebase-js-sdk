@@ -27,7 +27,6 @@ import {
 import { ResourcePath } from '../../../src/model/path';
 import { fail } from '../../../src/util/assert';
 import { path } from '../../util/helpers';
-import { asyncIt } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 
@@ -57,7 +56,7 @@ describe('EncodedResourcePath', () => {
     db.close();
   });
 
-  asyncIt('encodes resource paths', async () => {
+  it('encodes resource paths', async () => {
     await assertEncoded(sep, ResourcePath.EMPTY_PATH);
     await assertEncoded('\u0001\u0010' + sep, path('\0'));
     await assertEncoded('\u0002' + sep, path('\u0002'));
@@ -84,7 +83,7 @@ describe('EncodedResourcePath', () => {
     );
   });
 
-  asyncIt('orders resource paths', async () => {
+  it('orders resource paths', async () => {
     await assertOrdered([
       ResourcePath.EMPTY_PATH,
       path('\0'),

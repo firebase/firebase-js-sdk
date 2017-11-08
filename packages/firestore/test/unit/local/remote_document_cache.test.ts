@@ -19,14 +19,7 @@ import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { MaybeDocument } from '../../../src/model/document';
-import {
-  asyncIt,
-  deletedDoc,
-  doc,
-  expectEqual,
-  key,
-  path
-} from '../../util/helpers';
+import { deletedDoc, doc, expectEqual, key, path } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
@@ -92,31 +85,31 @@ function genericRemoteDocumentCacheTests() {
     );
   });
 
-  asyncIt('returns null for document not in cache', () => {
+  it('returns null for document not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {
       expect(doc).to.equal(null);
     });
   });
 
-  asyncIt('can set and read a document', () => {
+  it('can set and read a document', () => {
     return setAndReadDocument(doc(DOC_PATH, VERSION, DOC_DATA));
   });
 
-  asyncIt('can set and read a document at a long path', () => {
+  it('can set and read a document at a long path', () => {
     return setAndReadDocument(doc(LONG_DOC_PATH, VERSION, DOC_DATA));
   });
 
-  asyncIt('can set and read a NoDocument', () => {
+  it('can set and read a NoDocument', () => {
     return setAndReadDocument(deletedDoc(DOC_PATH, VERSION));
   });
 
-  asyncIt('can set document to new value', () => {
+  it('can set document to new value', () => {
     return cache.addEntry(doc(DOC_PATH, VERSION, DOC_DATA)).then(() => {
       return setAndReadDocument(doc(DOC_PATH, VERSION + 1, { data: 2 }));
     });
   });
 
-  asyncIt('can remove document', () => {
+  it('can remove document', () => {
     return cache
       .addEntry(doc(DOC_PATH, VERSION, DOC_DATA))
       .then(() => {
@@ -130,12 +123,12 @@ function genericRemoteDocumentCacheTests() {
       });
   });
 
-  asyncIt('can remove nonexistent document', () => {
+  it('can remove nonexistent document', () => {
     // no-op, but make sure it doesn't fail.
     return cache.removeEntry(key(DOC_PATH));
   });
 
-  asyncIt('can get documents matching query', () => {
+  it('can get documents matching query', () => {
     // TODO(mikelehen): This just verifies that we do a prefix scan against the
     // query path. We'll need more tests once we add index support.
     return cache

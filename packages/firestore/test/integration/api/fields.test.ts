@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { asyncIt, toDataArray } from '../../util/helpers';
+import { toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDoc } from '../util/helpers';
 
@@ -35,7 +35,7 @@ apiDescribe('Nested Fields', persistence => {
     };
   };
 
-  asyncIt('can be written with set()', () => {
+  it('can be written with set()', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -46,7 +46,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be read directly with .get(<string>)', () => {
+  it('can be read directly with .get(<string>)', () => {
     return withTestDoc(persistence, doc => {
       const obj = testData();
       return doc
@@ -65,7 +65,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be read directly with .get(<FieldPath>)', () => {
+  it('can be read directly with .get(<FieldPath>)', () => {
     return withTestDoc(persistence, doc => {
       const obj = testData();
       return doc
@@ -88,7 +88,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be updated with update(<string>)', () => {
+  it('can be updated with update(<string>)', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -114,7 +114,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be updated with update(<FieldPath>)', () => {
+  it('can be updated with update(<FieldPath>)', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -142,7 +142,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be used with query.where(<string>).', () => {
+  it('can be used with query.where(<string>).', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -162,7 +162,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be used with query.where(<FieldPath>).', () => {
+  it('can be used with query.where(<FieldPath>).', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -182,7 +182,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be used with query.orderBy(<string>).', () => {
+  it('can be used with query.orderBy(<string>).', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -202,7 +202,7 @@ apiDescribe('Nested Fields', persistence => {
     });
   });
 
-  asyncIt('can be used with query.orderBy(<FieldPath>).', () => {
+  it('can be used with query.orderBy(<FieldPath>).', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -236,7 +236,7 @@ apiDescribe('Fields with special characters', persistence => {
     };
   };
 
-  asyncIt('can be written with set()', () => {
+  it('can be written with set()', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -247,7 +247,7 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  asyncIt('can be read directly with .data(<field>)', () => {
+  it('can be read directly with .data(<field>)', () => {
     return withTestDoc(persistence, doc => {
       const obj = testData();
       return doc
@@ -265,7 +265,7 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  asyncIt('can be updated with update()', () => {
+  it('can be updated with update()', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -288,7 +288,7 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  asyncIt('can be used in query filters.', () => {
+  it('can be used in query filters.', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -310,7 +310,7 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  asyncIt('can be used in a query orderBy.', () => {
+  it('can be used in a query orderBy.', () => {
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
