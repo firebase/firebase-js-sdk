@@ -1039,8 +1039,11 @@ export async function runSpec(
     runner = new MemoryTestRunner(name, config);
   }
   await runner.start();
-  await runner.run(steps);
-  await runner.shutdown();
+  try {
+    await runner.run(steps);
+  } finally {
+    await runner.shutdown();
+  }
 }
 
 /** Specifies initial configuration information for the test. */
