@@ -21,17 +21,16 @@ import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
-const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
 
 apiDescribe('Database batch writes', persistence => {
-  asyncIt('support empty batches', () => {
+  it('support empty batches', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.batch().commit();
     });
   });
 
-  asyncIt('can set documents', () => {
+  it('can set documents', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc.firestore
         .batch()
@@ -45,7 +44,7 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  asyncIt('can set documents with merge', () => {
+  it('can set documents with merge', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc.firestore
         .batch()
@@ -69,7 +68,7 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  asyncIt('can update documents', () => {
+  it('can update documents', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc
         .set({ foo: 'bar' })
@@ -87,7 +86,7 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  asyncIt('can delete documents', () => {
+  it('can delete documents', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc
         .set({ foo: 'bar' })
@@ -108,7 +107,7 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  asyncIt('commit atomically, raising correct events', () => {
+  it('commit atomically, raising correct events', () => {
     return integrationHelpers.withTestCollection(
       persistence,
       {},
@@ -156,7 +155,7 @@ apiDescribe('Database batch writes', persistence => {
     );
   });
 
-  asyncIt('fail atomically, raising correct events', () => {
+  it('fail atomically, raising correct events', () => {
     return integrationHelpers.withTestCollection(
       persistence,
       {},
@@ -217,7 +216,7 @@ apiDescribe('Database batch writes', persistence => {
     );
   });
 
-  asyncIt('write the same server timestamp across writes', () => {
+  it('write the same server timestamp across writes', () => {
     return integrationHelpers.withTestCollection(
       persistence,
       {},
@@ -271,7 +270,7 @@ apiDescribe('Database batch writes', persistence => {
     );
   });
 
-  asyncIt('can write the same document multiple times', () => {
+  it('can write the same document multiple times', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
       const accumulator = new testHelpers.EventsAccumulator<
         firestore.DocumentSnapshot
@@ -313,7 +312,7 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  asyncIt('can update nested fields', () => {
+  it('can update nested fields', () => {
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny' },

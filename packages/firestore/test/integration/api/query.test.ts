@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { asyncIt, EventsAccumulator, toDataArray } from '../../util/helpers';
+import { EventsAccumulator, toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
 import { Firestore } from '../../../src/api/database';
@@ -27,7 +27,7 @@ import { Deferred } from '../../../src/util/promise';
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
-  asyncIt('can issue limit queries', () => {
+  it('can issue limit queries', () => {
     const testDocs = {
       a: { k: 'a' },
       b: { k: 'b' },
@@ -43,7 +43,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can issue limit queries using descending sort order', () => {
+  it('can issue limit queries using descending sort order', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
       b: { k: 'b', sort: 1 },
@@ -64,7 +64,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('key order is descending for descending inequality', () => {
+  it('key order is descending for descending inequality', () => {
     const testDocs = {
       a: {
         foo: 42
@@ -105,7 +105,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can use unary filters', () => {
+  it('can use unary filters', () => {
     const testDocs = {
       a: { null: null, nan: NaN },
       b: { null: null, nan: 0 },
@@ -122,7 +122,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can filter on infinity', () => {
+  it('can filter on infinity', () => {
     const testDocs = {
       a: { inf: Infinity },
       b: { inf: -Infinity }
@@ -137,7 +137,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('will not get metadata only updates', () => {
+  it('will not get metadata only updates', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
@@ -173,7 +173,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can listen for the same query with different options', () => {
+  it('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
@@ -275,7 +275,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can issue queries with Dates differing in milliseconds', () => {
+  it('can issue queries with Dates differing in milliseconds', () => {
     const date1 = new Date();
     date1.setMilliseconds(0);
     const date2 = new Date(date1.getTime());
@@ -306,7 +306,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can listen for QueryMetadata changes', () => {
+  it('can listen for QueryMetadata changes', () => {
     const testDocs = {
       '1': { sort: 1, filter: true, key: '1' },
       '2': { sort: 2, filter: true, key: '2' },
@@ -349,7 +349,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can explicitly sort by document ID', () => {
+  it('can explicitly sort by document ID', () => {
     const testDocs = {
       a: { key: 'a' },
       b: { key: 'b' },
@@ -371,7 +371,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can query by document ID', () => {
+  it('can query by document ID', () => {
     const testDocs = {
       aa: { key: 'aa' },
       ab: { key: 'ab' },
@@ -398,7 +398,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can query by document ID using refs', () => {
+  it('can query by document ID using refs', () => {
     const testDocs = {
       aa: { key: 'aa' },
       ab: { key: 'ab' },
@@ -433,7 +433,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  asyncIt('can query while reconnecting to network', () => {
+  it('can query while reconnecting to network', () => {
     return withTestCollection(persistence, /* docs= */ {}, coll => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts

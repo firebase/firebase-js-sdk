@@ -21,14 +21,13 @@ import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
-const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
 
 apiDescribe('Database transactions', persistence => {
   // TODO(klimt): Test that transactions don't see latency compensation
   // changes, using the other kind of integration test.
   // We currently require every document read to also be written.
-  asyncIt('get documents', () => {
+  it('get documents', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('spaces').doc();
       return doc
@@ -63,7 +62,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('delete documents', () => {
+  it('delete documents', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       return doc
@@ -89,7 +88,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('get nonexistent document then create', () => {
+  it('get nonexistent document then create', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('towns').doc();
       return db
@@ -109,7 +108,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('get nonexistent document then fail patch', () => {
+  it('get nonexistent document then fail patch', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('towns').doc();
       return db
@@ -129,7 +128,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt("can't delete document then patch", () => {
+  it("can't delete document then patch", () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('towns').doc();
       return docRef.set({ foo: 'bar' }).then(() => {
@@ -157,7 +156,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt("can't delete document then set", () => {
+  it("can't delete document then set", () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('towns').doc();
       return docRef.set({ foo: 'bar' }).then(() => {
@@ -184,7 +183,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('write document twice', () => {
+  it('write document twice', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       return db
@@ -202,7 +201,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('set document with merge', () => {
+  it('set document with merge', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       return db
@@ -230,7 +229,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('increment transactionally', () => {
+  it('increment transactionally', () => {
     // A set of concurrent transactions.
     const transactionPromises: Array<Promise<void>> = [];
     const readPromises: Array<Promise<void>> = [];
@@ -286,7 +285,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('update transactionally', () => {
+  it('update transactionally', () => {
     // A set of concurrent transactions.
     const transactionPromises: Array<Promise<void>> = [];
     const readPromises: Array<Promise<void>> = [];
@@ -344,7 +343,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('can update nested fields transactionally', () => {
+  it('can update nested fields transactionally', () => {
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny' },
@@ -378,7 +377,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('handle reading one doc and writing another', () => {
+  it('handle reading one doc and writing another', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc1 = db.collection('counters').doc();
       const doc2 = db.collection('counters').doc();
@@ -427,7 +426,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('handle reading a doc twice with different versions', () => {
+  it('handle reading a doc twice with different versions', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('counters').doc();
       return doc
@@ -460,7 +459,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('cannot read after writing', () => {
+  it('cannot read after writing', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db
         .runTransaction(transaction => {
@@ -491,7 +490,7 @@ apiDescribe('Database transactions', persistence => {
     ];
 
     for (const badReturn of badReturns) {
-      asyncIt(badReturn + ' is rejected', () => {
+      it(badReturn + ' is rejected', () => {
         // tslint:disable-next-line:no-any Intentionally returning bad type.
         const fn = ((txn: firestore.Transaction) => badReturn) as any;
         return integrationHelpers.withTestDb(persistence, db => {
@@ -509,7 +508,7 @@ apiDescribe('Database transactions', persistence => {
     }
   });
 
-  asyncIt('cannot have a get without mutations', () => {
+  it('cannot have a get without mutations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const docRef = db.collection('foo').doc();
       return (
@@ -537,7 +536,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('are successful with no transaction operations', () => {
+  it('are successful with no transaction operations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.runTransaction(txn => {
         return Promise.resolve();
@@ -545,7 +544,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('are cancelled on rejected promise', () => {
+  it('are cancelled on rejected promise', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       let count = 0;
@@ -570,7 +569,7 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  asyncIt('are cancelled on throw', () => {
+  it('are cancelled on throw', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       const failure = new Error('no');

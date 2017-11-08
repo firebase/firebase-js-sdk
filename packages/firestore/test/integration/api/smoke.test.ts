@@ -20,11 +20,10 @@ import * as testHelpers from '../../util/helpers';
 import { EventsAccumulator } from '../../util/helpers';
 import * as integrationHelpers from '../util/helpers';
 
-const asyncIt = testHelpers.asyncIt;
 const apiDescribe = integrationHelpers.apiDescribe;
 
 apiDescribe('Smoke Test', persistence => {
-  asyncIt('can write a single document', () => {
+  it('can write a single document', () => {
     return integrationHelpers.withTestDoc(persistence, ref => {
       return ref.set({
         name: 'Patryk',
@@ -33,7 +32,7 @@ apiDescribe('Smoke Test', persistence => {
     });
   });
 
-  asyncIt('can read a written document', () => {
+  it('can read a written document', () => {
     return integrationHelpers.withTestDoc(persistence, ref => {
       const data = {
         name: 'Patryk',
@@ -50,7 +49,7 @@ apiDescribe('Smoke Test', persistence => {
     });
   });
 
-  asyncIt('can read a written document with DocumentKey', () => {
+  it('can read a written document with DocumentKey', () => {
     return integrationHelpers.withTestDoc(persistence, ref1 => {
       const ref2 = ref1.firestore.collection('users').doc();
       const data = { user: ref2, message: 'We are writing data' };
@@ -73,7 +72,7 @@ apiDescribe('Smoke Test', persistence => {
     });
   });
 
-  asyncIt('will fire local and remote events', () => {
+  it('will fire local and remote events', () => {
     return integrationHelpers.withTestDbs(
       persistence,
       2,
@@ -100,7 +99,7 @@ apiDescribe('Smoke Test', persistence => {
     );
   });
 
-  asyncIt('will fire value events for empty collections', () => {
+  it('will fire value events for empty collections', () => {
     return integrationHelpers.withTestCollection(
       persistence,
       {},
@@ -119,7 +118,7 @@ apiDescribe('Smoke Test', persistence => {
     );
   });
 
-  asyncIt('can get collection query', () => {
+  it('can get collection query', () => {
     const testDocs = {
       '1': {
         name: 'Patryk',

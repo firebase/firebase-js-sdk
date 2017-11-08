@@ -17,7 +17,6 @@
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { assert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { asyncIt, fasyncIt, xasyncIt } from '../../util/helpers';
 
 import { SpecBuilder } from './spec_builder';
 import { SpecStep } from './spec_test_runner';
@@ -71,13 +70,13 @@ export function setSpecJSONHandler(writer: (json: string) => void) {
 }
 
 /**
- * Like asyncIt, but for spec tests.
+ * Like it(), but for spec tests.
  * @param name A name to give the test.
  * @param tags Tags to apply to the test (e.g. 'exclusive' to only run
  *             individual tests)
  * @param builder A function that returns a spec.
  * If writeToJSONFile has been called, the spec will be stored in
- * `specsInThisTest`. Otherwise, it will be run, just as asyncIt would run it.
+ * `specsInThisTest`. Otherwise, it will be run, just as it() would run it.
  */
 export function specTest(
   name: string,
@@ -101,11 +100,11 @@ export function specTest(
       const spec = builder();
       let runner: Function;
       if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
-        runner = fasyncIt;
+        runner = it.only;
       } else if (!WEB_SPEC_TEST_FILTER(tags)) {
-        runner = xasyncIt;
+        runner = it.skip;
       } else {
-        runner = asyncIt;
+        runner = it;
       }
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
@@ -139,7 +138,7 @@ export function specTest(
  * @param name A name to give the test.
  * @param tags Tags to apply to all tests in the spec (e.g. 'exclusive' to
  *             only run individual tests)
- * @param builder A function that calls specAsyncIt for each test case.
+ * @param builder A function that calls specTest for each test case.
  * If writeToJSONFile has been called, the specs will be stored in
  * that file. Otherwise, they will be run, just as describe would run.
  */
