@@ -1,4 +1,7 @@
 # Unreleased
+- [changed] Network streams are automatically closed after 60 seconds of
+  idleness.
+- [changed] We no longer log 'RPC failed' messages for expected failures.
 
 # v0.1.2
 - [fixed] Fixed validation of nested arrays to allow indirect nesting
