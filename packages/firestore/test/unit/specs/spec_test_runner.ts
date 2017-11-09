@@ -1191,8 +1191,8 @@ export interface SpecWatchEntity {
  * The filter is based of a list of keys to match in the existence filter
  */
 export interface SpecWatchFilter extends Array<TargetId[] | string> {
-    '0': TargetId[];
-    '1'?: string;
+  '0': TargetId[];
+  '1'?: string;
 }
 
 /**
