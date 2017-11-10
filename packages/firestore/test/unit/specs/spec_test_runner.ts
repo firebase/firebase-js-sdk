@@ -1190,7 +1190,10 @@ export interface SpecWatchEntity {
  * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export type SpecWatchFilter = [TargetId[], string];
+export interface SpecWatchFilter extends Array<TargetId[] | string> {
+  '0': TargetId[];
+  '1'?: string;
+}
 
 /**
  * [field, op, value]
