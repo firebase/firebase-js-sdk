@@ -1,6 +1,4 @@
 # Unreleased
-- [fixed] Fixed an "Image is not defined" error when using Cloud Firestore
-  from React Native. 
 - [changed] Network streams are automatically closed after 60 seconds of
   idleness.
 - [changed] We no longer log 'RPC failed' messages for expected failures.
