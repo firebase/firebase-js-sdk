@@ -248,15 +248,15 @@ export class GoogleCredentialsProvider implements CredentialsProvider {
   getToken(forceRefresh: boolean): Promise<Token | null> {
     return new Promise<Token | null>((resolve, reject) => {
       // TODO(b/32935141): ideally this would be declared as an extern
-      this.authClient[
-        'getAccessToken'
-      ]((error: AnyJs, tokenLiteral: string) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(new OAuthToken(tokenLiteral, User.GOOGLE_CREDENTIALS));
+      this.authClient['getAccessToken'](
+        (error: AnyJs, tokenLiteral: string) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(new OAuthToken(tokenLiteral, User.GOOGLE_CREDENTIALS));
+          }
         }
-      });
+      );
     });
   }
 

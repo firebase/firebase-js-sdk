@@ -39,12 +39,12 @@ export class RequestInfo<T> {
     public url: string,
     public method: string,
     /**
-       * Returns the value with which to resolve the request's promise. Only called
-       * if the request is successful. Throw from this function to reject the
-       * returned Request's promise with the thrown error.
-       * Note: The XhrIo passed to this function may be reused after this callback
-       * returns. Do not keep a reference to it in any way.
-       */
+     * Returns the value with which to resolve the request's promise. Only called
+     * if the request is successful. Throw from this function to reject the
+     * returned Request's promise with the thrown error.
+     * Note: The XhrIo passed to this function may be reused after this callback
+     * returns. Do not keep a reference to it in any way.
+     */
     public handler: (p1: XhrIo, p2: string) => T,
     public timeout: number
   ) {}

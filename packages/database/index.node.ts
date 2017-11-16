@@ -28,9 +28,9 @@ import './src/nodePatches';
 /**
  * A one off register function which returns a database based on the app and
  * passed database URL.
- * 
+ *
  * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL 
+ * @param url A valid Firebase databaseURL
  */
 
 const ServerValue = Database.ServerValue;

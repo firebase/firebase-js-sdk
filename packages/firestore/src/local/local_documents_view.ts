@@ -106,16 +106,15 @@ export class LocalDocumentsView {
     docPath: ResourcePath
   ): PersistencePromise<DocumentMap> {
     // Just do a simple document lookup.
-    return this.getDocument(
-      transaction,
-      new DocumentKey(docPath)
-    ).next(maybeDoc => {
-      let result = documentMap();
-      if (maybeDoc instanceof Document) {
-        result = result.insert(maybeDoc.key, maybeDoc);
+    return this.getDocument(transaction, new DocumentKey(docPath)).next(
+      maybeDoc => {
+        let result = documentMap();
+        if (maybeDoc instanceof Document) {
+          result = result.insert(maybeDoc.key, maybeDoc);
+        }
+        return result;
       }
-      return result;
-    });
+    );
   }
 
   private getDocumentsMatchingCollectionQuery(
