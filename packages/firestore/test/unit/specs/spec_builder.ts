@@ -129,6 +129,30 @@ export class SpecBuilder {
     return this;
   }
 
+  /**
+   * Registers a previously active target with the test expectations after a
+   * stream disconnect.
+   */
+  restoreListen(query: Query, resumeToken: string): SpecBuilder {
+    let targetId = this.queryMapping[query.canonicalId()];
+
+    if (isNullOrUndefined(targetId)) {
+      throw new Error("Can't restore an unknown query: " + query);
+    }
+
+    this.activeTargets[targetId] = {
+      query: SpecBuilder.queryToSpec(query),
+      resumeToken: resumeToken
+    };
+
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+      this.activeTargets
+    );
+    return this;
+  }
+
   userUnlistens(query: Query): SpecBuilder {
     this.nextStep();
     if (!objUtils.contains(this.queryMapping, query.canonicalId())) {
@@ -173,6 +197,26 @@ export class SpecBuilder {
   changeUser(uid: string | null): SpecBuilder {
     this.nextStep();
     this.currentStep = { changeUser: uid };
+    return this;
+  }
+
+  disableNetwork(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      enableNetwork: false,
+      stateExpect: {
+        activeTargets: {},
+        limboDocs: []
+      }
+    };
+    return this;
+  }
+
+  enableNetwork(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      enableNetwork: true
+    };
     return this;
   }
 
@@ -490,6 +534,30 @@ export class SpecBuilder {
       fromCache: events.fromCache || false,
       hasPendingWrites: events.hasPendingWrites || false
     });
+    return this;
+  }
+
+  /**
+   * Verifies the total number of requests sent to the write backend since test
+   * initialization.
+   */
+  expectWriteStreamRequestCount(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.writeStreamRequestCount = num;
+    return this;
+  }
+
+  /**
+   * Verifies the total number of requests sent to the watch backend since test
+   * initialization.
+   */
+  expectWatchStreamRequestCount(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.watchStreamRequestCount = num;
     return this;
   }
 

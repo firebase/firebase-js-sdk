@@ -31,7 +31,7 @@ import {
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { Datastore } from '../../../src/remote/datastore';
-import { asyncIt, setMutation } from '../../util/helpers';
+import { setMutation } from '../../util/helpers';
 import { drainAsyncQueue, withTestDatastore } from '../util/helpers';
 
 /**
@@ -137,7 +137,7 @@ describe('Watch Stream', () => {
    * Verifies that the watch stream does not issue an onClose callback after a
    * call to stop().
    */
-  asyncIt('can be stopped before handshake', () => {
+  it('can be stopped before handshake', () => {
     let watchStream: PersistentListenStream;
 
     return withTestDatastore(ds => {
@@ -170,7 +170,7 @@ describe('Write Stream', () => {
    * Verifies that the write stream does not issue an onClose callback after a
    * call to stop().
    */
-  asyncIt('can be stopped before handshake', () => {
+  it('can be stopped before handshake', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
@@ -186,7 +186,7 @@ describe('Write Stream', () => {
     });
   });
 
-  asyncIt('can be stopped after handshake', () => {
+  it('can be stopped after handshake', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
@@ -212,7 +212,7 @@ describe('Write Stream', () => {
       });
   });
 
-  asyncIt('closes when idle', () => {
+  it('closes when idle', () => {
     let queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
@@ -238,7 +238,7 @@ describe('Write Stream', () => {
     }, queue);
   });
 
-  asyncIt('cancels idle on write', () => {
+  it('cancels idle on write', () => {
     let queue = new AsyncQueue();
 
     return withTestDatastore(ds => {

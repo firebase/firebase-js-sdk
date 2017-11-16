@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { asyncIt, toDataArray } from '../../util/helpers';
+import { toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -25,7 +25,7 @@ import {
 } from '../util/helpers';
 
 apiDescribe('Cursors', persistence => {
-  asyncIt('can page through items', () => {
+  it('can page through items', () => {
     const testDocs = {
       a: { v: 'a' },
       b: { v: 'b' },
@@ -72,7 +72,7 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
-  asyncIt('can be created from documents', () => {
+  it('can be created from documents', () => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },
@@ -109,7 +109,7 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
-  asyncIt('can be created from values', () => {
+  it('can be created from values', () => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },
@@ -140,7 +140,7 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
-  asyncIt('can be created using document id', () => {
+  it('can be created using document id', () => {
     const testDocs: { [key: string]: {} } = {
       a: { k: 'a' },
       b: { k: 'b' },
@@ -175,7 +175,7 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
-  asyncIt('can be used with reference values', () => {
+  it('can be used with reference values', () => {
     // We require a db to create reference values
     return withTestDb(persistence, db => {
       const testDocs = {
@@ -202,7 +202,7 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
-  asyncIt('can be used in descending queries', () => {
+  it('can be used in descending queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 1 },
       b: { k: 'b', sort: 2 },

@@ -12,7 +12,7 @@ before_install:
   # get an up to date version
   - npm install -g yarn
 before_script:
-  - yarn test:setup -- --token $FIREBASE_TOKEN --projectId $FIREBASE_PROJECT
+  - cp config/ci.config.json config/project.json
 script:
   - xvfb-run yarn test
 after_success:

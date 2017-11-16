@@ -52,7 +52,6 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
-  asyncIt,
   deletedDoc,
   deleteMutation,
   doc,
@@ -733,7 +732,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
       .finish();
   });
 
-  asyncIt('can execute document queries', () => {
+  it('can execute document queries', () => {
     const localStore = expectLocalStore().localStore;
     return localStore
       .localWrite([
@@ -750,7 +749,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
       });
   });
 
-  asyncIt('can execute collection queries', () => {
+  it('can execute collection queries', () => {
     const localStore = expectLocalStore().localStore;
     return localStore
       .localWrite([
@@ -770,7 +769,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
       });
   });
 
-  asyncIt('can execute mixed collection queries', async () => {
+  it('can execute mixed collection queries', async () => {
     const query = Query.atPath(path('foo'));
     const queryData = await localStore.allocateQuery(query);
     expect(queryData.targetId).to.equal(2);
@@ -792,7 +791,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
     ]);
   });
 
-  asyncIt('persists resume tokens', async () => {
+  it('persists resume tokens', async () => {
     await restartWithNoOpGarbageCollector();
     const query = Query.atPath(path('foo/bar'));
     const queryData = await localStore.allocateQuery(query);
@@ -820,7 +819,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
   });
 
-  asyncIt('does not replace resume token with empty resume token', async () => {
+  it('does not replace resume token with empty resume token', async () => {
     await restartWithNoOpGarbageCollector();
     const query = Query.atPath(path('foo/bar'));
     const queryData = await localStore.allocateQuery(query);

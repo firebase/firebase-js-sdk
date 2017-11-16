@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import * as firestore from 'firestore';
 
-import { asyncIt } from '../../util/helpers';
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
 describe('where persistence is unsupported, enablePersistence', () => {
@@ -26,7 +25,7 @@ describe('where persistence is unsupported, enablePersistence', () => {
     return;
   }
 
-  asyncIt('fails with code unimplemented', () => {
+  it('fails with code unimplemented', () => {
     // withTestDb will fail the test if persistence is requested but it fails
     // so we'll enable persistence here instead.
     return withTestDb(/* persistence= */ false, db => {
@@ -41,7 +40,7 @@ describe('where persistence is unsupported, enablePersistence', () => {
     });
   });
 
-  asyncIt('falls back without requiring a wait for the promise', () => {
+  it('falls back without requiring a wait for the promise', () => {
     return withTestDb(/* persistence= */ false, db => {
       // Disregard the promise here intentionally.
       db.enablePersistence();

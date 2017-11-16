@@ -18,7 +18,6 @@ import { expect } from 'chai';
 import * as firestore from 'firestore';
 
 import { Deferred } from '../../../src/util/promise';
-import { asyncIt } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -29,7 +28,7 @@ import {
 } from '../util/helpers';
 
 apiDescribe('Database', persistence => {
-  asyncIt('can set a document', () => {
+  it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return docRef.set({
         desc: 'Stuff related to Firestore project...',
@@ -41,7 +40,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('doc() will auto generate an ID', () => {
+  it('doc() will auto generate an ID', () => {
     return withTestDb(persistence, db => {
       const ref = db.collection('foo').doc();
       // Auto IDs are 20 characters long
@@ -50,7 +49,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can delete a document', () => {
+  it('can delete a document', () => {
     return withTestDoc(persistence, docRef => {
       return docRef
         .set({ foo: 'bar' })
@@ -70,7 +69,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can update existing document', () => {
+  it('can update existing document', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
@@ -95,7 +94,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can merge data with an existing document using set', () => {
+  it('can merge data with an existing document using set', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'description',
@@ -121,7 +120,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can merge server timestamps', () => {
+  it('can merge server timestamps', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         updated: false
@@ -141,7 +140,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can delete field using merge', () => {
+  it('can delete field using merge', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         untouched: true,
@@ -167,7 +166,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can replace an array by merging using set', () => {
+  it('can replace an array by merging using set', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         untouched: true,
@@ -197,7 +196,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('cannot update nonexistent document', () => {
+  it('cannot update nonexistent document', () => {
     return withTestDoc(persistence, doc => {
       return doc
         .update({ owner: 'abc' })
@@ -216,7 +215,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can delete a field with an update', () => {
+  it('can delete a field with an update', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'Description',
@@ -240,7 +239,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can update nested fields', () => {
+  it('can update nested fields', () => {
     const FieldPath = firebase.firestore.FieldPath;
 
     return withTestDoc(persistence, doc => {
@@ -270,7 +269,7 @@ apiDescribe('Database', persistence => {
   describe('documents: ', () => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
-      asyncIt('set/update should reject: ' + val, () => {
+      it('set/update should reject: ' + val, () => {
         return withTestDoc(persistence, doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
@@ -282,7 +281,7 @@ apiDescribe('Database', persistence => {
     }
   });
 
-  asyncIt('CollectionRef.add() resolves with resulting DocumentRef.', () => {
+  it('CollectionRef.add() resolves with resulting DocumentRef.', () => {
     return withTestCollection(persistence, {}, coll => {
       return coll
         .add({ foo: 1 })
@@ -296,7 +295,7 @@ apiDescribe('Database', persistence => {
   apiDescribe('Queries are validated client-side', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
-    asyncIt('same inequality fields works', () => {
+    it('same inequality fields works', () => {
       return withTestCollection(persistence, {}, coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('x', '<=', 'cat')
@@ -305,7 +304,7 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    asyncIt('inequality and equality on different fields works', () => {
+    it('inequality and equality on different fields works', () => {
       return withTestCollection(persistence, {}, coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('y', '==', 'cat')
@@ -314,7 +313,7 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    asyncIt('inequality same as orderBy works.', () => {
+    it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
         expect(() => coll.orderBy('x').where('x', '>', 32)).not.to.throw();
@@ -322,7 +321,7 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    asyncIt('inequality same as first orderBy works.', () => {
+    it('inequality same as first orderBy works.', () => {
       return withTestCollection(persistence, {}, coll => {
         expect(() =>
           coll
@@ -341,7 +340,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('Listen can be called multiple times', () => {
+  it('Listen can be called multiple times', () => {
     return withTestCollection(persistence, {}, coll => {
       const doc = coll.doc();
       const deferred1 = new Deferred<void>();
@@ -358,7 +357,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('Local document events are fired with hasLocalChanges=true.', () => {
+  it('Local document events are fired with hasLocalChanges=true.', () => {
     return withTestDoc(persistence, docRef => {
       let gotLocalDocEvent = false;
       const remoteDocEventDeferred = new Deferred();
@@ -384,33 +383,30 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt(
-    'Metadata only changes are not fired when no options provided',
-    () => {
-      return withTestDoc(persistence, docRef => {
-        const secondUpdateFound = new Deferred();
-        let count = 0;
-        const unlisten = docRef.onSnapshot(doc => {
-          if (doc) {
-            count++;
-            if (count === 1) {
-              expect(doc.data()).to.deep.equal({ a: 1 });
-            } else {
-              expect(doc.data()).to.deep.equal({ b: 1 });
-              secondUpdateFound.resolve();
-            }
+  it('Metadata only changes are not fired when no options provided', () => {
+    return withTestDoc(persistence, docRef => {
+      const secondUpdateFound = new Deferred();
+      let count = 0;
+      const unlisten = docRef.onSnapshot(doc => {
+        if (doc) {
+          count++;
+          if (count === 1) {
+            expect(doc.data()).to.deep.equal({ a: 1 });
+          } else {
+            expect(doc.data()).to.deep.equal({ b: 1 });
+            secondUpdateFound.resolve();
           }
-        });
-
-        docRef.set({ a: 1 }).then(() => {
-          docRef.set({ b: 1 });
-        });
-        return secondUpdateFound.promise.then(() => {
-          unlisten();
-        });
+        }
       });
-    }
-  );
+
+      docRef.set({ a: 1 }).then(() => {
+        docRef.set({ b: 1 });
+      });
+      return secondUpdateFound.promise.then(() => {
+        unlisten();
+      });
+    });
+  });
 
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we
@@ -418,7 +414,7 @@ apiDescribe('Database', persistence => {
   xdescribe('Listens are rejected remotely:', () => {
     let queryForRejection: firestore.Query;
 
-    asyncIt('will reject listens', () => {
+    it('will reject listens', () => {
       const deferred = new Deferred();
       queryForRejection.onSnapshot(
         () => {},
@@ -431,7 +427,7 @@ apiDescribe('Database', persistence => {
       return deferred.promise;
     });
 
-    asyncIt('will reject same listens twice in a row', () => {
+    it('will reject same listens twice in a row', () => {
       const deferred = new Deferred();
       queryForRejection.onSnapshot(
         () => {},
@@ -451,7 +447,7 @@ apiDescribe('Database', persistence => {
       return deferred.promise;
     });
 
-    asyncIt('will reject gets', () => {
+    it('will reject gets', () => {
       return queryForRejection.get().then(
         () => {
           throw new Error('Promise resolved even though error was expected.');
@@ -463,7 +459,7 @@ apiDescribe('Database', persistence => {
       );
     });
 
-    asyncIt('will reject gets twice in a row', () => {
+    it('will reject gets twice in a row', () => {
       return queryForRejection
         .get()
         .then(
@@ -488,21 +484,21 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('exposes "firestore" on document references.', () => {
+  it('exposes "firestore" on document references.', () => {
     return withTestDb(persistence, db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
       return Promise.resolve();
     });
   });
 
-  asyncIt('exposes "firestore" on query references.', () => {
+  it('exposes "firestore" on query references.', () => {
     return withTestDb(persistence, db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
       return Promise.resolve();
     });
   });
 
-  asyncIt('can compare DocumentReference instances with isEqual().', () => {
+  it('can compare DocumentReference instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
       return withTestDb(persistence, otherFirestore => {
         const docRef = firestore.doc('foo/bar');
@@ -518,7 +514,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can compare Query instances with isEqual().', () => {
+  it('can compare Query instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
       return withTestDb(persistence, otherFirestore => {
         const query = firestore
@@ -548,7 +544,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can traverse collections and documents.', () => {
+  it('can traverse collections and documents.', () => {
     return withTestDb(persistence, db => {
       const expected = 'a/b/c/d';
       // doc path from root Firestore.
@@ -565,7 +561,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can traverse collection and document parents.', () => {
+  it('can traverse collection and document parents.', () => {
     return withTestDb(persistence, db => {
       let collection = db.collection('a/b/c');
       expect(collection.path).to.deep.equal('a/b/c');
@@ -582,7 +578,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can queue writes while offline', () => {
+  it('can queue writes while offline', () => {
     return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
@@ -603,7 +599,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can get documents while offline', () => {
+  it('can get documents while offline', () => {
     return withTestDoc(persistence, docRef => {
       // TODO(mikelehen): Find better way to expose this to tests.
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
@@ -628,7 +624,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can write document after idle timeout', () => {
+  it('can write document after idle timeout', () => {
     return withTestDb(persistence, db => {
       const docRef = db.collection('test-collection').doc();
       return docRef
@@ -640,7 +636,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  asyncIt('can watch documents after idle timeout', () => {
+  it('can watch documents after idle timeout', () => {
     return withTestDb(persistence, db => {
       const awaitOnlineSnapshot = () => {
         const docRef = db.collection('test-collection').doc();

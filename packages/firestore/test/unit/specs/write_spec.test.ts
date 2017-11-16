@@ -564,4 +564,24 @@ describeSpec('Writes:', [], () => {
       );
     }
   );
+
+  specTest('Writes are resent after network disconnect', [], () => {
+    const expectRequestCount = requestCounts =>
+      requestCounts.handshakes + requestCounts.writes + requestCounts.closes;
+
+    return spec()
+      .userSets('collection/key', { foo: 'bar' })
+      .expectNumOutstandingWrites(1)
+      .disableNetwork()
+      .expectWriteStreamRequestCount(
+        expectRequestCount({ handshakes: 1, writes: 1, closes: 1 })
+      )
+      .enableNetwork()
+      .expectWriteStreamRequestCount(
+        expectRequestCount({ handshakes: 2, writes: 2, closes: 1 })
+      )
+      .expectNumOutstandingWrites(1)
+      .writeAcks(1, { expectUserCallback: false })
+      .expectNumOutstandingWrites(0);
+  });
 });
