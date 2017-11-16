@@ -203,6 +203,9 @@ export class WebChannelConnection implements Connection {
       // parameter.
       httpSessionIdParam: 'gsessionid',
       initMessageHeaders: {},
+      // Send our custom headers as a '$httpHeaders=' url param to avoid CORS
+      // preflight round-trip.
+      httpHeadersOverwriteParam: '$httpHeaders',
       sendRawJson: true,
       supportsCrossDomainXhr: true
     };
