@@ -83,7 +83,7 @@ describe('Query Tests', function() {
     /**
      * Because we are testing invalid queries, I am casting
      * to `any` to avoid the typechecking error. This can
-     * occur when a user uses the SDK through a pure JS 
+     * occur when a user uses the SDK through a pure JS
      * client, rather than typescript
      */
     expect(function() {

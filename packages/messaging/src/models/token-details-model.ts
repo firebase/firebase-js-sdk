@@ -258,8 +258,8 @@ export default class TokenDetailsModel extends DBInterface {
       })
       .then(db => {
         /**
-       * @dict
-       */
+         * @dict
+         */
         const details = {
           swScope: swScope,
           vapidKey: vapidKey,

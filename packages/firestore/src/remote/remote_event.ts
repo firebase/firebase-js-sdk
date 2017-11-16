@@ -33,17 +33,17 @@ import { emptyByteString } from '../platform/platform';
 export class RemoteEvent {
   constructor(
     /**
-       * The snapshot version this event brings us up to, or MIN if not set.
-       */
+     * The snapshot version this event brings us up to, or MIN if not set.
+     */
     public readonly snapshotVersion: SnapshotVersion,
     /**
-       * A map from target to changes to the target. See TargetChange.
-       */
+     * A map from target to changes to the target. See TargetChange.
+     */
     public readonly targetChanges: { [targetId: number]: TargetChange },
     /**
-       * A set of which documents have changed or been deleted, along with the
-       * doc's new values (if not deleted).
-       */
+     * A set of which documents have changed or been deleted, along with the
+     * doc's new values (if not deleted).
+     */
     public documentUpdates: MaybeDocumentMap
   ) {}
 

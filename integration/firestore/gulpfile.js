@@ -36,9 +36,9 @@ function reworkFirebasePaths() {
         /**
          * This regex is designed to match the following statement used in our
          * firestore integratino test suites:
-         * 
+         *
          * import firebase from '../../util/firebase_export';
-         *  
+         *
          * It will handle variations in whitespace, single/double quote
          * differences, as well as different paths to a valid firebase_export
          */

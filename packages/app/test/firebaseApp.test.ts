@@ -351,8 +351,7 @@ describe('Firebase App Class', () => {
     (app2 as any).test();
     // Confirm extended INTERNAL getToken resolve with the corresponding
     // service's value.
-    return app.INTERNAL
-      .getToken()
+    return app.INTERNAL.getToken()
       .then(token => {
         assert.equal('tokenFor0', token.accessToken);
         return app2.INTERNAL.getToken();
