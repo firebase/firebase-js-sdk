@@ -70,9 +70,9 @@ firebase.auth.AuthCredential = function() {};
 /**
  * The authentication provider ID for the credential.
  * For example, 'facebook.com', or 'google.com'.
-  *
-  * @type {string}
-  */
+ *
+ * @type {string}
+ */
 firebase.auth.AuthCredential.prototype.providerId;
 
 /**

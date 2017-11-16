@@ -86,7 +86,7 @@ export const buildChildSet = function<K, V>(
       return null;
     } else if (length == 1) {
       namedNode = childList[low];
-      key = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      key = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
       return new LLRBNode(
         key,
         (namedNode.node as any) as V,
@@ -99,7 +99,7 @@ export const buildChildSet = function<K, V>(
       const left = buildBalancedTree(low, middle);
       const right = buildBalancedTree(middle + 1, high);
       namedNode = childList[middle];
-      key = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      key = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
       return new LLRBNode(
         key,
         (namedNode.node as any) as V,
@@ -121,7 +121,7 @@ export const buildChildSet = function<K, V>(
       index -= chunkSize;
       const childTree = buildBalancedTree(low + 1, high);
       const namedNode = childList[low];
-      const key: K = keyFn ? keyFn(namedNode) : (namedNode as any) as K;
+      const key: K = keyFn ? keyFn(namedNode) : ((namedNode as any) as K);
       attachPennant(
         new LLRBNode(key, (namedNode.node as any) as V, color, null, childTree)
       );

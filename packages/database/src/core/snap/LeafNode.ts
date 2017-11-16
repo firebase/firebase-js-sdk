@@ -121,9 +121,10 @@ export class LeafNode implements Node {
     } else if (newChildNode.isEmpty() && childName !== '.priority') {
       return this;
     } else {
-      return LeafNode.__childrenNodeConstructor.EMPTY_NODE
-        .updateImmediateChild(childName, newChildNode)
-        .updatePriority(this.priorityNode_);
+      return LeafNode.__childrenNodeConstructor.EMPTY_NODE.updateImmediateChild(
+        childName,
+        newChildNode
+      ).updatePriority(this.priorityNode_);
     }
   }
 

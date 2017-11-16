@@ -46,11 +46,11 @@ export class TestingXhrIo implements XhrIo {
 
   constructor(sendHook: SendHook) {
     this.state = State.START;
-    this.sendPromise = this.sendPromise = promiseimpl.make<
-      XhrIo
-    >((resolve, reject) => {
-      this.resolve = resolve;
-    });
+    this.sendPromise = this.sendPromise = promiseimpl.make<XhrIo>(
+      (resolve, reject) => {
+        this.resolve = resolve;
+      }
+    );
     this.sendHook = sendHook;
     this.status = -1;
     this.responseText = '';
