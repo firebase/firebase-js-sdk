@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import '../../src/platform_browser/browser_init';
+import '../../index';
 
 /**
  * This will include all of the test files and compile them as needed
- * 
+ *
  * Taken from karma-webpack source:
  * https://github.com/webpack-contrib/karma-webpack#alternative-usage
  */

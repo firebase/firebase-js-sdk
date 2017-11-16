@@ -20,6 +20,11 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import * as utilHelpers from '../util/helpers';
 
 describe('WebChannel', () => {
+  if (typeof window === 'undefined') {
+    console.warn('Skipping WebChannel tests.');
+    return;
+  }
+
   describe('makeUrl', () => {
     const info = new DatabaseInfo(
       new DatabaseId('testproject'),
@@ -31,7 +36,7 @@ describe('WebChannel', () => {
     const makeUrl = conn.makeUrl.bind(conn);
 
     it('includes project ID and database ID', () => {
-      const url = makeUrl('commit', {});
+      const url = makeUrl('Commit', {});
       expect(url).to.equal(
         'http://example.com/v1beta1/projects/testproject/' +
           'databases/(default)/documents:commit'

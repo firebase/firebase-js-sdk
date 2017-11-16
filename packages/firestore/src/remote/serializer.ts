@@ -151,6 +151,41 @@ export class JsonProtoSerializer {
   }
 
   /**
+   * Returns a value for a number (or undefined) that's appropriate to put into
+   * a google.protobuf.Int32Value proto.
+   * DO NOT USE THIS FOR ANYTHING ELSE.
+   * This method cheats. It's typed as returning "number" because that's what
+   * our generated proto interfaces say Int32Value must be. But GRPC actually
+   * expects a { value: <number> } struct.
+   */
+  private toInt32Value(val: number | null): number | undefined {
+    if (!typeUtils.isNullOrUndefined(val)) {
+      return { value: val } as any;
+    } else {
+      return undefined;
+    }
+  }
+
+  /**
+   * Returns a number (or null) from a google.protobuf.Int32Value proto.
+   * DO NOT USE THIS FOR ANYTHING ELSE.
+   * This method cheats. It's typed as accepting "number" because that's what
+   * our generated proto interfaces say Int32Value must be, but it actually
+   * accepts { value: number } to match our serialization in toInt32Value().
+   */
+  private fromInt32Value(val: number | undefined): number | null {
+    let result;
+    if (typeof val === 'object') {
+      result = (val as any).value;
+    } else {
+      // We accept raw numbers (without the {value: ... } wrapper) for
+      // compatibility with legacy persisted data.
+      result = val;
+    }
+    return typeUtils.isNullOrUndefined(result) ? null : result;
+  }
+
+  /**
    * Returns a value for a Date that's appropriate to put into a proto.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. It's typed as returning "string" because that's what
@@ -529,7 +564,7 @@ export class JsonProtoSerializer {
 
   fromMaybeDocument(result: api.BatchGetDocumentsResponse): MaybeDocument {
     // tslint:disable-next-line:no-any
-    const type = (result as any)['result_type'];
+    const type = (result as any)['result'];
     if (hasTag(result, type, 'found')) {
       return this.fromFound(result);
     } else if (hasTag(result, type, 'missing')) {
@@ -620,7 +655,7 @@ export class JsonProtoSerializer {
 
   fromWatchChange(change: api.ListenResponse): WatchChange {
     // tslint:disable-next-line:no-any
-    const type = (change as any)['change_type'];
+    const type = (change as any)['response_type'];
     let watchChange: WatchChange;
     if (hasTag(change, type, 'targetChange')) {
       assertPresent(change.targetChange, 'targetChange');
@@ -831,7 +866,7 @@ export class JsonProtoSerializer {
       ? this.fromVersion(proto.updateTime)
       : null;
     let transformResults: fieldValue.FieldValue[] | null = null;
-    if (proto.transformResults) {
+    if (proto.transformResults && proto.transformResults.length > 0) {
       transformResults = proto.transformResults.map(result =>
         this.fromValue(result)
       );
@@ -902,7 +937,7 @@ export class JsonProtoSerializer {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toLimit(query.limit);
+    const limit = this.toInt32Value(query.limit);
     if (limit !== undefined) {
       result.structuredQuery!.limit = limit;
     }
@@ -943,7 +978,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit = query.limit;
+      limit = this.fromInt32Value(query.limit);
     }
 
     let startAt: Bound | null = null;
@@ -1043,13 +1078,6 @@ export class JsonProtoSerializer {
 
   private fromOrder(orderBys: api.Order[]): OrderBy[] {
     return orderBys.map(order => this.fromPropertyOrder(order));
-  }
-
-  private toLimit(limit: number | null): number | undefined {
-    if (!typeUtils.isNullOrUndefined(limit)) {
-      return limit!;
-    }
-    return;
   }
 
   private toCursor(cursor: Bound): api.Cursor {

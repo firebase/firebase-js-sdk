@@ -72,7 +72,7 @@ import {
 } from '../../../util/helpers';
 import { loadProtos } from '../../../../src/platform_node/load_protos';
 
-describe('Serializer Beta', () => {
+describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
@@ -1056,7 +1056,7 @@ describe('Serializer Beta', () => {
                 direction: 'ASCENDING'
               }
             ],
-            limit: 26
+            limit: { value: 26 }
           }
         },
         targetId: 1

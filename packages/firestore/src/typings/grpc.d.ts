@@ -18,7 +18,7 @@
  * Preliminary and highly incomplete typings for GRPC.
  */
 declare module 'grpc' {
-  export function loadObject(ns: any): {};
+  export function loadObject(ns: any): any;
 
   export class Metadata {
     set(key: string, value: string): void;
