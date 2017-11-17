@@ -1,6 +1,6 @@
 # Unreleased
 - [changed] Webchannel requests use $httpHeaders URL parameter rather than
-  normal HTTP headers to avoid extra CORS preflight request when initiating
+  normal HTTP headers to avoid an extra CORS preflight request when initiating
   streams / RPCs.
 
 # v0.1.4
