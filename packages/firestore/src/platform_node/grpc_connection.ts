@@ -54,7 +54,10 @@ function createHeaders(databaseInfo: DatabaseInfo, token: Token | null): {} {
     : grpc.credentials.createInsecure();
 
   const callCredentials = grpc.credentials.createFromMetadataGenerator(
-    (context: { serviceUrl: string }, cb: grpc.MetadataCallback) => {
+    (
+      context: { service_url: string },
+      cb: (error: Error | null, metadata?: grpc.Metadata) => void
+    ) => {
       const metadata = new grpc.Metadata();
       if (token) {
         for (const header in token.authHeaders) {
