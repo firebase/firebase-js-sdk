@@ -57,9 +57,9 @@ export class DocumentWatchChange {
     /** The key of the document for this change. */
     public key: DocumentKey,
     /**
-       * The new document or NoDocument if it was deleted. Is null if the
-       * document went out of view without the server sending a new document.
-       */
+     * The new document or NoDocument if it was deleted. Is null if the
+     * document went out of view without the server sending a new document.
+     */
     public newDoc: Document | NoDocument | null
   ) {}
 }
@@ -86,11 +86,11 @@ export class WatchTargetChange {
     /** The target IDs that were added/removed/set. */
     public targetIds: TargetId[],
     /**
-       * An opaque, server-assigned token that allows watching a query to be
-       * resumed after disconnecting without retransmitting all the data that
-       * matches the query. The resume token essentially identifies a point in
-       * time from which the server should resume sending results.
-       */
+     * An opaque, server-assigned token that allows watching a query to be
+     * resumed after disconnecting without retransmitting all the data that
+     * matches the query. The resume token essentially identifies a point in
+     * time from which the server should resume sending results.
+     */
     public resumeToken: ProtoByteString = emptyByteString(),
     /** An RPC error indicating why the watch failed. */
     public cause: FirestoreError | null = null

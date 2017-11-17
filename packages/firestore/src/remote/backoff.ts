@@ -33,21 +33,21 @@ export class ExponentialBackoff {
 
   constructor(
     /**
-       * The initial delay (used as the base delay on the first retry attempt).
-       * Note that jitter will still be applied, so the actual delay could be as
-       * little as 0.5*initialDelayMs.
-       */
+     * The initial delay (used as the base delay on the first retry attempt).
+     * Note that jitter will still be applied, so the actual delay could be as
+     * little as 0.5*initialDelayMs.
+     */
     private readonly initialDelayMs: number,
     /**
-       * The multiplier to use to determine the extended base delay after each
-       * attempt.
-       */
+     * The multiplier to use to determine the extended base delay after each
+     * attempt.
+     */
     private readonly backoffFactor: number,
     /**
-       * The maximum base delay after which no further backoff is performed.
-       * Note that jitter will still be applied, so the actual delay could be as
-       * much as 1.5*maxDelayMs.
-       */
+     * The maximum base delay after which no further backoff is performed.
+     * Note that jitter will still be applied, so the actual delay could be as
+     * much as 1.5*maxDelayMs.
+     */
     private readonly maxDelayMs: number
   ) {
     this.reset();

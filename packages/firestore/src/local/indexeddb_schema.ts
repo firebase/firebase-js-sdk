@@ -112,25 +112,25 @@ export class DbMutationQueue {
 
   constructor(
     /**
-       * The normalized user ID to which this queue belongs.
-       */
+     * The normalized user ID to which this queue belongs.
+     */
     public userId: string,
     /**
-       * An identifier for the highest numbered batch that has been acknowledged
-       * by the server. All MutationBatches in this queue with batchIds less
-       * than or equal to this value are considered to have been acknowledged by
-       * the server.
-       */
+     * An identifier for the highest numbered batch that has been acknowledged
+     * by the server. All MutationBatches in this queue with batchIds less
+     * than or equal to this value are considered to have been acknowledged by
+     * the server.
+     */
     public lastAcknowledgedBatchId: number,
     /**
-       * A stream token that was previously sent by the server.
-       *
-       * See StreamingWriteRequest in datastore.proto for more details about
-       * usage.
-       *
-       * After sending this token, earlier tokens may not be used anymore so
-       * only a single stream token is retained.
-       */
+     * A stream token that was previously sent by the server.
+     *
+     * See StreamingWriteRequest in datastore.proto for more details about
+     * usage.
+     *
+     * After sending this token, earlier tokens may not be used anymore so
+     * only a single stream token is retained.
+     */
     public lastStreamToken: string
   ) {}
 }
@@ -154,24 +154,24 @@ export class DbMutationBatch {
 
   constructor(
     /**
-       * The normalized user ID to which this batch belongs.
-       */
+     * The normalized user ID to which this batch belongs.
+     */
     public userId: string,
     /**
-       * An identifier for this batch, allocated by the mutation queue in a
-       * monotonically increasing manner.
-       */
+     * An identifier for this batch, allocated by the mutation queue in a
+     * monotonically increasing manner.
+     */
     public batchId: BatchId,
     /**
-       * The local write time of the batch, stored as milliseconds since the
-       * epoch.
-       */
+     * The local write time of the batch, stored as milliseconds since the
+     * epoch.
+     */
     public localWriteTimeMs: number,
     /**
-       * A list of mutations to apply. All mutations will be applied atomically.
-       *
-       * Mutations are serialized via JsonProtoSerializer.toMutation().
-       */
+     * A list of mutations to apply. All mutations will be applied atomically.
+     *
+     * Mutations are serialized via JsonProtoSerializer.toMutation().
+     */
     public mutations: api.Write[]
   ) {}
 }
@@ -262,14 +262,14 @@ export class DbRemoteDocument {
 
   constructor(
     /**
-       * Set to an instance of a DbNoDocument if it is known that no document
-       * exists.
-       */
+     * Set to an instance of a DbNoDocument if it is known that no document
+     * exists.
+     */
     public noDocument: DbNoDocument | null,
     /**
-       * Set to an instance of a Document if there's a cached version of the
-       * document.
-       */
+     * Set to an instance of a Document if there's a cached version of the
+     * document.
+     */
     public document: api.Document | null
   ) {}
 }
@@ -313,64 +313,64 @@ export class DbTarget {
 
   constructor(
     /**
-       * An auto-generated sequential numeric identifier for the query.
-       *
-       * Queries are stored using their canonicalId as the key, but these
-       * canonicalIds can be quite long so we additionally assign a unique
-       * queryId which can be used by referenced data structures (e.g.
-       * indexes) to minimize the on-disk cost.
-       */
+     * An auto-generated sequential numeric identifier for the query.
+     *
+     * Queries are stored using their canonicalId as the key, but these
+     * canonicalIds can be quite long so we additionally assign a unique
+     * queryId which can be used by referenced data structures (e.g.
+     * indexes) to minimize the on-disk cost.
+     */
     public targetId: TargetId,
     /**
-       * The canonical string representing this query. This is not unique.
-       */
+     * The canonical string representing this query. This is not unique.
+     */
     public canonicalId: string,
     /**
-       * The last readTime received from the Watch Service for this query.
-       *
-       * This is the same value as TargetChange.read_time in the protos.
-       */
+     * The last readTime received from the Watch Service for this query.
+     *
+     * This is the same value as TargetChange.read_time in the protos.
+     */
     public readTime: DbTimestamp,
     /**
-       * An opaque, server-assigned token that allows watching a query to be
-       * resumed after disconnecting without retransmitting all the data
-       * that matches the query. The resume token essentially identifies a
-       * point in time from which the server should resume sending results.
-       *
-       * This is related to the snapshotVersion in that the resumeToken
-       * effectively also encodes that value, but the resumeToken is opaque
-       * and sometimes encodes additional information.
-       *
-       * A consequence of this is that the resumeToken should be used when
-       * asking the server to reason about where this client is in the watch
-       * stream, but the client should use the snapshotVersion for its own
-       * purposes.
-       *
-       * This is the same value as TargetChange.resume_token in the protos.
-       */
+     * An opaque, server-assigned token that allows watching a query to be
+     * resumed after disconnecting without retransmitting all the data
+     * that matches the query. The resume token essentially identifies a
+     * point in time from which the server should resume sending results.
+     *
+     * This is related to the snapshotVersion in that the resumeToken
+     * effectively also encodes that value, but the resumeToken is opaque
+     * and sometimes encodes additional information.
+     *
+     * A consequence of this is that the resumeToken should be used when
+     * asking the server to reason about where this client is in the watch
+     * stream, but the client should use the snapshotVersion for its own
+     * purposes.
+     *
+     * This is the same value as TargetChange.resume_token in the protos.
+     */
     public resumeToken: string,
     /**
-       * A sequence number representing the last time this query was
-       * listened to, used for garbage collection purposes.
-       *
-       * Conventionally this would be a timestamp value, but device-local
-       * clocks are unreliable and they must be able to create new listens
-       * even while disconnected. Instead this should be a monotonically
-       * increasing number that's incremented on each listen call.
-       *
-       * This is different from the queryId since the queryId is an
-       * immutable identifier assigned to the Query on first use while
-       * lastListenSequenceNumber is updated every time the query is
-       * listened to.
-       */
+     * A sequence number representing the last time this query was
+     * listened to, used for garbage collection purposes.
+     *
+     * Conventionally this would be a timestamp value, but device-local
+     * clocks are unreliable and they must be able to create new listens
+     * even while disconnected. Instead this should be a monotonically
+     * increasing number that's incremented on each listen call.
+     *
+     * This is different from the queryId since the queryId is an
+     * immutable identifier assigned to the Query on first use while
+     * lastListenSequenceNumber is updated every time the query is
+     * listened to.
+     */
     public lastListenSequenceNumber: number,
     /**
-       * The query for this target.
-       *
-       * Because canonical ids are not unique we must store the actual query. We
-       * use the proto to have an object we can persist without having to
-       * duplicate translation logic to and from a `Query` object.
-       */
+     * The query for this target.
+     *
+     * Because canonical ids are not unique we must store the actual query. We
+     * use the proto to have an object we can persist without having to
+     * duplicate translation logic to and from a `Query` object.
+     */
     public query: DbQuery
   ) {}
 }
@@ -401,12 +401,12 @@ export class DbTargetDocument {
 
   constructor(
     /**
-       * The targetId identifying a target.
-       */
+     * The targetId identifying a target.
+     */
     public targetId: TargetId,
     /**
-       * The path to the document, as encoded in the key.
-       */
+     * The path to the document, as encoded in the key.
+     */
     public path: EncodedResourcePath
   ) {}
 }
@@ -432,25 +432,25 @@ export class DbTargetGlobal {
 
   constructor(
     /**
-       * The highest numbered target id across all targets.
-       *
-       * See DbTarget.targetId.
-       */
+     * The highest numbered target id across all targets.
+     *
+     * See DbTarget.targetId.
+     */
     public highestTargetId: TargetId,
     /**
-       * The highest numbered lastListenSequenceNumber across all targets.
-       *
-       * See DbTarget.lastListenSequenceNumber.
-       */
+     * The highest numbered lastListenSequenceNumber across all targets.
+     *
+     * See DbTarget.lastListenSequenceNumber.
+     */
     public highestListenSequenceNumber: number,
     /**
-       * A global snapshot version representing the last consistent snapshot we
-       * received from the backend. This is monotonically increasing and any
-       * snapshots received from the backend prior to this version (e.g. for
-       * targets resumed with a resumeToken) should be suppressed (buffered)
-       * until the backend has caught up to this snapshot version again. This
-       * prevents our cache from ever going backwards in time.
-       */
+     * A global snapshot version representing the last consistent snapshot we
+     * received from the backend. This is monotonically increasing and any
+     * snapshots received from the backend prior to this version (e.g. for
+     * targets resumed with a resumeToken) should be suppressed (buffered)
+     * until the backend has caught up to this snapshot version again. This
+     * prevents our cache from ever going backwards in time.
+     */
     public lastRemoteSnapshotVersion: DbTimestamp
   ) {}
 }

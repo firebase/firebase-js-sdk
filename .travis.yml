@@ -14,7 +14,9 @@ before_install:
 before_script:
   - cp config/ci.config.json config/project.json
 script:
-  - xvfb-run npm test
+  - xvfb-run yarn test
+after_success:
+  - yarn test:coverage
 
 # Misc Addons/Configs
 dist: trusty

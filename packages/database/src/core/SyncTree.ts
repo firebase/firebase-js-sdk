@@ -546,24 +546,24 @@ export class SyncTree {
   private collectDistinctViewsForSubTree_(
     subtree: ImmutableTree<SyncPoint>
   ): View[] {
-    return subtree.fold<
-      View[]
-    >((relativePath, maybeChildSyncPoint, childMap) => {
-      if (maybeChildSyncPoint && maybeChildSyncPoint.hasCompleteView()) {
-        const completeView = maybeChildSyncPoint.getCompleteView();
-        return [completeView];
-      } else {
-        // No complete view here, flatten any deeper listens into an array
-        let views: View[] = [];
-        if (maybeChildSyncPoint) {
-          views = maybeChildSyncPoint.getQueryViews();
+    return subtree.fold<View[]>(
+      (relativePath, maybeChildSyncPoint, childMap) => {
+        if (maybeChildSyncPoint && maybeChildSyncPoint.hasCompleteView()) {
+          const completeView = maybeChildSyncPoint.getCompleteView();
+          return [completeView];
+        } else {
+          // No complete view here, flatten any deeper listens into an array
+          let views: View[] = [];
+          if (maybeChildSyncPoint) {
+            views = maybeChildSyncPoint.getQueryViews();
+          }
+          forEach(childMap, function(key: string, childViews: View[]) {
+            views = views.concat(childViews);
+          });
+          return views;
         }
-        forEach(childMap, function(key: string, childViews: View[]) {
-          views = views.concat(childViews);
-        });
-        return views;
       }
-    });
+    );
   }
 
   /**

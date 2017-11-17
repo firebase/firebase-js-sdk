@@ -62,9 +62,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   constructor(
     /**
-       * The normalized userId (e.g. null UID => "" userId) used to store /
-       * retrieve mutations.
-       */
+     * The normalized userId (e.g. null UID => "" userId) used to store /
+     * retrieve mutations.
+     */
     private userId: string,
     private serializer: LocalSerializer
   ) {}
