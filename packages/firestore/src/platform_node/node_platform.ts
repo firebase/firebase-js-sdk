@@ -23,7 +23,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
 import { GrpcConnection } from './grpc_connection';
-import { loadProtosAsync } from './load_protos';
+import { loadProtos } from './load_protos';
 import { AnyJs } from '../util/misc';
 
 export class NodePlatform implements Platform {
@@ -32,9 +32,8 @@ export class NodePlatform implements Platform {
   readonly emptyByteString = new Uint8Array(0);
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    return loadProtosAsync().then(protos => {
-      return new GrpcConnection(protos, databaseInfo);
-    });
+    const protos = loadProtos();
+    return Promise.resolve(new GrpcConnection(protos, databaseInfo));
   }
 
   newSerializer(partitionId: DatabaseId): JsonProtoSerializer {

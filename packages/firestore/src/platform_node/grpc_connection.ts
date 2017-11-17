@@ -15,7 +15,6 @@
  */
 
 import * as grpc from 'grpc';
-import * as protobufjs from 'protobufjs';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
@@ -32,7 +31,6 @@ import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs } from '../util/misc';
 import { NodeCallback, nodePromise } from '../util/node_api';
-import { ProtobufProtoBuilder } from './load_protos';
 import { Deferred } from '../util/promise';
 
 const LOG_TAG = 'Connection';
@@ -117,11 +115,10 @@ export class GrpcConnection implements Connection {
   private cachedStub: CachedStub | null = null;
 
   constructor(
-    builder: ProtobufProtoBuilder,
+    protos: grpc.GrpcObject,
     private databaseInfo: DatabaseInfo
   ) {
-    const protos = grpc.loadObject(builder.ns);
-    this.firestore = protos.google.firestore.v1beta1;
+    this.firestore = protos['google']['firestore']['v1beta1'];
   }
 
   private sameToken(tokenA: Token | null, tokenB: Token | null): boolean {
