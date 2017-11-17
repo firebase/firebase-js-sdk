@@ -26,12 +26,12 @@ export class Deferred<R> {
   }
 
   /**
-  * Our API internals are not promiseified and cannot because our callback APIs have subtle expectations around
-  * invoking promises inline, which Promises are forbidden to do. This method accepts an optional node-style callback
-  * and returns a node-style callback which will resolve or reject the Deferred's promise.
-  * @param {((?function(?(Error)): (?|undefined))| (?function(?(Error),?=): (?|undefined)))=} callback
-  * @return {!function(?(Error), ?=)}
-  */
+   * Our API internals are not promiseified and cannot because our callback APIs have subtle expectations around
+   * invoking promises inline, which Promises are forbidden to do. This method accepts an optional node-style callback
+   * and returns a node-style callback which will resolve or reject the Deferred's promise.
+   * @param {((?function(?(Error)): (?|undefined))| (?function(?(Error),?=): (?|undefined)))=} callback
+   * @return {!function(?(Error), ?=)}
+   */
   wrapCallback(callback?) {
     return (error, value?) => {
       if (error) {

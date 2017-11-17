@@ -84,35 +84,33 @@ export class Datastore {
     const params: CommitRequest = {
       writes: mutations.map(m => this.serializer.toMutation(m))
     };
-    return this.invokeRPC(
-      'commit',
-      params
-    ).then((response: api.CommitResponse) => {
-      return this.serializer.fromWriteResults(response.writeResults);
-    });
+    return this.invokeRPC('commit', params).then(
+      (response: api.CommitResponse) => {
+        return this.serializer.fromWriteResults(response.writeResults);
+      }
+    );
   }
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     const params: BatchGetDocumentsRequest = {
       documents: keys.map(k => this.serializer.toName(k))
     };
-    return this.invokeRPC(
-      'batchGet',
-      params
-    ).then((response: api.BatchGetDocumentsResponse[]) => {
-      let docs = maybeDocumentMap();
-      response.forEach(proto => {
-        const doc = this.serializer.fromMaybeDocument(proto);
-        docs = docs.insert(doc.key, doc);
-      });
-      const result: MaybeDocument[] = [];
-      keys.forEach(key => {
-        const doc = docs.get(key);
-        assert(!!doc, 'Missing entity in write response for ' + key);
-        result.push(doc!);
-      });
-      return result;
-    });
+    return this.invokeRPC('batchGet', params).then(
+      (response: api.BatchGetDocumentsResponse[]) => {
+        let docs = maybeDocumentMap();
+        response.forEach(proto => {
+          const doc = this.serializer.fromMaybeDocument(proto);
+          docs = docs.insert(doc.key, doc);
+        });
+        const result: MaybeDocument[] = [];
+        keys.forEach(key => {
+          const doc = docs.get(key);
+          assert(!!doc, 'Missing entity in write response for ' + key);
+          result.push(doc!);
+        });
+        return result;
+      }
+    );
   }
 
   /** Gets an auth token and invokes the provided RPC. */

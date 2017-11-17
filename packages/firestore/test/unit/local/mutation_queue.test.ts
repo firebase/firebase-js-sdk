@@ -71,11 +71,11 @@ describe('IndexedDbMutationQueue', () => {
   describe('loadNextBatchIdFromDb', () => {
     function loadNextBatchId(): Promise<BatchId> {
       return persistence.runTransaction('loadNextBatchIdFromDb', txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(
-          txn
-        ).next(batchId => {
-          return batchId;
-        });
+        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn).next(
+          batchId => {
+            return batchId;
+          }
+        );
       });
     }
 

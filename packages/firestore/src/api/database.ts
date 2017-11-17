@@ -1058,8 +1058,9 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
         log.error(
           `Document ${this._key.path} contains a document ` +
             `reference within a different database (` +
-            `${value.databaseId.projectId}/${value.databaseId
-              .database}) which is not ` +
+            `${value.databaseId.projectId}/${
+              value.databaseId.database
+            }) which is not ` +
             `supported. It will be treated as a reference in the current ` +
             `database (${database.projectId}/${database.database}) ` +
             `instead.`

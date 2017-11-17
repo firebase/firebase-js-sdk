@@ -18,7 +18,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-  devtool: 'eval-source-map',
+  devtool: 'source-map',
   module: {
     rules: [
       {
@@ -27,9 +27,18 @@ module.exports = {
         use: 'ts-loader'
       },
       {
-        test: /\.js$/,
-        use: ['source-map-loader'],
+        test: /\.[tj]sx?$/,
+        use: 'source-map-loader',
         enforce: 'pre'
+      },
+      {
+        test: /\.tsx?$/,
+        use: {
+          loader: 'istanbul-instrumenter-loader',
+          options: { esModules: true }
+        },
+        enforce: 'post',
+        include: path.resolve(process.cwd(), 'src')
       }
     ]
   },

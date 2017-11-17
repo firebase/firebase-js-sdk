@@ -270,7 +270,7 @@ export class LimitedFilter implements NodeFilter {
     const newChildNamedNode = new NamedNode(childKey, childSnap);
     const windowBoundary = this.reverse_
       ? oldEventCache.getFirstChild(this.index_)
-      : oldEventCache.getLastChild(this.index_) as NamedNode;
+      : (oldEventCache.getLastChild(this.index_) as NamedNode);
     const inRange = this.rangedFilter_.matches(newChildNamedNode);
     if (oldEventCache.hasChild(childKey)) {
       const oldChildSnap = oldEventCache.getImmediateChild(childKey);

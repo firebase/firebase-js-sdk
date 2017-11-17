@@ -77,16 +77,16 @@ export class FieldTransform {
 export class MutationResult {
   constructor(
     /**
-       * The version at which the mutation was committed or null for a delete.
-       */
+     * The version at which the mutation was committed or null for a delete.
+     */
     readonly version: SnapshotVersion | null,
     /**
-       * The resulting fields returned from the backend after a
-       * TransformMutation has been committed. Contains one FieldValue for each
-       * FieldTransform that was in the mutation.
-       *
-       * Will be null if the mutation was not a TransformMutation.
-       */
+     * The resulting fields returned from the backend after a
+     * TransformMutation has been committed. Contains one FieldValue for each
+     * FieldTransform that was in the mutation.
+     *
+     * Will be null if the mutation was not a TransformMutation.
+     */
     readonly transformResults: FieldValue[] | null
   ) {}
 }

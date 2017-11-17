@@ -152,7 +152,7 @@ class ParseContext {
    *     of an array.
    * @param fieldTransforms A mutable list of field transforms encountered while
    *     parsing the data.
-   * @param fieldMask A mutable list of field paths encountered while parsing 
+   * @param fieldMask A mutable list of field paths encountered while parsing
    *     the data.
    *
    * TODO(b/34871131): We don't support array paths right now, so path can be

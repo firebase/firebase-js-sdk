@@ -162,10 +162,10 @@ export class LocalStore {
     private persistence: Persistence,
     initialUser: User,
     /**
-       * The garbage collector collects documents that should no longer be
-       * cached (e.g. if they are no longer retained by the above reference sets
-       * and the garbage collector is performing eager collection).
-       */
+     * The garbage collector collects documents that should no longer be
+     * cached (e.g. if they are no longer retained by the above reference sets
+     * and the garbage collector is performing eager collection).
+     */
     private garbageCollector: GarbageCollector
   ) {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
@@ -667,12 +667,11 @@ export class LocalStore {
             const documentBuffer = new RemoteDocumentChangeBuffer(
               this.remoteDocuments
             );
-            return this.releaseHeldBatchResults(
-              txn,
-              documentBuffer
-            ).next(() => {
-              documentBuffer.apply(txn);
-            });
+            return this.releaseHeldBatchResults(txn, documentBuffer).next(
+              () => {
+                documentBuffer.apply(txn);
+              }
+            );
           } else {
             return PersistencePromise.resolve();
           }
