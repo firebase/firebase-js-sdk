@@ -48,18 +48,18 @@ export default class SWController extends ControllerInterface {
   }
 
   /**
-  * A handler for push events that shows notifications based on the content of
-  * the payload.
-  *
-  * The payload must be a JSON-encoded Object with a `notification` key. The
-  * value of the `notification` property will be used as the NotificationOptions
-  * object passed to showNotification. Additionally, the `title` property of the
-  * notification object will be used as the title.
-  *
-  * If there is no notification data in the payload then no notification will be
-  * shown.
-  * @private
-  */
+   * A handler for push events that shows notifications based on the content of
+   * the payload.
+   *
+   * The payload must be a JSON-encoded Object with a `notification` key. The
+   * value of the `notification` property will be used as the NotificationOptions
+   * object passed to showNotification. Additionally, the `title` property of the
+   * notification object will be used as the title.
+   *
+   * If there is no notification data in the payload then no notification will be
+   * shown.
+   * @private
+   */
   onPush_(event) {
     let msgPayload;
     try {
@@ -97,8 +97,8 @@ export default class SWController extends ControllerInterface {
   }
 
   /**
-  * @private
-  */
+   * @private
+   */
   onSubChange_(event) {
     const promiseChain = this.getToken().then(token => {
       if (!token) {
@@ -149,8 +149,8 @@ export default class SWController extends ControllerInterface {
   }
 
   /**
-  * @private
-  */
+   * @private
+   */
   onNotificationClick_(event) {
     if (
       !(

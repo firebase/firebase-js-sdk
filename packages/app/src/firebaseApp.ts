@@ -312,14 +312,14 @@ class FirebaseAppImpl implements FirebaseApp {
   /**
    * Return a service instance associated with this app (creating it
    * on demand), identified by the passed instanceIdentifier.
-   * 
+   *
    * NOTE: Currently storage is the only one that is leveraging this
    * functionality. They invoke it by calling:
-   * 
+   *
    * ```javascript
    * firebase.app().storage('STORAGE BUCKET ID')
    * ```
-   * 
+   *
    * The service name is passed to this already
    * @internal
    */
@@ -364,10 +364,10 @@ class FirebaseAppImpl implements FirebaseApp {
     /**
      * If the app has overwritten the addAuthTokenListener stub, forward
      * the active token listeners on to the true fxn.
-     * 
+     *
      * TODO: This function is required due to our current module
      * structure. Once we are able to rely strictly upon a single module
-     * implementation, this code should be refactored and Auth should 
+     * implementation, this code should be refactored and Auth should
      * provide these stubs and the upgrade logic
      */
     if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {

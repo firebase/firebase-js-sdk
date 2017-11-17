@@ -32,5 +32,5 @@ export function loadProtos(): grpc.GrpcObject {
     root: root,
     file: 'google/firestore/v1beta1/firestore.proto'
   };
-  return grpc.load(firestoreProtoFile, /*format=*/'proto', options);
+  return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
 }

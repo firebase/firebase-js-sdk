@@ -66,7 +66,7 @@ const config = {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['spec' /*, 'saucelabs' */],
+  reporters: ['spec', 'coverage-istanbul' /*, 'saucelabs' */],
 
   // web server port
   port: 8089,
@@ -113,6 +113,12 @@ const config = {
 
     // Pass through --grep option to filter the tests that run.
     args: argv.grep ? ['--grep', argv.grep] : []
+  },
+
+  coverageIstanbulReporter: {
+    dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
+    fixWebpackSourcePaths: true,
+    reports: ['lcovonly']
   }
 };
 

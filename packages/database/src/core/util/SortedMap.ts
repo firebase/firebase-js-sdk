@@ -157,9 +157,9 @@ export class LLRBNode<K, V> {
   ) {
     this.color = color != null ? color : LLRBNode.RED;
     this.left =
-      left != null ? left : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
+      left != null ? left : (SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>);
     this.right =
-      right != null ? right : SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>;
+      right != null ? right : (SortedMap.EMPTY_NODE as LLRBEmptyNode<K, V>);
   }
 
   static RED = true;

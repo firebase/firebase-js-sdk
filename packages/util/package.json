@@ -9,7 +9,7 @@
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
-    "test:node": "mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
+    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
@@ -28,6 +28,7 @@
     "karma-webpack": "^2.0.4",
     "mocha": "^4.0.1",
     "npm-run-all": "^4.1.1",
+    "nyc": "^11.2.1",
     "ts-loader": "^3.1.0",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
@@ -39,5 +40,11 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
   }
 }

@@ -38,8 +38,9 @@ const LOG_TAG = 'Connection';
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we
 // should use the Firebase version instead.
-const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions
-  .node} fire/${SDK_VERSION} grpc/${grpcVersion}`;
+const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${
+  SDK_VERSION
+} grpc/${grpcVersion}`;
 
 function createHeaders(databaseInfo: DatabaseInfo, token: Token | null): {} {
   assert(
@@ -114,10 +115,7 @@ export class GrpcConnection implements Connection {
   // We cache stubs for the most-recently-used token.
   private cachedStub: CachedStub | null = null;
 
-  constructor(
-    protos: grpc.GrpcObject,
-    private databaseInfo: DatabaseInfo
-  ) {
+  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
     this.firestore = protos['google']['firestore']['v1beta1'];
   }
 

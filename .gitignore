@@ -14,3 +14,7 @@ dist
 .idea
 .vscode
 *.iml
+
+# Coverage
+.nyc_output
+coverage

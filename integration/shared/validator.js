@@ -43,7 +43,7 @@ function validateNamespace(definition, candidate) {
     const candidateChunk = candidate[key];
 
     /**
-     * Grab all of the keys that aren't meta properties and capture 
+     * Grab all of the keys that aren't meta properties and capture
      * them for more testing later
      */
     const internalKeys = Object.keys(definitionChunk).filter(
@@ -72,16 +72,16 @@ function validateNamespace(definition, candidate) {
       }
 
       /**
-       * Keys marked with `__return` allow us to validate the 
+       * Keys marked with `__return` allow us to validate the
        * return value of a specific part of the API
-       * 
+       *
        * e.g.
        * {
        *   ...
        *   app: {
        *     __return: {
        *       <PROPERTIES OF AN APP>
-       *     } 
+       *     }
        *   }
        * }
        */
