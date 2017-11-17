@@ -203,6 +203,10 @@ export class WebChannelConnection implements Connection {
       // parameter.
       httpSessionIdParam: 'gsessionid',
       initMessageHeaders: {},
+      // Send our custom headers as a '$httpHeaders=' url param to avoid CORS
+      // preflight round-trip. This is formally defined here:
+      // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L40
+      httpHeadersOverwriteParam: '$httpHeaders',
       sendRawJson: true,
       supportsCrossDomainXhr: true
     };
