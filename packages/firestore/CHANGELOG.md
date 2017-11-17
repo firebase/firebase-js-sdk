@@ -1,4 +1,7 @@
 # Unreleased
+- [changed] Webchannel requests use $httpHeaders URL parameter rather than
+  normal HTTP headers to avoid an extra CORS preflight request when initiating
+  streams / RPCs.
 
 # v0.1.4
 - [changed] Network streams are automatically closed after 60 seconds of
