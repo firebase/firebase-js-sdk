@@ -58,7 +58,7 @@ export interface Connection {
     rpcName: string,
     request: any,
     token: Token | null
-  ): Promise<any>;
+  ): Promise<any[]>;
 
   /**
    * Opens a stream to the given stream RPC endpoint. Returns a stream which

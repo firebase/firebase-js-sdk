@@ -179,10 +179,10 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     request: any,
     token: Token | null
-  ): Promise<any> {
+  ): Promise<any[]> {
     const rpc = this.getRpc(rpcName, token);
     const results = [];
-    const responseDeferred = new Deferred();
+    const responseDeferred = new Deferred<any[]>();
 
     log.debug(
       LOG_TAG,
@@ -285,18 +285,6 @@ export class GrpcConnection implements Connection {
         `status event received before "end" or "error". ` +
           `code: ${status.code} details: ${status.details}`
       );
-    });
-
-    grpcStream.on('status', (status: GrpcStatus) => {
-      if (!closed) {
-        log.debug(LOG_TAG, 'GRPC stream received status:', status);
-        if (status.code === 0) {
-          // all good
-        } else {
-          const code = mapCodeFromRpcCode(status.code);
-          close(new FirestoreError(code, status.details));
-        }
-      }
     });
 
     log.debug(LOG_TAG, 'Opening GRPC stream');

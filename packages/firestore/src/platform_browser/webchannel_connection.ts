@@ -171,7 +171,7 @@ export class WebChannelConnection implements Connection {
     rpcName: string,
     request: any,
     token: Token | null
-  ): Promise<any> {
+  ): Promise<any[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
     return this.invokeRPC(rpcName, request, token);
@@ -338,7 +338,7 @@ export class WebChannelConnection implements Connection {
   // visible for testing
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
-    assert(urlRpcName != null, 'Unknown REST mapping for: ' + rpcName);
+    assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
     const url = [this.baseUrl, '/', RPC_URL_VERSION];
     url.push('/projects/');
     url.push(this.databaseId.projectId);

@@ -19,12 +19,8 @@ import { WebChannelConnection } from '../../../src/platform_browser/webchannel_c
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import * as utilHelpers from '../util/helpers';
 
-describe('WebChannel', () => {
-  if (typeof window === 'undefined') {
-    console.warn('Skipping WebChannel tests.');
-    return;
-  }
-
+const describeFn = typeof window !== 'undefined' ? describe : xdescribe;
+describeFn('WebChannel', () => {
   describe('makeUrl', () => {
     const info = new DatabaseInfo(
       new DatabaseId('testproject'),
