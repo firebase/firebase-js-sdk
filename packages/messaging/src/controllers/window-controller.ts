@@ -180,8 +180,9 @@ export default class WindowController extends ControllerInterface {
       // The Notification.requestPermission API was changed to
       // return a promise so now have to handle both in case
       // browsers stop support callbacks for promised version
-      const permissionPromise =
-        Notification.requestPermission(managePermissionResult);
+      const permissionPromise = Notification.requestPermission(
+        managePermissionResult
+      );
       if (permissionPromise) {
         // Prefer the promise version as it's the future API.
         permissionPromise.then(managePermissionResult);
@@ -220,13 +221,17 @@ export default class WindowController extends ControllerInterface {
     }
 
     if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
-      throw this.errorFactory_.create(Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
+      throw this.errorFactory_.create(
+        Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
+      );
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
     if (parsedKey.length !== 65) {
-      throw this.errorFactory_.create(Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED);
+      throw this.errorFactory_.create(
+        Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED
+      );
     }
 
     this.publicVapidKeyToUse_ = parsedKey;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {expect} from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
 
@@ -24,7 +24,7 @@ import IIDModel from '../src/models/iid-model';
 describe('Firebase Messaging > *ControllerInterface', function() {
   const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
-    messagingSenderId: '12345',
+    messagingSenderId: '12345'
   });
 
   const cleanup = function() {
@@ -176,7 +176,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('getNotificationPermission_', function() {
     it('should return current permission', function() {
-      sandbox.stub((Notification as any), 'permission').value('test');
+      sandbox.stub(Notification as any, 'permission').value('test');
       const controller = new ControllerInterface(app);
       const result = controller.getNotificationPermission_();
       expect(result).to.equal('test');

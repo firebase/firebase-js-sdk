@@ -25,7 +25,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     swScope: '/example-scope',
     vapidKey: base64ToArrayBuffer(
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
     ),
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567',

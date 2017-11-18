@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {expect} from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
 import makeFakeSWReg from './make-fake-sw-reg';
@@ -22,12 +22,13 @@ import FCMDetails from '../src/models/fcm-details';
 import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 import WindowController from '../src/controllers/window-controller';
 
-const VALID_VAPID_KEY = 'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
+const VALID_VAPID_KEY =
+  'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
 describe('Firebase Messaging > *WindowController', function() {
   const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
-    messagingSenderId: '12345',
+    messagingSenderId: '12345'
   });
 
   const cleanup = () => {
@@ -43,88 +44,106 @@ describe('Firebase Messaging > *WindowController', function() {
   });
 
   describe('manifestCheck_()', function() {
-    it('should resolve when the tag isn\'t defined', function() {
-      sandbox.stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]').returns(null);
+    it("should resolve when the tag isn't defined", function() {
+      sandbox
+        .stub(document, 'querySelector')
+        .withArgs('link[rel="manifest"]')
+        .returns(null);
 
       const controller = new WindowController(app);
       return controller.manifestCheck_();
     });
 
     it('should fetch the manifest if defined and resolve when no gcm_sender_id', function() {
-      sandbox.stub(document, 'querySelector')
+      sandbox
+        .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
         .returns({
-          href: 'https://firebase.io/messaging/example',
+          href: 'https://firebase.io/messaging/example'
         });
 
-      sandbox.stub(window, 'fetch')
+      sandbox
+        .stub(window, 'fetch')
         .withArgs('https://firebase.io/messaging/example')
-        .returns(Promise.resolve({
-          json: () => {
-            return {};
-          }
-        }));
+        .returns(
+          Promise.resolve({
+            json: () => {
+              return {};
+            }
+          })
+        );
 
       const controller = new WindowController(app);
       return controller.manifestCheck_();
     });
 
     it('should fetch the manifest if defined and resolve with expected gcm_sender_id', function() {
-      sandbox.stub(document, 'querySelector')
+      sandbox
+        .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
         .returns({
-          href: 'https://firebase.io/messaging/example',
+          href: 'https://firebase.io/messaging/example'
         });
 
-      sandbox.stub(window, 'fetch')
+      sandbox
+        .stub(window, 'fetch')
         .withArgs('https://firebase.io/messaging/example')
-        .returns(Promise.resolve({
-          json: () => {
-            return {
-              'gcm_sender_id': '103953800507',
-            };
-          }
-        }));
+        .returns(
+          Promise.resolve({
+            json: () => {
+              return {
+                gcm_sender_id: '103953800507'
+              };
+            }
+          })
+        );
 
       const controller = new WindowController(app);
       return controller.manifestCheck_();
     });
 
     it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', function() {
-      sandbox.stub(document, 'querySelector')
+      sandbox
+        .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
         .returns({
-          href: 'https://firebase.io/messaging/example',
+          href: 'https://firebase.io/messaging/example'
         });
 
-      sandbox.stub(window, 'fetch')
+      sandbox
+        .stub(window, 'fetch')
         .withArgs('https://firebase.io/messaging/example')
-        .returns(Promise.resolve({
-          json: () => {
-            return {
-              'gcm_sender_id': 'incorrect-sender-id',
-            };
-          }
-        }));
+        .returns(
+          Promise.resolve({
+            json: () => {
+              return {
+                gcm_sender_id: 'incorrect-sender-id'
+              };
+            }
+          })
+        );
 
       const controller = new WindowController(app);
-      return controller.manifestCheck_()
-      .then(() => {
-        throw new Error('Expected error to be thrown.');
-      }, (err) => {
-        expect(err.code).to.equal('messaging/incorrect-gcm-sender-id');
-      });
+      return controller.manifestCheck_().then(
+        () => {
+          throw new Error('Expected error to be thrown.');
+        },
+        err => {
+          expect(err.code).to.equal('messaging/incorrect-gcm-sender-id');
+        }
+      );
     });
 
     it('should fetch the manifest and resolve if the request fails', function() {
-      sandbox.stub(document, 'querySelector')
+      sandbox
+        .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
         .returns({
-          href: 'https://firebase.io/messaging/example',
+          href: 'https://firebase.io/messaging/example'
         });
 
-      sandbox.stub(window, 'fetch')
+      sandbox
+        .stub(window, 'fetch')
         .withArgs('https://firebase.io/messaging/example')
         .returns(Promise.reject(new Error('Injected Failure.')));
 
@@ -135,62 +154,64 @@ describe('Firebase Messaging > *WindowController', function() {
 
   describe('requestPermission', function() {
     it('should resolve if the permission is already granted', function() {
-      sandbox.stub((Notification as any), 'permission').value('granted');
+      sandbox.stub(Notification as any, 'permission').value('granted');
 
       const controller = new WindowController(app);
       return controller.requestPermission();
     });
 
     it('should reject if the requestPermission() is denied', function() {
-      sandbox.stub((Notification as any), 'permission')
-        .value('denied');
-      sandbox.stub((Notification as any), 'requestPermission')
+      sandbox.stub(Notification as any, 'permission').value('denied');
+      sandbox
+        .stub(Notification as any, 'requestPermission')
         .returns(Promise.resolve('denied'));
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any)
-      .then(() => {
-        throw new Error('Expected an error.');
-      }, (err) => {
-        expect(err.code).to.equal('messaging/permission-blocked');
-      });
+      return (controller.requestPermission() as any).then(
+        () => {
+          throw new Error('Expected an error.');
+        },
+        err => {
+          expect(err.code).to.equal('messaging/permission-blocked');
+        }
+      );
     });
 
     it('should reject if the requestPermission() is default', function() {
-      sandbox.stub((Notification as any), 'permission')
-        .value('default');
-      sandbox.stub((Notification as any), 'requestPermission')
+      sandbox.stub(Notification as any, 'permission').value('default');
+      sandbox
+        .stub(Notification as any, 'requestPermission')
         .returns(Promise.resolve('default'));
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any)
-      .then(() => {
-        throw new Error('Expected an error.');
-      }, (err) => {
-        expect(err.code).to.equal('messaging/permission-default');
-      });
+      return (controller.requestPermission() as any).then(
+        () => {
+          throw new Error('Expected an error.');
+        },
+        err => {
+          expect(err.code).to.equal('messaging/permission-default');
+        }
+      );
     });
 
     it('should resolve if the requestPermission() is granted', function() {
-      sandbox.stub((Notification as any), 'permission')
-        .value('default');
-      sandbox.stub((Notification as any), 'requestPermission')
+      sandbox.stub(Notification as any, 'permission').value('default');
+      sandbox
+        .stub(Notification as any, 'requestPermission')
         .returns(Promise.resolve('granted'));
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any);
+      return controller.requestPermission() as any;
     });
 
     it('should resolve if the requestPermission() is granted using old callback API', function() {
-      sandbox.stub((Notification as any), 'permission')
-        .value('default');
-      sandbox.stub((Notification as any), 'requestPermission')
-        .callsFake((cb) => {
-          cb('granted');
-        });
+      sandbox.stub(Notification as any, 'permission').value('default');
+      sandbox.stub(Notification as any, 'requestPermission').callsFake(cb => {
+        cb('granted');
+      });
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any);
+      return controller.requestPermission() as any;
     });
   });
 
@@ -204,7 +225,9 @@ describe('Firebase Messaging > *WindowController', function() {
         thrownError = err;
       }
       expect(thrownError).to.exist;
-      expect(thrownError.code).to.deep.equal('messaging/sw-registration-expected');
+      expect(thrownError.code).to.deep.equal(
+        'messaging/sw-registration-expected'
+      );
     });
 
     it(`should only be callable once`, function() {
@@ -231,7 +254,7 @@ describe('Firebase Messaging > *WindowController', function() {
       const compFunc = () => {};
 
       const controller = new WindowController(app);
-      sandbox.stub((controller as any), 'onMessage_');
+      sandbox.stub(controller as any, 'onMessage_');
       controller.onMessage(nextFunc, errFunc, compFunc);
 
       expect(controller['onMessage_']['callCount']).to.equal(1);
@@ -248,7 +271,7 @@ describe('Firebase Messaging > *WindowController', function() {
       const compFunc = () => {};
 
       const controller = new WindowController(app);
-      sandbox.stub((controller as any), 'onTokenRefresh_');
+      sandbox.stub(controller as any, 'onTokenRefresh_');
       controller.onTokenRefresh(nextFunc, errFunc, compFunc);
 
       expect(controller['onTokenRefresh_']['callCount']).to.equal(1);
@@ -259,7 +282,6 @@ describe('Firebase Messaging > *WindowController', function() {
   });
 
   describe('usePublicVapidKey()', function() {
-
     it('should throw an error when passing in an invalid value', function() {
       const controller = new WindowController(app);
 
@@ -284,7 +306,9 @@ describe('Firebase Messaging > *WindowController', function() {
         thrownError = err;
       }
       expect(thrownError).to.exist;
-      expect(thrownError.code).to.equal('messaging/use-public-key-before-get-token');
+      expect(thrownError.code).to.equal(
+        'messaging/use-public-key-before-get-token'
+      );
     });
 
     it('should throw when decrypting to invalid value', function() {
@@ -292,25 +316,33 @@ describe('Firebase Messaging > *WindowController', function() {
 
       let thrownError;
       try {
-        controller.usePublicVapidKey(VALID_VAPID_KEY.substring(0, VALID_VAPID_KEY.length - 1));
+        controller.usePublicVapidKey(
+          VALID_VAPID_KEY.substring(0, VALID_VAPID_KEY.length - 1)
+        );
       } catch (err) {
         thrownError = err;
       }
       expect(thrownError).to.exist;
-      expect(thrownError.code).to.equal('messaging/public-vapid-key-decryption-failed');
+      expect(thrownError.code).to.equal(
+        'messaging/public-vapid-key-decryption-failed'
+      );
     });
   });
 
   describe('getPublicVapidKey_()', function() {
     it('should return the default key by default', function() {
       const controller = new WindowController(app);
-      expect(controller.getPublicVapidKey_()).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+      expect(controller.getPublicVapidKey_()).to.equal(
+        FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
+      );
     });
 
     it('should return the default key by default', function() {
       const controller = new WindowController(app);
       controller.usePublicVapidKey(VALID_VAPID_KEY);
-      expect(controller.getPublicVapidKey_()).to.deep.equal(base64ToArrayBuffer(VALID_VAPID_KEY));
+      expect(controller.getPublicVapidKey_()).to.deep.equal(
+        base64ToArrayBuffer(VALID_VAPID_KEY)
+      );
     });
   });
 
@@ -319,30 +351,35 @@ describe('Firebase Messaging > *WindowController', function() {
       const injectedError = new Error('Inject error.');
       const reg = makeFakeSWReg();
       sandbox.stub(reg, 'pushManager').value({
-        getSubscription: () => Promise.reject(injectedError),
+        getSubscription: () => Promise.reject(injectedError)
       });
 
-        const controller = new WindowController(app);
-      return controller.getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-      .then(() => {
-        throw new Error('Expected an error.');
-      }, (err) => {
-        expect(err).to.equal(injectedError);
-      });
+      const controller = new WindowController(app);
+      return controller
+        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+        .then(
+          () => {
+            throw new Error('Expected an error.');
+          },
+          err => {
+            expect(err).to.equal(injectedError);
+          }
+        );
     });
 
     it(`should return PushSubscription if returned`, function() {
       const exampleSubscription = {};
       const reg = makeFakeSWReg();
       sandbox.stub(reg, 'pushManager').value({
-        getSubscription: () => Promise.resolve(exampleSubscription),
+        getSubscription: () => Promise.resolve(exampleSubscription)
       });
 
       const controller = new WindowController(app);
-      return controller.getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-      .then((subscription) => {
-        expect(subscription).to.equal(exampleSubscription);
-      });
+      return controller
+        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+        .then(subscription => {
+          expect(subscription).to.equal(exampleSubscription);
+        });
     });
 
     it('should call subscribe() if no subscription', function() {
@@ -350,10 +387,10 @@ describe('Firebase Messaging > *WindowController', function() {
       const reg = makeFakeSWReg();
       sandbox.stub(reg, 'pushManager').value({
         getSubscription: () => Promise.resolve(),
-        subscribe: (options) => {
+        subscribe: options => {
           expect(options).to.deep.equal({
             userVisibleOnly: true,
-            applicationServerKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
+            applicationServerKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
           });
 
           return Promise.resolve(exampleSubscription);
@@ -361,10 +398,11 @@ describe('Firebase Messaging > *WindowController', function() {
       });
 
       const controller = new WindowController(app);
-      return controller.getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-      .then((subscription) => {
-        expect(subscription).to.equal(exampleSubscription);
-      });
+      return controller
+        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+        .then(subscription => {
+          expect(subscription).to.equal(exampleSubscription);
+        });
     });
   });
 
@@ -414,7 +452,7 @@ describe('Firebase Messaging > *WindowController', function() {
       // Even with FCM data, if the type isn't known - do nothing.
       callback({
         data: {
-          'firebase-messaging-msg-type': 'unknown',
+          'firebase-messaging-msg-type': 'unknown'
         }
       });
       expect(onMessageSpy.callCount).to.equal(0);
@@ -437,7 +475,7 @@ describe('Firebase Messaging > *WindowController', function() {
       // Even with FCM data, if the type isn't known - do nothing.
       callback({
         data: {
-          'firebase-messaging-msg-type': 'push-msg-received',
+          'firebase-messaging-msg-type': 'push-msg-received'
         }
       });
       expect(onMessageSpy.callCount).to.equal(0);

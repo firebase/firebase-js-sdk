@@ -26,7 +26,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     swScope: '/example-scope',
     vapidKey: base64ToArrayBuffer(
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
     ),
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567',
@@ -113,7 +113,10 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
           }
 
           if (keyName === 'vapidKey') {
-            assert.equal(details[keyName], arrayBufferToBase64(EXAMPLE_INPUT[keyName]));
+            assert.equal(
+              details[keyName],
+              arrayBufferToBase64(EXAMPLE_INPUT[keyName])
+            );
           } else {
             assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
           }

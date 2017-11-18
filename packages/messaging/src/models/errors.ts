@@ -51,7 +51,7 @@ const CODES = {
   FAILED_DELETE_VAPID_KEY: 'failed-delete-vapid-key',
   INVALID_PUBLIC_VAPID_KEY: 'invalid-public-vapid-key',
   USE_PUBLIC_KEY_BEFORE_GET_TOKEN: 'use-public-key-before-get-token',
-  PUBLIC_KEY_DECRYPTION_FAILED: 'public-vapid-key-decryption-failed',
+  PUBLIC_KEY_DECRYPTION_FAILED: 'public-vapid-key-decryption-failed'
 };
 
 const ERROR_MAP = {
@@ -134,8 +134,8 @@ const ERROR_MAP = {
     'not a valid push set string.',
   [CODES.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
   [CODES.INVALID_PUBLIC_VAPID_KEY]: 'The public VAPID key must be a string.',
-  [CODES.PUBLIC_KEY_DECRYPTION_FAILED]: 'The public VAPID key did not equal ' +
-    '65 bytes when decrypted.',
+  [CODES.PUBLIC_KEY_DECRYPTION_FAILED]:
+    'The public VAPID key did not equal ' + '65 bytes when decrypted.'
 };
 
 export default {

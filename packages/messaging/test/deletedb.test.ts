@@ -33,11 +33,13 @@ describe(`Firebase Messaging > db-interface.onDBUpgrade()`, function() {
   });
 
   it(`should throw error when not inherited`, function() {
-    return new DBInterface(TEST_DB_NAME, 1).openDatabase()
-    .then(() => {
-      throw new Error(`An error was expected but method was successful.`);
-    }, (err) => {
-      expect(err.code).to.equal('messaging/should-be-overriden');
-    });
+    return new DBInterface(TEST_DB_NAME, 1).openDatabase().then(
+      () => {
+        throw new Error(`An error was expected but method was successful.`);
+      },
+      err => {
+        expect(err.code).to.equal('messaging/should-be-overriden');
+      }
+    );
   });
 });
