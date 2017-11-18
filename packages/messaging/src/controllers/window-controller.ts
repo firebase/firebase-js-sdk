@@ -63,9 +63,12 @@ export default class WindowController extends ControllerInterface {
      * @private {!firebase.Subscribe} The subscribe function to the onMessage
      * observer.
      */
+    console.log('Calling create subscribe');
     this.onMessage_ = createSubscribe(observer => {
+      console.log('createsubscribe', observer);
       this.messageObserver_ = observer;
     });
+    console.log('After: ', this.onMessage_);
 
     /**
      * @private
@@ -177,15 +180,8 @@ export default class WindowController extends ControllerInterface {
       // The Notification.requestPermission API was changed to
       // return a promise so now have to handle both in case
       // browsers stop support callbacks for promised version
-      const permissionPromise = Notification.requestPermission(result => {
-        if (permissionPromise) {
-          // Let the promise manage this
-          return;
-        }
-
-        managePermissionResult(result);
-      });
-
+      const permissionPromise =
+        Notification.requestPermission(managePermissionResult);
       if (permissionPromise) {
         // Prefer the promise version as it's the future API.
         permissionPromise.then(managePermissionResult);
@@ -219,19 +215,19 @@ export default class WindowController extends ControllerInterface {
    * @param {!string} publicKey A URL safe base64 encoded string.
    */
   usePublicVapidKey(publicKey) {
-    if (!(typeof publicKey !== 'string')) {
-      // TODO: throw error
-      // throw this.errorFactory_.create(Errors.codes.INVALID_VAPID_PUBLIC_KEY);
+    if (typeof publicKey !== 'string') {
+      throw this.errorFactory_.create(Errors.codes.INVALID_PUBLIC_VAPID_KEY);
     }
 
     if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
-      // TODO: throw error
-      // throw this.errorFactory_.create(Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
+      throw this.errorFactory_.create(Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
-    // TODO: Validate length of parsed key
+    if (parsedKey.length !== 65) {
+      throw this.errorFactory_.create(Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED);
+    }
 
     this.publicVapidKeyToUse_ = parsedKey;
   }
@@ -246,7 +242,8 @@ export default class WindowController extends ControllerInterface {
    * observer is removed.
    * @return {!function()} The unsubscribe function for the observer.
    */
-  onMessage(nextOrObserver, optError, optCompleted) {
+  onMessage(nextOrObserver, optError?, optCompleted?) {
+    console.log('onMessage(), calling onMessage_');
     return this.onMessage_(nextOrObserver, optError, optCompleted);
   }
 
@@ -413,6 +410,7 @@ export default class WindowController extends ControllerInterface {
           case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
             const pushMessage =
               workerPageMessage[WorkerPageMessage.PARAMS.DATA];
+            console.log(this.messageObserver_);
             this.messageObserver_.next(pushMessage);
             break;
           default:

@@ -15,7 +15,8 @@
     "@firebase/app": "^0.1.0"
   },
   "dependencies": {
-    "@firebase/util": "^0.1.2"
+    "@firebase/util": "^0.1.2",
+    "lcov-result-merger": "^1.2.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",

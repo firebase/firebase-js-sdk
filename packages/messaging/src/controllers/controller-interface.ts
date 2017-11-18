@@ -53,7 +53,7 @@ export default class ControllerInterface {
 
     this.app = app;
     this.INTERNAL = {};
-    this.INTERNAL.delete = () => this.delete;
+    this.INTERNAL.delete = () => this.delete();
   }
 
   /**
