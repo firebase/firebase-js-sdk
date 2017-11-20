@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as util from 'util';
+
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
@@ -21,7 +23,8 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
 import { GrpcConnection } from './grpc_connection';
-import { loadProtosAsync } from './load_protos';
+import { loadProtos } from './load_protos';
+import { AnyJs } from '../util/misc';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -29,13 +32,17 @@ export class NodePlatform implements Platform {
   readonly emptyByteString = new Uint8Array(0);
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
-    return loadProtosAsync().then(protos => {
-      return new GrpcConnection(protos, databaseInfo);
-    });
+    const protos = loadProtos();
+    return Promise.resolve(new GrpcConnection(protos, databaseInfo));
   }
 
   newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
     return new JsonProtoSerializer(partitionId, { useProto3Json: false });
+  }
+
+  formatJSON(value: AnyJs): string {
+    // util.inspect() results in much more readable output than JSON.stringify()
+    return util.inspect(value, { depth: 100 });
   }
 
   atob(encoded: string): string {

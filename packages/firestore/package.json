@@ -7,7 +7,7 @@
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(integration|browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/platform_node/node_init.ts --retries 5 --timeout 5000 --exit",
+    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
     "prepare": "gulp build"
   },
   "main": "dist/cjs/index.node.js",
@@ -18,7 +18,8 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/webchannel-wrapper": "^0.2.4"
+    "@firebase/webchannel-wrapper": "^0.2.4",
+    "grpc": "^1.7.1"
   },
   "peerDependencies": {
     "@firebase/app": "^0.1.0"
@@ -28,7 +29,6 @@
     "@types/mocha": "^2.2.44",
     "@types/sinon": "^2.3.7",
     "chai": "^4.1.1",
-    "grpc": "^1.6.6",
     "gulp": "gulpjs/gulp#4.0",
     "karma": "^1.7.0",
     "karma-chrome-launcher": "^2.2.0",

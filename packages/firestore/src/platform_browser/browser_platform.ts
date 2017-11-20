@@ -20,6 +20,7 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 
 import { WebChannelConnection } from './webchannel_connection';
+import { AnyJs } from '../util/misc';
 
 export class BrowserPlatform implements Platform {
   readonly base64Available: boolean;
@@ -36,6 +37,10 @@ export class BrowserPlatform implements Platform {
 
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
     return new JsonProtoSerializer(databaseId, { useProto3Json: true });
+  }
+
+  formatJSON(value: AnyJs): string {
+    return JSON.stringify(value);
   }
 
   atob(encoded: string): string {

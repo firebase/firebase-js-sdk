@@ -183,6 +183,11 @@ apiDescribe('Database batch writes', persistence => {
               .update(docB, { b: 2 })
               .commit();
 
+            // Node logs warnings if you don't attach an error handler to a
+            // Promise before it fails, so attach a dummy one here (we handle
+            // the rejection for real below).
+            batchCommitPromise.catch(err => {});
+
             return accumulator.awaitEvent();
           })
           .then(localSnap => {

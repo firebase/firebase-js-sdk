@@ -20,7 +20,8 @@ import * as firestore from 'firestore';
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
 describe('where persistence is unsupported, enablePersistence', () => {
-  // Only test on browsers where persistence is *not* available (e.g. Edge).
+  // Only test on platforms where persistence is *not* available (e.g. Edge,
+  // Node.JS).
   if (isPersistenceAvailable()) {
     return;
   }
@@ -42,11 +43,15 @@ describe('where persistence is unsupported, enablePersistence', () => {
 
   it('falls back without requiring a wait for the promise', () => {
     return withTestDb(/* persistence= */ false, db => {
-      // Disregard the promise here intentionally.
-      db.enablePersistence();
+      const persistenceFailedPromise = db
+        .enablePersistence()
+        .catch((err: firestore.FirestoreError) => {
+          expect(err.code).to.equal('unimplemented');
+        });
 
+      // Do the set immediately without waiting on the promise.
       const doc = db.collection('test-collection').doc();
-      return doc.set({ foo: 'bar' });
+      return doc.set({ foo: 'bar' }).then(() => persistenceFailedPromise);
     });
   });
 });

@@ -72,12 +72,12 @@ import {
 } from '../../../util/helpers';
 import { loadProtos } from '../../../../src/platform_node/load_protos';
 
-describe('Serializer Beta', () => {
+describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
-  const protos: any = loadProtos().build();
-  const ds = protos.google.firestore.v1beta1;
+  const protos = loadProtos();
+  const ds = protos['google']['firestore']['v1beta1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -205,7 +205,7 @@ describe('Serializer Beta', () => {
         const expected = { timestampValue: expectedJson[i] };
         expect(obj).to.deep.equal(expected);
         expectValue(obj, 'timestampValue').to.deep.equal(
-          new protos.google.protobuf.Timestamp(expectedJson[i]),
+          new protos['google']['protobuf'].Timestamp(expectedJson[i]),
           'for date ' + example
         );
       }
@@ -224,7 +224,7 @@ describe('Serializer Beta', () => {
       const obj = s.toValue(new fieldValue.GeoPointValue(example));
       expect(obj).to.deep.equal(expected);
       expectValue(obj, 'geoPointValue').to.deep.equal(
-        new protos.google.type.LatLng(1.23, 4.56)
+        new protos['google']['type'].LatLng(1.23, 4.56)
       );
     });
 
@@ -1056,7 +1056,7 @@ describe('Serializer Beta', () => {
                 direction: 'ASCENDING'
               }
             ],
-            limit: 26
+            limit: { value: 26 }
           }
         },
         targetId: 1

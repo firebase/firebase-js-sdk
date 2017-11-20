@@ -41,7 +41,24 @@ export interface Connection {
    * @param token the Token to use for the RPC.
    * @return a Promise containing the JSON object encoding of the response
    */
-  invoke(rpcName: string, request: any, token: Token | null): Promise<any>;
+  invokeRPC(rpcName: string, request: any, token: Token | null): Promise<any>;
+
+  /**
+   * Invokes a streaming RPC by name, given a request message as a JavaScript
+   * object representing the JSON to send. The responses will be consumed to
+   * completion and then returned as an array.
+   *
+   * @param rpcName the name of the RPC to invoke
+   * @param request the Raw JSON object encoding of the request message
+   * @param token the Token to use for the RPC.
+   * @return a Promise containing an array with the JSON object encodings of the
+   * responses
+   */
+  invokeStreamingRPC(
+    rpcName: string,
+    request: any,
+    token: Token | null
+  ): Promise<any[]>;
 
   /**
    * Opens a stream to the given stream RPC endpoint. Returns a stream which
