@@ -24,7 +24,8 @@ import * as grpc from 'grpc';
 export function loadProtos(): grpc.GrpcObject {
   const options = {
     // Beware that converting fields to camel case does not convert the tag
-    // fields in oneof groups (!!!).
+    // fields in oneof groups (!!!). This will likely be fixed when we upgrade
+    // to protobufjs 6.x
     convertFieldsToCamelCase: true
   };
   const root = __dirname + '/../protos';
