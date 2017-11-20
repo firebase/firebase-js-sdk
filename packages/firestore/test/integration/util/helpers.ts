@@ -35,7 +35,7 @@ export const ALT_PROJECT_ID = 'test-db2';
 const DEFAULT_SETTINGS = getDefaultSettings();
 
 function getDefaultSettings(): firestore.Settings {
-  const karma = __karma__; //typeof __karma__ !== 'undefined' ? __karma__ : undefined;
+  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
     return karma.config.firestoreSettings;
   } else {
@@ -44,6 +44,10 @@ function getDefaultSettings(): firestore.Settings {
       ssl: true
     };
   }
+}
+
+function isBrowser(): boolean {
+  return typeof window !== 'undefined';
 }
 
 function isIeOrEdge(): boolean {
@@ -56,7 +60,7 @@ function isIeOrEdge(): boolean {
 }
 
 export function isPersistenceAvailable(): boolean {
-  return !isIeOrEdge();
+  return isBrowser() && !isIeOrEdge();
 }
 
 /**

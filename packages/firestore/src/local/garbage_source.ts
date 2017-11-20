@@ -37,7 +37,7 @@ export interface GarbageSource {
    * This can be used by garbage collectors to double-check if a key exists in
    * this collection when it was released elsewhere.
    *
-   * PORTING NODE: This is used in contexts where PersistenceTransaction is
+   * PORTING NOTE: This is used in contexts where PersistenceTransaction is
    * known not to be needed, in this case we just pass in null. Therefore
    * any implementations must gaurd against null values.
    */

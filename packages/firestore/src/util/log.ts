@@ -18,6 +18,7 @@
 
 import { SDK_VERSION } from '../core/version';
 import { AnyJs } from './misc';
+import { PlatformSupport } from '../platform/platform';
 
 export enum LogLevel {
   DEBUG,
@@ -58,8 +59,9 @@ function argToString(obj: AnyJs): string | AnyJs {
   if (typeof obj === 'string') {
     return obj;
   } else {
+    const platform = PlatformSupport.getPlatform();
     try {
-      return JSON.stringify(obj);
+      return platform.formatJSON(obj);
     } catch (e) {
       // Converting to JSON failed, just log the object directly
       return obj;

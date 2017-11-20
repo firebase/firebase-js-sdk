@@ -82,9 +82,10 @@ export class Datastore {
 
   commit(mutations: Mutation[]): Promise<MutationResult[]> {
     const params: CommitRequest = {
+      database: this.serializer.encodedDatabaseId,
       writes: mutations.map(m => this.serializer.toMutation(m))
     };
-    return this.invokeRPC('commit', params).then(
+    return this.invokeRPC('Commit', params).then(
       (response: api.CommitResponse) => {
         return this.serializer.fromWriteResults(response.writeResults);
       }
@@ -93,9 +94,10 @@ export class Datastore {
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     const params: BatchGetDocumentsRequest = {
+      database: this.serializer.encodedDatabaseId,
       documents: keys.map(k => this.serializer.toName(k))
     };
-    return this.invokeRPC('batchGet', params).then(
+    return this.invokeStreamingRPC('BatchGetDocuments', params).then(
       (response: api.BatchGetDocumentsResponse[]) => {
         let docs = maybeDocumentMap();
         response.forEach(proto => {
@@ -117,7 +119,15 @@ export class Datastore {
   private invokeRPC(rpcName: string, request: any): Promise<any> {
     // TODO(mikelehen): Retry (with backoff) on token failures?
     return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
-      return this.connection.invoke(rpcName, request, token);
+      return this.connection.invokeRPC(rpcName, request, token);
+    });
+  }
+
+  /** Gets an auth token and invokes the provided RPC with streamed results. */
+  private invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
+    // TODO(mikelehen): Retry (with backoff) on token failures?
+    return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
+      return this.connection.invokeStreamingRPC(rpcName, request, token);
     });
   }
 }

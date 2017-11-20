@@ -38,7 +38,14 @@ import { Rejecter, Resolver } from '../util/promise';
 
 const LOG_TAG = 'Connection';
 
+const RPC_STREAM_SERVICE = 'google.firestore.v1beta1.Firestore';
 const RPC_URL_VERSION = 'v1beta1';
+
+/** Maps RPC names to the corresponding REST endpoint name. */
+const RPC_NAME_REST_MAPPING = {
+  BatchGetDocuments: 'batchGet',
+  Commit: 'commit'
+};
 
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we
@@ -51,24 +58,6 @@ export class WebChannelConnection implements Connection {
   private readonly databaseId: DatabaseId;
   private readonly baseUrl: string;
   private readonly pool: XhrIoPool;
-
-  /**
-   * Mapping from RPC name to service providing the RPC.
-   * For streaming RPCs only.
-   */
-  private static RPC_STREAM_SERVICE_MAPPING: { [rpc: string]: string } = {
-    Write: 'google.firestore.v1beta1.Firestore',
-    Listen: 'google.firestore.v1beta1.Firestore'
-  };
-
-  /**
-   * Mapping from RPC name to actual RPC name in URLs.
-   * For streaming RPCs only.
-   */
-  private static RPC_STREAM_NAME_MAPPING: { [rpc: string]: string } = {
-    Write: 'Write',
-    Listen: 'Listen'
-  };
 
   constructor(info: DatabaseInfo) {
     this.databaseId = info.databaseId;
@@ -100,7 +89,7 @@ export class WebChannelConnection implements Connection {
       `databases/${this.databaseId.database}`;
   }
 
-  invoke(rpcName: string, request: any, token: Token | null): Promise<any> {
+  invokeRPC(rpcName: string, request: any, token: Token | null): Promise<any> {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<any>, reject: Rejecter) => {
@@ -178,18 +167,23 @@ export class WebChannelConnection implements Connection {
     });
   }
 
+  invokeStreamingRPC(
+    rpcName: string,
+    request: any,
+    token: Token | null
+  ): Promise<any[]> {
+    // The REST API automatically aggregates all of the streamed results, so we
+    // can just use the normal invoke() method.
+    return this.invokeRPC(rpcName, request, token);
+  }
+
   openStream(rpcName: string, token: Token | null): Stream<any, any> {
-    const rpcService = WebChannelConnection.RPC_STREAM_SERVICE_MAPPING[rpcName];
-    const rpcUrlName = WebChannelConnection.RPC_STREAM_NAME_MAPPING[rpcName];
-    if (!rpcService || !rpcUrlName) {
-      fail('Unknown RPC name: ' + rpcName);
-    }
     const urlParts = [
       this.baseUrl,
       '/',
-      rpcService,
+      RPC_STREAM_SERVICE,
       '/',
-      rpcUrlName,
+      rpcName,
       '/channel'
     ];
     const webchannelTransport = createWebChannelTransport();
@@ -343,6 +337,8 @@ export class WebChannelConnection implements Connection {
 
   // visible for testing
   makeUrl(rpcName: string): string {
+    const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
+    assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
     const url = [this.baseUrl, '/', RPC_URL_VERSION];
     url.push('/projects/');
     url.push(this.databaseId.projectId);
@@ -352,7 +348,7 @@ export class WebChannelConnection implements Connection {
     url.push('/documents');
 
     url.push(':');
-    url.push(rpcName);
+    url.push(urlRpcName);
     return url.join('');
   }
 }

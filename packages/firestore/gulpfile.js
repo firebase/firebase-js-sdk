@@ -17,9 +17,19 @@
 const gulp = require('gulp');
 const tools = require('../../tools/build');
 
+function copyProtos(dest) {
+  return function copyProtos() {
+    return gulp
+      .src([__dirname + '/src/protos/**/*.proto'])
+      .pipe(gulp.dest(dest));
+  };
+}
+
 const buildModule = gulp.parallel([
   tools.buildCjs(__dirname),
-  tools.buildEsm(__dirname)
+  copyProtos('dist/cjs/src/protos'),
+  tools.buildEsm(__dirname),
+  copyProtos('dist/esm/src/protos')
 ]);
 
 const setupWatcher = () => {

@@ -14,48 +14,24 @@
  * limitations under the License.
  */
 
-const dynamicRequire = require;
-const protobufjs = dynamicRequire('protobufjs');
-export type ProtobufProtoBuilder = any;
-
-import { NodeCallback, nodePromise } from '../util/node_api';
-
-export function loadProtosAsync(): Promise<ProtobufProtoBuilder> {
-  return nodePromise((callback: NodeCallback<ProtobufProtoBuilder>) => {
-    loadProtos(callback);
-  });
-}
+import * as grpc from 'grpc';
 
 /**
- * Loads the protocol buffer definitions for the datastore. This is a thin
- * wrapper around protobufjs.loadProtoFile which knows the location of the
- * proto files.
+ * Loads the protocol buffer definitions for Firestore.
  *
- * @param callback if specified, the load is performed asynchronously and
- *     the protos are supplied to the callback.
- * @returns the ProtoBuilder if the callback is unspecified.
+ * @returns The GrpcObject representing our protos.
  */
-export function loadProtos(
-  callback?: NodeCallback<ProtobufProtoBuilder>
-): ProtobufProtoBuilder | undefined {
-  const builder = protobufjs.newBuilder({
+export function loadProtos(): grpc.GrpcObject {
+  const options = {
     // Beware that converting fields to camel case does not convert the tag
-    // fields in oneof groups (!!!).
+    // fields in oneof groups (!!!). This will likely be fixed when we upgrade
+    // to protobufjs 6.x
     convertFieldsToCamelCase: true
-  });
+  };
   const root = __dirname + '/../protos';
   const firestoreProtoFile = {
     root: root,
     file: 'google/firestore/v1beta1/firestore.proto'
   };
-  if (callback === undefined) {
-    // Synchronous load
-    return protobufjs.loadProtoFile(firestoreProtoFile, undefined, builder);
-  } else {
-    // Load the protos asynchronously
-    protobufjs.loadProtoFile(firestoreProtoFile, callback, builder);
-    // We are using the callback so no return value, but we need to explicitly
-    // return undefined
-    return undefined;
-  }
+  return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
 }

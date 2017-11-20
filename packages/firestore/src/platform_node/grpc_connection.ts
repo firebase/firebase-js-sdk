@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-// TODO(dimond): The following imports have been replaced with require
-// statements to not let the google closure compiler try to resolve them at
-// compile time.
-// import * as grpc from 'grpc';
-// import * as protobufjs from 'protobufjs';
-// import * as util from 'util';
+import * as grpc from 'grpc';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
-// Temporary type definition until types work again (see above)
-export type GrpcMetadataCallback = any;
 
-// Trick the TS compiler & Google closure compiler into executing normal require
-// statements, not using goog.require to import modules at compile time
-const dynamicRequire = require;
-const grpc = dynamicRequire('grpc');
-const grpcVersion = dynamicRequire('grpc/package.json').version;
-const util = dynamicRequire('util');
+const grpcVersion = require('grpc/package.json').version;
 
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';
@@ -43,7 +31,7 @@ import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs } from '../util/misc';
 import { NodeCallback, nodePromise } from '../util/node_api';
-import { ProtobufProtoBuilder } from './load_protos';
+import { Deferred } from '../util/promise';
 
 const LOG_TAG = 'Connection';
 
@@ -65,7 +53,10 @@ function createHeaders(databaseInfo: DatabaseInfo, token: Token | null): {} {
     : grpc.credentials.createInsecure();
 
   const callCredentials = grpc.credentials.createFromMetadataGenerator(
-    (context: { serviceUrl: string }, cb: GrpcMetadataCallback) => {
+    (
+      context: { service_url: string },
+      cb: (error: Error | null, metadata?: grpc.Metadata) => void
+    ) => {
       const metadata = new grpc.Metadata();
       if (token) {
         for (const header in token.authHeaders) {
@@ -103,7 +94,9 @@ interface CachedStub {
 
 /** GRPC errors expose a code property. */
 interface GrpcError extends Error {
-  code: number;
+  // Errors from GRPC *usually* have a `code`, but in some cases (such as trying
+  // to send an invalid proto message), they do not.
+  code?: number;
 }
 
 /** GRPC status information. */
@@ -122,12 +115,8 @@ export class GrpcConnection implements Connection {
   // We cache stubs for the most-recently-used token.
   private cachedStub: CachedStub | null = null;
 
-  constructor(
-    builder: ProtobufProtoBuilder,
-    private databaseInfo: DatabaseInfo
-  ) {
-    const protos = grpc.loadObject(builder.ns);
-    this.firestore = protos.google.firestore.v1beta1;
+  constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
+    this.firestore = protos['google']['firestore']['v1beta1'];
   }
 
   private sameToken(tokenA: Token | null, tokenB: Token | null): boolean {
@@ -139,7 +128,7 @@ export class GrpcConnection implements Connection {
   // tslint:disable-next-line:no-any
   private getStub(token: Token | null): any {
     if (!this.cachedStub || !this.sameToken(this.cachedStub.token, token)) {
-      log.debug(LOG_TAG, 'Creating datastore stubs.');
+      log.debug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = createHeaders(this.databaseInfo, token);
       this.cachedStub = {
         stub: new this.firestore.Firestore(this.databaseInfo.host, credentials),
@@ -149,18 +138,25 @@ export class GrpcConnection implements Connection {
     return this.cachedStub.stub;
   }
 
-  invoke(rpcName: string, request: any, token: Token | null): Promise<any> {
+  private getRpc(rpcName: string, token: Token | null): any {
     const stub = this.getStub(token);
+
+    // RPC Methods have the first character lower-cased
+    // (e.g. Listen => listen(), BatchGetDocuments => batchGetDocuments()).
+    const rpcMethod = rpcName.charAt(0).toLowerCase() + rpcName.slice(1);
+    const rpc = stub[rpcMethod];
+    assert(rpc != null, 'Unknown RPC: ' + rpcName);
+
+    return rpc.bind(stub);
+  }
+
+  invokeRPC(rpcName: string, request: any, token: Token | null): Promise<any> {
+    const rpc = this.getRpc(rpcName, token);
     return nodePromise((callback: NodeCallback<AnyJs>) => {
-      return stub[rpcName](request, (grpcError?: GrpcError, value?: AnyJs) => {
+      log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
+      return rpc(request, (grpcError?: GrpcError, value?: AnyJs) => {
         if (grpcError) {
-          log.debug(
-            LOG_TAG,
-            'RPC "' +
-              rpcName +
-              '" failed with error ' +
-              JSON.stringify(grpcError)
-          );
+          log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
           callback(
             new FirestoreError(
               mapCodeFromRpcCode(grpcError.code),
@@ -168,16 +164,53 @@ export class GrpcConnection implements Connection {
             )
           );
         } else {
+          log.debug(
+            LOG_TAG,
+            `RPC '${rpcName}' completed with response:`,
+            value
+          );
           callback(undefined, value);
         }
       });
     });
   }
 
+  invokeStreamingRPC(
+    rpcName: string,
+    request: any,
+    token: Token | null
+  ): Promise<any[]> {
+    const rpc = this.getRpc(rpcName, token);
+    const results = [];
+    const responseDeferred = new Deferred<any[]>();
+
+    log.debug(
+      LOG_TAG,
+      `RPC '${rpcName}' invoked (streaming) with request:`,
+      request
+    );
+    const stream = rpc(request);
+    stream.on('data', response => {
+      log.debug(LOG_TAG, `RPC ${rpcName} received result:`, response);
+      results.push(response);
+    });
+    stream.on('end', () => {
+      log.debug(LOG_TAG, `RPC '${rpcName}' completed.`);
+      responseDeferred.resolve(results);
+    });
+    stream.on('error', grpcError => {
+      log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
+      const code = mapCodeFromRpcCode(grpcError.code);
+      responseDeferred.reject(new FirestoreError(code, grpcError.message));
+    });
+
+    return responseDeferred.promise;
+  }
+
   // TODO(mikelehen): This "method" is a monster. Should be refactored.
   openStream(rpcName: string, token: Token | null): Stream<any, any> {
-    const stub = this.getStub(token);
-    const grpcStream = stub[rpcName]();
+    const rpc = this.getRpc(rpcName, token);
+    const grpcStream = rpc();
 
     let closed = false;
     let close: (err?: Error) => void;
@@ -186,33 +219,22 @@ export class GrpcConnection implements Connection {
     const stream = new StreamBridge({
       sendFn: (msg: any) => {
         if (!closed) {
-          log.debug(
-            LOG_TAG,
-            'GRPC stream sending:',
-            util.inspect(msg, { depth: 100 })
-          );
+          log.debug(LOG_TAG, 'GRPC stream sending:', msg);
           try {
             grpcStream.write(msg);
           } catch (e) {
             // This probably means we didn't conform to the proto.  Make sure to
             // log the message we sent.
-            log.error(
-              LOG_TAG,
-              'Failure sending: ',
-              util.inspect(msg, { depth: 100 })
-            );
-            log.error(LOG_TAG, 'Error: ', e);
+            log.error(LOG_TAG, 'Failure sending:', msg);
+            log.error(LOG_TAG, 'Error:', e);
             throw e;
           }
         } else {
-          log.debug(
-            LOG_TAG,
-            'Not sending because gRPC stream is closed:',
-            util.inspect(msg, { depth: 100 })
-          );
+          log.debug(LOG_TAG, 'Not sending because gRPC stream is closed:', msg);
         }
       },
       closeFn: () => {
+        log.debug(LOG_TAG, 'GRPC stream closed locally via close().');
         close();
       }
     });
@@ -227,57 +249,42 @@ export class GrpcConnection implements Connection {
 
     grpcStream.on('data', (msg: {}) => {
       if (!closed) {
-        log.debug(
-          LOG_TAG,
-          'GRPC stream received: ',
-          util.inspect(msg, { depth: 100 })
-        );
+        log.debug(LOG_TAG, 'GRPC stream received:', msg);
         stream.callOnMessage(msg);
       }
     });
 
     grpcStream.on('end', () => {
       log.debug(LOG_TAG, 'GRPC stream ended.');
-      // The server closed the remote end.  Close our side too (which will
-      // trigger the 'finish' event).
-      remoteEnded = true;
-      grpcStream.end();
+      close();
     });
 
     grpcStream.on('finish', () => {
-      // This means we've closed the write side of the stream.  We either did
-      // this because the StreamBridge was close()ed or because we got an 'end'
-      // event from the grpcStream.
-
-      // TODO(mikelehen): This is a hack because of weird grpc-node behavior
-      // (https://github.com/grpc/grpc/issues/7705).  The stream may be finished
-      // because we called end() because we got an 'end' event because there was
-      // an error.  Now that we've called end(), GRPC should deliver the error,
-      // but it may take some time (e.g. 700ms). So we delay our close handling
-      // in case we receive such an error.
-      if (remoteEnded) {
-        setTimeout(close, 2500);
-      } else {
-        close();
-      }
+      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
+      // the 'finish' event if we don't see the assert getting hit for a while.
+      assert(closed, 'Received "finish" event without close() being called.');
     });
 
     grpcStream.on('error', (grpcError: GrpcError) => {
-      log.debug(LOG_TAG, 'GRPC stream error:', grpcError);
+      log.debug(
+        LOG_TAG,
+        'GRPC stream error. Code:',
+        grpcError.code,
+        'Message:',
+        grpcError.message
+      );
       const code = mapCodeFromRpcCode(grpcError.code);
       close(new FirestoreError(code, grpcError.message));
     });
 
     grpcStream.on('status', (status: GrpcStatus) => {
-      if (!closed) {
-        log.debug(LOG_TAG, 'GRPC stream received status:', status);
-        if (status.code === 0) {
-          // all good
-        } else {
-          const code = mapCodeFromRpcCode(status.code);
-          close(new FirestoreError(code, status.details));
-        }
-      }
+      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
+      // the 'status' event if we don't see the assert getting hit for a while.
+      assert(
+        closed,
+        `status event received before "end" or "error". ` +
+          `code: ${status.code} details: ${status.details}`
+      );
     });
 
     log.debug(LOG_TAG, 'Opening GRPC stream');

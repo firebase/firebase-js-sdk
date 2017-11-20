@@ -133,7 +133,11 @@ class MockConnection implements Connection {
     this.activeTargets = [];
   }
 
-  invoke(rpcName: string, request: any): Promise<any> {
+  invokeRPC(rpcName: string, request: any): Promise<any> {
+    throw new Error('Not implemented!');
+  }
+
+  invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
     throw new Error('Not implemented!');
   }
 

@@ -19,7 +19,8 @@ import { WebChannelConnection } from '../../../src/platform_browser/webchannel_c
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import * as utilHelpers from '../util/helpers';
 
-describe('WebChannel', () => {
+const describeFn = typeof window !== 'undefined' ? describe : xdescribe;
+describeFn('WebChannel', () => {
   describe('makeUrl', () => {
     const info = new DatabaseInfo(
       new DatabaseId('testproject'),
@@ -31,7 +32,7 @@ describe('WebChannel', () => {
     const makeUrl = conn.makeUrl.bind(conn);
 
     it('includes project ID and database ID', () => {
-      const url = makeUrl('commit', {});
+      const url = makeUrl('Commit', {});
       expect(url).to.equal(
         'http://example.com/v1beta1/projects/testproject/' +
           'databases/(default)/documents:commit'

@@ -29,11 +29,6 @@ export interface FirstPartyCredentialsSettings {
   sessionIndex: string;
 }
 
-export interface GoogleAuthCredentialsSettings {
-  type: 'google-auth';
-  client: GoogleAuthClient;
-}
-
 export interface ProviderCredentialsSettings {
   type: 'provider';
   client: CredentialsProvider;
@@ -42,7 +37,6 @@ export interface ProviderCredentialsSettings {
 /** Settings for private credentials */
 export type CredentialsSettings =
   | FirstPartyCredentialsSettings
-  | GoogleAuthCredentialsSettings
   | ProviderCredentialsSettings;
 
 export type TokenType = 'OAuth' | 'FirstParty';
@@ -238,45 +232,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 }
 
-// Wrap a google-auth-library client as a CredentialsProvider.
-// NOTE: grpc-connection can natively accept a google-auth-library
-// client via createFromGoogleCredential(), but we opt to plumb the tokens
-// through our CredentialsProvider interface, at least for now.
-export class GoogleCredentialsProvider implements CredentialsProvider {
-  constructor(private authClient: GoogleAuthClient) {}
-
-  getToken(forceRefresh: boolean): Promise<Token | null> {
-    return new Promise<Token | null>((resolve, reject) => {
-      // TODO(b/32935141): ideally this would be declared as an extern
-      this.authClient['getAccessToken'](
-        (error: AnyJs, tokenLiteral: string) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(new OAuthToken(tokenLiteral, User.GOOGLE_CREDENTIALS));
-          }
-        }
-      );
-    });
-  }
-
-  // NOTE: A google-auth-library client represents an immutable "user", so
-  // once we fire the initial event, it'll never change.
-  setUserChangeListener(listener: UserListener): void {
-    // Fire with initial uid.
-    listener(User.GOOGLE_CREDENTIALS);
-  }
-
-  removeUserChangeListener(): void {}
-}
-
-/**
- * Very incomplete typing for an auth client from
- * https://github.com/google/google-auth-library-nodejs/
- */
-export interface GoogleAuthClient {
-  getAccessToken(callback: (error?: Error, token?: string) => void): void;
-}
 // TODO(b/32935141): Ideally gapi type would be declared as an extern
 // tslint:disable-next-line:no-any
 export type Gapi = any;
@@ -348,9 +303,6 @@ export function makeCredentialsProvider(credentials?: CredentialsSettings) {
   }
 
   switch (credentials.type) {
-    case 'google-auth':
-      return new GoogleCredentialsProvider(credentials.client);
-
     case 'gapi':
       return new FirstPartyCredentialsProvider(
         credentials.client,

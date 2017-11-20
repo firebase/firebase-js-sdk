@@ -11,11 +11,27 @@
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--compilers", "ts:ts-node/register",
-        "-r", "src/platform_node/node_init.ts",
-        "--retries", "5",
+        "--require", "ts-node/register",
+        "--require", "index.node.ts",
         "--timeout", "5000",
-        "test/{,!(integration|browser)/**/}*.test.ts"
+        "test/{,!(browser|integration)/**/}*.test.ts",
+        "--exit"
+      ],
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Firestore Integration Tests (Node)",
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "args": [
+        "--require", "ts-node/register",
+        "--require", "index.node.ts",
+        "--timeout", "5000",
+        "test/{,!(browser|unit)/**/}*.test.ts",
+        "--exit"
       ],
       "sourceMaps": true,
       "protocol": "inspector"
@@ -25,7 +41,7 @@
       "request": "launch",
       "name": "Firestore Unit Tests (Browser)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
-      "cwd": "${workspaceRoot}/packages/firestore",      
+      "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",
         "--auto-watch",
@@ -38,7 +54,7 @@
       "request": "launch",
       "name": "Firestore Integration Tests (Browser)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/karma",
-      "cwd": "${workspaceRoot}/packages/firestore",      
+      "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
         "start",
         "--auto-watch",
