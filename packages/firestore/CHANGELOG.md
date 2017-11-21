@@ -1,4 +1,6 @@
 # Unreleased
+- [feature] Added Node.js support for Cloud Firestore (with the exception of
+  the offline persistence feature).
 - [changed] Webchannel requests use $httpHeaders URL parameter rather than
   normal HTTP headers to avoid an extra CORS preflight request when initiating
   streams / RPCs.
