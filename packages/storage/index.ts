@@ -23,14 +23,20 @@ import { TaskState } from './src/implementation/taskenums';
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';
+import { FirebaseStorage } from "@firebase/storage-types";
+
+/**
+ * Re-export all the public typings for this package
+ */
+export * from '@firebase/storage-types';
 
 /**
  * Type constant for Firebase Storage.
  */
 const STORAGE_TYPE = 'storage';
 
-function factory(app: FirebaseApp, unused: any, opt_url?: string): Service {
-  return new Service(app, new XhrIoPool(), opt_url);
+function factory(app: FirebaseApp, unused: any, opt_url?: string): FirebaseStorage {
+  return new Service(app, new XhrIoPool(), opt_url) as any;
 }
 
 export function registerStorage(instance) {
