@@ -11,6 +11,9 @@
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
+  "dependencies": {
+    "@firebase/storage-types": "^0.1.0"
+  },
   "peerDependencies": {
     "@firebase/app": "^0.1.0",
     "@firebase/app-types": "^0.1.0"
