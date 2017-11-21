@@ -1,0 +1,143 @@
+/**
+ * THIS FILE IS FOR INTERNAL USAGE ONLY, IF YOU ARE NOT DEVELOPING THE FIREBASE
+ * SDKs, PLEASE DO NOT REFERENCE THIS FILE AS IT MAY CHANGE WITHOUT WARNING
+ */
+
+import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
+import { Observer, Subscribe } from "@firebase/util";
+import { FirebaseError } from "@firebase/util";
+
+export interface FirebaseServiceInternals {
+  /**
+   * Delete the service and free it's resources - called from
+   * app.delete().
+   */
+  delete(): Promise<void>;
+}
+
+// Services are exposed through instances - each of which is associated with a
+// FirebaseApp.
+export interface FirebaseService {
+  app: FirebaseApp;
+  INTERNAL?: FirebaseServiceInternals;
+}
+
+export type AppHook = (event: string, app: FirebaseApp) => void;
+
+/**
+ * Firebase Services create instances given a Firebase App instance and can
+ * optionally add properties and methods to each FirebaseApp via the extendApp()
+ * function.
+ */
+export interface FirebaseServiceFactory {
+  (
+    app: FirebaseApp,
+    extendApp?: (props: { [prop: string]: any }) => void,
+    instanceString?: string
+  ): FirebaseService;
+}
+
+/**
+ * All ServiceNamespaces extend from FirebaseServiceNamespace
+ */
+export interface FirebaseServiceNamespace<T extends FirebaseService> {
+  (app?: FirebaseApp): T;
+}
+
+export interface FirebaseErrorFactory<T> {
+  create(code: T, data?: { [prop: string]: any }): FirebaseError;
+}
+
+export interface FirebaseErrorFactoryClass {
+  new(
+    service: string,
+    serviceName: string,
+    errors: { [code: string]: string }
+  ): FirebaseErrorFactory<any>;
+}
+
+export interface FirebaseAuthTokenData {
+  accessToken: string;
+}
+
+export interface FirebaseAppInternals {
+  getToken(refreshToken?: boolean): Promise<FirebaseAuthTokenData | null>;
+  getUid(): string | null;
+  addAuthTokenListener(fn: (token: string | null) => void): void;
+  removeAuthTokenListener(fn: (token: string | null) => void): void;
+}
+
+export interface _FirebaseApp extends FirebaseApp {
+  INTERNAL: FirebaseAppInternals
+}
+export interface _FirebaseNamespace extends FirebaseNamespace {
+  INTERNAL: {
+    /**
+     * Internal API to register a Firebase Service into the firebase namespace.
+     *
+     * Each service will create a child namespace (firease.name) which acts as
+     * both a namespace for service specific properties, and also as a service
+     * accessor function (firebase.name() or firebase.name(app)).
+     *
+     * @param name The Firebase Service being registered.
+     * @param createService Factory function to create a service instance.
+     * @param serviceProperties Properties to copy to the service's namespace.
+     * @param appHook All appHooks called before intializeApp returns to caller.
+     * @param allowMultipleInstances Whether the registered service supports
+     *   multiple instances per app. If not specified, the default is false.
+     */
+    registerService(
+      name: string,
+      createService: FirebaseServiceFactory,
+      serviceProperties?: { [prop: string]: any },
+      appHook?: AppHook,
+      allowMultipleInstances?: boolean
+    ): FirebaseServiceNamespace<FirebaseService>;
+
+    /**
+     * Just used for testing to start from a fresh namespace.
+     */
+    createFirebaseNamespace(): FirebaseNamespace;
+
+    /**
+     * Internal API to install properties on the top-level firebase namespace.
+     * @prop props The top level properties of this object are copied to the
+     *   namespace.
+     */
+    extendNamespace(props: { [prop: string]: any }): void;
+
+    /**
+     * Create a Subscribe function.  A proxy Observer is created so that
+     * events can be sent to single Observer to be fanned out automatically.
+     */
+    createSubscribe<T>(
+      executor: (observer: Observer<T, Error>) => void,
+      onNoObservers?: (observer: Observer<T, Error>) => void
+    ): Subscribe<T>;
+
+    /**
+     * Utility exposed for internal testing.
+     */
+    deepExtend(target: any, source: any): any;
+
+    /**
+     * Internal API to remove an app from the list of registered apps.
+     */
+    removeApp(name: string): void;
+
+    /**
+     * Service factories for each registered service.
+     */
+    factories: { [name: string]: FirebaseServiceFactory };
+
+    /*
+     * Convert service name to factory name to use.
+     */
+    useAsService(app: FirebaseApp, serviceName: string): string | null;
+
+    /**
+     * Use to construct all thrown FirebaseError's.
+     */
+    ErrorFactory: FirebaseErrorFactoryClass;
+  };
+}

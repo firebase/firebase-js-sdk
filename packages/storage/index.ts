@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import firebase, { FirebaseApp, FirebaseServiceFactory } from '@firebase/app';
+import firebase from '@firebase/app';
+import { FirebaseApp } from "@firebase/app-types";
+import { FirebaseServiceFactory } from "@firebase/app-types/private";
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent } from './src/implementation/taskenums';
 import { TaskState } from './src/implementation/taskenums';

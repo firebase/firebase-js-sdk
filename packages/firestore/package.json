@@ -22,7 +22,8 @@
     "grpc": "^1.7.1"
   },
   "peerDependencies": {
-    "@firebase/app": "^0.1.0"
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",

@@ -39,7 +39,7 @@ describe('createSubscribe', function() {
   });
 
   it('Creation', done => {
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    let subscribe = createSubscribe<number>((observer: Observer<number, Error>) => {
       observer.next(123);
     });
 
@@ -52,7 +52,7 @@ describe('createSubscribe', function() {
 
   it('Logging observer error to console', done => {
     let uncatchableError = new Error('uncatchable');
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    let subscribe = createSubscribe<number>((observer: Observer<number, Error>) => {
       observer.next(123);
       observer.complete();
     });
@@ -140,7 +140,7 @@ describe('createSubscribe', function() {
   });
 
   it('Delayed value', done => {
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    let subscribe = createSubscribe<number>((observer: Observer<number, Error>) => {
       setTimeout(() => observer.next(123), 10);
     });
 
@@ -154,7 +154,7 @@ describe('createSubscribe', function() {
     // It's an application error to throw an exception in the executor -
     // but since it is called asynchronously, our only option is
     // to emit that Error and terminate the Subscribe.
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    let subscribe = createSubscribe<number>((observer: Observer<number, Error>) => {
       throw new Error('Executor throws');
     });
     subscribe({
@@ -238,7 +238,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
   let id: any;
 
   return createSubscribe<number>(
-    (observer: Observer<number>) => {
+    (observer: Observer<number, Error>) => {
       let i = 1;
       id = setInterval(() => {
         observer.next(i++);
@@ -251,7 +251,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
         }
       }, ms);
     },
-    (observer: Observer<number>) => {
+    (observer: Observer<number, Error>) => {
       clearInterval(id);
       id = undefined;
     }

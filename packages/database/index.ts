@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import firebase, { FirebaseApp, FirebaseNamespace } from '@firebase/app';
+import firebase from '@firebase/app';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { _FirebaseNamespace } from "@firebase/app-types/private";
 import { Database } from './src/api/Database';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
@@ -28,7 +30,7 @@ const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = instance.INTERNAL.registerService(
+  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',
     (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
     // firebase.database namespace properties
