@@ -1,5 +1,6 @@
 import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
 import { Observer, Unsubscribe } from "@firebase/util";
+import { FirebaseApp } from "../app-types/index";
 
 export interface User extends UserInfo {
   delete(): Promise<any>;
@@ -214,6 +215,12 @@ export type Persistence = string;
 
 export class FirebaseAuth {
   constructor();
+  
+  static Persistence: {
+    LOCAL: Persistence;
+    NONE: Persistence;
+    SESSION: Persistence;
+  };
 
   app: FirebaseApp;
   applyActionCode(code: string): Promise<any>;
@@ -270,14 +277,7 @@ declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     auth?: {
       (app?: FirebaseApp): FirebaseAuth;
-      Auth: {
-        new(): FirebaseAuth;
-        Persistence: {
-          LOCAL: Persistence;
-          NONE: Persistence;
-          SESSION: Persistence;
-        };
-      };
+      Auth: typeof FirebaseAuth;
       EmailAuthProvider: typeof EmailAuthProvider;
       EmailAuthProvider_Instance: typeof EmailAuthProvider_Instance;
       FacebookAuthProvider: typeof FacebookAuthProvider;
