@@ -197,6 +197,15 @@ declare namespace firestore {
     get(documentRef: DocumentReference): Promise<DocumentSnapshot>;
 
     /**
+     * Retrieves a query result. Holds a pessimistic lock on the returned
+     * documents.
+     *
+     * @param query A query to execute.
+     * @return A QuerySnapshot for the retrieved data.
+     */
+    get(query: Query): Promise<QuerySnapshot>;
+
+    /**
      * Writes to the document referred to by the provided `DocumentReference`.
      * If the document does not exist yet, it will be created. If you pass
      * `SetOptions`, the provided data can be merged into the existing document.
