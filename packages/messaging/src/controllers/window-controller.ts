@@ -15,7 +15,7 @@
  */
 'use strict';
 
-import { FirebaseMessaging } from "@firebase/messaging-types";
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import ControllerInterface from './controller-interface';
 import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
@@ -25,7 +25,8 @@ import { createSubscribe } from '@firebase/util';
 
 declare const firebase: any;
 
-export default class WindowController extends ControllerInterface implements FirebaseMessaging {
+export default class WindowController extends ControllerInterface
+  implements FirebaseMessaging {
   private registrationToUse_;
   private manifestCheckPromise_;
   private messageObserver_ = null;

@@ -82,7 +82,9 @@ export function apiDescribe(
 }
 
 /** Drains the AsyncQueue. Delayed tasks are executed immediately. */
-export function drainAsyncQueue(db: firestore.FirebaseFirestore): Promise<void> {
+export function drainAsyncQueue(
+  db: firestore.FirebaseFirestore
+): Promise<void> {
   const firestoreInternal = db.INTERNAL as any;
   return firestoreInternal.drainAsyncQueue(/* executeDelayedTasks= */ true);
 }

@@ -48,9 +48,9 @@ export interface FirebaseNamespace {
     (name?: string): FirebaseApp;
 
     /**
-     * For testing FirebaseApp instances: 
+     * For testing FirebaseApp instances:
      *  app() instanceof firebase.app.App
-     * 
+     *
      * DO NOT call this constuctor directly (use firebase.app() instead).
      */
     App: typeof FirebaseApp;

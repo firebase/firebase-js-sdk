@@ -15,22 +15,26 @@
  */
 
 import firebase from '@firebase/app';
-import { FirebaseApp } from "@firebase/app-types";
-import { FirebaseServiceFactory } from "@firebase/app-types/private";
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseServiceFactory } from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent } from './src/implementation/taskenums';
 import { TaskState } from './src/implementation/taskenums';
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';
-import * as types from "@firebase/storage-types";
+import * as types from '@firebase/storage-types';
 
 /**
  * Type constant for Firebase Storage.
  */
 const STORAGE_TYPE = 'storage';
 
-function factory(app: FirebaseApp, unused: any, opt_url?: string): types.FirebaseStorage {
+function factory(
+  app: FirebaseApp,
+  unused: any,
+  opt_url?: string
+): types.FirebaseStorage {
   return new Service(app, new XhrIoPool(), opt_url) as any;
 }
 
@@ -80,7 +84,7 @@ declare module '@firebase/app-types' {
         RUNNING: types.TaskState;
         SUCCESS: types.TaskState;
       };
-    }
+    };
   }
   interface FirebaseApp {
     storage?(): types.FirebaseStorage;

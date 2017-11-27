@@ -14,17 +14,28 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions, FirebaseNamespace } from "@firebase/app-types";
-import { _FirebaseApp, _FirebaseNamespace, FirebaseService, FirebaseServiceFactory, FirebaseServiceNamespace, AppHook } from "@firebase/app-types/private";
 import {
-  createSubscribe, 
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseNamespace
+} from '@firebase/app-types';
+import {
+  _FirebaseApp,
+  _FirebaseNamespace,
+  FirebaseService,
+  FirebaseServiceFactory,
+  FirebaseServiceNamespace,
+  AppHook
+} from '@firebase/app-types/private';
+import {
+  createSubscribe,
   deepCopy,
   deepExtend,
   ErrorFactory,
   FirebaseError,
-  Observer, 
+  Observer,
   patchProperty,
-  Subscribe,
+  Subscribe
 } from '@firebase/util';
 
 const contains = function(obj, key) {
@@ -144,11 +155,9 @@ class FirebaseAppImpl implements FirebaseApp {
         instanceIdentifier !== DEFAULT_ENTRY_NAME
           ? instanceIdentifier
           : undefined;
-      const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[name](
-        this,
-        this.extendApp.bind(this),
-        instanceSpecifier
-      );
+      const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
+        name
+      ](this, this.extendApp.bind(this), instanceSpecifier);
       this.services_[name][instanceIdentifier] = service;
     }
 

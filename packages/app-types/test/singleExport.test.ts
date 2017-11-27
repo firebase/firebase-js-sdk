@@ -1,8 +1,8 @@
-import { firebase } from "@firebase/app";
+import { firebase } from '@firebase/app';
 
 /**
  * Assert `firebase.apps` is an array of Firebase apps
- * 
+ *
  * i.e. We should be able to access the public members
  * of the App from inside of an individual app.
  */
@@ -42,14 +42,17 @@ firebase.initializeApp({
 /**
  * Assert we can pass an optional name
  */
-firebase.initializeApp({
-  apiKey: '1234567890',
-  authDomain: '1234567890',
-  databaseURL: '1234567890',
-  projectId: '1234567890',
-  storageBucket: '1234567890',
-  messagingSenderId: '1234567890'
-}, 'Dummy Name');
+firebase.initializeApp(
+  {
+    apiKey: '1234567890',
+    authDomain: '1234567890',
+    databaseURL: '1234567890',
+    projectId: '1234567890',
+    storageBucket: '1234567890',
+    messagingSenderId: '1234567890'
+  },
+  'Dummy Name'
+);
 
 /**
  * Assert we get an instance of a FirebaseApp from `firebase.app()`
@@ -72,9 +75,9 @@ const _delete: Promise<void> = app.delete();
  * be used to create new Promises.
  */
 
- const promise: Promise<any> = new firebase.Promise((resolve, reject) => {
-   resolve({});
-   reject({});
- })
- .then()
- .catch();
+const promise: Promise<any> = new firebase.Promise((resolve, reject) => {
+  resolve({});
+  reject({});
+})
+  .then()
+  .catch();

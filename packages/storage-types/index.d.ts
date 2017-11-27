@@ -1,5 +1,5 @@
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
-import { Observer, Unsubscribe } from "@firebase/util";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { Observer, Unsubscribe } from '@firebase/util';
 
 export interface FullMetadata extends UploadMetadata {
   bucket: string;
@@ -22,10 +22,7 @@ export interface Reference {
   getMetadata(): Promise<any>;
   name: string;
   parent: Reference | null;
-  put(
-    data: any | any | any,
-    metadata?: UploadMetadata
-  ): UploadTask;
+  put(data: any | any | any, metadata?: UploadMetadata): UploadTask;
   putString(
     data: string,
     format?: StringFormat,
@@ -61,10 +58,7 @@ export interface UploadTask {
   catch(onRejected: (a: Error) => any): Promise<any>;
   on(
     event: TaskEvent,
-    nextOrObserver?:
-      | Observer<any, any>
-      | null
-      | ((a: Object) => any),
+    nextOrObserver?: Observer<any, any> | null | ((a: Object) => any),
     error?: ((a: Error) => any) | null,
     complete?: (Unsubscribe) | null
   ): Function;

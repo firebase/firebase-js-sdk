@@ -1,4 +1,4 @@
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 
 /**
  * Document data (for use with `DocumentReference.set()`) consists of fields
@@ -613,11 +613,7 @@ export class Query {
    * @param value The value for comparison
    * @return The created Query.
    */
-  where(
-    fieldPath: string | FieldPath,
-    opStr: WhereFilterOp,
-    value: any
-  ): Query;
+  where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: any): Query;
 
   /**
    * Creates and returns a new Query that's additionally sorted by the

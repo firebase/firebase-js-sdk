@@ -22,7 +22,10 @@ import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 import * as testHelpers from '../../util/helpers';
 
 apiDescribe('Firestore', persistence => {
-  function expectRoundtrip(db: firestore.FirebaseFirestore, data: {}): Promise<void> {
+  function expectRoundtrip(
+    db: firestore.FirebaseFirestore,
+    data: {}
+  ): Promise<void> {
     const doc = db.collection('rooms').doc();
     return doc
       .set(data)

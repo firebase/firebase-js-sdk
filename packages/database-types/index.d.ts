@@ -1,4 +1,4 @@
-import { FirebaseApp } from "@firebase/app-types";
+import { FirebaseApp } from '@firebase/app-types';
 
 export interface DataSnapshot {
   child(path: string): DataSnapshot;
@@ -36,14 +36,8 @@ export interface OnDisconnect {
 }
 
 export interface Query {
-  endAt(
-    value: number | string | boolean | null,
-    key?: string
-  ): Query;
-  equalTo(
-    value: number | string | boolean | null,
-    key?: string
-  ): Query;
+  endAt(value: number | string | boolean | null, key?: string): Query;
+  equalTo(value: number | string | boolean | null, key?: string): Query;
   isEqual(other: Query | null): boolean;
   limitToFirst(limit: number): Query;
   limitToLast(limit: number): Query;
@@ -69,10 +63,7 @@ export interface Query {
   orderByPriority(): Query;
   orderByValue(): Query;
   ref: Reference;
-  startAt(
-    value: number | string | boolean | null,
-    key?: string
-  ): Query;
+  startAt(value: number | string | boolean | null, key?: string): Query;
   toJSON(): Object;
   toString(): string;
 }
@@ -83,10 +74,7 @@ export interface Reference extends Query {
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
   path: string;
-  push(
-    value?: any,
-    onComplete?: (a: Error | null) => any
-  ): ThenableReference;
+  push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
   remove(onComplete?: (a: Error | null) => any): Promise<any>;
   root: Reference;
   set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -101,11 +89,7 @@ export interface Reference extends Query {
   ): Promise<any>;
   transaction(
     transactionUpdate: (a: any) => any,
-    onComplete?: (
-      a: Error | null,
-      b: boolean,
-      c: DataSnapshot | null
-    ) => any,
+    onComplete?: (a: Error | null, b: boolean, c: DataSnapshot | null) => any,
     applyLocally?: boolean
   ): Promise<any>;
   update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -114,7 +98,7 @@ export interface Reference extends Query {
 export interface ServerValue {
   TIMESTAMP: {
     '.sv': string;
-  }
+  };
 }
 
 export interface ThenableReference extends Reference, PromiseLike<any> {}

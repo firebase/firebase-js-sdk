@@ -3,9 +3,9 @@
  * SDKs, PLEASE DO NOT REFERENCE THIS FILE AS IT MAY CHANGE WITHOUT WARNING
  */
 
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
-import { Observer, Subscribe } from "@firebase/util";
-import { FirebaseError } from "@firebase/util";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { Observer, Subscribe } from '@firebase/util';
+import { FirebaseError } from '@firebase/util';
 
 export interface FirebaseServiceInternals {
   /**
@@ -49,7 +49,7 @@ export interface FirebaseErrorFactory<T> {
 }
 
 export interface FirebaseErrorFactoryClass {
-  new(
+  new (
     service: string,
     serviceName: string,
     errors: { [code: string]: string }
@@ -68,7 +68,7 @@ export interface FirebaseAppInternals {
 }
 
 export interface _FirebaseApp extends FirebaseApp {
-  INTERNAL: FirebaseAppInternals
+  INTERNAL: FirebaseAppInternals;
 }
 export interface _FirebaseNamespace extends FirebaseNamespace {
   INTERNAL: {

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
-import { _FirebaseApp, _FirebaseNamespace, FirebaseService } from "@firebase/app-types/private";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
-  createFirebaseNamespace,
-} from '../src/firebaseApp';
+  _FirebaseApp,
+  _FirebaseNamespace,
+  FirebaseService
+} from '@firebase/app-types/private';
+import { createFirebaseNamespace } from '../src/firebaseApp';
 import { assert } from 'chai';
 
 describe('Firebase App Class', () => {
@@ -158,10 +160,13 @@ describe('Firebase App Class', () => {
 
   it('Only calls createService on first use (per app).', () => {
     let registrations = 0;
-    (firebase as _FirebaseNamespace).INTERNAL.registerService('test', (app: FirebaseApp) => {
-      registrations += 1;
-      return new TestService(app);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'test',
+      (app: FirebaseApp) => {
+        registrations += 1;
+        return new TestService(app);
+      }
+    );
     let app = firebase.initializeApp({});
     assert.equal(registrations, 0);
     (firebase as any).test();
@@ -185,10 +190,13 @@ describe('Firebase App Class', () => {
     const app1 = firebase.initializeApp({});
     assert.isUndefined((app1 as any).lazyService);
 
-    (firebase as _FirebaseNamespace).INTERNAL.registerService('lazyService', (app: FirebaseApp) => {
-      registrations += 1;
-      return new TestService(app);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'lazyService',
+      (app: FirebaseApp) => {
+        registrations += 1;
+        return new TestService(app);
+      }
+    );
 
     assert.isDefined((app1 as any).lazyService);
 
@@ -310,14 +318,17 @@ describe('Firebase App Class', () => {
   });
   it(`Should pass null to the factory method if using default instance`, () => {
     // Register Multi Instance Service
-    (firebase as _FirebaseNamespace).INTERNAL.registerService('testService', (...args) => {
-      const [app, , instanceIdentifier] = args;
-      assert.isUndefined(
-        instanceIdentifier,
-        '`instanceIdentifier` is not `undefined`'
-      );
-      return new TestService(app, instanceIdentifier);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'testService',
+      (...args) => {
+        const [app, , instanceIdentifier] = args;
+        assert.isUndefined(
+          instanceIdentifier,
+          '`instanceIdentifier` is not `undefined`'
+        );
+        return new TestService(app, instanceIdentifier);
+      }
+    );
     firebase.initializeApp({});
 
     // Capture a given service ref

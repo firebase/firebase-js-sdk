@@ -131,7 +131,10 @@ export class GrpcConnection implements Connection {
       log.debug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = createHeaders(this.databaseInfo, token);
       this.cachedStub = {
-        stub: new this.firestore.FirebaseFirestore(this.databaseInfo.host, credentials),
+        stub: new this.firestore.FirebaseFirestore(
+          this.databaseInfo.host,
+          credentials
+        ),
         token: token
       };
     }

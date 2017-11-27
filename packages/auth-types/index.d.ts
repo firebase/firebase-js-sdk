@@ -1,5 +1,5 @@
-import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
-import { Observer, Unsubscribe } from "@firebase/util";
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { Observer, Unsubscribe } from '@firebase/util';
 
 export interface User extends UserInfo {
   delete(): Promise<any>;
@@ -7,9 +7,7 @@ export interface User extends UserInfo {
   getIdToken(forceRefresh?: boolean): Promise<any>;
   getToken(forceRefresh?: boolean): Promise<any>;
   isAnonymous: boolean;
-  linkAndRetrieveDataWithCredential(
-    credential: AuthCredential
-  ): Promise<any>;
+  linkAndRetrieveDataWithCredential(credential: AuthCredential): Promise<any>;
   linkWithCredential(credential: AuthCredential): Promise<any>;
   linkWithPhoneNumber(
     phoneNumber: string,
@@ -23,17 +21,13 @@ export interface User extends UserInfo {
   reauthenticateAndRetrieveDataWithCredential(
     credential: AuthCredential
   ): Promise<any>;
-  reauthenticateWithCredential(
-    credential: AuthCredential
-  ): Promise<any>;
+  reauthenticateWithCredential(credential: AuthCredential): Promise<any>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
   ): Promise<any>;
   reauthenticateWithPopup(provider: AuthProvider): Promise<any>;
-  reauthenticateWithRedirect(
-    provider: AuthProvider
-  ): Promise<any>;
+  reauthenticateWithRedirect(provider: AuthProvider): Promise<any>;
   refreshToken: string;
   reload(): Promise<any>;
   sendEmailVerification(
@@ -43,9 +37,7 @@ export interface User extends UserInfo {
   unlink(providerId: string): Promise<any>;
   updateEmail(newEmail: string): Promise<any>;
   updatePassword(newPassword: string): Promise<any>;
-  updatePhoneNumber(
-    phoneCredential: AuthCredential
-  ): Promise<any>;
+  updatePhoneNumber(phoneCredential: AuthCredential): Promise<any>;
   updateProfile(profile: {
     displayName: string | null;
     photoURL: string | null;
@@ -61,7 +53,7 @@ export interface UserInfo {
   uid: string;
 }
 
-export interface ActionCodeInfo { }
+export interface ActionCodeInfo {}
 
 export type ActionCodeSettings = {
   android?: {
@@ -101,10 +93,7 @@ export interface ConfirmationResult {
 
 export class EmailAuthProvider extends EmailAuthProvider_Instance {
   static PROVIDER_ID: string;
-  static credential(
-    email: string,
-    password: string
-  ): AuthCredential;
+  static credential(email: string, password: string): AuthCredential;
 }
 export class EmailAuthProvider_Instance implements AuthProvider {
   providerId: string;
@@ -122,9 +111,7 @@ export class FacebookAuthProvider extends FacebookAuthProvider_Instance {
 export class FacebookAuthProvider_Instance implements AuthProvider {
   addScope(scope: string): AuthProvider;
   providerId: string;
-  setCustomParameters(
-    customOAuthParameters: Object
-  ): AuthProvider;
+  setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
 export class GithubAuthProvider extends GithubAuthProvider_Instance {
@@ -134,9 +121,7 @@ export class GithubAuthProvider extends GithubAuthProvider_Instance {
 export class GithubAuthProvider_Instance implements AuthProvider {
   addScope(scope: string): AuthProvider;
   providerId: string;
-  setCustomParameters(
-    customOAuthParameters: Object
-  ): AuthProvider;
+  setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
 export class GoogleAuthProvider extends GoogleAuthProvider_Instance {
@@ -149,9 +134,7 @@ export class GoogleAuthProvider extends GoogleAuthProvider_Instance {
 export class GoogleAuthProvider_Instance implements AuthProvider {
   addScope(scope: string): AuthProvider;
   providerId: string;
-  setCustomParameters(
-    customOAuthParameters: Object
-  ): AuthProvider;
+  setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
@@ -170,9 +153,8 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   ): Promise<any>;
 }
 
-export class RecaptchaVerifier extends RecaptchaVerifier_Instance { }
-export class RecaptchaVerifier_Instance
-  implements ApplicationVerifier {
+export class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
+export class RecaptchaVerifier_Instance implements ApplicationVerifier {
   constructor(
     container: any | string,
     parameters?: Object | null,
@@ -186,16 +168,11 @@ export class RecaptchaVerifier_Instance
 
 export class TwitterAuthProvider extends TwitterAuthProvider_Instance {
   static PROVIDER_ID: string;
-  static credential(
-    token: string,
-    secret: string
-  ): AuthCredential;
+  static credential(token: string, secret: string): AuthCredential;
 }
 export class TwitterAuthProvider_Instance implements AuthProvider {
   providerId: string;
-  setCustomParameters(
-    customOAuthParameters: Object
-  ): AuthProvider;
+  setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
 export type UserCredential = {
@@ -225,25 +202,18 @@ export class FirebaseAuth {
   applyActionCode(code: string): Promise<any>;
   checkActionCode(code: string): Promise<any>;
   confirmPasswordReset(code: string, newPassword: string): Promise<any>;
-  createUserWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<any>;
+  createUserWithEmailAndPassword(email: string, password: string): Promise<any>;
   currentUser: User | null;
   fetchProvidersForEmail(email: string): Promise<any>;
   getRedirectResult(): Promise<any>;
   languageCode: string | null;
   onAuthStateChanged(
-    nextOrObserver:
-      | Observer<any, any>
-      | ((a: User | null) => any),
+    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
   onIdTokenChanged(
-    nextOrObserver:
-      | Observer<any, any>
-      | ((a: User | null) => any),
+    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
@@ -252,13 +222,9 @@ export class FirebaseAuth {
     actionCodeSettings?: ActionCodeSettings | null
   ): Promise<any>;
   setPersistence(persistence: Persistence): Promise<any>;
-  signInAndRetrieveDataWithCredential(
-    credential: AuthCredential
-  ): Promise<any>;
+  signInAndRetrieveDataWithCredential(credential: AuthCredential): Promise<any>;
   signInAnonymously(): Promise<any>;
-  signInWithCredential(
-    credential: AuthCredential
-  ): Promise<any>;
+  signInWithCredential(credential: AuthCredential): Promise<any>;
   signInWithCustomToken(token: string): Promise<any>;
   signInWithEmailAndPassword(email: string, password: string): Promise<any>;
   signInWithPhoneNumber(
@@ -291,7 +257,7 @@ declare module '@firebase/app-types' {
       RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
       TwitterAuthProvider: typeof TwitterAuthProvider;
       TwitterAuthProvider_Instance: typeof TwitterAuthProvider_Instance;
-    }
+    };
   }
   interface FirebaseApp {
     auth?(): FirebaseAuth;

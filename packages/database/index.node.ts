@@ -91,10 +91,9 @@ declare module '@firebase/app-types' {
       (app?: FirebaseApp): types.FirebaseDatabase;
       enableLogging: typeof types.enableLogging;
       ServerValue: types.ServerValue;
-    }
+    };
   }
   interface FirebaseApp {
     database?(): types.FirebaseDatabase;
   }
 }
-

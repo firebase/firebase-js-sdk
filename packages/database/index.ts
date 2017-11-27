@@ -16,7 +16,7 @@
 
 import firebase from '@firebase/app';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { _FirebaseNamespace } from "@firebase/app-types/private";
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
@@ -25,7 +25,7 @@ import { RepoManager } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
-import * as types from "@firebase/database-types";
+import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
@@ -67,7 +67,7 @@ declare module '@firebase/app-types' {
       (app?: FirebaseApp): types.FirebaseDatabase;
       enableLogging: typeof types.enableLogging;
       ServerValue: types.ServerValue;
-    }
+    };
   }
   interface FirebaseApp {
     database?(): types.FirebaseDatabase;

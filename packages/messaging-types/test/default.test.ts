@@ -1,3 +1,2 @@
-import { firebase } from "@firebase/app";
-import "@firebase/messaging";
-
+import { firebase } from '@firebase/app';
+import '@firebase/messaging';
