@@ -25,6 +25,7 @@ import { RepoManager } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
+import * as types from "@firebase/database-types";
 
 const ServerValue = Database.ServerValue;
 
@@ -59,3 +60,16 @@ export { Database, Query, Reference, enableLogging, ServerValue };
 
 export { DataSnapshot } from './src/api/DataSnapshot';
 export { OnDisconnect } from './src/api/onDisconnect';
+
+declare module '@firebase/app-types' {
+  interface FirebaseNamespace {
+    database?: {
+      (app?: FirebaseApp): types.FirebaseDatabase;
+      enableLogging: typeof types.enableLogging;
+      ServerValue: types.ServerValue;
+    }
+  }
+  interface FirebaseApp {
+    database?(): types.FirebaseDatabase;
+  }
+}

@@ -26,6 +26,7 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import './src/nodePatches';
+import * as types from '@firebase/database-types';
 
 /**
  * A one off register function which returns a database based on the app and
@@ -83,3 +84,17 @@ export { Database, Query, Reference, enableLogging, ServerValue };
 
 export { DataSnapshot } from './src/api/DataSnapshot';
 export { OnDisconnect } from './src/api/onDisconnect';
+
+declare module '@firebase/app-types' {
+  interface FirebaseNamespace {
+    database?: {
+      (app?: FirebaseApp): types.FirebaseDatabase;
+      enableLogging: typeof types.enableLogging;
+      ServerValue: types.ServerValue;
+    }
+  }
+  interface FirebaseApp {
+    database?(): types.FirebaseDatabase;
+  }
+}
+
