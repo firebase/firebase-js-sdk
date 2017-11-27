@@ -1,1 +1,1 @@
-import "@firebase/storage";
+import '@firebase/storage';

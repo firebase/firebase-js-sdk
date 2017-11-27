@@ -1,1 +1,1 @@
-import "@firebase/messaging";
+import '@firebase/messaging';

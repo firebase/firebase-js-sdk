@@ -1,1 +1,1 @@
-import "@firebase/auth";
+import '@firebase/auth';
