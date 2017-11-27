@@ -19,6 +19,8 @@ import './src/platform_browser/browser_init';
 import { Firestore } from './src/api/database';
 import { configureForFirebase } from './src/platform/config';
 
+export * from '@firebase/firestore-types';
+
 export function registerFirestore(instance) {
   configureForFirebase(instance);
 }

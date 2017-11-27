@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { Deferred } from '../../../src/util/promise';
 import firebase from '../util/firebase_export';

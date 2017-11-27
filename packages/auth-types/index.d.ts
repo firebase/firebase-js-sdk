@@ -1,6 +1,5 @@
 import { FirebaseApp, FirebaseNamespace } from "@firebase/app-types";
 import { Observer, Unsubscribe } from "@firebase/util";
-import { FirebaseApp } from "../app-types/index";
 
 export interface User extends UserInfo {
   delete(): Promise<any>;
@@ -215,7 +214,7 @@ export type Persistence = string;
 
 export class FirebaseAuth {
   constructor();
-  
+
   static Persistence: {
     LOCAL: Persistence;
     NONE: Persistence;

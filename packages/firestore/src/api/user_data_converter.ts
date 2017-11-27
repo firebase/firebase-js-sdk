@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';

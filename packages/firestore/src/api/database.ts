@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
@@ -178,7 +178,7 @@ class FirestoreConfig {
 /**
  * The root reference to the database.
  */
-export class Firestore implements firestore.Firestore, FirebaseService {
+export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
   public readonly _databaseId: DatabaseId;
 
