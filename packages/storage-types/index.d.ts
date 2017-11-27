@@ -48,9 +48,9 @@ export interface SettableMetadata {
   } | null;
 }
 
-type StringFormat = string;
-type TaskEvent = string;
-type TaskState = string;
+export type StringFormat = string;
+export type TaskEvent = string;
+export type TaskState = string;
 
 export interface UploadMetadata extends SettableMetadata {
   md5Hash?: string | null;
