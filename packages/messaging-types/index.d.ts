@@ -20,15 +20,3 @@ export class FirebaseMessaging {
   setBackgroundMessageHandler(callback: (a: Object) => any): any;
   useServiceWorker(registration: any): any;
 }
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    messaging?: {
-      (app?: FirebaseApp): FirebaseMessaging;
-      Messaging: typeof FirebaseMessaging
-    }
-  }
-  interface FirebaseApp {
-    messaging?(): FirebaseMessaging;
-  }
-}

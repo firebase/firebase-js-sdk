@@ -98,32 +98,3 @@ export class FirebaseStorage {
   setMaxOperationRetryTime(time: number): any;
   setMaxUploadRetryTime(time: number): any;
 }
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    storage?: {
-      (app?: FirebaseApp): FirebaseStorage;
-      Storage: typeof FirebaseStorage;
-
-      StringFormat: {
-        BASE64: StringFormat;
-        BASE64URL: StringFormat;
-        DATA_URL: StringFormat;
-        RAW: StringFormat;
-      };
-      TaskEvent: {
-        STATE_CHANGED: TaskEvent;
-      };
-      TaskState: {
-        CANCELED: TaskState;
-        ERROR: TaskState;
-        PAUSED: TaskState;
-        RUNNING: TaskState;
-        SUCCESS: TaskState;
-      };
-    }
-  }
-  interface FirebaseApp {
-    storage?(): FirebaseStorage;
-  }
-}

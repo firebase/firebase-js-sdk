@@ -23,19 +23,14 @@ import { TaskState } from './src/implementation/taskenums';
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';
-import { FirebaseStorage } from "@firebase/storage-types";
-
-/**
- * Re-export all the public typings for this package
- */
-export * from '@firebase/storage-types';
+import * as types from "@firebase/storage-types";
 
 /**
  * Type constant for Firebase Storage.
  */
 const STORAGE_TYPE = 'storage';
 
-function factory(app: FirebaseApp, unused: any, opt_url?: string): FirebaseStorage {
+function factory(app: FirebaseApp, unused: any, opt_url?: string): types.FirebaseStorage {
   return new Service(app, new XhrIoPool(), opt_url) as any;
 }
 
@@ -59,3 +54,35 @@ export function registerStorage(instance) {
 }
 
 registerStorage(firebase);
+
+/**
+ * Define extension behavior for `registerStorage`
+ */
+declare module '@firebase/app-types' {
+  interface FirebaseNamespace {
+    storage?: {
+      (app?: FirebaseApp): types.FirebaseStorage;
+      Storage: typeof types.FirebaseStorage;
+
+      StringFormat: {
+        BASE64: types.StringFormat;
+        BASE64URL: types.StringFormat;
+        DATA_URL: types.StringFormat;
+        RAW: types.StringFormat;
+      };
+      TaskEvent: {
+        STATE_CHANGED: types.TaskEvent;
+      };
+      TaskState: {
+        CANCELED: types.TaskState;
+        ERROR: types.TaskState;
+        PAUSED: types.TaskState;
+        RUNNING: types.TaskState;
+        SUCCESS: types.TaskState;
+      };
+    }
+  }
+  interface FirebaseApp {
+    storage?(): types.FirebaseStorage;
+  }
+}

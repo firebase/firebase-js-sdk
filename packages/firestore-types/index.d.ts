@@ -1015,27 +1015,3 @@ export interface FirestoreError {
   name: string;
   stack?: string;
 }
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    firestore?: {
-      (app?: FirebaseApp): FirebaseFirestore;
-      Blob: typeof Blob;
-      CollectionReference: typeof CollectionReference;
-      DocumentReference: typeof DocumentReference;
-      DocumentSnapshot: typeof DocumentSnapshot;
-      FieldPath: typeof FieldPath;
-      FieldValue: typeof FieldValue;
-      Firestore: typeof FirebaseFirestore;
-      GeoPoint: typeof GeoPoint;
-      Query: typeof Query;
-      QuerySnapshot: typeof QuerySnapshot;
-      Transaction: typeof Transaction;
-      WriteBatch: typeof WriteBatch;
-      setLogLevel: typeof setLogLevel;
-    };
-  }
-  interface FirebaseApp {
-    firestore?(): FirebaseFirestore;
-  }
-}
