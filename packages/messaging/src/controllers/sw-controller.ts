@@ -83,10 +83,13 @@ export default class SWController extends ControllerInterface {
         const notificationDetails = this.getNotificationData_(msgPayload);
         if (notificationDetails) {
           const notificationTitle = notificationDetails.title || '';
-          return (self as any).registration.showNotification(
-            notificationTitle,
-            notificationDetails
-          );
+          return (this.getSWRegistration_() as any)
+          .then((reg) => {
+            return reg.showNotification(
+              notificationTitle,
+              notificationDetails
+            );
+          });
         } else if (this.bgMessageHandler_) {
           return this.bgMessageHandler_(msgPayload);
         }
@@ -100,6 +103,42 @@ export default class SWController extends ControllerInterface {
    * @private
    */
   onSubChange_(event) {
+    const promiseChain = this.getSWRegistration_()
+    .then((registration) => {
+      return registration.pushManager.getSubscription()
+      .then((subscription) => {
+        // TODO: Check if it's still valid
+
+        // TODO: If not, then update token
+      })
+      .catch((err) => {
+        // The best thing we can do is log this to the terminal so
+        // developers might notice the error.
+        const tokenDetailsModel = this.getTokenDetailsModel();
+        return tokenDetailsModel.getTokenDetailsFromSWScope(registration.scope)
+        .then((tokenDetails) => {
+          if (!tokenDetails) {
+            // This should rarely occure, but could if indexedDB
+            // is corrupted or wiped
+            throw err;
+          }
+
+          // Attempt to delete the token if we know it's bad
+          return this.deleteToken(tokenDetails['fcmToken'])
+          .then(() => {
+            throw err;
+          });
+        });
+      });
+    })
+    .catch((err) => {
+      throw this.errorFactory_.create(
+        Errors.codes.UNABLE_TO_RESUBSCRIBE,
+        {
+          message: err
+        }
+      );
+    });
     /** const promiseChain = this.getToken().then(token => {
       if (!token) {
         // We can't resubscribe if we don't have an FCM token for this scope.
@@ -125,22 +164,10 @@ export default class SWController extends ControllerInterface {
             event.newSubscription,
             tokenDetails.fcmPushSet
           );
-        })
-        .catch(err => {
-          // The best thing we can do is log this to the terminal so
-          // developers might notice the error.
-          return tokenDetailsModel.deleteToken(tokenDetails.fcmToken).then(() => {
-            throw this.errorFactory_.create(
-              Errors.codes.UNABLE_TO_RESUBSCRIBE,
-              {
-                message: err
-              }
-            );
-          });
         });
     });**/
 
-    event.waitUntil(Promise.resolve());
+    event.waitUntil(promiseChain);
   }
 
   /**
@@ -164,6 +191,11 @@ export default class SWController extends ControllerInterface {
     event.notification.close();
 
     const msgPayload = event.notification.data[FCM_MSG];
+    if (!msgPayload['notification']) {
+      // Nothing to do.
+      return;
+    }
+
     const clickAction = msgPayload['notification']['click_action'];
     if (!clickAction) {
       // Nothing to do.
@@ -176,7 +208,8 @@ export default class SWController extends ControllerInterface {
           // Unable to find window client so need to open one.
           return (self as any).clients.openWindow(clickAction);
         }
-        return windowClient;
+
+        return windowClient.focus();
       })
       .then(windowClient => {
         if (!windowClient) {
@@ -242,7 +275,7 @@ export default class SWController extends ControllerInterface {
    * be given the data from the push message.
    */
   setBackgroundMessageHandler(callback) {
-    if (callback && typeof callback !== 'function') {
+    if (!callback || typeof callback !== 'function') {
       throw this.errorFactory_.create(
         Errors.codes.BG_HANDLER_FUNCTION_EXPECTED
       );
@@ -260,7 +293,7 @@ export default class SWController extends ControllerInterface {
   getWindowClient_(url) {
     // Use URL to normalize the URL when comparing to windowClients.
     // This at least handles whether to include trailing slashes or not
-    const parsedURL = new URL(url).href;
+    const parsedURL = new URL(url, (self as any).location).href;
 
     return (self as any).clients
       .matchAll({
@@ -270,7 +303,7 @@ export default class SWController extends ControllerInterface {
       .then(clientList => {
         let suitableClient = null;
         for (let i = 0; i < clientList.length; i++) {
-          const parsedClientUrl = new URL(clientList[i].url).href;
+          const parsedClientUrl = new URL(clientList[i].url, (self as any).location).href;
           if (parsedClientUrl === parsedURL) {
             suitableClient = clientList[i];
             break;
@@ -278,9 +311,10 @@ export default class SWController extends ControllerInterface {
         }
 
         if (suitableClient) {
-          suitableClient.focus();
           return suitableClient;
         }
+
+        return null;
       });
   }
 
@@ -294,16 +328,17 @@ export default class SWController extends ControllerInterface {
    * received.
    */
   attemptToMessageClient_(client, message) {
-    return new Promise((resolve, reject) => {
-      if (!client) {
-        return reject(
-          this.errorFactory_.create(Errors.codes.NO_WINDOW_CLIENT_TO_MSG)
-        );
-      }
+    // NOTE: This returns a promise in case this API is abstracted later on to
+    // do additional work
+    if (!client) {
+      return Promise.reject(
+        this.errorFactory_.create(Errors.codes.NO_WINDOW_CLIENT_TO_MSG)
+      );
+    }
 
-      client.postMessage(message);
-      resolve();
-    });
+
+    client.postMessage(message);
+    return Promise.resolve();
   }
 
   /**

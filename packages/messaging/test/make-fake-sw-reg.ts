@@ -32,5 +32,7 @@ export default function(selectedState?, desiredValue?) {
     });
   });
 
+  fakeReg['showNotification'] = () => {};
+
   return fakeReg;
 }
