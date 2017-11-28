@@ -3,8 +3,8 @@
 set -e
 
 # pwd
-PACKAGE=$(npm info . name)
-VERSION=$(npm info . version)
+PACKAGE=$(node -p "require('./package.json').name")
+VERSION=$(node -p "require('./package.json').version")
 PUBLISHED=$(npm info $PACKAGE version)
 
 if [[ "$VERSION" = "$PUBLISHED" ]]; then
