@@ -9,4 +9,4 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PATH="$(npm bin):$PATH";
 
 # Run the publish script in each directory
-lerna exec --scope @firebase/* --scope firebase -- $DIR/try-publish
+lerna exec --scope @firebase/* --scope firebase -- $DIR/try-publish.sh
