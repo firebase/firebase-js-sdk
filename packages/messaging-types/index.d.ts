@@ -18,8 +18,6 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { Observer, Unsubscribe } from '@firebase/util';
 
 export class FirebaseMessaging {
-  constructor();
-
   deleteToken(token: string): Promise<any> | null;
   getToken(): Promise<any> | null;
   onMessage(

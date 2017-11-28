@@ -91,9 +91,9 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
     /**
      * Internal API to register a Firebase Service into the firebase namespace.
      *
-     * Each service will create a child namespace (firease.name) which acts as
+     * Each service will create a child namespace (firebase.<name>) which acts as
      * both a namespace for service specific properties, and also as a service
-     * accessor function (firebase.name() or firebase.name(app)).
+     * accessor function (firebase.<name>() or firebase.<name>(app)).
      *
      * @param name The Firebase Service being registered.
      * @param createService Factory function to create a service instance.

@@ -25,7 +25,6 @@ export type FirebaseOptions = {
 };
 
 export class FirebaseApp {
-  constructor();
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
    * App.
@@ -47,9 +46,9 @@ export interface FirebaseNamespace {
   /**
    * Create (and intialize) a FirebaseApp.
    *
-   * @param options Options to configure the services use in the App.
+   * @param options Options to configure the services used in the App.
    * @param name The optional name of the app to initialize ('[DEFAULT]' if
-   *   none)
+   * omitted)
    */
   initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
 
@@ -59,7 +58,7 @@ export interface FirebaseNamespace {
      *
      * Usage: firebase.app()
      *
-     * @param name The optional name of the app to return ('[DEFAULT]' if none)
+     * @param name The optional name of the app to return ('[DEFAULT]' if omitted)
      */
     (name?: string): FirebaseApp;
 
@@ -81,6 +80,6 @@ export interface FirebaseNamespace {
   // es6-promises.
   Promise: typeof Promise;
 
-  // The current SDK version ('${JSCORE_VERSION}').
+  // The current SDK version.
   SDK_VERSION: string;
 }
