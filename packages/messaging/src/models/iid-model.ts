@@ -16,7 +16,7 @@
 
 'use strict';
 
-import { ErrorFactory } from '@firebase/util';
+import { ErrorFactory, base64 } from '@firebase/util';
 
 import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
@@ -34,12 +34,13 @@ export default class IIDModel {
    * @public
    * @param  {string} senderId The 'messagingSenderId' to tie the token to.
    * @param  {PushSubscription} subscription The PushSusbcription to "federate".
+   * @param  {Uint8Array} publicVapidKey The public VAPID key.
    * @param  {string=} pushSet If defined this will swap the subscription for
    * matching FCM token.
    * @return {Promise<!Object>} Returns the FCM token to be used in place
    * of the PushSubscription.
    */
-  getToken(senderId, subscription, pushSet?): Promise<Object> {
+  getToken(senderId, subscription, publicVapidKey, pushSet?): Promise<Object> {
     const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
     const auth = arrayBufferToBase64(subscription['getKey']('auth'));
 
@@ -48,6 +49,11 @@ export default class IIDModel {
       `endpoint=${subscription.endpoint}&` +
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
+
+    if(publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
+      const applicationPubKey = arrayBufferToBase64(publicVapidKey);
+      fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
+    }
 
     if (pushSet) {
       fcmSubscribeBody += `&pushSet=${pushSet}`;

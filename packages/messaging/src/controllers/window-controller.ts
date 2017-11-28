@@ -59,16 +59,14 @@ export default class WindowController extends ControllerInterface {
      * @type {firebase.Observer}
      */
     this.messageObserver_ = null;
+
     /**
      * @private {!firebase.Subscribe} The subscribe function to the onMessage
      * observer.
      */
-    console.log('Calling create subscribe');
     this.onMessage_ = createSubscribe(observer => {
-      console.log('createsubscribe', observer);
       this.messageObserver_ = observer;
     });
-    console.log('After: ', this.onMessage_);
 
     /**
      * @private
@@ -248,7 +246,6 @@ export default class WindowController extends ControllerInterface {
    * @return {!function()} The unsubscribe function for the observer.
    */
   onMessage(nextOrObserver, optError?, optCompleted?) {
-    console.log('onMessage(), calling onMessage_');
     return this.onMessage_(nextOrObserver, optError, optCompleted);
   }
 
@@ -415,8 +412,9 @@ export default class WindowController extends ControllerInterface {
           case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
             const pushMessage =
               workerPageMessage[WorkerPageMessage.PARAMS.DATA];
-            console.log(this.messageObserver_);
-            this.messageObserver_.next(pushMessage);
+            if (this.messageObserver_) {
+              this.messageObserver_.next(pushMessage);
+            }
             break;
           default:
             // Noop.

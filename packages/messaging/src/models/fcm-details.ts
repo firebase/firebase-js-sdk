@@ -91,5 +91,6 @@ const SUBSCRIPTION_DETAILS = {
 export default {
   DEFAULT_PUBLIC_VAPID_KEY,
   SUBSCRIPTION_DETAILS,
-  ENDPOINT: 'https://fcm.googleapis.com'
+  // ENDPOINT: 'https://fcm.googleapis.com'
+  ENDPOINT: 'https://jmt17.google.com'
 };

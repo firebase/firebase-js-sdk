@@ -406,7 +406,7 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe.only('setupSWMessageListener_()', function() {
+  describe('setupSWMessageListener_()', function() {
     it('should not do anything is no service worker support', function() {
       sandbox.stub(window, 'navigator').value({});
 
@@ -458,28 +458,92 @@ describe('Firebase Messaging > *WindowController', function() {
       expect(onMessageSpy.callCount).to.equal(0);
     });
 
-    it.only('should call onMessage for push msg received event', function() {
-      const spy = sandbox.spy();
-      const onMessageSpy = sandbox.spy();
-
+    it('should not throw when message observer is not defined', function() {
+      const messageCallbackSpy = sandbox.spy();
       sandbox.stub(navigator, 'serviceWorker').value({
-        addEventListener: spy
+        addEventListener: messageCallbackSpy
       });
 
       const controller = new WindowController(app);
-      controller.onMessage(onMessageSpy);
       controller.setupSWMessageListener_();
+      const callback = messageCallbackSpy.args[0][1];
 
-      const callback = spy.args[0][1];
+      // Ensure it's not defined
+      controller['messageObserver_'] = null;
 
-      // Even with FCM data, if the type isn't known - do nothing.
       callback({
         data: {
           'firebase-messaging-msg-type': 'push-msg-received'
         }
       });
-      expect(onMessageSpy.callCount).to.equal(0);
-      console.log(onMessageSpy.args[0]);
+    });
+
+    it('should call onMessage for push msg received event', async function() {
+      const messageCallbackSpy = sandbox.spy();
+      const onMessageSpy = sandbox.spy();
+
+      sandbox.stub(navigator, 'serviceWorker').value({
+        addEventListener: messageCallbackSpy
+      });
+
+      const controller = new WindowController(app);
+
+      // The API for the observables means it's async and so we kind have to
+      // hope that everything is set up after a task skip
+      return new Promise((resolve) => setTimeout(resolve, 500))
+      .then(() => {
+        controller.onMessage(onMessageSpy);
+        controller.setupSWMessageListener_();
+
+        const callback = messageCallbackSpy.args[0][1];
+
+        // Even with FCM data, if the type isn't known - do nothing.
+        callback({
+          data: {
+            'firebase-messaging-msg-type': 'push-msg-received'
+          }
+        });
+
+        // Apparently triggering an event is also async - so another timeout.
+        return new Promise((resolve) => setTimeout(resolve, 500));
+      })
+      .then(() => {
+        expect(onMessageSpy.callCount).to.equal(1);
+        expect(onMessageSpy.args[0][0]).to.equal(undefined);
+      })
+    });
+  });
+
+  describe('waitForRegistrationToActivate_', function() {
+    it('should handle service worker lifecycle', function() {
+      let changeListener;
+      const swValue = {
+        state: 'installing',
+        addEventListener: (eventName, cb) => {
+          expect(eventName).to.equal('statechange');
+          changeListener = cb;
+        },
+        removeEventListener: (eventName, cb) => {
+          expect(eventName).to.equal('statechange');
+          expect(cb).to.equal(changeListener);
+        }
+      };
+
+      const fakeReg = makeFakeSWReg('installing', swValue);
+
+      const messagingService = new WindowController(app);
+      const waitPromise = messagingService.waitForRegistrationToActivate_(fakeReg);
+
+      changeListener();
+
+      swValue.state = 'activated';
+
+      changeListener();
+
+      return waitPromise
+      .then((reg) => {
+        expect(reg).to.equal(fakeReg);
+      })
     });
   });
 });

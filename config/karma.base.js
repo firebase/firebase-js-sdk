@@ -107,7 +107,7 @@ const config = {
 
   client: {
     mocha: {
-      timeout: 20000,
+      timeout: 3000,
       retries: 3
     },
 
