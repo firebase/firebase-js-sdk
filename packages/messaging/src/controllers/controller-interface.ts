@@ -92,7 +92,7 @@ export default class ControllerInterface {
               return this.iidModel_.getToken(
                 this.messagingSenderId_,
                 subscription,
-                publicVapidKey,
+                publicVapidKey
               );
             })
             .then(tokenDetails => {

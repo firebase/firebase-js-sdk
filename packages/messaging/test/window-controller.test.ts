@@ -490,27 +490,27 @@ describe('Firebase Messaging > *WindowController', function() {
 
       // The API for the observables means it's async and so we kind have to
       // hope that everything is set up after a task skip
-      return new Promise((resolve) => setTimeout(resolve, 500))
-      .then(() => {
-        controller.onMessage(onMessageSpy);
-        controller.setupSWMessageListener_();
+      return new Promise(resolve => setTimeout(resolve, 500))
+        .then(() => {
+          controller.onMessage(onMessageSpy);
+          controller.setupSWMessageListener_();
 
-        const callback = messageCallbackSpy.args[0][1];
+          const callback = messageCallbackSpy.args[0][1];
 
-        // Even with FCM data, if the type isn't known - do nothing.
-        callback({
-          data: {
-            'firebase-messaging-msg-type': 'push-msg-received'
-          }
+          // Even with FCM data, if the type isn't known - do nothing.
+          callback({
+            data: {
+              'firebase-messaging-msg-type': 'push-msg-received'
+            }
+          });
+
+          // Apparently triggering an event is also async - so another timeout.
+          return new Promise(resolve => setTimeout(resolve, 500));
+        })
+        .then(() => {
+          expect(onMessageSpy.callCount).to.equal(1);
+          expect(onMessageSpy.args[0][0]).to.equal(undefined);
         });
-
-        // Apparently triggering an event is also async - so another timeout.
-        return new Promise((resolve) => setTimeout(resolve, 500));
-      })
-      .then(() => {
-        expect(onMessageSpy.callCount).to.equal(1);
-        expect(onMessageSpy.args[0][0]).to.equal(undefined);
-      })
     });
   });
 
@@ -532,7 +532,9 @@ describe('Firebase Messaging > *WindowController', function() {
       const fakeReg = makeFakeSWReg('installing', swValue);
 
       const messagingService = new WindowController(app);
-      const waitPromise = messagingService.waitForRegistrationToActivate_(fakeReg);
+      const waitPromise = messagingService.waitForRegistrationToActivate_(
+        fakeReg
+      );
 
       changeListener();
 
@@ -540,10 +542,9 @@ describe('Firebase Messaging > *WindowController', function() {
 
       changeListener();
 
-      return waitPromise
-      .then((reg) => {
+      return waitPromise.then(reg => {
         expect(reg).to.equal(fakeReg);
-      })
+      });
     });
   });
 });

@@ -50,7 +50,7 @@ export default class IIDModel {
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
 
-    if(publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
+    if (publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
     }
