@@ -46,6 +46,7 @@ export function setLogLevel(logLevel: LogLevel): void;
  * Firestore operations.
  */
 export class FirebaseFirestore {
+  private constructor();
   /**
    * Specifies custom settings to be used to configure the `Firestore`
    * instance. Must be set before invoking any other methods.

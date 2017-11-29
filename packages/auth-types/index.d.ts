@@ -206,6 +206,8 @@ export interface UserMetadata {
 export type Persistence = string;
 
 export class FirebaseAuth {
+  private constructor();
+  
   static Persistence: {
     LOCAL: Persistence;
     NONE: Persistence;

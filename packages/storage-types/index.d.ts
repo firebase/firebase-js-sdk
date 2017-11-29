@@ -98,6 +98,8 @@ export interface UploadTaskSnapshot {
 }
 
 export class FirebaseStorage {
+  private constructor();
+  
   app: FirebaseApp;
   maxOperationRetryTime: number;
   maxUploadRetryTime: number;
