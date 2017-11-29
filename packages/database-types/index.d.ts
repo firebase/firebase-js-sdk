@@ -33,7 +33,7 @@ export interface DataSnapshot {
 
 export class FirebaseDatabase {
   private constructor();
-  
+
   app: FirebaseApp;
   goOffline(): any;
   goOnline(): any;
