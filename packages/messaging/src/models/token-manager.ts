@@ -161,6 +161,50 @@ export default class TokenManager {
   }
 
   /**
+   * Given a PushSubscription and messagingSenderId, delete application
+   * instance details from FCM.
+   */
+  unsubscribeFromFCM(
+    fcmSenderId: string,
+    fcmToken: string,
+    fcmPushSet: string
+  ): Promise<void> {
+    let fcmUnsubscribeBody =
+      `authorized_entity=${fcmSenderId}&` +
+      `endpoint=${fcmToken}&` +
+      `pushSet=${fcmPushSet}`;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+    const unsubscribeOptions = {
+      method: 'POST',
+      headers: headers,
+      body: fcmUnsubscribeBody
+    };
+
+    return fetch(
+      FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
+      unsubscribeOptions
+    )
+      .then(response => response.json())
+      .then(response => {
+        const fcmTokenResponse = response;
+        if (fcmTokenResponse['error']) {
+          const message = fcmTokenResponse['error']['message'];
+          throw this.errorFactory_.create(
+            Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+            {
+              message: message
+            }
+          );
+        }
+
+        return Promise.resolve();
+      });
+  }
+
+  /**
    * Given a PushSubscription and messagingSenderId, get an FCM token.
    * @public
    * @param  {string} senderId The 'messagingSenderId' to tie the token to.
@@ -427,27 +471,33 @@ export default class TokenManager {
         throw this.errorFactory_.create(Errors.codes.DELETE_TOKEN_NOT_FOUND);
       }
 
-      return this.openDatabase_().then(db => {
-        return new Promise((resolve, reject) => {
-          const transaction = db.transaction(
-            [FCM_TOKEN_OBJ_STORE],
-            'readwrite'
-          );
-          const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const request = objectStore.delete(details['swScope']);
-          request.onerror = event => {
-            reject((<IDBRequest>event.target).error);
-          };
-          request.onsuccess = event => {
-            if ((<IDBRequest>event.target).result === 0) {
-              reject(
-                this.errorFactory_.create(Errors.codes.FAILED_TO_DELETE_TOKEN)
-              );
-              return;
-            }
+      return this.unsubscribeFromFCM(
+        details['fcmSenderId'],
+        details['fcmToken'],
+        details['fcmPushSet']
+      ).then(() => {
+        return this.openDatabase_().then(db => {
+          return new Promise((resolve, reject) => {
+            const transaction = db.transaction(
+              [FCM_TOKEN_OBJ_STORE],
+              'readwrite'
+            );
+            const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
+            const request = objectStore.delete(details['swScope']);
+            request.onerror = event => {
+              reject((<IDBRequest>event.target).error);
+            };
+            request.onsuccess = event => {
+              if ((<IDBRequest>event.target).result === 0) {
+                reject(
+                  this.errorFactory_.create(Errors.codes.FAILED_TO_DELETE_TOKEN)
+                );
+                return;
+              }
 
-            resolve(details);
-          };
+              resolve(details);
+            };
+          });
         });
       });
     });

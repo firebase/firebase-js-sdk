@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import * as sinon from 'sinon';
 import dbTMHelper from './testing-utils/db-token-manager';
 import TokenManager from '../src/models/token-manager';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 
+
 describe('Firebase Messaging > tokenManager.deleteToken()', function() {
+  const sandbox = sinon.sandbox.create();
   let globalTokenManager = null;
 
   const cleanUp = () => {
+    sandbox.restore();
     const promises = [dbTMHelper.closeDatabase()];
     if (globalTokenManager) {
       promises.push(globalTokenManager.closeDatabase());
@@ -77,7 +81,9 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
       fcmSenderId: '1234567890'
     };
     dbTMHelper.addObjectToIndexDB(exampleDetails);
-
+    sandbox
+          .stub(TokenManager.prototype, 'unsubscribeFromFCM')
+          .callsFake(() => Promise.resolve());
     globalTokenManager = new TokenManager();
     return globalTokenManager
       .deleteToken(exampleDetails.fcmToken)
@@ -93,7 +99,36 @@ describe('Firebase Messaging > tokenManager.deleteToken()', function() {
       });
   });
 
-  it('should delete non existant token', function() {
+  it('should handle failing unsubscribe call', function() {
+    const exampleDetails = {
+      swScope: 'example-scope',
+      fcmToken: 'example-token',
+      fcmSenderId: '1234567890'
+    };
+    dbTMHelper.addObjectToIndexDB(exampleDetails);
+
+    sandbox
+      .stub(TokenManager.prototype, 'unsubscribeFromFCM')
+      .callsFake(() =>
+      Promise.reject(new Error("messaging/" + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED)));
+
+    globalTokenManager = new TokenManager();
+    return globalTokenManager
+      .deleteToken(exampleDetails.fcmToken)
+      .then(
+        () => {
+          throw new Error('Expected deleteToken error.');
+        },
+        err => {
+          assert.equal(
+            'messaging/' + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+            err.message
+          );
+        }
+      )
+  });
+
+  it('should delete non existent token', function() {
     const exampleDetails = {
       swScope: 'example-scope',
       fcmToken: 'example-token',

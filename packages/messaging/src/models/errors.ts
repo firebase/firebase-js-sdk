@@ -33,6 +33,7 @@ const CODES = {
   TOKEN_SUBSCRIBE_FAILED: 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN: 'token-subscribe-no-token',
   TOKEN_SUBSCRIBE_NO_PUSH_SET: 'token-subscribe-no-push-set',
+  TOKEN_UNSUBSCRIBE_FAILED: 'token-unsubscribe-failed',
   USE_SW_BEFORE_GET_TOKEN: 'use-sw-before-get-token',
   INVALID_DELETE_TOKEN: 'invalid-delete-token',
   DELETE_TOKEN_NOT_FOUND: 'delete-token-not-found',
@@ -80,11 +81,13 @@ const ERROR_MAP = {
   [CODES.SW_REG_REDUNDANT]:
     'The service worker being used for push was made ' + 'redundant.',
   [CODES.TOKEN_SUBSCRIBE_FAILED]:
-    'A problem occured while subscribing the ' + 'user to FCM: {$message}',
+    'A problem occurred while subscribing the ' + 'user to FCM: {$message}',
   [CODES.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing ' + 'the user to push.',
   [CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
     'FCM returned an invalid response ' + 'when getting an FCM token.',
+  [CODES.TOKEN_UNSUBSCRIBE_FAILED]:
+    'A problem occurred while unsubscribing the ' + 'user from FCM: {$message}',
   [CODES.USE_SW_BEFORE_GET_TOKEN]:
     'You must call useServiceWorker() before ' +
     'calling getToken() to ensure your service worker is used.',
