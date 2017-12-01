@@ -29,7 +29,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
 
   const fetchMock = {
     jsonOk: function() {
-      var mockResponse = new window.Response(
+      var mockResponse = new (window as any).Response(
         {},
         {
           status: 200,
@@ -42,7 +42,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     },
     jsonError: function(status, body) {
       const errorMsg = { error: { message: body } };
-      var mockResponse = new window.Response(JSON.stringify(errorMsg), {
+      var mockResponse = new (window as any).Response(JSON.stringify(errorMsg), {
         status: status,
         headers: {
           'Content-type': 'application/json'
@@ -72,14 +72,14 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
 
   it('should delete on valid request', async function() {
     globalIIDModel = new IIDModel();
-    window.fetch.returns(fetchMock.jsonOk());
+    (window as any).fetch.returns(fetchMock.jsonOk());
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
   });
 
   it('should handle fetch errors', function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    window.fetch.returns(fetchMock.jsonError(400, errorMsg));
+    (window as any).fetch.returns(fetchMock.jsonError(400, errorMsg));
     return globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet).then(
       () => {
         throw new Error('Expected error to be thrown.');
