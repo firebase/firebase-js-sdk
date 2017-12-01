@@ -296,8 +296,8 @@ function onSetPersistence() {
 function onSignUp() {
   var email = $('#signup-email').val();
   var password = $('#signup-password').val();
-  auth.createUserWithEmailAndPassword(email, password)
-      .then(onAuthSuccess, onAuthError);
+  auth.createUserAndRetrieveDataWithEmailAndPassword(email, password)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 
@@ -307,8 +307,8 @@ function onSignUp() {
 function onSignInWithEmailAndPassword() {
   var email = $('#signin-email').val();
   var password = $('#signin-password').val();
-  auth.signInWithEmailAndPassword(email, password)
-      .then(onAuthSuccess, onAuthError);
+  auth.signInAndRetrieveDataWithEmailAndPassword(email, password)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 
