@@ -73,6 +73,48 @@ var expectedGenericAdditionalUserInfo = {
   'providerId': 'phone'
 };
 
+// "iss": "https://securetoken.google.com/12345678",
+// "picture": "https://plus.google.com/abcdefghijklmnopqrstu",
+// "aud": "12345678",
+// "auth_time": 1510357622,
+// "user_id": "abcdefghijklmnopqrstu",
+// "sub": "abcdefghijklmnopqrstu",
+// "iat": 1510357622,
+// "exp": 1510361222,
+// "email": "user@example.com",
+// "email_verified": true,
+// "firebase": {"identities": {
+//               "email": ["user@example.com"]
+//               }, "sign_in_provider": "password"}
+var tokenEmail = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlL' +
+                 'mNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5' +
+                 'nb29nbGUuY29tL2FiY2RlZmdoaWprbG1ub3BxcnN0dSIsDQogICJhdWQiO' +
+                 'iAiMTIzNDU2NzgiLA0KICAiYXV0aF90aW1lIjogMTUxMDM1NzYyMiwNCiA' +
+                 'gInVzZXJfaWQiOiAiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwNCiAgInN1Y' +
+                 'iI6ICJhYmNkZWZnaGlqa2xtbm9wcXJzdHUiLA0KICAiaWF0IjogMTUxMDM' +
+                 '1NzYyMiwNCiAgImV4cCI6IDE1MTAzNjEyMjIsDQogICJlbWFpbCI6ICJ1c' +
+                 '2VyQGV4YW1wbGUuY29tIiwNCiAgImVtYWlsX3ZlcmlmaWVkIjogdHJ1ZSw' +
+                 'NCiAgImZpcmViYXNlIjogew0KICAgICJpZGVudGl0aWVzIjogew0KICAgI' +
+                 'CAgImVtYWlsIjogWw0KICAgICAgICAidXNlckBleGFtcGxlLmNvbSINCiA' +
+                 'gICAgIF0NCiAgICB9LA0KICAgICJzaWduX2luX3Byb3ZpZGVyIjogInBhc' +
+                 '3N3b3JkIg0KICB9DQp9.SIGNATURE';
+
+// SignupNewUserResponse response without isNewUser field.
+var signUpNewUserResponse = {
+  'kind': 'identitytoolkit#SignupNewUserResponse',
+  'idToken': tokenEmail,
+  'refreshToken': 'REFRESH_TOKEN',
+  'expiresIn': '3600',
+  'localId': '123456'
+};
+
+// Expected generic additional user info object for the above signUpNewUser
+// response.
+var expectedGenericAdditionalUserInfoForSignUpNewUser = {
+  'isNewUser': true,
+  'providerId': 'password'
+};
+
 // Typical minimal verifyAssertion response for generic IdP user with no profile
 // data.
 var noProfileVerifyAssertion = {
@@ -368,6 +410,19 @@ function testGenericAdditionalUserInfo() {
   assertObjectEquals(
       genericAdditionalUserInfo,
       fireauth.AdditionalUserInfo.fromPlainObject(verifyPhoneNumberResponse));
+}
+
+
+
+function testGenericAdditionalUserInfo_fromSignUpNewUserResponse() {
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      signUpNewUserResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfoForSignUpNewUser,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(signUpNewUserResponse));
 }
 
 

@@ -1379,12 +1379,13 @@ fireauth.Auth.prototype.signInWithCustomToken = function(token) {
 
 
 /**
- * Sign in using an email and password.
+ * Sign in using an email and password and returns any additional user info
+ * data or credentials returned form the backend.
  * @param {string} email The email to sign in with.
  * @param {string} password The password to sign in with.
- * @return {!goog.Promise<!fireauth.AuthUser>}
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.signInWithEmailAndPassword =
+fireauth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword =
     function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
@@ -1393,9 +1394,24 @@ fireauth.Auth.prototype.signInWithEmailAndPassword =
   return this.redirectStateIsReady_.then(function() {
     return self.signInWithIdTokenProvider_(
         self.getRpcHandler().verifyPassword(email, password));
-  }).then(function(result) {
-    return result['user'];
   });
+};
+
+
+/**
+ * Sign in using an email and password.
+ * @param {string} email The email to sign in with.
+ * @param {string} password The password to sign in with.
+ * @return {!goog.Promise<!fireauth.AuthUser>}
+ */
+fireauth.Auth.prototype.signInWithEmailAndPassword =
+    function(email, password) {
+  // Get signInAndRetrieveDataWithEmailAndPassword result and return
+  // the user only.
+  return this.signInAndRetrieveDataWithEmailAndPassword(email, password)
+      .then(function(result) {
+        return result['user'];
+      });
 };
 
 
@@ -1407,6 +1423,24 @@ fireauth.Auth.prototype.signInWithEmailAndPassword =
  */
 fireauth.Auth.prototype.createUserWithEmailAndPassword =
     function(email, password) {
+  // Get createUserAndRetrieveDataWithEmailAndPassword result and return
+  // the user only.
+  return this.createUserAndRetrieveDataWithEmailAndPassword(email, password)
+      .then(function(result) {
+        return result['user'];
+      });
+};
+
+
+/**
+ * Creates a new email and password account and returns any additional user
+ * info data or credentials returned form the backend.
+ * @param {string} email The email to sign up with.
+ * @param {string} password The password to sign up with.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword =
+    function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
   // errors like web storage unsupported are detected, fail before RPC, instead
@@ -1414,8 +1448,6 @@ fireauth.Auth.prototype.createUserWithEmailAndPassword =
   return this.redirectStateIsReady_.then(function() {
     return self.signInWithIdTokenProvider_(
         self.getRpcHandler().createAccount(email, password));
-  }).then(function(result) {
-    return result['user'];
   });
 };
 
