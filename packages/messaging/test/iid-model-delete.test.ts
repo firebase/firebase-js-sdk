@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { assert } from 'chai';
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import IIDModel from '../src/models/iid-model';
 import Errors from '../src/models/errors';
@@ -79,17 +79,15 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
   });
 
-  it('should handle fetch errors', function() {
+  it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
     (window as any).fetch.returns(fetchMock.jsonError(400, errorMsg));
-    return globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet).then(
-      () => {
-        throw new Error('Expected error to be thrown.');
-      },
-      err => {
-        assert.equal(errorMsg, err.message);
-      }
-    );
+    try {
+      await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+      throw new Error('Expected error to be thrown.');
+    } catch (e) {
+      expect(e.message).to.equal(errorMsg);
+    }
   });
 });
