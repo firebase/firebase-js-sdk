@@ -42,12 +42,15 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     },
     jsonError: function(status, body) {
       const errorMsg = { error: { message: body } };
-      var mockResponse = new (window as any).Response(JSON.stringify(errorMsg), {
-        status: status,
-        headers: {
-          'Content-type': 'application/json'
+      var mockResponse = new (window as any).Response(
+        JSON.stringify(errorMsg),
+        {
+          status: status,
+          headers: {
+            'Content-type': 'application/json'
+          }
         }
-      });
+      );
       return Promise.resolve(mockResponse);
     }
   };
