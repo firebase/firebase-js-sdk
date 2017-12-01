@@ -131,12 +131,9 @@ export default class IIDModel {
     if (!fetchResponse.ok) {
       const fcmTokenResponse = await fetchResponse.json();
       const message = fcmTokenResponse['error']['message'];
-      throw this.errorFactory_.create(
-        Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
-        {
-          message: message
-        }
-      );
+      throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED, {
+        message: message
+      });
     }
 
     return;
