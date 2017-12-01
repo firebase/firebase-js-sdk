@@ -24,21 +24,24 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const fcmPushSet = '7654321';
 
   const sandbox = sinon.sandbox.create();
-  let stubedFetch; 
+  let stubedFetch;
   let globalIIDModel;
 
   const fetchMock = {
     jsonOk: function() {
-      var mockResponse = new window.Response({}, {
-        status: 200,
-        headers: {
-          'Content-type': 'application/json'
+      var mockResponse = new window.Response(
+        {},
+        {
+          status: 200,
+          headers: {
+            'Content-type': 'application/json'
+          }
         }
-      });
+      );
       return Promise.resolve(mockResponse);
     },
     jsonError: function(status, body) {
-      const errorMsg = {error: {message: body}};
+      const errorMsg = { error: { message: body } };
       var mockResponse = new window.Response(JSON.stringify(errorMsg), {
         status: status,
         headers: {
@@ -82,7 +85,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
         throw new Error('Expected error to be thrown.');
       },
       err => {
-        assert.equal(errorMsg, err.message)
+        assert.equal(errorMsg, err.message);
       }
     );
   });

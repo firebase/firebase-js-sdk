@@ -120,7 +120,8 @@ export default class ControllerInterface {
    * @export
    */
   deleteToken(token: string): Promise<Boolean> {
-    return this.tokenDetailsModel_.deleteToken(token)
+    return this.tokenDetailsModel_
+      .deleteToken(token)
       .then(details => {
         return this.iidModel_.deleteToken(
           details['fcmSenderId'],
@@ -129,18 +130,18 @@ export default class ControllerInterface {
         );
       })
       .then(() => {
-      return this.getSWRegistration_()
-        .then(registration => {
-          if (registration) {
-            return registration.pushManager.getSubscription();
-          }
-        })
-        .then(subscription => {
-          if (subscription) {
-            return subscription.unsubscribe();
-          }
-        });
-    });
+        return this.getSWRegistration_()
+          .then(registration => {
+            if (registration) {
+              return registration.pushManager.getSubscription();
+            }
+          })
+          .then(subscription => {
+            if (subscription) {
+              return subscription.unsubscribe();
+            }
+          });
+      });
   }
 
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {

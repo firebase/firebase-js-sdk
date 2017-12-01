@@ -83,12 +83,8 @@ export default class SWController extends ControllerInterface {
         const notificationDetails = this.getNotificationData_(msgPayload);
         if (notificationDetails) {
           const notificationTitle = notificationDetails.title || '';
-          return (this.getSWRegistration_() as any)
-          .then((reg) => {
-            return reg.showNotification(
-              notificationTitle,
-              notificationDetails
-            );
+          return (this.getSWRegistration_() as any).then(reg => {
+            return reg.showNotification(notificationTitle, notificationDetails);
           });
         } else if (this.bgMessageHandler_) {
           return this.bgMessageHandler_(msgPayload);
@@ -104,41 +100,38 @@ export default class SWController extends ControllerInterface {
    */
   onSubChange_(event) {
     const promiseChain = this.getSWRegistration_()
-    .then((registration) => {
-      return registration.pushManager.getSubscription()
-      .then((subscription) => {
-        // TODO: Check if it's still valid
+      .then(registration => {
+        return registration.pushManager
+          .getSubscription()
+          .then(subscription => {
+            // TODO: Check if it's still valid
+            // TODO: If not, then update token
+          })
+          .catch(err => {
+            // The best thing we can do is log this to the terminal so
+            // developers might notice the error.
+            const tokenDetailsModel = this.getTokenDetailsModel();
+            return tokenDetailsModel
+              .getTokenDetailsFromSWScope(registration.scope)
+              .then(tokenDetails => {
+                if (!tokenDetails) {
+                  // This should rarely occure, but could if indexedDB
+                  // is corrupted or wiped
+                  throw err;
+                }
 
-        // TODO: If not, then update token
-      })
-      .catch((err) => {
-        // The best thing we can do is log this to the terminal so
-        // developers might notice the error.
-        const tokenDetailsModel = this.getTokenDetailsModel();
-        return tokenDetailsModel.getTokenDetailsFromSWScope(registration.scope)
-        .then((tokenDetails) => {
-          if (!tokenDetails) {
-            // This should rarely occure, but could if indexedDB
-            // is corrupted or wiped
-            throw err;
-          }
-
-          // Attempt to delete the token if we know it's bad
-          return this.deleteToken(tokenDetails['fcmToken'])
-          .then(() => {
-            throw err;
+                // Attempt to delete the token if we know it's bad
+                return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+                  throw err;
+                });
+              });
           });
+      })
+      .catch(err => {
+        throw this.errorFactory_.create(Errors.codes.UNABLE_TO_RESUBSCRIBE, {
+          message: err
         });
       });
-    })
-    .catch((err) => {
-      throw this.errorFactory_.create(
-        Errors.codes.UNABLE_TO_RESUBSCRIBE,
-        {
-          message: err
-        }
-      );
-    });
     /** const promiseChain = this.getToken().then(token => {
       if (!token) {
         // We can't resubscribe if we don't have an FCM token for this scope.
@@ -303,7 +296,10 @@ export default class SWController extends ControllerInterface {
       .then(clientList => {
         let suitableClient = null;
         for (let i = 0; i < clientList.length; i++) {
-          const parsedClientUrl = new URL(clientList[i].url, (self as any).location).href;
+          const parsedClientUrl = new URL(
+            clientList[i].url,
+            (self as any).location
+          ).href;
           if (parsedClientUrl === parsedURL) {
             suitableClient = clientList[i];
             break;
@@ -335,7 +331,6 @@ export default class SWController extends ControllerInterface {
         this.errorFactory_.create(Errors.codes.NO_WINDOW_CLIENT_TO_MSG)
       );
     }
-
 
     client.postMessage(message);
     return Promise.resolve();

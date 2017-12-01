@@ -152,11 +152,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       );
 
       sandbox
-      .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake(token => {
-        assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
-      });
+        .stub(TokenDetailsModel.prototype, 'deleteToken')
+        .callsFake(token => {
+          assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        });
 
       sandbox
         .stub(IIDModel.prototype, 'deleteToken')
@@ -214,13 +214,13 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       );
 
       sandbox
-      .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake(token => {
-        assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
-      });
+        .stub(TokenDetailsModel.prototype, 'deleteToken')
+        .callsFake(token => {
+          assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        });
 
-      const errorMsg = 'messaging/' + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED;;
+      const errorMsg = 'messaging/' + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED;
       sandbox
         .stub(IIDModel.prototype, 'deleteToken')
         .callsFake(() => Promise.reject(new Error(errorMsg)));
@@ -250,11 +250,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       );
 
       sandbox
-      .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake(token => {
-        assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
-      });
+        .stub(TokenDetailsModel.prototype, 'deleteToken')
+        .callsFake(token => {
+          assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        });
 
       sandbox
         .stub(IIDModel.prototype, 'deleteToken')
