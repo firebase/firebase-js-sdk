@@ -100,4 +100,44 @@ export default class IIDModel {
         };
       });
   }
+
+  /**
+   * Given a fcmToken, pushSet and messagingSenderId, delete an FCM token.
+   */
+  deleteToken(senderId: string, fcmToken: string, fcmPushSet: string): Promise<void> {
+    let fcmUnsubscribeBody =
+       `authorized_entity=${senderId}&` +
+       `endpoint=${fcmToken}&` +
+       `pushSet=${fcmPushSet}`;
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+    const unsubscribeOptions = {
+       method: 'POST',
+       headers: headers,
+       body: fcmUnsubscribeBody
+     };
+
+    return fetch(
+       FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
+       unsubscribeOptions
+     )
+       .then(response => {
+         if (!response.ok) {
+           return response.json().then(data => {
+             const fcmTokenResponse = data;
+             const message = fcmTokenResponse['error']['message'];
+             throw this.errorFactory_.create(
+               Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+               {
+                 message: message
+               }
+             );
+           });
+         } else {
+           return Promise.resolve();
+         }
+       });
+  }
 }

@@ -113,14 +113,22 @@ export default class ControllerInterface {
   }
 
   /**
-   * This method deletes tokens that the token manager looks after and then
-   * unregisters the push subscription if it exists.
+   * This method deletes tokens that the token manager looks after,
+   * unsubscribes the token from FCM  and then unregisters the push
+   * subscription if it exists. It returns a promise that indicates
+   * whether or not the unsubscribe request was processed successfully.
    * @export
-   * @param {string} token
-   * @return {Promise<void>}
    */
-  deleteToken(token) {
-    return this.tokenDetailsModel_.deleteToken(token).then(() => {
+  deleteToken(token: string): Promise<Boolean> {
+    return this.tokenDetailsModel_.deleteToken(token)
+      .then(details => {
+        return this.iidModel_.deleteToken(
+          details['fcmSenderId'],
+          details['fcmToken'],
+          details['fcmPushSet']
+        );
+      })
+      .then(() => {
       return this.getSWRegistration_()
         .then(registration => {
           if (registration) {

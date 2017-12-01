@@ -25,7 +25,7 @@ import SWController from '../src/controllers/sw-controller';
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
-describe.only('Firebase Messaging > *SWController', function() {
+describe('Firebase Messaging > *SWController', function() {
   const sandbox = sinon.sandbox.create();
   const originalReg = self['registration'];
   const originalClients = self['clients'];
