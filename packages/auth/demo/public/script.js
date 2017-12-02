@@ -320,8 +320,8 @@ function onSignInWithCustomToken(event) {
   // The token can be directly specified on the html element.
   var token = $('#user-custom-token').val();
 
-  auth.signInWithCustomToken(token)
-      .then(onAuthSuccess, onAuthError);
+  auth.signInAndRetrieveDataWithCustomToken(token)
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 
@@ -329,7 +329,8 @@ function onSignInWithCustomToken(event) {
  * Signs in anonymously.
  */
 function onSignInAnonymously() {
-  auth.signInAnonymously().then(onAuthSuccess, onAuthError);
+  auth.signInAnonymouslyAndRetrieveData()
+      .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
 

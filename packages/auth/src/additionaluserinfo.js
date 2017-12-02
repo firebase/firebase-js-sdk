@@ -130,6 +130,11 @@ fireauth.GenericAdditionalUserInfo = function(info) {
     // This is internal only.
     throw new Error('Invalid additional user info!');
   }
+  // For custom token and anonymous token, set provider ID to null.
+  if (providerId == fireauth.idp.ProviderId.ANONYMOUS ||
+      providerId == fireauth.idp.ProviderId.CUSTOM) {
+      providerId = null;
+  }
   // Check whether user is new. Temporary Solution since backend does not return
   // isNewUser field for SignupNewUserResponse.
   var isNewUser = false;

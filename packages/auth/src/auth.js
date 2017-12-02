@@ -1353,11 +1353,26 @@ fireauth.Auth.prototype.getIdTokenInternal = function(opt_forceRefresh) {
 
 
 /**
- * Sign in using a custom token (Bring Your Own Auth).
+ * Signs in a user asynchronously using a custom token.
  * @param {string} token The custom token to sign in with.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
 fireauth.Auth.prototype.signInWithCustomToken = function(token) {
+  // Get signInAndRetrieveDataWithCustomToken result and return the user only.
+  return this.signInAndRetrieveDataWithCustomToken(token)
+      .then(function(result) {
+        return result['user'];
+      });
+};
+
+
+/**
+ * Signs in a user asynchronously using a custom token and returns any
+ * additional user info data or credentials returned form the backend.
+ * @param {string} token The custom token to sign in with.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(token) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
   // errors like web storage unsupported are detected, fail before RPC, instead
@@ -1371,9 +1386,8 @@ fireauth.Auth.prototype.signInWithCustomToken = function(token) {
     // response will look like an anonymous user (no credentials visible).
     user.updateProperty('isAnonymous', false);
     // Save isAnonymous flag changes to current user in storage.
-    return self.handleUserStateChange_(user);
-  }).then(function() {
-    return self.currentUser_();
+    self.handleUserStateChange_(user);
+    return result;
   });
 };
 
@@ -1489,10 +1503,24 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
 
 
 /**
- * Sign in using anonymously a user.
+ * Signs in a user anonymously.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
 fireauth.Auth.prototype.signInAnonymously = function() {
+  // Get signInAnonymouslyAndRetrieveData result and return the user only.
+  return this.signInAnonymouslyAndRetrieveData()
+      .then(function(result) {
+        return result['user'];
+      });
+};
+
+
+/**
+ * Signs in a user anonymously and returns any additional user info data or
+ * credentials returned form the backend.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
   // errors like web storage unsupported are detected, fail before RPC, instead
@@ -1501,7 +1529,20 @@ fireauth.Auth.prototype.signInAnonymously = function() {
     var user = self.currentUser_();
     // If an anonymous user is already signed in, no need to sign him again.
     if (user && user['isAnonymous']) {
-      return user;
+      var additionalUserInfo = fireauth.object.makeReadonlyCopy({
+        'providerId': null,
+        'isNewUser': false
+      });
+      return fireauth.object.makeReadonlyCopy({
+        // Return the signed in user reference.
+        'user': user,
+        // Do not return credential for anonymous user.
+        'credential': null,
+        // Return any additional IdP data.
+        'additionalUserInfo': additionalUserInfo,
+        // Sign in operation type.
+        'operationType': fireauth.constants.OperationType.SIGN_IN
+      });
     } else {
       // No anonymous user currently signed in.
       return self.signInWithIdTokenProvider_(
@@ -1516,9 +1557,8 @@ fireauth.Auth.prototype.signInAnonymously = function() {
             // overwrites.
             user.updateProperty('isAnonymous', true);
             // Save isAnonymous flag changes to current user in storage.
-            return self.handleUserStateChange_(user);
-          }).then(function() {
-            return self.currentUser_();
+            self.handleUserStateChange_(user);
+            return result;
           });
     }
   });

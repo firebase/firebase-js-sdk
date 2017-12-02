@@ -25,11 +25,14 @@ goog.provide('fireauth.idp.Settings');
 
 
 /**
- * Enums for supported provider IDs.
+ * Enums for supported provider IDs. These provider IDs correspond to the
+ * sign_in_provider in the Firebase ID token and do not correspond to the
+ * supported client exposed firebase.auth.AuthProviders.
  * @enum {string}
  */
 fireauth.idp.ProviderId = {
   ANONYMOUS: 'anonymous',
+  CUSTOM: 'custom',
   FACEBOOK: 'facebook.com',
   FIREBASE: 'firebase',
   GITHUB: 'github.com',

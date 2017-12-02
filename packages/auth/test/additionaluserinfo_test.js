@@ -426,6 +426,88 @@ function testGenericAdditionalUserInfo_fromSignUpNewUserResponse() {
 }
 
 
+function testGenericAdditionalUserInfo_fromAnonymousSignInResponse() {
+  // "iss": "https://securetoken.google.com/12345678",
+  // "provider_id": "anonymous",
+  // "aud": "12345678",
+  // "auth_time": 1510874749,
+  // "user_id": "abcdefghijklmnopqrstu",
+  // "sub": "abcdefghijklmnopqrstu",
+  // "iat": 1510874749,
+  // "exp": 1510878349,
+  // "firebase": { "identities": {},
+  //               "sign_in_provider": "anonymous"}
+  var tokenAnonymous = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
+                       'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
+                       'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
+                       '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
+                       'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
+                       '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
+                       '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
+                       'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  var anonymousSignInResponse = {
+    'kind': 'identitytoolkit#SignupNewUserResponse',
+    'idToken': tokenAnonymous,
+    'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
+    'localId': '123456'
+  };
+  var expectedGenericAdditionalUserInfo = {
+    'isNewUser': true,
+    'providerId': null
+  };
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      anonymousSignInResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfo,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(anonymousSignInResponse));
+
+}
+
+
+function testGenericAdditionalUserInfo_fromCustomTokenSignInResponse() {
+  // "iss": "https://securetoken.google.com/12345678",
+  // "aud": "12345678",
+  // "auth_time": 1511378629,
+  // "user_id": "abcdefghijklmnopqrstu",
+  // "sub": "abcdefghijklmnopqrstu",
+  // "iat": 1511378630,
+  // "exp": 1511382230,
+  // "firebase": { "identities": {},
+  //               "sign_in_provider": "custom"}
+  var tokenCustom = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb2' +
+                    '0vMTIzNDU2NzgiLCJhdWQiOiIxMjM0NTY3OCIsImF1dGhfdGltZSI6M' +
+                    'TUxMTM3ODYyOSwidXNlcl9pZCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0' +
+                    'dSIsInN1YiI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dSIsImlhdCI6MTU' +
+                    'xMTM3ODYzMCwiZXhwIjoxNTExMzgyMjMwLCJmaXJlYmFzZSI6eyJpZG' +
+                    'VudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9L' +
+                    'CJhbGciOiJIUzI1NiJ9.SIGNATURE';
+  var customTokenSignInResponse = {
+    'kind': 'identitytoolkit#VerifyCustomTokenResponse',
+    'idToken': tokenCustom,
+    'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
+    'localId': '123456'
+  };
+  var expectedGenericAdditionalUserInfo = {
+    'isNewUser': false,
+    'providerId': null
+  };
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      customTokenSignInResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfo,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(customTokenSignInResponse));
+
+}
+
+
 function testFederatedAdditionalUserInfo_withProfile() {
   var federatedAdditionalUserInfo =
       new fireauth.FederatedAdditionalUserInfo(facebookVerifyAssertion);

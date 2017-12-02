@@ -115,12 +115,20 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'signInAnonymously',
         args: []
       },
+      signInAnonymouslyAndRetrieveData: {
+        name: 'signInAnonymouslyAndRetrieveData',
+        args: []
+      },
       signInWithCredential: {
         name: 'signInWithCredential',
         args: [fireauth.args.authCredential()]
       },
       signInWithCustomToken: {
         name: 'signInWithCustomToken',
+        args: [fireauth.args.string('token')]
+      },
+      signInAndRetrieveDataWithCustomToken: {
+        name: 'signInAndRetrieveDataWithCustomToken',
         args: [fireauth.args.string('token')]
       },
       signInWithEmailAndPassword: {
