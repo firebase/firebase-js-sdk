@@ -1045,7 +1045,7 @@ firebase.auth.Auth.prototype.useDeviceLanguage = function() {};
  * Creates a new user account associated with the specified email address and
  * password and returns any additional user info data or credentials.
  *
- * This method will be renamed to createUserWithEmailAndPassword replacing
+ * This method will be renamed to `createUserWithEmailAndPassword` replacing
  * the existing method with the same name in the next major version change.
  *
  * On successful creation of the user account, this user will also be
@@ -1100,7 +1100,7 @@ firebase.auth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword = fun
  * password.
  *
  * This method will be deprecated and will be updated to resolve with a
- * firebase.auth.UserCredential as is returned in
+ * `firebase.auth.UserCredential` as is returned in
  * {@link firebase.auth.Auth#createUserAndRetrieveDataWithEmailAndPassword}.
  *
  * On successful creation of the user account, this user will also be
@@ -1443,7 +1443,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function(
  * Signs in a user asynchronously using a custom token and returns any
  * additional user info data or credentials.
  *
- * This method will be renamed to signInWithCustomToken replacing
+ * This method will be renamed to `signInWithCustomToken` replacing
  * the existing method with the same name in the next major version change.
  *
  * Custom tokens are used to integrate Firebase Auth with existing auth systems,
@@ -1484,7 +1484,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(
  * Asynchronously signs in using a custom token.
  *
  * This method will be deprecated and will be updated to resolve with a
- * firebase.auth.UserCredential as is returned in
+ * `firebase.auth.UserCredential` as is returned in
  * {@link firebase.auth.Auth#signInAndRetrieveDataWithCustomToken}.
  *
  * Custom tokens are used to integrate Firebase Auth with existing auth systems,
@@ -1522,7 +1522,7 @@ firebase.auth.Auth.prototype.signInWithCustomToken = function(token) {};
  * Asynchronously signs in using an email and password and returns any additional
  * user info data or credentials.
  *
- * This method will be renamed to signInWithEmailAndPassword replacing
+ * This method will be renamed to `signInWithEmailAndPassword` replacing
  * the existing method with the same name in the next major version change.
  *
  * Fails with an error if the email address and password do not match.
@@ -1575,7 +1575,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword = functio
  * Asynchronously signs in using an email and password.
  *
  * This method will be deprecated and will be updated to resolve with a
- * firebase.auth.UserCredential as is returned in
+ * `firebase.auth.UserCredential` as is returned in
  * {@link firebase.auth.Auth#signInAndRetrieveDataWithEmailAndPassword}.
  *
  * Fails with an error if the email address and password do not match.
@@ -1714,7 +1714,7 @@ firebase.auth.ConfirmationResult.prototype.confirm = function(
  * Signs in a user anonymously and returns any additional user info data or
  * credentials.
  *
- * This method will be renamed to signInAnonymously replacing the existing
+ * This method will be renamed to `signInAnonymously` replacing the existing
  * method with the same name in the next major version change.
  *
  * If there is already an anonymous user signed in, that user with
@@ -1749,7 +1749,7 @@ firebase.auth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {};
  * Asynchronously signs in as an anonymous user.
  *
  * This method will be deprecated and will be updated to resolve with a
- * firebase.auth.UserCredential as is returned in
+ * `firebase.auth.UserCredential` as is returned in
  * {@link firebase.auth.Auth#signInAnonymouslyAndRetrieveData}.
  *
  * If there is already an anonymous user signed in, that user will be returned;
