@@ -5,8 +5,7 @@ The Firebase Web SDK is _officially supported_ in the following environments:
 
 |                   | Auth                                                           | Database | Messaging | Storage              |
 | ----------------- | :------------------------------------------------------------: | :------: | :-------: | :------------------: |
-| IE9               |  ✓                                                             |    ✓     |     ✗     |    ✗                 |
-| IE10-11           |  ✓                                                             |    ✓     |     ✗     |    ✓                 |
+| IE11              |  ✓                                                             |    ✓     |     ✗     |    ✓                 |
 | Edge              |  ✓                                                             |    ✓     |     ✗     |    ✓                 |
 | Firefox           |  ✓                                                             |    ✓     |     ✓     |    ✓                 |
 | Chrome            |  ✓                                                             |    ✓     |     ✓     |    ✓                 |
