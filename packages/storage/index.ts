@@ -87,6 +87,6 @@ declare module '@firebase/app-types' {
     };
   }
   interface FirebaseApp {
-    storage?(): types.FirebaseStorage;
+    storage?(storageBucket?: string): types.FirebaseStorage;
   }
 }

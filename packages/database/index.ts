@@ -70,6 +70,6 @@ declare module '@firebase/app-types' {
     };
   }
   interface FirebaseApp {
-    database?(): types.FirebaseDatabase;
+    database?(databaseURL?: string): types.FirebaseDatabase;
   }
 }

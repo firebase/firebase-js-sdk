@@ -35,16 +35,16 @@ export class FirebaseDatabase {
   private constructor();
 
   app: FirebaseApp;
-  goOffline(): any;
-  goOnline(): any;
+  goOffline(): void;
+  goOnline(): void;
   ref(path?: string): Reference;
   refFromURL(url: string): Reference;
 }
 
 export interface OnDisconnect {
-  cancel(onComplete?: (a: Error | null) => any): Promise<any>;
-  remove(onComplete?: (a: Error | null) => any): Promise<any>;
-  set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
+  cancel(onComplete?: (a: Error | null) => any): Promise<void>;
+  remove(onComplete?: (a: Error | null) => any): Promise<void>;
+  set(value: any, onComplete?: (a: Error | null) => any): Promise<void>;
   setWithPriority(
     value: any,
     priority: number | string | null,
