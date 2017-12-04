@@ -1094,7 +1094,7 @@ firebase.auth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword = fun
 
 /**
  * Creates a new user account associated with the specified email address and
- * password. Will be depercated, replaced by 
+ * password. Will be depercated, replaced by
  * {@link firebase.auth.Auth#createUserAndRetrieveDataWithEmailAndPassword}.
  *
  * On successful creation of the user account, this user will also be
@@ -1468,7 +1468,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function(
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.auth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(
-	token
+  token
 ) {};
 
 /**
@@ -1558,7 +1558,7 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword = functio
 
 /**
  * Asynchronously signs in using an email and password. Will be depercated,
- * replaced by 
+ * replaced by
  * {@link firebase.auth.Auth#signInAndRetrieveDataWithEmailAndPassword}.
  *
  * Fails with an error if the email address and password do not match.
@@ -1697,8 +1697,8 @@ firebase.auth.ConfirmationResult.prototype.confirm = function(
  * Signs in a user anonymously and returns any additional user info data or
  * credentials.
  *
- * If there is already an anonymous user signed in, that user with 
- * additional date will be returned; otherwise, a new anonymous user 
+ * If there is already an anonymous user signed in, that user with
+ * additional date will be returned; otherwise, a new anonymous user
  * identity will be created and returned.
  *
  * <h4>Error Codes</h4>
