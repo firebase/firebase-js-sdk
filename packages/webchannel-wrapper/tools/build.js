@@ -26,7 +26,7 @@ closureBuilder.build({
   options: {
     closure: {
       output_wrapper:
-        "(function() {%output%}).call(typeof window !== 'undefined' ? window : this)",
+        "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})",
       language_out: 'ECMASCRIPT5',
       compilation_level: 'ADVANCED_OPTIMIZATIONS'
     }
