@@ -14,30 +14,24 @@
  * limitations under the License.
  */
 const fetchMock = {
-    jsonOk: function(body: string): Promise<Response> {
-      var mockResponse = new (window as any).Response(
-        body,
-        {
-          status: 200,
-          headers: {
-            'Content-type': 'application/json'
-          }
-        }
-      );
-      return Promise.resolve(mockResponse);
-    },
-    jsonError: function(status: number, msg: string): Promise<Response> {
-      const errorMsg = { error: { message: msg } };
-      var mockResponse = new (window as any).Response(
-        JSON.stringify(errorMsg),
-        {
-          status: status,
-          headers: {
-            'Content-type': 'application/json'
-          }
-        }
-      );
-      return Promise.resolve(mockResponse);
-    }
-  };
-  export { fetchMock };
+  jsonOk: function(body: string): Promise<Response> {
+    var mockResponse = new (window as any).Response(body, {
+      status: 200,
+      headers: {
+        'Content-type': 'application/json'
+      }
+    });
+    return Promise.resolve(mockResponse);
+  },
+  jsonError: function(status: number, msg: string): Promise<Response> {
+    const errorMsg = { error: { message: msg } };
+    var mockResponse = new (window as any).Response(JSON.stringify(errorMsg), {
+      status: status,
+      headers: {
+        'Content-type': 'application/json'
+      }
+    });
+    return Promise.resolve(mockResponse);
+  }
+};
+export { fetchMock };

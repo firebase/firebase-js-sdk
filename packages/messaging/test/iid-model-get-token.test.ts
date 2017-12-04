@@ -26,23 +26,23 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
   const fcmPushSet = '7654321';
   const subscription = makeFakeSubscription();
   const appPubKey = new Uint8Array([
-      255,
-      237,
-      107,
-      177,
-      171,
-      78,
-      84,
-      131,
-      221,
-      231,
-      87,
-      188,
-      22,
-      232,
-      71,
-      15
-    ]).buffer;
+    255,
+    237,
+    107,
+    177,
+    171,
+    78,
+    84,
+    131,
+    221,
+    231,
+    87,
+    188,
+    22,
+    232,
+    71,
+    15
+  ]).buffer;
 
   const sandbox = sinon.sandbox.create();
   let stubedFetch;
@@ -72,8 +72,15 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       token: fcmToken,
       pushSet: fcmPushSet
     };
-    (window as any).fetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-    await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey, fcmPushSet);
+    (window as any).fetch.returns(
+      fetchMock.jsonOk(JSON.stringify(mockResponse))
+    );
+    await globalIIDModel.getToken(
+      fcmSenderId,
+      subscription,
+      appPubKey,
+      fcmPushSet
+    );
   });
 
   it('should handle fetch errors', async function() {
@@ -81,7 +88,12 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const errorMsg = 'invalid token';
     (window as any).fetch.returns(fetchMock.jsonError(400, errorMsg));
     try {
-      await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey, fcmPushSet);
+      await globalIIDModel.getToken(
+        fcmSenderId,
+        subscription,
+        appPubKey,
+        fcmPushSet
+      );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.equal(errorMsg);
@@ -93,12 +105,21 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       pushSet: fcmPushSet
     };
-    (window as any).fetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    (window as any).fetch.returns(
+      fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
+    );
     try {
-      await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey, fcmPushSet);
+      await globalIIDModel.getToken(
+        fcmSenderId,
+        subscription,
+        appPubKey,
+        fcmPushSet
+      );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.message).to.include(Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN]);
+      expect(e.message).to.include(
+        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN]
+      );
     }
   });
 
@@ -107,12 +128,21 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       token: fcmToken
     };
-    (window as any).fetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    (window as any).fetch.returns(
+      fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
+    );
     try {
-      await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey, fcmPushSet);
+      await globalIIDModel.getToken(
+        fcmSenderId,
+        subscription,
+        appPubKey,
+        fcmPushSet
+      );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.message).to.include(Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET]);
+      expect(e.message).to.include(
+        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET]
+      );
     }
   });
 });
