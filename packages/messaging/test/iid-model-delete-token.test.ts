@@ -16,7 +16,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import IIDModel from '../src/models/iid-model';
-import Errors from '../src/models/errors';
+import { fetchMock } from './testing-utils/mock-fetch';
 
 describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const fcmSenderId = '1234567';
@@ -26,34 +26,6 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const sandbox = sinon.sandbox.create();
   let stubedFetch;
   let globalIIDModel;
-
-  const fetchMock = {
-    jsonOk: function() {
-      var mockResponse = new (window as any).Response(
-        {},
-        {
-          status: 200,
-          headers: {
-            'Content-type': 'application/json'
-          }
-        }
-      );
-      return Promise.resolve(mockResponse);
-    },
-    jsonError: function(status, body) {
-      const errorMsg = { error: { message: body } };
-      var mockResponse = new (window as any).Response(
-        JSON.stringify(errorMsg),
-        {
-          status: status,
-          headers: {
-            'Content-type': 'application/json'
-          }
-        }
-      );
-      return Promise.resolve(mockResponse);
-    }
-  };
 
   const cleanUp = () => {
     sandbox.restore();
@@ -75,7 +47,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
 
   it('should delete on valid request', async function() {
     globalIIDModel = new IIDModel();
-    (window as any).fetch.returns(fetchMock.jsonOk());
+    (window as any).fetch.returns(fetchMock.jsonOk(''));
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
   });
 
