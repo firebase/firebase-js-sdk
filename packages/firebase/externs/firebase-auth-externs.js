@@ -1072,16 +1072,16 @@ firebase.auth.Auth.prototype.useDeviceLanguage = function() {};
  * @example
  * firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
  *     .catch(function(error) {
- *   // Handle Errors here.
- *   var errorCode = error.code;
- *   var errorMessage = error.message;
- *   if (errorCode == 'auth/weak-password') {
- *     alert('The password is too weak.');
- *   } else {
- *     alert(errorMessage);
- *   }
- *   console.log(error);
- * });
+ *       // Handle Errors here.
+ *       var errorCode = error.code;
+ *       var errorMessage = error.message;
+ *       if (errorCode == 'auth/weak-password') {
+ *         alert('The password is too weak.');
+ *       } else {
+ *         alert(errorMessage);
+ *       }
+ *       console.log(error);
+ *     });
  *
  * @param {string} email The user's email address.
  * @param {string} password The user's chosen password.
@@ -1536,16 +1536,16 @@ firebase.auth.Auth.prototype.signInWithCustomToken = function(token) {};
  * @example
  * firebase.auth().signInAndRetrieveDataWithEmailAndPassword(email, password)
  *     .catch(function(error) {
- *   // Handle Errors here.
- *   var errorCode = error.code;
- *   var errorMessage = error.message;
- *   if (errorCode === 'auth/wrong-password') {
- *     alert('Wrong password.');
- *   } else {
- *     alert(errorMessage);
- *   }
- *   console.log(error);
- * });
+ *       // Handle Errors here.
+ *       var errorCode = error.code;
+ *       var errorMessage = error.message;
+ *       if (errorCode === 'auth/wrong-password') {
+ *         alert('Wrong password.');
+ *       } else {
+ *         alert(errorMessage);
+ *       }
+ *       console.log(error);
+ *     });
  *
  * @param {string} email The users email address.
  * @param {string} password The users password.
