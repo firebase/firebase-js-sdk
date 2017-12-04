@@ -33,6 +33,10 @@ In addition to Node.js we use `yarn` to facilitate multi package development.
 To install `yarn` follow the instructions listed on their website: 
 https://yarnpkg.com/en/docs/install
 
+#### Java
+
+The closure compiler requires a modern Java installation. Java 8+ should be installed: http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html
+
 #### Verify Prerequisites
 
 You can verify your setup by running the following commands in your terminal:
@@ -40,10 +44,11 @@ You can verify your setup by running the following commands in your terminal:
 ```bash
 $ node -v
 $ yarn -v
+$ java -version
 ```
 
-Your Node.js version should be `8.0.0` or greater and your `yarn` version should
-be `1.0.0` or greater.
+Your Node.js version should be `8.0.0` or greater, your `yarn` version should
+be `1.0.0` or greater, and your `java` version should be `1.8.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however
 for continuing development on the SDK, staying up to date on the stable versions
