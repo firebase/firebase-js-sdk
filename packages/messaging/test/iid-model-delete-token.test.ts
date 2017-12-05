@@ -42,9 +42,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   it('should delete on valid request', async function() {
     globalIIDModel = new IIDModel();
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonOk('')
-    );
+    stubbedFetch.returns(fetchMock.jsonOk(''));
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
     stubbedFetch.restore();
   });
@@ -53,9 +51,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonError(400, errorMsg)
-    );
+    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
       throw new Error('Expected error to be thrown.');

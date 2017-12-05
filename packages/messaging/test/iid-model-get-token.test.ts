@@ -68,9 +68,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       pushSet: fcmPushSet
     };
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonOk(JSON.stringify(mockResponse))
-    );
+    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
     await globalIIDModel.getToken(
       fcmSenderId,
       subscription,
@@ -84,9 +82,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonError(400, errorMsg)
-    );
+    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
@@ -107,9 +103,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       pushSet: fcmPushSet
     };
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
-    );
+    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
@@ -132,9 +126,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       token: fcmToken
     };
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(
-      fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
-    );
+    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
