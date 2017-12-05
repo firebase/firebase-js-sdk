@@ -185,6 +185,9 @@ export class RemoteStore {
     const didChange = this.watchStreamOnlineState !== onlineState;
     this.watchStreamOnlineState = onlineState;
     if (didChange) {
+      if (onlineState == OnlineState.Failed) {
+        log.debug(LOG_TAG, 'Could not reach Firestore backend');
+      }
       this.onlineStateHandler(onlineState);
     }
   }
