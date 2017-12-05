@@ -24,7 +24,6 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const fcmPushSet = '7654321';
 
   const sandbox = sinon.sandbox.create();
-  let stubedFetch;
   let globalIIDModel;
 
   const cleanUp = () => {
@@ -32,34 +31,37 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     globalIIDModel = null;
   };
 
-  before(function() {
-    stubedFetch = sinon.stub(window, 'fetch');
-  });
-
   beforeEach(function() {
     return cleanUp();
   });
 
   after(function() {
-    stubedFetch.restore();
     return cleanUp();
   });
 
   it('should delete on valid request', async function() {
     globalIIDModel = new IIDModel();
-    (window as any).fetch.returns(fetchMock.jsonOk(''));
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
+      fetchMock.jsonOk('')
+    );
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+    stubbedFetch.restore();
   });
 
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    (window as any).fetch.returns(fetchMock.jsonError(400, errorMsg));
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
+      fetchMock.jsonError(400, errorMsg)
+    );
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.equal(errorMsg);
     }
+    stubbedFetch.restore();
   });
 });

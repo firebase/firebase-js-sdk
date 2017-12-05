@@ -53,16 +53,11 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     globalIIDModel = null;
   };
 
-  before(function() {
-    stubedFetch = sinon.stub(window, 'fetch');
-  });
-
   beforeEach(function() {
     return cleanUp();
   });
 
   after(function() {
-    stubedFetch.restore();
     return cleanUp();
   });
 
@@ -72,7 +67,8 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       token: fcmToken,
       pushSet: fcmPushSet
     };
-    (window as any).fetch.returns(
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
       fetchMock.jsonOk(JSON.stringify(mockResponse))
     );
     await globalIIDModel.getToken(
@@ -81,12 +77,16 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       appPubKey,
       fcmPushSet
     );
+    stubbedFetch.restore();
   });
 
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    (window as any).fetch.returns(fetchMock.jsonError(400, errorMsg));
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
+      fetchMock.jsonError(400, errorMsg)
+    );
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
@@ -98,6 +98,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     } catch (e) {
       expect(e.message).to.equal(errorMsg);
     }
+    stubbedFetch.restore();
   });
 
   it('should handle invalid fetch response, no FCM token returned', async function() {
@@ -105,7 +106,8 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       pushSet: fcmPushSet
     };
-    (window as any).fetch.returns(
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
       fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
     );
     try {
@@ -121,6 +123,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
         Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN]
       );
     }
+    stubbedFetch.restore();
   });
 
   it('should handle invalid fetch response, no push set token returned', async function() {
@@ -128,7 +131,8 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       token: fcmToken
     };
-    (window as any).fetch.returns(
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(
       fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
     );
     try {
@@ -144,5 +148,6 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
         Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET]
       );
     }
+    stubbedFetch.restore();
   });
 });
