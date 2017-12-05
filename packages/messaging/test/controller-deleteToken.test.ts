@@ -20,6 +20,7 @@ import makeFakeSWReg from './make-fake-sw-reg';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
+import IIDModel from '../src/models/iid-model';
 import WindowController from '../src/controllers/window-controller';
 import SWController from '../src/controllers/sw-controller';
 
@@ -104,8 +105,12 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       .stub(TokenDetailsModel.prototype, 'deleteToken')
       .callsFake(token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve();
+        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
       });
+
+    sandbox
+      .stub(IIDModel.prototype, 'deleteToken')
+      .callsFake(() => Promise.resolve());
 
     globalMessagingService = new WindowController(app);
     return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -121,8 +126,12 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       .stub(TokenDetailsModel.prototype, 'deleteToken')
       .callsFake(token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve();
+        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
       });
+
+    sandbox
+      .stub(IIDModel.prototype, 'deleteToken')
+      .callsFake(() => Promise.resolve());
 
     globalMessagingService = new WindowController(app);
     return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
@@ -146,8 +155,12 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         .stub(TokenDetailsModel.prototype, 'deleteToken')
         .callsFake(token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve();
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
+
+      sandbox
+        .stub(IIDModel.prototype, 'deleteToken')
+        .callsFake(() => Promise.resolve());
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -169,8 +182,48 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         .stub(TokenDetailsModel.prototype, 'deleteToken')
         .callsFake(token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve();
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
+
+      sandbox
+        .stub(IIDModel.prototype, 'deleteToken')
+        .callsFake(() => Promise.resolve());
+
+      globalMessagingService = new ServiceClass(app);
+      return globalMessagingService
+        .deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
+        .then(
+          () => {
+            throw new Error('Expected this to reject');
+          },
+          err => {
+            assert.equal(errorMsg, err.message);
+          }
+        );
+    });
+
+    it(`should handle error on deleteToken ${ServiceClass.name}`, function() {
+      const fakeSubscription = {
+        endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
+        unsubscribe: () => Promise.resolve()
+      };
+
+      configureRegistrationMocks(
+        ServiceClass,
+        generateFakeReg(Promise.resolve(fakeSubscription))
+      );
+
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'deleteToken')
+        .callsFake(token => {
+          assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        });
+
+      const errorMsg = 'messaging/' + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED;
+      sandbox
+        .stub(IIDModel.prototype, 'deleteToken')
+        .callsFake(() => Promise.reject(new Error(errorMsg)));
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService
@@ -200,8 +253,12 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         .stub(TokenDetailsModel.prototype, 'deleteToken')
         .callsFake(token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve();
+          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
+
+      sandbox
+        .stub(IIDModel.prototype, 'deleteToken')
+        .callsFake(() => Promise.resolve());
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
