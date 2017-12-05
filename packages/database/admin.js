@@ -1,13 +1,13 @@
-const { Reference } = require("./dist/cjs/src/api/Reference");
-const { Query } = require("./dist/cjs/src/api/Query");
-const { Database } = require("./dist/cjs/src/api/Database");
-const { enableLogging } = require("./dist/cjs/src/core/util/util");
-const INTERNAL = require("./dist/cjs/src/api/internal");
-const TEST_ACCESS = require("./dist/cjs/src/api/test_access");
-const RepoManager = require("./dist/cjs/src/core/RepoManager");
+const { Reference } = require('./dist/cjs/src/api/Reference');
+const { Query } = require('./dist/cjs/src/api/Query');
+const { Database } = require('./dist/cjs/src/api/Database');
+const { enableLogging } = require('./dist/cjs/src/core/util/util');
+const INTERNAL = require('./dist/cjs/src/api/internal');
+const TEST_ACCESS = require('./dist/cjs/src/api/test_access');
+const RepoManager = require('./dist/cjs/src/core/RepoManager');
 const firebaseApp = require('@firebase/app');
 
-exports.initStandalone = function (app, url, version) {
+exports.initStandalone = function(app, url, version) {
   const instance = RepoManager.getInstance().databaseFromApp(app, url);
 
   if (version) {
