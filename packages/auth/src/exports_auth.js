@@ -58,6 +58,10 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'createUserWithEmailAndPassword',
         args: [fireauth.args.string('email'), fireauth.args.string('password')]
       },
+      createUserAndRetrieveDataWithEmailAndPassword: {
+        name: 'createUserAndRetrieveDataWithEmailAndPassword',
+        args: [fireauth.args.string('email'), fireauth.args.string('password')]
+      },
       fetchProvidersForEmail: {
         name: 'fetchProvidersForEmail',
         args: [fireauth.args.string('email')]
@@ -111,6 +115,10 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'signInAnonymously',
         args: []
       },
+      signInAnonymouslyAndRetrieveData: {
+        name: 'signInAnonymouslyAndRetrieveData',
+        args: []
+      },
       signInWithCredential: {
         name: 'signInWithCredential',
         args: [fireauth.args.authCredential()]
@@ -119,8 +127,16 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'signInWithCustomToken',
         args: [fireauth.args.string('token')]
       },
+      signInAndRetrieveDataWithCustomToken: {
+        name: 'signInAndRetrieveDataWithCustomToken',
+        args: [fireauth.args.string('token')]
+      },
       signInWithEmailAndPassword: {
         name: 'signInWithEmailAndPassword',
+        args: [fireauth.args.string('email'), fireauth.args.string('password')]
+      },
+      signInAndRetrieveDataWithEmailAndPassword: {
+        name: 'signInAndRetrieveDataWithEmailAndPassword',
         args: [fireauth.args.string('email'), fireauth.args.string('password')]
       },
       signInWithPhoneNumber: {

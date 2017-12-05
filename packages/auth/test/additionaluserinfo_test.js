@@ -73,6 +73,48 @@ var expectedGenericAdditionalUserInfo = {
   'providerId': 'phone'
 };
 
+// "iss": "https://securetoken.google.com/12345678",
+// "picture": "https://plus.google.com/abcdefghijklmnopqrstu",
+// "aud": "12345678",
+// "auth_time": 1510357622,
+// "user_id": "abcdefghijklmnopqrstu",
+// "sub": "abcdefghijklmnopqrstu",
+// "iat": 1510357622,
+// "exp": 1510361222,
+// "email": "user@example.com",
+// "email_verified": true,
+// "firebase": {"identities": {
+//               "email": ["user@example.com"]
+//               }, "sign_in_provider": "password"}
+var tokenEmail = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlL' +
+                 'mNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5' +
+                 'nb29nbGUuY29tL2FiY2RlZmdoaWprbG1ub3BxcnN0dSIsDQogICJhdWQiO' +
+                 'iAiMTIzNDU2NzgiLA0KICAiYXV0aF90aW1lIjogMTUxMDM1NzYyMiwNCiA' +
+                 'gInVzZXJfaWQiOiAiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwNCiAgInN1Y' +
+                 'iI6ICJhYmNkZWZnaGlqa2xtbm9wcXJzdHUiLA0KICAiaWF0IjogMTUxMDM' +
+                 '1NzYyMiwNCiAgImV4cCI6IDE1MTAzNjEyMjIsDQogICJlbWFpbCI6ICJ1c' +
+                 '2VyQGV4YW1wbGUuY29tIiwNCiAgImVtYWlsX3ZlcmlmaWVkIjogdHJ1ZSw' +
+                 'NCiAgImZpcmViYXNlIjogew0KICAgICJpZGVudGl0aWVzIjogew0KICAgI' +
+                 'CAgImVtYWlsIjogWw0KICAgICAgICAidXNlckBleGFtcGxlLmNvbSINCiA' +
+                 'gICAgIF0NCiAgICB9LA0KICAgICJzaWduX2luX3Byb3ZpZGVyIjogInBhc' +
+                 '3N3b3JkIg0KICB9DQp9.SIGNATURE';
+
+// SignupNewUserResponse response without isNewUser field.
+var signUpNewUserResponse = {
+  'kind': 'identitytoolkit#SignupNewUserResponse',
+  'idToken': tokenEmail,
+  'refreshToken': 'REFRESH_TOKEN',
+  'expiresIn': '3600',
+  'localId': '123456'
+};
+
+// Expected generic additional user info object for the above signUpNewUser
+// response.
+var expectedGenericAdditionalUserInfoForSignUpNewUser = {
+  'isNewUser': true,
+  'providerId': 'password'
+};
+
 // Typical minimal verifyAssertion response for generic IdP user with no profile
 // data.
 var noProfileVerifyAssertion = {
@@ -368,6 +410,101 @@ function testGenericAdditionalUserInfo() {
   assertObjectEquals(
       genericAdditionalUserInfo,
       fireauth.AdditionalUserInfo.fromPlainObject(verifyPhoneNumberResponse));
+}
+
+
+
+function testGenericAdditionalUserInfo_fromSignUpNewUserResponse() {
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      signUpNewUserResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfoForSignUpNewUser,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(signUpNewUserResponse));
+}
+
+
+function testGenericAdditionalUserInfo_fromAnonymousSignInResponse() {
+  // "iss": "https://securetoken.google.com/12345678",
+  // "provider_id": "anonymous",
+  // "aud": "12345678",
+  // "auth_time": 1510874749,
+  // "user_id": "abcdefghijklmnopqrstu",
+  // "sub": "abcdefghijklmnopqrstu",
+  // "iat": 1510874749,
+  // "exp": 1510878349,
+  // "firebase": { "identities": {},
+  //               "sign_in_provider": "anonymous"}
+  var tokenAnonymous = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
+                       'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
+                       'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
+                       '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
+                       'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
+                       '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
+                       '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
+                       'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  var anonymousSignInResponse = {
+    'kind': 'identitytoolkit#SignupNewUserResponse',
+    'idToken': tokenAnonymous,
+    'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
+    'localId': '123456'
+  };
+  var expectedGenericAdditionalUserInfo = {
+    'isNewUser': true,
+    'providerId': null
+  };
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      anonymousSignInResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfo,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(anonymousSignInResponse));
+
+}
+
+
+function testGenericAdditionalUserInfo_fromCustomTokenSignInResponse() {
+  // "iss": "https://securetoken.google.com/12345678",
+  // "aud": "12345678",
+  // "auth_time": 1511378629,
+  // "user_id": "abcdefghijklmnopqrstu",
+  // "sub": "abcdefghijklmnopqrstu",
+  // "iat": 1511378630,
+  // "exp": 1511382230,
+  // "firebase": { "identities": {},
+  //               "sign_in_provider": "custom"}
+  var tokenCustom = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb2' +
+                    '0vMTIzNDU2NzgiLCJhdWQiOiIxMjM0NTY3OCIsImF1dGhfdGltZSI6M' +
+                    'TUxMTM3ODYyOSwidXNlcl9pZCI6ImFiY2RlZmdoaWprbG1ub3BxcnN0' +
+                    'dSIsInN1YiI6ImFiY2RlZmdoaWprbG1ub3BxcnN0dSIsImlhdCI6MTU' +
+                    'xMTM3ODYzMCwiZXhwIjoxNTExMzgyMjMwLCJmaXJlYmFzZSI6eyJpZG' +
+                    'VudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9L' +
+                    'CJhbGciOiJIUzI1NiJ9.SIGNATURE';
+  var customTokenSignInResponse = {
+    'kind': 'identitytoolkit#VerifyCustomTokenResponse',
+    'idToken': tokenCustom,
+    'refreshToken': 'REFRESH_TOKEN',
+    'expiresIn': '3600',
+    'localId': '123456'
+  };
+  var expectedGenericAdditionalUserInfo = {
+    'isNewUser': false,
+    'providerId': null
+  };
+  var genericAdditionalUserInfo = new fireauth.GenericAdditionalUserInfo(
+      customTokenSignInResponse);
+  assertObjectEquals(
+      expectedGenericAdditionalUserInfo,
+      genericAdditionalUserInfo);
+  assertObjectEquals(
+      genericAdditionalUserInfo,
+      fireauth.AdditionalUserInfo.fromPlainObject(customTokenSignInResponse));
+
 }
 
 
