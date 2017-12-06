@@ -31,14 +31,14 @@ rebuild_sdk() {
 # Update Package Versions
 case $STAGING in
   (true)    
-    lerna publish --skip-npm --skip-git --scope @firebase/* --scope firebase
+    lerna publish --skip-npm --skip-git --exact
     rebuild_sdk
     pushd "$ROOT/packages/firebase"
     npm pack
     mv *.tgz "$ROOT"
     ;;
   (false)   
-    lerna publish --skip-npm --scope @firebase/* --scope firebase
+    lerna publish --skip-npm --exact
     rebuild_sdk
     ;;
   (*) 
