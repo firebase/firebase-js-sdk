@@ -128,6 +128,9 @@ export class RemoteStore {
   /** A count of consecutive failures to open the stream. */
   private watchStreamFailures = 0;
 
+  /** Whether the client should fire offline warning. */
+  private shouldWarnOffline = true;
+
   constructor(
     private databaseInfo: DatabaseInfo,
     private asyncQueue: AsyncQueue,
@@ -153,6 +156,7 @@ export class RemoteStore {
   }
 
   private setOnlineStateToHealthy(): void {
+    this.shouldWarnOffline = false;
     this.updateAndBroadcastOnlineState(OnlineState.Healthy);
   }
 
@@ -176,6 +180,10 @@ export class RemoteStore {
     } else {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= ONLINE_ATTEMPTS_BEFORE_FAILURE) {
+        if (this.shouldWarnOffline) {
+          log.debug(LOG_TAG, 'Could not reach Firestore backend.');
+          this.shouldWarnOffline = false;
+        }
         this.updateAndBroadcastOnlineState(OnlineState.Failed);
       }
     }
