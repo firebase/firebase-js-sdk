@@ -129,7 +129,7 @@ export class RemoteStore {
   private watchStreamFailures = 0;
 
   /** Whether the client should fire offline warning. */
-  private boolean shouldWarnOffline = true;
+  private shouldWarnOffline = true;
 
   constructor(
     private databaseInfo: DatabaseInfo,
