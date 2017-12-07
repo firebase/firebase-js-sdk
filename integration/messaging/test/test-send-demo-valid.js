@@ -128,7 +128,7 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
 
         const response = await makeFCMAPICall(ENDPOINT, {
           to: token,
-          notification: notification,
+          notification: notification
         });
         expect(response).to.exist;
         expect(response.success).to.equal(1);
@@ -139,7 +139,7 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
         expect(receivedMessage[0]).to.deep.equal({
           collapse_key: 'do_not_collapse',
           from: '153517668099',
-          notification: notification,
+          notification: notification
         });
       });
 
@@ -159,7 +159,7 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
         const response = await makeFCMAPICall(ENDPOINT, {
           to: token,
           data: data,
-          notification: notification,
+          notification: notification
         });
         expect(response).to.exist;
         expect(response.success).to.equal(1);
@@ -171,7 +171,7 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
           collapse_key: 'do_not_collapse',
           from: '153517668099',
           data: data,
-          notification: notification,
+          notification: notification
         });
       });
     });
