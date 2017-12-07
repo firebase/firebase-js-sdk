@@ -63,14 +63,17 @@ describe('Firebase Messaging Integration Tests > Empty Message', function() {
     }
 
     it(`should send an empty messge and be recieved by the SDK [${assistantBrowser.getPrettyName()}]`, async function() {
-      assistantBrowser = setupNotificationPermission(assistantBrowser, testServer.serverAddress);
+      assistantBrowser = setupNotificationPermission(
+        assistantBrowser,
+        testServer.serverAddress
+      );
       globalWebDriver = await assistantBrowser.getSeleniumDriver();
       await globalWebDriver.get(`${testServer.serverAddress}/demo-valid/`);
       const token = await getFCMToken(globalWebDriver);
       expect(token).to.exist;
 
       const response = await makeFCMAPICall(ENDPOINT, {
-        to: token,
+        to: token
       });
       expect(response).to.exist;
       expect(response.success).to.equal(1);
@@ -80,10 +83,10 @@ describe('Firebase Messaging Integration Tests > Empty Message', function() {
       expect(receivedMessage.length).to.equal(1);
       expect(receivedMessage[0]).to.deep.equal({
         collapse_key: 'do_not_collapse',
-        from: '153517668099',
+        from: '153517668099'
       });
 
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         setTimeout(resolve, 10 * 1000);
       });
     });

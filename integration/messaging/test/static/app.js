@@ -29,17 +29,17 @@ class DemoApp {
    */
   constructor() {
     this._token = null;
-    this._errors = []
+    this._errors = [];
     this._messages = [];
 
     // Initialize Firebase
     var config = {
-      apiKey: "AIzaSyA_hMf2etaedqV5eJC9Hyv7_YoA3zJIKhc",
-      authDomain: "fcm-sdk-testing.firebaseapp.com",
-      databaseURL: "https://fcm-sdk-testing.firebaseio.com",
-      projectId: "fcm-sdk-testing",
-      storageBucket: "fcm-sdk-testing.appspot.com",
-      messagingSenderId: "153517668099"
+      apiKey: 'AIzaSyA_hMf2etaedqV5eJC9Hyv7_YoA3zJIKhc',
+      authDomain: 'fcm-sdk-testing.firebaseapp.com',
+      databaseURL: 'https://fcm-sdk-testing.firebaseio.com',
+      projectId: 'fcm-sdk-testing',
+      storageBucket: 'fcm-sdk-testing.appspot.com',
+      messagingSenderId: '153517668099'
     };
     firebase.initializeApp(config);
 
@@ -60,7 +60,7 @@ class DemoApp {
         console.log('getToken() worked: ', token);
         this._token = token;
       },
-      (err) => {
+      err => {
         console.log('getToken() failed: ', err.message, err.stack);
         this._errors.push(err);
         this._token = null;

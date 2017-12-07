@@ -15,6 +15,7 @@
  */
 
 const testServer = require('./test-server');
-testServer.start()
-.then(() => console.log(`Test server: ${testServer.serverAddress}`))
-.catch((err) => console.error(err));
+testServer
+  .start()
+  .then(() => console.log(`Test server: ${testServer.serverAddress}`))
+  .catch(err => console.error(err));
