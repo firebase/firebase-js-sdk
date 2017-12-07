@@ -4494,6 +4494,54 @@ function testGetAuthUri_error() {
 
 
 /**
+ * Tests getAuthUri response without authUri field.
+ */
+function testGetAuthUri_error_noAuthUri() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  // getAuthUri response without authUri field.
+  var expectedResponse = {
+    'providerId': 'google.com',
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'SESSION_ID'
+  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR,
+      'Unable to determine the authorization endpoint for the specified '+
+      'provider. This may be an issue in the provider configuration.');
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'identifier': 'user@example.com',
+        'providerId': 'google.com',
+        'continueUri': 'http://localhost/widget',
+        'customParameter': expectedCustomParameters,
+        'oauthScope': goog.json.serialize({
+          'google.com': 'scope1,scope2,scope3'
+        })
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.getAuthUri(
+      'google.com',
+      'http://localhost/widget',
+      expectedCustomParameters,
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests successful sendVerificationCode RPC call.
  */
 function testSendVerificationCode_success() {
