@@ -282,6 +282,7 @@ export class FirestoreClient {
         );
 
         const onlineStateChangedHandler = (onlineState: OnlineState) => {
+          this.syncEngine.applyOnlineStateChange(onlineState);
           this.eventMgr.onOnlineStateChanged(onlineState);
         };
 

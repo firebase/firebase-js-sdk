@@ -228,15 +228,26 @@ export class RemoteStore {
         this.startWatchStream();
       }
 
-      this.updateAndBroadcastOnlineState(OnlineState.Unknown);
+      this.setOnlineStateToUnknown();
 
       return this.fillWritePipeline(); // This may start the writeStream.
     });
   }
 
-  /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
-  disableNetwork(): Promise<void> {
-    this.updateAndBroadcastOnlineState(OnlineState.Failed);
+  /**
+   * Temporarily disables the network. The network can be re-enabled using
+   * enableNetwork(). By default this will also update (and broadcast) our
+   * onlineState to OnlineState.Failed. If this should not happen (e.g. because
+   * this is being called as part of shutdown logic or because we're going to
+   * immediately re-enable the network), pass `true` for
+   * suppressOnlineStateFailure.
+   */
+  disableNetwork(suppressOnlineStateFailure?: boolean): Promise<void> {
+    if (suppressOnlineStateFailure) {
+      this.setOnlineStateToUnknown();
+    } else {
+      this.updateAndBroadcastOnlineState(OnlineState.Failed);
+    }
 
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close
     // event).
@@ -254,7 +265,7 @@ export class RemoteStore {
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    this.disableNetwork();
+    this.disableNetwork(/*suppressOnlineStateFailure=*/ true);
     return Promise.resolve(undefined);
   }
 
@@ -801,7 +812,7 @@ export class RemoteStore {
     // Tear down and re-create our network streams. This will ensure we get a fresh auth token
     // for the new user and re-fill the write pipeline with new mutations from the LocalStore
     // (since mutations are per-user).
-    this.disableNetwork();
+    this.disableNetwork(/*suppressOnlineStateFailure=*/ true);
     return this.enableNetwork();
   }
 }

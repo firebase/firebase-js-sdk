@@ -42,7 +42,7 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, ProtoByteString, TargetId } from './types';
+import { BatchId, ProtoByteString, TargetId, OnlineState } from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -341,6 +341,25 @@ export class SyncEngine implements RemoteSyncer {
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
+  }
+
+  /**
+   * Applies an OnlineState change to the sync engine and notifies any views of
+   * the change.
+   */
+  applyOnlineStateChange(onlineState: OnlineState) {
+    const newViewSnapshots = [] as ViewSnapshot[];
+    this.queryViewsByQuery.forEach((_, queryView) => {
+      const viewSnap = queryView.view.applyOnlineStateChange(onlineState);
+      assert(
+        viewSnap.limboChanges.length === 0,
+        'OnlineState should not affect limbo documents.'
+      );
+      if (viewSnap.snapshot) {
+        newViewSnapshots.push(viewSnap.snapshot);
+      }
+    });
+    this.viewHandler(newViewSnapshots);
   }
 
   rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
