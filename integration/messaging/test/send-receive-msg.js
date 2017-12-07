@@ -46,6 +46,8 @@ describe.skip('Firebase Messaging Integration Tests', () => {
 
       before(function() {
         this.timeout(10 * 1000);
+
+
       });
 
       after(function() {
@@ -167,14 +169,6 @@ describe.skip('Firebase Messaging Integration Tests', () => {
             throw err;
           });
       };
-
-      it('should send and receive messages with no payload', function() {
-        return performTest(null, null, this);
-      });
-
-      it('should send and receive messages with data payload', function() {
-        return performTest({ hello: 'world' }, null, this);
-      });
 
       it('should send and receive messages with notification payload', function() {
         return performTest(

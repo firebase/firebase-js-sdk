@@ -27,7 +27,7 @@ const getReceivedMessages = require('./utils/getReceivedMessages');
 //const ENDPOINT = 'https://fcm.googleapis.com';
 const ENDPOINT = 'https://jmt17.google.com';
 
-describe('Firebase Messaging Integration Tests > Empty Message', function() {
+describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
   this.timeout(30 * 1000);
   if (process.env.TRAVIS) {
     this.retries(2);
@@ -41,10 +41,6 @@ describe('Firebase Messaging Integration Tests > Empty Message', function() {
 
   before(async function() {
     await testServer.start();
-  });
-
-  beforeEach(async function() {
-    await cleanUp();
   });
 
   after(async function() {
@@ -62,32 +58,89 @@ describe('Firebase Messaging Integration Tests > Empty Message', function() {
       return;
     }
 
-    it(`should send an empty messge and be recieved by the SDK [${assistantBrowser.getPrettyName()}]`, async function() {
-      assistantBrowser = setupNotificationPermission(
-        assistantBrowser,
-        testServer.serverAddress
-      );
-      globalWebDriver = await assistantBrowser.getSeleniumDriver();
-      await globalWebDriver.get(`${testServer.serverAddress}/demo-valid/`);
-      const token = await getFCMToken(globalWebDriver);
-      expect(token).to.exist;
+    describe(`${assistantBrowser.getPrettyName()}`, function() {
+      beforeEach(async function() {
+        await cleanUp();
 
-      const response = await makeFCMAPICall(ENDPOINT, {
-        to: token
-      });
-      expect(response).to.exist;
-      expect(response.success).to.equal(1);
+        assistantBrowser = setupNotificationPermission(
+          assistantBrowser,
+          testServer.serverAddress
+        );
 
-      const receivedMessage = await getReceivedMessages(globalWebDriver);
-      expect(receivedMessage).to.exist;
-      expect(receivedMessage.length).to.equal(1);
-      expect(receivedMessage[0]).to.deep.equal({
-        collapse_key: 'do_not_collapse',
-        from: '153517668099'
+        globalWebDriver = await assistantBrowser.getSeleniumDriver();
+
+        await globalWebDriver.get(`${testServer.serverAddress}/demo-valid/`);
       });
 
-      await new Promise(resolve => {
-        setTimeout(resolve, 10 * 1000);
+      it(`should send an empty messge and be recieved by the SDK`, async function() {
+        const token = await getFCMToken(globalWebDriver);
+        expect(token).to.exist;
+
+        const response = await makeFCMAPICall(ENDPOINT, {
+          to: token
+        });
+        expect(response).to.exist;
+        expect(response.success).to.equal(1);
+
+        const receivedMessage = await getReceivedMessages(globalWebDriver);
+        expect(receivedMessage).to.exist;
+        expect(receivedMessage.length).to.equal(1);
+        expect(receivedMessage[0]).to.deep.equal({
+          collapse_key: 'do_not_collapse',
+          from: '153517668099'
+        });
+      });
+
+      it(`should send a data only messge and be recieved by the SDK`, async function() {
+        const token = await getFCMToken(globalWebDriver);
+        expect(token).to.exist;
+
+        const data = { hello: 'world' };
+
+        const response = await makeFCMAPICall(ENDPOINT, {
+          to: token,
+          data: data,
+        });
+        expect(response).to.exist;
+        expect(response.success).to.equal(1);
+
+        const receivedMessage = await getReceivedMessages(globalWebDriver);
+        expect(receivedMessage).to.exist;
+        expect(receivedMessage.length).to.equal(1);
+        expect(receivedMessage[0]).to.deep.equal({
+          collapse_key: 'do_not_collapse',
+          from: '153517668099',
+          data: data,
+        });
+      });
+
+      it(`should send a notification only messge and be recieved by the SDK`, async function() {
+        const token = await getFCMToken(globalWebDriver);
+        expect(token).to.exist;
+
+        const notification = {
+          title: 'Test Title',
+          body: 'Test Body',
+          icon: '/test/icon.png',
+          click_action: '/',
+          tag: 'test-tag',
+        };
+
+        const response = await makeFCMAPICall(ENDPOINT, {
+          to: token,
+          notification,
+        });
+        expect(response).to.exist;
+        expect(response.success).to.equal(1);
+
+        const receivedMessage = await getReceivedMessages(globalWebDriver);
+        expect(receivedMessage).to.exist;
+        expect(receivedMessage.length).to.equal(1);
+        expect(receivedMessage[0]).to.deep.equal({
+          collapse_key: 'do_not_collapse',
+          from: '153517668099',
+          notification,
+        });
       });
     });
   });
