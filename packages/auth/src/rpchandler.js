@@ -810,8 +810,11 @@ fireauth.RpcHandler.getAdditionalScopes_ =
  * @private
  */
 fireauth.RpcHandler.validateGetAuthResponse_ = function(response) {
-  if (!response[fireauth.RpcHandler.AuthServerField.AUTH_URI] ||
-      !response[fireauth.RpcHandler.AuthServerField.SESSION_ID]) {
+  if (!response[fireauth.RpcHandler.AuthServerField.AUTH_URI]) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
+        'Unable to determine the authorization endpoint for the specified '+
+        'provider. This may be an issue in the provider configuration.');
+  } else if ( !response[fireauth.RpcHandler.AuthServerField.SESSION_ID]) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };
