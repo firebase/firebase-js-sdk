@@ -128,7 +128,7 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
 
         const response = await makeFCMAPICall(ENDPOINT, {
           to: token,
-          notification
+          notification: notification,
         });
         expect(response).to.exist;
         expect(response.success).to.equal(1);
