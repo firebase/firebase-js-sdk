@@ -215,10 +215,8 @@ export type Persistence = string;
 export interface OAuthCredential extends AuthCredential {
   idToken?: string;
   accessToken?: string;
-  secret?: string; 
+  secret?: string;
 }
-
-
 
 export class FirebaseAuth {
   private constructor();
@@ -234,7 +232,10 @@ export class FirebaseAuth {
   checkActionCode(code: string): Promise<any>;
   confirmPasswordReset(code: string, newPassword: string): Promise<any>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<any>;
-  createUserAndRetrieveDataWithEmailAndPassword(email: string, password: string): Promise<any>;
+  createUserAndRetrieveDataWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<any>;
   currentUser: User | null;
   fetchProvidersForEmail(email: string): Promise<any>;
   getRedirectResult(): Promise<any>;
@@ -261,7 +262,10 @@ export class FirebaseAuth {
   signInWithCustomToken(token: string): Promise<any>;
   signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
   signInWithEmailAndPassword(email: string, password: string): Promise<any>;
-  signInAndRetrieveDataWithEmailAndPassword(email: string, password: string): Promise<any>;
+  signInAndRetrieveDataWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<any>;
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
