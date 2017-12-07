@@ -234,6 +234,7 @@ export class FirebaseAuth {
   checkActionCode(code: string): Promise<any>;
   confirmPasswordReset(code: string, newPassword: string): Promise<any>;
   createUserWithEmailAndPassword(email: string, password: string): Promise<any>;
+  createUserAndRetrieveDataWithEmailAndPassword(email: string, password: string): Promise<any>;
   currentUser: User | null;
   fetchProvidersForEmail(email: string): Promise<any>;
   getRedirectResult(): Promise<any>;
@@ -255,9 +256,12 @@ export class FirebaseAuth {
   setPersistence(persistence: Persistence): Promise<any>;
   signInAndRetrieveDataWithCredential(credential: AuthCredential): Promise<any>;
   signInAnonymously(): Promise<any>;
+  signInAnonymouslyAndRetrieveData(): Promise<any>;
   signInWithCredential(credential: AuthCredential): Promise<any>;
   signInWithCustomToken(token: string): Promise<any>;
+  signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
   signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+  signInAndRetrieveDataWithEmailAndPassword(email: string, password: string): Promise<any>;
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
