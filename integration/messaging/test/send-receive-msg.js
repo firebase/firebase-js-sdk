@@ -46,8 +46,6 @@ describe.skip('Firebase Messaging Integration Tests', () => {
 
       before(function() {
         this.timeout(10 * 1000);
-
-
       });
 
       after(function() {
