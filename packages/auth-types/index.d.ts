@@ -153,6 +153,13 @@ export class GoogleAuthProvider_Instance implements AuthProvider {
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
+export class OAuthProvider implements AuthProvider {
+  providerId: string;
+  addScope(scope: string): AuthProvider;
+  credential(idToken?: string, accessToken?: string): OAuthCredential;
+  setCustomParameters(customOAuthParameters: Object): AuthProvider;
+}
+
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
   static PROVIDER_ID: string;
   static credential(
@@ -204,6 +211,14 @@ export interface UserMetadata {
 }
 
 export type Persistence = string;
+
+export interface OAuthCredential extends AuthCredential {
+  idToken?: string;
+  accessToken?: string;
+  secret?: string; 
+}
+
+
 
 export class FirebaseAuth {
   private constructor();
@@ -267,6 +282,7 @@ declare module '@firebase/app-types' {
       GithubAuthProvider_Instance: typeof GithubAuthProvider_Instance;
       GoogleAuthProvider: typeof GoogleAuthProvider;
       GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
+      OAuthProvider: typeof OAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
       RecaptchaVerifier: typeof RecaptchaVerifier;
