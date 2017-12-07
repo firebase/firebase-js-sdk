@@ -68,23 +68,24 @@ describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' 
     await cleanUp();
   });
 
-  let assistantBrowser = seleniumAssistant.getLocalBrowser('chrome', 'stable')
+  let assistantBrowser = seleniumAssistant.getLocalBrowser('chrome', 'stable');
 
   it(`should use default SW by default`, async function() {
-    await globalWebDriver.get(
-      `${testServer.serverAddress}/${demoInfo.name}/`
-    );
+    await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
 
     // If we have a token, then we know the default SW worked.
     const token = await getFCMToken(globalWebDriver);
     expect(token).to.exist;
 
     const result = await globalWebDriver.executeAsyncScript(function(cb) {
-      navigator.serviceWorker.getRegistrations()
-      .then((regs) => {
-        return regs[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !== 0;
-      })
-      .then(cb, cb);
+      navigator.serviceWorker
+        .getRegistrations()
+        .then(regs => {
+          return (
+            regs[0].scope.indexOf('/firebase-cloud-messaging-push-scope') !== 0
+          );
+        })
+        .then(cb, cb);
     });
     expect(result).to.equal(true);
   });
