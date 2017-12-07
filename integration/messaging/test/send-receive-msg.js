@@ -20,11 +20,12 @@ const seleniumChrome = require('selenium-webdriver/chrome');
 const fetch = require('node-fetch');
 const expect = require('chai').expect;
 
-const testServer = require('./static/test-server.js');
+const testServer = require('./utils/test-server.js');
 
-const PROD_ENDPOINT = 'https://fcm.googleapis.com';
+//const ENDPOINT = 'https://fcm.googleapis.com';
+const ENDPOINT = 'https://jmt17.google.com';
 
-describe('Firebase Messaging Integration Tests', () => {
+describe.skip('Firebase Messaging Integration Tests', () => {
   before(function() {
     return testServer.start();
   });
@@ -46,48 +47,7 @@ describe('Firebase Messaging Integration Tests', () => {
       before(function() {
         this.timeout(10 * 1000);
 
-        // Configure the notification permissions
-        switch (seleniumBrowser.getId()) {
-          case 'firefox': {
-            const ffProfile = new seleniumFirefox.Profile();
-            ffProfile.setPreference(
-              'security.turn_off_all_security_so_that_' +
-                'viruses_can_take_over_this_computer',
-              true
-            );
-            ffProfile.setPreference('dom.push.testing.ignorePermission', true);
-            ffProfile.setPreference('notification.prompt.testing', true);
-            ffProfile.setPreference('notification.prompt.testing.allow', true);
-            seleniumBrowser.getSeleniumOptions().setProfile(ffProfile);
-            break;
-          }
-          case 'chrome': {
-            /* eslint-disable camelcase */
-            const chromePreferences = {
-              profile: {
-                content_settings: {
-                  exceptions: {
-                    notifications: {}
-                  }
-                }
-              }
-            };
-            chromePreferences.profile.content_settings.exceptions.notifications[
-              testServer.serverAddress + ',*'
-            ] = {
-              setting: 1
-            };
-            seleniumBrowser
-              .getSeleniumOptions()
-              .setUserPreferences(chromePreferences);
-            /* eslint-enable camelcase */
-            break;
-          }
-        }
 
-        return seleniumBrowser.getSeleniumDriver().then(driver => {
-          currentWebDriver = driver;
-        });
       });
 
       after(function() {
