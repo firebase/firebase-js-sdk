@@ -139,7 +139,39 @@ describe('Firebase Messaging Integration Tests > /demo-valid/', function() {
         expect(receivedMessage[0]).to.deep.equal({
           collapse_key: 'do_not_collapse',
           from: '153517668099',
-          notification
+          notification: notification,
+        });
+      });
+
+      it(`should send a notification and data messge and be recieved by the SDK`, async function() {
+        const token = await getFCMToken(globalWebDriver);
+        expect(token).to.exist;
+
+        const data = { hello: 'world' };
+        const notification = {
+          title: 'Test Title',
+          body: 'Test Body',
+          icon: '/test/icon.png',
+          click_action: '/',
+          tag: 'test-tag'
+        };
+
+        const response = await makeFCMAPICall(ENDPOINT, {
+          to: token,
+          data: data,
+          notification: notification,
+        });
+        expect(response).to.exist;
+        expect(response.success).to.equal(1);
+
+        const receivedMessage = await getReceivedMessages(globalWebDriver);
+        expect(receivedMessage).to.exist;
+        expect(receivedMessage.length).to.equal(1);
+        expect(receivedMessage[0]).to.deep.equal({
+          collapse_key: 'do_not_collapse',
+          from: '153517668099',
+          data: data,
+          notification: notification,
         });
       });
     });
