@@ -51,18 +51,20 @@ class DemoApp {
     });
 
     // Initializa state of token
-    this._messaging.requestPermission()
-    .then(() => this._messaging.getToken())
-    .then(token => {
-        console.log('getToken() worked: ', token);
-        this._token = token;
-      },
-      err => {
-        console.log('getToken() failed: ', err.message, err.stack);
-        this._errors.push(err);
-        this._token = null;
-      }
-    );
+    this._messaging
+      .requestPermission()
+      .then(() => this._messaging.getToken())
+      .then(
+        token => {
+          console.log('getToken() worked: ', token);
+          this._token = token;
+        },
+        err => {
+          console.log('getToken() failed: ', err.message, err.stack);
+          this._errors.push(err);
+          this._token = null;
+        }
+      );
   }
 
   get token() {

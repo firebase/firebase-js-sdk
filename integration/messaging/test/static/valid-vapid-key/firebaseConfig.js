@@ -1,10 +1,10 @@
 const config = {
-  apiKey: "AIzaSyCaSnFca0oG_b-t-s_p9wRdr9o9aSPmolE",
-  authDomain: "fcm-sdk-testing-vapid-key.firebaseapp.com",
-  databaseURL: "https://fcm-sdk-testing-vapid-key.firebaseio.com",
-  projectId: "fcm-sdk-testing-vapid-key",
-  storageBucket: "",
-  messagingSenderId: "650229866790"
+  apiKey: 'AIzaSyCaSnFca0oG_b-t-s_p9wRdr9o9aSPmolE',
+  authDomain: 'fcm-sdk-testing-vapid-key.firebaseapp.com',
+  databaseURL: 'https://fcm-sdk-testing-vapid-key.firebaseio.com',
+  projectId: 'fcm-sdk-testing-vapid-key',
+  storageBucket: '',
+  messagingSenderId: '650229866790'
 };
 
 if (this['window']) {

@@ -31,12 +31,14 @@ const DEMOS = [
   {
     name: 'valid-no-vapid-key',
     senderId: '660737059320',
-    apiKey: 'AAAAmdb_afg:APA91bEa0scOaRxp1G-Rg5DGML1fm34LNm97hjAIT-KETrpm33B8Q3HK5xlqheX6l2i7CPHxAMxy06WK9pQIy-jl5UGVpl66b8ZnDc_2qzs8b7jmCnBIjqr7m35-NoGXI9WvAtFgoOVA',
+    apiKey:
+      'AAAAmdb_afg:APA91bEa0scOaRxp1G-Rg5DGML1fm34LNm97hjAIT-KETrpm33B8Q3HK5xlqheX6l2i7CPHxAMxy06WK9pQIy-jl5UGVpl66b8ZnDc_2qzs8b7jmCnBIjqr7m35-NoGXI9WvAtFgoOVA'
   },
   {
     name: 'valid-vapid-key',
     senderId: '650229866790',
-    apiKey: 'AAAAl2S4YSY:APA91bGQCJMhV3G_eiSGep0z0yb9hLs7TDNx8W3ZXyztSPRSnmVys_D_yQ5FwDpRY-THKqufyUmI3PGN7XpvaXIUl-logEJpxyO8A1_5CMTF1-AR9vNt0qeWZbv8SJqte0MwMxcVebNJ',
+    apiKey:
+      'AAAAl2S4YSY:APA91bGQCJMhV3G_eiSGep0z0yb9hLs7TDNx8W3ZXyztSPRSnmVys_D_yQ5FwDpRY-THKqufyUmI3PGN7XpvaXIUl-logEJpxyO8A1_5CMTF1-AR9vNt0qeWZbv8SJqte0MwMxcVebNJ'
   }
 ];
 
@@ -74,8 +76,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
     }
 
     describe(`${assistantBrowser.getPrettyName()}`, function() {
-
-      DEMOS.forEach((demoInfo) => {
+      DEMOS.forEach(demoInfo => {
         describe(`Demo: ${demoInfo.name}`, function() {
           beforeEach(async function() {
             await cleanUp();
@@ -89,7 +90,9 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           });
 
           it(`should send an empty messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
+            await globalWebDriver.get(
+              `${testServer.serverAddress}/${demoInfo.name}/`
+            );
             const token = await getFCMToken(globalWebDriver);
             expect(token).to.exist;
 
@@ -109,7 +112,9 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           });
 
           it(`should send a data only messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
+            await globalWebDriver.get(
+              `${testServer.serverAddress}/${demoInfo.name}/`
+            );
             const token = await getFCMToken(globalWebDriver);
             expect(token).to.exist;
 
@@ -133,7 +138,9 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           });
 
           it(`should send a notification only messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
+            await globalWebDriver.get(
+              `${testServer.serverAddress}/${demoInfo.name}/`
+            );
             const token = await getFCMToken(globalWebDriver);
             expect(token).to.exist;
 
@@ -163,7 +170,9 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           });
 
           it(`should send a notification and data messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
+            await globalWebDriver.get(
+              `${testServer.serverAddress}/${demoInfo.name}/`
+            );
             const token = await getFCMToken(globalWebDriver);
             expect(token).to.exist;
 
