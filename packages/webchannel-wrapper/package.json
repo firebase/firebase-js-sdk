@@ -1,6 +1,6 @@
 {
   "name": "@firebase/webchannel-wrapper",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "main": "dist/index.js",
   "scripts": {
