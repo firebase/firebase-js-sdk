@@ -27,7 +27,7 @@ class DemoApp {
    * elements and initialize the Firebase app and initial state, including
    * getting the current FCM token if one is available.
    */
-  constructor(firebaseConfig, options) {
+  constructor(firebaseConfig, options = {}) {
     this._token = null;
     this._errors = [];
     this._messages = [];
