@@ -300,7 +300,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
   // TODO: Make this work for ServiceWorkerController
   [WindowController].forEach(ServiceClass => {
-    it(`should handle update token errors in ${ServiceClass.name}`, async function() {
+    it(`should handle update token errors in ${
+      ServiceClass.name
+    }`, async function() {
       const registration = generateFakeReg(Promise.resolve(null));
       const subscription = makeFakeSubscription();
       const errorMsg = 'messaging/' + Errors.codes.TOKEN_UPDATE_FAILED;
@@ -323,11 +325,14 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .stub(IIDModel.prototype, 'updateToken')
         .callsFake(() => Promise.reject(new Error(errorMsg)));
 
-      const deleteTokenStub = sandbox.stub(TokenDetailsModel.prototype, 'deleteToken')
+      const deleteTokenStub = sandbox.stub(
+        TokenDetailsModel.prototype,
+        'deleteToken'
+      );
       deleteTokenStub.callsFake(token => {
-            assert.equal(token, EXAMPLE_EXPIRED_TOKEN_DETAILS.fcmToken);
-            return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
-        });
+        assert.equal(token, EXAMPLE_EXPIRED_TOKEN_DETAILS.fcmToken);
+        return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
+      });
 
       sandbox
         .stub(IIDModel.prototype, 'deleteToken')

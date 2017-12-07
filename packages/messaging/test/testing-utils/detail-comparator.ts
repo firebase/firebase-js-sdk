@@ -13,49 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- import arrayBufferToBase64 from '../../src/helpers/array-buffer-to-base64';
- import { assert } from 'chai';
+import arrayBufferToBase64 from '../../src/helpers/array-buffer-to-base64';
+import { assert } from 'chai';
 
- /** Token details that are fed to the database */
+/** Token details that are fed to the database */
 export declare interface InputDetails {
-  swScope: string,
-  vapidKey: Uint8Array,
-  subscription: PushSubscription,
-  fcmSenderId: string,
-  fcmToken: string,
-  fcmPushSet: string
+  swScope: string;
+  vapidKey: Uint8Array;
+  subscription: PushSubscription;
+  fcmSenderId: string;
+  fcmToken: string;
+  fcmPushSet: string;
 }
 
- /** Compares the input details and the saved ones  */
- export function compareDetails(input: InputDetails, saved: Object, now: number): void {
-   const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
-   const subscriptionValues = {
-     endpoint: input.subscription.endpoint,
-     auth: arrayBufferToBase64(input.subscription.getKey('auth')),
-     p256dh: arrayBufferToBase64(
-       input.subscription.getKey('p256dh')
-     )
-   };
+/** Compares the input details and the saved ones  */
+export function compareDetails(
+  input: InputDetails,
+  saved: Object,
+  now: number
+): void {
+  const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
+  const subscriptionValues = {
+    endpoint: input.subscription.endpoint,
+    auth: arrayBufferToBase64(input.subscription.getKey('auth')),
+    p256dh: arrayBufferToBase64(input.subscription.getKey('p256dh'))
+  };
 
-   subscriptionKeys.forEach(keyName => {
-     assert.equal(saved[keyName], subscriptionValues[keyName]);
-   });
+  subscriptionKeys.forEach(keyName => {
+    assert.equal(saved[keyName], subscriptionValues[keyName]);
+  });
 
-   Object.keys(saved).forEach(keyName => {
-     if (subscriptionKeys.indexOf(keyName) !== -1) {
-       return;
-     }
+  Object.keys(saved).forEach(keyName => {
+    if (subscriptionKeys.indexOf(keyName) !== -1) {
+      return;
+    }
 
-     if (keyName === 'createTime') {
-       assert.equal(saved[keyName], now);
-     } else if (keyName === 'vapidKey') {
-       assert.equal(
-         saved[keyName],
-         arrayBufferToBase64(input[keyName])
-       );
-     } else {
-       assert.equal(saved[keyName], input[keyName]);
-     }
-   return true;
- });
+    if (keyName === 'createTime') {
+      assert.equal(saved[keyName], now);
+    } else if (keyName === 'vapidKey') {
+      assert.equal(saved[keyName], arrayBufferToBase64(input[keyName]));
+    } else {
+      assert.equal(saved[keyName], input[keyName]);
+    }
+    return true;
+  });
 }

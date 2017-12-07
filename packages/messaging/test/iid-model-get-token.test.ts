@@ -96,7 +96,6 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     stubbedFetch.restore();
   });
 
-
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';

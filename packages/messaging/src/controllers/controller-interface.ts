@@ -24,7 +24,7 @@ import FCMDetails from '../models/fcm-details';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
-export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000;  // 7 days
+export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default class ControllerInterface {
   public app;
@@ -78,7 +78,9 @@ export default class ControllerInterface {
     }
 
     const swReg = await this.getSWRegistration_();
-    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
+    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+      swReg.scope
+    );
 
     if (tokenDetails) {
       // TODO Validate the details are still accurate
@@ -92,7 +94,10 @@ export default class ControllerInterface {
     return await this.getNewToken(swReg);
   }
 
-  private async updateToken(tokenDetails: Object, swReg: ServiceWorkerRegistration): Promise<string> {
+  private async updateToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
     const publicVapidKey = await this.getPublicVapidKey_();
     const subscription = await this.getPushSubscription_(swReg, publicVapidKey);
     let updatedToken;
@@ -104,7 +109,7 @@ export default class ControllerInterface {
         subscription,
         publicVapidKey
       );
-    } catch(e) {
+    } catch (e) {
       // Delete the token, then proceed to throw the error.
       await this.deleteToken(tokenDetails['fcmToken']);
       throw e;

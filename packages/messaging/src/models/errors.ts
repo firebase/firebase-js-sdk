@@ -96,7 +96,7 @@ const ERROR_MAP = {
   [CODES.TOKEN_UPDATE_FAILED]:
     'A problem occured while updating the ' + 'user from FCM: {$message}',
   [CODES.TOKEN_UPDATE_NO_TOKEN]:
-      'FCM returned no token when updating ' + 'the user to push.',
+    'FCM returned no token when updating ' + 'the user to push.',
   [CODES.USE_SW_BEFORE_GET_TOKEN]:
     'You must call useServiceWorker() before ' +
     'calling getToken() to ensure your service worker is used.',

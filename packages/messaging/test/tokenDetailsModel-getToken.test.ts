@@ -23,7 +23,6 @@ import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
 import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 import { compareDetails } from './testing-utils/detail-comparator';
 
-
 describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
@@ -125,8 +124,8 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
         );
       })
       .then(details => {
-          compareDetails(EXAMPLE_INPUT, details, now);
-          clock.restore();
+        compareDetails(EXAMPLE_INPUT, details, now);
+        clock.restore();
       });
   });
 });
