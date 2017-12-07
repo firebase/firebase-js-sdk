@@ -27,27 +27,23 @@ class DemoApp {
    * elements and initialize the Firebase app and initial state, including
    * getting the current FCM token if one is available.
    */
-  constructor() {
+  constructor(firebaseConfig, options) {
     this._token = null;
     this._errors = [];
     this._messages = [];
 
     // Initialize Firebase
-    var config = {
-      apiKey: 'AIzaSyA_hMf2etaedqV5eJC9Hyv7_YoA3zJIKhc',
-      authDomain: 'fcm-sdk-testing.firebaseapp.com',
-      databaseURL: 'https://fcm-sdk-testing.firebaseio.com',
-      projectId: 'fcm-sdk-testing',
-      storageBucket: 'fcm-sdk-testing.appspot.com',
-      messagingSenderId: '153517668099'
-    };
-    firebase.initializeApp(config);
+    firebase.initializeApp(firebaseConfig);
 
     this._messaging = firebase.messaging();
 
-    /** this._messaging.usePublicVapidKey(
-      'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw'
-    );**/
+    if (options.applicationKey) {
+      this._messaging.usePublicVapidKey(options.applicationKey);
+    }
+
+    if (options.swReg) {
+      this._messaging.useServiceWorker(options.swReg);
+    }
 
     this._messaging.onMessage(payload => {
       console.log(`Message received: `, payload);
@@ -55,8 +51,9 @@ class DemoApp {
     });
 
     // Initializa state of token
-    this._messaging.getToken().then(
-      token => {
+    this._messaging.requestPermission()
+    .then(() => this._messaging.getToken())
+    .then(token => {
         console.log('getToken() worked: ', token);
         this._token = token;
       },
@@ -81,4 +78,4 @@ class DemoApp {
   }
 }
 
-window.__test = new DemoApp();
+window.DemoApp = DemoApp;

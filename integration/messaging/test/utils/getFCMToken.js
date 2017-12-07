@@ -15,12 +15,14 @@
  */
 
 module.exports = async webdriver => {
+  console.log('Getting token....');
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
-      return !!window.__test.token;
+      return !!window.__test && !!window.__test.token;
     });
   });
 
+  console.log('Found token.');
   return webdriver.executeScript(() => {
     return window.__test.token;
   });

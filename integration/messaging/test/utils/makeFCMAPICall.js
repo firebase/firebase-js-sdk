@@ -16,16 +16,22 @@
 
 const fetch = require('node-fetch');
 
-module.exports = async (endpoint, apiBody) => {
+module.exports = async (endpoint, apiKey, apiBody) => {
+  if (!apiKey) {
+    throw new Error('No API Key provided to makeFCMAPICall(): ', apiBody);
+  }
+
+  console.log('Making API call to FCM...');
   const response = await fetch(`${endpoint}/fcm/send`, {
     method: 'POST',
     body: JSON.stringify(apiBody),
     headers: {
-      Authorization: 'key=AIzaSyCqJkOa5awRsZ-1EyuAwU4loC3YXDBouIo',
+      Authorization: `key=${apiKey}`,
       'Content-Type': 'application/json'
     }
   });
 
+  console.log('Checking FCM Response...');
   // FCM will return HTML if there is an error so we can't parse
   // the response as JSON, instead have to read as text, then parse
   // then handle the possible error.

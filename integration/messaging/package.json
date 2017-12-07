@@ -16,6 +16,6 @@
     "geckodriver": "^1.8.0",
     "mocha": "^4.0.1",
     "node-fetch": "^1.7.2",
-    "selenium-assistant": "^5.1.0"
+    "selenium-assistant": "^5.2.0"
   }
 }

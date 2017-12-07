@@ -1,0 +1,21 @@
+<html>
+    <head>
+      <title>FCM Demo</title>
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+    </head>
+    <body>
+        <h1>Valid <strong>WITH</strong> VAPID Key</h1>
+      <script src="/firebase/firebase-app.js"></script>
+      <script src="/firebase/firebase-messaging.js"></script>
+      <script src="/app.js"></script>
+      <script src="./firebaseConfig.js"></script>
+      <script>
+        navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          window.__test = new window.DemoApp(window.firebaseConfig, {
+            swReg: reg,
+          });
+        });
+      </script>
+    </body>
+    </html>
