@@ -4,8 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
-    "test": "echo 'Automated tests temporarily disabled, run `npm run test:manual` to execute these tests'",
-    "test:manual": "mocha --exit"
+    "test": "mocha --exit"
   },
   "dependencies": {
     "firebase": "^4.3.3"
