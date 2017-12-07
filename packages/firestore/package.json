@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "",
   "scripts": {
     "dev": "gulp dev",
@@ -18,7 +18,7 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/webchannel-wrapper": "^0.2.4",
+    "@firebase/webchannel-wrapper": "0.2.5",
     "grpc": "^1.7.1"
   },
   "peerDependencies": {
