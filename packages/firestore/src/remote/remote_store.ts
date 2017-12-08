@@ -206,7 +206,6 @@ export class RemoteStore {
       'enableNetwork() called with non-null writeStream.'
     );
 
-
     // Create new streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream();
     this.writeStream = this.datastore.newPersistentWriteStream();
