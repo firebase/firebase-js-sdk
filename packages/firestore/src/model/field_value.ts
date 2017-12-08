@@ -26,6 +26,7 @@ import * as typeUtils from '../util/types';
 
 import { DocumentKey } from './document_key';
 import { FieldPath } from './path';
+import SnapshotOptions = firestore.SnapshotOptions;
 
 /**
  * Supported data value types:
@@ -61,6 +62,37 @@ export enum TypeOrder {
   ObjectValue = 9
 }
 
+/** Defines the return value for pending server timestamps. */
+export enum ServerTimestampBehavior {
+  Default,
+  Estimate,
+  Previous
+}
+
+/** Holds properties that define field value deserialization options. */
+export class FieldValueOptions {
+  static readonly defaultOptions = new FieldValueOptions(ServerTimestampBehavior.Default);
+
+  constructor(readonly serverTimestampBehavior: ServerTimestampBehavior) {
+  }
+
+  static fromSnapshotOptions(options:SnapshotOptions) {
+    switch (options.serverTimestamps) {
+      case 'estimate':
+        return new FieldValueOptions(ServerTimestampBehavior.Estimate);
+      case 'previous':
+        return new FieldValueOptions(ServerTimestampBehavior.Previous);
+      case 'none': // Fall-through intended.
+      default:
+        return FieldValueOptions.defaultOptions;
+    }
+  }
+
+  get ServerTimestampBehavior() : ServerTimestampBehavior {
+    return this.serverTimestampBehavior;
+  }
+}
+
 /**
  * Potential types returned by FieldValue.value(). This could be stricter
  * (instead of using {}), but there's little benefit.
@@ -80,7 +112,7 @@ export type FieldType = null | boolean | number | string | {};
 export abstract class FieldValue {
   readonly typeOrder: TypeOrder;
 
-  abstract value(): FieldType;
+  abstract value(options?: FieldValueOptions): FieldType | undefined;
   abstract equals(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
@@ -110,7 +142,7 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(): FieldType {
+  value(options?: FieldValueOptions): FieldType {
     return null;
   }
 
@@ -135,7 +167,7 @@ export class BooleanValue extends FieldValue {
     super();
   }
 
-  value(): boolean {
+  value(options?: FieldValueOptions): boolean {
     return this.internalValue;
   }
 
@@ -169,7 +201,7 @@ export abstract class NumberValue extends FieldValue {
     super();
   }
 
-  value(): number {
+  value(options?: FieldValueOptions): number {
     return this.internalValue;
   }
 
@@ -263,7 +295,7 @@ export class StringValue extends FieldValue {
     super();
   }
 
-  value(): string {
+  value(options?: FieldValueOptions): string {
     return this.internalValue;
   }
 
@@ -288,7 +320,7 @@ export class TimestampValue extends FieldValue {
     super();
   }
 
-  value(): Date {
+  value(options?: FieldValueOptions): Date {
     return this.internalValue.toDate();
   }
 
@@ -319,18 +351,28 @@ export class TimestampValue extends FieldValue {
  *   TransformMutation (see TransformMutation.applyTo()). They can only exist in
  *   the local view of a document. Therefore they do not need to be parsed or
  *   serialized.
- * - When evaluated locally (e.g. for snapshot.data()), they evaluate to null.
+ * - When evaluated locally (e.g. for snapshot.data()), they they by default
+ *   evaluate to NSNull. This behavior can be configured by passing custom
+ *   FieldValueOptions to value().
  * - With respect to other ServerTimestampValues, they sort by their
  *   localWriteTime.
  */
 export class ServerTimestampValue extends FieldValue {
   typeOrder = TypeOrder.TimestampValue;
 
-  constructor(readonly localWriteTime: Timestamp) {
+  constructor(readonly localWriteTime: Timestamp, readonly previousValue: FieldValue|null) {
     super();
   }
 
-  value(): null {
+  value(options?: FieldValueOptions): FieldType {
+    if (options) {
+      switch (options.serverTimestampBehavior) {
+        case ServerTimestampBehavior.Estimate:
+          return this.localWriteTime.toDate();
+        case ServerTimestampBehavior.Previous:
+          return this.previousValue ? this.previousValue.value(options) : null;
+      }
+    }
     return null;
   }
 
@@ -364,7 +406,7 @@ export class BlobValue extends FieldValue {
     super();
   }
 
-  value(): Blob {
+  value(options?: FieldValueOptions): Blob {
     return this.internalValue;
   }
 
@@ -390,7 +432,7 @@ export class RefValue extends FieldValue {
     super();
   }
 
-  value(): DocumentKey {
+  value(options?: FieldValueOptions): DocumentKey {
     return this.key;
   }
 
@@ -420,7 +462,7 @@ export class GeoPointValue extends FieldValue {
     super();
   }
 
-  value(): GeoPoint {
+  value(options?: FieldValueOptions): GeoPoint {
     return this.internalValue;
   }
 
@@ -446,10 +488,10 @@ export class ObjectValue extends FieldValue {
     super();
   }
 
-  value(): JsonObject<FieldType> {
+  value(options?: FieldValueOptions): JsonObject<FieldType> {
     const result: JsonObject<FieldType> = {};
     this.internalValue.inorderTraversal((key, val) => {
-      result[key] = val.value();
+      result[key] = val.value(options);
     });
     return result;
   }
@@ -538,7 +580,7 @@ export class ObjectValue extends FieldValue {
     return this.field(path) !== undefined;
   }
 
-  field(path: FieldPath): FieldValue {
+  field(path: FieldPath): FieldValue | undefined {
     assert(!path.isEmpty(), "Can't get field of empty path");
     let field: FieldValue | undefined = this;
     path.forEach((pathSegment: string) => {
@@ -575,8 +617,8 @@ export class ArrayValue extends FieldValue {
     super();
   }
 
-  value(): FieldType[] {
-    return this.internalValue.map(v => v.value());
+  value(options?: FieldValueOptions): FieldType[] {
+    return this.internalValue.map(v => v.value(options));
   }
 
   forEach(action: (value: FieldValue) => void): void {

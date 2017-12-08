@@ -337,10 +337,10 @@ describe('FieldValue', () => {
       [new fieldValue.TimestampValue(Timestamp.fromDate(date2))],
       [
         // NOTE: ServerTimestampValues can't be parsed via wrap().
-        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1)),
-        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1))
+        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null),
+        new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null)
       ],
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2))],
+      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2), null)],
       [
         wrap(new GeoPoint(0, 1)),
         new fieldValue.GeoPointValue(new GeoPoint(0, 1))
@@ -399,8 +399,8 @@ describe('FieldValue', () => {
       [wrap(date2)],
 
       // server timestamps come after all concrete timestamps.
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1))],
-      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2))],
+      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date1), null)],
+      [new fieldValue.ServerTimestampValue(Timestamp.fromDate(date2), null)],
 
       // strings
       [wrap('')],

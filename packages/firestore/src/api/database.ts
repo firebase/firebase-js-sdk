@@ -38,6 +38,7 @@ import { DocumentKey } from '../model/document_key';
 import {
   ArrayValue,
   FieldValue,
+  FieldValueOptions,
   ObjectValue,
   RefValue
 } from '../model/field_value';
@@ -58,7 +59,7 @@ import {
   validateExactNumberOfArgs,
   validateNamedOptionalType,
   validateNamedType,
-  validateOptionalArgType,
+  validateOptionalArgType, validateNamedOptionalValueEquals,
   validateOptionNames,
   valueDescription
 } from '../util/input_validation';
@@ -990,8 +991,9 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-  data(): firestore.DocumentData {
-    validateExactNumberOfArgs('DocumentSnapshot.data', arguments, 0);
+  data(options?:firestore.SnapshotOptions): firestore.DocumentData {
+    validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
+    options = validateSnapshotOptions('DocumentSnapshot.set', options);
     if (!this._document) {
       throw new FirestoreError(
         Code.NOT_FOUND,
@@ -999,11 +1001,12 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           'the document exists before calling doc.data().'
       );
     }
-    return this.convertObject(this._document.data);
+    return this.convertObject(this._document.data, FieldValueOptions.fromSnapshotOptions(options));
   }
 
-  get(fieldPath: string | ExternalFieldPath): AnyJs {
-    validateExactNumberOfArgs('DocumentSnapshot.get', arguments, 1);
+  get(fieldPath: string | ExternalFieldPath, options?:firestore.SnapshotOptions): AnyJs {
+    validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
+    options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (!this._document) {
       throw new FirestoreError(
         Code.NOT_FOUND,
@@ -1014,7 +1017,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     const value = this._document.data.field(
       fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
     );
-    return value === undefined ? undefined : this.convertValue(value);
+    return value === undefined ? undefined : this.convertValue(value, FieldValueOptions.fromSnapshotOptions(options));
   }
 
   get id(): string {
@@ -1037,21 +1040,21 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     };
   }
 
-  private convertObject(data: ObjectValue): firestore.DocumentData {
+  private convertObject(data: ObjectValue, options: FieldValueOptions): firestore.DocumentData {
     const result: firestore.DocumentData = {};
     data.forEach((key, value) => {
-      result[key] = this.convertValue(value);
+      result[key] = this.convertValue(value, options) ;
     });
     return result;
   }
 
-  private convertValue(value: FieldValue): AnyJs {
+  private convertValue(value: FieldValue, options: FieldValueOptions): AnyJs {
     if (value instanceof ObjectValue) {
-      return this.convertObject(value);
+      return this.convertObject(value, options);
     } else if (value instanceof ArrayValue) {
-      return this.convertArray(value);
+      return this.convertArray(value, options);
     } else if (value instanceof RefValue) {
-      const key = value.value();
+      const key = value.value(options);
       const database = this._firestore.ensureClientConfigured().databaseId();
       if (!value.databaseId.equals(database)) {
         // TODO(b/64130202): Somehow support foreign references.
@@ -1068,13 +1071,13 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       }
       return new DocumentReference(key, this._firestore);
     } else {
-      return value.value();
+      return value.value(options);
     }
   }
 
-  private convertArray(data: ArrayValue): AnyJs[] {
+  private convertArray(data: ArrayValue, options: FieldValueOptions): AnyJs[] {
     return data.internalValue.map(value => {
-      return this.convertValue(value);
+      return this.convertValue(value, options);
     });
   }
 }
@@ -1699,6 +1702,19 @@ function validateSetOptions(
 
   validateOptionNames(methodName, options, ['merge']);
   validateNamedOptionalType(methodName, 'boolean', 'merge', options.merge);
+  return options;
+}
+
+function validateSnapshotOptions(
+    methodName: string,
+    options?: firestore.SnapshotOptions
+): firestore.SnapshotOptions {
+  if (options === undefined) {
+    return {};
+  }
+
+  validateOptionNames(methodName, options, ['serverTimestamps']);
+  validateNamedOptionalValueEquals(methodName, 'options','serverTimestamps', options.serverTimestamps, ['estimate', 'previous', 'none']);
   return options;
 }
 

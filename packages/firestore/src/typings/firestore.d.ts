@@ -518,6 +518,29 @@ declare namespace firestore {
     ): () => void;
   }
 
+  /**
+   * Options that configure how data is retrieved from a `DocumentSnapshot`
+   * (e.g. the desired behavior for server timestamps that have not yet been set
+   * to their final value).
+   */
+  export interface SnapshotOptions {
+    /**
+     * If set, controls the return value for server timestamps that have not yet
+     * been set to their final value.
+     *
+     * By specifying 'estimate', pending server timestamps return a local
+     * estimate. This estimate will likely differ from the final value and may
+     * cause these values to change once the server result becomes available.
+     *
+     * By specifying 'previous', these pending timestamps will instead retain
+     * their previous value.
+     *
+     * If omitted or set to 'none', 'null' will be returned by default until the
+     * server value becomes available.
+     */
+    readonly serverTimestamps?: 'estimate'|'previous'|'none';
+  }
+
   /** Metadata about a snapshot, describing the state of the snapshot. */
   export interface SnapshotMetadata {
     /**
@@ -565,18 +588,28 @@ declare namespace firestore {
     /**
      * Retrieves all fields in the document as an Object.
      *
+     * By default, `FieldValue.serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @param options An options object to configure how data is retrieved from
+     * the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
      * @return An Object containing all fields in the document.
      */
-    data(): DocumentData;
+    data(options?: SnapshotOptions): DocumentData;
 
     /**
      * Retrieves the field specified by `fieldPath`.
      *
      * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
+     * @param options An options object to configure how data is retrieved from
+     * the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
      * @return The data at the specified field location or undefined if no such
      * field exists in the document.
      */
-    get(fieldPath: string | FieldPath): any;
+    get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
   }
 
   /**
