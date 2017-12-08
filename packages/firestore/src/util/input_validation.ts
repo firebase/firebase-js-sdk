@@ -173,13 +173,13 @@ export function validateNamedOptionalType(
  * Validates the provided named option equals one of the expected values.
  */
 export function validateNamedValueEquals<T>(
-    functionName: string,
-    inputName: T,
-    optionName: string,
-    input: T,
-    expected: T[]
+  functionName: string,
+  inputName: T,
+  optionName: string,
+  input: T,
+  expected: T[]
 ) {
-  const expectedDescription : string[] = [];
+  const expectedDescription: string[] = [];
 
   for (let val of expected) {
     if (val === input) {
@@ -190,8 +190,12 @@ export function validateNamedValueEquals<T>(
 
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `The ${optionName} of the ${inputName} argument for ${functionName}() is expected to be one of (${expectedDescription.join('|')}),  but was ${actualDescription}.`
+    Code.INVALID_ARGUMENT,
+    `The ${optionName} of the ${inputName} argument for ${
+      functionName
+    }() is expected to be one of (${expectedDescription.join('|')}),  but was ${
+      actualDescription
+    }.`
   );
 }
 
@@ -200,14 +204,20 @@ export function validateNamedValueEquals<T>(
  * undefined.
  */
 export function validateNamedOptionalValueEquals<T>(
-    functionName: string,
-    inputName: T,
-    optionName: string,
-    input: T,
-    expected: T[]
+  functionName: string,
+  inputName: T,
+  optionName: string,
+  input: T,
+  expected: T[]
 ) {
   if (input !== undefined) {
-    validateNamedOptionalValueEquals(functionName, inputName, optionName, input, expected);
+    validateNamedOptionalValueEquals(
+      functionName,
+      inputName,
+      optionName,
+      input,
+      expected
+    );
   }
 }
 

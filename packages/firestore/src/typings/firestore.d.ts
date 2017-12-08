@@ -538,7 +538,7 @@ declare namespace firestore {
      * If omitted or set to 'none', 'null' will be returned by default until the
      * server value becomes available.
      */
-    readonly serverTimestamps?: 'estimate'|'previous'|'none';
+    readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
   }
 
   /** Metadata about a snapshot, describing the state of the snapshot. */

@@ -494,7 +494,7 @@ export class TransformMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
-    baseDoc:  MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
@@ -504,7 +504,10 @@ export class TransformMutation extends Mutation {
     }
 
     const doc = this.requireDocument(maybeDoc);
-    const transformResults = this.localTransformResults(localWriteTime, baseDoc);
+    const transformResults = this.localTransformResults(
+      localWriteTime,
+      baseDoc
+    );
     const newData = this.transformObject(doc.data, transformResults);
     return new Document(this.key, doc.version, newData, {
       hasLocalMutations: true
@@ -549,18 +552,24 @@ export class TransformMutation extends Mutation {
    * @param baseDoc The document prior to applying this mutation batch.
    * @return The transform results list.
    */
-  private localTransformResults(localWriteTime: Timestamp, baseDoc:MaybeDocument|null): FieldValue[] {
+  private localTransformResults(
+    localWriteTime: Timestamp,
+    baseDoc: MaybeDocument | null
+  ): FieldValue[] {
     const transformResults = [] as FieldValue[];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
       if (transform instanceof ServerTimestampTransform) {
-        let previousValue : FieldValue|null = null;
+        let previousValue: FieldValue | null = null;
 
         if (baseDoc instanceof Document) {
-          previousValue = (baseDoc as Document).field(fieldTransform.field) || null;
+          previousValue =
+            (baseDoc as Document).field(fieldTransform.field) || null;
         }
 
-        transformResults.push(new ServerTimestampValue(localWriteTime, previousValue));
+        transformResults.push(
+          new ServerTimestampValue(localWriteTime, previousValue)
+        );
       } else {
         return fail('Encountered unknown transform: ' + transform);
       }

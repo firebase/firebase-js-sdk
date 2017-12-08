@@ -59,7 +59,8 @@ import {
   validateExactNumberOfArgs,
   validateNamedOptionalType,
   validateNamedType,
-  validateOptionalArgType, validateNamedOptionalValueEquals,
+  validateOptionalArgType,
+  validateNamedOptionalValueEquals,
   validateOptionNames,
   valueDescription
 } from '../util/input_validation';
@@ -991,7 +992,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-  data(options?:firestore.SnapshotOptions): firestore.DocumentData {
+  data(options?: firestore.SnapshotOptions): firestore.DocumentData {
     validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
     options = validateSnapshotOptions('DocumentSnapshot.set', options);
     if (!this._document) {
@@ -1001,10 +1002,16 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           'the document exists before calling doc.data().'
       );
     }
-    return this.convertObject(this._document.data, FieldValueOptions.fromSnapshotOptions(options));
+    return this.convertObject(
+      this._document.data,
+      FieldValueOptions.fromSnapshotOptions(options)
+    );
   }
 
-  get(fieldPath: string | ExternalFieldPath, options?:firestore.SnapshotOptions): AnyJs {
+  get(
+    fieldPath: string | ExternalFieldPath,
+    options?: firestore.SnapshotOptions
+  ): AnyJs {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (!this._document) {
@@ -1017,7 +1024,12 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     const value = this._document.data.field(
       fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
     );
-    return value === undefined ? undefined : this.convertValue(value, FieldValueOptions.fromSnapshotOptions(options));
+    return value === undefined
+      ? undefined
+      : this.convertValue(
+          value,
+          FieldValueOptions.fromSnapshotOptions(options)
+        );
   }
 
   get id(): string {
@@ -1040,10 +1052,13 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     };
   }
 
-  private convertObject(data: ObjectValue, options: FieldValueOptions): firestore.DocumentData {
+  private convertObject(
+    data: ObjectValue,
+    options: FieldValueOptions
+  ): firestore.DocumentData {
     const result: firestore.DocumentData = {};
     data.forEach((key, value) => {
-      result[key] = this.convertValue(value, options) ;
+      result[key] = this.convertValue(value, options);
     });
     return result;
   }
@@ -1706,15 +1721,21 @@ function validateSetOptions(
 }
 
 function validateSnapshotOptions(
-    methodName: string,
-    options?: firestore.SnapshotOptions
+  methodName: string,
+  options?: firestore.SnapshotOptions
 ): firestore.SnapshotOptions {
   if (options === undefined) {
     return {};
   }
 
   validateOptionNames(methodName, options, ['serverTimestamps']);
-  validateNamedOptionalValueEquals(methodName, 'options','serverTimestamps', options.serverTimestamps, ['estimate', 'previous', 'none']);
+  validateNamedOptionalValueEquals(
+    methodName,
+    'options',
+    'serverTimestamps',
+    options.serverTimestamps,
+    ['estimate', 'previous', 'none']
+  );
   return options;
 }
 

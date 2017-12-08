@@ -173,7 +173,11 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, docData);
     const transform = transformMutation('collection/key', ['foo.bar']);
 
-    const transformedDoc = transform.applyToLocalView(baseDoc, baseDoc ,timestamp);
+    const transformedDoc = transform.applyToLocalView(
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
 
     // Server timestamps aren't parsed, so we manually insert it.
     const data = wrapObject({

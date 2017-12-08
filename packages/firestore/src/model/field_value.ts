@@ -71,12 +71,13 @@ export enum ServerTimestampBehavior {
 
 /** Holds properties that define field value deserialization options. */
 export class FieldValueOptions {
-  static readonly defaultOptions = new FieldValueOptions(ServerTimestampBehavior.Default);
+  static readonly defaultOptions = new FieldValueOptions(
+    ServerTimestampBehavior.Default
+  );
 
-  constructor(readonly serverTimestampBehavior: ServerTimestampBehavior) {
-  }
+  constructor(readonly serverTimestampBehavior: ServerTimestampBehavior) {}
 
-  static fromSnapshotOptions(options:SnapshotOptions) {
+  static fromSnapshotOptions(options: SnapshotOptions) {
     switch (options.serverTimestamps) {
       case 'estimate':
         return new FieldValueOptions(ServerTimestampBehavior.Estimate);
@@ -88,7 +89,7 @@ export class FieldValueOptions {
     }
   }
 
-  get ServerTimestampBehavior() : ServerTimestampBehavior {
+  get ServerTimestampBehavior(): ServerTimestampBehavior {
     return this.serverTimestampBehavior;
   }
 }
@@ -360,7 +361,10 @@ export class TimestampValue extends FieldValue {
 export class ServerTimestampValue extends FieldValue {
   typeOrder = TypeOrder.TimestampValue;
 
-  constructor(readonly localWriteTime: Timestamp, readonly previousValue: FieldValue|null) {
+  constructor(
+    readonly localWriteTime: Timestamp,
+    readonly previousValue: FieldValue | null
+  ) {
     super();
   }
 
