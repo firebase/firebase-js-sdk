@@ -16,6 +16,7 @@
 
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
+import { SnapshotOptions } from '../api/database';
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { assert, fail } from '../util/assert';
@@ -26,7 +27,6 @@ import * as typeUtils from '../util/types';
 
 import { DocumentKey } from './document_key';
 import { FieldPath } from './path';
-import SnapshotOptions = firestore.SnapshotOptions;
 
 /**
  * Supported data value types:
@@ -87,10 +87,6 @@ export class FieldValueOptions {
       default:
         return FieldValueOptions.defaultOptions;
     }
-  }
-
-  get ServerTimestampBehavior(): ServerTimestampBehavior {
-    return this.serverTimestampBehavior;
   }
 }
 
@@ -352,7 +348,7 @@ export class TimestampValue extends FieldValue {
  *   TransformMutation (see TransformMutation.applyTo()). They can only exist in
  *   the local view of a document. Therefore they do not need to be parsed or
  *   serialized.
- * - When evaluated locally (e.g. for snapshot.data()), they they by default
+ * - When evaluated locally (e.g. for snapshot.data()), they by default
  *   evaluate to NSNull. This behavior can be configured by passing custom
  *   FieldValueOptions to value().
  * - With respect to other ServerTimestampValues, they sort by their

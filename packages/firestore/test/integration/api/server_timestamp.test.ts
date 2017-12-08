@@ -82,7 +82,7 @@ apiDescribe('Server Timestamps', persistence => {
   }
 
   /** Verifies a snapshot containing _setData but with resolved server timestamps. */
-  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot) {
+  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot) : void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when');
     expect(when).to.be.an.instanceof(Date);
@@ -96,15 +96,15 @@ apiDescribe('Server Timestamps', persistence => {
   }
 
   /** Verifies a snapshot containing _setData but with null for the timestamps. */
-  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot) {
+  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot) : void {
     expect(snap.exists).to.equal(true);
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
   }
 
   /** Verifies a snapshot containing _setData but with a local estimate for server timestamps. */
-  function verifyTimestampsAreEstimates(snap: firestore.DocumentSnapshot) {
+  function verifyTimestampsAreEstimates(snap: firestore.DocumentSnapshot)  : void{
     expect(snap.exists).to.equal(true);
-    const when = snap.get('when');
+    const when = snap.get('when', { serverTimestamps: 'estimate' });
     expect(when).to.be.an.instanceof(Date);
     // Validate the rest of the document.
     expect(snap.data({ serverTimestamps: 'estimate' })).to.deep.equal(
@@ -117,7 +117,7 @@ apiDescribe('Server Timestamps', persistence => {
   function verifyTimestampsUsePreviousValue(
     current: firestore.DocumentSnapshot,
     prev: firestore.DocumentSnapshot | null
-  ) {
+  ) : void {
     if (!prev) {
       verifyTimestampsAreNull(current);
     } else {
@@ -159,9 +159,9 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return docRef
         .set(setData)
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsAreNull(snapshot))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -170,9 +170,9 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsAreNull(snapshot))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -184,7 +184,7 @@ apiDescribe('Server Timestamps', persistence => {
           txn.set(docRef, setData);
           return Promise.resolve();
         })
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -198,7 +198,7 @@ apiDescribe('Server Timestamps', persistence => {
             return Promise.resolve();
           })
         )
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -207,9 +207,9 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsAreEstimates(snapshot))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -220,20 +220,19 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => {
           previousSnapshot = snapshot;
           verifyTimestampsAreResolved(snapshot);
         })
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot =>
           verifyTimestampsUsePreviousValue(snapshot, previousSnapshot)
         )
-
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -242,14 +241,14 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => {
           verifyTimestampsAreResolved(snapshot);
         })
-        .then(() => docRef.update('a', firestore.FieldValue.serverTimestamp()))
-        .then(() => waitForLocalEvent())
+        .then(() => docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()))
+        .then(waitForLocalEvent)
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'none' })).to.equal(
             null
@@ -261,7 +260,7 @@ apiDescribe('Server Timestamps', persistence => {
             42
           );
         })
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => {
           expect(
             snapshot.get('a', { serverTimestamps: 'none' })
@@ -282,32 +281,30 @@ apiDescribe('Server Timestamps', persistence => {
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
 
+      let promises : Promise<void>[] = [];
+
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
-        .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(() => waitForRemoteEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => {
-          verifyTimestampsAreResolved(snapshot);
-          return firestoreInternal.disableNetwork();
+          verifyTimestampsUsePreviousValue(snapshot, null);
+          return waitForRemoteEvent();
         })
-        .then(() => docRef.update('a', firestore.FieldValue.serverTimestamp()))
-        .then(() => waitForLocalEvent())
-        .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
+          .then(firestoreInternal.disableNetwork)
+        .then(() => {
+          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          return waitForLocalEvent();
         })
-        .then(() => docRef.update('a', firestore.FieldValue.serverTimestamp()))
-        .then(() => waitForLocalEvent())
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             42
           );
           return firestoreInternal.enableNetwork();
         })
-        .then(() => waitForRemoteEvent())
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
+        .then(waitForRemoteEvent)
+        .then(snapshot => {
+          return Promise.all(promises);
+        }).then(() => {});
     });
   });
 
@@ -317,40 +314,44 @@ apiDescribe('Server Timestamps', persistence => {
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
 
+      let promises : Promise<void>[] = [];
+
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
+        .then(waitForLocalEvent)
         .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(() => waitForRemoteEvent())
+        .then(waitForRemoteEvent)
         .then(snapshot => {
           verifyTimestampsAreResolved(snapshot);
           return firestoreInternal.disableNetwork();
         })
-        .then(() => docRef.update('a', firestore.FieldValue.serverTimestamp()))
-        .then(() => waitForLocalEvent())
+        .then(() => {
+          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          return waitForLocalEvent();
+        })
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             42
           );
         })
-        .then(() => docRef.update('a', 1337))
-        .then(() => waitForLocalEvent())
-        .then(() => docRef.update('a', firestore.FieldValue.serverTimestamp()))
-        .then(() => waitForLocalEvent())
+        .then(() => {
+          promises.push(docRef.update('a', 1337));
+            return waitForLocalEvent();
+          })
+        .then(() => {
+          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          return waitForLocalEvent();
+        })
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             1337
           );
           return firestoreInternal.enableNetwork();
         })
+        .then(waitForRemoteEvent)
         .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
-          return firestoreInternal.enableNetwork();
-        })
-        .then(() => waitForRemoteEvent())
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
+          return Promise.all(promises)
+        }).then(() => {});
     });
   });
 

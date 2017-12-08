@@ -185,15 +185,15 @@ export function validateNamedValueEquals<T>(
     if (val === input) {
       return true;
     }
-    expectedDescription.push(valueDescription(expected));
+    expectedDescription.push(valueDescription(val));
   }
 
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `The ${optionName} of the ${inputName} argument for ${
+    `The ${optionName} property of the ${inputName} argument for ${
       functionName
-    }() is expected to be one of (${expectedDescription.join('|')}),  but was ${
+    }() is expected to be one of ${expectedDescription.join('|')},  but was ${
       actualDescription
     }.`
   );
@@ -211,7 +211,7 @@ export function validateNamedOptionalValueEquals<T>(
   expected: T[]
 ) {
   if (input !== undefined) {
-    validateNamedOptionalValueEquals(
+    validateNamedValueEquals(
       functionName,
       inputName,
       optionName,
