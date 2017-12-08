@@ -95,6 +95,7 @@ fireauth.AdditionalUserInfo.fromPlainObject = function(resp) {
 fireauth.AdditionalUserInfo.VerifyAssertionField = {
   ID_TOKEN: 'idToken',
   IS_NEW_USER: 'isNewUser',
+  KIND: 'kind',
   PROVIDER_ID: 'providerId',
   RAW_USER_INFO: 'rawUserInfo',
   SCREEN_NAME: 'screenName'
@@ -129,9 +130,23 @@ fireauth.GenericAdditionalUserInfo = function(info) {
     // This is internal only.
     throw new Error('Invalid additional user info!');
   }
-  // Check whether user is new. If not provided, default to false.
-  var isNewUser =
-      !!info[fireauth.AdditionalUserInfo.VerifyAssertionField.IS_NEW_USER];
+  // For custom token and anonymous token, set provider ID to null.
+  if (providerId == fireauth.idp.ProviderId.ANONYMOUS ||
+      providerId == fireauth.idp.ProviderId.CUSTOM) {
+      providerId = null;
+  }
+  // Check whether user is new. Temporary Solution since backend does not return
+  // isNewUser field for SignupNewUserResponse.
+  var isNewUser = false;
+  if (typeof info[fireauth.AdditionalUserInfo.VerifyAssertionField.IS_NEW_USER]
+      !== 'undefined') {
+    isNewUser =
+        !!info[fireauth.AdditionalUserInfo.VerifyAssertionField.IS_NEW_USER];
+  } else if (info[fireauth.AdditionalUserInfo.VerifyAssertionField.KIND]
+             === 'identitytoolkit#SignupNewUserResponse') {
+    //For SignupNewUserResponse, always set isNewUser to true.
+    isNewUser = true;
+  }
   // Set required providerId.
   fireauth.object.setReadonlyProperty(this, 'providerId', providerId);
   // Set read-only isNewUser property.
