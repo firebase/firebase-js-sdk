@@ -129,8 +129,6 @@ export class RemoteStore {
   private watchStreamFailures = 0;
 
   constructor(
-    private databaseInfo: DatabaseInfo,
-    private asyncQueue: AsyncQueue,
     /**
      * The local store, used to fill the write pipeline with outbound
      * mutations and resolve existence filter mismatches.
@@ -207,6 +205,7 @@ export class RemoteStore {
       this.writeStream == null,
       'enableNetwork() called with non-null writeStream.'
     );
+
 
     // Create new streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream();

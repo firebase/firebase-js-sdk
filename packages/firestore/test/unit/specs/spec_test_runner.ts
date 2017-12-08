@@ -387,8 +387,6 @@ abstract class TestRunner {
       this.eventManager.onOnlineStateChanged(onlineState);
     };
     this.remoteStore = new RemoteStore(
-      this.databaseInfo,
-      this.queue,
       this.localStore,
       this.datastore,
       onlineStateChangedHandler
