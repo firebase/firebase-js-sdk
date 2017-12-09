@@ -101,7 +101,7 @@ apiDescribe('Server Timestamps', persistence => {
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
   }
 
-  /** Verifies a snapshot containing _setData but with a local estimate for server timestamps. */
+  /** Verifies a snapshot containing _setData but with local estimates for server timestamps. */
   function verifyTimestampsAreEstimates(
     snap: firestore.DocumentSnapshot
   ): void {
@@ -114,7 +114,9 @@ apiDescribe('Server Timestamps', persistence => {
     );
   }
 
-  /** Verifies a snapshot containing _setData but using the previous field value for the timestamps.
+  /**
+   * Verifies a snapshot containing _setData but using the previous field value
+   * for the timestamps.
    */
   function verifyTimestampsUsePreviousValue(
     current: firestore.DocumentSnapshot,
@@ -305,8 +307,17 @@ apiDescribe('Server Timestamps', persistence => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             42
           );
-          return firestoreInternal.enableNetwork();
+          promises.push(
+              docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+          );
+          return waitForLocalEvent();
         })
+        .then(snapshot => {
+          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
+              42
+          );
+          return firestoreInternal.enableNetwork();
+          })
         .then(waitForRemoteEvent)
         .then(snapshot => {
           return Promise.all(promises);
@@ -342,8 +353,6 @@ apiDescribe('Server Timestamps', persistence => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             42
           );
-        })
-        .then(() => {
           promises.push(docRef.update('a', 1337));
           return waitForLocalEvent();
         })

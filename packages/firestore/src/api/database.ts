@@ -58,7 +58,7 @@ import {
   validateDefined,
   validateExactNumberOfArgs,
   validateNamedOptionalType,
-  validateNamedOptionalValueEquals,
+  validateNamedOptionalPropertyEquals,
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
@@ -984,7 +984,7 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 }
 
-/** Options object that can be provided to configure the deserialization of DocumentSnapshots. */
+/** Options interface that can be provided to configure the deserialization of DocumentSnapshots. */
 export interface SnapshotOptions extends firestore.SnapshotOptions {}
 
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
@@ -997,7 +997,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
   data(options?: firestore.SnapshotOptions): firestore.DocumentData {
     validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
-    options = validateSnapshotOptions('DocumentSnapshot.set', options);
+    options = validateSnapshotOptions('DocumentSnapshot.data', options);
     if (!this._document) {
       throw new FirestoreError(
         Code.NOT_FOUND,
@@ -1732,7 +1732,7 @@ function validateSnapshotOptions(
   }
 
   validateOptionNames(methodName, options, ['serverTimestamps']);
-  validateNamedOptionalValueEquals(
+  validateNamedOptionalPropertyEquals(
     methodName,
     'options',
     'serverTimestamps',

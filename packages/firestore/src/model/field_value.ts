@@ -349,7 +349,7 @@ export class TimestampValue extends FieldValue {
  *   the local view of a document. Therefore they do not need to be parsed or
  *   serialized.
  * - When evaluated locally (e.g. for snapshot.data()), they by default
- *   evaluate to NSNull. This behavior can be configured by passing custom
+ *   evaluate to `null`. This behavior can be configured by passing custom
  *   FieldValueOptions to value().
  * - With respect to other ServerTimestampValues, they sort by their
  *   localWriteTime.

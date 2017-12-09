@@ -170,9 +170,9 @@ export function validateNamedOptionalType(
 }
 
 /**
- * Validates the provided named option equals one of the expected values.
+ * Validates that the provided named option equals one of the expected values.
  */
-export function validateNamedValueEquals<T>(
+export function validateNamedPropertyEquals<T>(
   functionName: string,
   inputName: T,
   optionName: string,
@@ -200,10 +200,10 @@ export function validateNamedValueEquals<T>(
 }
 
 /**
- * Validates the provided named option equals one of the expected values or is
- * undefined.
+ * Validates that the provided named option equals one of the expected values or
+ * is undefined.
  */
-export function validateNamedOptionalValueEquals<T>(
+export function validateNamedOptionalPropertyEquals<T>(
   functionName: string,
   inputName: T,
   optionName: string,
@@ -211,7 +211,7 @@ export function validateNamedOptionalValueEquals<T>(
   expected: T[]
 ) {
   if (input !== undefined) {
-    validateNamedValueEquals(
+    validateNamedPropertyEquals(
       functionName,
       inputName,
       optionName,
