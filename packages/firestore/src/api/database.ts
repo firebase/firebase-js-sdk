@@ -253,6 +253,16 @@ export class Firestore implements firestore.Firestore, FirebaseService {
     }
   }
 
+  enableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.enableNetwork();
+  }
+
+  disableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.disableNetwork();
+  }
+
   enablePersistence(): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(

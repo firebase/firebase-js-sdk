@@ -195,16 +195,11 @@ export class RemoteStore {
     return this.watchStream != null;
   }
 
-  /** Re-enables the network. Only to be called as the counterpart to disableNetwork(). */
+  /** Re-enables the network. Idempotent. */
   enableNetwork(): Promise<void> {
-    assert(
-      this.watchStream == null,
-      'enableNetwork() called with non-null watchStream.'
-    );
-    assert(
-      this.writeStream == null,
-      'enableNetwork() called with non-null writeStream.'
-    );
+    if (this.isNetworkEnabled()) {
+      return Promise.resolve();
+    }
 
     // Create new streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream();
@@ -226,6 +221,9 @@ export class RemoteStore {
 
   /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
   disableNetwork(): Promise<void> {
+    if (!this.isNetworkEnabled()) {
+      return Promise.resolve();
+    }
     this.updateAndBroadcastOnlineState(OnlineState.Failed);
 
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close

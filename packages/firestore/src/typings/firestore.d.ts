@@ -128,6 +128,10 @@ declare namespace firestore {
      */
     app: any;
 
+    enableNetwork(): Promise<void>;
+
+    disableNetwork(): Promise<void>;
+
     INTERNAL: { delete: () => Promise<void> };
   }
 
