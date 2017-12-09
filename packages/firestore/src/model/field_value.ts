@@ -139,7 +139,7 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): FieldType {
+  value(options?: FieldValueOptions): null {
     return null;
   }
 
