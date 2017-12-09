@@ -82,7 +82,7 @@ apiDescribe('Server Timestamps', persistence => {
   }
 
   /** Verifies a snapshot containing _setData but with resolved server timestamps. */
-  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot) : void {
+  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot): void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when');
     expect(when).to.be.an.instanceof(Date);
@@ -96,13 +96,15 @@ apiDescribe('Server Timestamps', persistence => {
   }
 
   /** Verifies a snapshot containing _setData but with null for the timestamps. */
-  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot) : void {
+  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot): void {
     expect(snap.exists).to.equal(true);
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
   }
 
   /** Verifies a snapshot containing _setData but with a local estimate for server timestamps. */
-  function verifyTimestampsAreEstimates(snap: firestore.DocumentSnapshot)  : void{
+  function verifyTimestampsAreEstimates(
+    snap: firestore.DocumentSnapshot
+  ): void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when', { serverTimestamps: 'estimate' });
     expect(when).to.be.an.instanceof(Date);
@@ -117,7 +119,7 @@ apiDescribe('Server Timestamps', persistence => {
   function verifyTimestampsUsePreviousValue(
     current: firestore.DocumentSnapshot,
     prev: firestore.DocumentSnapshot | null
-  ) : void {
+  ): void {
     if (!prev) {
       verifyTimestampsAreNull(current);
     } else {
@@ -247,7 +249,9 @@ apiDescribe('Server Timestamps', persistence => {
         .then(snapshot => {
           verifyTimestampsAreResolved(snapshot);
         })
-        .then(() => docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()))
+        .then(() =>
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+        )
         .then(waitForLocalEvent)
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'none' })).to.equal(
@@ -281,7 +285,7 @@ apiDescribe('Server Timestamps', persistence => {
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
 
-      let promises : Promise<void>[] = [];
+      let promises: Promise<void>[] = [];
 
       return writeInitialData()
         .then(() => docRef.update(updateData))
@@ -290,9 +294,11 @@ apiDescribe('Server Timestamps', persistence => {
           verifyTimestampsUsePreviousValue(snapshot, null);
           return waitForRemoteEvent();
         })
-          .then(firestoreInternal.disableNetwork)
+        .then(firestoreInternal.disableNetwork)
         .then(() => {
-          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          promises.push(
+            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+          );
           return waitForLocalEvent();
         })
         .then(snapshot => {
@@ -304,7 +310,8 @@ apiDescribe('Server Timestamps', persistence => {
         .then(waitForRemoteEvent)
         .then(snapshot => {
           return Promise.all(promises);
-        }).then(() => {});
+        })
+        .then(() => {});
     });
   });
 
@@ -314,7 +321,7 @@ apiDescribe('Server Timestamps', persistence => {
       // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
       const firestoreInternal = docRef.firestore.INTERNAL as any;
 
-      let promises : Promise<void>[] = [];
+      let promises: Promise<void>[] = [];
 
       return writeInitialData()
         .then(() => docRef.update(updateData))
@@ -326,7 +333,9 @@ apiDescribe('Server Timestamps', persistence => {
           return firestoreInternal.disableNetwork();
         })
         .then(() => {
-          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          promises.push(
+            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+          );
           return waitForLocalEvent();
         })
         .then(snapshot => {
@@ -336,10 +345,12 @@ apiDescribe('Server Timestamps', persistence => {
         })
         .then(() => {
           promises.push(docRef.update('a', 1337));
-            return waitForLocalEvent();
-          })
+          return waitForLocalEvent();
+        })
         .then(() => {
-          promises.push(docRef.update('a', firebase.firestore.FieldValue.serverTimestamp()));
+          promises.push(
+            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+          );
           return waitForLocalEvent();
         })
         .then(snapshot => {
@@ -350,8 +361,9 @@ apiDescribe('Server Timestamps', persistence => {
         })
         .then(waitForRemoteEvent)
         .then(snapshot => {
-          return Promise.all(promises)
-        }).then(() => {});
+          return Promise.all(promises);
+        })
+        .then(() => {});
     });
   });
 

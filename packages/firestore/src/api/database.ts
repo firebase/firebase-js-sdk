@@ -985,8 +985,7 @@ export class DocumentReference implements firestore.DocumentReference {
 }
 
 /** Options object that can be provided to configure the deserialization of DocumentSnapshots. */
-export interface SnapshotOptions extends firestore.SnapshotOptions {
-}
+export interface SnapshotOptions extends firestore.SnapshotOptions {}
 
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
