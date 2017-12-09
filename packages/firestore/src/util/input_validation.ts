@@ -193,7 +193,7 @@ export function validateNamedPropertyEquals<T>(
     Code.INVALID_ARGUMENT,
     `The ${optionName} property of the ${inputName} argument for ${
       functionName
-    }() is expected to be one of ${expectedDescription.join('|')},  but was ${
+    }() is expected to be one of ${expectedDescription.join(',')},  but was ${
       actualDescription
     }.`
   );

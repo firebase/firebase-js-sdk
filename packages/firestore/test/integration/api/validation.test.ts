@@ -258,7 +258,7 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
-          `The serverTimestamps property of the options argument for DocumentSnapshot.set() is expected to be one of "estimate"|"previous"|"none",  but was "foo".`
+          `The serverTimestamps property of the options argument for DocumentSnapshot.data() is expected to be one of "estimate","previous","none",  but was "foo".`
         );
       });
   });

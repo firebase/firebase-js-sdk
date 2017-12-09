@@ -308,16 +308,16 @@ apiDescribe('Server Timestamps', persistence => {
             42
           );
           promises.push(
-              docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
           );
           return waitForLocalEvent();
         })
         .then(snapshot => {
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-              42
+            42
           );
           return firestoreInternal.enableNetwork();
-          })
+        })
         .then(waitForRemoteEvent)
         .then(snapshot => {
           return Promise.all(promises);
