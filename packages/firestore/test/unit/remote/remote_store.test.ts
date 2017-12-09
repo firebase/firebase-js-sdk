@@ -64,11 +64,14 @@ describe('RemoteStore', () => {
     // networking is already enabled should not produce an update.
     let currentOnlineState: OnlineState = OnlineState.Unknown;
     let updateCount = 0;
-    const remoteStore = new RemoteStore(localStore, datastore,
+    const remoteStore = new RemoteStore(
+      localStore,
+      datastore,
       (onlineState: OnlineState) => {
         currentOnlineState = onlineState;
         updateCount++;
-      });
+      }
+    );
     await remoteStore.enableNetwork();
     expect(currentOnlineState).to.equal(OnlineState.Unknown);
     await remoteStore.enableNetwork();
