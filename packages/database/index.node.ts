@@ -25,30 +25,7 @@ import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import './src/nodePatches';
 
-/**
- * A one off register function which returns a database based on the app and
- * passed database URL.
- *
- * @param app A valid FirebaseApp-like object
- * @param url A valid Firebase databaseURL
- */
-
 const ServerValue = Database.ServerValue;
-
-export function initStandalone(app, url) {
-  return {
-    instance: RepoManager.getInstance().databaseFromApp(app, url),
-    namespace: {
-      Reference,
-      Query,
-      Database,
-      enableLogging,
-      INTERNAL,
-      ServerValue,
-      TEST_ACCESS
-    }
-  };
-}
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
@@ -70,14 +47,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
   );
 
   if (isNodeSdk()) {
-    module.exports = Object.assign({}, namespace, { initStandalone });
+    module.exports = namespace;
   }
 }
 
 registerDatabase(firebase);
-
-// Types to export for the admin SDK
-export { Database, Query, Reference, enableLogging, ServerValue };
-
-export { DataSnapshot } from './src/api/DataSnapshot';
-export { OnDisconnect } from './src/api/onDisconnect';
