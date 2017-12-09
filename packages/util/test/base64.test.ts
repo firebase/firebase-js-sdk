@@ -16,9 +16,9 @@
 import { assert } from 'chai';
 import { base64Encode, base64Decode } from '../src/crypt';
 
-describe('base64()', () => {
+describe('base64', () => {
   it('bijective', () => {
-    let str = '{"t":"d","d":{"r":3,"a":"p","b":{"p":"/","d":"…"}}}';
+    let str = '…';
     assert.strictEqual(base64Decode(base64Encode(str)), str);
   });
 });
