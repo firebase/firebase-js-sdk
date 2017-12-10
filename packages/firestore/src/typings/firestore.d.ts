@@ -546,7 +546,7 @@ declare namespace firestore {
    * get a specific field.
    */
   export class DocumentSnapshot {
-    private constructor();
+    protected constructor();
 
     /** True if the document exists. */
     readonly exists: boolean;
@@ -563,20 +563,39 @@ declare namespace firestore {
     readonly metadata: SnapshotMetadata;
 
     /**
-     * Retrieves all fields in the document as an Object.
+     * Retrieves all fields in the document as an Object. Returns `undefined' if
+     * the document doesn't exist
      *
-     * @return An Object containing all fields in the document.
+     * @return An Object containing all fields in the document or `undefined' if
+     * the document doesn't exist.
      */
-    data(): DocumentData;
+    data(): DocumentData | undefined;
 
     /**
-     * Retrieves the field specified by `fieldPath`.
+     * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
+     * document or field doesn't exist
      *
      * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
      * @return The data at the specified field location or undefined if no such
      * field exists in the document.
      */
     get(fieldPath: string | FieldPath): any;
+  }
+
+  /**
+   * A `QueryDocumentSnapshot` contains a document result from a query of your
+   * Firestore database. The document is guaranteed to exist and its data can
+   * be extracted with `.data()` or `.get(<field>)` to get a specific field.
+   */
+  export class QueryDocumentSnapshot extends DocumentSnapshot {
+    private constructor();
+
+    /**
+     * Retrieves all fields in the document as an Object.
+     *
+     * @return An Object containing all fields in the document.
+     */
+    data(): DocumentData;
   }
 
   /**
@@ -836,7 +855,7 @@ declare namespace firestore {
     readonly docChanges: DocumentChange[];
 
     /** An array of all the documents in the QuerySnapshot. */
-    readonly docs: DocumentSnapshot[];
+    readonly docs: QueryDocumentSnapshot[];
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number;
@@ -847,11 +866,14 @@ declare namespace firestore {
     /**
      * Enumerates all of the documents in the QuerySnapshot.
      *
-     * @param callback A callback to be called with a `DocumentSnapshot` for
-     * each document in the snapshot.
+     * @param callback A callback to be called with a `QueryDocumentSnapshot`
+     * for each document in the snapshot.
      * @param thisArg The `this` binding for the callback.
      */
-    forEach(callback: (result: DocumentSnapshot) => void, thisArg?: any): void;
+    forEach(
+      callback: (result: QueryDocumentSnapshot) => void,
+      thisArg?: any
+    ): void;
   }
 
   /**
@@ -868,7 +890,7 @@ declare namespace firestore {
     readonly type: DocumentChangeType;
 
     /** The document affected by this change. */
-    readonly doc: DocumentSnapshot;
+    readonly doc: QueryDocumentSnapshot;
 
     /**
      * The index of the changed document in the result set immediately prior to
