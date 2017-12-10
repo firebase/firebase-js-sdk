@@ -593,6 +593,7 @@ declare namespace firestore {
     /**
      * Retrieves all fields in the document as an Object.
      *
+     * @override
      * @return An Object containing all fields in the document.
      */
     data(): DocumentData;

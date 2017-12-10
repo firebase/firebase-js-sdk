@@ -99,6 +99,7 @@ apiDescribe('Database', persistence => {
       return doc.get().then(snapshot => {
         expect(snapshot.exists).to.equal(false);
         expect(snapshot.exists).to.equal(undefined);
+        expect(snapshot.get('foo')).to.equal(undefined);
       });
     });
   });
