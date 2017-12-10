@@ -63,9 +63,7 @@ apiDescribe('Server Timestamps', persistence => {
       });
   }
 
-  /**
-   * Waits for a snapshot containing setData but with null for the timestamps.
-   */
+  /** Waits for a latency compensated local snapshot. */
   function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
     return accumulator.awaitEvent().then(localSnap => {
       expect(localSnap.metadata.hasPendingWrites).to.equal(true);
@@ -81,7 +79,7 @@ apiDescribe('Server Timestamps', persistence => {
     });
   }
 
-  /** Verifies a snapshot containing _setData but with resolved server timestamps. */
+  /** Verifies a snapshot containing setData but with resolved server timestamps. */
   function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot): void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when');
@@ -95,13 +93,13 @@ apiDescribe('Server Timestamps', persistence => {
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));
   }
 
-  /** Verifies a snapshot containing _setData but with null for the timestamps. */
+  /** Verifies a snapshot containing setData but with null for the timestamps. */
   function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot): void {
     expect(snap.exists).to.equal(true);
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
   }
 
-  /** Verifies a snapshot containing _setData but with local estimates for server timestamps. */
+  /** Verifies a snapshot containing setData but with local estimates for server timestamps. */
   function verifyTimestampsAreEstimates(
     snap: firestore.DocumentSnapshot
   ): void {
@@ -115,7 +113,7 @@ apiDescribe('Server Timestamps', persistence => {
   }
 
   /**
-   * Verifies a snapshot containing _setData but using the previous field value
+   * Verifies a snapshot containing setData but using the previous field value
    * for the timestamps.
    */
   function verifyTimestampsUsePreviousValue(
