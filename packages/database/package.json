@@ -14,9 +14,11 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app": "^0.1.0"
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
   },
   "dependencies": {
+    "@firebase/database-types": "0.1.0",
     "@firebase/util": "0.1.4",
     "faye-websocket": "0.11.1"
   },
@@ -52,7 +54,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/cjs/index.d.ts",
+  "typings": "dist/esm/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

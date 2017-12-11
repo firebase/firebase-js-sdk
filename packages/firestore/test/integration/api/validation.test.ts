@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import firebase from '../util/firebase_export';
 import {
@@ -35,7 +35,7 @@ import {
 function validationIt(
   persistence: boolean,
   message: string,
-  testFunction: (db: firestore.Firestore) => void | Promise<any>
+  testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
 ) {
   it(message, () => {
     return withTestDb(persistence, db => {
@@ -690,7 +690,7 @@ apiDescribe('Validation:', persistence => {
 });
 
 function expectSetToFail(
-  db: firestore.Firestore,
+  db: firestore.FirebaseFirestore,
   data: any,
   reason: string
 ): Promise<void> {
@@ -704,7 +704,7 @@ function expectSetToFail(
 }
 
 function expectUpdateToFail(
-  db: firestore.Firestore,
+  db: firestore.FirebaseFirestore,
   data: any,
   reason: string
 ): Promise<void> {
@@ -722,7 +722,7 @@ function expectUpdateToFail(
  * with the expected reason.
  */
 function expectWriteToFail(
-  db: firestore.Firestore,
+  db: firestore.FirebaseFirestore,
   data: any,
   reason: string,
   includeSets?: boolean,
@@ -774,7 +774,7 @@ function expectWriteToFail(
  * they fail with the specified reason.
  */
 function expectFieldPathToFail(
-  db: firestore.Firestore,
+  db: firestore.FirebaseFirestore,
   path: string,
   reason: string
 ): Promise<void> {

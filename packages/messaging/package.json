@@ -15,6 +15,7 @@
     "@firebase/app": "^0.1.0"
   },
   "dependencies": {
+    "@firebase/messaging-types": "0.1.0",
     "@firebase/util": "0.1.4"
   },
   "devDependencies": {
@@ -45,5 +46,5 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts"
+  "typings": "dist/esm/index.d.ts"
 }

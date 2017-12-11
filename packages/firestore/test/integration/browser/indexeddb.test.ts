@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
