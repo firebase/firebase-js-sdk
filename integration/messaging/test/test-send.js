@@ -75,133 +75,135 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
       return;
     }
 
-    describe(`${assistantBrowser.getPrettyName()}`, function() {
-      DEMOS.forEach(demoInfo => {
-        describe(`Demo: ${demoInfo.name}`, function() {
-          beforeEach(async function() {
-            await cleanUp();
+    DEMOS.forEach(demoInfo => {
+      describe(`${assistantBrowser.getPrettyName()} : ${demoInfo.name}`, function() {
+        beforeEach(async function() {
+          await cleanUp();
 
-            assistantBrowser = setupNotificationPermission(
-              assistantBrowser,
-              testServer.serverAddress
-            );
+          assistantBrowser = setupNotificationPermission(
+            assistantBrowser,
+            testServer.serverAddress
+          );
 
-            globalWebDriver = await assistantBrowser.getSeleniumDriver();
+          globalWebDriver = await assistantBrowser.getSeleniumDriver();
+        });
+
+        it.only(`should send an empty messge and be recieved by the SDK`, async function() {
+          await globalWebDriver.get(
+            `${testServer.serverAddress}/${demoInfo.name}/`
+          );
+          const token = await getFCMToken(globalWebDriver);
+          expect(token).to.exist;
+
+          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+            to: token
           });
+          expect(response).to.exist;
+          if (response.success !== 1) {
+            // It's helpful to know the error returned by FCM
+            console.error(response);
+          }
+          expect(response.success).to.equal(1);
 
-          it(`should send an empty messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(
-              `${testServer.serverAddress}/${demoInfo.name}/`
-            );
-            const token = await getFCMToken(globalWebDriver);
-            expect(token).to.exist;
-
-            const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-              to: token
-            });
-            expect(response).to.exist;
-            expect(response.success).to.equal(1);
-
-            const receivedMessage = await getReceivedMessages(globalWebDriver);
-            expect(receivedMessage).to.exist;
-            expect(receivedMessage.length).to.equal(1);
-            expect(receivedMessage[0]).to.deep.equal({
-              collapse_key: 'do_not_collapse',
-              from: demoInfo.senderId
-            });
+          const receivedMessage = await getReceivedMessages(globalWebDriver);
+          expect(receivedMessage).to.exist;
+          expect(receivedMessage.length).to.equal(1);
+          expect(receivedMessage[0]).to.deep.equal({
+            collapse_key: 'do_not_collapse',
+            from: demoInfo.senderId
           });
+        });
 
-          it(`should send a data only messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(
-              `${testServer.serverAddress}/${demoInfo.name}/`
-            );
-            const token = await getFCMToken(globalWebDriver);
-            expect(token).to.exist;
+        it(`should send a data only messge and be recieved by the SDK`, async function() {
+          await globalWebDriver.get(
+            `${testServer.serverAddress}/${demoInfo.name}/`
+          );
+          const token = await getFCMToken(globalWebDriver);
+          expect(token).to.exist;
 
-            const data = { hello: 'world' };
+          const data = { hello: 'world' };
 
-            const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-              to: token,
-              data: data
-            });
-            expect(response).to.exist;
-            expect(response.success).to.equal(1);
-
-            const receivedMessage = await getReceivedMessages(globalWebDriver);
-            expect(receivedMessage).to.exist;
-            expect(receivedMessage.length).to.equal(1);
-            expect(receivedMessage[0]).to.deep.equal({
-              collapse_key: 'do_not_collapse',
-              from: demoInfo.senderId,
-              data: data
-            });
+          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+            to: token,
+            data: data
           });
+          expect(response).to.exist;
+          expect(response.success).to.equal(1);
 
-          it(`should send a notification only messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(
-              `${testServer.serverAddress}/${demoInfo.name}/`
-            );
-            const token = await getFCMToken(globalWebDriver);
-            expect(token).to.exist;
-
-            const notification = {
-              title: 'Test Title',
-              body: 'Test Body',
-              icon: '/test/icon.png',
-              click_action: '/',
-              tag: 'test-tag'
-            };
-
-            const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-              to: token,
-              notification: notification
-            });
-            expect(response).to.exist;
-            expect(response.success).to.equal(1);
-
-            const receivedMessage = await getReceivedMessages(globalWebDriver);
-            expect(receivedMessage).to.exist;
-            expect(receivedMessage.length).to.equal(1);
-            expect(receivedMessage[0]).to.deep.equal({
-              collapse_key: 'do_not_collapse',
-              from: demoInfo.senderId,
-              notification: notification
-            });
+          const receivedMessage = await getReceivedMessages(globalWebDriver);
+          expect(receivedMessage).to.exist;
+          expect(receivedMessage.length).to.equal(1);
+          expect(receivedMessage[0]).to.deep.equal({
+            collapse_key: 'do_not_collapse',
+            from: demoInfo.senderId,
+            data: data
           });
+        });
 
-          it(`should send a notification and data messge and be recieved by the SDK`, async function() {
-            await globalWebDriver.get(
-              `${testServer.serverAddress}/${demoInfo.name}/`
-            );
-            const token = await getFCMToken(globalWebDriver);
-            expect(token).to.exist;
+        it(`should send a notification only messge and be recieved by the SDK`, async function() {
+          await globalWebDriver.get(
+            `${testServer.serverAddress}/${demoInfo.name}/`
+          );
+          const token = await getFCMToken(globalWebDriver);
+          expect(token).to.exist;
 
-            const data = { hello: 'world' };
-            const notification = {
-              title: 'Test Title',
-              body: 'Test Body',
-              icon: '/test/icon.png',
-              click_action: '/',
-              tag: 'test-tag'
-            };
+          const notification = {
+            title: 'Test Title',
+            body: 'Test Body',
+            icon: '/test/icon.png',
+            click_action: '/',
+            tag: 'test-tag'
+          };
 
-            const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
-              to: token,
-              data: data,
-              notification: notification
-            });
-            expect(response).to.exist;
-            expect(response.success).to.equal(1);
+          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+            to: token,
+            notification: notification
+          });
+          expect(response).to.exist;
+          expect(response.success).to.equal(1);
 
-            const receivedMessage = await getReceivedMessages(globalWebDriver);
-            expect(receivedMessage).to.exist;
-            expect(receivedMessage.length).to.equal(1);
-            expect(receivedMessage[0]).to.deep.equal({
-              collapse_key: 'do_not_collapse',
-              from: demoInfo.senderId,
-              data: data,
-              notification: notification
-            });
+          const receivedMessage = await getReceivedMessages(globalWebDriver);
+          expect(receivedMessage).to.exist;
+          expect(receivedMessage.length).to.equal(1);
+          expect(receivedMessage[0]).to.deep.equal({
+            collapse_key: 'do_not_collapse',
+            from: demoInfo.senderId,
+            notification: notification
+          });
+        });
+
+        it(`should send a notification and data messge and be recieved by the SDK`, async function() {
+          await globalWebDriver.get(
+            `${testServer.serverAddress}/${demoInfo.name}/`
+          );
+          const token = await getFCMToken(globalWebDriver);
+          expect(token).to.exist;
+
+          const data = { hello: 'world' };
+          const notification = {
+            title: 'Test Title',
+            body: 'Test Body',
+            icon: '/test/icon.png',
+            click_action: '/',
+            tag: 'test-tag'
+          };
+
+          const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
+            to: token,
+            data: data,
+            notification: notification
+          });
+          expect(response).to.exist;
+          expect(response.success).to.equal(1);
+
+          const receivedMessage = await getReceivedMessages(globalWebDriver);
+          expect(receivedMessage).to.exist;
+          expect(receivedMessage.length).to.equal(1);
+          expect(receivedMessage[0]).to.deep.equal({
+            collapse_key: 'do_not_collapse',
+            from: demoInfo.senderId,
+            data: data,
+            notification: notification
           });
         });
       });

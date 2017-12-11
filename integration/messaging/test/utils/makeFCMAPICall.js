@@ -35,11 +35,13 @@ module.exports = async (endpoint, apiKey, apiBody) => {
   // FCM will return HTML if there is an error so we can't parse
   // the response as JSON, instead have to read as text, then parse
   // then handle the possible error.
-  const responseText = await response.text();
-
+  let responseText;
   try {
+    responseText = await response.text()
     return JSON.parse(responseText);
   } catch (err) {
+    console.error(`Failed to read response: `, responseText);
+    console.error(err);
     throw new Error(`Unexpected response: '${responseText}'`);
   }
 };
