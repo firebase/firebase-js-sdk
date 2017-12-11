@@ -384,8 +384,6 @@ export class Firestore implements firestore.Firestore, FirebaseService {
       }
     },
     // Exposed via INTERNAL for use in tests.
-    disableNetwork: () => this._firestoreClient.disableNetwork(),
-    enableNetwork: () => this._firestoreClient.enableNetwork(),
     drainAsyncQueue: (executeDelayedTasks: boolean) =>
       this._queue.drain(executeDelayedTasks)
   };

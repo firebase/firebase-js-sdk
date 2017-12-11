@@ -128,8 +128,16 @@ declare namespace firestore {
      */
     app: any;
 
+    /**
+     * Enables use of the network for this Firestore instance.
+     * @return A promise that is resolved once the network has been enabled.
+     */
     enableNetwork(): Promise<void>;
 
+    /**
+     * Disables usage of the network for this Firestore instance.
+     * @return A promise that is resolved once the network has been disabled.
+     */
     disableNetwork(): Promise<void>;
 
     INTERNAL: { delete: () => Promise<void> };
