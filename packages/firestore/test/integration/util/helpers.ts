@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
@@ -82,7 +82,9 @@ export function apiDescribe(
 }
 
 /** Drains the AsyncQueue. Delayed tasks are executed immediately. */
-export function drainAsyncQueue(db: firestore.Firestore): Promise<void> {
+export function drainAsyncQueue(
+  db: firestore.FirebaseFirestore
+): Promise<void> {
   const firestoreInternal = db.INTERNAL as any;
   return firestoreInternal.drainAsyncQueue(/* executeDelayedTasks= */ true);
 }
@@ -121,7 +123,7 @@ export function withTestDatastore(
 
 export function withTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore) => Promise<void>
 ): Promise<void> {
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
@@ -131,7 +133,7 @@ export function withTestDb(
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
-  fn: (db: firestore.Firestore) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -147,7 +149,7 @@ export function withAlternateTestDb(
 export function withTestDbs(
   persistence: boolean,
   numDbs: number,
-  fn: (db: firestore.Firestore[]) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
 ): Promise<void> {
   return withTestDbsSettings(
     persistence,
@@ -165,12 +167,12 @@ export function withTestDbsSettings(
   projectId: string,
   settings: firestore.Settings,
   numDbs: number,
-  fn: (db: firestore.Firestore[]) => Promise<void>
+  fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
 ): Promise<void> {
   if (numDbs === 0) {
     throw new Error("Can't test with no databases");
   }
-  const promises: Array<Promise<firestore.Firestore>> = [];
+  const promises: Array<Promise<firestore.FirebaseFirestore>> = [];
   for (let i = 0; i < numDbs; i++) {
     // TODO(dimond): Right now we create a new app and Firestore instance for
     // every test and never clean them up. We may need to revisit.
@@ -184,7 +186,7 @@ export function withTestDbsSettings(
     const firestore = firebaseAny.firestore(app);
     firestore.settings(settings);
 
-    let ready: Promise<firestore.Firestore>;
+    let ready: Promise<firestore.FirebaseFirestore>;
     if (persistence) {
       ready = firestore.enablePersistence().then(() => firestore);
     } else {
@@ -194,7 +196,7 @@ export function withTestDbsSettings(
     promises.push(ready);
   }
 
-  return Promise.all(promises).then((dbs: firestore.Firestore[]) => {
+  return Promise.all(promises).then((dbs: firestore.FirebaseFirestore[]) => {
     const cleanup = () => {
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
@@ -263,7 +265,7 @@ export function withTestCollectionSettings(
   );
 }
 
-function wipeDb(db: firestore.Firestore): Promise<void> {
+function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // TODO(dimond): actually wipe DB and assert or listenables have been turned
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);

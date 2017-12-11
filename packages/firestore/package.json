@@ -18,11 +18,13 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
+    "@firebase/firestore-types": "0.1.0",
     "@firebase/webchannel-wrapper": "0.2.5",
     "grpc": "^1.7.1"
   },
   "peerDependencies": {
-    "@firebase/app": "^0.1.0"
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
@@ -57,6 +59,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
+  "typings": "dist/esm/index.d.ts",    
   "nyc": {
     "extension": [
       ".ts"

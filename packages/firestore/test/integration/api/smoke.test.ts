@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 import * as testHelpers from '../../util/helpers';
 import { EventsAccumulator } from '../../util/helpers';
 import * as integrationHelpers from '../util/helpers';
