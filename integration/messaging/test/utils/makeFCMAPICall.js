@@ -37,7 +37,7 @@ module.exports = async (endpoint, apiKey, apiBody) => {
   // then handle the possible error.
   let responseText;
   try {
-    responseText = await response.text()
+    responseText = await response.text();
     return JSON.parse(responseText);
   } catch (err) {
     console.error(`Failed to read response: `, responseText);

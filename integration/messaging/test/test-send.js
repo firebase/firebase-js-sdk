@@ -76,7 +76,9 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
     }
 
     DEMOS.forEach(demoInfo => {
-      describe(`${assistantBrowser.getPrettyName()} : ${demoInfo.name}`, function() {
+      describe(`${assistantBrowser.getPrettyName()} : ${
+        demoInfo.name
+      }`, function() {
         beforeEach(async function() {
           await cleanUp();
 
