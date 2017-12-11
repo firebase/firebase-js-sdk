@@ -22,7 +22,8 @@ import { Repo } from '../core/Repo';
 import { RepoManager } from '../core/RepoManager';
 import { validateArgCount } from '@firebase/util';
 import { validateUrl } from '../core/util/validation';
-import { FirebaseApp, FirebaseService } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
 import { RepoInfo } from '../core/RepoInfo';
 
 /**

@@ -33,6 +33,7 @@ import { Deferred } from '../../../src/util/promise';
 import { Datastore } from '../../../src/remote/datastore';
 import { setMutation } from '../../util/helpers';
 import { drainAsyncQueue, withTestDatastore } from '../util/helpers';
+import { FirestoreError } from '@firebase/firestore-types';
 
 /**
  * StreamEventType combines the events that can be observed by the
@@ -107,7 +108,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('open');
   }
 
-  onClose(err?: firestore.FirestoreError): Promise<void> {
+  onClose(err?: FirestoreError): Promise<void> {
     return this.resolvePending('close');
   }
 

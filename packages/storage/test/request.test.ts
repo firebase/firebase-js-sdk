@@ -15,7 +15,8 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import firebase, { FirebaseNamespace } from '@firebase/app';
+import firebase from '@firebase/app';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { makeRequest } from '../src/implementation/request';
 import { RequestInfo } from '../src/implementation/requestinfo';
 import { Headers, XhrIo } from '../src/implementation/xhrio';

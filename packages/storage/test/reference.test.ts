@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { AuthWrapper } from '../src/implementation/authwrapper';
 import { makeRequest } from '../src/implementation/request';
 import { StringFormat } from '../src/implementation/string';
