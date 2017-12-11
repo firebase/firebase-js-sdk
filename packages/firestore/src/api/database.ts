@@ -99,7 +99,7 @@ const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 
 /** Undocumented, private additional settings not exposed in our public API. */
-interface PrivateSettings extends firestore.Settings {
+export interface PrivateSettings extends firestore.Settings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
 }

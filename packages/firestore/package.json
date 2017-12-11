@@ -3,6 +3,7 @@
   "version": "0.2.1",
   "description": "",
   "scripts": {
+    "build:console": "webpack",
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
@@ -50,6 +51,7 @@
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1",
+    "wrapper-webpack-plugin": "^1.0.0",
     "yargs": "^10.0.3"
   },
   "repository": {
@@ -59,7 +61,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm/index.d.ts",    
+  "typings": "dist/esm/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"
