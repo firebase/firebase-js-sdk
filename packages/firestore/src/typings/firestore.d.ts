@@ -563,10 +563,10 @@ declare namespace firestore {
     readonly metadata: SnapshotMetadata;
 
     /**
-     * Retrieves all fields in the document as an Object. Returns `undefined' if
+     * Retrieves all fields in the document as an Object. Returns `undefined` if
      * the document doesn't exist
      *
-     * @return An Object containing all fields in the document or `undefined' if
+     * @return An Object containing all fields in the document or `undefined` if
      * the document doesn't exist.
      */
     data(): DocumentData | undefined;

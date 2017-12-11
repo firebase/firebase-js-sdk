@@ -98,7 +98,7 @@ apiDescribe('Database', persistence => {
     return withTestDoc(persistence, doc => {
       return doc.get().then(snapshot => {
         expect(snapshot.exists).to.equal(false);
-        expect(snapshot.exists).to.equal(undefined);
+        expect(snapshot.data()).to.equal(undefined);
         expect(snapshot.get('foo')).to.equal(undefined);
       });
     });
