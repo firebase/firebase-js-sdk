@@ -1,4 +1,4 @@
-# Unreleased
+# Unreleased (firestore-api-changes)
 - [changed] Snapshot listeners (with the `includeMetadataChanges` option
   enabled) now receive an event with `snapshot.metadata.fromCache` set to
   `true` if the SDK loses its connection to the backend. A new event with

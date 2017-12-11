@@ -350,13 +350,13 @@ export class SyncEngine implements RemoteSyncer {
   applyOnlineStateChange(onlineState: OnlineState) {
     const newViewSnapshots = [] as ViewSnapshot[];
     this.queryViewsByQuery.forEach((_, queryView) => {
-      const viewSnap = queryView.view.applyOnlineStateChange(onlineState);
+      const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       assert(
-        viewSnap.limboChanges.length === 0,
+        viewChange.limboChanges.length === 0,
         'OnlineState should not affect limbo documents.'
       );
-      if (viewSnap.snapshot) {
-        newViewSnapshots.push(viewSnap.snapshot);
+      if (viewChange.snapshot) {
+        newViewSnapshots.push(viewChange.snapshot);
       }
     });
     this.viewHandler(newViewSnapshots);
