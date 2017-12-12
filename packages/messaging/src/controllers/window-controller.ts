@@ -173,7 +173,7 @@ export default class WindowController extends ControllerInterface
       throw this.errorFactory_.create(Errors.codes.SW_REGISTRATION_EXPECTED);
     }
 
-    if (typeof this.registrationToUse_ !== 'undefined') {
+    if (typeof registration !== 'undefined') {
       throw this.errorFactory_.create(Errors.codes.USE_SW_BEFORE_GET_TOKEN);
     }
 
