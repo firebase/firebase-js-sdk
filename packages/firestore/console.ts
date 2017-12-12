@@ -1,3 +1,5 @@
+import './src/platform_browser/browser_init';
+
 export {
   Firestore,
   FirestoreDatabase,

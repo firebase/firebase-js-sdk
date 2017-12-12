@@ -3,7 +3,7 @@
   "version": "0.2.1",
   "description": "",
   "scripts": {
-    "build:console": "webpack",
+    "build:console": "gulp build:console",
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
@@ -47,11 +47,12 @@
     "nyc": "^11.2.1",
     "sinon": "^4.0.2",
     "source-map-loader": "^0.2.3",
+    "through2": "^2.0.3",
     "ts-loader": "^3.1.0",
     "ts-node": "^3.3.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1",
-    "wrapper-webpack-plugin": "^1.0.0",
+    "webpack-stream": "^4.0.0",
     "yargs": "^10.0.3"
   },
   "repository": {

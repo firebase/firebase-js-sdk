@@ -1,11 +1,13 @@
 const { resolve } = require('path');
-const WrapperPlugin = require('wrapper-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = {
   entry: resolve(__dirname, './console.ts'),
   output: {
     path: resolve(__dirname, './dist'),
-    filename: 'standalone.js'
+    filename: 'standalone.js',
+    libraryTarget: 'assign',
+    library: '__firestore__'
   },
   // Currently we need to add '.ts' to the resolve.extensions array.
   resolve: {
@@ -27,8 +29,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new WrapperPlugin({
-      header: filename => 'goog.module("firestore");\nexports = '
-    })
+    new webpack.optimize.UglifyJsPlugin(),
   ]
 };
