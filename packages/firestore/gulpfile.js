@@ -40,25 +40,34 @@ const setupWatcher = () => {
 };
 
 function buildConsole() {
-  return gulp.src('console.ts')
+  return gulp
+    .src('console.ts')
     .pipe(gulpWebpack(require('./webpack.config'), webpack))
-    .pipe(through.obj(function(file, encoding, cb) {
-      if (file.isBuffer()) {
-        file.contents = Buffer.concat([
-          new Buffer("goog.module('firestore');\r\nexports = (function() {\r\n"),
-          new Buffer(`  var __firestore__;\r\n  eval(${JSON.stringify(String(file.contents))})\r\n`),
-          new Buffer("  return __firestore__;\r\n})();")
-        ]);
-      }
-      
-      this.push(file);
-      
-      return cb();
-    }))
+    .pipe(
+      through.obj(function(file, encoding, cb) {
+        if (file.isBuffer()) {
+          file.contents = Buffer.concat([
+            new Buffer(
+              "goog.module('firestore');\r\nexports = (function() {\r\n"
+            ),
+            new Buffer(
+              `  var __firestore__;\r\n  eval(${JSON.stringify(
+                String(file.contents)
+              )})\r\n`
+            ),
+            new Buffer('  return __firestore__;\r\n})();')
+          ]);
+        }
+
+        this.push(file);
+
+        return cb();
+      })
+    )
     .pipe(gulp.dest('dist/'));
 }
 
-gulp.task('build:console', buildConsole)
+gulp.task('build:console', buildConsole);
 
 gulp.task('build', buildModule);
 
