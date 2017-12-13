@@ -255,8 +255,6 @@ export class RemoteStore {
   private disableNetworkInternal(
     targetOnlineState: OnlineState
   ): Promise<void> {
-    this.updateOnlineState(targetOnlineState);
-
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close
     // event).
     this.watchStream.stop();
@@ -267,6 +265,8 @@ export class RemoteStore {
 
     this.writeStream = null;
     this.watchStream = null;
+
+    this.updateOnlineState(targetOnlineState);
 
     return Promise.resolve();
   }
