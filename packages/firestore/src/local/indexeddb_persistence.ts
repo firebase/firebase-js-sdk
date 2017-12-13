@@ -377,7 +377,7 @@ export class IndexedDbPersistence implements Persistence {
       return zombiedOwnerId;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error(LOG_TAG, 'Failed to get zombie owner id.', e);
+      log.error('Failed to get zombie owner id.', e);
       return null;
     }
   }
@@ -398,7 +398,7 @@ export class IndexedDbPersistence implements Persistence {
       }
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error(LOG_TAG, 'Failed to set zombie owner id.', e);
+      log.error('Failed to set zombie owner id.', e);
     }
   }
 
