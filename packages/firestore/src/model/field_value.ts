@@ -84,8 +84,10 @@ export class FieldValueOptions {
       case 'previous':
         return new FieldValueOptions(ServerTimestampBehavior.Previous);
       case 'none': // Fall-through intended.
-      default:
+      case undefined:
         return FieldValueOptions.defaultOptions;
+      default:
+        return fail('fromSnapshotOptions() called with invalid options.');
     }
   }
 }
@@ -109,7 +111,7 @@ export type FieldType = null | boolean | number | string | {};
 export abstract class FieldValue {
   readonly typeOrder: TypeOrder;
 
-  abstract value(options?: FieldValueOptions): FieldType | undefined;
+  abstract value(options?: FieldValueOptions): FieldType;
   abstract equals(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
@@ -349,7 +351,7 @@ export class TimestampValue extends FieldValue {
  *   the local view of a document. Therefore they do not need to be parsed or
  *   serialized.
  * - When evaluated locally (e.g. for snapshot.data()), they by default
- *   evaluate to `null`. This behavior can be configured by passing custom
+ *   evaluate to 'null'. This behavior can be configured by passing custom
  *   FieldValueOptions to value().
  * - With respect to other ServerTimestampValues, they sort by their
  *   localWriteTime.
@@ -365,15 +367,19 @@ export class ServerTimestampValue extends FieldValue {
   }
 
   value(options?: FieldValueOptions): FieldType {
-    if (options) {
-      switch (options.serverTimestampBehavior) {
-        case ServerTimestampBehavior.Estimate:
-          return this.localWriteTime.toDate();
-        case ServerTimestampBehavior.Previous:
-          return this.previousValue ? this.previousValue.value(options) : null;
-      }
+    if (
+      options &&
+      options.serverTimestampBehavior === ServerTimestampBehavior.Estimate
+    ) {
+      return this.localWriteTime.toDate();
+    } else if (
+      options &&
+      options.serverTimestampBehavior === ServerTimestampBehavior.Previous
+    ) {
+      return this.previousValue ? this.previousValue.value(options) : null;
+    } else {
+      return null;
     }
-    return null;
   }
 
   equals(other: FieldValue): boolean {

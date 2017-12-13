@@ -55,9 +55,7 @@ apiDescribe('Server Timestamps', persistence => {
   function writeInitialData(): Promise<void> {
     return docRef
       .set(initialData)
-      .then(() => {
-        return accumulator.awaitEvent();
-      })
+      .then(() => accumulator.awaitEvent())
       .then(initialDataSnap => {
         expect(initialDataSnap.data()).to.deep.equal(initialData);
       });
@@ -65,10 +63,25 @@ apiDescribe('Server Timestamps', persistence => {
 
   /** Waits for a latency compensated local snapshot. */
   function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    return accumulator.awaitEvent().then(localSnap => {
-      expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-      return localSnap;
-    });
+    return waitForLocalEvents(1).then(([snapshot]) => snapshot);
+  }
+
+  /** Waits for `count` latency compensated local snapshots. */
+  function waitForLocalEvents(
+    count: number
+  ): Promise<firestore.DocumentSnapshot[]> {
+    const snapshots: firestore.DocumentSnapshot[] = [];
+    let promise = Promise.resolve(snapshots);
+
+    while (count--) {
+      promise = promise.then(() => accumulator.awaitEvent()).then(localSnap => {
+        expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+        snapshots.push(localSnap);
+        return snapshots;
+      });
+    }
+
+    return promise;
   }
 
   /** Waits for a snapshot that has no pending writes */
@@ -139,6 +152,7 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestDoc(persistence, doc => {
       // Set variables for use during test.
       docRef = doc;
+
       accumulator = new testHelpers.EventsAccumulator<
         firestore.DocumentSnapshot
       >();
@@ -210,9 +224,7 @@ apiDescribe('Server Timestamps', persistence => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
         .then(waitForLocalEvent)
-        .then(snapshot => verifyTimestampsAreEstimates(snapshot))
-        .then(waitForRemoteEvent)
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
+        .then(snapshot => verifyTimestampsAreEstimates(snapshot));
     });
   });
 
@@ -227,150 +239,75 @@ apiDescribe('Server Timestamps', persistence => {
         .then(waitForRemoteEvent)
         .then(snapshot => {
           previousSnapshot = snapshot;
-          verifyTimestampsAreResolved(snapshot);
         })
         .then(() => docRef.update(updateData))
         .then(waitForLocalEvent)
         .then(snapshot =>
           verifyTimestampsUsePreviousValue(snapshot, previousSnapshot)
-        )
-        .then(waitForRemoteEvent)
-        .then(snapshot => verifyTimestampsAreResolved(snapshot));
+        );
     });
   });
 
   it('can return previous value of different type', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
-        .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(waitForRemoteEvent)
-        .then(snapshot => {
-          verifyTimestampsAreResolved(snapshot);
-        })
         .then(() =>
+          // Change field 'a' from a number type to a server timestamp.
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
         )
         .then(waitForLocalEvent)
         .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'none' })).to.equal(
-            null
-          );
-          expect(
-            snapshot.get('a', { serverTimestamps: 'estimate' })
-          ).to.be.instanceof(Date);
+          // Verify that we can still obtain the number.
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
             42
           );
-        })
-        .then(waitForRemoteEvent)
-        .then(snapshot => {
-          expect(
-            snapshot.get('a', { serverTimestamps: 'none' })
-          ).to.be.instanceof(Date);
-          expect(
-            snapshot.get('a', { serverTimestamps: 'estimate' })
-          ).to.be.instanceof(Date);
-          expect(
-            snapshot.get('a', { serverTimestamps: 'previous' })
-          ).to.be.instanceof(Date);
         });
     });
   });
 
   it('can return previous value through consecutive updates', () => {
     return withTestSetup(() => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
-
-      let promises: Promise<void>[] = [];
-
       return writeInitialData()
-        .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
-        .then(snapshot => {
-          verifyTimestampsUsePreviousValue(snapshot, null);
-          return waitForRemoteEvent();
-        })
-        .then(firestoreInternal.disableNetwork)
+        .then(() => firestore.disableNetwork)
         .then(() => {
-          promises.push(
-            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
-          );
-          return waitForLocalEvent();
+          // We set up two consecutive writes with server timestamps.
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          return waitForLocalEvents(2);
         })
-        .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
-          promises.push(
-            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
-          );
-          return waitForLocalEvent();
-        })
-        .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
-          return firestoreInternal.enableNetwork();
-        })
-        .then(waitForRemoteEvent)
-        .then(snapshot => {
-          return Promise.all(promises);
-        })
-        .then(() => {});
+        .then(snapshots => {
+          // Both snapshot use the initial value (42) as the previous value.
+          expect(
+            snapshots[0].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+          expect(
+            snapshots[1].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+        });
     });
   });
 
   it('uses previous value from local mutation', () => {
     return withTestSetup(() => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
-
-      let promises: Promise<void>[] = [];
-
       return writeInitialData()
-        .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
-        .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(waitForRemoteEvent)
-        .then(snapshot => {
-          verifyTimestampsAreResolved(snapshot);
-          return firestoreInternal.disableNetwork();
-        })
+        .then(() => firestore.disableNetwork)
         .then(() => {
-          promises.push(
-            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
-          );
-          return waitForLocalEvent();
+          // We set up three consecutive writes.
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', 1337);
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          return waitForLocalEvents(3);
         })
-        .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            42
-          );
-          promises.push(docRef.update('a', 1337));
-          return waitForLocalEvent();
-        })
-        .then(() => {
-          promises.push(
-            docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
-          );
-          return waitForLocalEvent();
-        })
-        .then(snapshot => {
-          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
-            1337
-          );
-          return firestoreInternal.enableNetwork();
-        })
-        .then(waitForRemoteEvent)
-        .then(snapshot => {
-          return Promise.all(promises);
-        })
-        .then(() => {});
+        .then(snapshots => {
+          // The first snapshot uses the initial value (42) as the previous value.
+          expect(
+            snapshots[0].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+          // The third snapshot uses the intermediate value as the previous value.
+          expect(
+            snapshots[2].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(1337);
+        });
     });
   });
 

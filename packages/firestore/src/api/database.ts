@@ -996,25 +996,34 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-
-  data(options?: firestore.SnapshotOptions): firestore.DocumentData | undefined {
-        validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
-        options = validateSnapshotOptions('DocumentSnapshot.data', options);
+  data(
+    options?: firestore.SnapshotOptions
+  ): firestore.DocumentData | undefined {
+    validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
+    options = validateSnapshotOptions('DocumentSnapshot.data', options);
     return !this._document
       ? undefined
-      : this.convertObject(this._document.data, FieldValueOptions.fromSnapshotOptions(options));
+      : this.convertObject(
+          this._document.data,
+          FieldValueOptions.fromSnapshotOptions(options)
+        );
   }
 
-  get(fieldPath: string | ExternalFieldPath,
-          options?: firestore.SnapshotOptions): AnyJs {
-        validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
-        options = validateSnapshotOptions('DocumentSnapshot.get', options);
+  get(
+    fieldPath: string | ExternalFieldPath,
+    options?: firestore.SnapshotOptions
+  ): AnyJs {
+    validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
+    options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (this._document) {
       const value = this._document.data.field(
         fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
       if (value !== undefined) {
-        return this.convertValue(value, FieldValueOptions.fromSnapshotOptions(options));
+        return this.convertValue(
+          value,
+          FieldValueOptions.fromSnapshotOptions(options)
+        );
       }
     }
     return undefined;
@@ -1096,8 +1105,8 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
     super(firestore, key, document, fromCache);
   }
 
-  data(): firestore.DocumentData {
-    const data = super.data();
+  data(options?: SnapshotOptions): firestore.DocumentData {
+    const data = super.data(options);
     assert(
       typeof data === 'object',
       'Document in a QueryDocumentSnapshot should exist'
@@ -1731,7 +1740,7 @@ function validateSetOptions(
 
 function validateSnapshotOptions(
   methodName: string,
-  options?: firestore.SnapshotOptions
+  options: firestore.SnapshotOptions | undefined
 ): firestore.SnapshotOptions {
   if (options === undefined) {
     return {};

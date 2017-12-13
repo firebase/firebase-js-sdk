@@ -150,7 +150,7 @@ export function validateNamedType(
   type: string,
   optionName: string,
   argument: AnyJs
-) {
+): void {
   validateType(functionName, type, `${optionName} option`, argument);
 }
 
@@ -163,7 +163,7 @@ export function validateNamedOptionalType(
   type: string,
   optionName: string,
   argument: AnyJs
-) {
+): void {
   if (argument !== undefined) {
     validateNamedType(functionName, type, optionName, argument);
   }
@@ -174,16 +174,16 @@ export function validateNamedOptionalType(
  */
 export function validateNamedPropertyEquals<T>(
   functionName: string,
-  inputName: T,
+  inputName: string,
   optionName: string,
   input: T,
   expected: T[]
-) {
+): void {
   const expectedDescription: string[] = [];
 
   for (let val of expected) {
     if (val === input) {
-      return true;
+      return;
     }
     expectedDescription.push(valueDescription(val));
   }
@@ -191,11 +191,11 @@ export function validateNamedPropertyEquals<T>(
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `The ${optionName} property of the ${inputName} argument for ${
+    `Invalid value ${actualDescription} provided to function ${
       functionName
-    }() is expected to be one of ${expectedDescription.join(',')},  but was ${
-      actualDescription
-    }.`
+    }() for option 'serverTimestamps'. Acceptable values: ${expectedDescription.join(
+      ', '
+    )}`
   );
 }
 
@@ -205,11 +205,11 @@ export function validateNamedPropertyEquals<T>(
  */
 export function validateNamedOptionalPropertyEquals<T>(
   functionName: string,
-  inputName: T,
+  inputName: string,
   optionName: string,
   input: T,
   expected: T[]
-) {
+): void {
   if (input !== undefined) {
     validateNamedPropertyEquals(
       functionName,
@@ -227,7 +227,7 @@ function validateType(
   type: string,
   inputName: string,
   input: AnyJs
-) {
+): void {
   if (typeof input !== type || (type === 'object' && !isPlainObject(input))) {
     const description = valueDescription(input);
     throw new FirestoreError(

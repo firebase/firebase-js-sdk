@@ -563,8 +563,7 @@ export class TransformMutation extends Mutation {
         let previousValue: FieldValue | null = null;
 
         if (baseDoc instanceof Document) {
-          previousValue =
-            (baseDoc as Document).field(fieldTransform.field) || null;
+          previousValue = baseDoc.field(fieldTransform.field) || null;
         }
 
         transformResults.push(
