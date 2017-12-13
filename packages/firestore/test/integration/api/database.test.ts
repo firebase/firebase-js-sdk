@@ -94,6 +94,16 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can retrieve document that does not exist', () => {
+    return withTestDoc(persistence, doc => {
+      return doc.get().then(snapshot => {
+        expect(snapshot.exists).to.equal(false);
+        expect(snapshot.data()).to.equal(undefined);
+        expect(snapshot.get('foo')).to.equal(undefined);
+      });
+    });
+  });
+
   it('can merge data with an existing document using set', () => {
     return withTestDoc(persistence, doc => {
       const initialData = {
