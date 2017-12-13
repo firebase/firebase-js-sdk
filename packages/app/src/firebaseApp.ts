@@ -13,217 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createSubscribe, Observer, Subscribe } from '@firebase/util';
+
 import {
-  patchProperty,
+  FirebaseApp,
+  FirebaseOptions,
+  FirebaseNamespace
+} from '@firebase/app-types';
+import {
+  _FirebaseApp,
+  _FirebaseNamespace,
+  FirebaseService,
+  FirebaseServiceFactory,
+  FirebaseServiceNamespace,
+  AppHook
+} from '@firebase/app-types/private';
+import {
+  createSubscribe,
   deepCopy,
   deepExtend,
   ErrorFactory,
-  FirebaseError
+  FirebaseError,
+  Observer,
+  patchProperty,
+  Subscribe
 } from '@firebase/util';
-
-export interface FirebaseAuthTokenData {
-  accessToken: string;
-}
-
-export interface FirebaseAppInternals {
-  getToken(refreshToken?: boolean): Promise<FirebaseAuthTokenData | null>;
-  getUid(): string | null;
-  addAuthTokenListener(fn: (token: string | null) => void): void;
-  removeAuthTokenListener(fn: (token: string | null) => void): void;
-}
-
-export type FirebaseOptions = {
-  apiKey?: string;
-  authDomain?: string;
-  databaseURL?: string;
-  projectId?: string;
-  storageBucket?: string;
-  messagingSenderId?: string;
-  [name: string]: any;
-};
-
-// An instance of the firebase.App
-export interface FirebaseApp {
-  /**
-   * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
-   * App.
-   */
-  name: string;
-
-  /**
-   * The (read-only) configuration options from the app initialization.
-   */
-  options: FirebaseOptions;
-
-  /**
-   * Make the given App unusable and free resources.
-   */
-  delete(): Promise<void>;
-
-  INTERNAL: FirebaseAppInternals;
-}
-
-export interface FirebaseServiceInternals {
-  /**
-   * Delete the service and free it's resources - called from
-   * app.delete().
-   */
-  delete(): Promise<void>;
-}
-
-// Services are exposed through instances - each of which is associated with a
-// FirebaseApp.
-export interface FirebaseService {
-  app: FirebaseApp;
-  INTERNAL?: FirebaseServiceInternals;
-}
-
-export type AppHook = (event: string, app: FirebaseApp) => void;
-
-/**
- * Firebase Services create instances given a Firebase App instance and can
- * optionally add properties and methods to each FirebaseApp via the extendApp()
- * function.
- */
-export interface FirebaseServiceFactory {
-  (
-    app: FirebaseApp,
-    extendApp?: (props: { [prop: string]: any }) => void,
-    instanceString?: string
-  ): FirebaseService;
-}
-
-/**
- * All ServiceNamespaces extend from FirebaseServiceNamespace
- */
-export interface FirebaseServiceNamespace<T extends FirebaseService> {
-  (app?: FirebaseApp): T;
-}
-
-export interface FirebaseErrorFactory<T> {
-  create(code: T, data?: { [prop: string]: any }): FirebaseError;
-}
-
-export interface FirebaseErrorFactoryClass {
-  new (
-    service: string,
-    serviceName: string,
-    errors: { [code: string]: string }
-  ): FirebaseErrorFactory<any>;
-}
-
-export interface FirebaseNamespace {
-  /**
-   * Create (and intialize) a FirebaseApp.
-   *
-   * @param options Options to configure the services use in the App.
-   * @param name The optional name of the app to initialize ('[DEFAULT]' if
-   *   none)
-   */
-  initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
-
-  app: {
-    /**
-     * Retrieve an instance of a FirebaseApp.
-     *
-     * Usage: firebase.app()
-     *
-     * @param name The optional name of the app to return ('[DEFAULT]' if none)
-     */
-    (name?: string): FirebaseApp;
-
-    /**
-     * For testing FirebaseApp instances:
-     *   app() instanceof firebase.app.App
-     * DO NOT call this constuctor directly (use firebase.app() instead).
-     */
-    App: Function;
-  };
-
-  /**
-   * A (read-only) array of all the initialized Apps.
-   */
-  apps: FirebaseApp[];
-
-  // Inherit the type information of our exported Promise implementation from
-  // es6-promises.
-  Promise: typeof Promise;
-
-  // The current SDK version ('${JSCORE_VERSION}').
-  SDK_VERSION: string;
-
-  // TODO: Migrate to firebase-app-internal.d.ts
-  INTERNAL: {
-    /**
-     * Internal API to register a Firebase Service into the firebase namespace.
-     *
-     * Each service will create a child namespace (firease.name) which acts as
-     * both a namespace for service specific properties, and also as a service
-     * accessor function (firebase.name() or firebase.name(app)).
-     *
-     * @param name The Firebase Service being registered.
-     * @param createService Factory function to create a service instance.
-     * @param serviceProperties Properties to copy to the service's namespace.
-     * @param appHook All appHooks called before intializeApp returns to caller.
-     * @param allowMultipleInstances Whether the registered service supports
-     *   multiple instances per app. If not specified, the default is false.
-     */
-    registerService(
-      name: string,
-      createService: FirebaseServiceFactory,
-      serviceProperties?: { [prop: string]: any },
-      appHook?: AppHook,
-      allowMultipleInstances?: boolean
-    ): FirebaseServiceNamespace<FirebaseService>;
-
-    /**
-     * Just used for testing to start from a fresh namespace.
-     */
-    createFirebaseNamespace(): FirebaseNamespace;
-
-    /**
-     * Internal API to install properties on the top-level firebase namespace.
-     * @prop props The top level properties of this object are copied to the
-     *   namespace.
-     */
-    extendNamespace(props: { [prop: string]: any }): void;
-
-    /**
-     * Create a Subscribe function.  A proxy Observer is created so that
-     * events can be sent to single Observer to be fanned out automatically.
-     */
-    createSubscribe<T>(
-      executor: (observer: Observer<T>) => void,
-      onNoObservers?: (observer: Observer<T>) => void
-    ): Subscribe<T>;
-
-    /**
-     * Utility exposed for internal testing.
-     */
-    deepExtend(target: any, source: any): any;
-
-    /**
-     * Internal API to remove an app from the list of registered apps.
-     */
-    removeApp(name: string): void;
-
-    /**
-     * Service factories for each registered service.
-     */
-    factories: { [name: string]: FirebaseServiceFactory };
-
-    /*
-     * Convert service name to factory name to use.
-     */
-    useAsService(app: FirebaseApp, serviceName: string): string | null;
-
-    /**
-     * Use to construct all thrown FirebaseError's.
-     */
-    ErrorFactory: FirebaseErrorFactoryClass;
-  };
-}
 
 const contains = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
@@ -290,7 +103,7 @@ class FirebaseAppImpl implements FirebaseApp {
       resolve();
     })
       .then(() => {
-        this.firebase_.INTERNAL.removeApp(this.name_);
+        (this.firebase_ as _FirebaseNamespace).INTERNAL.removeApp(this.name_);
         let services: FirebaseService[] = [];
         Object.keys(this.services_).forEach(serviceKey => {
           Object.keys(this.services_[serviceKey]).forEach(instanceKey => {
@@ -342,11 +155,9 @@ class FirebaseAppImpl implements FirebaseApp {
         instanceIdentifier !== DEFAULT_ENTRY_NAME
           ? instanceIdentifier
           : undefined;
-      const service = this.firebase_.INTERNAL.factories[name](
-        this,
-        this.extendApp.bind(this),
-        instanceSpecifier
-      );
+      const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
+        name
+      ](this, this.extendApp.bind(this), instanceSpecifier);
       this.services_[name][instanceIdentifier] = service;
     }
 

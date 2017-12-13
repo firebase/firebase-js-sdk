@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
-  createFirebaseNamespace,
-  FirebaseNamespace,
-  FirebaseApp,
+  _FirebaseApp,
+  _FirebaseNamespace,
   FirebaseService
-} from '../src/firebaseApp';
+} from '@firebase/app-types/private';
+import { createFirebaseNamespace } from '../src/firebaseApp';
 import { assert } from 'chai';
 
 describe('Firebase App Class', () => {
@@ -59,7 +61,7 @@ describe('Firebase App Class', () => {
     let events = ['create', 'delete'];
     let hookEvents = 0;
     let app: FirebaseApp;
-    firebase.INTERNAL.registerService(
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
       'test',
       (app: FirebaseApp) => {
         return new TestService(app);
@@ -158,10 +160,13 @@ describe('Firebase App Class', () => {
 
   it('Only calls createService on first use (per app).', () => {
     let registrations = 0;
-    firebase.INTERNAL.registerService('test', (app: FirebaseApp) => {
-      registrations += 1;
-      return new TestService(app);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'test',
+      (app: FirebaseApp) => {
+        registrations += 1;
+        return new TestService(app);
+      }
+    );
     let app = firebase.initializeApp({});
     assert.equal(registrations, 0);
     (firebase as any).test();
@@ -185,10 +190,13 @@ describe('Firebase App Class', () => {
     const app1 = firebase.initializeApp({});
     assert.isUndefined((app1 as any).lazyService);
 
-    firebase.INTERNAL.registerService('lazyService', (app: FirebaseApp) => {
-      registrations += 1;
-      return new TestService(app);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'lazyService',
+      (app: FirebaseApp) => {
+        registrations += 1;
+        return new TestService(app);
+      }
+    );
 
     assert.isDefined((app1 as any).lazyService);
 
@@ -223,7 +231,7 @@ describe('Firebase App Class', () => {
     let events = ['create', 'delete'];
     let hookEvents = 0;
     const app = firebase.initializeApp({});
-    firebase.INTERNAL.registerService(
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
       'lazyServiceWithHook',
       (app: FirebaseApp) => {
         return new TestService(app);
@@ -244,7 +252,7 @@ describe('Firebase App Class', () => {
 
   it('Can register multiple instances of some services', () => {
     // Register Multi Instance Service
-    firebase.INTERNAL.registerService(
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
       'multiInstance',
       (...args) => {
         const [app, , instanceIdentifier] = args;
@@ -283,7 +291,7 @@ describe('Firebase App Class', () => {
 
   it(`Should return the same instance of a service if a service doesn't support multi instance`, () => {
     // Register Multi Instance Service
-    firebase.INTERNAL.registerService(
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
       'singleInstance',
       (...args) => {
         const [app, , instanceIdentifier] = args;
@@ -310,14 +318,17 @@ describe('Firebase App Class', () => {
   });
   it(`Should pass null to the factory method if using default instance`, () => {
     // Register Multi Instance Service
-    firebase.INTERNAL.registerService('testService', (...args) => {
-      const [app, , instanceIdentifier] = args;
-      assert.isUndefined(
-        instanceIdentifier,
-        '`instanceIdentifier` is not `undefined`'
-      );
-      return new TestService(app, instanceIdentifier);
-    });
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
+      'testService',
+      (...args) => {
+        const [app, , instanceIdentifier] = args;
+        assert.isUndefined(
+          instanceIdentifier,
+          '`instanceIdentifier` is not `undefined`'
+        );
+        return new TestService(app, instanceIdentifier);
+      }
+    );
     firebase.initializeApp({});
 
     // Capture a given service ref
@@ -327,7 +338,7 @@ describe('Firebase App Class', () => {
 
   it(`Should extend INTERNAL per app instance`, () => {
     let counter: number = 0;
-    firebase.INTERNAL.registerService(
+    (firebase as _FirebaseNamespace).INTERNAL.registerService(
       'test',
       (app: FirebaseApp, extendApp: any) => {
         const service = new TestService(app);
@@ -351,10 +362,10 @@ describe('Firebase App Class', () => {
     (app2 as any).test();
     // Confirm extended INTERNAL getToken resolve with the corresponding
     // service's value.
-    return app.INTERNAL.getToken()
+    return (app as _FirebaseApp).INTERNAL.getToken()
       .then(token => {
         assert.equal('tokenFor0', token.accessToken);
-        return app2.INTERNAL.getToken();
+        return (app2 as _FirebaseApp).INTERNAL.getToken();
       })
       .then(token => {
         assert.equal('tokenFor1', token.accessToken);

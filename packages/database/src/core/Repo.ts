@@ -34,7 +34,7 @@ import { StatsListener } from './stats/StatsListener';
 import { EventQueue } from './view/EventQueue';
 import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
 import { Database } from '../api/Database';
 import { ServerActions } from './ServerActions';

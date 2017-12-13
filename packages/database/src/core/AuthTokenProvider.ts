@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseAuthTokenData } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseAuthTokenData } from '@firebase/app-types/private';
 import { log, warn } from './util/util';
 
 /**

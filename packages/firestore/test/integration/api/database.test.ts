@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { Deferred } from '../../../src/util/promise';
 import firebase from '../util/firebase_export';
@@ -91,6 +91,16 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
         });
+    });
+  });
+
+  it('can retrieve document that does not exist', () => {
+    return withTestDoc(persistence, doc => {
+      return doc.get().then(snapshot => {
+        expect(snapshot.exists).to.equal(false);
+        expect(snapshot.data()).to.equal(undefined);
+        expect(snapshot.get('foo')).to.equal(undefined);
+      });
     });
   });
 

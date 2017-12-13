@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app';
+import * as firestore from '@firebase/firestore-types';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
 import {
   Firestore,
@@ -24,6 +25,7 @@ import {
   PublicDocumentSnapshot,
   PublicFirestore,
   PublicQuery,
+  PublicQueryDocumentSnapshot,
   PublicQuerySnapshot,
   PublicTransaction,
   PublicWriteBatch
@@ -42,6 +44,7 @@ const firestoreNamespace = {
   DocumentReference: PublicDocumentReference,
   DocumentSnapshot: PublicDocumentSnapshot,
   Query: PublicQuery,
+  QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
   QuerySnapshot: PublicQuerySnapshot,
   CollectionReference: PublicCollectionReference,
   FieldPath: FieldPath,
@@ -53,7 +56,7 @@ const firestoreNamespace = {
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  */
 export function configureForFirebase(firebase: FirebaseNamespace): void {
-  firebase.INTERNAL.registerService(
+  (firebase as _FirebaseNamespace).INTERNAL.registerService(
     'firestore',
     (app: FirebaseApp) => new Firestore(app),
     shallowCopy(firestoreNamespace)

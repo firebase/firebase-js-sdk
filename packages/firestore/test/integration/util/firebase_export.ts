@@ -20,7 +20,4 @@
 // instead.
 
 import firebase from '@firebase/app';
-
-// TODO(b/66917182): This "as any" removes all of our type-checking in tests and
-// is therefore pretty bad. But I can't figure out how to avoid it right now.
-export default firebase as any;
+export default firebase;

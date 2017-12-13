@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import * as args from './implementation/args';
 import { AuthWrapper } from './implementation/authwrapper';
 import { Location } from './implementation/location';

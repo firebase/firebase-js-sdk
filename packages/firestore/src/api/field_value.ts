@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { makeConstructorPrivate } from '../util/api';
 

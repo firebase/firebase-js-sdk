@@ -286,8 +286,6 @@ export class FirestoreClient {
         };
 
         this.remoteStore = new RemoteStore(
-          this.databaseInfo,
-          this.asyncQueue,
           this.localStore,
           datastore,
           onlineStateChangedHandler

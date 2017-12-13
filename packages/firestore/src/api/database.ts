@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
-import { FirebaseApp, FirebaseService } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
@@ -179,7 +180,7 @@ class FirestoreConfig {
 /**
  * The root reference to the database.
  */
-export class Firestore implements firestore.Firestore, FirebaseService {
+export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
   public readonly _databaseId: DatabaseId;
 
@@ -995,44 +996,28 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-  data(options?: firestore.SnapshotOptions): firestore.DocumentData {
-    validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
-    options = validateSnapshotOptions('DocumentSnapshot.data', options);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.data().'
-      );
-    }
-    return this.convertObject(
-      this._document.data,
-      FieldValueOptions.fromSnapshotOptions(options)
-    );
+
+  data(options?: firestore.SnapshotOptions): firestore.DocumentData | undefined {
+        validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
+        options = validateSnapshotOptions('DocumentSnapshot.data', options);
+    return !this._document
+      ? undefined
+      : this.convertObject(this._document.data, FieldValueOptions.fromSnapshotOptions(options));
   }
 
-  get(
-    fieldPath: string | ExternalFieldPath,
-    options?: firestore.SnapshotOptions
-  ): AnyJs {
-    validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
-    options = validateSnapshotOptions('DocumentSnapshot.get', options);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.get().'
+  get(fieldPath: string | ExternalFieldPath,
+          options?: firestore.SnapshotOptions): AnyJs {
+        validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
+        options = validateSnapshotOptions('DocumentSnapshot.get', options);
+    if (this._document) {
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
+      if (value !== undefined) {
+        return this.convertValue(value, FieldValueOptions.fromSnapshotOptions(options));
+      }
     }
-    const value = this._document.data.field(
-      fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
-    );
-    return value === undefined
-      ? undefined
-      : this.convertValue(
-          value,
-          FieldValueOptions.fromSnapshotOptions(options)
-        );
+    return undefined;
   }
 
   get id(): string {
@@ -1097,6 +1082,27 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
+  }
+}
+
+export class QueryDocumentSnapshot extends DocumentSnapshot
+  implements firestore.QueryDocumentSnapshot {
+  constructor(
+    firestore: Firestore,
+    key: DocumentKey,
+    document: Document,
+    fromCache: boolean
+  ) {
+    super(firestore, key, document, fromCache);
+  }
+
+  data(): firestore.DocumentData {
+    const data = super.data();
+    assert(
+      typeof data === 'object',
+      'Document in a QueryDocumentSnapshot should exist'
+    );
+    return data as firestore.DocumentData;
   }
 }
 
@@ -1599,8 +1605,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     };
   }
 
-  get docs(): firestore.DocumentSnapshot[] {
-    const result: firestore.DocumentSnapshot[] = [];
+  get docs(): firestore.QueryDocumentSnapshot[] {
+    const result: firestore.QueryDocumentSnapshot[] = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -1614,7 +1620,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   }
 
   forEach(
-    callback: (result: firestore.DocumentSnapshot) => void,
+    callback: (result: firestore.QueryDocumentSnapshot) => void,
     thisArg?: AnyJs
   ): void {
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
@@ -1638,8 +1644,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return this._cachedChanges;
   }
 
-  private convertToDocumentImpl(doc: Document): DocumentSnapshot {
-    return new DocumentSnapshot(
+  private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {
+    return new QueryDocumentSnapshot(
       this._firestore,
       doc.key,
       doc,
@@ -1774,7 +1780,7 @@ export function changesFromSnapshot(
     let lastDoc: Document;
     let index = 0;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1801,7 +1807,7 @@ export function changesFromSnapshot(
     // to lookup the index of a document.
     let indexTracker = snapshot.oldDocs;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1860,6 +1866,9 @@ export const PublicDocumentReference = makeConstructorPrivate(
   'Use firebase.firestore().doc() instead.'
 );
 export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
+export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
+  QueryDocumentSnapshot
+);
 export const PublicQuery = makeConstructorPrivate(Query);
 export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
 export const PublicCollectionReference = makeConstructorPrivate(
