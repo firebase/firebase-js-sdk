@@ -31,13 +31,13 @@ import {
 import { assert, fail } from '../util/assert';
 
 import { Query } from './query';
+import { OnlineState } from './types';
 import {
   ChangeType,
   DocumentChangeSet,
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
-import { OnlineState } from './types';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {

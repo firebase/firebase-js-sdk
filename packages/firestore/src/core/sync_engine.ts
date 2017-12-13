@@ -42,7 +42,7 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, ProtoByteString, TargetId, OnlineState } from './types';
+import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -349,7 +349,7 @@ export class SyncEngine implements RemoteSyncer {
    */
   applyOnlineStateChange(onlineState: OnlineState) {
     const newViewSnapshots = [] as ViewSnapshot[];
-    this.queryViewsByQuery.forEach((_, queryView) => {
+    this.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       assert(
         viewChange.limboChanges.length === 0,
