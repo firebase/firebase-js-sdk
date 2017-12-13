@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * This file is used to build `console.ts` see the file for the rationale
+ * behind its existence
+ */
 const { resolve } = require('path');
 const webpack = require('webpack');
 

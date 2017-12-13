@@ -39,6 +39,10 @@ const setupWatcher = () => {
   gulp.watch('src/**/*', buildModule);
 };
 
+/**
+ * This function is used to build `console.ts` see the file for the rationale
+ * behind its existence
+ */
 function buildConsole() {
   return gulp
     .src('console.ts')
@@ -53,7 +57,7 @@ function buildConsole() {
             new Buffer(
               `  var __firestore__;\r\n  eval(${JSON.stringify(
                 String(file.contents)
-              )})\r\n`
+              )});\r\n`
             ),
             new Buffer('  return __firestore__;\r\n})();')
           ]);
