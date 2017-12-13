@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "pretest:manual": "node ./download-browsers.js",
+    "pretest": "node ./download-browsers.js",
     "test": "mocha --exit"
   },
   "dependencies": {

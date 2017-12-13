@@ -90,7 +90,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           globalWebDriver = await assistantBrowser.getSeleniumDriver();
         });
 
-        it.only(`should send an empty messge and be recieved by the SDK`, async function() {
+        it(`should send an empty messge and be recieved by the SDK`, async function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );

@@ -62,6 +62,7 @@ class MessagingTestServer {
     }
 
     this._server.close();
+    this._server = null;
 
     return Promise.resolve();
   }
