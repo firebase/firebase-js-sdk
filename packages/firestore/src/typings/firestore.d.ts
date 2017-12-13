@@ -547,7 +547,7 @@ declare namespace firestore {
    *
    * For a `DocumentSnapshot` that points to a non-existing document, any data
    * access will return `undefined`. You can use the `exists` property to
-   * explicitly verify a documents existence.
+   * explicitly verify a document's existence.
    */
   export class DocumentSnapshot {
     protected constructor();
@@ -568,7 +568,7 @@ declare namespace firestore {
 
     /**
      * Retrieves all fields in the document as an Object. Returns `undefined` if
-     * the document doesn't exist
+     * the document doesn't exist.
      *
      * @return An Object containing all fields in the document or `undefined` if
      * the document doesn't exist.
@@ -577,7 +577,7 @@ declare namespace firestore {
 
     /**
      * Retrieves the field specified by `fieldPath`. Returns `undefined` if the
-     * document or field doesn't exist
+     * document or field doesn't exist.
      *
      * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
      * @return The data at the specified field location or undefined if no such
@@ -593,8 +593,8 @@ declare namespace firestore {
    * specific field.
    *
    * A `QueryDocumentSnapshot` offers the same API surface as a
-   * `DocumentSnapshot`. As deleted documents are not returned from queries,
-   * its `exists` property will always be true and `data()` will never return
+   * `DocumentSnapshot`. Since query results contain only existing documents,
+   * the `exists` property will always be true and `data()` will never return
    * `undefined`.
    */
   export class QueryDocumentSnapshot extends DocumentSnapshot {

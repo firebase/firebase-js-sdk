@@ -1085,7 +1085,7 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
 
   data(): firestore.DocumentData {
     const data = super.data();
-    assert(!!data, 'Document in a QueryDocumentSnapshot should exist');
+    assert(typeof data === 'object', 'Document in a QueryDocumentSnapshot should exist');
     return data as firestore.DocumentData;
   }
 }
