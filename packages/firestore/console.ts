@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
- /**
-  * The firestore console team have a special set of exports that they need to
-  * build the console for firestore. This is those exports.
-  * 
-  * We leverage the `webpack.config.js` in the `gulpfile.js` to build and wrap
-  * this output in the shape that we need it.
-  */
+/**
+ * The firestore console team have a special set of exports that they need to
+ * build the console for firestore. This is those exports.
+ *
+ * We leverage the `webpack.config.js` in the `gulpfile.js` to build and wrap
+ * this output in the shape that we need it.
+ */
 
 import './src/platform_browser/browser_init';
 
