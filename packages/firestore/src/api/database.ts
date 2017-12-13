@@ -991,31 +991,24 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-  data(): firestore.DocumentData {
+  data(): firestore.DocumentData | undefined {
     validateExactNumberOfArgs('DocumentSnapshot.data', arguments, 0);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.data().'
-      );
-    }
-    return this.convertObject(this._document.data);
+    return !this._document
+      ? undefined
+      : this.convertObject(this._document.data);
   }
 
   get(fieldPath: string | ExternalFieldPath): AnyJs {
     validateExactNumberOfArgs('DocumentSnapshot.get', arguments, 1);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.get().'
+    if (this._document) {
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
+      if (value !== undefined) {
+        return this.convertValue(value);
+      }
     }
-    const value = this._document.data.field(
-      fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
-    );
-    return value === undefined ? undefined : this.convertValue(value);
+    return undefined;
   }
 
   get id(): string {
@@ -1077,6 +1070,27 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return data.internalValue.map(value => {
       return this.convertValue(value);
     });
+  }
+}
+
+export class QueryDocumentSnapshot extends DocumentSnapshot
+  implements firestore.QueryDocumentSnapshot {
+  constructor(
+    firestore: Firestore,
+    key: DocumentKey,
+    document: Document,
+    fromCache: boolean
+  ) {
+    super(firestore, key, document, fromCache);
+  }
+
+  data(): firestore.DocumentData {
+    const data = super.data();
+    assert(
+      typeof data === 'object',
+      'Document in a QueryDocumentSnapshot should exist'
+    );
+    return data as firestore.DocumentData;
   }
 }
 
@@ -1579,8 +1593,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     };
   }
 
-  get docs(): firestore.DocumentSnapshot[] {
-    const result: firestore.DocumentSnapshot[] = [];
+  get docs(): firestore.QueryDocumentSnapshot[] {
+    const result: firestore.QueryDocumentSnapshot[] = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -1594,7 +1608,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   }
 
   forEach(
-    callback: (result: firestore.DocumentSnapshot) => void,
+    callback: (result: firestore.QueryDocumentSnapshot) => void,
     thisArg?: AnyJs
   ): void {
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
@@ -1618,8 +1632,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return this._cachedChanges;
   }
 
-  private convertToDocumentImpl(doc: Document): DocumentSnapshot {
-    return new DocumentSnapshot(
+  private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {
+    return new QueryDocumentSnapshot(
       this._firestore,
       doc.key,
       doc,
@@ -1735,7 +1749,7 @@ export function changesFromSnapshot(
     let lastDoc: Document;
     let index = 0;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1762,7 +1776,7 @@ export function changesFromSnapshot(
     // to lookup the index of a document.
     let indexTracker = snapshot.oldDocs;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1821,6 +1835,9 @@ export const PublicDocumentReference = makeConstructorPrivate(
   'Use firebase.firestore().doc() instead.'
 );
 export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
+export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
+  QueryDocumentSnapshot
+);
 export const PublicQuery = makeConstructorPrivate(Query);
 export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
 export const PublicCollectionReference = makeConstructorPrivate(

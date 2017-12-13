@@ -25,6 +25,7 @@ import {
   PublicDocumentSnapshot,
   PublicFirestore,
   PublicQuery,
+  PublicQueryDocumentSnapshot,
   PublicQuerySnapshot,
   PublicTransaction,
   PublicWriteBatch
@@ -43,6 +44,7 @@ const firestoreNamespace = {
   DocumentReference: PublicDocumentReference,
   DocumentSnapshot: PublicDocumentSnapshot,
   Query: PublicQuery,
+  QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
   QuerySnapshot: PublicQuerySnapshot,
   CollectionReference: PublicCollectionReference,
   FieldPath: FieldPath,
