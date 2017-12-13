@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 /**
  * Error Codes describing the different ways Firestore can fail. These come

@@ -1,0 +1,25 @@
+{
+  "name": "@firebase/storage-types",
+  "version": "0.1.0",
+  "description": "@firebase/storage Types",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tsc"
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "peerDependencies": {
+    "@firebase/app-types": "^0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^2.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/storage-types"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

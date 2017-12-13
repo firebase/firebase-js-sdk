@@ -27,7 +27,11 @@ import { requestMaker } from './requestmaker';
 import { RequestMap } from './requestmap';
 import * as type from './type';
 import { XhrIoPool } from './xhriopool';
-import { FirebaseApp, FirebaseAuthTokenData } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import {
+  _FirebaseApp,
+  FirebaseAuthTokenData
+} from '@firebase/app-types/private';
 
 /**
  * @param app If null, getAuthToken always resolves with null.
@@ -90,10 +94,10 @@ export class AuthWrapper {
     // (b/28673818).
     if (
       this.app_ !== null &&
-      type.isDef(this.app_.INTERNAL) &&
-      type.isDef(this.app_.INTERNAL.getToken)
+      type.isDef((this.app_ as _FirebaseApp).INTERNAL) &&
+      type.isDef((this.app_ as _FirebaseApp).INTERNAL.getToken)
     ) {
-      return this.app_.INTERNAL.getToken().then(
+      return (this.app_ as _FirebaseApp).INTERNAL.getToken().then(
         function(response: FirebaseAuthTokenData | null): string | null {
           if (response !== null) {
             return response.accessToken;

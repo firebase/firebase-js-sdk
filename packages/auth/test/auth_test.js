@@ -118,6 +118,7 @@ var idTokenGmail = {
 var expectedTokenResponse;
 var expectedTokenResponse2;
 var expectedTokenResponse3;
+var expectedTokenResponse4;
 var expectedTokenResponseWithIdPData;
 var expectedAdditionalUserInfo;
 var expectedGoogleCredential;
@@ -217,6 +218,23 @@ function setUp() {
   expectedTokenResponse3 = {
     'idToken': 'ID_TOKEN3',
     'refreshToken': 'REFRESH_TOKEN3',
+    'expiresIn': '3600'
+  };
+  expectedTokenResponse4 = {
+    //Sample ID token with provider password and email user@example.com.
+    'idToken': 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlL' +
+               'mNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5' +
+               'nb29nbGUuY29tL2FiY2RlZmdoaWprbG1ub3BxcnN0dSIsDQogICJhdWQiO' +
+               'iAiMTIzNDU2NzgiLA0KICAiYXV0aF90aW1lIjogMTUxMDM1NzYyMiwNCiA' +
+               'gInVzZXJfaWQiOiAiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwNCiAgInN1Y' +
+               'iI6ICJhYmNkZWZnaGlqa2xtbm9wcXJzdHUiLA0KICAiaWF0IjogMTUxMDM' +
+               '1NzYyMiwNCiAgImV4cCI6IDE1MTAzNjEyMjIsDQogICJlbWFpbCI6ICJ1c' +
+               '2VyQGV4YW1wbGUuY29tIiwNCiAgImVtYWlsX3ZlcmlmaWVkIjogdHJ1ZSw' +
+               'NCiAgImZpcmViYXNlIjogew0KICAgICJpZGVudGl0aWVzIjogew0KICAgI' +
+               'CAgImVtYWlsIjogWw0KICAgICAgICAidXNlckBleGFtcGxlLmNvbSINCiA' +
+               'gICAgIF0NCiAgICB9LA0KICAgICJzaWduX2luX3Byb3ZpZGVyIjogInBhc' +
+               '3N3b3JkIg0KICB9DQp9.SIGNATURE',
+    'refreshToken': 'REFRESH_TOKEN4',
     'expiresIn': '3600'
   };
   expectedTokenResponseWithIdPData = {
@@ -3600,6 +3618,121 @@ function testAuth_signInWithCustomToken_error() {
 }
 
 
+function testAuth_signInAndRetrieveDataWithCustomToken_success() {
+  // Tests successful signInAndRetrieveDataWithCustomToken.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedCustomToken = 'CUSTOM_TOKEN';
+  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2ds' +
+                        'ZS5jb20vMTIzNDU2NzgiLCJhdWQiOiIxMjM0NTY3OCIsImF1d' +
+                        'GhfdGltZSI6MTUxMTM3ODYyOSwidXNlcl9pZCI6ImFiY2RlZm' +
+                        'doaWprbG1ub3BxcnN0dSIsInN1YiI6ImFiY2RlZmdoaWprbG1' +
+                        'ub3BxcnN0dSIsImlhdCI6MTUxMTM3ODYzMCwiZXhwIjoxNTEx' +
+                        'MzgyMjMwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic' +
+                        '2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9LCJhbGciOiJIUz' +
+                        'I1NiJ9.SIGNATURE';
+  expectedTokenResponse['idToken'] = expectedIdToken;
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInAndRetrieveDataWithCustomToken should lead to an Auth user being
+  // initialized with the returned STS token response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        // Token response should match RpcHandler response.
+        assertObjectEquals(expectedTokenResponse, tokenResponse);
+        // Simulate user sign in completed and returned.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return goog.Promise.resolve();
+      });
+  // verifyCustomToken should be called with expected parameters and resolved
+  // with expected token response.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyCustomToken',
+      function(customToken) {
+        assertEquals(expectedCustomToken, customToken);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponse);
+      });
+  asyncTestCase.waitForSignals(4);
+  // Initialize expected user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  // Set to true for testing to make sure this is changed during processing.
+  user1.updateProperty('isAnonymous', true);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': null, 'isNewUser': false},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      auth1.getStorageKey());
+  // Sign in with custom token.
+  auth1.signInAndRetrieveDataWithCustomToken(expectedCustomToken)
+      .then(function(result) {
+        // Anonymous status should be set to false.
+        assertFalse(result['user']['isAnonymous']);
+        // Returned user credential should match expected one.
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            expectedResult['user'],
+            expectedResult['credential'],
+            expectedResult['additionalUserInfo'],
+            expectedResult['operationType'],
+            result);
+        // Confirm anonymous state saved.
+        currentUserStorageManager.getCurrentUser().then(function(user) {
+          assertUserEquals(user1, auth1['currentUser']);
+          assertFalse(user['isAnonymous']);
+          asyncTestCase.signal();
+        });
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInAndRetrieveDataWithCustomToken_error() {
+  // Tests unsuccessful signInAndRetrieveDataWithCustomToken.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected RPC error.
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  var expectedCustomToken = 'CUSTOM_TOKEN';
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // Error should not lead to user creation.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called!');
+      });
+  // verifyCustomToken should be called with expected parameters and throws the
+  // expected error.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyCustomToken',
+      function(customToken) {
+        assertEquals(expectedCustomToken, customToken);
+        asyncTestCase.signal();
+        return goog.Promise.reject(expectedError);
+      });
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // signInAndRetrieveDataWithCustomToken should throw the expected error.
+  auth1.signInAndRetrieveDataWithCustomToken(expectedCustomToken)
+      .thenCatch(function(err) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testAuth_signInWithEmailAndPassword_success() {
   // Tests successful signInWithEmailAndPassword.
   fireauth.AuthEventManager.ENABLED = true;
@@ -3688,6 +3821,105 @@ function testAuth_signInWithEmailAndPassword_error() {
 }
 
 
+function testAuth_signInAndRetrieveDataWithEmailAndPassword_success() {
+  // Tests successful signInAndRetrieveDataWithEmailAndPassword.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and password.
+  var expectedEmail = 'user@example.com';
+  var expectedPass = 'password';
+
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should initialize a user using the expected
+  // token response generated by RPC response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        // Token response should match rpchandler response.
+        assertObjectEquals(expectedTokenResponse4, tokenResponse);
+        // Simulate user sign in completed and returned.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return goog.Promise.resolve();
+      });
+  // verifyPassword should be called with expected parameters and resolved
+  // with expected token response.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyPassword',
+      function(email, password) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedPass, password);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponse4);
+      });
+  asyncTestCase.waitForSignals(3);
+  // Initialize expected user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse4, accountInfo);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': 'password', 'isNewUser': false},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Sign in and retrieve data with email and password.
+  auth1.signInAndRetrieveDataWithEmailAndPassword(expectedEmail, expectedPass)
+      .then(function(result) {
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            expectedResult['user'],
+            expectedResult['credential'],
+            expectedResult['additionalUserInfo'],
+            expectedResult['operationType'],
+            result);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInAndRetrieveDataWithEmailAndPassword_error() {
+  // Tests unsuccessful signInAndRetrieveDataWithEmailAndPassword.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and password.
+  var expectedEmail = 'user@example.com';
+  var expectedPass = 'password';
+  // Expected RPC error.
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should not be called due to RPC error.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called!');
+      });
+  // verifyPassword should be called with expected parameters and resolved
+  // with expected error.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyPassword',
+      function(email, password) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedPass, password);
+        asyncTestCase.signal();
+        return goog.Promise.reject(expectedError);
+      });
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.signInAndRetrieveDataWithEmailAndPassword(expectedEmail, expectedPass)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testAuth_createUserWithEmailAndPassword_success() {
   // Tests successful createUserWithEmailAndPassword.
   fireauth.AuthEventManager.ENABLED = true;
@@ -3769,6 +4001,106 @@ function testAuth_createUserWithEmailAndPassword_error() {
   auth1 = app1.auth();
   // createUserWithEmailAndPassword should throw the expected error.
   auth1.createUserWithEmailAndPassword(expectedEmail, expectedPass)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_createUserAndRetrieveDataWithEmailAndPassword_success() {
+  // Tests successful createUserAndRetrieveDataWithEmailAndPassword.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and password.
+  var expectedEmail = 'user@example.com';
+  var expectedPass = 'password';
+  expectedTokenResponse4['kind'] = 'identitytoolkit#SignupNewUserResponse';
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should initialize a user using the expected
+  // token response generated by RPC response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        // Token response should match rpchandler response.
+        assertObjectEquals(expectedTokenResponse4, tokenResponse);
+        // Simulate user sign in completed and returned.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return goog.Promise.resolve();
+      });
+  // createAccount should be called with expected parameters and resolved
+  // with expected token response.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'createAccount',
+      function(email, password) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedPass, password);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponse4);
+      });
+  asyncTestCase.waitForSignals(3);
+  // Initialize expected user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse4, accountInfo);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': 'password', 'isNewUser': true},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.createUserAndRetrieveDataWithEmailAndPassword(
+      expectedEmail, expectedPass)
+      .then(function(result) {
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            expectedResult['user'],
+            expectedResult['credential'],
+            expectedResult['additionalUserInfo'],
+            expectedResult['operationType'],
+            result);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_createUserAndRetrieveDataWithEmailAndPassword_error() {
+  // Tests unsuccessful createUserAndRetrieveDataWithEmailAndPassword.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and password.
+  var expectedEmail = 'user@example.com';
+  var expectedPass = 'password';
+  // Expected RPC error.
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should not be called due to RPC error.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called!');
+      });
+  // createAccount should be called with expected parameters and resolved
+  // with expected error.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'createAccount',
+      function(email, password) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedPass, password);
+        asyncTestCase.signal();
+        return goog.Promise.reject(expectedError);
+      });
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.createUserAndRetrieveDataWithEmailAndPassword(
+      expectedEmail, expectedPass)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
@@ -4291,6 +4623,207 @@ function testAuth_signInAnonymously_error() {
   auth1 = app1.auth();
   // signInAnonymously should fail with expected error.
   auth1.signInAnonymously().thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_signInAnonymouslyAndRetrieveData_success() {
+  // Tests successful signInAnonymouslyAndRetrieveData.
+  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
+                        'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
+                        'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
+                        '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
+                        'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
+                        '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
+                        '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
+                        'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  expectedTokenResponse['idToken'] = expectedIdToken;
+  expectedTokenResponse['kind'] = 'identitytoolkit#SignupNewUserResponse';
+  fireauth.AuthEventManager.ENABLED = true;
+  // Simulate successful RpcHandler signInAnonymously resolving with expected
+  // token response.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'signInAnonymously',
+      function() {
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponse);
+      });
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should initialize a user using the expected token
+  // response generated by RPC response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        // Token response should match RpcHandler response.
+        assertObjectEquals(expectedTokenResponse, tokenResponse);
+        // Simulate user sign in completed and returned.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return goog.Promise.resolve();
+      });
+  asyncTestCase.waitForSignals(4);
+  // Initialize expected anonymous user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': null, 'isNewUser': true},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      auth1.getStorageKey());
+  auth1.signInAnonymouslyAndRetrieveData().then(function(result) {
+    fireauth.common.testHelper.assertUserCredentialResponse(
+            expectedResult['user'],
+            expectedResult['credential'],
+            expectedResult['additionalUserInfo'],
+            expectedResult['operationType'],
+            result);
+    assertTrue(result['user']['isAnonymous']);
+    // Confirm anonymous state saved.
+    currentUserStorageManager.getCurrentUser().then(function(user) {
+      assertUserEquals(user1, auth1['currentUser']);
+      assertTrue(user['isAnonymous']);
+      asyncTestCase.signal();
+    });
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_signInAnonymouslyAndRetrieveData_userAlreadySignedIn() {
+  // Tests signInAnonymouslyAndRetrieveData when an anonymous user is already
+  // signed in.
+  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
+                        'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
+                        'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
+                        '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
+                        'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
+                        '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
+                        '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
+                        'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  expectedTokenResponse['idToken'] = expectedIdToken;
+  fireauth.AuthEventManager.ENABLED = true;
+  // Simulate successful RpcHandler signInAnonymously.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'signInAnonymously',
+      function() {
+        fail('signInAnonymously on RpcHandler should not be called!');
+      });
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // Anonymous user is already signed in so there is no need for this to run.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called!');
+      });
+  asyncTestCase.waitForSignals(3);
+  // Initialize an anonymous user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  user1.updateProperty('isAnonymous', true);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': null, 'isNewUser': false},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  // Current user reference.
+  var currentUser = null;
+  // User state changed counter.
+  var stateChanged = 0;
+  // ID token changed counter.
+  var idTokenChanged = 0;
+  // Storage key.
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      config3['apiKey'] + ':' + appId1);
+  // Save anonymous user as current in storage.
+  currentUserStorageManager.setCurrentUser(user1).then(function() {
+
+    app1 = firebase.initializeApp(config3, appId1);
+    auth1 = app1.auth();
+    // All listeners should be called once with the saved anonymous user.
+    auth1.onAuthStateChanged(function(user) {
+      stateChanged++;
+      assertEquals(1, stateChanged);
+      assertEquals(user1['uid'], user['uid']);
+      asyncTestCase.signal();
+    });
+    auth1.onIdTokenChanged(function(user) {
+      idTokenChanged++;
+      assertEquals(1, idTokenChanged);
+      assertEquals(user1['uid'], user['uid']);
+      asyncTestCase.signal();
+    });
+    // signInAnonymouslyAndRetrieveData should resolve with the already
+    // signed in anonymous user without calling RPC handler underneath.
+    return auth1.signInAnonymouslyAndRetrieveData();
+  }).then(function(result) {
+    assertUserEquals(expectedResult['user'], result['user']);
+    assertObjectEquals(
+        expectedResult['additionalUserInfo'], result['additionalUserInfo']);
+    assertEquals(expectedResult['operationType'], result['operationType']);
+    assertUserEquals(expectedResult['user'], auth1.currentUser);
+    assertTrue(result['user']['isAnonymous']);
+    // Save reference to current user.
+    currentUser = auth1.currentUser;
+    // Sign in anonymously again.
+    return auth1.signInAnonymouslyAndRetrieveData();
+  }).then(function(result) {
+    fireauth.common.testHelper.assertUserCredentialResponse(
+            currentUser,
+            expectedResult['credential'],
+            expectedResult['additionalUserInfo'],
+            expectedResult['operationType'],
+            result);
+    // Exact same reference should be returned.
+    assertEquals(auth1.currentUser, result['user']);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_signInAnonymouslyAndRetrieveData_error() {
+  // Tests unsuccessful signInAnonymouslyAndRetrieveData.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected RPC error.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
+  // Simulate unsuccessful RpcHandler signInAnonymously throwing the expected
+  // error.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'signInAnonymously',
+      function() {
+        asyncTestCase.signal();
+        // Trigger invalid response error.
+        return goog.Promise.reject(expectedError);
+      });
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should not be called due to RPC error.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called');
+      });
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // signInAnonymously should fail with expected error.
+  auth1.signInAnonymouslyAndRetrieveData().thenCatch(function(error) {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });

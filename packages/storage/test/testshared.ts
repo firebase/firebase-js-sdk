@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import * as constants from '../src/implementation/constants';
 import { Code, FirebaseStorageError } from '../src/implementation/error';
 import * as objectUtils from '../src/implementation/object';

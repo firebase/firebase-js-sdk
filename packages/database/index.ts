@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import firebase, { FirebaseApp, FirebaseNamespace } from '@firebase/app';
+import firebase from '@firebase/app';
+import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
@@ -23,12 +25,13 @@ import { RepoManager } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
+import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = instance.INTERNAL.registerService(
+  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',
     (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
     // firebase.database namespace properties
@@ -57,3 +60,16 @@ export { Database, Query, Reference, enableLogging, ServerValue };
 
 export { DataSnapshot } from './src/api/DataSnapshot';
 export { OnDisconnect } from './src/api/onDisconnect';
+
+declare module '@firebase/app-types' {
+  interface FirebaseNamespace {
+    database?: {
+      (app?: FirebaseApp): types.FirebaseDatabase;
+      enableLogging: typeof types.enableLogging;
+      ServerValue: types.ServerValue;
+    };
+  }
+  interface FirebaseApp {
+    database?(databaseURL?: string): types.FirebaseDatabase;
+  }
+}

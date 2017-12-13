@@ -1,0 +1,22 @@
+{
+  "name": "@firebase/app-types",
+  "version": "0.1.0",
+  "description": "@firebase/app Types",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tsc"
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "devDependencies": {
+    "typescript": "^2.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/app-types"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

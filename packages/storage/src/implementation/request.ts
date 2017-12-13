@@ -19,7 +19,7 @@
  * abstract representations.
  */
 
-import firebase, { FirebaseNamespace } from '@firebase/app';
+import firebase from '@firebase/app';
 import * as array from './array';
 import * as backoff from './backoff';
 import * as errorsExports from './error';

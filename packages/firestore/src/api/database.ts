@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
-import { FirebaseApp, FirebaseService } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
 import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
@@ -177,7 +178,7 @@ class FirestoreConfig {
 /**
  * The root reference to the database.
  */
-export class Firestore implements firestore.Firestore, FirebaseService {
+export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
   public readonly _databaseId: DatabaseId;
 

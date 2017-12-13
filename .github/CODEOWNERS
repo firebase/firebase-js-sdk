@@ -6,15 +6,23 @@
 
 # Database Code
 packages/database  @mikelehen @schmidt-sebastian
+packages/database-types  @mikelehen @schmidt-sebastian
 
 # Firestore Code
 packages/firestore  @mikelehen @schmidt-sebastian @wilhuff
+packages/webchannel-wrapper  @mikelehen @schmidt-sebastian @wilhuff
+packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff
+integration/firestore  @mikelehen @schmidt-sebastian @wilhuff
 
 # Storage Code
 packages/storage  @sphippen
+packages/storage-types  @sphippen
 
 # Messaging Code
 packages/messaging  @gauntface
+packages/messaging-types  @gauntface
+integration/messaging  @gauntface
 
 # Auth Code
 packages/auth  @bojeil-google @wti806 @tmsch
+packages/auth-types  @bojeil-google @wti806 @tmsch
