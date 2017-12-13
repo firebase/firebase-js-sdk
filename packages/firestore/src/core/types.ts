@@ -34,22 +34,22 @@ export type ProtoByteString = Uint8Array | string;
 export enum OnlineState {
   /**
    * The Firestore client is in an unknown online state. This means the client
-   * is either not actively trying to establish a connection or it was
-   * previously in an unknown state and is trying to establish a connection.
+   * is either not actively trying to establish a connection or it is currently
+   * trying to establish a connection, but it has not succeeded or failed yet.
    */
   Unknown,
 
   /**
    * The client is connected and the connections are healthy. This state is
    * reached after a successful connection and there has been at least one
-   * succesful message received from the backends.
+   * successful message received from the backends.
    */
   Healthy,
 
   /**
-   * The client has tried to establish a connection but has failed.
-   * This state is reached after either a connection attempt failed or a
-   * healthy stream was closed for unexpected reasons.
+   * The client considers itself offline. It is either trying to establish a
+   * connection but failing, or it has been explicitly marked offline via a call
+   * to disableNetwork().
    */
   Failed
 }
