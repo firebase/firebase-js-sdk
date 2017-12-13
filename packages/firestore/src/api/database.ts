@@ -254,6 +254,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
   }
 
+  enableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.enableNetwork();
+  }
+
+  disableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.disableNetwork();
+  }
+
   enablePersistence(): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(
@@ -375,8 +385,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       }
     },
     // Exposed via INTERNAL for use in tests.
-    disableNetwork: () => this._firestoreClient.disableNetwork(),
-    enableNetwork: () => this._firestoreClient.enableNetwork(),
     drainAsyncQueue: (executeDelayedTasks: boolean) =>
       this._queue.drain(executeDelayedTasks)
   };
