@@ -384,6 +384,7 @@ abstract class TestRunner {
       initialBackoffDelay
     );
     const onlineStateChangedHandler = (onlineState: OnlineState) => {
+      this.syncEngine.applyOnlineStateChange(onlineState);
       this.eventManager.onOnlineStateChanged(onlineState);
     };
     this.remoteStore = new RemoteStore(
@@ -498,7 +499,10 @@ abstract class TestRunner {
 
     await this.queue.schedule(async () => {
       const targetId = await this.eventManager.listen(queryListener);
-      expect(targetId).to.equal(expectedTargetId);
+      expect(targetId).to.equal(
+        expectedTargetId,
+        'targetId assigned to listen'
+      );
     });
     // Open should always have happened after a listen
     await this.connection.waitForWatchOpen();

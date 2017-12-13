@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { path } from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -94,4 +94,25 @@ describeSpec('Offline:', [], () => {
       );
     }
   );
+
+  specTest('Queries revert to fromCache=true when offline.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        // first error triggers unknown state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .restoreListen(query, 'resume-token-1000')
+        // getting two more errors triggers offline state and fromCache: true
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .expectEvents(query, { fromCache: true })
+        // Going online and getting a CURRENT message triggers fromCache: false
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, { fromCache: false })
+    );
+  });
 });

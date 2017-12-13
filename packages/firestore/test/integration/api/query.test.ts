@@ -458,4 +458,41 @@ apiDescribe('Queries', persistence => {
       return deferred.promise.then(unregister);
     });
   });
+
+  it('Queries trigger with isFromCache=true when offline', () => {
+    return withTestCollection(persistence, { a: { foo: 1 } }, coll => {
+      // TODO(mikelehen): Find better way to expose this to tests.
+      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
+      const firestoreInternal = coll.firestore.INTERNAL as any;
+
+      const accum = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unregister = coll.onSnapshot(
+        { includeQueryMetadataChanges: true },
+        accum.storeEvent
+      );
+
+      return accum
+        .awaitEvent()
+        .then(querySnap => {
+          // initial event
+          expect(querySnap.docs.map(doc => doc.data())).to.deep.equal([
+            { foo: 1 }
+          ]);
+          expect(querySnap.metadata.fromCache).to.be.false;
+        })
+        .then(() => firestoreInternal.disableNetwork())
+        .then(() => accum.awaitEvent())
+        .then(querySnap => {
+          // offline event with fromCache = true
+          expect(querySnap.metadata.fromCache).to.be.true;
+        })
+        .then(() => firestoreInternal.enableNetwork())
+        .then(() => accum.awaitEvent())
+        .then(querySnap => {
+          // back online event with fromCache = false
+          expect(querySnap.metadata.fromCache).to.be.false;
+          unregister();
+        });
+    });
+  });
 });
