@@ -305,7 +305,11 @@ export class WebChannelConnection implements Connection {
           const status: string = error.status;
           let code = mapCodeFromRpcStatus(status);
           if (code === Code.RESOURCE_EXHAUSTED) {
-            log.error(LOG_TAG, 'WebChannel received resource exhausted error:', error);
+            log.error(
+              LOG_TAG,
+              'WebChannel received resource exhausted error:',
+              error
+            );
           } else {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
           }
