@@ -319,7 +319,7 @@ export abstract class PersistentStream<
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
       // Log the error. (Probably either 'quota exceeded' or 'max queue length reached'.)
-      log.error(error);
+      log.error(error.toString());
       log.error(
         'Using maximum backoff delay to prevent overloading the backend.'
       );
