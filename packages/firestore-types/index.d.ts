@@ -124,13 +124,17 @@ export class FirebaseFirestore {
   app: any;
 
   /**
-   * Enables use of the network for this Firestore instance.
+   * Re-enables use of the network for this Firestore instance after a prior
+   * call to disableNetwork().
    * @return A promise that is resolved once the network has been enabled.
    */
   enableNetwork(): Promise<void>;
 
   /**
-   * Disables usage of the network for this Firestore instance.
+   * Disables network usage for this instance. It can be re-enabled via
+   * enableNetwork(). While the network is disabled, any snapshot listeners or
+   * get() calls will return results from cache, and any write operations will
+   * be queued until the network is restored.
    * @return A promise that is resolved once the network has been disabled.
    */
   disableNetwork(): Promise<void>;
