@@ -301,19 +301,10 @@ export class WebChannelConnection implements Connection {
         // can be removed once the fix has been rolled out.
         const error = msgData.error || (msgData[0] && msgData[0].error);
         if (error) {
+          log.debug(LOG_TAG, 'WebChannel received error:', error);
           // error.status will be a string like 'OK' or 'NOT_FOUND'.
           const status: string = error.status;
           let code = mapCodeFromRpcStatus(status);
-          if (code === Code.RESOURCE_EXHAUSTED) {
-            log.error(
-              LOG_TAG,
-              'WebChannel received resource exhausted error:',
-              error
-            );
-          } else {
-            log.debug(LOG_TAG, 'WebChannel received error:', error);
-          }
-
           let message = error.message;
           if (code === undefined) {
             code = Code.INTERNAL;
