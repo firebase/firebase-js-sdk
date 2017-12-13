@@ -31,6 +31,7 @@ import {
 import { assert, fail } from '../util/assert';
 
 import { Query } from './query';
+import { OnlineState } from './types';
 import {
   ChangeType,
   DocumentChangeSet,
@@ -50,7 +51,7 @@ export class RemovedLimboDocument {
 export interface ViewDocumentChanges {
   /** The new set of docs that should be in the view. */
   documentSet: DocumentSet;
-  /** The diff of this these docs with the previous set of docs. */
+  /** The diff of these docs with the previous set of docs. */
   changeSet: DocumentChangeSet;
   /**
    * Whether the set of documents passed in was not sufficient to calculate the
@@ -265,6 +266,29 @@ export class View {
         },
         limboChanges
       };
+    }
+  }
+
+  /**
+   * Applies an OnlineState change to the view, potentially generating a
+   * ViewChange if the view's syncState changes as a result.
+   */
+  applyOnlineStateChange(onlineState: OnlineState): ViewChange {
+    if (this.current && onlineState === OnlineState.Failed) {
+      // If we're offline, set `current` to false and then call applyChanges()
+      // to refresh our syncState and generate a ViewChange as appropriate. We
+      // are guaranteed to get a new TargetChange that sets `current` back to
+      // true once the client is back online.
+      this.current = false;
+      return this.applyChanges({
+        documentSet: this.documentSet,
+        changeSet: new DocumentChangeSet(),
+        mutatedKeys: this.mutatedKeys,
+        needsRefill: false
+      });
+    } else {
+      // No effect, just return a no-op ViewChange.
+      return { limboChanges: [] };
     }
   }
 
