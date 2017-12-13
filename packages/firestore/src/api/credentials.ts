@@ -18,7 +18,8 @@ import { User } from '../auth/user';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
+import { _FirebaseApp } from '@firebase/app-types/private';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
@@ -155,7 +156,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.userCounter = 0;
 
     // Will fire at least once where we set this.currentUser
-    this.app.INTERNAL.addAuthTokenListener(this.tokenListener);
+    (this.app as _FirebaseApp).INTERNAL.addAuthTokenListener(
+      this.tokenListener
+    );
   }
 
   getToken(forceRefresh: boolean): Promise<Token | null> {
@@ -168,27 +171,29 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     // fail (with an ABORTED error) if there is a user change while the request
     // is outstanding.
     const initialUserCounter = this.userCounter;
-    return this.app.INTERNAL.getToken(forceRefresh).then(tokenData => {
-      // Cancel the request since the user changed while the request was
-      // outstanding so the response is likely for a previous user (which
-      // user, we can't be sure).
-      if (this.userCounter !== initialUserCounter) {
-        throw new FirestoreError(
-          Code.ABORTED,
-          'getToken aborted due to uid change.'
-        );
-      } else {
-        if (tokenData) {
-          assert(
-            typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
+    return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(
+      tokenData => {
+        // Cancel the request since the user changed while the request was
+        // outstanding so the response is likely for a previous user (which
+        // user, we can't be sure).
+        if (this.userCounter !== initialUserCounter) {
+          throw new FirestoreError(
+            Code.ABORTED,
+            'getToken aborted due to uid change.'
           );
-          return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
-          return null;
+          if (tokenData) {
+            assert(
+              typeof tokenData.accessToken === 'string',
+              'Invalid tokenData returned from getToken():' + tokenData
+            );
+            return new OAuthToken(tokenData.accessToken, this.currentUser);
+          } else {
+            return null;
+          }
         }
       }
-    });
+    );
   }
 
   setUserChangeListener(listener: UserListener): void {
@@ -210,20 +215,22 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       this.userListener !== null,
       'removeUserChangeListener() called when no listener registered'
     );
-    this.app.INTERNAL.removeAuthTokenListener(this.tokenListener!);
+    (this.app as _FirebaseApp).INTERNAL.removeAuthTokenListener(
+      this.tokenListener!
+    );
     this.tokenListener = null;
     this.userListener = null;
   }
 
   private getUser(): User {
     // TODO(mikelehen): Remove this check once we're shipping with firebase.js.
-    if (typeof this.app.INTERNAL.getUid !== 'function') {
+    if (typeof (this.app as _FirebaseApp).INTERNAL.getUid !== 'function') {
       fail(
         'This version of the Firestore SDK requires at least version' +
           ' 3.7.0 of firebase.js.'
       );
     }
-    const currentUid = this.app.INTERNAL.getUid();
+    const currentUid = (this.app as _FirebaseApp).INTERNAL.getUid();
     assert(
       currentUid === null || typeof currentUid === 'string',
       'Received invalid UID: ' + currentUid

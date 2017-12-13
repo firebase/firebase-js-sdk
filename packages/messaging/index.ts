@@ -17,7 +17,8 @@
 
 import WindowController from './src/controllers/window-controller';
 import SWController from './src/controllers/sw-controller';
-import firebase from '@firebase/app';
+import { firebase } from '@firebase/app';
+import * as types from '@firebase/messaging-types';
 
 export function registerMessaging(instance) {
   const messagingName = 'messaging';
@@ -43,3 +44,18 @@ export function registerMessaging(instance) {
 }
 
 registerMessaging(firebase);
+
+/**
+ * Define extension behavior of `registerMessaging`
+ */
+declare module '@firebase/app-types' {
+  interface FirebaseNamespace {
+    messaging?: {
+      (app?: FirebaseApp): types.FirebaseMessaging;
+      Messaging: typeof types.FirebaseMessaging;
+    };
+  }
+  interface FirebaseApp {
+    messaging?(): types.FirebaseMessaging;
+  }
+}

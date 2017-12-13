@@ -132,8 +132,6 @@ export class RemoteStore {
   private shouldWarnOffline = true;
 
   constructor(
-    private databaseInfo: DatabaseInfo,
-    private asyncQueue: AsyncQueue,
     /**
      * The local store, used to fill the write pipeline with outbound
      * mutations and resolve existence filter mismatches.

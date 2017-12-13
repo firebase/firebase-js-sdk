@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal } from './util/util';

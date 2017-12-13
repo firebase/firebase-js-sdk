@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import * as firestore from 'firestore';
+import * as firestore from '@firebase/firestore-types';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator, toDataArray } from '../../util/helpers';
