@@ -238,11 +238,8 @@ export class RemoteStore {
    * enableNetwork().
    */
   disableNetwork(): Promise<void> {
-    if (!this.isNetworkEnabled()) {
-      return Promise.resolve();
-    }
-    // Set the OnlineState to failed so get()'s return from cache, etc.
     this.disableNetworkInternal();
+    // Set the OnlineState to failed so get()'s return from cache, etc.
     this.updateOnlineState(OnlineState.Failed);
     return Promise.resolve();
   }
