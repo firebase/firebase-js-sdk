@@ -251,7 +251,7 @@ export class RemoteStore {
    * Disables the network, setting the OnlineState to the specified
    * targetOnlineState.
    */
-  private disableNetworkInternal(targetOnlineState: OnlineState) {
+  private disableNetworkInternal(targetOnlineState: OnlineState): void {
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close
     // event).
     this.watchStream.stop();

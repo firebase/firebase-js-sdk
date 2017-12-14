@@ -56,7 +56,7 @@ export enum OnlineState {
   /**
    * The client is either trying to establish a connection but failing, or it
    * has been explicitly marked offline via a call to disableNetwork().
-   * Higher-level components should not operate in offline mode.
+   * Higher-level components should operate in offline mode.
    */
   Failed
 }
