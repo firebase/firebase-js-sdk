@@ -243,16 +243,15 @@ export class RemoteStore {
    */
   disableNetwork(): Promise<void> {
     // Set the OnlineState to failed so get()'s return from cache, etc.
-    return this.disableNetworkInternal(OnlineState.Failed);
+    this.disableNetworkInternal(OnlineState.Failed);
+    return Promise.resolve();
   }
 
   /**
    * Disables the network, setting the OnlineState to the specified
    * targetOnlineState.
    */
-  private disableNetworkInternal(
-    targetOnlineState: OnlineState
-  ): Promise<void> {
+  private disableNetworkInternal(targetOnlineState: OnlineState): void {
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close
     // event).
     this.watchStream.stop();
@@ -265,8 +264,6 @@ export class RemoteStore {
     this.watchStream = null;
 
     this.updateOnlineState(targetOnlineState);
-
-    return Promise.resolve();
   }
 
   shutdown(): Promise<void> {
