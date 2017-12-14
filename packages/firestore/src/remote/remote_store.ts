@@ -155,25 +155,26 @@ export class RemoteStore {
 
   /**
    * Updates our OnlineState to the new state, updating local state
-   * and notifying the onlineStateHandler as appropriate.
+   * and notifying the onlineStateHandler as appropriate. Idempotent.
    */
   private updateOnlineState(newState: OnlineState): void {
     if (newState === OnlineState.Healthy) {
       // We've connected to watch at least once. Don't warn the developer about
       // being offline going forward.
       this.shouldWarnOffline = false;
-    } else if (newState === OnlineState.Unknown) {
-      // The state is set to unknown when a healthy stream is closed (e.g. due to
-      // a token timeout) or when we have no active listens and therefore there's
-      // no need to start the stream. Assuming there is (possibly in the future)
-      // an active listen, then we will eventually move to state Online or Failed,
-      // but we always want to make at least ONLINE_ATTEMPTS_BEFORE_FAILURE
-      // attempts before failing, so we reset the count here.
-      this.watchStreamFailures = 0;
     }
 
     // Update and broadcast the new state.
     if (newState !== this.watchStreamOnlineState) {
+      if (newState === OnlineState.Unknown) {
+        // The state is set to unknown when a healthy stream is closed (e.g. due to
+        // a token timeout) or when we have no active listens and therefore there's
+        // no need to start the stream. Assuming there is (possibly in the future)
+        // an active listen, then we will eventually move to state Online or Failed,
+        // but we always want to make at least ONLINE_ATTEMPTS_BEFORE_FAILURE
+        // attempts before failing, so we reset the count here.
+        this.watchStreamFailures = 0;
+      }
       this.watchStreamOnlineState = newState;
       this.onlineStateHandler(newState);
     }
@@ -241,40 +242,36 @@ export class RemoteStore {
       return Promise.resolve();
     }
     // Set the OnlineState to failed so get()'s return from cache, etc.
-    this.disableNetworkInternal(OnlineState.Failed);
+    this.disableNetworkInternal();
+    this.updateOnlineState(OnlineState.Failed);
     return Promise.resolve();
   }
 
   /**
    * Disables the network, setting the OnlineState to the specified
-   * targetOnlineState.
+   * targetOnlineState. Idempotent.
    */
-  private disableNetworkInternal(targetOnlineState: OnlineState): void {
-    // NOTE: We're guaranteed not to get any further events from these streams (not even a close
-    // event).
-    this.watchStream.stop();
-    this.writeStream.stop();
+  private disableNetworkInternal(): void {
+    if (this.isNetworkEnabled()) {
+      // NOTE: We're guaranteed not to get any further events from these streams (not even a close
+      // event).
+      this.watchStream.stop();
+      this.writeStream.stop();
 
-    this.cleanUpWatchStreamState();
-    this.cleanUpWriteStreamState();
+      this.cleanUpWatchStreamState();
+      this.cleanUpWriteStreamState();
 
-    this.writeStream = null;
-    this.watchStream = null;
-
-    this.updateOnlineState(targetOnlineState);
+      this.writeStream = null;
+      this.watchStream = null;
+    }
   }
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    if (this.isNetworkEnabled()) {
-      // Set the OnlineState to Unknown (rather than Failed) to avoid potentially
-      // triggering spurious listener events with cached data, etc.
-      this.disableNetworkInternal(OnlineState.Unknown);
-    } else {
-      // The network is disabled, but we also no longer want events, so
-      // transition to 'Unknown' state.
-      this.updateOnlineState(OnlineState.Unknown);
-    }
+    this.disableNetworkInternal();
+    // Set the OnlineState to Unknown (rather than Failed) to avoid potentially
+    // triggering spurious listener events with cached data, etc.
+    this.updateOnlineState(OnlineState.Unknown);
     return Promise.resolve();
   }
 
@@ -818,20 +815,15 @@ export class RemoteStore {
   handleUserChange(user: User): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
+    // If the network has been explicitly disabled, make sure we don't
+    // accidentally re-enabled it.
     if (this.isNetworkEnabled()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      this.disableNetworkInternal(OnlineState.Unknown);
+      this.disableNetworkInternal();
+      this.updateOnlineState(OnlineState.Unknown);
       return this.enableNetwork();
-    } else {
-      // The network is disabled, so we don't want to reconnect. Remain in
-      // 'failed' state. This assert *should* only ever trigger if shutdown() is
-      // called without first removing the user change listener.
-      assert(
-        this.watchStreamOnlineState == OnlineState.Failed,
-        'Since the network is disabled, expected to be in failed state'
-      );
     }
   }
 }
