@@ -18,7 +18,6 @@
 import ControllerInterface from './controller-interface';
 import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
-import FCMDetails from '../models/fcm-details';
 
 const FCM_MSG = 'FCM_MSG';
 

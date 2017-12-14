@@ -20,7 +20,6 @@ import Errors from '../models/errors';
 import TokenDetailsModel from '../models/token-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
-import FCMDetails from '../models/fcm-details';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 

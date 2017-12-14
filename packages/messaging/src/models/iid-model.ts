@@ -104,7 +104,7 @@ export default class IIDModel {
   /**
    * Given a fcmToken, pushSet and messagingSenderId, delete an FCM token.
    */
-  async deleteToken(
+  deleteToken(
     senderId: string,
     fcmToken: string,
     fcmPushSet: string
@@ -123,19 +123,21 @@ export default class IIDModel {
       body: fcmUnsubscribeBody
     };
 
-    const fetchResponse = await fetch(
+    return fetch(
       FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
       unsubscribeOptions
-    );
-
-    if (!fetchResponse.ok) {
-      const fcmTokenResponse = await fetchResponse.json();
-      const message = fcmTokenResponse['error']['message'];
-      throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED, {
-        message: message
-      });
-    }
-
-    return;
+    )
+     .then(fetchResponse => {
+      if(!fetchResponse.ok) {
+        return fetchResponse.json().then(fcmTokenResponse => {
+          if (fcmTokenResponse['error']) {
+            const message = fcmTokenResponse['error']['message'];
+            throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED, {
+              message: message
+            });
+          }
+        });
+      }
+    });
   }
 }
