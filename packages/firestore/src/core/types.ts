@@ -30,12 +30,17 @@ export type TargetId = number;
 // they're strings. We should probably (de-)serialize to a common internal type.
 export type ProtoByteString = Uint8Array | string;
 
-/** Describes the online state of the Firestore client */
+/**
+ * Describes the online state of the Firestore client. Note that this does not
+ * indicate whether or not the remote store is trying to connect or not. This is
+ * primarily used for views determining whether or not raise events from cache.
+ */
 export enum OnlineState {
   /**
    * The Firestore client is in an unknown online state. This means the client
    * is either not actively trying to establish a connection or it is currently
    * trying to establish a connection, but it has not succeeded or failed yet.
+   * Events are not raised from cache.
    */
   Unknown,
 
@@ -49,7 +54,7 @@ export enum OnlineState {
   /**
    * The client considers itself offline. It is either trying to establish a
    * connection but failing, or it has been explicitly marked offline via a call
-   * to disableNetwork().
+   * to disableNetwork(). Events will be raised from cache.
    */
   Failed
 }
