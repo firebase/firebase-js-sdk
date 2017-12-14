@@ -157,7 +157,7 @@ export class RemoteStore {
    * Updates our OnlineState to the new state, updating local state
    * and notifying the onlineStateHandler as appropriate.
    */
-  private updateOnlineState(newState: OnlineState) {
+  private updateOnlineState(newState: OnlineState): void {
     if (newState === OnlineState.Healthy) {
       // We've connected to watch at least once. Don't warn the developer about
       // being offline going forward.
@@ -266,10 +266,16 @@ export class RemoteStore {
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    // Set the OnlineState to Unknown (rather than Failed) to avoid potentially
-    // triggering spurious listener events with cached data, etc.
-    this.disableNetworkInternal(OnlineState.Unknown);
-    return Promise.resolve(undefined);
+    if (this.isNetworkEnabled()) {
+      // Set the OnlineState to Unknown (rather than Failed) to avoid potentially
+      // triggering spurious listener events with cached data, etc.
+      this.disableNetworkInternal(OnlineState.Unknown);
+    } else {
+      // The network is disabled, but we also no longer want events, so
+      // transition to 'Unknown' state.
+      this.updateOnlineState(OnlineState.Unknown);
+    }
+    return Promise.resolve();
   }
 
   /** Starts new listen for the given query. Uses resume token if provided */
@@ -812,10 +818,20 @@ export class RemoteStore {
   handleUserChange(user: User): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
-    // Tear down and re-create our network streams. This will ensure we get a fresh auth token
-    // for the new user and re-fill the write pipeline with new mutations from the LocalStore
-    // (since mutations are per-user).
-    this.disableNetworkInternal(OnlineState.Unknown);
-    return this.enableNetwork();
+    if (this.isNetworkEnabled()) {
+      // Tear down and re-create our network streams. This will ensure we get a fresh auth token
+      // for the new user and re-fill the write pipeline with new mutations from the LocalStore
+      // (since mutations are per-user).
+      this.disableNetworkInternal(OnlineState.Unknown);
+      return this.enableNetwork();
+    } else {
+      // The network is disabled, so we don't want to reconnect. Remain in
+      // 'failed' state. This assert *should* only ever trigger if shutdown() is
+      // called without first removing the user change listener.
+      assert(
+        this.watchStreamOnlineState == OnlineState.Failed,
+        'Since the network is disabled, expected to be in failed state'
+      );
+    }
   }
 }
