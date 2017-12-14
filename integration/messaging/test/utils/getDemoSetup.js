@@ -30,5 +30,5 @@ const DEMO_LIST = [
 ];
 
 module.exports = {
-    DEMOS: DEMO_LIST
+  DEMOS: DEMO_LIST
 };

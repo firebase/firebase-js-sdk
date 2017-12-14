@@ -26,7 +26,6 @@ const makeFCMAPICall = require('./utils/makeFCMAPICall');
 const getReceivedMessages = require('./utils/getReceivedMessages');
 const demoSetup = require('./utils/getDemoSetup');
 
-
 const ENDPOINT = 'https://fcm.googleapis.com';
 const DEMOS = demoSetup.DEMOS;
 
@@ -86,8 +85,8 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
           expect(token).to.exist;
           try {
             await deleteFCMToken(globalWebDriver, token);
-          } catch(e) {
-            console.log("Error trying to delete FCM token: ", e);
+          } catch (e) {
+            console.log('Error trying to delete FCM token: ', e);
             fail();
           }
         });

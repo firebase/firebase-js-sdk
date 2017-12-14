@@ -126,15 +126,17 @@ export default class IIDModel {
     return fetch(
       FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
       unsubscribeOptions
-    )
-     .then(fetchResponse => {
-      if(!fetchResponse.ok) {
+    ).then(fetchResponse => {
+      if (!fetchResponse.ok) {
         return fetchResponse.json().then(fcmTokenResponse => {
           if (fcmTokenResponse['error']) {
             const message = fcmTokenResponse['error']['message'];
-            throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED, {
-              message: message
-            });
+            throw this.errorFactory_.create(
+              Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+              {
+                message: message
+              }
+            );
           }
         });
       }
