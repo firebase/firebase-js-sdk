@@ -33,14 +33,16 @@ export type ProtoByteString = Uint8Array | string;
 /**
  * Describes the online state of the Firestore client. Note that this does not
  * indicate whether or not the remote store is trying to connect or not. This is
- * primarily used for views determining whether or not raise events from cache.
+ * primarily used by the View / EventManager code to change their behavior while
+ * offline (e.g. get() calls shouldn't wait for data from the server and
+ * snapshot events should set metadata.isFromCache=true).
  */
 export enum OnlineState {
   /**
    * The Firestore client is in an unknown online state. This means the client
    * is either not actively trying to establish a connection or it is currently
    * trying to establish a connection, but it has not succeeded or failed yet.
-   * Events are not raised from cache.
+   * Higher-level components should not operate in offline mode.
    */
   Unknown,
 
@@ -52,9 +54,9 @@ export enum OnlineState {
   Healthy,
 
   /**
-   * The client considers itself offline. It is either trying to establish a
-   * connection but failing, or it has been explicitly marked offline via a call
-   * to disableNetwork(). Events will be raised from cache.
+   * The client is either trying to establish a connection but failing, or it
+   * has been explicitly marked offline via a call to disableNetwork().
+   * Higher-level components should not operate in offline mode.
    */
   Failed
 }
