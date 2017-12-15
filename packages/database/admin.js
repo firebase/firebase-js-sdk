@@ -32,7 +32,7 @@ exports.initStandalone = function(app, url, version) {
    * Ensure that the Admin flags get properly set here
    */
   CONSTANTS.NODE_ADMIN = true;
-  
+
   if (version) {
     /**
      * We are patching the version info in @firebase/app as
