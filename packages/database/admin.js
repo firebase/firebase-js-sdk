@@ -28,13 +28,17 @@ require('./dist/cjs/src/nodePatches');
 exports.initStandalone = function(app, url, version) {
   const instance = RepoManager.getInstance().databaseFromApp(app, url);
 
+  /**
+   * Ensure that the Admin flags get properly set here
+   */
+  CONSTANTS.NODE_ADMIN = true;
+  
   if (version) {
     /**
      * We are patching the version info in @firebase/app as
      * the database SDK sends this version back to our backend
      */
     firebaseApp.SDK_VERSION = version;
-    CONSTANTS.NODE_ADMIN = true;
   }
 
   return {
