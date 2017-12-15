@@ -77,7 +77,7 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
           globalWebDriver = await assistantBrowser.getSeleniumDriver();
         });
 
-        it.only(`should get a token and delete it`, async function() {
+        it(`should get a token and delete it`, async function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );

@@ -75,7 +75,7 @@ class DemoApp {
       this._token = null;
       console.log('deleteToken() worked: ', token);
     } catch (e) {
-      this._errors.push(err);
+      this._errors.push(e);
       console.log('deleteToken() failed: ', e.message, e.stack);
     }
   }
