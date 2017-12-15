@@ -271,7 +271,8 @@ export default class TokenDetailsModel extends DBInterface {
           p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
-          fcmPushSet: fcmPushSet
+          fcmPushSet: fcmPushSet,
+          createTime: Date.now()
         };
 
         return new Promise((resolve, reject) => {

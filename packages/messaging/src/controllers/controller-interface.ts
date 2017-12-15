@@ -22,6 +22,8 @@ import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
+// Database cache should be invalidated once a week.
+export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default class ControllerInterface {
   public app;
@@ -60,7 +62,7 @@ export default class ControllerInterface {
    * @return {Promise<string> | Promise<null>} Returns a promise that
    * resolves to an FCM token.
    */
-  getToken() {
+  async getToken() {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
@@ -74,41 +76,73 @@ export default class ControllerInterface {
       return Promise.resolve(null);
     }
 
-    return this.getSWRegistration_().then(registration => {
-      return this.tokenDetailsModel_
-        .getTokenDetailsFromSWScope(registration.scope)
-        .then(details => {
-          if (details) {
-            // TODO Validate the details are still accurate
-            return details['fcmToken'];
-          }
+    const swReg = await this.getSWRegistration_();
+    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+      swReg.scope
+    );
 
-          const publicVapidKey = this.getPublicVapidKey_();
-          let subscription;
-          return this.getPushSubscription_(registration, publicVapidKey)
-            .then(sub => {
-              subscription = sub;
-              return this.iidModel_.getToken(
-                this.messagingSenderId_,
-                subscription,
-                publicVapidKey
-              );
-            })
-            .then(tokenDetails => {
-              const allDetails = {
-                swScope: registration.scope,
-                vapidKey: publicVapidKey,
-                subscription: subscription,
-                fcmSenderId: this.messagingSenderId_,
-                fcmToken: tokenDetails['token'],
-                fcmPushSet: tokenDetails['pushSet']
-              };
-              return this.tokenDetailsModel_
-                .saveTokenDetails(allDetails)
-                .then(() => tokenDetails['token']);
-            });
-        });
-    });
+    if (tokenDetails) {
+      // TODO Validate the details are still accurate
+      const now = Date.now();
+      if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
+        return tokenDetails['fcmToken'];
+      } else {
+        return await this.updateToken(tokenDetails, swReg);
+      }
+    }
+    return await this.getNewToken(swReg);
+  }
+
+  private async updateToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
+    const publicVapidKey = await this.getPublicVapidKey_();
+    const subscription = await this.getPushSubscription_(swReg, publicVapidKey);
+    let updatedToken;
+    try {
+      updatedToken = await this.iidModel_.updateToken(
+        this.messagingSenderId_,
+        tokenDetails['fcmToken'],
+        tokenDetails['pushDetails'],
+        subscription,
+        publicVapidKey
+      );
+    } catch (e) {
+      // Delete the token, then proceed to throw the error.
+      await this.deleteToken(tokenDetails['fcmToken']);
+      throw e;
+    }
+    const allDetails = {
+      swScope: swReg.scope,
+      vapidKey: publicVapidKey,
+      subscription: subscription,
+      fcmSenderId: this.messagingSenderId_,
+      fcmToken: updatedToken,
+      fcmPushSet: tokenDetails['pushSet']
+    };
+    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
+    return updatedToken;
+  }
+
+  private async getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
+    const publicVapidKey = await this.getPublicVapidKey_();
+    const subscription = await this.getPushSubscription_(swReg, publicVapidKey);
+    const tokenDetails = await this.iidModel_.getToken(
+      this.messagingSenderId_,
+      subscription,
+      publicVapidKey
+    );
+    const allDetails = {
+      swScope: swReg.scope,
+      vapidKey: publicVapidKey,
+      subscription: subscription,
+      fcmSenderId: this.messagingSenderId_,
+      fcmToken: tokenDetails['token'],
+      fcmPushSet: tokenDetails['pushSet']
+    };
+    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
+    return tokenDetails['token'];
   }
 
   /**

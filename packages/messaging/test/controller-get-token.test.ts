@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { expect } from 'chai';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
@@ -27,13 +28,18 @@ import FCMDetails from '../src/models/fcm-details';
 import TokenDetailsModel from '../src/models/token-details-model';
 import IIDModel from '../src/models/iid-model';
 import NotificationPermission from '../src/models/notification-permission';
+import TOKEN_EXPIRATION_MILLIS from '../src/controllers/controller-interface';
+
+const ONE_DAY = 24 * 60 * 60 * 1000;
 
 describe('Firebase Messaging > *Controller.getToken()', function() {
   const sandbox = sinon.sandbox.create();
+  const now = Date.now();
+  const expiredDate = new Date(now - ONE_DAY);
 
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
-  const EXAMPLE_INPUT = {
+  const EXAMPLE_TOKEN_DETAILS = {
     swScope: '/example-scope',
     vapidKey:
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
@@ -41,10 +47,22 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567890',
     fcmToken: 'qwerty',
-    fcmPushSet: '7654321'
+    fcmPushSet: '7654321',
+    createTime: now
+  };
+  const EXAMPLE_EXPIRED_TOKEN_DETAILS = {
+    swScope: '/example-scope',
+    vapidKey:
+      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+    subscription: makeFakeSubscription(),
+    fcmSenderId: '1234567890',
+    fcmToken: 'qwerty',
+    fcmPushSet: '7654321',
+    createTime: expiredDate
   };
   const app = makeFakeApp({
-    messagingSenderId: EXAMPLE_INPUT.fcmSenderId
+    messagingSenderId: EXAMPLE_TOKEN_DETAILS.fcmSenderId
   });
 
   const servicesToTest = [WindowController, SWController];
@@ -55,6 +73,22 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .stub(serviceClass.prototype, 'getSWRegistration_')
         .callsFake(() => fakeReg);
     });
+  };
+
+  const generateFakeReg = getSubResult => {
+    const registration = makeFakeSWReg();
+    Object.defineProperty(registration, 'pushManager', {
+      value: {
+        getSubscription: () => {
+          if (typeof getSubResult === 'function') {
+            return getSubResult();
+          }
+
+          return getSubResult;
+        }
+      }
+    });
+    return Promise.resolve(registration);
   };
 
   const cleanUp = () => {
@@ -152,6 +186,11 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   servicesToTest.forEach(ServiceClass => {
     it(`should get saved token in ${ServiceClass.name}`, function() {
       const registration = makeFakeSWReg();
+      const subscription = makeFakeSubscription();
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .callsFake(() => Promise.resolve(subscription));
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
@@ -161,11 +200,46 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-        .callsFake(() => Promise.resolve(EXAMPLE_INPUT));
+        .callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS));
 
       const serviceInstance = new ServiceClass(app);
       return serviceInstance.getToken().then(token => {
-        assert.equal(EXAMPLE_INPUT['fcmToken'], token);
+        assert.equal(EXAMPLE_TOKEN_DETAILS['fcmToken'], token);
+      });
+    });
+  });
+
+  // TODO: Make this work for ServiceWorkerController
+  [WindowController].forEach(ServiceClass => {
+    it(`should update token in ${ServiceClass.name} every 7 days`, function() {
+      const registration = makeFakeSWReg();
+      const subscription = makeFakeSubscription();
+
+      sandbox
+        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .callsFake(() => NotificationPermission.granted);
+
+      mockGetReg(Promise.resolve(registration));
+
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+        .callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .callsFake(() => Promise.resolve(subscription));
+
+      sandbox
+        .stub(IIDModel.prototype, 'updateToken')
+        .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
+
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
+        .callsFake(() => Promise.resolve());
+
+      const serviceInstance = new ServiceClass(app);
+      return serviceInstance.getToken().then(token => {
+        assert.equal(EXAMPLE_FCM_TOKEN, token);
       });
     });
   });
@@ -221,6 +295,57 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         assert.equal(saveArgs.fcmToken, TOKEN_DETAILS['token']);
         assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
       });
+    });
+  });
+
+  // TODO: Make this work for ServiceWorkerController
+  [WindowController].forEach(ServiceClass => {
+    it(`should handle update token errors in ${
+      ServiceClass.name
+    }`, async function() {
+      const registration = generateFakeReg(Promise.resolve(null));
+      const subscription = makeFakeSubscription();
+      const errorMsg = 'messaging/' + Errors.codes.TOKEN_UPDATE_FAILED;
+
+      sandbox
+        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .callsFake(() => NotificationPermission.granted);
+
+      mockGetReg(Promise.resolve(registration));
+
+      sandbox
+        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+        .callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .callsFake(() => Promise.resolve(subscription));
+
+      sandbox
+        .stub(IIDModel.prototype, 'updateToken')
+        .callsFake(() => Promise.reject(new Error(errorMsg)));
+
+      const deleteTokenStub = sandbox.stub(
+        TokenDetailsModel.prototype,
+        'deleteToken'
+      );
+      deleteTokenStub.callsFake(token => {
+        assert.equal(token, EXAMPLE_EXPIRED_TOKEN_DETAILS.fcmToken);
+        return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
+      });
+
+      sandbox
+        .stub(IIDModel.prototype, 'deleteToken')
+        .callsFake(() => Promise.resolve());
+
+      const serviceInstance = new ServiceClass(app);
+      try {
+        await serviceInstance.getToken();
+        throw new Error('Expected error to be thrown.');
+      } catch (e) {
+        assert.equal(errorMsg, e.message);
+        expect(deleteTokenStub.callCount).equal(1);
+      }
     });
   });
 });
