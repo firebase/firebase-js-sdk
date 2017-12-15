@@ -60,7 +60,7 @@ export default class ControllerInterface {
   /**
    * @export
    */
-  getToken(): Promise<string|null> {
+  getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {

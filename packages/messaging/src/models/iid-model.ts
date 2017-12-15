@@ -131,26 +131,23 @@ export default class IIDModel {
     };
 
     let updateFetchRes;
-    return fetch(
-      FCMDetails.ENDPOINT + '/fcm/connect/subscribe',
-      updateOptions
-    )
-    .then(fetchResponse => {
-      updateFetchRes = fetchResponse;
-      return fetchResponse.json();
-    })
-    .then(fcmTokenResponse => {
-      if (!updateFetchRes.ok) {
-        const message = fcmTokenResponse['error']['message'];
-        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
-          message: message
-        });
-      }
-      if (!fcmTokenResponse['token']) {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
-      }
-      return fcmTokenResponse['token'];
-    });
+    return fetch(FCMDetails.ENDPOINT + '/fcm/connect/subscribe', updateOptions)
+      .then(fetchResponse => {
+        updateFetchRes = fetchResponse;
+        return fetchResponse.json();
+      })
+      .then(fcmTokenResponse => {
+        if (!updateFetchRes.ok) {
+          const message = fcmTokenResponse['error']['message'];
+          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
+            message: message
+          });
+        }
+        if (!fcmTokenResponse['token']) {
+          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
+        }
+        return fcmTokenResponse['token'];
+      });
   }
 
   /**
