@@ -158,15 +158,12 @@ export class RemoteStore {
    * and notifying the onlineStateHandler as appropriate. Idempotent.
    */
   private updateOnlineState(newState: OnlineState): void {
-    if (newState === OnlineState.Healthy) {
-      // We've connected to watch at least once. Don't warn the developer about
-      // being offline going forward.
-      this.shouldWarnOffline = false;
-    }
-
-    // Update and broadcast the new state.
     if (newState !== this.watchStreamOnlineState) {
-      if (newState === OnlineState.Unknown) {
+      if (newState === OnlineState.Healthy) {
+        // We've connected to watch at least once. Don't warn the developer about
+        // being offline going forward.
+        this.shouldWarnOffline = false;
+      } else if (newState === OnlineState.Unknown) {
         // The state is set to unknown when a healthy stream is closed (e.g. due to
         // a token timeout) or when we have no active listens and therefore there's
         // no need to start the stream. Assuming there is (possibly in the future)
@@ -245,8 +242,7 @@ export class RemoteStore {
   }
 
   /**
-   * Disables the network, setting the OnlineState to the specified
-   * targetOnlineState. Idempotent.
+   * Disables the network, if it is currently enabled.
    */
   private disableNetworkInternal(): void {
     if (this.isNetworkEnabled()) {
@@ -813,7 +809,7 @@ export class RemoteStore {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
     // If the network has been explicitly disabled, make sure we don't
-    // accidentally re-enabled it.
+    // accidentally re-enable it.
     if (this.isNetworkEnabled()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
