@@ -98,7 +98,7 @@ export default class IIDModel {
   /**
    * Update the underlying token details for fcmToken.
    */
-  async updateToken(
+  updateToken(
     senderId: string,
     fcmToken: string,
     fcmPushSet: string,
@@ -130,24 +130,27 @@ export default class IIDModel {
       body: fcmUpdateBody
     };
 
-    const fetchResponse = await fetch(
+    let updateFetchRes;
+    return fetch(
       FCMDetails.ENDPOINT + '/fcm/connect/subscribe',
       updateOptions
-    );
-    const fcmTokenResponse = await fetchResponse.json();
-
-    if (!fetchResponse.ok) {
-      const message = fcmTokenResponse['error']['message'];
-      throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
-        message: message
-      });
-    }
-
-    if (!fcmTokenResponse['token']) {
-      throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
-    }
-
-    return fcmTokenResponse['token'];
+    )
+    .then(fetchResponse => {
+      updateFetchRes = fetchResponse;
+      return fetchResponse.json();
+    })
+    .then(fcmTokenResponse => {
+      if (!updateFetchRes.ok) {
+        const message = fcmTokenResponse['error']['message'];
+        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
+          message: message
+        });
+      }
+      if (!fcmTokenResponse['token']) {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
+      }
+      return fcmTokenResponse['token'];
+    });
   }
 
   /**

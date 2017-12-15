@@ -354,7 +354,7 @@ export default class WindowController extends ControllerInterface {
    * This will return the default VAPID key or the uint8array version of the public VAPID key
    * provided by the developer.
    * @private
-   * @return {Promise<!Uint8Array>} The VAPID public key to use to subscribe the user.
+   * @return {!Uint8Array} The VAPID public key to use to subscribe the user.
    */
   getPublicVapidKey_() {
     if (this.publicVapidKeyToUse_) {

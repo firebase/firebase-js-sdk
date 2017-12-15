@@ -59,10 +59,8 @@ export default class ControllerInterface {
 
   /**
    * @export
-   * @return {Promise<string> | Promise<null>} Returns a promise that
-   * resolves to an FCM token.
    */
-  async getToken() {
+  getToken(): Promise<string|null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
@@ -75,74 +73,94 @@ export default class ControllerInterface {
       // We must wait for permission to be granted
       return Promise.resolve(null);
     }
-
-    const swReg = await this.getSWRegistration_();
-    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
-      swReg.scope
-    );
-
-    if (tokenDetails) {
-      // TODO Validate the details are still accurate
-      const now = Date.now();
-      if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
-        return tokenDetails['fcmToken'];
-      } else {
-        return await this.updateToken(tokenDetails, swReg);
-      }
-    }
-    return await this.getNewToken(swReg);
+    let swReg: ServiceWorkerRegistration;
+    return this.getSWRegistration_()
+      .then(reg => {
+        swReg = reg;
+        return this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
+      })
+      .then(tokenDetails => {
+        if (tokenDetails) {
+          // TODO Validate the details are still accurate
+          const now = Date.now();
+          if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
+            return tokenDetails['fcmToken'];
+          } else {
+            return this.updateToken(tokenDetails, swReg);
+          }
+        }
+        return this.getNewToken(swReg);
+      });
   }
 
-  private async updateToken(
+  private updateToken(
     tokenDetails: Object,
     swReg: ServiceWorkerRegistration
   ): Promise<string> {
-    const publicVapidKey = await this.getPublicVapidKey_();
-    const subscription = await this.getPushSubscription_(swReg, publicVapidKey);
-    let updatedToken;
-    try {
-      updatedToken = await this.iidModel_.updateToken(
-        this.messagingSenderId_,
-        tokenDetails['fcmToken'],
-        tokenDetails['pushDetails'],
-        subscription,
-        publicVapidKey
-      );
-    } catch (e) {
-      // Delete the token, then proceed to throw the error.
-      await this.deleteToken(tokenDetails['fcmToken']);
-      throw e;
-    }
-    const allDetails = {
-      swScope: swReg.scope,
-      vapidKey: publicVapidKey,
-      subscription: subscription,
-      fcmSenderId: this.messagingSenderId_,
-      fcmToken: updatedToken,
-      fcmPushSet: tokenDetails['pushSet']
-    };
-    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-    return updatedToken;
+    const publicVapidKey = this.getPublicVapidKey_();
+    let updatedToken: string;
+    let subscription: PushSubscription;
+    return this.getPushSubscription_(swReg, publicVapidKey)
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.updateToken(
+          this.messagingSenderId_,
+          tokenDetails['fcmToken'],
+          tokenDetails['pushDetails'],
+          subscription,
+          publicVapidKey
+        );
+      })
+      .catch(err => {
+        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+          throw err;
+        });
+      })
+      .then(token => {
+        updatedToken = token;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: updatedToken,
+          fcmPushSet: tokenDetails['pushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return updatedToken;
+      });
   }
 
-  private async getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
-    const publicVapidKey = await this.getPublicVapidKey_();
-    const subscription = await this.getPushSubscription_(swReg, publicVapidKey);
-    const tokenDetails = await this.iidModel_.getToken(
-      this.messagingSenderId_,
-      subscription,
-      publicVapidKey
-    );
-    const allDetails = {
-      swScope: swReg.scope,
-      vapidKey: publicVapidKey,
-      subscription: subscription,
-      fcmSenderId: this.messagingSenderId_,
-      fcmToken: tokenDetails['token'],
-      fcmPushSet: tokenDetails['pushSet']
-    };
-    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-    return tokenDetails['token'];
+  private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
+    const publicVapidKey = this.getPublicVapidKey_();
+    let subscription: PushSubscription;
+    let tokenDetails: Object;
+    return this.getPushSubscription_(swReg, publicVapidKey)
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.getToken(
+          this.messagingSenderId_,
+          subscription,
+          publicVapidKey
+        );
+      })
+      .then(iidTokenDetails => {
+        tokenDetails = iidTokenDetails;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: tokenDetails['token'],
+          fcmPushSet: tokenDetails['pushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return tokenDetails['token'];
+      });
   }
 
   /**
@@ -181,7 +199,7 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
-  getPublicVapidKey_(): Promise<Uint8Array> {
+  getPublicVapidKey_(): Uint8Array {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
