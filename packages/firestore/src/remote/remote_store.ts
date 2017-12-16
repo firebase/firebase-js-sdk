@@ -179,7 +179,7 @@ export class RemoteStore {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= ONLINE_ATTEMPTS_BEFORE_FAILURE) {
         if (this.shouldWarnOffline) {
-          log.debug(LOG_TAG, 'Could not reach Firestore backend.');
+          log.error('Could not reach Firestore backend.');
           this.shouldWarnOffline = false;
         }
         this.updateAndBroadcastOnlineState(OnlineState.Failed);
