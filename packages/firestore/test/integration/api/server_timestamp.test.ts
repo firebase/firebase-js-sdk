@@ -268,7 +268,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('can return previous value through consecutive updates', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => firestore.disableNetwork)
+        .then(() => docRef.firestore.disableNetwork)
         .then(() => {
           // We set up two consecutive writes with server timestamps.
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
@@ -290,7 +290,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('uses previous value from local mutation', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => firestore.disableNetwork)
+        .then(() => docRef.firestore.disableNetwork)
         .then(() => {
           // We set up three consecutive writes.
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());

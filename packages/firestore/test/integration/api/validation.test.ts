@@ -258,7 +258,7 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
-          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: estimate, previous, none`
+          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: "estimate", "previous", "none"`
         );
       });
   });
