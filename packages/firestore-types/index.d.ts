@@ -622,7 +622,7 @@ export class DocumentSnapshot {
    * Retrieves the field specified by `fieldPath`. Returns 'undefined' if the
    * document or field doesn't exist.
    *
-   * By default, a `FieldValue.serverTimestamp()` that have not yet been set to
+   * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
    * its final value will be returned as `null`. You can override this by
    * passing an options object.
    *
