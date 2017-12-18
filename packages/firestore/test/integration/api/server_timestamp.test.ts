@@ -55,43 +55,93 @@ apiDescribe('Server Timestamps', persistence => {
   function writeInitialData(): Promise<void> {
     return docRef
       .set(initialData)
-      .then(() => {
-        return accumulator.awaitEvent();
-      })
+      .then(() => accumulator.awaitEvent())
       .then(initialDataSnap => {
         expect(initialDataSnap.data()).to.deep.equal(initialData);
       });
   }
 
-  /**
-   * Waits for a snapshot containing setData but with null for the timestamps.
-   */
-  function waitForLocalEvent(): Promise<void> {
-    return accumulator.awaitEvent().then(localSnap => {
-      expect(localSnap.data()).to.deep.equal(expectedDataWithTimestamp(null));
+  /** Waits for a latency compensated local snapshot. */
+  function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
+    return waitForLocalEvents(1).then(([snapshot]) => snapshot);
+  }
+
+  /** Waits for `count` latency compensated local snapshots. */
+  function waitForLocalEvents(
+    count: number
+  ): Promise<firestore.DocumentSnapshot[]> {
+    const snapshots: firestore.DocumentSnapshot[] = [];
+    let promise = Promise.resolve(snapshots);
+
+    while (count--) {
+      promise = promise.then(() => accumulator.awaitEvent()).then(localSnap => {
+        expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+        snapshots.push(localSnap);
+        return snapshots;
+      });
+    }
+
+    return promise;
+  }
+
+  /** Waits for a snapshot that has no pending writes */
+  function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
+    return accumulator.awaitEvent().then(remoteSnap => {
+      expect(remoteSnap.metadata.hasPendingWrites).to.equal(false);
+      return remoteSnap;
     });
   }
 
-  /**
-   * Waits for a snapshot containing setData but with resolved server
-   * timestamps.
-   */
-  function waitForRemoteEvent(): Promise<void> {
-    // server event should have a resolved timestamp; verify it.
-    return accumulator.awaitEvent().then(remoteSnap => {
-      expect(remoteSnap.exists).to.equal(true);
-      const when = remoteSnap.get('when');
-      expect(when).to.be.an.instanceof(Date);
-      // Tolerate up to 60 seconds of clock skew between client and server
-      // since web tests may run in a Windows VM with a sloppy clock.
-      const delta = 60;
-      expect(Math.abs(when.getTime() - Date.now())).to.be.lessThan(
-        delta * 1000
-      );
+  /** Verifies a snapshot containing setData but with resolved server timestamps. */
+  function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot): void {
+    expect(snap.exists).to.equal(true);
+    const when = snap.get('when');
+    expect(when).to.be.an.instanceof(Date);
+    // Tolerate up to 60 seconds of clock skew between client and server
+    // since web tests may run in a Windows VM with a sloppy clock.
+    const delta = 60;
+    expect(Math.abs(when.getTime() - Date.now())).to.be.lessThan(delta * 1000);
 
-      // Validate the rest of the document.
-      expect(remoteSnap.data()).to.deep.equal(expectedDataWithTimestamp(when));
-    });
+    // Validate the rest of the document.
+    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));
+  }
+
+  /** Verifies a snapshot containing setData but with null for the timestamps. */
+  function verifyTimestampsAreNull(snap: firestore.DocumentSnapshot): void {
+    expect(snap.exists).to.equal(true);
+    expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(null));
+  }
+
+  /** Verifies a snapshot containing setData but with local estimates for server timestamps. */
+  function verifyTimestampsAreEstimates(
+    snap: firestore.DocumentSnapshot
+  ): void {
+    expect(snap.exists).to.equal(true);
+    const when = snap.get('when', { serverTimestamps: 'estimate' });
+    expect(when).to.be.an.instanceof(Date);
+    // Validate the rest of the document.
+    expect(snap.data({ serverTimestamps: 'estimate' })).to.deep.equal(
+      expectedDataWithTimestamp(when)
+    );
+  }
+
+  /**
+   * Verifies a snapshot containing setData but using the previous field value
+   * for the timestamps.
+   */
+  function verifyTimestampsUsePreviousValue(
+    current: firestore.DocumentSnapshot,
+    prev: firestore.DocumentSnapshot | null
+  ): void {
+    if (!prev) {
+      verifyTimestampsAreNull(current);
+    } else {
+      expect(current.exists).to.equal(true);
+      const when = prev.get('when');
+      expect(current.data({ serverTimestamps: 'previous' })).to.deep.equal(
+        expectedDataWithTimestamp(when)
+      );
+    }
   }
 
   /**
@@ -102,6 +152,7 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestDoc(persistence, doc => {
       // Set variables for use during test.
       docRef = doc;
+
       accumulator = new testHelpers.EventsAccumulator<
         firestore.DocumentSnapshot
       >();
@@ -124,8 +175,10 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return docRef
         .set(setData)
-        .then(() => waitForLocalEvent())
-        .then(() => waitForRemoteEvent());
+        .then(waitForLocalEvent)
+        .then(snapshot => verifyTimestampsAreNull(snapshot))
+        .then(waitForRemoteEvent)
+        .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
 
@@ -133,8 +186,10 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(() => waitForLocalEvent())
-        .then(() => waitForRemoteEvent());
+        .then(waitForLocalEvent)
+        .then(snapshot => verifyTimestampsAreNull(snapshot))
+        .then(waitForRemoteEvent)
+        .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
 
@@ -145,7 +200,8 @@ apiDescribe('Server Timestamps', persistence => {
           txn.set(docRef, setData);
           return Promise.resolve();
         })
-        .then(() => waitForRemoteEvent());
+        .then(waitForRemoteEvent)
+        .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
 
@@ -158,7 +214,100 @@ apiDescribe('Server Timestamps', persistence => {
             return Promise.resolve();
           })
         )
-        .then(() => waitForRemoteEvent());
+        .then(waitForRemoteEvent)
+        .then(snapshot => verifyTimestampsAreResolved(snapshot));
+    });
+  });
+
+  it('can return estimated value', () => {
+    return withTestSetup(() => {
+      return writeInitialData()
+        .then(() => docRef.update(updateData))
+        .then(waitForLocalEvent)
+        .then(snapshot => verifyTimestampsAreEstimates(snapshot));
+    });
+  });
+
+  it('can return previous value', () => {
+    let previousSnapshot: firestore.DocumentSnapshot;
+
+    return withTestSetup(() => {
+      return writeInitialData()
+        .then(() => docRef.update(updateData))
+        .then(waitForLocalEvent)
+        .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
+        .then(waitForRemoteEvent)
+        .then(snapshot => {
+          previousSnapshot = snapshot;
+        })
+        .then(() => docRef.update(updateData))
+        .then(waitForLocalEvent)
+        .then(snapshot =>
+          verifyTimestampsUsePreviousValue(snapshot, previousSnapshot)
+        );
+    });
+  });
+
+  it('can return previous value of different type', () => {
+    return withTestSetup(() => {
+      return writeInitialData()
+        .then(() =>
+          // Change field 'a' from a number type to a server timestamp.
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+        )
+        .then(waitForLocalEvent)
+        .then(snapshot => {
+          // Verify that we can still obtain the number.
+          expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
+            42
+          );
+        });
+    });
+  });
+
+  it('can return previous value through consecutive updates', () => {
+    return withTestSetup(() => {
+      return writeInitialData()
+        .then(() => docRef.firestore.disableNetwork)
+        .then(() => {
+          // We set up two consecutive writes with server timestamps.
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          return waitForLocalEvents(2);
+        })
+        .then(snapshots => {
+          // Both snapshot use the initial value (42) as the previous value.
+          expect(
+            snapshots[0].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+          expect(
+            snapshots[1].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+        });
+    });
+  });
+
+  it('uses previous value from local mutation', () => {
+    return withTestSetup(() => {
+      return writeInitialData()
+        .then(() => docRef.firestore.disableNetwork)
+        .then(() => {
+          // We set up three consecutive writes.
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', 1337);
+          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          return waitForLocalEvents(3);
+        })
+        .then(snapshots => {
+          // The first snapshot uses the initial value (42) as the previous value.
+          expect(
+            snapshots[0].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(42);
+          // The third snapshot uses the intermediate value as the previous value.
+          expect(
+            snapshots[2].get('a', { serverTimestamps: 'previous' })
+          ).to.equal(1337);
+        });
     });
   });
 
