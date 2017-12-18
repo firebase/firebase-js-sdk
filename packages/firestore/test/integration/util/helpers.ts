@@ -181,9 +181,7 @@ export function withTestDbsSettings(
       'test-app-' + appCount++
     );
 
-    // tslint:disable-next-line:no-any Firestore is not exposed in firebase.d.ts
-    const firebaseAny = firebase as any;
-    const firestore = firebaseAny.firestore(app);
+    const firestore = firebase.firestore(app);
     firestore.settings(settings);
 
     let ready: Promise<firestore.FirebaseFirestore>;
