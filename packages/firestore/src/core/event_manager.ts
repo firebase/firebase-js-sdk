@@ -74,7 +74,7 @@ export class EventManager {
     }
     queryInfo.listeners.push(listener);
 
-    listener.onOnlineStateChanged(this.onlineState);
+    listener.applyOnlineStateChange(this.onlineState);
 
     if (queryInfo.viewSnap) listener.onViewSnapshot(queryInfo.viewSnap);
 
@@ -135,11 +135,11 @@ export class EventManager {
     this.queries.delete(query);
   }
 
-  onOnlineStateChanged(onlineState: OnlineState): void {
+  applyOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
     this.queries.forEach((_, queryInfo) => {
       for (const listener of queryInfo.listeners) {
-        listener.onOnlineStateChanged(onlineState);
+        listener.applyOnlineStateChange(onlineState);
       }
     });
   }
@@ -226,7 +226,7 @@ export class QueryListener {
     this.queryObserver.error(error);
   }
 
-  onOnlineStateChanged(onlineState: OnlineState): void {
+  applyOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
     if (
       this.snap &&
