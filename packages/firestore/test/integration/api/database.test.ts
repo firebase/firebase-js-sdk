@@ -590,16 +590,14 @@ apiDescribe('Database', persistence => {
 
   it('can queue writes while offline', () => {
     return withTestDoc(persistence, docRef => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
+      const firestore = docRef.firestore;
 
-      return firestoreInternal
+      return firestore
         .disableNetwork()
         .then(() => {
           return Promise.all([
             docRef.set({ foo: 'bar' }),
-            firestoreInternal.enableNetwork()
+            firestore.enableNetwork()
           ]);
         })
         .then(() => docRef.get())
@@ -611,18 +609,16 @@ apiDescribe('Database', persistence => {
 
   it('can get documents while offline', () => {
     return withTestDoc(persistence, docRef => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
+      const firestore = docRef.firestore;
 
-      return firestoreInternal.disableNetwork().then(() => {
+      return firestore.disableNetwork().then(() => {
         const writePromise = docRef.set({ foo: 'bar' });
 
         return docRef
           .get()
           .then(doc => {
             expect(doc.metadata.fromCache).to.be.true;
-            return firestoreInternal.enableNetwork();
+            return firestore.enableNetwork();
           })
           .then(() => writePromise)
           .then(() => docRef.get())
@@ -667,6 +663,19 @@ apiDescribe('Database', persistence => {
           return drainAsyncQueue(db);
         })
         .then(() => awaitOnlineSnapshot());
+    });
+  });
+
+  it('can enable and disable networking', () => {
+    return withTestDb(persistence, async db => {
+      // There's not currently a way to check if networking is in fact disabled,
+      // so for now just test that the method is well-behaved and doesn't throw.
+      await db.enableNetwork();
+      await db.enableNetwork();
+      await db.disableNetwork();
+      await db.disableNetwork();
+      await db.enableNetwork();
+      return Promise.resolve();
     });
   });
 });
