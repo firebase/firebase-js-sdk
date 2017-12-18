@@ -99,11 +99,16 @@ export class MutationBatch {
         ${maybeDoc.key}`
       );
     }
+    let baseDoc = maybeDoc;
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
       if (mutation.key.equals(docKey)) {
-        maybeDoc = mutation.applyToLocalView(maybeDoc, this.localWriteTime);
+        maybeDoc = mutation.applyToLocalView(
+          maybeDoc,
+          baseDoc,
+          this.localWriteTime
+        );
       }
     }
     return maybeDoc;
