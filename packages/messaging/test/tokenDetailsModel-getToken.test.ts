@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import * as sinon from 'sinon';
 import makeFakeSubscription from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
 import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { compareDetails } from './testing-utils/detail-comparator';
 
 describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
   const EXAMPLE_INPUT = {
@@ -87,11 +89,12 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
 
   it('should get from scope', function() {
     globalTokenModel = new TokenDetailsModel();
+    const now = Date.now();
+    let clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope)
       .then(details => {
         assert.equal(null, details);
-
         return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
@@ -100,43 +103,19 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
         );
       })
       .then(details => {
-        const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
-        const subscriptionValues = {
-          endpoint: EXAMPLE_INPUT.subscription.endpoint,
-          auth: arrayBufferToBase64(EXAMPLE_INPUT.subscription.getKey('auth')),
-          p256dh: arrayBufferToBase64(
-            EXAMPLE_INPUT.subscription.getKey('p256dh')
-          )
-        };
-
-        subscriptionKeys.forEach(keyName => {
-          assert.equal(details[keyName], subscriptionValues[keyName]);
-        });
-
-        Object.keys(details).forEach(keyName => {
-          if (subscriptionKeys.indexOf(keyName) !== -1) {
-            return;
-          }
-
-          if (keyName === 'vapidKey') {
-            assert.equal(
-              details[keyName],
-              arrayBufferToBase64(EXAMPLE_INPUT[keyName])
-            );
-          } else {
-            assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
-          }
-        });
+        compareDetails(EXAMPLE_INPUT, details, now);
+        clock.restore();
       });
   });
 
   it('should get from token', function() {
     globalTokenModel = new TokenDetailsModel();
+    const now = Date.now();
+    let clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken)
       .then(details => {
         assert.equal(null, details);
-
         return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
       })
       .then(() => {
@@ -145,33 +124,8 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
         );
       })
       .then(details => {
-        const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
-        const subscriptionValues = {
-          endpoint: EXAMPLE_INPUT.subscription.endpoint,
-          auth: arrayBufferToBase64(EXAMPLE_INPUT.subscription.getKey('auth')),
-          p256dh: arrayBufferToBase64(
-            EXAMPLE_INPUT.subscription.getKey('p256dh')
-          )
-        };
-
-        subscriptionKeys.forEach(keyName => {
-          assert.equal(details[keyName], subscriptionValues[keyName]);
-        });
-
-        Object.keys(details).forEach(keyName => {
-          if (subscriptionKeys.indexOf(keyName) !== -1) {
-            return;
-          }
-
-          if (keyName === 'vapidKey') {
-            assert.equal(
-              details[keyName],
-              arrayBufferToBase64(EXAMPLE_INPUT[keyName])
-            );
-          } else {
-            assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
-          }
-        });
+        compareDetails(EXAMPLE_INPUT, details, now);
+        clock.restore();
       });
   });
 });

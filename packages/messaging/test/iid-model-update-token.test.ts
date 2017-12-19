@@ -21,7 +21,7 @@ import { fetchMock } from './testing-utils/mock-fetch';
 import makeFakeSubscription from './make-fake-subscription';
 import FCMDetails from '../src/models/fcm-details';
 
-describe('Firebase Messaging > IIDModel.getToken()', function() {
+describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const fcmSenderId = '1234567';
   const fcmToken = 'qwerty';
   const fcmPushSet = '7654321';
@@ -46,7 +46,6 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
   ]).buffer;
 
   const sandbox = sinon.sandbox.create();
-  let stubedFetch;
   let globalIIDModel;
 
   const cleanUp = () => {
@@ -62,75 +61,36 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     return cleanUp();
   });
 
-  it('should getToken on valid request with custom VAPID key', async function() {
+  it('should update on valid request with custom VAPID key', async function() {
     globalIIDModel = new IIDModel();
-    const mockResponse = {
-      token: fcmToken,
-      pushSet: fcmPushSet
-    };
+    const mockResponse = { token: fcmToken };
     let stubbedFetch = sinon.stub(window, 'fetch');
     stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-    await globalIIDModel.getToken(
+    const res = await globalIIDModel.updateToken(
       fcmSenderId,
+      fcmToken,
+      fcmPushSet,
       subscription,
-      appPubKey,
-      fcmPushSet
+      FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
     );
     stubbedFetch.restore();
+    expect(res).to.equal(fcmToken);
   });
 
-  it('should getToken on valid request with default VAPID key', async function() {
+  it('should update on valid request with default VAPID key', async function() {
     globalIIDModel = new IIDModel();
-    const mockResponse = {
-      token: fcmToken,
-      pushSet: fcmPushSet
-    };
+    const mockResponse = { token: fcmToken };
     let stubbedFetch = sinon.stub(window, 'fetch');
     stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-    await globalIIDModel.getToken(
+    const res = await globalIIDModel.updateToken(
       fcmSenderId,
+      fcmToken,
+      fcmPushSet,
       subscription,
-      FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
-      fcmPushSet
+      appPubKey
     );
     stubbedFetch.restore();
-  });
-
-  it('should handle fetch errors', async function() {
-    globalIIDModel = new IIDModel();
-    const errorMsg = 'invalid token';
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
-    try {
-      await globalIIDModel.getToken(
-        fcmSenderId,
-        subscription,
-        appPubKey,
-        fcmPushSet
-      );
-      throw new Error('Expected error to be thrown.');
-    } catch (e) {
-      expect(e.message).to.equal(errorMsg);
-    }
-    stubbedFetch.restore();
-  });
-
-  it('should handle fetch errors, HTML response returned', async function() {
-    globalIIDModel = new IIDModel();
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.htmlError(400, 'html-response'));
-    try {
-      await globalIIDModel.getToken(
-        fcmSenderId,
-        subscription,
-        appPubKey,
-        fcmPushSet
-      );
-      throw new Error('Expected error to be thrown.');
-    } catch (e) {
-      expect(e.code).to.include(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
-    }
-    stubbedFetch.restore();
+    expect(res).to.equal(fcmToken);
   });
 
   it('should handle invalid fetch response, no FCM token returned', async function() {
@@ -141,40 +101,57 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     let stubbedFetch = sinon.stub(window, 'fetch');
     stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
-      await globalIIDModel.getToken(
+      await globalIIDModel.updateToken(
         fcmSenderId,
+        fcmToken,
+        fcmPushSet,
         subscription,
-        appPubKey,
-        fcmPushSet
+        appPubKey
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.include(
-        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN]
+        Errors.map[Errors.codes.TOKEN_UPDATE_NO_TOKEN]
       );
     }
     stubbedFetch.restore();
   });
 
-  it('should handle invalid fetch response, no push set token returned', async function() {
+  it('should handle invalid fetch response, HTML reponse returned', async function() {
     globalIIDModel = new IIDModel();
-    const mockInvalidResponse = {
-      token: fcmToken
-    };
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
     try {
-      await globalIIDModel.getToken(
+      await globalIIDModel.updateToken(
         fcmSenderId,
+        fcmToken,
+        fcmPushSet,
         subscription,
-        appPubKey,
-        fcmPushSet
+        appPubKey
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.message).to.include(
-        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET]
+      expect(e.code).to.include(Errors.codes.TOKEN_UPDATE_FAILED);
+    }
+    stubbedFetch.restore();
+  });
+
+  it('should handle fetch errors', async function() {
+    globalIIDModel = new IIDModel();
+    const errorMsg = 'invalid token';
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
+    try {
+      await globalIIDModel.updateToken(
+        fcmSenderId,
+        fcmToken,
+        fcmPushSet,
+        subscription,
+        appPubKey
       );
+      throw new Error('Expected error to be thrown.');
+    } catch (e) {
+      expect(e.message).to.equal(errorMsg);
     }
     stubbedFetch.restore();
   });

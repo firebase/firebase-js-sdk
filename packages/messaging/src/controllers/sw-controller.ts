@@ -18,7 +18,6 @@
 import ControllerInterface from './controller-interface';
 import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
-import FCMDetails from '../models/fcm-details';
 
 const FCM_MSG = 'FCM_MSG';
 
@@ -132,33 +131,6 @@ export default class SWController extends ControllerInterface {
           message: err
         });
       });
-    /** const promiseChain = this.getToken().then(token => {
-      if (!token) {
-        // We can't resubscribe if we don't have an FCM token for this scope.
-        throw this.errorFactory_.create(
-          Errors.codes.NO_FCM_TOKEN_FOR_RESUBSCRIBE
-        );
-      }
-
-      let tokenDetails = null;
-      const tokenDetailsModel = this.getTokenDetailsModel();
-      return tokenDetailsModel
-        .getTokenDetailsFromToken(token)
-        .then(details => {
-          tokenDetails = details;
-          if (!tokenDetails) {
-            throw this.errorFactory_.create(Errors.codes.INVALID_SAVED_TOKEN);
-          }
-
-          //TODO: Check syntax for new subscription
-          // Send new subscription to FCM.
-          return this.getIIDModel().getToken(
-            tokenDetails.fcmSenderId,
-            event.newSubscription,
-            tokenDetails.fcmPushSet
-          );
-        });
-    });**/
 
     event.waitUntil(promiseChain);
   }

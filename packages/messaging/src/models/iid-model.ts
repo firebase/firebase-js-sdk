@@ -35,12 +35,10 @@ export default class IIDModel {
    * @param  {string} senderId The 'messagingSenderId' to tie the token to.
    * @param  {PushSubscription} subscription The PushSusbcription to "federate".
    * @param  {Uint8Array} publicVapidKey The public VAPID key.
-   * @param  {string=} pushSet If defined this will swap the subscription for
-   * matching FCM token.
    * @return {Promise<!Object>} Returns the FCM token to be used in place
    * of the PushSubscription.
    */
-  getToken(senderId, subscription, publicVapidKey, pushSet?): Promise<Object> {
+  getToken(senderId, subscription, publicVapidKey): Promise<Object> {
     const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
     const auth = arrayBufferToBase64(subscription['getKey']('auth'));
 
@@ -53,10 +51,6 @@ export default class IIDModel {
     if (publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
-    }
-
-    if (pushSet) {
-      fcmSubscribeBody += `&pushSet=${pushSet}`;
     }
 
     const headers = new Headers();
@@ -73,6 +67,9 @@ export default class IIDModel {
       subscribeOptions
     )
       .then(response => response.json())
+      .catch(() => {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
+      })
       .then(response => {
         const fcmTokenResponse = response;
         if (fcmTokenResponse['error']) {
@@ -102,9 +99,67 @@ export default class IIDModel {
   }
 
   /**
+   * Update the underlying token details for fcmToken.
+   */
+  updateToken(
+    senderId: string,
+    fcmToken: string,
+    fcmPushSet: string,
+    subscription: PushSubscription,
+    publicVapidKey: Uint8Array
+  ): Promise<string> {
+    const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
+    const auth = arrayBufferToBase64(subscription['getKey']('auth'));
+
+    let fcmUpdateBody =
+      `push_set=${fcmPushSet}&` +
+      `token=${fcmToken}&` +
+      `authorized_entity=${senderId}&` +
+      `endpoint=${subscription.endpoint}&` +
+      `encryption_key=${p256dh}&` +
+      `encryption_auth=${auth}`;
+
+    if (publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
+      const applicationPubKey = arrayBufferToBase64(publicVapidKey);
+      fcmUpdateBody += `&application_pub_key=${applicationPubKey}`;
+    }
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+
+    const updateOptions = {
+      method: 'POST',
+      headers: headers,
+      body: fcmUpdateBody
+    };
+
+    let updateFetchRes;
+    return fetch(FCMDetails.ENDPOINT + '/fcm/connect/subscribe', updateOptions)
+      .then(fetchResponse => {
+        updateFetchRes = fetchResponse;
+        return fetchResponse.json();
+      })
+      .catch(() => {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED);
+      })
+      .then(fcmTokenResponse => {
+        if (!updateFetchRes.ok) {
+          const message = fcmTokenResponse['error']['message'];
+          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
+            message: message
+          });
+        }
+        if (!fcmTokenResponse['token']) {
+          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
+        }
+        return fcmTokenResponse['token'];
+      });
+  }
+
+  /**
    * Given a fcmToken, pushSet and messagingSenderId, delete an FCM token.
    */
-  async deleteToken(
+  deleteToken(
     senderId: string,
     fcmToken: string,
     fcmPushSet: string
@@ -123,19 +178,30 @@ export default class IIDModel {
       body: fcmUnsubscribeBody
     };
 
-    const fetchResponse = await fetch(
+    return fetch(
       FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
       unsubscribeOptions
-    );
-
-    if (!fetchResponse.ok) {
-      const fcmTokenResponse = await fetchResponse.json();
-      const message = fcmTokenResponse['error']['message'];
-      throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED, {
-        message: message
-      });
-    }
-
-    return;
+    ).then(fetchResponse => {
+      if (!fetchResponse.ok) {
+        return fetchResponse.json().then(
+          fcmTokenResponse => {
+            if (fcmTokenResponse['error']) {
+              const message = fcmTokenResponse['error']['message'];
+              throw this.errorFactory_.create(
+                Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+                {
+                  message: message
+                }
+              );
+            }
+          },
+          err => {
+            throw this.errorFactory_.create(
+              Errors.codes.TOKEN_UNSUBSCRIBE_FAILED
+            );
+          }
+        );
+      }
+    });
   }
 }

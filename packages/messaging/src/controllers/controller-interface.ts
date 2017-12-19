@@ -20,9 +20,10 @@ import Errors from '../models/errors';
 import TokenDetailsModel from '../models/token-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
-import FCMDetails from '../models/fcm-details';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
+// Database cache should be invalidated once a week.
+export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export default class ControllerInterface {
   public app;
@@ -58,10 +59,8 @@ export default class ControllerInterface {
 
   /**
    * @export
-   * @return {Promise<string> | Promise<null>} Returns a promise that
-   * resolves to an FCM token.
    */
-  getToken() {
+  getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
@@ -74,42 +73,94 @@ export default class ControllerInterface {
       // We must wait for permission to be granted
       return Promise.resolve(null);
     }
-
-    return this.getSWRegistration_().then(registration => {
-      return this.tokenDetailsModel_
-        .getTokenDetailsFromSWScope(registration.scope)
-        .then(details => {
-          if (details) {
-            // TODO Validate the details are still accurate
-            return details['fcmToken'];
+    let swReg: ServiceWorkerRegistration;
+    return this.getSWRegistration_()
+      .then(reg => {
+        swReg = reg;
+        return this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
+      })
+      .then(tokenDetails => {
+        if (tokenDetails) {
+          // TODO Validate the details are still accurate
+          const now = Date.now();
+          if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
+            return tokenDetails['fcmToken'];
+          } else {
+            return this.updateToken(tokenDetails, swReg);
           }
+        }
+        return this.getNewToken(swReg);
+      });
+  }
 
-          const publicVapidKey = this.getPublicVapidKey_();
-          let subscription;
-          return this.getPushSubscription_(registration, publicVapidKey)
-            .then(sub => {
-              subscription = sub;
-              return this.iidModel_.getToken(
-                this.messagingSenderId_,
-                subscription,
-                publicVapidKey
-              );
-            })
-            .then(tokenDetails => {
-              const allDetails = {
-                swScope: registration.scope,
-                vapidKey: publicVapidKey,
-                subscription: subscription,
-                fcmSenderId: this.messagingSenderId_,
-                fcmToken: tokenDetails['token'],
-                fcmPushSet: tokenDetails['pushSet']
-              };
-              return this.tokenDetailsModel_
-                .saveTokenDetails(allDetails)
-                .then(() => tokenDetails['token']);
-            });
+  private updateToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
+    const publicVapidKey = this.getPublicVapidKey_();
+    let updatedToken: string;
+    let subscription: PushSubscription;
+    return this.getPushSubscription_(swReg, publicVapidKey)
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.updateToken(
+          this.messagingSenderId_,
+          tokenDetails['fcmToken'],
+          tokenDetails['pushDetails'],
+          subscription,
+          publicVapidKey
+        );
+      })
+      .catch(err => {
+        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+          throw err;
         });
-    });
+      })
+      .then(token => {
+        updatedToken = token;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: updatedToken,
+          fcmPushSet: tokenDetails['pushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return updatedToken;
+      });
+  }
+
+  private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
+    const publicVapidKey = this.getPublicVapidKey_();
+    let subscription: PushSubscription;
+    let tokenDetails: Object;
+    return this.getPushSubscription_(swReg, publicVapidKey)
+      .then(pushSubscription => {
+        subscription = pushSubscription;
+        return this.iidModel_.getToken(
+          this.messagingSenderId_,
+          subscription,
+          publicVapidKey
+        );
+      })
+      .then(iidTokenDetails => {
+        tokenDetails = iidTokenDetails;
+        const allDetails = {
+          swScope: swReg.scope,
+          vapidKey: publicVapidKey,
+          subscription: subscription,
+          fcmSenderId: this.messagingSenderId_,
+          fcmToken: tokenDetails['token'],
+          fcmPushSet: tokenDetails['pushSet']
+        };
+        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return tokenDetails['token'];
+      });
   }
 
   /**
@@ -148,7 +199,7 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
-  getPublicVapidKey_(): Promise<Uint8Array> {
+  getPublicVapidKey_(): Uint8Array {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 

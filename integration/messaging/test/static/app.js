@@ -31,6 +31,7 @@ class DemoApp {
     this._token = null;
     this._errors = [];
     this._messages = [];
+    this._triggerDeleteToken = this.triggerDeleteToken;
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -65,6 +66,18 @@ class DemoApp {
           this._token = null;
         }
       );
+  }
+
+  async triggerDeleteToken() {
+    try {
+      const token = await this._messaging.getToken();
+      await this._messaging.deleteToken(token);
+      this._token = null;
+      console.log('deleteToken() worked: ', token);
+    } catch (e) {
+      this._errors.push(e);
+      console.log('deleteToken() failed: ', e.message, e.stack);
+    }
   }
 
   get token() {
