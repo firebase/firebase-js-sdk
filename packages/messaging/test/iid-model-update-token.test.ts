@@ -120,7 +120,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   it('should handle invalid fetch response, HTML reponse returned', async function() {
     globalIIDModel = new IIDModel();
     let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.htmlError(404, "html-response"));
+    stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
     try {
       await globalIIDModel.updateToken(
         fcmSenderId,

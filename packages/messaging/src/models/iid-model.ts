@@ -152,8 +152,7 @@ export default class IIDModel {
           throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
         }
         return fcmTokenResponse['token'];
-      })
-
+      });
   }
 
   /**
