@@ -385,7 +385,7 @@ abstract class TestRunner {
     );
     const onlineStateChangedHandler = (onlineState: OnlineState) => {
       this.syncEngine.applyOnlineStateChange(onlineState);
-      this.eventManager.onOnlineStateChanged(onlineState);
+      this.eventManager.applyOnlineStateChange(onlineState);
     };
     this.remoteStore = new RemoteStore(
       this.localStore,
