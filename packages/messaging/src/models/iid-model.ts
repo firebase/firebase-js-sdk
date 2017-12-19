@@ -196,9 +196,12 @@ export default class IIDModel {
             }
           },
           err => {
-            throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED);
-          });
+            throw this.errorFactory_.create(
+              Errors.codes.TOKEN_UNSUBSCRIBE_FAILED
+            );
+          }
+        );
       }
-    })
+    });
   }
 }
