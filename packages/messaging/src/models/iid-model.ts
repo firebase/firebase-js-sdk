@@ -136,6 +136,11 @@ export default class IIDModel {
         updateFetchRes = fetchResponse;
         return fetchResponse.json();
       })
+      .catch(err => {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
+          message: err.message
+        });
+      })
       .then(fcmTokenResponse => {
         if (!updateFetchRes.ok) {
           const message = fcmTokenResponse['error']['message'];
@@ -147,7 +152,8 @@ export default class IIDModel {
           throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
         }
         return fcmTokenResponse['token'];
-      });
+      })
+
   }
 
   /**

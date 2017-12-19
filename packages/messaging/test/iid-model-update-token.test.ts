@@ -117,6 +117,25 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     stubbedFetch.restore();
   });
 
+  it('should handle invalid fetch response, HTML reponse returned', async function() {
+    globalIIDModel = new IIDModel();
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(fetchMock.htmlError(404, "html-response"));
+    try {
+      await globalIIDModel.updateToken(
+        fcmSenderId,
+        fcmToken,
+        fcmPushSet,
+        subscription,
+        appPubKey
+      );
+      throw new Error('Expected error to be thrown.');
+    } catch (e) {
+      expect(e.code).to.include(Errors.codes.TOKEN_UPDATE_FAILED);
+    }
+    stubbedFetch.restore();
+  });
+
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';

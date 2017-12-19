@@ -32,6 +32,15 @@ const fetchMock = {
       }
     });
     return Promise.resolve(mockResponse);
+  },
+  htmlError: function(status: number, msg: string): Promise<Response> {
+    var mockResponse = new (window as any).Response(msg, {
+      status: status,
+      headers: {
+        'Content-type': 'text/html'
+      }
+    });
+    return Promise.resolve(mockResponse);
   }
 };
 export { fetchMock };
