@@ -67,6 +67,9 @@ export default class IIDModel {
       subscribeOptions
     )
       .then(response => response.json())
+      .catch(() => {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
+      })
       .then(response => {
         const fcmTokenResponse = response;
         if (fcmTokenResponse['error']) {
@@ -136,10 +139,8 @@ export default class IIDModel {
         updateFetchRes = fetchResponse;
         return fetchResponse.json();
       })
-      .catch(err => {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
-          message: err.message
-        });
+      .catch(() => {
+        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED);
       })
       .then(fcmTokenResponse => {
         if (!updateFetchRes.ok) {
@@ -182,18 +183,22 @@ export default class IIDModel {
       unsubscribeOptions
     ).then(fetchResponse => {
       if (!fetchResponse.ok) {
-        return fetchResponse.json().then(fcmTokenResponse => {
-          if (fcmTokenResponse['error']) {
-            const message = fcmTokenResponse['error']['message'];
-            throw this.errorFactory_.create(
-              Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
-              {
-                message: message
-              }
-            );
-          }
-        });
+        return fetchResponse.json().then(
+          fcmTokenResponse => {
+            if (fcmTokenResponse['error']) {
+              const message = fcmTokenResponse['error']['message'];
+              throw this.errorFactory_.create(
+                Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+                {
+                  message: message
+                }
+              );
+            }
+          },
+          err => {
+            throw this.errorFactory_.create(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED);
+          });
       }
-    });
+    })
   }
 }

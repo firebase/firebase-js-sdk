@@ -16,6 +16,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import IIDModel from '../src/models/iid-model';
+import Errors from '../src/models/errors';
 import { fetchMock } from './testing-utils/mock-fetch';
 
 describe('Firebase Messaging > IIDModel.deleteToken()', function() {
@@ -56,7 +57,21 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
       throw new Error('Expected error to be thrown.');
     } catch (e) {
+      stubbedFetch.restore();
       expect(e.message).to.equal(errorMsg);
+    }
+    stubbedFetch.restore();
+  });
+
+  it('should handle fetch errors, HTML response returned', async function() {
+    globalIIDModel = new IIDModel();
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
+    try {
+      await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+      throw new Error('Expected error to be thrown.');
+    } catch (e) {
+      expect(e.code).to.include(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED);
     }
     stubbedFetch.restore();
   });

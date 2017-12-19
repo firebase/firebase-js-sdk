@@ -115,6 +115,24 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     stubbedFetch.restore();
   });
 
+  it('should handle fetch errors, HTML response returned', async function() {
+    globalIIDModel = new IIDModel();
+    let stubbedFetch = sinon.stub(window, 'fetch');
+    stubbedFetch.returns(fetchMock.htmlError(400, 'html-response'));
+    try {
+      await globalIIDModel.getToken(
+        fcmSenderId,
+        subscription,
+        appPubKey,
+        fcmPushSet
+      );
+      throw new Error('Expected error to be thrown.');
+    } catch (e) {
+      expect(e.code).to.include(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
+    }
+    stubbedFetch.restore();
+  });
+
   it('should handle invalid fetch response, no FCM token returned', async function() {
     globalIIDModel = new IIDModel();
     const mockInvalidResponse = {
