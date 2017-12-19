@@ -43,7 +43,7 @@ describe('EventManager', () => {
       query,
       onViewSnapshot: () => {},
       onError: () => {},
-      onOnlineStateChanged: () => {}
+      applyOnlineStateChange: () => {}
     };
   }
 
@@ -126,11 +126,11 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward onOnlineStateChanged calls', () => {
+  it('will forward applyOnlineStateChange calls', () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
-    fakeListener1.onOnlineStateChanged = (onlineState: OnlineState) => {
+    fakeListener1.applyOnlineStateChange = (onlineState: OnlineState) => {
       events.push(onlineState);
     };
 
