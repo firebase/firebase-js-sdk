@@ -16,7 +16,12 @@
 
 import { expect } from 'chai';
 import { Blob, PublicBlob } from '../../../src/api/blob';
-import { blob, expectCorrectComparisons, expectEqual, expectNotEqual } from '../../util/helpers';
+import {
+  blob,
+  expectCorrectComparisons,
+  expectEqual,
+  expectNotEqual
+} from '../../util/helpers';
 
 describe('Blob', () => {
   const base64Mappings: { [base64: string]: number[] } = {

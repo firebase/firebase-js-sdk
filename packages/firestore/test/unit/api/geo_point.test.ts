@@ -16,7 +16,11 @@
 
 import { expect } from 'chai';
 import { GeoPoint } from '../../../src/api/geo_point';
-import { expectCorrectComparisons, expectEqual, expectNotEqual } from '../../util/helpers';
+import {
+  expectCorrectComparisons,
+  expectEqual,
+  expectNotEqual
+} from '../../util/helpers';
 
 describe('GeoPoint', () => {
   function expectGeoPointEquals(
