@@ -576,6 +576,12 @@ export class RemoteStore {
 
   cleanUpWriteStreamState() {
     this.lastBatchSeen = BATCHID_UNKNOWN;
+    log.debug(
+      LOG_TAG,
+      'Stopping write stream with ' +
+        this.pendingWrites.length +
+        ' pending writes'
+    );
     this.pendingWrites = [];
   }
 
