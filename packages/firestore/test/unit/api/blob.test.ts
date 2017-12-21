@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import { Blob, PublicBlob } from '../../../src/api/blob';
-import { blob, expectCorrectComparisons } from '../../util/helpers';
+import { blob, expectCorrectComparisons, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('Blob', () => {
   const base64Mappings: { [base64: string]: number[] } = {
@@ -81,5 +81,10 @@ describe('Blob', () => {
     expectCorrectComparisons(values, (left: Blob, right: Blob) => {
       return left._compareTo(right);
     });
+  });
+
+  it('Blob equality checks', () => {
+    expectEqual(blob(1, 2, 3), blob(1, 2, 3));
+    expectNotEqual(blob(1, 2, 3), blob(4, 5, 6));
   });
 });
