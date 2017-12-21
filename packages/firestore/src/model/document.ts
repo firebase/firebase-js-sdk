@@ -97,7 +97,9 @@ export class NoDocument {
 
   public isEqual(other: NoDocument): boolean {
     return (
-      other && other.version.isEqual(this.version) && other.key.isEqual(this.key)
+      other &&
+      other.version.isEqual(this.version) &&
+      other.key.isEqual(this.key)
     );
   }
 

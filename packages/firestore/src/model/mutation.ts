@@ -138,7 +138,8 @@ export class Precondition {
   isValidFor(maybeDoc: MaybeDocument | null) {
     if (this.updateTime !== undefined) {
       return (
-        maybeDoc instanceof Document && maybeDoc.version.isEqual(this.updateTime)
+        maybeDoc instanceof Document &&
+        maybeDoc.version.isEqual(this.updateTime)
       );
     } else if (this.exists !== undefined) {
       if (this.exists) {
