@@ -96,13 +96,12 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
-          await deleteFCMToken(globalWebDriver, "invalid-token");
+          await deleteFCMToken(globalWebDriver, 'invalid-token');
           const errors = await getErrors(globalWebDriver);
           expect(errors).to.exist;
           expect(errors.length).to.equal(1);
-          expect(errors[0].code).to.equal("messaging/invalid-delete-token");
+          expect(errors[0].code).to.equal('messaging/invalid-delete-token');
         });
-
       });
     });
   });
