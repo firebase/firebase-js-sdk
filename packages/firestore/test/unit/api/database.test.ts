@@ -17,12 +17,15 @@
 import { expect } from 'chai';
 import { DocumentReference, Query } from '../../../src/api/database';
 import { documentReference, query } from '../../util/api_helpers';
-import { expectEqual, expectNotEqual} from '../../util/helpers';
+import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('DocumentReference', () => {
   it('DocumentReference equality checks', () => {
     expectEqual(documentReference('rooms/foo'), documentReference('rooms/foo'));
-    expectNotEqual(documentReference('rooms/foo'), documentReference('rooms/bar'));
+    expectNotEqual(
+      documentReference('rooms/foo'),
+      documentReference('rooms/bar')
+    );
   });
 });
 

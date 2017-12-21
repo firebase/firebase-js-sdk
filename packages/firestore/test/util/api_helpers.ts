@@ -24,7 +24,10 @@ import { key, path as pathFrom } from './helpers';
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore({projectId: 'projectid', database: 'database'});
+export const FIRESTORE = new Firestore({
+  projectId: 'projectid',
+  database: 'database'
+});
 
 export function firestore(): Firestore {
   return FIRESTORE;
