@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-module.exports = async (webdriver, token) => {
-  console.log('Deleting token: ', token);
-  await webdriver.wait(() => {
-    return webdriver.executeScript(() => {
-      return !!window.__test;
-    });
-  });
-  return webdriver.executeScript(token => {
-    return window.__test.triggerDeleteToken(token);
+module.exports = async webdriver => {
+  console.log('Getting errors...');
+  return webdriver.executeScript(() => {
+    return window.__test.errors;
   });
 };
