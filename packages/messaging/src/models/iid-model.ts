@@ -166,7 +166,7 @@ export default class IIDModel {
   ): Promise<void> {
     let fcmUnsubscribeBody =
       `authorized_entity=${senderId}&` +
-      `endpoint=${fcmToken}&` +
+      `token=${fcmToken}&` +
       `pushSet=${fcmPushSet}`;
 
     const headers = new Headers();
