@@ -371,7 +371,7 @@ export class BlobValue extends FieldValue {
   isEqual(other: FieldValue): boolean {
     return (
       other instanceof BlobValue &&
-      this.internalValue._isEqual(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 

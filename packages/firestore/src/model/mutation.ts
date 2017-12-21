@@ -154,7 +154,7 @@ export class Precondition {
 
   isEqual(other: Precondition) {
     return (
-      misc.isEqual(this.updateTime, other.updateTime) &&
+      misc.equals(this.updateTime, other.updateTime) &&
       this.exists === other.exists
     );
   }
