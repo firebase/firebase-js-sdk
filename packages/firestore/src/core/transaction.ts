@@ -44,7 +44,7 @@ export class Transaction {
     }
     const existingVersion = this.readVersions.get(doc.key);
     if (existingVersion !== null) {
-      if (!docVersion.equals(existingVersion)) {
+      if (!docVersion.isEqual(existingVersion)) {
         // This transaction will fail no matter what.
         throw new FirestoreError(
           Code.ABORTED,
@@ -101,7 +101,7 @@ export class Transaction {
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version && version.equals(SnapshotVersion.forDeletedDoc())) {
+    if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
       // The document doesn't exist, so fail the transaction.
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,

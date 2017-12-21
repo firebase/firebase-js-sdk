@@ -141,7 +141,7 @@ export class View {
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
           assert(
-            key.equals(newDoc.key),
+            key.isEqual(newDoc.key),
             'Mismatching keys found in document changes: ' +
               key +
               ' != ' +
@@ -163,7 +163,7 @@ export class View {
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.equals(newDoc.data);
+          const docsEqual = oldDoc.data.isEqual(newDoc.data);
           if (
             !docsEqual ||
             oldDoc.hasLocalMutations !== newDoc.hasLocalMutations

@@ -25,7 +25,7 @@ describe('GeoPoint', () => {
   ): void {
     expect(geoPoint.latitude).to.equal(value[0]);
     expect(geoPoint.longitude).to.equal(value[1]);
-    expect(geoPoint._equals(new GeoPoint(value[0], value[1]))).to.equal(true);
+    expect(geoPoint.isEqual(new GeoPoint(value[0], value[1]))).to.equal(true);
   }
 
   it('constructs values', () => {

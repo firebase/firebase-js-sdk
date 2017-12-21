@@ -45,7 +45,7 @@ export class User {
     }
   }
 
-  equals(otherUser: User): boolean {
+  isEqual(otherUser: User): boolean {
     return otherUser.uid === this.uid;
   }
 }

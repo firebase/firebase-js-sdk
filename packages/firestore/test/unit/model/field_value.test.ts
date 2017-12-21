@@ -359,7 +359,7 @@ describe('FieldValue', () => {
       [wrap({ bar: 1, foo: 1 })],
       [wrap({ foo: 1 })]
     ];
-    expectEqualitySets(values, (v1, v2) => v1.equals(v2));
+    expectEqualitySets(values, (v1, v2) => v1.isEqual(v2));
   });
 
   it('orders types correctly', () => {

@@ -157,7 +157,7 @@ class FirestoreSettings {
     this.credentials = settings.credentials;
   }
 
-  equals(other: FirestoreSettings): boolean {
+  isEqual(other: FirestoreSettings): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
@@ -237,7 +237,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
-    if (this._firestoreClient && !this._config.settings.equals(newSettings)) {
+    if (this._firestoreClient && !this._config.settings.isEqual(newSettings)) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -293,7 +293,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
-        if (!otherDb.equals(thisDb)) {
+        if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Document reference is for database ' +
@@ -746,7 +746,7 @@ export class DocumentReference implements firestore.DocumentReference {
     if (!(other instanceof DocumentReference)) {
       throw invalidClassError('isEqual', 'DocumentReference', 1, other);
     }
-    return this.firestore === other.firestore && this._key.equals(other._key);
+    return this.firestore === other.firestore && this._key.isEqual(other._key);
   }
 
   set(
@@ -1054,7 +1054,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     } else if (value instanceof RefValue) {
       const key = value.value();
       const database = this._firestore.ensureClientConfigured().databaseId();
-      if (!value.databaseId.equals(database)) {
+      if (!value.databaseId.isEqual(database)) {
         // TODO(b/64130202): Somehow support foreign references.
         log.error(
           `Document ${this._key.path} contains a document ` +
@@ -1257,7 +1257,7 @@ export class Query implements firestore.Query {
       throw invalidClassError('isEqual', 'Query', 1, other);
     }
     return (
-      this.firestore === other.firestore && this._query.equals(other._query)
+      this.firestore === other.firestore && this._query.isEqual(other._query)
     );
   }
 
@@ -1519,7 +1519,7 @@ export class Query implements firestore.Query {
   private validateNewFilter(filter: Filter): void {
     if (filter instanceof RelationFilter && filter.isInequality()) {
       const existingField = this._query.getInequalityFilterField();
-      if (existingField !== null && !existingField.equals(filter.field)) {
+      if (existingField !== null && !existingField.isEqual(filter.field)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. All where filters with an inequality' +
@@ -1550,7 +1550,7 @@ export class Query implements firestore.Query {
     inequality: FieldPath,
     orderBy: FieldPath
   ): void {
-    if (!orderBy.equals(inequality)) {
+    if (!orderBy.isEqual(inequality)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. You have a where filter with an inequality ` +
