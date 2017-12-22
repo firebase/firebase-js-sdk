@@ -990,7 +990,10 @@ export class SnapshotMetadata implements firestore.SnapshotMetadata {
   ) {}
 
   public isEqual(other: firestore.SnapshotMetadata): boolean {
-    return this.hasPendingWrites === other.hasPendingWrites && this.fromCache === other.fromCache;
+    return (
+      this.hasPendingWrites === other.hasPendingWrites &&
+      this.fromCache === other.fromCache
+    );
   }
 }
 
@@ -1043,8 +1046,8 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
   get metadata(): firestore.SnapshotMetadata {
     return new SnapshotMetadata(
-        this._document !== null && this._document.hasLocalMutations,
-        this._fromCache
+      this._document !== null && this._document.hasLocalMutations,
+      this._fromCache
     );
   }
 
@@ -1598,8 +1601,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     private _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
-        _snapshot.hasPendingWrites,
-        _snapshot.fromCache
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
     );
   }
 
