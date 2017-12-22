@@ -17,9 +17,20 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
-import { CollectionReference, DocumentReference, DocumentSnapshot, Firestore, Query, QuerySnapshot } from '../../src/api/database';
+import {
+  CollectionReference,
+  DocumentReference,
+  DocumentSnapshot,
+  Firestore,
+  Query,
+  QuerySnapshot
+} from '../../src/api/database';
 import { Query as InternalQuery } from '../../src/core/query';
-import { ChangeType, DocumentViewChange, ViewSnapshot } from '../../src/core/view_snapshot';
+import {
+  ChangeType,
+  DocumentViewChange,
+  ViewSnapshot
+} from '../../src/core/view_snapshot';
 import { DocumentSet } from '../../src/model/document_set';
 import { doc, key, path as pathFrom } from './helpers';
 
@@ -43,9 +54,18 @@ export function documentReference(path: string): DocumentReference {
   return new DocumentReference(key(path), FIRESTORE);
 }
 
-export function documentSnapshot(path: string, data: JsonObject<AnyJs>, fromCache: boolean) {
+export function documentSnapshot(
+  path: string,
+  data: JsonObject<AnyJs>,
+  fromCache: boolean
+) {
   if (data) {
-    return new DocumentSnapshot(FIRESTORE, key(path), doc(path, 1, data), fromCache);
+    return new DocumentSnapshot(
+      FIRESTORE,
+      key(path),
+      doc(path, 1, data),
+      fromCache
+    );
   } else {
     return new DocumentSnapshot(FIRESTORE, key(path), null, fromCache);
   }
@@ -68,7 +88,14 @@ export function query(path: string): Query {
  * @param syncStateChanged Whether the sync state has changed.
  * @return A query snapshot that consists of both sets of documents.
  */
-export function querySnapshot(path: string, oldDocs: { [key: string]: JsonObject<AnyJs> }, docsToAdd: { [key: string]: JsonObject<AnyJs> }, hasPendingWrites: boolean, fromCache: boolean, syncStateChanged: boolean) {
+export function querySnapshot(
+  path: string,
+  oldDocs: { [key: string]: JsonObject<AnyJs> },
+  docsToAdd: { [key: string]: JsonObject<AnyJs> },
+  hasPendingWrites: boolean,
+  fromCache: boolean,
+  syncStateChanged: boolean
+) {
   let query: InternalQuery = InternalQuery.atPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
   for (let key in oldDocs) {
@@ -82,9 +109,13 @@ export function querySnapshot(path: string, oldDocs: { [key: string]: JsonObject
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
   }
   let viewSnapshot: ViewSnapshot = {
-      query: query, docs: newDocuments, oldDocs: oldDocuments,
-      docChanges: documentChanges, fromCache: fromCache, hasPendingWrites: hasPendingWrites,
-      syncStateChanged: syncStateChanged,
+    query: query,
+    docs: newDocuments,
+    oldDocs: oldDocuments,
+    docChanges: documentChanges,
+    fromCache: fromCache,
+    hasPendingWrites: hasPendingWrites,
+    syncStateChanged: syncStateChanged
   };
   return new QuerySnapshot(FIRESTORE, query, viewSnapshot);
 }

@@ -15,8 +15,20 @@
  */
 
 import { expect } from 'chai';
-import { CollectionReference, DocumentReference, DocumentSnapshot, Query, QuerySnapshot } from '../../../src/api/database';
-import { collectionReference, documentReference, documentSnapshot, query, querySnapshot } from '../../util/api_helpers';
+import {
+  CollectionReference,
+  DocumentReference,
+  DocumentSnapshot,
+  Query,
+  QuerySnapshot
+} from '../../../src/api/database';
+import {
+  collectionReference,
+  documentReference,
+  documentSnapshot,
+  query,
+  querySnapshot
+} from '../../util/api_helpers';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('CollectionReference', () => {
@@ -76,32 +88,32 @@ describe('Query', () => {
 describe('QuerySnapshot', () => {
   it('QuerySnapshot equality checks', () => {
     expectEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('bar', {}, { 'a': { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('bar', {}, { a: { a: 1 } }, true, false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', { 'b': { b: 1 } }, { 'a': { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', { b: { b: 1 } }, { a: { a: 1 } }, true, false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { 'a': { b: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', {}, { a: { b: 1 } }, true, false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, false, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, false, false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, true, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, true, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { 'a': { a: 1 } }, true, false, true)
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, true)
     );
   });
 });
