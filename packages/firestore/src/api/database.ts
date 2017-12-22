@@ -1038,6 +1038,13 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     };
   }
 
+  public isEqual(other: firestore.DocumentSnapshot): boolean {
+    if (!(other instanceof DocumentSnapshot)) {
+      throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
+    }
+    return this.firestore === other.firestore && this._key.isEqual(other._key) && (this._document === null ? other._document === null : this._document.isEqual(other._document)) && this._fromCache === other._fromCache;
+  }
+
   private convertObject(data: ObjectValue): firestore.DocumentData {
     const result: firestore.DocumentData = {};
     data.forEach((key, value) => {
@@ -1616,6 +1623,34 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       );
     }
     return this._cachedChanges;
+  }
+
+  public isEqual(other: firestore.QuerySnapshot): boolean {
+    if (!(other instanceof QuerySnapshot)) {
+      throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
+    }
+
+    if (this.firestore !== other.firestore || !this._originalQuery.isEqual(other._originalQuery)) {
+      return false;
+    }
+    let snapshot: ViewSnapshsot  = this._snapshot;
+    let otherSnapshot: ViewSnapshot = other._snapshot;
+    if (!snapshot.query.isEqual(otherSnapshot.query) || !snapshot.docs.isEqual(otherSnapshot.docs) ||
+        !snapshot.oldDocs.isEqual(otherSnapshot.oldDocs) || snapshot.fromCache !== otherSnapshot.fromCache ||
+        snapshot.hasPendingWrites !== otherSnapshot.hasPendingWrites || snapshot.syncStateChanged !== otherSnapshot.syncStateChanged) {
+      return false;
+    }
+    let changes: DocumentViewChange[] = snapshot.docChanges;
+    let otherChanges: DocumentViewChange[] = otherSnapshot.docChanges;
+    if (changes.length !== otherChanges.length) {
+      return false;
+    }
+    for (let i = 0; i < changes.length; i++) {
+      if (changes[i].type !== otherChanges[i].type || !changes[i].doc.isEqual(otherChanges[i].doc)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private convertToDocumentImpl(doc: Document): DocumentSnapshot {

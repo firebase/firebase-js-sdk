@@ -17,9 +17,11 @@
 // Helpers here mock Firestore in order to unit-test API types. Do NOT use
 // these in any integration test, where we expect working Firestore object.
 
-import { DocumentReference, Firestore, Query } from '../../src/api/database';
+import { CollectionReference, DocumentReference, DocumentSnapshot, Firestore, Query, QuerySnapshot } from '../../src/api/database';
 import { Query as InternalQuery } from '../../src/core/query';
-import { key, path as pathFrom } from './helpers';
+import { ChangeType, DocumentViewChange, ViewSnapshot } from '../../src/core/view_snapshot';
+import { DocumentSet } from '../../src/model/document_set';
+import { doc, key, path as pathFrom } from './helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -33,10 +35,56 @@ export function firestore(): Firestore {
   return FIRESTORE;
 }
 
+export function collectionReference(path: string): CollectionReference {
+  return new CollectionReference(pathFrom(path), FIRESTORE);
+}
+
 export function documentReference(path: string): DocumentReference {
   return new DocumentReference(key(path), FIRESTORE);
 }
 
+export function documentSnapshot(path: string, data: JsonObject<AnyJs>, fromCache: boolean) {
+  if (data) {
+    return new DocumentSnapshot(FIRESTORE, key(path), doc(path, 1, data), fromCache);
+  } else {
+    return new DocumentSnapshot(FIRESTORE, key(path), null, fromCache);
+  }
+}
+
 export function query(path: string): Query {
   return new Query(InternalQuery.atPath(pathFrom(path)), FIRESTORE);
+}
+
+/**
+ * A convenience method for creating a particular query snapshot for tests.
+ *
+ * @param path To be used in constructing the query.
+ * @param oldDocs Provides the prior set of documents in the QuerySnapshot. Each entry maps to a
+ *     document, with the key being the document id, and the value being the document contents.
+ * @param docsToAdd Specifies data to be added into the query snapshot as of now. Each entry maps
+ *     to a document, with the key being the document id, and the value being the document contents.
+ * @param hasPendingWrites Whether the query snapshot has pending writes.
+ * @param isFromCache Whether the query snapshot is cache result.
+ * @param syncStateChanged Whether the sync state has changed.
+ * @return A query snapshot that consists of both sets of documents.
+ */
+export function querySnapshot(path: string, oldDocs: { [key: string]: JsonObject<AnyJs> }, docsToAdd: { [key: string]: JsonObject<AnyJs> }, hasPendingWrites: boolean, fromCache: boolean, syncStateChanged: boolean) {
+  let query: InternalQuery = InternalQuery.atPath(pathFrom(path));
+  let oldDocuments: DocumentSet = new DocumentSet();
+  for (let key in oldDocs) {
+    oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));
+  }
+  let newDocuments: DocumentSet = new DocumentSet();
+  let documentChanges: DocumentViewChange[] = [];
+  for (let key in docsToAdd) {
+    let docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
+    newDocuments = newDocuments.add(docToAdd);
+    documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
+  }
+  let viewSnapshot: ViewSnapshot = {
+      query: query, docs: newDocuments, oldDocs: oldDocuments,
+      docChanges: documentChanges, fromCache: fromCache, hasPendingWrites: hasPendingWrites,
+      syncStateChanged: syncStateChanged,
+  };
+  return new QuerySnapshot(FIRESTORE, query, viewSnapshot);
 }
