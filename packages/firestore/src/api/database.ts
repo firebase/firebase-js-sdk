@@ -983,6 +983,17 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 }
 
+export class SnapshotMetadata implements firestore.SnapshotMetadata {
+  constructor(
+    readonly hasPendingWrites: boolean,
+    readonly fromCache: boolean;
+  ) {}
+
+  public isEqual(other: firestore.SnapshotMetadata): boolean {
+    return this.hasPendingWrites === other.hasPendingWrites && this.fromCache === other.fromCache;
+  }
+}
+
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
     private _firestore: Firestore,
@@ -1031,11 +1042,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return {
-      hasPendingWrites:
+    return new SnapshotMetadata(
         this._document !== null && this._document.hasLocalMutations,
-      fromCache: this._fromCache
-    };
+        this._fromCache
+    );
   }
 
   public isEqual(other: firestore.DocumentSnapshot): boolean {
@@ -1587,10 +1597,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     private _originalQuery: InternalQuery,
     private _snapshot: ViewSnapshot
   ) {
-    this.metadata = {
-      fromCache: _snapshot.fromCache,
-      hasPendingWrites: _snapshot.hasPendingWrites
-    };
+    this.metadata = new SnapshotMetadata(
+        _snapshot.hasPendingWrites,
+        _snapshot.fromCache
+    );
   }
 
   get docs(): firestore.DocumentSnapshot[] {

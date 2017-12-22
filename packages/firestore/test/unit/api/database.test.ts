@@ -117,3 +117,35 @@ describe('QuerySnapshot', () => {
     );
   });
 });
+
+describe('SnapshotMetadata', () => {
+  it('SnapshotMetadata equality checks: from DocumentSnapshot', () => {
+    expectEqual(
+      documentSnapshot('rooms/foo', {}, true).metadata,
+      documentSnapshot('rooms/foo', {}, true).metadata
+    );
+    expectNotEqual(
+      documentSnapshot('rooms/foo', {}, true).metadata,
+      documentSnapshot('rooms/foo', {}, false).metadata
+    );
+  });
+
+  it('SnapshotMetadata equality checks: from QuerySnapshot', () => {
+    expectEqual(
+      querySnapshot('foo', {}, {}, true, true, false).metadata,
+      querySnapshot('foo', {}, {}, true, true, false).metadata
+    );
+    expectNotEqual(
+      querySnapshot('foo', {}, {}, true, true, false).metadata,
+      querySnapshot('foo', {}, {}, false, true, false).metadata
+    );
+    expectNotEqual(
+      querySnapshot('foo', {}, {}, true, true, false).metadata,
+      querySnapshot('foo', {}, {}, true, false, false).metadata
+    );
+    expectNotEqual(
+      querySnapshot('foo', {}, {}, true, true, false).metadata,
+      querySnapshot('foo', {}, {}, false, false, false).metadata
+    );
+  });
+});
