@@ -986,7 +986,7 @@ export class DocumentReference implements firestore.DocumentReference {
 export class SnapshotMetadata implements firestore.SnapshotMetadata {
   constructor(
     readonly hasPendingWrites: boolean,
-    readonly fromCache: boolean;
+    readonly fromCache: boolean
   ) {}
 
   public isEqual(other: firestore.SnapshotMetadata): boolean {
