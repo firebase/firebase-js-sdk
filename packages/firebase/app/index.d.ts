@@ -124,7 +124,7 @@ declare namespace firebase.app {
 }
 
 declare namespace firebase.auth {
-  interface ActionCodeInfo { }
+  interface ActionCodeInfo {}
 
   type ActionCodeSettings = {
     android?: {
@@ -285,7 +285,7 @@ declare namespace firebase.auth {
     ): Promise<any>;
   }
 
-  class RecaptchaVerifier extends RecaptchaVerifier_Instance { }
+  class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   class RecaptchaVerifier_Instance
     implements firebase.auth.ApplicationVerifier {
     constructor(
@@ -449,7 +449,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-    PromiseLike<any> { }
+      PromiseLike<any> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
