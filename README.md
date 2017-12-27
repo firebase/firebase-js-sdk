@@ -102,7 +102,7 @@ $ yarn test
 ```
 
 In addition, you can run any of the tests individually by running `yarn test` in
-an individaul package directory.
+an individual package directory.
 
 ## Building the SDK
 
@@ -121,7 +121,7 @@ scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 ### Helper Scripts
 
 Each package in the `packages` directory exposes a `dev` script. This script
-will set up a watcher for development on the indiviual piece of the SDK. In
+will set up a watcher for development on the individual piece of the SDK. In
 addition, there is a top level `dev` script that can be run to start all of the
 watch tasks as well as a sandbox server.
 
