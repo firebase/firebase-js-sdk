@@ -84,7 +84,7 @@ export class RepoManager {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
           DATABASE_URL_OPTION +
-          ' option when calling firebase.intializeApp().'
+          ' option when calling firebase.initializeApp().'
       );
     }
 

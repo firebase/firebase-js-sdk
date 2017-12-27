@@ -201,7 +201,7 @@ fireauth.storage.IndexedDB.prototype.initializeDb_ = function() {
 
 
 /**
- * Checks if indexedDB is intialized, if so, the callback is run, otherwise,
+ * Checks if indexedDB is initialized, if so, the callback is run, otherwise,
  * it waits for the db to initialize and then runs the callback function.
  * @return {!goog.Promise<!IDBDatabase>} A promise for the initialized indexedDB
  *     database.
