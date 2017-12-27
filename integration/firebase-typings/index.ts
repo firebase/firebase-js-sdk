@@ -1,4 +1,4 @@
-import * as firebase from "firebase";
+import * as firebase from 'firebase';
 
 /**
  * Verifying the namespace types are properly exposed from the `firebase`
@@ -9,4 +9,3 @@ let database: firebase.database.Database;
 let firestore: firebase.firestore.Firestore;
 let messaging: firebase.messaging.Messaging;
 let storage: firebase.storage.Storage;
-
