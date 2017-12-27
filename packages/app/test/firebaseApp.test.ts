@@ -34,7 +34,7 @@ describe('Firebase App Class', () => {
     assert.equal(firebase.apps.length, 0);
   });
 
-  it('Can intialize DEFAULT App.', () => {
+  it('Can initialize DEFAULT App.', () => {
     let app = firebase.initializeApp({});
     assert.equal(firebase.apps.length, 1);
     assert.strictEqual(app, firebase.apps[0]);
