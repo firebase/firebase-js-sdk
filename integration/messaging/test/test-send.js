@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 
 const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const getFCMToken = require('./utils/getFCMToken');
+const retrieveFCMToken = require('./utils/retrieveFCMToken');
 const makeFCMAPICall = require('./utils/makeFCMAPICall');
 const getReceivedMessages = require('./utils/getReceivedMessages');
 const demoSetup = require('./utils/getDemoSetup');
@@ -82,7 +82,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
-          const token = await getFCMToken(globalWebDriver);
+          const token = await retrieveFCMToken(globalWebDriver);
           expect(token).to.exist;
 
           const response = await makeFCMAPICall(ENDPOINT, demoInfo.apiKey, {
@@ -108,7 +108,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
-          const token = await getFCMToken(globalWebDriver);
+          const token = await retrieveFCMToken(globalWebDriver);
           expect(token).to.exist;
 
           const data = { hello: 'world' };
@@ -134,7 +134,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
-          const token = await getFCMToken(globalWebDriver);
+          const token = await retrieveFCMToken(globalWebDriver);
           expect(token).to.exist;
 
           const notification = {
@@ -166,7 +166,7 @@ describe('Firebase Messaging Integration Tests > send messages', function() {
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
-          const token = await getFCMToken(globalWebDriver);
+          const token = await retrieveFCMToken(globalWebDriver);
           expect(token).to.exist;
 
           const data = { hello: 'world' };
