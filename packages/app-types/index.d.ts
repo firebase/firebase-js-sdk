@@ -44,7 +44,7 @@ export class FirebaseApp {
 
 export interface FirebaseNamespace {
   /**
-   * Create (and intialize) a FirebaseApp.
+   * Create (and initialize) a FirebaseApp.
    *
    * @param options Options to configure the services used in the App.
    * @param name The optional name of the app to initialize ('[DEFAULT]' if

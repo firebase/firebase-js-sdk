@@ -225,8 +225,8 @@ export class GrpcConnection implements Connection {
           } catch (e) {
             // This probably means we didn't conform to the proto.  Make sure to
             // log the message we sent.
-            log.error(LOG_TAG, 'Failure sending:', msg);
-            log.error(LOG_TAG, 'Error:', e);
+            log.error('Failure sending:', msg);
+            log.error('Error:', e);
             throw e;
           }
         } else {

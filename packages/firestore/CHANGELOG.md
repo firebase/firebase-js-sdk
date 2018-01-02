@@ -1,11 +1,16 @@
-# Unreleased (firestore-api-changes)
+# Unreleased
 - [changed] Snapshot listeners (with the `includeMetadataChanges` option
   enabled) now receive an event with `snapshot.metadata.fromCache` set to
   `true` if the SDK loses its connection to the backend. A new event with
   `snapshot.metadata.fromCache` set to false will be raised once the
   connection is restored and the query is in sync with the backend again.
+- [changed] A "Could not reach Firestore backend." message will be
+  logged when the initial connection to the Firestore backend fails.
+- [changed] A "Using maximum backoff delay to prevent overloading the
+  backend." message will be logged when we get a resource-exhausted
+  error from the backend.
 
-# v0.2.0
+# v0.2.1
 - [feature] Added Node.js support for Cloud Firestore (with the exception of
   the offline persistence feature).
 - [changed] Webchannel requests use $httpHeaders URL parameter rather than
