@@ -98,7 +98,7 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      * @param name The Firebase Service being registered.
      * @param createService Factory function to create a service instance.
      * @param serviceProperties Properties to copy to the service's namespace.
-     * @param appHook All appHooks called before intializeApp returns to caller.
+     * @param appHook All appHooks called before initializeApp returns to caller.
      * @param allowMultipleInstances Whether the registered service supports
      *   multiple instances per app. If not specified, the default is false.
      */

@@ -77,7 +77,7 @@ export SAUCE_ACCESS_KEY=<the copy pasted access key>
 ./buildtools/sauce_connect.sh
 ```
 
-Take note of the "Tunnel Identifier" value logged in the terminal,at the top. In
+Take note of the "Tunnel Identifier" value logged in the terminal, at the top. In
 the other terminal that has the exported variables, run the tests:
 
 ```bash

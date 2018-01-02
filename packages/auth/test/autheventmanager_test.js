@@ -1347,7 +1347,7 @@ function testProcessPopup_alreadyRedirected() {
   // Fake popup window.
   var popupWin = {};
   // OAuth handler should be initialized automatically if not already
-  // intialized.
+  // initialized.
   stubs.replace(
       OAuthSignInHandler.prototype,
       'addAuthEventListener',
