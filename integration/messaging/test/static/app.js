@@ -68,9 +68,8 @@ class DemoApp {
       );
   }
 
-  async triggerDeleteToken() {
+  async triggerDeleteToken(token) {
     try {
-      const token = await this._messaging.getToken();
       await this._messaging.deleteToken(token);
       this._token = null;
       console.log('deleteToken() worked: ', token);

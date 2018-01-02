@@ -20,6 +20,7 @@ const expect = require('chai').expect;
 
 const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
+const getErrors = require('./utils/getErrors');
 const getFCMToken = require('./utils/getFCMToken');
 const deleteFCMToken = require('./utils/deleteFCMToken');
 const makeFCMAPICall = require('./utils/makeFCMAPICall');
@@ -89,6 +90,17 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
             console.log('Error trying to delete FCM token: ', e);
             fail();
           }
+        });
+
+        it(`should fail to delete an invalid token`, async function() {
+          await globalWebDriver.get(
+            `${testServer.serverAddress}/${demoInfo.name}/`
+          );
+          await deleteFCMToken(globalWebDriver, 'invalid-token');
+          const errors = await getErrors(globalWebDriver);
+          expect(errors).to.exist;
+          expect(errors.length).to.equal(1);
+          expect(errors[0].code).to.equal('messaging/invalid-delete-token');
         });
       });
     });
