@@ -1057,11 +1057,11 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
     return (
       this.firestore === other.firestore &&
+      this._fromCache === other._fromCache &&
       this._key.isEqual(other._key) &&
       (this._document === null
         ? other._document === null
-        : this._document.isEqual(other._document)) &&
-      this._fromCache === other._fromCache
+        : this._document.isEqual(other._document))
     );
   }
 
@@ -1645,6 +1645,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return this._cachedChanges;
   }
 
+  /** Check the equality. The call can be very expensive. */
   public isEqual(other: firestore.QuerySnapshot): boolean {
     if (!(other instanceof QuerySnapshot)) {
       throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
@@ -1659,12 +1660,12 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     let snapshot: ViewSnapshsot = this._snapshot;
     let otherSnapshot: ViewSnapshot = other._snapshot;
     if (
-      !snapshot.query.isEqual(otherSnapshot.query) ||
-      !snapshot.docs.isEqual(otherSnapshot.docs) ||
-      !snapshot.oldDocs.isEqual(otherSnapshot.oldDocs) ||
       snapshot.fromCache !== otherSnapshot.fromCache ||
       snapshot.hasPendingWrites !== otherSnapshot.hasPendingWrites ||
-      snapshot.syncStateChanged !== otherSnapshot.syncStateChanged
+      snapshot.syncStateChanged !== otherSnapshot.syncStateChanged ||
+      !snapshot.query.isEqual(otherSnapshot.query) ||
+      !snapshot.docs.isEqual(otherSnapshot.docs) ||
+      !snapshot.oldDocs.isEqual(otherSnapshot.oldDocs)
     ) {
       return false;
     }
