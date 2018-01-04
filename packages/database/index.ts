@@ -54,22 +54,3 @@ export function registerDatabase(instance: FirebaseNamespace) {
 }
 
 registerDatabase(firebase);
-
-// Types to export for the admin SDK
-export { Database, Query, Reference, enableLogging, ServerValue };
-
-export { DataSnapshot } from './src/api/DataSnapshot';
-export { OnDisconnect } from './src/api/onDisconnect';
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    database?: {
-      (app?: FirebaseApp): types.FirebaseDatabase;
-      enableLogging: typeof types.enableLogging;
-      ServerValue: types.ServerValue;
-    };
-  }
-  interface FirebaseApp {
-    database?(databaseURL?: string): types.FirebaseDatabase;
-  }
-}

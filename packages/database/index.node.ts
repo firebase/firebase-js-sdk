@@ -38,21 +38,6 @@ import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
-export function initStandalone(app, url) {
-  return {
-    instance: RepoManager.getInstance().databaseFromApp(app, url),
-    namespace: {
-      Reference,
-      Query,
-      Database,
-      enableLogging,
-      INTERNAL,
-      ServerValue,
-      TEST_ACCESS
-    }
-  };
-}
-
 export function registerDatabase(instance: FirebaseNamespace) {
   // Register the Database Service with the 'firebase' namespace.
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
@@ -73,27 +58,8 @@ export function registerDatabase(instance: FirebaseNamespace) {
   );
 
   if (isNodeSdk()) {
-    module.exports = Object.assign({}, namespace, { initStandalone });
+    module.exports = namespace;
   }
 }
 
 registerDatabase(firebase);
-
-// Types to export for the admin SDK
-export { Database, Query, Reference, enableLogging, ServerValue };
-
-export { DataSnapshot } from './src/api/DataSnapshot';
-export { OnDisconnect } from './src/api/onDisconnect';
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    database?: {
-      (app?: FirebaseApp): types.FirebaseDatabase;
-      enableLogging: typeof types.enableLogging;
-      ServerValue: types.ServerValue;
-    };
-  }
-  interface FirebaseApp {
-    database?(): types.FirebaseDatabase;
-  }
-}
