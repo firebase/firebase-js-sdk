@@ -1699,7 +1699,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     }
 
     if (
-      this.firestore !== other.firestore ||
+      this._firestore !== other._firestore ||
       !this._originalQuery.isEqual(other._originalQuery)
     ) {
       return false;
