@@ -435,10 +435,6 @@ apiDescribe('Queries', persistence => {
 
   it('can query while reconnecting to network', () => {
     return withTestCollection(persistence, /* docs= */ {}, coll => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = coll.firestore.INTERNAL as any;
-
       const deferred = new Deferred<void>();
 
       const unregister = coll.onSnapshot(
@@ -450,12 +446,46 @@ apiDescribe('Queries', persistence => {
         }
       );
 
-      firestoreInternal.disableNetwork().then(() => {
+      coll.firestore.disableNetwork().then(() => {
         coll.doc().set({ a: 1 });
-        firestoreInternal.enableNetwork();
+        coll.firestore.enableNetwork();
       });
 
       return deferred.promise.then(unregister);
+    });
+  });
+
+  it('Queries trigger with isFromCache=true when offline', () => {
+    return withTestCollection(persistence, { a: { foo: 1 } }, coll => {
+      const firestore = coll.firestore;
+      const accum = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unregister = coll.onSnapshot(
+        { includeQueryMetadataChanges: true },
+        accum.storeEvent
+      );
+
+      return accum
+        .awaitEvent()
+        .then(querySnap => {
+          // initial event
+          expect(querySnap.docs.map(doc => doc.data())).to.deep.equal([
+            { foo: 1 }
+          ]);
+          expect(querySnap.metadata.fromCache).to.be.false;
+        })
+        .then(() => firestore.disableNetwork())
+        .then(() => accum.awaitEvent())
+        .then(querySnap => {
+          // offline event with fromCache = true
+          expect(querySnap.metadata.fromCache).to.be.true;
+        })
+        .then(() => firestore.enableNetwork())
+        .then(() => accum.awaitEvent())
+        .then(querySnap => {
+          // back online event with fromCache = false
+          expect(querySnap.metadata.fromCache).to.be.false;
+          unregister();
+        });
     });
   });
 });

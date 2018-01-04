@@ -227,6 +227,9 @@ export abstract class Mutation {
    *
    * @param maybeDoc The document to mutate. The input document can be null if
    *     the client has no knowledge of the pre-mutation state of the document.
+   * @param baseDoc The state of the document prior to this mutation batch. The
+   *     input document can be null if the client has no knowledge of the
+   *     pre-mutation state of the document.
    * @param localWriteTime A timestamp indicating the local write time of the
    *     batch this mutation is a part of.
    * @return The mutated document. The returned document may be null, but only
@@ -234,6 +237,7 @@ export abstract class Mutation {
    */
   abstract applyToLocalView(
     maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null;
 
@@ -303,6 +307,7 @@ export class SetMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
@@ -382,6 +387,7 @@ export class PatchMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
@@ -489,6 +495,7 @@ export class TransformMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
@@ -498,7 +505,10 @@ export class TransformMutation extends Mutation {
     }
 
     const doc = this.requireDocument(maybeDoc);
-    const transformResults = this.localTransformResults(localWriteTime);
+    const transformResults = this.localTransformResults(
+      localWriteTime,
+      baseDoc
+    );
     const newData = this.transformObject(doc.data, transformResults);
     return new Document(this.key, doc.version, newData, {
       hasLocalMutations: true
@@ -540,14 +550,26 @@ export class TransformMutation extends Mutation {
    *
    * @param localWriteTime The local time of the transform mutation (used to
    *     generate ServerTimestampValues).
+   * @param baseDoc The document prior to applying this mutation batch.
    * @return The transform results list.
    */
-  private localTransformResults(localWriteTime: Timestamp): FieldValue[] {
+  private localTransformResults(
+    localWriteTime: Timestamp,
+    baseDoc: MaybeDocument | null
+  ): FieldValue[] {
     const transformResults = [] as FieldValue[];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
       if (transform instanceof ServerTimestampTransform) {
-        transformResults.push(new ServerTimestampValue(localWriteTime));
+        let previousValue: FieldValue | null = null;
+
+        if (baseDoc instanceof Document) {
+          previousValue = baseDoc.field(fieldTransform.field) || null;
+        }
+
+        transformResults.push(
+          new ServerTimestampValue(localWriteTime, previousValue)
+        );
       } else {
         return fail('Encountered unknown transform: ' + transform);
       }
@@ -606,6 +628,7 @@ export class DeleteMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
+    baseDoc: MaybeDocument | null,
     localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);

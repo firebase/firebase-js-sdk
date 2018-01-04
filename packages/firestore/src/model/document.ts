@@ -38,7 +38,7 @@ export class Document {
     this.hasLocalMutations = options.hasLocalMutations;
   }
 
-  field(path: FieldPath): FieldValue {
+  field(path: FieldPath): FieldValue | undefined {
     return this.data.field(path);
   }
 

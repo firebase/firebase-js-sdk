@@ -123,6 +123,24 @@ export class FirebaseFirestore {
    */
   app: any;
 
+  /**
+   * Re-enables use of the network for this Firestore instance after a prior
+   * call to disableNetwork().
+   *
+   * @return A promise that is resolved once the network has been enabled.
+   */
+  enableNetwork(): Promise<void>;
+
+  /**
+   * Disables network usage for this instance. It can be re-enabled via
+   * enableNetwork(). While the network is disabled, any snapshot listeners or
+   * get() calls will return results from cache, and any write operations will
+   * be queued until the network is restored.
+   *
+   * @return A promise that is resolved once the network has been disabled.
+   */
+  disableNetwork(): Promise<void>;
+
   INTERNAL: { delete: () => Promise<void> };
 }
 
@@ -529,6 +547,29 @@ export class DocumentReference {
   ): () => void;
 }
 
+/**
+ * Options that configure how data is retrieved from a `DocumentSnapshot`
+ * (e.g. the desired behavior for server timestamps that have not yet been set
+ * to their final value).
+ */
+export interface SnapshotOptions {
+  /**
+   * If set, controls the return value for server timestamps that have not yet
+   * been set to their final value.
+   *
+   * By specifying 'estimate', pending server timestamps return an estimate
+   * based on the local clock. This estimate will differ from the final value
+   * and cause these values to change once the server result becomes available.
+   *
+   * By specifying 'previous', pending timestamps will be ignored and return
+   * their previous value instead.
+   *
+   * If omitted or set to 'none', `null` will be returned by default until the
+   * server value becomes available.
+   */
+  readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+}
+
 /** Metadata about a snapshot, describing the state of the snapshot. */
 export interface SnapshotMetadata {
   /**
@@ -563,9 +604,13 @@ export interface SnapshotMetadata {
  * A `DocumentSnapshot` contains data read from a document in your Firestore
  * database. The data can be extracted with `.data()` or `.get(<field>)` to
  * get a specific field.
+ *
+ * For a `DocumentSnapshot` that points to a non-existing document, any data
+ * access will return 'undefined'. You can use the `exists` property to
+ * explicitly verify a document's existence.
  */
 export class DocumentSnapshot {
-  private constructor();
+  protected constructor();
 
   /** True if the document exists. */
   readonly exists: boolean;
@@ -582,20 +627,37 @@ export class DocumentSnapshot {
   readonly metadata: SnapshotMetadata;
 
   /**
-   * Retrieves all fields in the document as an Object.
+   * Retrieves all fields in the document as an Object. Returns 'undefined' if
+   * the document doesn't exist.
    *
-   * @return An Object containing all fields in the document.
+   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * set to their final value will be returned as `null`. You can override
+   * this by passing an options object.
+   *
+   * @param options An options object to configure how data is retrieved from
+   * the snapshot (e.g. the desired behavior for server timestamps that have
+   * not yet been set to their final value).
+   * @return An Object containing all fields in the document or 'undefined' if
+   * the document doesn't exist.
    */
-  data(): DocumentData;
+  data(options?: SnapshotOptions): DocumentData | undefined;
 
   /**
-   * Retrieves the field specified by `fieldPath`.
+   * Retrieves the field specified by `fieldPath`. Returns 'undefined' if the
+   * document or field doesn't exist.
+   *
+   * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
+   * its final value will be returned as `null`. You can override this by
+   * passing an options object.
    *
    * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
+   * @param options An options object to configure how the field is retrieved
+   * from the snapshot (e.g. the desired behavior for server timestamps that have
+   * not yet been set to their final value).
    * @return The data at the specified field location or undefined if no such
    * field exists in the document.
    */
-  get(fieldPath: string | FieldPath): any;
+  get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
 
   /**
    * Returns true if this `DocumentSnapshot` is equal to the provided one.
@@ -604,6 +666,36 @@ export class DocumentSnapshot {
    * @return true if this `DocumentSnapshot` is equal to the provided one.
    */
   isEqual(other: DocumentSnapshot): boolean;
+}
+
+/**
+ * A `QueryDocumentSnapshot` contains data read from a document in your
+ * Firestore database as part of a query. The document is guaranteed to exist
+ * and its data can be extracted with `.data()` or `.get(<field>)` to get a
+ * specific field.
+ *
+ * A `QueryDocumentSnapshot` offers the same API surface as a
+ * `DocumentSnapshot`. Since query results contain only existing documents, the
+ * `exists` property will always be true and `data()` will never return
+ * 'undefined'.
+ */
+export class QueryDocumentSnapshot extends DocumentSnapshot {
+  private constructor();
+
+  /**
+   * Retrieves all fields in the document as an Object.
+   *
+   * By default, `FieldValue.serverTimestamp()` values that have not yet been
+   * set to their final value will be returned as `null`. You can override
+   * this by passing an options object.
+   *
+   * @override
+   * @param options An options object to configure how data is retrieved from
+   * the snapshot (e.g. the desired behavior for server timestamps that have
+   * not yet been set to their final value).
+   * @return An Object containing all fields in the document.
+   */
+  data(options?: SnapshotOptions): DocumentData;
 }
 
 /**
@@ -859,7 +951,7 @@ export class QuerySnapshot {
   readonly docChanges: DocumentChange[];
 
   /** An array of all the documents in the QuerySnapshot. */
-  readonly docs: DocumentSnapshot[];
+  readonly docs: QueryDocumentSnapshot[];
 
   /** The number of documents in the QuerySnapshot. */
   readonly size: number;
@@ -870,11 +962,14 @@ export class QuerySnapshot {
   /**
    * Enumerates all of the documents in the QuerySnapshot.
    *
-   * @param callback A callback to be called with a `DocumentSnapshot` for
+   * @param callback A callback to be called with a `QueryDocumentSnapshot` for
    * each document in the snapshot.
    * @param thisArg The `this` binding for the callback.
    */
-  forEach(callback: (result: DocumentSnapshot) => void, thisArg?: any): void;
+  forEach(
+    callback: (result: QueryDocumentSnapshot) => void,
+    thisArg?: any
+  ): void;
 
   /**
    * Returns true if this `QuerySnapshot` is equal to the provided one.
@@ -899,7 +994,7 @@ export interface DocumentChange {
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: DocumentSnapshot;
+  readonly doc: QueryDocumentSnapshot;
 
   /**
    * The index of the changed document in the result set immediately prior to
