@@ -33,7 +33,7 @@ import {
   RelationOp
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
-import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { ChangeType, DocumentViewChange, ViewSnapshot } from '../core/view_snapshot';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -1700,7 +1700,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     ) {
       return false;
     }
-    let snapshot: ViewSnapshsot = this._snapshot;
+    let snapshot: ViewSnapshot = this._snapshot;
     let otherSnapshot: ViewSnapshot = other._snapshot;
     if (
       snapshot.fromCache !== otherSnapshot.fromCache ||
