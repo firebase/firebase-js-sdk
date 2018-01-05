@@ -63,7 +63,13 @@ apiDescribe('Server Timestamps', persistence => {
 
   /** Waits for a latency compensated local snapshot. */
   function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    return waitForLocalEvents(1).then(([snapshot]) => snapshot);
+    return accumulator.awaitEvent().then(remoteSnap => {
+      if (remoteSnap.metadata.hasPendingWrites) {
+        return remoteSnap;
+      } else {
+        return waitForLocalEvent();
+      }
+    });
   }
 
   /** Waits for `count` latency compensated local snapshots. */
@@ -74,8 +80,7 @@ apiDescribe('Server Timestamps', persistence => {
     let promise = Promise.resolve(snapshots);
 
     while (count--) {
-      promise = promise.then(() => accumulator.awaitEvent()).then(localSnap => {
-        expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+      promise = promise.then(() => waitForLocalEvent()).then(localSnap => {
         snapshots.push(localSnap);
         return snapshots;
       });
@@ -87,8 +92,11 @@ apiDescribe('Server Timestamps', persistence => {
   /** Waits for a snapshot that has no pending writes */
   function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
     return accumulator.awaitEvent().then(remoteSnap => {
-      expect(remoteSnap.metadata.hasPendingWrites).to.equal(false);
-      return remoteSnap;
+      if (!remoteSnap.metadata.hasPendingWrites) {
+        return remoteSnap;
+      } else {
+        return waitForRemoteEvent();
+      }
     });
   }
 
