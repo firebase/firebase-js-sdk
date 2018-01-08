@@ -2,6 +2,7 @@
   "name": "@firebase/webchannel-wrapper",
   "version": "0.2.5",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "watch 'npm run build' src",
