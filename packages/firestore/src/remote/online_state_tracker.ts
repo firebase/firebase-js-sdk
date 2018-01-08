@@ -79,6 +79,7 @@ export class OnlineStateTracker {
 
     if (this.watchStreamTimer === null) {
       this.watchStreamTimer = setTimeout(() => {
+        // TODO(mikelehen): DO NOT SUBMIT: Need to dispatch onto async queue.
         this.watchStreamTimer = null;
         assert(
           this.state === OnlineState.Unknown,
