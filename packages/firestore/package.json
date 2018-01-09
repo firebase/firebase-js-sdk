@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.2.2",
+  "version": "0.2.3-0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -19,8 +19,8 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/firestore-types": "0.1.0",
-    "@firebase/webchannel-wrapper": "0.2.5",
+    "@firebase/firestore-types": "0.1.1-0",
+    "@firebase/webchannel-wrapper": "0.2.6-0",
     "grpc": "^1.7.1"
   },
   "peerDependencies": {
