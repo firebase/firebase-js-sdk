@@ -1,8 +1,8 @@
 {
   "name": "@firebase/app",
-  "version": "0.1.5",
+  "version": "0.1.6-0",
   "description": "The primary entrypoint to the Firebase JS SDK",
-  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",    
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
@@ -15,8 +15,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-types": "0.1.0",
-    "@firebase/util": "0.1.5"
+    "@firebase/app-types": "0.1.1-0",
+    "@firebase/util": "0.1.6-0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
