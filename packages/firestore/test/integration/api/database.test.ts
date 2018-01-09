@@ -675,7 +675,6 @@ apiDescribe('Database', persistence => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
-      return Promise.resolve();
     });
   });
 });
