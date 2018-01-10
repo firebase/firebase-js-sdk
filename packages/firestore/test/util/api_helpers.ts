@@ -31,7 +31,10 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
+import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
+import { JsonObject } from '../../src/model/field_value';
+import { AnyJs } from '../../src/util/misc';
 import { doc, key, path as pathFrom } from './helpers';
 
 /**
