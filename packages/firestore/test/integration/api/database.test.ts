@@ -41,7 +41,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('doc() will auto generate an ID', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const ref = db.collection('foo').doc();
       // Auto IDs are 20 characters long
       expect(ref.id.length).to.equal(20);
@@ -269,7 +269,7 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
-        return withTestDoc(persistence, doc => {
+        return withTestDoc(persistence, async doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
@@ -310,14 +310,14 @@ apiDescribe('Database', persistence => {
     });
 
     it('inequality same as orderBy works.', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
         expect(() => coll.orderBy('x').where('x', '>', 32)).not.to.throw();
       });
     });
 
     it('inequality same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll
             .where('x', '>', 32)
