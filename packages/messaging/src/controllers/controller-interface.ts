@@ -106,7 +106,7 @@ export default class ControllerInterface {
         return this.iidModel_.updateToken(
           this.messagingSenderId_,
           tokenDetails['fcmToken'],
-          tokenDetails['pushDetails'],
+          tokenDetails['fcmPushSet'],
           subscription,
           publicVapidKey
         );
@@ -124,7 +124,7 @@ export default class ControllerInterface {
           subscription: subscription,
           fcmSenderId: this.messagingSenderId_,
           fcmToken: updatedToken,
-          fcmPushSet: tokenDetails['pushSet']
+          fcmPushSet: tokenDetails['fcmPushSet']
         };
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
       })
