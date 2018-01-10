@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
 import {
+  invalidClassError,
   validateArgType,
   validateNamedArrayAtLeastNumberOfElements
 } from '../util/input_validation';
