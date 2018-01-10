@@ -233,7 +233,7 @@ export class RemoteStore {
   }
 
   /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
-  disableNetwork(): Promise<void> {
+  async disableNetwork(): Promise<void> {
     this.updateAndBroadcastOnlineState(OnlineState.Failed);
 
     // NOTE: We're guaranteed not to get any further events from these streams (not even a close
@@ -246,8 +246,6 @@ export class RemoteStore {
 
     this.writeStream = null;
     this.watchStream = null;
-
-    return Promise.resolve();
   }
 
   shutdown(): Promise<void> {
@@ -351,16 +349,17 @@ export class RemoteStore {
     this.pendingTargetResponses = {};
   }
 
-  private onWatchStreamOpen(): Promise<void> {
+  private async onWatchStreamOpen(): Promise<void> {
     // TODO(b/35852690): close the stream again (with some timeout?) if no watch
     // targets are active
     objUtils.forEachNumber(this.listenTargets, (targetId, queryData) => {
       this.sendWatchRequest(queryData);
     });
-    return Promise.resolve();
   }
 
-  private onWatchStreamClose(error: FirestoreError | null): Promise<void> {
+  private async onWatchStreamClose(
+    error: FirestoreError | null,
+  ): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWatchStreamClose() should only be called when the network is enabled'
@@ -378,7 +377,6 @@ export class RemoteStore {
       // at establishing a connection
       this.setOnlineStateToUnknown();
     }
-    return Promise.resolve();
   }
 
   private onWatchStreamChange(
@@ -410,8 +408,6 @@ export class RemoteStore {
       const changes = this.accumulatedWatchChanges;
       this.accumulatedWatchChanges = [];
       return this.handleWatchChangeBatch(snapshotVersion, changes);
-    } else {
-      return Promise.resolve();
     }
   }
 
@@ -553,9 +549,6 @@ export class RemoteStore {
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
           return this.syncEngine.rejectListen(targetId, error);
-        } else {
-          // A watched target might have been removed already.
-          return Promise.resolve();
         }
       });
     });
@@ -572,9 +565,7 @@ export class RemoteStore {
    * typically called by SyncEngine after it has sent mutations to LocalStore.
    */
   fillWritePipeline(): Promise<void> {
-    if (!this.canWriteMutations()) {
-      return Promise.resolve();
-    } else {
+    if (this.canWriteMutations()) {
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
@@ -582,7 +573,6 @@ export class RemoteStore {
             if (this.pendingWrites.length == 0) {
               this.writeStream.markIdle();
             }
-            return Promise.resolve();
           } else {
             this.commit(batch);
             return this.fillWritePipeline();
@@ -654,10 +644,8 @@ export class RemoteStore {
     });
   }
 
-  private onWriteStreamOpen(): Promise<void> {
+  private async onWriteStreamOpen(): Promise<void> {
     this.writeStream.writeHandshake();
-
-    return Promise.resolve();
   }
 
   private onWriteHandshakeComplete(): Promise<void> {
@@ -740,10 +728,8 @@ export class RemoteStore {
           this.startWriteStream();
         }
       });
-    } else {
-      // No pending writes, nothing to do
-      return Promise.resolve();
     }
+    // No pending writes, nothing to do
   }
 
   private handleHandshakeError(error: FirestoreError): Promise<void> {
@@ -758,11 +744,10 @@ export class RemoteStore {
       this.writeStream.lastStreamToken = emptyByteString();
 
       return this.localStore.setLastStreamToken(emptyByteString());
-    } else {
-      // Some other error, don't reset stream token. Our stream logic will
-      // just retry with exponential backoff.
-      return Promise.resolve();
     }
+
+    // Some other error, don't reset stream token. Our stream logic will
+    // just retry with exponential backoff.
   }
 
   private handleWriteError(error: FirestoreError): Promise<void> {
@@ -783,10 +768,9 @@ export class RemoteStore {
           // another slot has freed up.
           return this.fillWritePipeline();
         });
-    } else {
-      // Transient error, just let the retry logic kick in.
-      return Promise.resolve();
     }
+
+    // Transient error, just let the retry logic kick in.
   }
 
   createTransaction(): Transaction {

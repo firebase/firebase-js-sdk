@@ -88,7 +88,7 @@ export class EventManager {
     }
   }
 
-  unlisten(listener: QueryListener): Promise<void> {
+  async unlisten(listener: QueryListener): Promise<void> {
     const query = listener.query;
     let lastListen = false;
 
@@ -104,8 +104,6 @@ export class EventManager {
     if (lastListen) {
       this.queries.delete(query);
       return this.syncEngine.unlisten(query);
-    } else {
-      return Promise.resolve();
     }
   }
 

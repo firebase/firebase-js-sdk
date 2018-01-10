@@ -42,8 +42,6 @@ function validationIt(
       const maybePromise = testFunction(db);
       if (maybePromise) {
         return maybePromise;
-      } else {
-        return Promise.resolve();
       }
     });
   });
@@ -345,7 +343,6 @@ apiDescribe('Validation:', persistence => {
             // Note ref2 does not exist at this point so set that and update ref.
             txn.update(ref, data);
             txn.set(ref2, data);
-            return Promise.resolve();
           });
         });
     });
@@ -443,7 +440,7 @@ apiDescribe('Validation:', persistence => {
     persistence,
     'Batch writes require correct Document References',
     db => {
-      return withAlternateTestDb(persistence, db2 => {
+      return withAlternateTestDb(persistence, async db2 => {
         const badRef = db2.doc('foo/bar');
         const reason =
           'Provided document reference is from a different Firestore instance.';
@@ -452,7 +449,6 @@ apiDescribe('Validation:', persistence => {
         expect(() => batch.set(badRef, data)).to.throw(reason);
         expect(() => batch.update(badRef, data)).to.throw(reason);
         expect(() => batch.delete(badRef)).to.throw(reason);
-        return Promise.resolve();
       });
     }
   );
@@ -471,7 +467,6 @@ apiDescribe('Validation:', persistence => {
           expect(() => txn.set(badRef, data)).to.throw(reason);
           expect(() => txn.update(badRef, data)).to.throw(reason);
           expect(() => txn.delete(badRef)).to.throw(reason);
-          return Promise.resolve();
         });
       });
     }
@@ -765,7 +760,6 @@ function expectWriteToFail(
         error('Transaction.update')
       );
     }
-    return Promise.resolve();
   });
 }
 

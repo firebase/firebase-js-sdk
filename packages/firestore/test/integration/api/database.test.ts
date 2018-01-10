@@ -45,7 +45,6 @@ apiDescribe('Database', persistence => {
       const ref = db.collection('foo').doc();
       // Auto IDs are 20 characters long
       expect(ref.id.length).to.equal(20);
-      return Promise.resolve();
     });
   });
 
@@ -275,7 +274,6 @@ apiDescribe('Database', persistence => {
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.update(val as any)).to.throw();
-          return Promise.resolve();
         });
       });
     }
@@ -296,20 +294,18 @@ apiDescribe('Database', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('x', '<=', 'cat')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
 
     it('inequality and equality on different fields works', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('y', '==', 'cat')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
 
@@ -317,7 +313,6 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
         expect(() => coll.orderBy('x').where('x', '>', 32)).not.to.throw();
-        return Promise.resolve();
       });
     });
 
@@ -335,7 +330,6 @@ apiDescribe('Database', persistence => {
             .where('x', '>', 32)
             .orderBy('y')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
   });
@@ -485,22 +479,20 @@ apiDescribe('Database', persistence => {
   });
 
   it('exposes "firestore" on document references.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
-      return Promise.resolve();
     });
   });
 
   it('exposes "firestore" on query references.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
-      return Promise.resolve();
     });
   });
 
   it('can compare DocumentReference instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
-      return withTestDb(persistence, otherFirestore => {
+      return withTestDb(persistence, async otherFirestore => {
         const docRef = firestore.doc('foo/bar');
         expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
         expect(docRef.collection('baz').parent.isEqual(docRef)).to.be.true;
@@ -508,15 +500,13 @@ apiDescribe('Database', persistence => {
         expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
 
         expect(otherFirestore.doc('foo/bar').isEqual(docRef)).to.be.false;
-
-        return Promise.resolve();
       });
     });
   });
 
   it('can compare Query instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
-      return withTestDb(persistence, otherFirestore => {
+      return withTestDb(persistence, async otherFirestore => {
         const query = firestore
           .collection('foo')
           .orderBy('bar')
@@ -538,14 +528,12 @@ apiDescribe('Database', persistence => {
           .orderBy('bar')
           .where('baz', '==', 42);
         expect(query4.isEqual(query)).to.be.false;
-
-        return Promise.resolve();
       });
     });
   });
 
   it('can traverse collections and documents.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const expected = 'a/b/c/d';
       // doc path from root Firestore.
       expect(db.doc('a/b/c/d').path).to.deep.equal(expected);
@@ -557,12 +545,11 @@ apiDescribe('Database', persistence => {
       expect(db.doc('a/b').collection('c/d/e').path).to.deep.equal(
         expected + '/e'
       );
-      return Promise.resolve();
     });
   });
 
   it('can traverse collection and document parents.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       let collection = db.collection('a/b/c');
       expect(collection.path).to.deep.equal('a/b/c');
 
@@ -574,7 +561,6 @@ apiDescribe('Database', persistence => {
 
       const nullDoc = collection.parent;
       expect(nullDoc).to.equal(null);
-      return Promise.resolve();
     });
   });
 

@@ -143,7 +143,6 @@ apiDescribe('Server Timestamps', persistence => {
       return docRef.firestore
         .runTransaction(txn => {
           txn.set(docRef, setData);
-          return Promise.resolve();
         })
         .then(() => waitForRemoteEvent());
     });
@@ -155,7 +154,6 @@ apiDescribe('Server Timestamps', persistence => {
         .then(() =>
           docRef.firestore.runTransaction(txn => {
             txn.update(docRef, updateData);
-            return Promise.resolve();
           })
         )
         .then(() => waitForRemoteEvent());
@@ -180,7 +178,6 @@ apiDescribe('Server Timestamps', persistence => {
       return docRef.firestore
         .runTransaction(txn => {
           txn.update(docRef, updateData);
-          return Promise.resolve();
         })
         .then(
           () => {

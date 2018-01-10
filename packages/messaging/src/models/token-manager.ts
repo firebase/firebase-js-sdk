@@ -81,15 +81,13 @@ export default class TokenManager {
    * Close the currently open database.
    * @return {Promise<?>} Returns the result of the promise chain.
    */
-  closeDatabase() {
+  async closeDatabase() {
     if (this.openDbPromise_) {
       return this.openDbPromise_.then(db => {
         db.close();
         this.openDbPromise_ = null;
       });
     }
-
-    return Promise.resolve();
   }
 
   /**

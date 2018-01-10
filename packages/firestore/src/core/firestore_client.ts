@@ -370,12 +370,9 @@ export class FirestoreClient {
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     // We have to wait for the async queue to be sure syncEngine is initialized.
-    return this.asyncQueue
-      .schedule(() => {
-        return Promise.resolve();
-      })
-      .then(() => {
-        return this.syncEngine.runTransaction(updateFunction);
-      });
+    return this
+      .asyncQueue
+      .schedule(async () => {})
+      .then(() => this.syncEngine.runTransaction(updateFunction))
   }
 }

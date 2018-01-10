@@ -75,7 +75,6 @@ apiDescribe('Database transactions', persistence => {
           expect(snapshot.data()['foo']).to.equal('bar');
           return db.runTransaction(transaction => {
             transaction.delete(doc);
-            return Promise.resolve();
           });
         })
         .then(() => {
@@ -83,7 +82,6 @@ apiDescribe('Database transactions', persistence => {
         })
         .then(snapshot => {
           expect(snapshot.exists).to.equal(false);
-          return Promise.resolve();
         });
     });
   });
@@ -189,7 +187,6 @@ apiDescribe('Database transactions', persistence => {
       return db
         .runTransaction(transaction => {
           transaction.set(doc, { a: 'b' }).set(doc, { c: 'd' });
-          return Promise.resolve();
         })
         .then(() => {
           return doc.get();
@@ -213,7 +210,6 @@ apiDescribe('Database transactions', persistence => {
               merge: true
             }
           );
-          return Promise.resolve();
         })
         .then(() => {
           return doc.get();
@@ -367,7 +363,6 @@ apiDescribe('Database transactions', persistence => {
             new firebase.firestore.FieldPath('is.admin'),
             true
           );
-          return Promise.resolve();
         })
         .then(() => doc.get())
         .then(docSnapshot => {
@@ -538,9 +533,7 @@ apiDescribe('Database transactions', persistence => {
 
   it('are successful with no transaction operations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      return db.runTransaction(txn => {
-        return Promise.resolve();
-      });
+      return db.runTransaction(txn => {});
     });
   });
 
