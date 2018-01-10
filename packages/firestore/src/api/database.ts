@@ -1079,7 +1079,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
     }
     return (
-      this.firestore === other.firestore &&
+      this._firestore === other._firestore &&
       this._fromCache === other._fromCache &&
       this._key.isEqual(other._key) &&
       (this._document === null
