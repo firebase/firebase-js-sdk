@@ -214,7 +214,6 @@ export class GrpcConnection implements Connection {
 
     let closed = false;
     let close: (err?: Error) => void;
-    let remoteEnded = false;
 
     const stream = new StreamBridge({
       sendFn: (msg: any) => {

@@ -154,7 +154,7 @@ export abstract class PersistentStream<
   ListenerType extends PersistentStreamListener
 > {
   private state: PersistentStreamState;
-  private idle: boolean = false;
+  private idle = false;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
@@ -308,13 +308,13 @@ export abstract class PersistentStream<
     error?: FirestoreError
   ): Promise<void> {
     assert(
-      finalState == PersistentStreamState.Error || isNullOrUndefined(error),
+      finalState === PersistentStreamState.Error || isNullOrUndefined(error),
       "Can't provide an error when not in an error state."
     );
 
     this.cancelIdleCheck();
 
-    if (finalState != PersistentStreamState.Error) {
+    if (finalState !== PersistentStreamState.Error) {
       // If this is an intentional close ensure we don't delay our next connection attempt.
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
@@ -343,7 +343,7 @@ export abstract class PersistentStream<
 
     // If the caller explicitly requested a stream stop, don't notify them of a closing stream (it
     // could trigger undesirable recovery logic, etc.).
-    if (finalState != PersistentStreamState.Stopped) {
+    if (finalState !== PersistentStreamState.Stopped) {
       return listener.onClose(error);
     } else {
       return Promise.resolve();

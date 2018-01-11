@@ -99,7 +99,7 @@ export class MutationBatch {
         ${maybeDoc.key}`
       );
     }
-    let baseDoc = maybeDoc;
+    const baseDoc = maybeDoc;
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
