@@ -33,7 +33,7 @@ function checkTestConfigExists() {
     throw chalk`
 {red You have not yet specified a Firebase project to use for testing.}
 
-To create a test project, please visit {underline https://firebase.corp.google.com/}. 
+To create a test project, please visit {underline https://console.firebase.google.com/}. 
 After doing so, or if you already have a test project, please run the following command
 at the root of this package:
 
