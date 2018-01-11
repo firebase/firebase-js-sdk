@@ -254,8 +254,7 @@ export class View {
       // no changes
       return { limboChanges };
     } else {
-      return {
-        snapshot: new ViewSnapshot(
+      let snap: ViewSnapshot = new ViewSnapshot(
           this.query,
           docChanges.documentSet,
           oldDocs,
@@ -263,7 +262,9 @@ export class View {
           newSyncState === SyncState.Local,
           !docChanges.mutatedKeys.isEmpty(),
           syncStateChanged
-        },
+      );
+      return {
+        snapshot: snap,
         limboChanges
       };
     }
