@@ -639,7 +639,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  public lastStreamToken: ProtoByteString;
+  lastStreamToken: ProtoByteString;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and

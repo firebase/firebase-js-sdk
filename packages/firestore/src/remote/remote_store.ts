@@ -143,7 +143,7 @@ export class RemoteStore {
   ) {}
 
   /** SyncEngine to notify of watch and write events. */
-  public syncEngine: RemoteSyncer;
+  syncEngine: RemoteSyncer;
 
   /**
    * Starts up the remote store, creating streams, restoring state from

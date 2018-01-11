@@ -75,7 +75,7 @@ export class FieldPath implements firestore.FieldPath {
     InternalFieldPath.keyField().canonicalString()
   );
 
-  public static documentId(): FieldPath {
+  static documentId(): FieldPath {
     return FieldPath._DOCUMENT_ID;
   }
 }
