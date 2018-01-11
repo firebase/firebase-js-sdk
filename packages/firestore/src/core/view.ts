@@ -142,7 +142,7 @@ export class View {
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
           assert(
-            key.equals(newDoc.key),
+            key.isEqual(newDoc.key),
             'Mismatching keys found in document changes: ' +
               key +
               ' != ' +
@@ -164,7 +164,7 @@ export class View {
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.equals(newDoc.data);
+          const docsEqual = oldDoc.data.isEqual(newDoc.data);
           if (
             !docsEqual ||
             oldDoc.hasLocalMutations !== newDoc.hasLocalMutations
@@ -254,16 +254,17 @@ export class View {
       // no changes
       return { limboChanges };
     } else {
+      let snap: ViewSnapshot = new ViewSnapshot(
+        this.query,
+        docChanges.documentSet,
+        oldDocs,
+        changes,
+        newSyncState === SyncState.Local,
+        !docChanges.mutatedKeys.isEmpty(),
+        syncStateChanged
+      );
       return {
-        snapshot: {
-          query: this.query,
-          docs: docChanges.documentSet,
-          oldDocs,
-          docChanges: changes,
-          fromCache: newSyncState === SyncState.Local,
-          syncStateChanged,
-          hasPendingWrites: !docChanges.mutatedKeys.isEmpty()
-        },
+        snapshot: snap,
         limboChanges
       };
     }

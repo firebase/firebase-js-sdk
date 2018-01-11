@@ -414,7 +414,7 @@ export class RemoteStore {
     // (can happen after we resume a target using a resume token).
     this.accumulatedWatchChanges.push(watchChange);
     if (
-      !snapshotVersion.equals(SnapshotVersion.MIN) &&
+      !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
       snapshotVersion.compareTo(
         this.localStore.getLastRemoteSnapshotVersion()
       ) >= 0

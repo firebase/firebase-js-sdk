@@ -24,7 +24,7 @@ class TestKey {
     return 'id:' + this.id;
   }
 
-  equals(other: TestKey): boolean {
+  isEqual(other: TestKey): boolean {
     return this.equalityKey === other.equalityKey;
   }
 }

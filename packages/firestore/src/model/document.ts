@@ -51,12 +51,12 @@ export class Document {
     return this.data.value();
   }
 
-  equals(other: Document | null | undefined): boolean {
+  isEqual(other: Document | null | undefined): boolean {
     return (
       other instanceof Document &&
-      this.key.equals(other.key) &&
-      this.version.equals(other.version) &&
-      this.data.equals(other.data) &&
+      this.key.isEqual(other.key) &&
+      this.version.isEqual(other.version) &&
+      this.data.isEqual(other.data) &&
       this.hasLocalMutations === other.hasLocalMutations
     );
   }
@@ -95,9 +95,11 @@ export class NoDocument {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
-  public equals(other: NoDocument): boolean {
+  public isEqual(other: NoDocument): boolean {
     return (
-      other && other.version.equals(this.version) && other.key.equals(this.key)
+      other &&
+      other.version.isEqual(this.version) &&
+      other.key.isEqual(this.key)
     );
   }
 

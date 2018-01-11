@@ -149,7 +149,7 @@ export class IndexedDbQueryCache implements QueryCache {
           const found = this.serializer.fromDbTarget(value);
           // After finding a potential match, check that the query is
           // actually equal to the requested query.
-          if (query.equals(found.query)) {
+          if (query.isEqual(found.query)) {
             result = found;
             control.done();
           }

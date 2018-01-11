@@ -52,7 +52,7 @@ describe('Document', () => {
   });
 
   it('equals to other same documents', () => {
-    expect(make.doc('a/b', 0, {}).equals(null)).to.equal(false);
+    expect(make.doc('a/b', 0, {}).isEqual(null)).to.equal(false);
 
     expectEqual(
       make.doc('a/b', 3, { foo: 'bar' }),

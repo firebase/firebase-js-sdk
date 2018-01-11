@@ -39,14 +39,14 @@ export class FieldMask {
     // TODO(dimond): validation of FieldMask
   }
 
-  equals(other: FieldMask): boolean {
+  isEqual(other: FieldMask): boolean {
     return misc.arrayEquals(this.fields, other.fields);
   }
 }
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {
-  equals(other: TransformOperation): boolean;
+  isEqual(other: TransformOperation): boolean;
 }
 
 /** Transforms a value into a server-generated timestamp. */
@@ -54,7 +54,7 @@ export class ServerTimestampTransform implements TransformOperation {
   private constructor() {}
   static instance = new ServerTimestampTransform();
 
-  equals(other: TransformOperation): boolean {
+  isEqual(other: TransformOperation): boolean {
     return other instanceof ServerTimestampTransform;
   }
 }
@@ -66,9 +66,9 @@ export class FieldTransform {
     readonly transform: TransformOperation
   ) {}
 
-  equals(other: FieldTransform): boolean {
+  isEqual(other: FieldTransform): boolean {
     return (
-      this.field.equals(other.field) && this.transform.equals(other.transform)
+      this.field.isEqual(other.field) && this.transform.isEqual(other.transform)
     );
   }
 }
@@ -138,7 +138,8 @@ export class Precondition {
   isValidFor(maybeDoc: MaybeDocument | null) {
     if (this.updateTime !== undefined) {
       return (
-        maybeDoc instanceof Document && maybeDoc.version.equals(this.updateTime)
+        maybeDoc instanceof Document &&
+        maybeDoc.version.isEqual(this.updateTime)
       );
     } else if (this.exists !== undefined) {
       if (this.exists) {
@@ -152,7 +153,7 @@ export class Precondition {
     }
   }
 
-  equals(other: Precondition) {
+  isEqual(other: Precondition) {
     return (
       misc.equals(this.updateTime, other.updateTime) &&
       this.exists === other.exists
@@ -240,12 +241,12 @@ export abstract class Mutation {
     localWriteTime: Timestamp
   ): MaybeDocument | null;
 
-  abstract equals(other: Mutation): boolean;
+  abstract isEqual(other: Mutation): boolean;
 
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
       assert(
-        maybeDoc.key.equals(this.key),
+        maybeDoc.key.isEqual(this.key),
         'Can only apply a mutation to a document with the same key'
       );
     }
@@ -321,12 +322,12 @@ export class SetMutation extends Mutation {
     });
   }
 
-  equals(other: Mutation): boolean {
+  isEqual(other: Mutation): boolean {
     return (
       other instanceof SetMutation &&
-      this.key.equals(other.key) &&
-      this.value.equals(other.value) &&
-      this.precondition.equals(other.precondition)
+      this.key.isEqual(other.key) &&
+      this.value.isEqual(other.value) &&
+      this.precondition.isEqual(other.precondition)
     );
   }
 }
@@ -402,12 +403,12 @@ export class PatchMutation extends Mutation {
     });
   }
 
-  equals(other: Mutation): boolean {
+  isEqual(other: Mutation): boolean {
     return (
       other instanceof PatchMutation &&
-      this.key.equals(other.key) &&
-      this.fieldMask.equals(other.fieldMask) &&
-      this.precondition.equals(other.precondition)
+      this.key.isEqual(other.key) &&
+      this.fieldMask.isEqual(other.fieldMask) &&
+      this.precondition.isEqual(other.precondition)
     );
   }
 
@@ -514,12 +515,12 @@ export class TransformMutation extends Mutation {
     });
   }
 
-  equals(other: Mutation): boolean {
+  isEqual(other: Mutation): boolean {
     return (
       other instanceof TransformMutation &&
-      this.key.equals(other.key) &&
+      this.key.isEqual(other.key) &&
       misc.arrayEquals(this.fieldTransforms, other.fieldTransforms) &&
-      this.precondition.equals(other.precondition)
+      this.precondition.isEqual(other.precondition)
     );
   }
 
@@ -536,7 +537,7 @@ export class TransformMutation extends Mutation {
     );
     const doc = maybeDoc! as Document;
     assert(
-      doc.key.equals(this.key),
+      doc.key.isEqual(this.key),
       'Can only transform a document with the same key'
     );
     return doc;
@@ -638,18 +639,18 @@ export class DeleteMutation extends Mutation {
 
     if (maybeDoc) {
       assert(
-        maybeDoc.key.equals(this.key),
+        maybeDoc.key.isEqual(this.key),
         'Can only apply mutation to document with same key'
       );
     }
     return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
   }
 
-  equals(other: Mutation): boolean {
+  isEqual(other: Mutation): boolean {
     return (
       other instanceof DeleteMutation &&
-      this.key.equals(other.key) &&
-      this.precondition.equals(other.precondition)
+      this.key.isEqual(other.key) &&
+      this.precondition.isEqual(other.precondition)
     );
   }
 }

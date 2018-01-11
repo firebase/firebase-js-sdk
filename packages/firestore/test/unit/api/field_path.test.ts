@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-export class ExistenceFilter {
-  // TODO(b/33078163): just use simplest form of existence filter for now
-  constructor(public count: number) {}
+import { expect } from 'chai';
+import { FieldPath } from '../../../src/api/field_path';
+import { field, expectEqual, expectNotEqual } from '../../util/helpers';
 
-  public isEqual(other: ExistenceFilter) {
-    return other && other.count === this.count;
-  }
-}
+describe('FieldPath', () => {
+  it('support equality checking with isEqual()', () => {
+    expectEqual(field('foo'), field('foo'));
+    expectNotEqual(field('foo'), field('bar'));
+  });
+});

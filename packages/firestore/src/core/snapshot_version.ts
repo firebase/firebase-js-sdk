@@ -45,8 +45,8 @@ export class SnapshotVersion {
     return this.timestamp.compareTo(other.timestamp);
   }
 
-  equals(other: SnapshotVersion): boolean {
-    return this.timestamp.equals(other.timestamp);
+  isEqual(other: SnapshotVersion): boolean {
+    return this.timestamp.isEqual(other.timestamp);
   }
 
   /** Returns a number representation of the version for use in spec tests. */
