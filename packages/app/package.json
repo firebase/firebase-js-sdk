@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.1.6-0",
+  "version": "0.1.6",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.js",
@@ -15,8 +15,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/app-types": "0.1.1-0",
-    "@firebase/util": "0.1.6-0"
+    "@firebase/app-types": "0.1.1",
+    "@firebase/util": "0.1.6"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
