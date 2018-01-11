@@ -32,14 +32,14 @@ import {
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('CollectionReference', () => {
-  it('CollectionReference equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(collectionReference('foo'), collectionReference('foo'));
     expectNotEqual(collectionReference('foo'), collectionReference('bar'));
   });
 });
 
 describe('DocumentReference', () => {
-  it('DocumentReference equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(documentReference('rooms/foo'), documentReference('rooms/foo'));
     expectNotEqual(
       documentReference('rooms/foo'),
@@ -49,7 +49,7 @@ describe('DocumentReference', () => {
 });
 
 describe('DocumentSnapshot', () => {
-  it('DocumentSnapshot equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(
       documentSnapshot('rooms/foo', { a: 1 }, true),
       documentSnapshot('rooms/foo', { a: 1 }, true)
@@ -79,14 +79,14 @@ describe('DocumentSnapshot', () => {
 });
 
 describe('Query', () => {
-  it('Query equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(query('foo'), query('foo'));
     expectNotEqual(query('foo'), query('bar'));
   });
 });
 
 describe('QuerySnapshot', () => {
-  it('QuerySnapshot equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(
       querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
       querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false)
@@ -119,7 +119,7 @@ describe('QuerySnapshot', () => {
 });
 
 describe('SnapshotMetadata', () => {
-  it('SnapshotMetadata equality checks: from DocumentSnapshot', () => {
+  it('from DocumentSnapshot support equality checking with isEqual()', () => {
     expectEqual(
       documentSnapshot('rooms/foo', {}, true).metadata,
       documentSnapshot('rooms/foo', {}, true).metadata
@@ -130,7 +130,7 @@ describe('SnapshotMetadata', () => {
     );
   });
 
-  it('SnapshotMetadata equality checks: from QuerySnapshot', () => {
+  it('from QuerySnapshot support equality checking with isEqual()', () => {
     expectEqual(
       querySnapshot('foo', {}, {}, true, true, false).metadata,
       querySnapshot('foo', {}, {}, true, true, false).metadata

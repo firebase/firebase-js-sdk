@@ -88,7 +88,7 @@ describe('Blob', () => {
     });
   });
 
-  it('Blob equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(blob(1, 2, 3), blob(1, 2, 3));
     expectNotEqual(blob(1, 2, 3), blob(4, 5, 6));
   });

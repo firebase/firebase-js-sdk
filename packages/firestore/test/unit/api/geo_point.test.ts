@@ -93,7 +93,7 @@ describe('GeoPoint', () => {
     });
   });
 
-  it('GeoPoint equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(new GeoPoint(1, 2), new GeoPoint(1, 2));
     expectNotEqual(new GeoPoint(1, 2), new GeoPoint(2, 2));
     expectNotEqual(new GeoPoint(1, 2), new GeoPoint(1, 1));

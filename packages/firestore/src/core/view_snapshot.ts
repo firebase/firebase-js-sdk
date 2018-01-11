@@ -138,26 +138,28 @@ export class DocumentChangeSet {
 }
 
 export class ViewSnapshot {
-  readonly query: Query;
-  readonly docs: DocumentSet;
-  readonly oldDocs: DocumentSet;
-  readonly docChanges: DocumentViewChange[];
-  readonly fromCache: boolean;
-  readonly hasPendingWrites: boolean;
-  readonly syncStateChanged: boolean;
+  constructor(
+    readonly query: Query,
+    readonly docs: DocumentSet,
+    readonly oldDocs: DocumentSet,
+    readonly docChanges: DocumentViewChange[],
+    readonly fromCache: boolean,
+    readonly hasPendingWrites: boolean,
+    readonly syncStateChanged: boolean
+  ) {}
 
-  public isEqual(other: ViewSnapshot): boolean {
+  isEqual(other: ViewSnapshot): boolean {
     if (
-      fromCache !== other.fromCache ||
-      hasPendingWrites !== other.hasPendingWrites ||
-      syncStateChanged !== other.syncStateChanged ||
-      !query.isEqual(other.query) ||
-      !docs.isEqual(other.docs) ||
-      !oldDocs.isEqual(other.oldDocs)
+      this.fromCache !== other.fromCache ||
+      this.hasPendingWrites !== other.hasPendingWrites ||
+      this.syncStateChanged !== other.syncStateChanged ||
+      !this.query.isEqual(other.query) ||
+      !this.docs.isEqual(other.docs) ||
+      !this.oldDocs.isEqual(other.oldDocs)
     ) {
       return false;
     }
-    let changes: DocumentViewChange[] = docChanges;
+    let changes: DocumentViewChange[] = this.docChanges;
     let otherChanges: DocumentViewChange[] = other.docChanges;
     if (changes.length !== otherChanges.length) {
       return false;

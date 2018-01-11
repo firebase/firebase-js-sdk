@@ -111,14 +111,14 @@ export function querySnapshot(
     newDocuments = newDocuments.add(docToAdd);
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
   }
-  let viewSnapshot: ViewSnapshot = {
-    query: query,
-    docs: newDocuments,
-    oldDocs: oldDocuments,
-    docChanges: documentChanges,
-    fromCache: fromCache,
-    hasPendingWrites: hasPendingWrites,
-    syncStateChanged: syncStateChanged
-  };
+  let viewSnapshot: ViewSnapshot = new ViewSnapshot(
+    query,
+    newDocuments,
+    oldDocuments,
+    documentChanges,
+    fromCache,
+    hasPendingWrites,
+    syncStateChanged
+  );
   return new QuerySnapshot(FIRESTORE, query, viewSnapshot);
 }

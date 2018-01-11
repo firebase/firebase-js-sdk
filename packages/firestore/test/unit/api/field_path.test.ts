@@ -19,7 +19,7 @@ import { FieldPath } from '../../../src/api/field_path';
 import { field, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldPath', () => {
-  it('FieldPath equality checks', () => {
+  it('support equality checking with isEqual()', () => {
     expectEqual(field('foo'), field('foo'));
     expectNotEqual(field('foo'), field('bar'));
   });
