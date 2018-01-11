@@ -132,7 +132,7 @@ export class GrpcConnection implements Connection {
       const credentials = createHeaders(this.databaseInfo, token);
       this.cachedStub = {
         stub: new this.firestore.Firestore(this.databaseInfo.host, credentials),
-        token: token
+        token
       };
     }
     return this.cachedStub.stub;

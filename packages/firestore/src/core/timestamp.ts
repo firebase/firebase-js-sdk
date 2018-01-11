@@ -47,7 +47,7 @@ export class Timestamp {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction![1];
       nanoStr = (nanoStr + '000000000').substr(0, 9);
-      nanos = parseInt(nanoStr, 10);
+      nanos = Number(nanoStr);
     }
 
     // Parse the date to get the seconds.
