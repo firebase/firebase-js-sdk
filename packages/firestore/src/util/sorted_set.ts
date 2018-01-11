@@ -126,7 +126,7 @@ export class SortedSet<T> {
     return result;
   }
 
-  equals(other: SortedSet<T>): boolean {
+  isEqual(other: SortedSet<T>): boolean {
     if (!(other instanceof SortedSet)) return false;
     if (this.size !== other.size) return false;
 

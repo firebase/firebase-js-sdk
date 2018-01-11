@@ -710,7 +710,7 @@ describe('Serializer', () => {
     };
     const serialized = s.toDocument(d);
     expect(serialized).to.deep.equal(proto);
-    expect(s.fromDocument(serialized).equals(d)).to.equal(true);
+    expect(s.fromDocument(serialized).isEqual(d)).to.equal(true);
   });
 
   describe('to/from RelationFilter', () => {

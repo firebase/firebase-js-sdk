@@ -84,7 +84,7 @@ export class Timestamp {
     return primitiveComparator(this.seconds, other.seconds);
   }
 
-  equals(other: Timestamp): boolean {
+  isEqual(other: Timestamp): boolean {
     return other.seconds === this.seconds && other.nanos === this.nanos;
   }
 

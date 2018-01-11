@@ -115,11 +115,7 @@ export class Blob {
     return 'Blob(base64: ' + this.toBase64() + ')';
   }
 
-  /**
-   * Actually private to JS consumers of our API, so this function is prefixed
-   * with an underscore.
-   */
-  public _equals(other: Blob): boolean {
+  public isEqual(other: Blob): boolean {
     return this._binaryString === other._binaryString;
   }
 

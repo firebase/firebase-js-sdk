@@ -99,7 +99,7 @@ describe('DocumentSet', () => {
     expectEqual(documentSet(d1, d2, d3), documentSet(d1, d2, d3));
     expectEqual(documentSet(comp, d1, d2, d3), documentSet(comp, d1, d2, d3));
 
-    expect(documentSet(d1, d2, d3).equals(null)).to.equal(false);
+    expect(documentSet(d1, d2, d3).isEqual(null)).to.equal(false);
     expectNotEqual(documentSet(d1, d2, d3), documentSet(d1, d2));
     expectNotEqual(documentSet(d1, d2, d3), documentSet(comp, d1, d2, d3));
   });

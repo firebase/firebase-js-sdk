@@ -66,11 +66,7 @@ export class GeoPoint {
     return this._long;
   }
 
-  /**
-   * Actually private to JS consumers of our API, so this function is prefixed
-   * with an underscore.
-   */
-  public _equals(other: GeoPoint): boolean {
+  public isEqual(other: GeoPoint): boolean {
     return this._lat === other._lat && this._long === other._long;
   }
 

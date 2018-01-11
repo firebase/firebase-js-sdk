@@ -75,13 +75,13 @@ export class QueryData {
     );
   }
 
-  equals(other: QueryData): boolean {
+  isEqual(other: QueryData): boolean {
     return (
       this.targetId === other.targetId &&
       this.purpose === other.purpose &&
-      this.snapshotVersion.equals(other.snapshotVersion) &&
+      this.snapshotVersion.isEqual(other.snapshotVersion) &&
       this.resumeToken === other.resumeToken &&
-      this.query.equals(other.query)
+      this.query.isEqual(other.query)
     );
   }
 }

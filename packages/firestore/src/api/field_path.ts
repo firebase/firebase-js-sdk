@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { FieldPath as InternalFieldPath } from '../model/path';
 import { Code, FirestoreError } from '../util/error';
 import {
+  invalidClassError,
   validateArgType,
   validateNamedArrayAtLeastNumberOfElements
 } from '../util/input_validation';
@@ -77,6 +78,13 @@ export class FieldPath implements firestore.FieldPath {
 
   public static documentId(): FieldPath {
     return FieldPath._DOCUMENT_ID;
+  }
+
+  public isEqual(other: firestore.FieldPath): boolean {
+    if (!(other instanceof FieldPath)) {
+      throw invalidClassError('isEqual', 'FieldPath', 1, other);
+    }
+    return this._internalPath.isEqual(other._internalPath);
   }
 }
 

@@ -49,7 +49,7 @@ export class DatabaseId {
     return this.database === DEFAULT_DATABASE_NAME;
   }
 
-  equals(other: {}): boolean {
+  isEqual(other: {}): boolean {
     return (
       other instanceof DatabaseId &&
       other.projectId === this.projectId &&
