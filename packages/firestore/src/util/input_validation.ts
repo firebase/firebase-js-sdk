@@ -181,7 +181,7 @@ export function validateNamedPropertyEquals<T>(
 ): void {
   const expectedDescription: string[] = [];
 
-  for (let val of expected) {
+  for (const val of expected) {
     if (val === input) {
       return;
     }
