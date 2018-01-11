@@ -191,7 +191,9 @@ export function validateNamedPropertyEquals<T>(
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `Invalid value ${actualDescription} provided to function ${functionName}() for option "serverTimestamps". Acceptable values: ${expectedDescription.join(
+    `Invalid value ${actualDescription} provided to function ${
+      functionName
+    }() for option "serverTimestamps". Acceptable values: ${expectedDescription.join(
       ', '
     )}`
   );
