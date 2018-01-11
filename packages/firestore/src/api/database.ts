@@ -1702,7 +1702,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       this._firestore === other._firestore &&
       this._originalQuery.isEqual(other._originalQuery) &&
       this._snapshot.isEqual(other._snapshot)
-    )
+    );
   }
 
   private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {

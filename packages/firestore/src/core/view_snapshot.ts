@@ -147,12 +147,13 @@ export class ViewSnapshot {
   readonly syncStateChanged: boolean;
 
   public isEqual(other: ViewSnapshot): boolean {
-    if (fromCache !== other.fromCache ||
-        hasPendingWrites !== other.hasPendingWrites ||
-        syncStateChanged !== other.syncStateChanged ||
-        !query.isEqual(other.query) ||
-        !docs.isEqual(other.docs) ||
-        !oldDocs.isEqual(other.oldDocs)
+    if (
+      fromCache !== other.fromCache ||
+      hasPendingWrites !== other.hasPendingWrites ||
+      syncStateChanged !== other.syncStateChanged ||
+      !query.isEqual(other.query) ||
+      !docs.isEqual(other.docs) ||
+      !oldDocs.isEqual(other.oldDocs)
     ) {
       return false;
     }
