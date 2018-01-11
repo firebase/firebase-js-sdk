@@ -137,7 +137,7 @@ export class DocumentChangeSet {
   }
 }
 
-export interface ViewSnapshot {
+export class ViewSnapshot {
   readonly query: Query;
   readonly docs: DocumentSet;
   readonly oldDocs: DocumentSet;
@@ -145,4 +145,30 @@ export interface ViewSnapshot {
   readonly fromCache: boolean;
   readonly hasPendingWrites: boolean;
   readonly syncStateChanged: boolean;
+
+  public isEqual(other: ViewSnapshot): boolean {
+    if (fromCache !== other.fromCache ||
+        hasPendingWrites !== other.hasPendingWrites ||
+        syncStateChanged !== other.syncStateChanged ||
+        !query.isEqual(other.query) ||
+        !docs.isEqual(other.docs) ||
+        !oldDocs.isEqual(other.oldDocs)
+    ) {
+      return false;
+    }
+    let changes: DocumentViewChange[] = docChanges;
+    let otherChanges: DocumentViewChange[] = other.docChanges;
+    if (changes.length !== otherChanges.length) {
+      return false;
+    }
+    for (let i = 0; i < changes.length; i++) {
+      if (
+        changes[i].type !== otherChanges[i].type ||
+        !changes[i].doc.isEqual(otherChanges[i].doc)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

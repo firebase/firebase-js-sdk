@@ -997,7 +997,7 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 }
 
-export class SnapshotMetadata implements firestore.SnapshotMetadata {
+class SnapshotMetadata implements firestore.SnapshotMetadata {
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
@@ -1698,38 +1698,11 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
     }
 
-    if (
-      this._firestore !== other._firestore ||
-      !this._originalQuery.isEqual(other._originalQuery)
-    ) {
-      return false;
-    }
-    let snapshot: ViewSnapshot = this._snapshot;
-    let otherSnapshot: ViewSnapshot = other._snapshot;
-    if (
-      snapshot.fromCache !== otherSnapshot.fromCache ||
-      snapshot.hasPendingWrites !== otherSnapshot.hasPendingWrites ||
-      snapshot.syncStateChanged !== otherSnapshot.syncStateChanged ||
-      !snapshot.query.isEqual(otherSnapshot.query) ||
-      !snapshot.docs.isEqual(otherSnapshot.docs) ||
-      !snapshot.oldDocs.isEqual(otherSnapshot.oldDocs)
-    ) {
-      return false;
-    }
-    let changes: DocumentViewChange[] = snapshot.docChanges;
-    let otherChanges: DocumentViewChange[] = otherSnapshot.docChanges;
-    if (changes.length !== otherChanges.length) {
-      return false;
-    }
-    for (let i = 0; i < changes.length; i++) {
-      if (
-        changes[i].type !== otherChanges[i].type ||
-        !changes[i].doc.isEqual(otherChanges[i].doc)
-      ) {
-        return false;
-      }
-    }
-    return true;
+    return (
+      this._firestore === other._firestore &&
+      this._originalQuery.isEqual(other._originalQuery) &&
+      this._snapshot.isEqual(other._snapshot)
+    )
   }
 
   private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {
