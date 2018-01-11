@@ -255,14 +255,14 @@ export class View {
       return { limboChanges };
     } else {
       return {
-        snapshot: {
-          query: this.query,
-          docs: docChanges.documentSet,
+        snapshot: new ViewSnapshot(
+          this.query,
+          docChanges.documentSet,
           oldDocs,
-          docChanges: changes,
-          fromCache: newSyncState === SyncState.Local,
-          syncStateChanged,
-          hasPendingWrites: !docChanges.mutatedKeys.isEmpty()
+          changes,
+          newSyncState === SyncState.Local,
+          !docChanges.mutatedKeys.isEmpty(),
+          syncStateChanged
         },
         limboChanges
       };
