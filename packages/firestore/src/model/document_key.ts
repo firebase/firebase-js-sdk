@@ -27,7 +27,7 @@ export class DocumentKey {
     );
   }
 
-  equals(other: DocumentKey | null): boolean {
+  isEqual(other: DocumentKey | null): boolean {
     return (
       other !== null && ResourcePath.comparator(this.path, other.path) === 0
     );

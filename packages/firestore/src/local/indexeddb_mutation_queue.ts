@@ -326,7 +326,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         // documents nested in a subcollection beneath documentKey so we
         // can stop as soon as we hit any such row.
         const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId || !documentKey.path.equals(path)) {
+        if (userID !== this.userId || !documentKey.path.isEqual(path)) {
           control.done();
           return;
         }

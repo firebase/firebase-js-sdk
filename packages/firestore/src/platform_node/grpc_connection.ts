@@ -132,7 +132,7 @@ export class GrpcConnection implements Connection {
       const credentials = createHeaders(this.databaseInfo, token);
       this.cachedStub = {
         stub: new this.firestore.Firestore(this.databaseInfo.host, credentials),
-        token: token
+        token
       };
     }
     return this.cachedStub.stub;
@@ -214,7 +214,6 @@ export class GrpcConnection implements Connection {
 
     let closed = false;
     let close: (err?: Error) => void;
-    let remoteEnded = false;
 
     const stream = new StreamBridge({
       sendFn: (msg: any) => {

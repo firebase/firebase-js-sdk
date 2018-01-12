@@ -92,7 +92,7 @@ function parseInt64(value: number | string): number {
   if (typeof value === 'number') {
     return value;
   } else if (typeof value === 'string') {
-    return parseInt(value, 10);
+    return Number(value);
   } else {
     return fail("can't parse " + value);
   }

@@ -116,7 +116,7 @@ export class FirestoreClient {
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  public start(usePersistence: boolean): Promise<void> {
+  start(usePersistence: boolean): Promise<void> {
     // We defer our initialization until we get the current user from
     // setUserChangeListener(). We block the async queue until we got the
     // initial user and the initialization is completed. This will prevent
@@ -161,7 +161,7 @@ export class FirestoreClient {
   }
 
   /** Enables the network connection and requeues all pending operations. */
-  public enableNetwork(): Promise<void> {
+  enableNetwork(): Promise<void> {
     return this.asyncQueue.schedule(() => {
       return this.remoteStore.enableNetwork();
     });
@@ -282,7 +282,8 @@ export class FirestoreClient {
         );
 
         const onlineStateChangedHandler = (onlineState: OnlineState) => {
-          this.eventMgr.onOnlineStateChanged(onlineState);
+          this.syncEngine.applyOnlineStateChange(onlineState);
+          this.eventMgr.applyOnlineStateChange(onlineState);
         };
 
         this.remoteStore = new RemoteStore(
@@ -320,7 +321,7 @@ export class FirestoreClient {
   }
 
   /** Disables the network connection. Pending operations will not complete. */
-  public disableNetwork(): Promise<void> {
+  disableNetwork(): Promise<void> {
     return this.asyncQueue.schedule(() => {
       return this.remoteStore.disableNetwork();
     });

@@ -16,6 +16,7 @@
 
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
+import { SnapshotOptions } from '../api/database';
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { assert, fail } from '../util/assert';
@@ -61,6 +62,36 @@ export enum TypeOrder {
   ObjectValue = 9
 }
 
+/** Defines the return value for pending server timestamps. */
+export enum ServerTimestampBehavior {
+  Default,
+  Estimate,
+  Previous
+}
+
+/** Holds properties that define field value deserialization options. */
+export class FieldValueOptions {
+  static readonly defaultOptions = new FieldValueOptions(
+    ServerTimestampBehavior.Default
+  );
+
+  constructor(readonly serverTimestampBehavior: ServerTimestampBehavior) {}
+
+  static fromSnapshotOptions(options: SnapshotOptions) {
+    switch (options.serverTimestamps) {
+      case 'estimate':
+        return new FieldValueOptions(ServerTimestampBehavior.Estimate);
+      case 'previous':
+        return new FieldValueOptions(ServerTimestampBehavior.Previous);
+      case 'none': // Fall-through intended.
+      case undefined:
+        return FieldValueOptions.defaultOptions;
+      default:
+        return fail('fromSnapshotOptions() called with invalid options.');
+    }
+  }
+}
+
 /**
  * Potential types returned by FieldValue.value(). This could be stricter
  * (instead of using {}), but there's little benefit.
@@ -80,8 +111,8 @@ export type FieldType = null | boolean | number | string | {};
 export abstract class FieldValue {
   readonly typeOrder: TypeOrder;
 
-  abstract value(): FieldType;
-  abstract equals(other: FieldValue): boolean;
+  abstract value(options?: FieldValueOptions): FieldType;
+  abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
   toString(): string {
@@ -110,11 +141,11 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(): FieldType {
+  value(options?: FieldValueOptions): null {
     return null;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return other instanceof NullValue;
   }
 
@@ -135,11 +166,11 @@ export class BooleanValue extends FieldValue {
     super();
   }
 
-  value(): boolean {
+  value(options?: FieldValueOptions): boolean {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof BooleanValue &&
       this.internalValue === other.internalValue
@@ -169,7 +200,7 @@ export abstract class NumberValue extends FieldValue {
     super();
   }
 
-  value(): number {
+  value(options?: FieldValueOptions): number {
     return this.internalValue;
   }
 
@@ -220,9 +251,9 @@ export class IntegerValue extends NumberValue {
     super(internalValue);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
-    // but that doesn't make them equal via equals().
+    // but that doesn't make them equal via isEqual().
     if (other instanceof IntegerValue) {
       return numericEquals(this.internalValue, other.internalValue);
     } else {
@@ -242,9 +273,9 @@ export class DoubleValue extends NumberValue {
   static POSITIVE_INFINITY = new DoubleValue(Infinity);
   static NEGATIVE_INFINITY = new DoubleValue(-Infinity);
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
-    // but that doesn't make them equal via equals().
+    // but that doesn't make them equal via isEqual().
     if (other instanceof DoubleValue) {
       return numericEquals(this.internalValue, other.internalValue);
     } else {
@@ -263,11 +294,11 @@ export class StringValue extends FieldValue {
     super();
   }
 
-  value(): string {
+  value(options?: FieldValueOptions): string {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof StringValue && this.internalValue === other.internalValue
     );
@@ -288,14 +319,14 @@ export class TimestampValue extends FieldValue {
     super();
   }
 
-  value(): Date {
+  value(options?: FieldValueOptions): Date {
     return this.internalValue.toDate();
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof TimestampValue &&
-      this.internalValue.equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -319,25 +350,42 @@ export class TimestampValue extends FieldValue {
  *   TransformMutation (see TransformMutation.applyTo()). They can only exist in
  *   the local view of a document. Therefore they do not need to be parsed or
  *   serialized.
- * - When evaluated locally (e.g. for snapshot.data()), they evaluate to null.
+ * - When evaluated locally (e.g. for snapshot.data()), they by default
+ *   evaluate to `null`. This behavior can be configured by passing custom
+ *   FieldValueOptions to value().
  * - With respect to other ServerTimestampValues, they sort by their
  *   localWriteTime.
  */
 export class ServerTimestampValue extends FieldValue {
   typeOrder = TypeOrder.TimestampValue;
 
-  constructor(readonly localWriteTime: Timestamp) {
+  constructor(
+    readonly localWriteTime: Timestamp,
+    readonly previousValue: FieldValue | null
+  ) {
     super();
   }
 
-  value(): null {
-    return null;
+  value(options?: FieldValueOptions): FieldType {
+    if (
+      options &&
+      options.serverTimestampBehavior === ServerTimestampBehavior.Estimate
+    ) {
+      return this.localWriteTime.toDate();
+    } else if (
+      options &&
+      options.serverTimestampBehavior === ServerTimestampBehavior.Previous
+    ) {
+      return this.previousValue ? this.previousValue.value(options) : null;
+    } else {
+      return null;
+    }
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof ServerTimestampValue &&
-      this.localWriteTime.equals(other.localWriteTime)
+      this.localWriteTime.isEqual(other.localWriteTime)
     );
   }
 
@@ -364,14 +412,14 @@ export class BlobValue extends FieldValue {
     super();
   }
 
-  value(): Blob {
+  value(options?: FieldValueOptions): Blob {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof BlobValue &&
-      this.internalValue._equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -390,14 +438,14 @@ export class RefValue extends FieldValue {
     super();
   }
 
-  value(): DocumentKey {
+  value(options?: FieldValueOptions): DocumentKey {
     return this.key;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof RefValue) {
       return (
-        this.key.equals(other.key) && this.databaseId.equals(other.databaseId)
+        this.key.isEqual(other.key) && this.databaseId.isEqual(other.databaseId)
       );
     } else {
       return false;
@@ -420,14 +468,14 @@ export class GeoPointValue extends FieldValue {
     super();
   }
 
-  value(): GeoPoint {
+  value(options?: FieldValueOptions): GeoPoint {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof GeoPointValue &&
-      this.internalValue._equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -446,10 +494,10 @@ export class ObjectValue extends FieldValue {
     super();
   }
 
-  value(): JsonObject<FieldType> {
+  value(options?: FieldValueOptions): JsonObject<FieldType> {
     const result: JsonObject<FieldType> = {};
     this.internalValue.inorderTraversal((key, val) => {
-      result[key] = val.value();
+      result[key] = val.value(options);
     });
     return result;
   }
@@ -458,14 +506,14 @@ export class ObjectValue extends FieldValue {
     this.internalValue.inorderTraversal(action);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof ObjectValue) {
       const it1 = this.internalValue.getIterator();
       const it2 = other.internalValue.getIterator();
       while (it1.hasNext() && it2.hasNext()) {
         const next1: { key: string; value: FieldValue } = it1.getNext();
         const next2: { key: string; value: FieldValue } = it2.getNext();
-        if (next1.key !== next2.key || !next1.value.equals(next2.value)) {
+        if (next1.key !== next2.key || !next1.value.isEqual(next2.value)) {
           return false;
         }
       }
@@ -538,7 +586,7 @@ export class ObjectValue extends FieldValue {
     return this.field(path) !== undefined;
   }
 
-  field(path: FieldPath): FieldValue {
+  field(path: FieldPath): FieldValue | undefined {
     assert(!path.isEmpty(), "Can't get field of empty path");
     let field: FieldValue | undefined = this;
     path.forEach((pathSegment: string) => {
@@ -575,22 +623,22 @@ export class ArrayValue extends FieldValue {
     super();
   }
 
-  value(): FieldType[] {
-    return this.internalValue.map(v => v.value());
+  value(options?: FieldValueOptions): FieldType[] {
+    return this.internalValue.map(v => v.value(options));
   }
 
   forEach(action: (value: FieldValue) => void): void {
     this.internalValue.forEach(action);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof ArrayValue) {
       if (this.internalValue.length !== other.internalValue.length) {
         return false;
       }
 
       for (let i = 0; i < this.internalValue.length; i++) {
-        if (!this.internalValue[i].equals(other.internalValue[i])) {
+        if (!this.internalValue[i].isEqual(other.internalValue[i])) {
           return false;
         }
       }
