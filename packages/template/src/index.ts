@@ -1,4 +1,4 @@
-import { TestType } from "@firebase/template-types";
+import { TestType } from '@firebase/template-types';
 
 export function testFxn() {
   const thing: TestType = {};

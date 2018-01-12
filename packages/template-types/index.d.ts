@@ -15,5 +15,5 @@
  */
 
 export interface TestType {
-  prop?: string
+  prop?: string;
 }

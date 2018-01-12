@@ -21,6 +21,6 @@
  * just use index.ts
  */
 
-import { testFxn } from "./src";
+import { testFxn } from './src';
 
 testFxn();

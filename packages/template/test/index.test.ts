@@ -1,5 +1,5 @@
-import { expect } from "chai";
-import { testFxn } from "../src";
+import { expect } from 'chai';
+import { testFxn } from '../src';
 
 describe('Simple test', () => {
   it('Should skip this test');

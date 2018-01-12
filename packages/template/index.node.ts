@@ -21,7 +21,7 @@
  * just use index.ts
  */
 
-import { testFxn } from "./src";
+import { testFxn } from './src';
 
 console.log('Hi Node.js Users!');
 testFxn();

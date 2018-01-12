@@ -19,7 +19,7 @@
  * ensure it continues compiling.
  */
 
-import { TestType } from "../index";
+import { TestType } from '../index';
 
 const thing: TestType = {
   prop: 'asdf'
