@@ -141,7 +141,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('work via transaction set()', () => {
     return withTestSetup(() => {
       return docRef.firestore
-        .runTransaction(txn => {
+        .runTransaction(async txn => {
           txn.set(docRef, setData);
         })
         .then(() => waitForRemoteEvent());
@@ -152,7 +152,7 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() =>
-          docRef.firestore.runTransaction(txn => {
+          docRef.firestore.runTransaction(async txn => {
             txn.update(docRef, updateData);
           })
         )
@@ -176,7 +176,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('fail via transaction update() on nonexistent document.', () => {
     return withTestSetup(() => {
       return docRef.firestore
-        .runTransaction(txn => {
+        .runTransaction(async txn => {
           txn.update(docRef, updateData);
         })
         .then(

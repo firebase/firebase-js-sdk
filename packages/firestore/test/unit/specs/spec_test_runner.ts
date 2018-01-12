@@ -728,7 +728,7 @@ abstract class TestRunner {
     });
   }
 
-  private doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
+  private async doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
     const specError: SpecError = writeFailure.error;
     const error = new FirestoreError(
       mapCodeFromRpcCode(specError.code),

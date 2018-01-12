@@ -73,7 +73,7 @@ apiDescribe('Database transactions', persistence => {
         .then(snapshot => {
           expect(snapshot).to.exist;
           expect(snapshot.data()['foo']).to.equal('bar');
-          return db.runTransaction(transaction => {
+          return db.runTransaction(async transaction => {
             transaction.delete(doc);
           });
         })
@@ -185,7 +185,7 @@ apiDescribe('Database transactions', persistence => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       return db
-        .runTransaction(transaction => {
+        .runTransaction(async transaction => {
           transaction.set(doc, { a: 'b' }).set(doc, { c: 'd' });
         })
         .then(() => {
@@ -202,7 +202,7 @@ apiDescribe('Database transactions', persistence => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
       return db
-        .runTransaction(transaction => {
+        .runTransaction(async transaction => {
           transaction.set(doc, { a: 'b', nested: { a: 'b' } }).set(
             doc,
             { c: 'd', nested: { c: 'd' } },
@@ -354,7 +354,7 @@ apiDescribe('Database transactions', persistence => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('counters').doc();
       return db
-        .runTransaction(transaction => {
+        .runTransaction(async transaction => {
           transaction.set(doc, initialData);
           transaction.update(
             doc,
@@ -533,7 +533,7 @@ apiDescribe('Database transactions', persistence => {
 
   it('are successful with no transaction operations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      return db.runTransaction(txn => {});
+      return db.runTransaction(async txn => {});
     });
   });
 

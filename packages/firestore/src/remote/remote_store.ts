@@ -379,7 +379,7 @@ export class RemoteStore {
     }
   }
 
-  private onWatchStreamChange(
+  private async onWatchStreamChange(
     watchChange: WatchChange,
     snapshotVersion: SnapshotVersion
   ): Promise<void> {
@@ -545,7 +545,8 @@ export class RemoteStore {
     const error = watchChange.cause!;
     let promiseChain = Promise.resolve();
     watchChange.targetIds.forEach(targetId => {
-      promiseChain = promiseChain.then(() => {
+      promiseChain = promiseChain.then(async () => {
+        // A watched target might have been removed already.
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
           return this.syncEngine.rejectListen(targetId, error);
@@ -564,7 +565,7 @@ export class RemoteStore {
    * Notifies that there are new mutations to process in the queue. This is
    * typically called by SyncEngine after it has sent mutations to LocalStore.
    */
-  fillWritePipeline(): Promise<void> {
+  async fillWritePipeline(): Promise<void> {
     if (this.canWriteMutations()) {
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
@@ -696,7 +697,7 @@ export class RemoteStore {
     });
   }
 
-  private onWriteStreamClose(error?: FirestoreError): Promise<void> {
+  private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWriteStreamClose() should only be called when the network is enabled'
@@ -732,7 +733,7 @@ export class RemoteStore {
     // No pending writes, nothing to do
   }
 
-  private handleHandshakeError(error: FirestoreError): Promise<void> {
+  private async handleHandshakeError(error: FirestoreError): Promise<void> {
     // Reset the token if it's a permanent error or the error code is
     // ABORTED, signaling the write stream is no longer valid.
     if (isPermanentError(error.code) || error.code === Code.ABORTED) {
@@ -750,7 +751,7 @@ export class RemoteStore {
     // just retry with exponential backoff.
   }
 
-  private handleWriteError(error: FirestoreError): Promise<void> {
+  private async handleWriteError(error: FirestoreError): Promise<void> {
     if (isPermanentError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.

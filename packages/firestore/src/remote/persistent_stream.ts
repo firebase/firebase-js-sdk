@@ -384,7 +384,7 @@ export abstract class PersistentStream<
         this.startStream(token);
       },
       (error: Error) => {
-        this.queue.schedule(() => {
+        this.queue.schedule(async () => {
           if (this.state !== PersistentStreamState.Stopped) {
             // Stream can be stopped while waiting for authorization.
             const rpcError = new FirestoreError(
@@ -415,7 +415,7 @@ export abstract class PersistentStream<
       stream: Stream<SendType, ReceiveType>,
       fn: () => Promise<void>
     ) => {
-      this.queue.schedule(() => {
+      this.queue.schedule(async () => {
         // Only raise events if the stream instance has not changed
         if (this.stream === stream) {
           return fn();
