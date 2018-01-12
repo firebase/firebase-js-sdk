@@ -143,7 +143,7 @@ export class RemoteStore {
   ) {}
 
   /** SyncEngine to notify of watch and write events. */
-  public syncEngine: RemoteSyncer;
+  syncEngine: RemoteSyncer;
 
   /**
    * Starts up the remote store, creating streams, restoring state from
@@ -200,7 +200,7 @@ export class RemoteStore {
 
   private isNetworkEnabled(): boolean {
     assert(
-      (this.watchStream == null) == (this.writeStream == null),
+      (this.watchStream == null) === (this.writeStream == null),
       'WatchStream and WriteStream should both be null or non-null'
     );
     return this.watchStream != null;
@@ -597,7 +597,7 @@ export class RemoteStore {
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
           if (batch === null) {
-            if (this.pendingWrites.length == 0) {
+            if (this.pendingWrites.length === 0) {
               this.writeStream.markIdle();
             }
             return Promise.resolve();

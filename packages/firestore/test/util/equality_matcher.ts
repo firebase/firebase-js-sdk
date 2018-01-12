@@ -38,14 +38,15 @@ function customDeepEqual(left, right) {
     typeof right === 'number' &&
     isNaN(left) &&
     isNaN(right)
-  )
+  ) {
     return true;
-  if (typeof left != typeof right) return false; // needed for structurally different objects
+  }
+  if (typeof left !== typeof right) return false; // needed for structurally different objects
   if (Object(left) !== left) return false; // primitive values
-  var keys = Object.keys(left);
-  if (keys.length != Object.keys(right).length) return false;
-  for (var i = 0; i < keys.length; i++) {
-    var key = keys[i];
+  const keys = Object.keys(left);
+  if (keys.length !== Object.keys(right).length) return false;
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
     if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
     if (!customDeepEqual(left[key], right[key])) return false;
   }
@@ -56,7 +57,7 @@ export function addEqualityMatcher() {
   let originalFunction;
   beforeEach(() => {
     use((chai, utils) => {
-      var Assertion = chai.Assertion;
+      const Assertion = chai.Assertion;
 
       const assertEql = _super => {
         originalFunction = originalFunction || _super;

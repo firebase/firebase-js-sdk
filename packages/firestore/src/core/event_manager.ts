@@ -30,9 +30,9 @@ import { ObjectMap } from '../util/obj_map';
  * tracked by EventManager.
  */
 class QueryListenersInfo {
-  public viewSnap: ViewSnapshot | null;
-  public targetId: TargetId;
-  public listeners: QueryListener[] = [];
+  viewSnap: ViewSnapshot | null;
+  targetId: TargetId;
+  listeners: QueryListener[] = [];
 }
 
 /**

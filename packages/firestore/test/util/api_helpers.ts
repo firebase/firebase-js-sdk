@@ -99,19 +99,19 @@ export function querySnapshot(
   fromCache: boolean,
   syncStateChanged: boolean
 ) {
-  let query: InternalQuery = InternalQuery.atPath(pathFrom(path));
+  const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
-  for (let key in oldDocs) {
+  Object.keys(oldDocs).forEach(key => {
     oldDocuments = oldDocuments.add(doc(path + '/' + key, 1, oldDocs[key]));
-  }
+  });
   let newDocuments: DocumentSet = new DocumentSet();
-  let documentChanges: DocumentViewChange[] = [];
-  for (let key in docsToAdd) {
-    let docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
+  const documentChanges: DocumentViewChange[] = [];
+  Object.keys(docsToAdd).forEach(key => {
+    const docToAdd: Document = doc(path + '/' + key, 1, docsToAdd[key]);
     newDocuments = newDocuments.add(docToAdd);
     documentChanges.push({ type: ChangeType.Added, doc: docToAdd });
-  }
-  let viewSnapshot: ViewSnapshot = new ViewSnapshot(
+  });
+  const viewSnapshot: ViewSnapshot = new ViewSnapshot(
     query,
     newDocuments,
     oldDocuments,

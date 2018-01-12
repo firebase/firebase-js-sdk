@@ -27,7 +27,7 @@ export abstract class Path {
   private offset: number;
   private len: number;
 
-  public constructor(segments: string[], offset?: number, length?: number) {
+  constructor(segments: string[], offset?: number, length?: number) {
     this.init(segments, offset, length);
   }
 

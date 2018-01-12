@@ -254,7 +254,7 @@ export class View {
       // no changes
       return { limboChanges };
     } else {
-      let snap: ViewSnapshot = new ViewSnapshot(
+      const snap: ViewSnapshot = new ViewSnapshot(
         this.query,
         docChanges.documentSet,
         oldDocs,
