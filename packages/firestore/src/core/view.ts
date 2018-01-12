@@ -31,6 +31,7 @@ import {
 import { assert, fail } from '../util/assert';
 
 import { Query } from './query';
+import { OnlineState } from './types';
 import {
   ChangeType,
   DocumentChangeSet,
@@ -50,7 +51,7 @@ export class RemovedLimboDocument {
 export interface ViewDocumentChanges {
   /** The new set of docs that should be in the view. */
   documentSet: DocumentSet;
-  /** The diff of this these docs with the previous set of docs. */
+  /** The diff of these docs with the previous set of docs. */
   changeSet: DocumentChangeSet;
   /**
    * Whether the set of documents passed in was not sufficient to calculate the
@@ -141,7 +142,7 @@ export class View {
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
           assert(
-            key.equals(newDoc.key),
+            key.isEqual(newDoc.key),
             'Mismatching keys found in document changes: ' +
               key +
               ' != ' +
@@ -163,7 +164,7 @@ export class View {
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.equals(newDoc.data);
+          const docsEqual = oldDoc.data.isEqual(newDoc.data);
           if (
             !docsEqual ||
             oldDoc.hasLocalMutations !== newDoc.hasLocalMutations
@@ -253,18 +254,42 @@ export class View {
       // no changes
       return { limboChanges };
     } else {
+      const snap: ViewSnapshot = new ViewSnapshot(
+        this.query,
+        docChanges.documentSet,
+        oldDocs,
+        changes,
+        newSyncState === SyncState.Local,
+        !docChanges.mutatedKeys.isEmpty(),
+        syncStateChanged
+      );
       return {
-        snapshot: {
-          query: this.query,
-          docs: docChanges.documentSet,
-          oldDocs,
-          docChanges: changes,
-          fromCache: newSyncState === SyncState.Local,
-          syncStateChanged,
-          hasPendingWrites: !docChanges.mutatedKeys.isEmpty()
-        },
+        snapshot: snap,
         limboChanges
       };
+    }
+  }
+
+  /**
+   * Applies an OnlineState change to the view, potentially generating a
+   * ViewChange if the view's syncState changes as a result.
+   */
+  applyOnlineStateChange(onlineState: OnlineState): ViewChange {
+    if (this.current && onlineState === OnlineState.Failed) {
+      // If we're offline, set `current` to false and then call applyChanges()
+      // to refresh our syncState and generate a ViewChange as appropriate. We
+      // are guaranteed to get a new TargetChange that sets `current` back to
+      // true once the client is back online.
+      this.current = false;
+      return this.applyChanges({
+        documentSet: this.documentSet,
+        changeSet: new DocumentChangeSet(),
+        mutatedKeys: this.mutatedKeys,
+        needsRefill: false
+      });
+    } else {
+      // No effect, just return a no-op ViewChange.
+      return { limboChanges: [] };
     }
   }
 

@@ -46,7 +46,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return undefined;
     }
     for (const [otherKey, value] of matches) {
-      if (otherKey.equals(key)) {
+      if (otherKey.isEqual(key)) {
         return value;
       }
     }
@@ -66,7 +66,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return;
     }
     for (let i = 0; i < matches.length; i++) {
-      if (matches[i][0].equals(key)) {
+      if (matches[i][0].isEqual(key)) {
         matches[i] = [key, value];
         return;
       }
@@ -84,7 +84,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
       return false;
     }
     for (let i = 0; i < matches.length; i++) {
-      if (matches[i][0].equals(key)) {
+      if (matches[i][0].isEqual(key)) {
         if (matches.length === 1) {
           delete this.inner[id];
         } else {

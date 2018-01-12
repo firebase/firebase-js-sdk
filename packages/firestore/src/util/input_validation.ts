@@ -150,7 +150,7 @@ export function validateNamedType(
   type: string,
   optionName: string,
   argument: AnyJs
-) {
+): void {
   validateType(functionName, type, `${optionName} option`, argument);
 }
 
@@ -163,9 +163,61 @@ export function validateNamedOptionalType(
   type: string,
   optionName: string,
   argument: AnyJs
-) {
+): void {
   if (argument !== undefined) {
     validateNamedType(functionName, type, optionName, argument);
+  }
+}
+
+/**
+ * Validates that the provided named option equals one of the expected values.
+ */
+export function validateNamedPropertyEquals<T>(
+  functionName: string,
+  inputName: string,
+  optionName: string,
+  input: T,
+  expected: T[]
+): void {
+  const expectedDescription: string[] = [];
+
+  for (const val of expected) {
+    if (val === input) {
+      return;
+    }
+    expectedDescription.push(valueDescription(val));
+  }
+
+  const actualDescription = valueDescription(input);
+  throw new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    `Invalid value ${actualDescription} provided to function ${
+      functionName
+    }() for option "serverTimestamps". Acceptable values: ${expectedDescription.join(
+      ', '
+    )}`
+  );
+}
+
+/**
+ * Validates that the provided named option equals one of the expected values or
+ * is undefined.
+ */
+export function validateNamedOptionalPropertyEquals<T>(
+  functionName: string,
+  inputName: string,
+  optionName: string,
+  input: T,
+  expected: T[]
+): void {
+  if (input !== undefined) {
+    validateNamedPropertyEquals(
+      functionName,
+      inputName,
+      optionName,
+      input,
+      expected
+    );
   }
 }
 
@@ -175,7 +227,7 @@ function validateType(
   type: string,
   inputName: string,
   input: AnyJs
-) {
+): void {
   if (typeof input !== type || (type === 'object' && !isPlainObject(input))) {
     const description = valueDescription(input);
     throw new FirestoreError(

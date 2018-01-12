@@ -33,12 +33,17 @@ import {
   RelationOp
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
-import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import {
+  ChangeType,
+  DocumentViewChange,
+  ViewSnapshot
+} from '../core/view_snapshot';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   ArrayValue,
   FieldValue,
+  FieldValueOptions,
   ObjectValue,
   RefValue
 } from '../model/field_value';
@@ -58,6 +63,7 @@ import {
   validateDefined,
   validateExactNumberOfArgs,
   validateNamedOptionalType,
+  validateNamedOptionalPropertyEquals,
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
@@ -157,7 +163,7 @@ class FirestoreSettings {
     this.credentials = settings.credentials;
   }
 
-  equals(other: FirestoreSettings): boolean {
+  isEqual(other: FirestoreSettings): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
@@ -180,7 +186,7 @@ class FirestoreConfig {
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
-  public readonly _databaseId: DatabaseId;
+  readonly _databaseId: DatabaseId;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -190,7 +196,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
   private _queue = new AsyncQueue();
-  public _dataConverter: UserDataConverter;
+  _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
@@ -237,7 +243,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
-    if (this._firestoreClient && !this._config.settings.equals(newSettings)) {
+    if (this._firestoreClient && !this._config.settings.isEqual(newSettings)) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -252,6 +258,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         newSettings.credentials
       );
     }
+  }
+
+  enableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.enableNetwork();
+  }
+
+  disableNetwork(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient.disableNetwork();
   }
 
   enablePersistence(): Promise<void> {
@@ -293,7 +309,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
-        if (!otherDb.equals(thisDb)) {
+        if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Document reference is for database ' +
@@ -375,8 +391,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       }
     },
     // Exposed via INTERNAL for use in tests.
-    disableNetwork: () => this._firestoreClient.disableNetwork(),
-    enableNetwork: () => this._firestoreClient.enableNetwork(),
     drainAsyncQueue: (executeDelayedTasks: boolean) =>
       this._queue.drain(executeDelayedTasks)
   };
@@ -746,7 +760,7 @@ export class DocumentReference implements firestore.DocumentReference {
     if (!(other instanceof DocumentReference)) {
       throw invalidClassError('isEqual', 'DocumentReference', 1, other);
     }
-    return this.firestore === other.firestore && this._key.equals(other._key);
+    return this.firestore === other.firestore && this._key.isEqual(other._key);
   }
 
   set(
@@ -983,6 +997,23 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 }
 
+class SnapshotMetadata implements firestore.SnapshotMetadata {
+  constructor(
+    readonly hasPendingWrites: boolean,
+    readonly fromCache: boolean
+  ) {}
+
+  isEqual(other: firestore.SnapshotMetadata): boolean {
+    return (
+      this.hasPendingWrites === other.hasPendingWrites &&
+      this.fromCache === other.fromCache
+    );
+  }
+}
+
+/** Options interface that can be provided to configure the deserialization of DocumentSnapshots. */
+export interface SnapshotOptions extends firestore.SnapshotOptions {}
+
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
     private _firestore: Firestore,
@@ -991,31 +1022,37 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _fromCache: boolean
   ) {}
 
-  data(): firestore.DocumentData {
-    validateExactNumberOfArgs('DocumentSnapshot.data', arguments, 0);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.data().'
-      );
-    }
-    return this.convertObject(this._document.data);
+  data(
+    options?: firestore.SnapshotOptions
+  ): firestore.DocumentData | undefined {
+    validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
+    options = validateSnapshotOptions('DocumentSnapshot.data', options);
+    return !this._document
+      ? undefined
+      : this.convertObject(
+          this._document.data,
+          FieldValueOptions.fromSnapshotOptions(options)
+        );
   }
 
-  get(fieldPath: string | ExternalFieldPath): AnyJs {
-    validateExactNumberOfArgs('DocumentSnapshot.get', arguments, 1);
-    if (!this._document) {
-      throw new FirestoreError(
-        Code.NOT_FOUND,
-        "This document doesn't exist. Check doc.exists to make sure " +
-          'the document exists before calling doc.get().'
+  get(
+    fieldPath: string | ExternalFieldPath,
+    options?: firestore.SnapshotOptions
+  ): AnyJs {
+    validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
+    options = validateSnapshotOptions('DocumentSnapshot.get', options);
+    if (this._document) {
+      const value = this._document.data.field(
+        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
+      if (value !== undefined) {
+        return this.convertValue(
+          value,
+          FieldValueOptions.fromSnapshotOptions(options)
+        );
+      }
     }
-    const value = this._document.data.field(
-      fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
-    );
-    return value === undefined ? undefined : this.convertValue(value);
+    return undefined;
   }
 
   get id(): string {
@@ -1031,30 +1068,46 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return {
-      hasPendingWrites:
-        this._document !== null && this._document.hasLocalMutations,
-      fromCache: this._fromCache
-    };
+    return new SnapshotMetadata(
+      this._document !== null && this._document.hasLocalMutations,
+      this._fromCache
+    );
   }
 
-  private convertObject(data: ObjectValue): firestore.DocumentData {
+  isEqual(other: firestore.DocumentSnapshot): boolean {
+    if (!(other instanceof DocumentSnapshot)) {
+      throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
+    }
+    return (
+      this._firestore === other._firestore &&
+      this._fromCache === other._fromCache &&
+      this._key.isEqual(other._key) &&
+      (this._document === null
+        ? other._document === null
+        : this._document.isEqual(other._document))
+    );
+  }
+
+  private convertObject(
+    data: ObjectValue,
+    options: FieldValueOptions
+  ): firestore.DocumentData {
     const result: firestore.DocumentData = {};
     data.forEach((key, value) => {
-      result[key] = this.convertValue(value);
+      result[key] = this.convertValue(value, options);
     });
     return result;
   }
 
-  private convertValue(value: FieldValue): AnyJs {
+  private convertValue(value: FieldValue, options: FieldValueOptions): AnyJs {
     if (value instanceof ObjectValue) {
-      return this.convertObject(value);
+      return this.convertObject(value, options);
     } else if (value instanceof ArrayValue) {
-      return this.convertArray(value);
+      return this.convertArray(value, options);
     } else if (value instanceof RefValue) {
-      const key = value.value();
+      const key = value.value(options);
       const database = this._firestore.ensureClientConfigured().databaseId();
-      if (!value.databaseId.equals(database)) {
+      if (!value.databaseId.isEqual(database)) {
         // TODO(b/64130202): Somehow support foreign references.
         log.error(
           `Document ${this._key.path} contains a document ` +
@@ -1069,14 +1122,35 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       }
       return new DocumentReference(key, this._firestore);
     } else {
-      return value.value();
+      return value.value(options);
     }
   }
 
-  private convertArray(data: ArrayValue): AnyJs[] {
+  private convertArray(data: ArrayValue, options: FieldValueOptions): AnyJs[] {
     return data.internalValue.map(value => {
-      return this.convertValue(value);
+      return this.convertValue(value, options);
     });
+  }
+}
+
+export class QueryDocumentSnapshot extends DocumentSnapshot
+  implements firestore.QueryDocumentSnapshot {
+  constructor(
+    firestore: Firestore,
+    key: DocumentKey,
+    document: Document,
+    fromCache: boolean
+  ) {
+    super(firestore, key, document, fromCache);
+  }
+
+  data(options?: SnapshotOptions): firestore.DocumentData {
+    const data = super.data(options);
+    assert(
+      typeof data === 'object',
+      'Document in a QueryDocumentSnapshot should exist'
+    );
+    return data as firestore.DocumentData;
   }
 }
 
@@ -1257,7 +1331,7 @@ export class Query implements firestore.Query {
       throw invalidClassError('isEqual', 'Query', 1, other);
     }
     return (
-      this.firestore === other.firestore && this._query.equals(other._query)
+      this.firestore === other.firestore && this._query.isEqual(other._query)
     );
   }
 
@@ -1519,7 +1593,7 @@ export class Query implements firestore.Query {
   private validateNewFilter(filter: Filter): void {
     if (filter instanceof RelationFilter && filter.isInequality()) {
       const existingField = this._query.getInequalityFilterField();
-      if (existingField !== null && !existingField.equals(filter.field)) {
+      if (existingField !== null && !existingField.isEqual(filter.field)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. All where filters with an inequality' +
@@ -1550,7 +1624,7 @@ export class Query implements firestore.Query {
     inequality: FieldPath,
     orderBy: FieldPath
   ): void {
-    if (!orderBy.equals(inequality)) {
+    if (!orderBy.isEqual(inequality)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. You have a where filter with an inequality ` +
@@ -1573,14 +1647,14 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     private _originalQuery: InternalQuery,
     private _snapshot: ViewSnapshot
   ) {
-    this.metadata = {
-      fromCache: _snapshot.fromCache,
-      hasPendingWrites: _snapshot.hasPendingWrites
-    };
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
   }
 
-  get docs(): firestore.DocumentSnapshot[] {
-    const result: firestore.DocumentSnapshot[] = [];
+  get docs(): firestore.QueryDocumentSnapshot[] {
+    const result: firestore.QueryDocumentSnapshot[] = [];
     this.forEach(doc => result.push(doc));
     return result;
   }
@@ -1594,7 +1668,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   }
 
   forEach(
-    callback: (result: firestore.DocumentSnapshot) => void,
+    callback: (result: firestore.QueryDocumentSnapshot) => void,
     thisArg?: AnyJs
   ): void {
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
@@ -1618,8 +1692,21 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return this._cachedChanges;
   }
 
-  private convertToDocumentImpl(doc: Document): DocumentSnapshot {
-    return new DocumentSnapshot(
+  /** Check the equality. The call can be very expensive. */
+  isEqual(other: firestore.QuerySnapshot): boolean {
+    if (!(other instanceof QuerySnapshot)) {
+      throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
+    }
+
+    return (
+      this._firestore === other._firestore &&
+      this._originalQuery.isEqual(other._originalQuery) &&
+      this._snapshot.isEqual(other._snapshot)
+    );
+  }
+
+  private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {
+    return new QueryDocumentSnapshot(
       this._firestore,
       doc.key,
       doc,
@@ -1703,6 +1790,25 @@ function validateSetOptions(
   return options;
 }
 
+function validateSnapshotOptions(
+  methodName: string,
+  options: firestore.SnapshotOptions | undefined
+): firestore.SnapshotOptions {
+  if (options === undefined) {
+    return {};
+  }
+
+  validateOptionNames(methodName, options, ['serverTimestamps']);
+  validateNamedOptionalPropertyEquals(
+    methodName,
+    'options',
+    'serverTimestamps',
+    options.serverTimestamps,
+    ['estimate', 'previous', 'none']
+  );
+  return options;
+}
+
 function validateReference(
   methodName: string,
   documentRef: firestore.DocumentReference,
@@ -1735,7 +1841,7 @@ export function changesFromSnapshot(
     let lastDoc: Document;
     let index = 0;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1762,7 +1868,7 @@ export function changesFromSnapshot(
     // to lookup the index of a document.
     let indexTracker = snapshot.oldDocs;
     return snapshot.docChanges.map(change => {
-      const doc = new DocumentSnapshot(
+      const doc = new QueryDocumentSnapshot(
         firestore,
         change.doc.key,
         change.doc,
@@ -1821,6 +1927,9 @@ export const PublicDocumentReference = makeConstructorPrivate(
   'Use firebase.firestore().doc() instead.'
 );
 export const PublicDocumentSnapshot = makeConstructorPrivate(DocumentSnapshot);
+export const PublicQueryDocumentSnapshot = makeConstructorPrivate(
+  QueryDocumentSnapshot
+);
 export const PublicQuery = makeConstructorPrivate(Query);
 export const PublicQuerySnapshot = makeConstructorPrivate(QuerySnapshot);
 export const PublicCollectionReference = makeConstructorPrivate(

@@ -494,7 +494,7 @@ export class LocalStore {
             // document resolution failing).
             if (
               existingDoc == null ||
-              doc.version.equals(SnapshotVersion.MIN) ||
+              doc.version.isEqual(SnapshotVersion.MIN) ||
               doc.version.compareTo(existingDoc.version) >= 0
             ) {
               documentBuffer.addEntry(doc);
@@ -523,7 +523,7 @@ export class LocalStore {
       // limbo.
       const lastRemoteVersion = this.queryCache.getLastRemoteSnapshotVersion();
       const remoteVersion = remoteEvent.snapshotVersion;
-      if (!remoteVersion.equals(SnapshotVersion.MIN)) {
+      if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
         assert(
           remoteVersion.compareTo(lastRemoteVersion) >= 0,
           'Watch stream reverted to previous snapshot?? ' +

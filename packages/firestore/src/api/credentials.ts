@@ -144,7 +144,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     // the uid may have changed.
     this.tokenListener = () => {
       const newUser = this.getUser();
-      if (!this.currentUser || !newUser.equals(this.currentUser)) {
+      if (!this.currentUser || !newUser.isEqual(this.currentUser)) {
         this.currentUser = newUser;
         this.userCounter++;
         if (this.userListener) {

@@ -5,6 +5,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "dev": "gulp dev",
+    "lint": "tslint -c tslint.json src/**/*.ts test/**/*.ts",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
@@ -49,6 +50,7 @@
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.1.0",
     "ts-node": "^3.3.0",
+    "tslint": "^5.8.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1",
     "yargs": "^10.0.3"
