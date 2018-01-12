@@ -1003,7 +1003,7 @@ class SnapshotMetadata implements firestore.SnapshotMetadata {
     readonly fromCache: boolean
   ) {}
 
-  public isEqual(other: firestore.SnapshotMetadata): boolean {
+  isEqual(other: firestore.SnapshotMetadata): boolean {
     return (
       this.hasPendingWrites === other.hasPendingWrites &&
       this.fromCache === other.fromCache
@@ -1074,7 +1074,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     );
   }
 
-  public isEqual(other: firestore.DocumentSnapshot): boolean {
+  isEqual(other: firestore.DocumentSnapshot): boolean {
     if (!(other instanceof DocumentSnapshot)) {
       throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
     }
@@ -1693,7 +1693,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   }
 
   /** Check the equality. The call can be very expensive. */
-  public isEqual(other: firestore.QuerySnapshot): boolean {
+  isEqual(other: firestore.QuerySnapshot): boolean {
     if (!(other instanceof QuerySnapshot)) {
       throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
     }

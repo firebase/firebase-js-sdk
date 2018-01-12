@@ -159,8 +159,8 @@ export class ViewSnapshot {
     ) {
       return false;
     }
-    let changes: DocumentViewChange[] = this.docChanges;
-    let otherChanges: DocumentViewChange[] = other.docChanges;
+    const changes: DocumentViewChange[] = this.docChanges;
+    const otherChanges: DocumentViewChange[] = other.docChanges;
     if (changes.length !== otherChanges.length) {
       return false;
     }

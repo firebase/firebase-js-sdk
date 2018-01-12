@@ -30,7 +30,7 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
   static serverTimestamp(): FieldValueImpl {
     return ServerTimestampFieldValueImpl.instance;
   }
-  public isEqual(other: FieldValueImpl): boolean {
+  isEqual(other: FieldValueImpl): boolean {
     return this === other;
   }
 }

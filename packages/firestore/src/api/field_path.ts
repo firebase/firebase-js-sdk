@@ -80,7 +80,7 @@ export class FieldPath implements firestore.FieldPath {
     return FieldPath._DOCUMENT_ID;
   }
 
-  public isEqual(other: firestore.FieldPath): boolean {
+  isEqual(other: firestore.FieldPath): boolean {
     if (!(other instanceof FieldPath)) {
       throw invalidClassError('isEqual', 'FieldPath', 1, other);
     }
