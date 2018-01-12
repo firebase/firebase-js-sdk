@@ -1,7 +1,8 @@
 {
   "name": "@firebase/database",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.node.js",
   "browser": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -18,8 +19,8 @@
     "@firebase/app-types": "^0.1.0"
   },
   "dependencies": {
-    "@firebase/database-types": "0.1.0",
-    "@firebase/util": "0.1.5",
+    "@firebase/database-types": "0.1.1",
+    "@firebase/util": "0.1.6",
     "faye-websocket": "0.11.1"
   },
   "devDependencies": {

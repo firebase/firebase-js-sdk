@@ -212,7 +212,9 @@ apiDescribe('Database batch writes', persistence => {
             },
             err => {
               expect(err.message).to.exist;
-              expect(err.message).to.contain('no entity to update');
+              // TODO: Change this to just match "no document to update" once
+              // the backend response is consistent.
+              expect(err.message).to.match(/no (document|entity) to update/);
               expect(err.code).to.equal('not-found');
               unsubscribe();
             }

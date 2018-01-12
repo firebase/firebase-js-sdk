@@ -1,0 +1,14 @@
+{
+  "name": "firebase-package-typings-test",
+  "private": true,
+  "version": "0.1.1",
+  "scripts": {
+    "test": "tsc index.ts --outDir dist"
+  },
+  "dependencies": {
+    "firebase": "4.8.2"
+  },
+  "devDependencies": {
+    "typescript": "^2.4.2"
+  }
+}
