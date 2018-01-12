@@ -253,6 +253,7 @@ describeSpec('Listens:', [], () => {
       .watchAcksFull(query, 1000, docA)
       .expectEvents(query, { added: [docA] })
       .disableNetwork()
+      .expectEvents(query, { fromCache: true })
       .enableNetwork()
       .restoreListen(query, 'resume-token-1000')
       .expectWatchStreamRequestCount(

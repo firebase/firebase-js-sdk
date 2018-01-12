@@ -133,7 +133,7 @@ export class DocumentSet {
     return this.copy(this.keyedMap.remove(key), this.sortedSet.remove(doc));
   }
 
-  equals(other: DocumentSet | null | undefined): boolean {
+  isEqual(other: DocumentSet | null | undefined): boolean {
     if (!(other instanceof DocumentSet)) return false;
     if (this.size !== other.size) return false;
 
@@ -142,7 +142,7 @@ export class DocumentSet {
     while (thisIt.hasNext()) {
       const thisDoc = thisIt.getNext().key;
       const otherDoc = otherIt.getNext().key;
-      if (!thisDoc.equals(otherDoc)) return false;
+      if (!thisDoc.isEqual(otherDoc)) return false;
     }
     return true;
   }

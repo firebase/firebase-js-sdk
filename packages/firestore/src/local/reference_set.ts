@@ -127,7 +127,7 @@ export class ReferenceSet implements GarbageSource {
     const ref = new DocReference(key, 0);
     const firstRef = this.refsByKey.firstAfterOrEqual(ref);
     return PersistencePromise.resolve(
-      firstRef !== null && key.equals(firstRef.key)
+      firstRef !== null && key.isEqual(firstRef.key)
     );
   }
 }

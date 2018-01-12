@@ -306,9 +306,11 @@ export class SortedMapIterator<K, V, T> {
 
     let node = this.nodeStack.pop()!;
     let result: any;
-    if (this.resultGenerator)
+    if (this.resultGenerator) {
       result = this.resultGenerator(node.key, node.value);
-    else result = { key: node.key, value: node.value };
+    } else {
+      result = { key: node.key, value: node.value };
+    }
 
     if (this.isReverse) {
       node = node.left;

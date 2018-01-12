@@ -35,11 +35,11 @@ export class RemoteEvent {
     /**
      * The snapshot version this event brings us up to, or MIN if not set.
      */
-    public readonly snapshotVersion: SnapshotVersion,
+    readonly snapshotVersion: SnapshotVersion,
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    public readonly targetChanges: { [targetId: number]: TargetChange },
+    readonly targetChanges: { [targetId: number]: TargetChange },
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
@@ -139,8 +139,8 @@ export class ResetMapping {
     this.docs = this.docs.delete(key);
   }
 
-  equals(other: ResetMapping): boolean {
-    return other !== null && this.docs.equals(other.docs);
+  isEqual(other: ResetMapping): boolean {
+    return other !== null && this.docs.isEqual(other.docs);
   }
 }
 
@@ -165,11 +165,11 @@ export class UpdateMapping {
     this.removedDocuments = this.removedDocuments.add(key);
   }
 
-  equals(other: UpdateMapping): boolean {
+  isEqual(other: UpdateMapping): boolean {
     return (
       other !== null &&
-      this.addedDocuments.equals(other.addedDocuments) &&
-      this.removedDocuments.equals(other.removedDocuments)
+      this.addedDocuments.isEqual(other.addedDocuments) &&
+      this.removedDocuments.isEqual(other.removedDocuments)
     );
   }
 }

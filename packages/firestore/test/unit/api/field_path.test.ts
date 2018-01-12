@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import '../../src/platform_browser/browser_init';
+import { expect } from 'chai';
+import { FieldPath } from '../../../src/api/field_path';
+import { field, expectEqual, expectNotEqual } from '../../util/helpers';
 
-/**
- * This will include all of the test files and compile them as needed
- *
- * Taken from karma-webpack source:
- * https://github.com/webpack-contrib/karma-webpack#alternative-usage
- */
-const testsContext = (require as any).context('.', true, /.test$/);
-const browserTests = testsContext
-  .keys()
-  .filter(file => file.indexOf('/node/') < 0);
-browserTests.forEach(testsContext);
+describe('FieldPath', () => {
+  it('support equality checking with isEqual()', () => {
+    expectEqual(field('foo'), field('foo'));
+    expectNotEqual(field('foo'), field('bar'));
+  });
+});

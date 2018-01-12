@@ -43,7 +43,7 @@ describe('EventManager', () => {
       query,
       onViewSnapshot: () => {},
       onError: () => {},
-      onOnlineStateChanged: () => {}
+      applyOnlineStateChange: () => {}
     };
   }
 
@@ -126,11 +126,11 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward onOnlineStateChanged calls', () => {
+  it('will forward applyOnlineStateChange calls', () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
-    fakeListener1.onOnlineStateChanged = (onlineState: OnlineState) => {
+    fakeListener1.applyOnlineStateChange = (onlineState: OnlineState) => {
       events.push(onlineState);
     };
 
@@ -139,7 +139,7 @@ describe('EventManager', () => {
 
     eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.onOnlineStateChanged(OnlineState.Healthy);
+    eventManager.applyOnlineStateChange(OnlineState.Healthy);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Healthy]);
   });
 });
@@ -423,10 +423,10 @@ describe('QueryListener', () => {
     const changes3 = view.computeDocChanges(documentUpdates());
     const snap3 = view.applyChanges(changes3, ackTarget(doc1, doc2)).snapshot!;
 
-    listener.onOnlineStateChanged(OnlineState.Healthy); // no event
+    listener.applyOnlineStateChange(OnlineState.Healthy); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.onOnlineStateChanged(OnlineState.Unknown); // no event
-    listener.onOnlineStateChanged(OnlineState.Healthy); // no event
+    listener.applyOnlineStateChange(OnlineState.Unknown); // no event
+    listener.applyOnlineStateChange(OnlineState.Healthy); // no event
     listener.onViewSnapshot(snap2); // no event
     listener.onViewSnapshot(snap3); // event because synced
 
@@ -461,11 +461,11 @@ describe('QueryListener', () => {
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
     const snap2 = view.applyChanges(changes2).snapshot!;
 
-    listener.onOnlineStateChanged(OnlineState.Healthy); // no event
+    listener.applyOnlineStateChange(OnlineState.Healthy); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.onOnlineStateChanged(OnlineState.Failed); // event
-    listener.onOnlineStateChanged(OnlineState.Healthy); // no event
-    listener.onOnlineStateChanged(OnlineState.Failed); // no event
+    listener.applyOnlineStateChange(OnlineState.Failed); // event
+    listener.applyOnlineStateChange(OnlineState.Healthy); // no event
+    listener.applyOnlineStateChange(OnlineState.Failed); // no event
     listener.onViewSnapshot(snap2); // another event
 
     const expectedSnap1 = {
@@ -499,9 +499,9 @@ describe('QueryListener', () => {
     const changes1 = view.computeDocChanges(documentUpdates());
     const snap1 = view.applyChanges(changes1).snapshot!;
 
-    listener.onOnlineStateChanged(OnlineState.Healthy); // no event
+    listener.applyOnlineStateChange(OnlineState.Healthy); // no event
     listener.onViewSnapshot(snap1); // no event
-    listener.onOnlineStateChanged(OnlineState.Failed); // event
+    listener.applyOnlineStateChange(OnlineState.Failed); // event
 
     const expectedSnap = {
       query,
@@ -525,7 +525,7 @@ describe('QueryListener', () => {
     const changes1 = view.computeDocChanges(documentUpdates());
     const snap1 = view.applyChanges(changes1).snapshot!;
 
-    listener.onOnlineStateChanged(OnlineState.Failed);
+    listener.applyOnlineStateChange(OnlineState.Failed);
     listener.onViewSnapshot(snap1);
 
     const expectedSnap = {

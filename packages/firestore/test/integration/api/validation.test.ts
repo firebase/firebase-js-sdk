@@ -241,6 +241,28 @@ apiDescribe('Validation:', persistence => {
     );
   });
 
+  validationIt(persistence, 'Snapshot options are validated', db => {
+    const docRef = db.collection('test').doc();
+
+    return docRef
+      .set({ test: 1 })
+      .then(() => {
+        return docRef.get();
+      })
+      .then(snapshot => {
+        expect(() => snapshot.get('test', { bad: true } as any)).to.throw(
+          `Unknown option 'bad' passed to function ` +
+            `DocumentSnapshot.get(). Available options: ` +
+            `serverTimestamps`
+        );
+        expect(() =>
+          snapshot.data({ serverTimestamps: 'foo' } as any)
+        ).to.throw(
+          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: "estimate", "previous", "none"`
+        );
+      });
+  });
+
   describe('Writes', () => {
     /** Class used to verify custom classes can't be used in writes. */
     class TestClass {
