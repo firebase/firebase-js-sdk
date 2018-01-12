@@ -72,7 +72,7 @@ export abstract class Path {
     return this.len;
   }
 
-  equals(other: Path): boolean {
+  isEqual(other: Path): boolean {
     return Path.comparator(this, other) === 0;
   }
 

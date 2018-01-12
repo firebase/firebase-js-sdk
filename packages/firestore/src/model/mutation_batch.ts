@@ -57,7 +57,7 @@ export class MutationBatch {
   ): MaybeDocument | null {
     if (maybeDoc) {
       assert(
-        maybeDoc.key.equals(docKey),
+        maybeDoc.key.isEqual(docKey),
         `applyToRemoteDocument: key ${docKey} should match maybeDoc key
         ${maybeDoc.key}`
       );
@@ -73,7 +73,7 @@ export class MutationBatch {
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
-      if (mutation.key.equals(docKey)) {
+      if (mutation.key.isEqual(docKey)) {
         const mutationResult = mutationResults[i];
         maybeDoc = mutation.applyToRemoteDocument(maybeDoc, mutationResult);
       }
@@ -94,7 +94,7 @@ export class MutationBatch {
   ): MaybeDocument | null {
     if (maybeDoc) {
       assert(
-        maybeDoc.key.equals(docKey),
+        maybeDoc.key.isEqual(docKey),
         `applyToLocalDocument: key ${docKey} should match maybeDoc key
         ${maybeDoc.key}`
       );
@@ -103,7 +103,7 @@ export class MutationBatch {
 
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
-      if (mutation.key.equals(docKey)) {
+      if (mutation.key.isEqual(docKey)) {
         maybeDoc = mutation.applyToLocalView(
           maybeDoc,
           baseDoc,
@@ -123,7 +123,7 @@ export class MutationBatch {
     return keySet;
   }
 
-  equals(other: MutationBatch): boolean {
+  isEqual(other: MutationBatch): boolean {
     return (
       this.batchId === other.batchId &&
       misc.arrayEquals(this.mutations, other.mutations)

@@ -139,8 +139,8 @@ export class ResetMapping {
     this.docs = this.docs.delete(key);
   }
 
-  equals(other: ResetMapping): boolean {
-    return other !== null && this.docs.equals(other.docs);
+  isEqual(other: ResetMapping): boolean {
+    return other !== null && this.docs.isEqual(other.docs);
   }
 }
 
@@ -165,11 +165,11 @@ export class UpdateMapping {
     this.removedDocuments = this.removedDocuments.add(key);
   }
 
-  equals(other: UpdateMapping): boolean {
+  isEqual(other: UpdateMapping): boolean {
     return (
       other !== null &&
-      this.addedDocuments.equals(other.addedDocuments) &&
-      this.removedDocuments.equals(other.removedDocuments)
+      this.addedDocuments.isEqual(other.addedDocuments) &&
+      this.removedDocuments.isEqual(other.removedDocuments)
     );
   }
 }

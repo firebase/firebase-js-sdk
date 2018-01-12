@@ -112,7 +112,7 @@ export abstract class FieldValue {
   readonly typeOrder: TypeOrder;
 
   abstract value(options?: FieldValueOptions): FieldType;
-  abstract equals(other: FieldValue): boolean;
+  abstract isEqual(other: FieldValue): boolean;
   abstract compareTo(other: FieldValue): number;
 
   toString(): string {
@@ -145,7 +145,7 @@ export class NullValue extends FieldValue {
     return null;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return other instanceof NullValue;
   }
 
@@ -170,7 +170,7 @@ export class BooleanValue extends FieldValue {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof BooleanValue &&
       this.internalValue === other.internalValue
@@ -251,9 +251,9 @@ export class IntegerValue extends NumberValue {
     super(internalValue);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
-    // but that doesn't make them equal via equals().
+    // but that doesn't make them equal via isEqual().
     if (other instanceof IntegerValue) {
       return numericEquals(this.internalValue, other.internalValue);
     } else {
@@ -273,9 +273,9 @@ export class DoubleValue extends NumberValue {
   static POSITIVE_INFINITY = new DoubleValue(Infinity);
   static NEGATIVE_INFINITY = new DoubleValue(-Infinity);
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
-    // but that doesn't make them equal via equals().
+    // but that doesn't make them equal via isEqual().
     if (other instanceof DoubleValue) {
       return numericEquals(this.internalValue, other.internalValue);
     } else {
@@ -298,7 +298,7 @@ export class StringValue extends FieldValue {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof StringValue && this.internalValue === other.internalValue
     );
@@ -323,10 +323,10 @@ export class TimestampValue extends FieldValue {
     return this.internalValue.toDate();
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof TimestampValue &&
-      this.internalValue.equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -382,10 +382,10 @@ export class ServerTimestampValue extends FieldValue {
     }
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof ServerTimestampValue &&
-      this.localWriteTime.equals(other.localWriteTime)
+      this.localWriteTime.isEqual(other.localWriteTime)
     );
   }
 
@@ -416,10 +416,10 @@ export class BlobValue extends FieldValue {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof BlobValue &&
-      this.internalValue._equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -442,10 +442,10 @@ export class RefValue extends FieldValue {
     return this.key;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof RefValue) {
       return (
-        this.key.equals(other.key) && this.databaseId.equals(other.databaseId)
+        this.key.isEqual(other.key) && this.databaseId.isEqual(other.databaseId)
       );
     } else {
       return false;
@@ -472,10 +472,10 @@ export class GeoPointValue extends FieldValue {
     return this.internalValue;
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     return (
       other instanceof GeoPointValue &&
-      this.internalValue._equals(other.internalValue)
+      this.internalValue.isEqual(other.internalValue)
     );
   }
 
@@ -506,14 +506,14 @@ export class ObjectValue extends FieldValue {
     this.internalValue.inorderTraversal(action);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof ObjectValue) {
       const it1 = this.internalValue.getIterator();
       const it2 = other.internalValue.getIterator();
       while (it1.hasNext() && it2.hasNext()) {
         const next1: { key: string; value: FieldValue } = it1.getNext();
         const next2: { key: string; value: FieldValue } = it2.getNext();
-        if (next1.key !== next2.key || !next1.value.equals(next2.value)) {
+        if (next1.key !== next2.key || !next1.value.isEqual(next2.value)) {
           return false;
         }
       }
@@ -631,14 +631,14 @@ export class ArrayValue extends FieldValue {
     this.internalValue.forEach(action);
   }
 
-  equals(other: FieldValue): boolean {
+  isEqual(other: FieldValue): boolean {
     if (other instanceof ArrayValue) {
       if (this.internalValue.length !== other.internalValue.length) {
         return false;
       }
 
       for (let i = 0; i < this.internalValue.length; i++) {
-        if (!this.internalValue[i].equals(other.internalValue[i])) {
+        if (!this.internalValue[i].isEqual(other.internalValue[i])) {
           return false;
         }
       }

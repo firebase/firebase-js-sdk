@@ -71,7 +71,7 @@ export class Query {
         assert(
           inequalityField === null ||
             (firstOrderByField !== null &&
-              inequalityField.equals(firstOrderByField)),
+              inequalityField.isEqual(firstOrderByField)),
           'First orderBy should match inequality field.'
         );
         this.memoizedOrderBy = [];
@@ -105,7 +105,7 @@ export class Query {
       this.getInequalityFilterField() == null ||
         !(filter instanceof RelationFilter) ||
         !filter.isInequality() ||
-        filter.field.equals(this.getInequalityFilterField()!),
+        filter.field.isEqual(this.getInequalityFilterField()!),
       'Query must only have one inequality field.'
     );
 
@@ -230,7 +230,7 @@ export class Query {
     return str + ')';
   }
 
-  equals(other: Query): boolean {
+  isEqual(other: Query): boolean {
     if (this.limit !== other.limit) {
       return false;
     }
@@ -240,7 +240,7 @@ export class Query {
     }
 
     for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].equals(other.orderBy[i])) {
+      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
         return false;
       }
     }
@@ -250,25 +250,25 @@ export class Query {
     }
 
     for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].equals(other.filters[i])) {
+      if (!this.filters[i].isEqual(other.filters[i])) {
         return false;
       }
     }
 
-    if (!this.path.equals(other.path)) {
+    if (!this.path.isEqual(other.path)) {
       return false;
     }
 
     if (
       this.startAt !== null
-        ? !this.startAt.equals(other.startAt)
+        ? !this.startAt.isEqual(other.startAt)
         : other.startAt !== null
     ) {
       return false;
     }
 
     return this.endAt !== null
-      ? this.endAt.equals(other.endAt)
+      ? this.endAt.isEqual(other.endAt)
       : other.endAt === null;
   }
 
@@ -323,7 +323,7 @@ export class Query {
     const docPath = doc.key.path;
     if (DocumentKey.isDocumentKey(this.path)) {
       // exact match for document queries
-      return this.path.equals(docPath);
+      return this.path.isEqual(docPath);
     } else {
       // shallow ancestor queries by default
       return (
@@ -382,7 +382,7 @@ export class Query {
 export interface Filter {
   matches(doc: Document): boolean;
   canonicalId(): string;
-  equals(filter: Filter): boolean;
+  isEqual(filter: Filter): boolean;
 }
 
 export class RelationOp {
@@ -415,7 +415,7 @@ export class RelationOp {
     return this.name;
   }
 
-  equals(other: RelationOp): boolean {
+  isEqual(other: RelationOp): boolean {
     return this.name === other.name;
   }
 }
@@ -480,12 +480,12 @@ export class RelationFilter implements Filter {
     );
   }
 
-  equals(other: Filter): boolean {
+  isEqual(other: Filter): boolean {
     if (other instanceof RelationFilter) {
       return (
-        this.op.equals(other.op) &&
-        this.field.equals(other.field) &&
-        this.value.equals(other.value)
+        this.op.isEqual(other.op) &&
+        this.field.isEqual(other.field) &&
+        this.value.isEqual(other.value)
       );
     } else {
       return false;
@@ -516,9 +516,9 @@ export class NullFilter implements Filter {
     return `${this.field.canonicalString()} IS null`;
   }
 
-  equals(other: Filter): boolean {
+  isEqual(other: Filter): boolean {
     if (other instanceof NullFilter) {
-      return this.field.equals(other.field);
+      return this.field.isEqual(other.field);
     } else {
       return false;
     }
@@ -544,9 +544,9 @@ export class NanFilter implements Filter {
     return `${this.field.canonicalString()} IS NaN`;
   }
 
-  equals(other: Filter): boolean {
+  isEqual(other: Filter): boolean {
     if (other instanceof NanFilter) {
-      return this.field.equals(other.field);
+      return this.field.isEqual(other.field);
     } else {
       return false;
     }
@@ -561,7 +561,7 @@ export function fieldFilter(
   op: RelationOp,
   value: FieldValue
 ) {
-  if (value.equals(NullValue.INSTANCE)) {
+  if (value.isEqual(NullValue.INSTANCE)) {
     if (op !== RelationOp.EQUAL) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -569,7 +569,7 @@ export function fieldFilter(
       );
     }
     return new NullFilter(field);
-  } else if (value.equals(DoubleValue.NAN)) {
+  } else if (value.isEqual(DoubleValue.NAN)) {
     if (op !== RelationOp.EQUAL) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -662,7 +662,7 @@ export class Bound {
     return this.before ? comparison <= 0 : comparison < 0;
   }
 
-  equals(other: Bound | null): boolean {
+  isEqual(other: Bound | null): boolean {
     if (other === null) {
       return false;
     }
@@ -675,7 +675,7 @@ export class Bound {
     for (let i = 0; i < this.position.length; i++) {
       const thisPosition = this.position[i];
       const otherPosition = other.position[i];
-      return thisPosition.equals(otherPosition);
+      return thisPosition.isEqual(otherPosition);
     }
     return true;
   }
@@ -719,8 +719,8 @@ export class OrderBy {
     return `${this.field.canonicalString()} (${this.dir})`;
   }
 
-  equals(other: OrderBy): boolean {
-    return this.dir === other.dir && this.field.equals(other.field);
+  isEqual(other: OrderBy): boolean {
+    return this.dir === other.dir && this.field.isEqual(other.field);
   }
 }
 

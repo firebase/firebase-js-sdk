@@ -238,7 +238,7 @@ export class MemoryMutationQueue implements MutationQueue {
     const result: MutationBatch[] = [];
     this.batchesByDocumentKey.forEachInRange([start, end], ref => {
       assert(
-        documentKey.equals(ref.key),
+        documentKey.isEqual(ref.key),
         "Should only iterate over a single key's batches"
       );
       const batch = this.findMutationBatch(ref.targetOrBatchId);
@@ -387,7 +387,7 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<boolean> {
     const ref = new DocReference(key, 0);
     const firstRef = this.batchesByDocumentKey.firstAfterOrEqual(ref);
-    return PersistencePromise.resolve(key.equals(firstRef && firstRef.key));
+    return PersistencePromise.resolve(key.isEqual(firstRef && firstRef.key));
   }
 
   performConsistencyCheck(

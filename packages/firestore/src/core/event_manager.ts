@@ -200,15 +200,15 @@ export class QueryListener {
           docChanges.push(docChange);
         }
       }
-      snap = {
-        query: snap.query,
-        docs: snap.docs,
-        oldDocs: snap.oldDocs,
+      snap = new ViewSnapshot(
+        snap.query,
+        snap.docs,
+        snap.oldDocs,
         docChanges,
-        fromCache: snap.fromCache,
-        hasPendingWrites: snap.hasPendingWrites,
-        syncStateChanged: snap.syncStateChanged
-      };
+        snap.fromCache,
+        snap.hasPendingWrites,
+        snap.syncStateChanged
+      );
     }
 
     if (!this.raisedInitialEvent) {
@@ -294,15 +294,15 @@ export class QueryListener {
       !this.raisedInitialEvent,
       'Trying to raise initial events for second time'
     );
-    snap = {
-      query: snap.query,
-      docs: snap.docs,
-      oldDocs: DocumentSet.emptySet(snap.docs),
-      docChanges: QueryListener.getInitialViewChanges(snap),
-      fromCache: snap.fromCache,
-      hasPendingWrites: snap.hasPendingWrites,
-      syncStateChanged: true
-    };
+    snap = new ViewSnapshot(
+      snap.query,
+      snap.docs,
+      DocumentSet.emptySet(snap.docs),
+      QueryListener.getInitialViewChanges(snap),
+      snap.fromCache,
+      snap.hasPendingWrites,
+      true
+    );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);
   }

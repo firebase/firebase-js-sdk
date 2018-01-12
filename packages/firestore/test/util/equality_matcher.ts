@@ -18,8 +18,8 @@ import { use } from 'chai';
 
 /**
  * @file This file provides a helper function to add a matcher that matches
- * based on an objects equals method.  If the equals method is present one
- * either object it is used to determine equality, else mocha's default equals
+ * based on an objects isEqual method.  If the isEqual method is present one
+ * either object it is used to determine equality, else mocha's default isEqual
  * implementation is used.
  */
 
@@ -27,11 +27,7 @@ function customDeepEqual(left, right) {
   /**
    * START: Custom compare logic
    */
-  // Internally we use .equals(), but our public API uses .isEqual() so
-  // we handle both.
-  if (left && typeof left.equals === 'function') return left.equals(right);
   if (left && typeof left.isEqual === 'function') return left.isEqual(right);
-  if (right && typeof right.equals === 'function') return right.equals(left);
   if (right && typeof right.isEqual === 'function') return right.isEqual(left);
   /**
    * END: Custom compare logic

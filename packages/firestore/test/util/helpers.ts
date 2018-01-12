@@ -343,7 +343,7 @@ export function updateMapping(
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ProtoByteString {
-  if (snapshotVersion.equals(SnapshotVersion.MIN)) {
+  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
     return emptyByteString();
   } else {
     return snapshotVersion.toString();
@@ -473,29 +473,29 @@ type MochaTestRunner = (
 ) => Mocha.ITest;
 
 /**
- * Two helper functions to simplify testing equals() method.
+ * Two helper functions to simplify testing isEqual() method.
  */
-// tslint:disable-next-line:no-any so we can dynamically call .equals().
+// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
 export function expectEqual<T>(left: any, right: any, message?: string): void {
   message = message || '';
-  if (typeof left.equals !== 'function') {
+  if (typeof left.isEqual !== 'function') {
     return fail(
-      JSON.stringify(left) + ' does not support equals (left) ' + message
+      JSON.stringify(left) + ' does not support isEqual (left) ' + message
     );
   }
-  if (typeof right.equals !== 'function') {
+  if (typeof right.isEqual !== 'function') {
     return fail(
-      JSON.stringify(right) + ' does not support equals (right) ' + message
+      JSON.stringify(right) + ' does not support isEqual (right) ' + message
     );
   }
-  expect(left.equals(right)).to.equal(true, message);
-  expect(right.equals(left)).to.equal(true, message);
+  expect(left.isEqual(right)).to.equal(true, message);
+  expect(right.isEqual(left)).to.equal(true, message);
 }
 
-// tslint:disable-next-line:no-any so we can dynamically call .equals().
+// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
 export function expectNotEqual(left: any, right: any, message?: string): void {
-  expect(left.equals(right)).to.equal(false, message || '');
-  expect(right.equals(left)).to.equal(false, message || '');
+  expect(left.isEqual(right)).to.equal(false, message || '');
+  expect(right.isEqual(left)).to.equal(false, message || '');
 }
 
 export function expectEqualArrays(
@@ -618,7 +618,7 @@ export function expectEqualitySets<T>(
             expectedComparison,
             'Expected (' +
               elem +
-              ').equals(' +
+              ').isEqual(' +
               otherElem +
               ').to.equal(' +
               expectedComparison +
