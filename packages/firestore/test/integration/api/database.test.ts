@@ -204,7 +204,9 @@ apiDescribe('Database', persistence => {
           () => Promise.reject('update should have failed.'),
           (err: firestore.FirestoreError) => {
             expect(err.message).to.exist;
-            expect(err.message).to.contain('no entity to update');
+            // TODO: Change this to just match "no document to update" once the
+            // backend response is consistent.
+            expect(err.message).to.match(/no (document|entity) to update/);
             expect(err.code).to.equal('not-found');
           }
         )
