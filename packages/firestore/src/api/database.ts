@@ -186,7 +186,7 @@ class FirestoreConfig {
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
-  public readonly _databaseId: DatabaseId;
+  readonly _databaseId: DatabaseId;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -196,7 +196,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
   private _queue = new AsyncQueue();
-  public _dataConverter: UserDataConverter;
+  _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
@@ -1003,7 +1003,7 @@ class SnapshotMetadata implements firestore.SnapshotMetadata {
     readonly fromCache: boolean
   ) {}
 
-  public isEqual(other: firestore.SnapshotMetadata): boolean {
+  isEqual(other: firestore.SnapshotMetadata): boolean {
     return (
       this.hasPendingWrites === other.hasPendingWrites &&
       this.fromCache === other.fromCache
@@ -1074,7 +1074,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     );
   }
 
-  public isEqual(other: firestore.DocumentSnapshot): boolean {
+  isEqual(other: firestore.DocumentSnapshot): boolean {
     if (!(other instanceof DocumentSnapshot)) {
       throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
     }
@@ -1693,7 +1693,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   }
 
   /** Check the equality. The call can be very expensive. */
-  public isEqual(other: firestore.QuerySnapshot): boolean {
+  isEqual(other: firestore.QuerySnapshot): boolean {
     if (!(other instanceof QuerySnapshot)) {
       throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
     }

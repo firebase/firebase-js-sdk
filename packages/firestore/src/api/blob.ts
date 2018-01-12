@@ -95,13 +95,13 @@ export class Blob {
     return new Blob(binaryString);
   }
 
-  public toBase64(): string {
+  toBase64(): string {
     validateExactNumberOfArgs('Blob.toBase64', arguments, 0);
     assertBase64Available();
     return PlatformSupport.getPlatform().btoa(this._binaryString);
   }
 
-  public toUint8Array(): Uint8Array {
+  toUint8Array(): Uint8Array {
     validateExactNumberOfArgs('Blob.toUint8Array', arguments, 0);
     assertUint8ArrayAvailable();
     const buffer = new Uint8Array(this._binaryString.length);
@@ -111,11 +111,11 @@ export class Blob {
     return buffer;
   }
 
-  public toString(): string {
+  toString(): string {
     return 'Blob(base64: ' + this.toBase64() + ')';
   }
 
-  public isEqual(other: Blob): boolean {
+  isEqual(other: Blob): boolean {
     return this._binaryString === other._binaryString;
   }
 
@@ -123,7 +123,7 @@ export class Blob {
    * Actually private to JS consumers of our API, so this function is prefixed
    * with an underscore.
    */
-  public _compareTo(other: Blob): number {
+  _compareTo(other: Blob): number {
     return primitiveComparator(this._binaryString, other._binaryString);
   }
 }

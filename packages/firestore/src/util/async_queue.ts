@@ -36,7 +36,7 @@ export class AsyncQueue {
   // (i.e. it has a delay that has not yet elapsed). Prior to cleanup, this list
   // may also contain entries that have already been run (in which case `handle` is
   // null).
-  private delayedOperations: DelayedOperation<AnyJs>[] = [];
+  private delayedOperations: Array<DelayedOperation<AnyJs>> = [];
 
   // The number of operations that are queued to be run in the future (i.e. they
   // have a delay that has not yet elapsed). Unlike `delayedOperations`, this
@@ -71,7 +71,7 @@ export class AsyncQueue {
       this.delayedOperationsCount++;
       const delayedOp: DelayedOperation<T> = {
         handle: null,
-        op: op,
+        op,
         deferred: new Deferred<T>()
       };
       delayedOp.handle = setTimeout(() => {

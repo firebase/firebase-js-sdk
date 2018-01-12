@@ -275,7 +275,7 @@ export function addTargetMapping(
     mapping.addedDocuments = mapping.addedDocuments.add(k);
   }
   return {
-    mapping: mapping,
+    mapping,
     snapshotVersion: SnapshotVersion.MIN,
     resumeToken: emptyByteString(),
     currentStatusUpdate: CurrentStatusUpdate.None

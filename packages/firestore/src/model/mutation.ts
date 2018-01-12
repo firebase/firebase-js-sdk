@@ -107,8 +107,8 @@ export class Precondition {
   static readonly NONE = new Precondition();
 
   private constructor(
-    public readonly updateTime?: SnapshotVersion,
-    public readonly exists?: boolean
+    readonly updateTime?: SnapshotVersion,
+    readonly exists?: boolean
   ) {
     assert(
       updateTime === undefined || exists === undefined,

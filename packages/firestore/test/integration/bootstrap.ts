@@ -22,8 +22,8 @@ import '../../index';
  * Taken from karma-webpack source:
  * https://github.com/webpack-contrib/karma-webpack#alternative-usage
  */
-var testsContext = (require as any).context('.', true, /.test$/);
-var browserTests = testsContext
+const testsContext = (require as any).context('.', true, /.test$/);
+const browserTests = testsContext
   .keys()
   .filter(file => file.indexOf('/node/') < 0);
 browserTests.forEach(testsContext);

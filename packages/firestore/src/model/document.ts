@@ -95,7 +95,7 @@ export class NoDocument {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
-  public isEqual(other: NoDocument): boolean {
+  isEqual(other: NoDocument): boolean {
     return (
       other &&
       other.version.isEqual(this.version) &&

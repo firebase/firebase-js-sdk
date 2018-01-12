@@ -50,7 +50,7 @@ export function forEachNumber<V>(
 ): void {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const num = parseInt(key, 10);
+      const num = Number(key);
       if (!isNaN(num)) {
         fn(num, obj[key]);
       }

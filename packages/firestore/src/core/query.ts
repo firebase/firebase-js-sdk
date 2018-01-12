@@ -688,7 +688,7 @@ export class OrderBy {
   readonly dir: Direction;
   private readonly isKeyOrderBy: boolean;
 
-  constructor(public readonly field: FieldPath, dir?: Direction) {
+  constructor(readonly field: FieldPath, dir?: Direction) {
     if (dir === undefined) {
       dir = Direction.ASCENDING;
     }
