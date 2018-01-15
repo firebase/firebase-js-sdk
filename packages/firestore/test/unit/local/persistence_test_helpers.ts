@@ -19,6 +19,11 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {PersistedWebStorage, WebStorage} from '../../../src/local/web_storage';
+import {AutoId} from '../../../src/util/misc';
+import {AsyncQueue} from '../../../src/util/async_queue';
+
+export const testPersistencePrefix = 'PersistenceTestHelpers';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -27,13 +32,13 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 export async function testIndexedDbPersistence(): Promise<
   IndexedDbPersistence
 > {
-  const prefix = 'PersistenceTestHelpers/';
+  const prefix = '${testPersistencePrefix}/';
   await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
-  const persistence = new IndexedDbPersistence(prefix, serializer);
+  const persistence = new IndexedDbPersistence(prefix, AutoId.newId(), serializer);
   await persistence.start();
   return persistence;
 }
@@ -41,6 +46,17 @@ export async function testIndexedDbPersistence(): Promise<
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   const persistence = new MemoryPersistence();
+  await persistence.start();
+  return persistence;
+}
+
+/**
+ * Creates and starts an IndexedDbPersistence instance for testing, destroying
+ * any previous contents if they existed.
+ */
+export async function testWebStoragePersistence(ownerId: string): Promise<WebStorage> {
+  window.localStorage.clear();
+  const persistence = new PersistedWebStorage(new AsyncQueue(), testPersistencePrefix, ownerId);
   await persistence.start();
   return persistence;
 }

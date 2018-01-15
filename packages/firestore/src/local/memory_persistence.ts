@@ -26,6 +26,7 @@ import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import {NoOpWebStorage, PersistedWebStorage, WebStorage} from './web_storage';
 
 const LOG_TAG = 'MemoryPersistence';
 

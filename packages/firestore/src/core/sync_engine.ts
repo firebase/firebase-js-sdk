@@ -42,7 +42,10 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
+import {
+  BatchId, OnlineState, ProtoByteString, TargetId,
+  VisibilityState
+} from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -51,6 +54,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import {WebStorage} from '../local/web_storage';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -122,11 +126,12 @@ export class SyncEngine implements RemoteSyncer {
   };
   private targetIdGenerator = TargetIdGenerator.forSyncEngine();
 
-  constructor(
-    private localStore: LocalStore,
-    private remoteStore: RemoteStore,
-    private currentUser: User
-  ) {}
+  private visibilityState: VisibilityState = VisibilityState.Unknown;
+
+  constructor(private localStore: LocalStore,
+              private remoteStore: RemoteStore,
+              private webStorage: WebStorage
+      , private currentUser: User) {}
 
   /** Subscribes view and error handler. Can be called only once. */
   subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
@@ -615,5 +620,10 @@ export class SyncEngine implements RemoteSyncer {
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  applyVisibilityChange(visibilityState: VisibilityState) {
+    this.visibilityState = visibilityState;
+    this.webStorage.setVisibility(visibilityState);
   }
 }

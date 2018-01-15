@@ -72,7 +72,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
+import {AnyDuringMigration, AnyJs, AutoId} from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -88,6 +88,7 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
+import {NoOpWebStorage, WebStorage} from '../../../src/local/web_storage';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -336,6 +337,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
+  private webStorage: WebStorage;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -392,17 +394,14 @@ abstract class TestRunner {
       this.datastore,
       onlineStateChangedHandler
     );
+    this.webStorage = new NoOpWebStorage();
 
-    this.syncEngine = new SyncEngine(
-      this.localStore,
-      this.remoteStore,
-      this.user
-    );
+    this.syncEngine = new SyncEngine(this.localStore, this.remoteStore, this.webStorage, this.user);
 
     // Setup wiring between sync engine and remote store
     this.remoteStore.syncEngine = this.syncEngine;
 
-    this.eventManager = new EventManager(this.syncEngine);
+    this.eventManager = new EventManager(this.queue, this.syncEngine);
   }
 
   private getGarbageCollector(): GarbageCollector {
@@ -1016,6 +1015,7 @@ class IndexedDbTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
+      AutoId.newId(),
       serializer
     );
   }

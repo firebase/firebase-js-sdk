@@ -63,7 +63,7 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query);
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(syncEngineSpy.listen.calledWith(query)).to.be.true;
@@ -82,7 +82,7 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
     eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
   });
@@ -106,7 +106,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     eventManager.listen(fakeListener2);
@@ -135,7 +135,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(syncEngineSpy);
+    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);

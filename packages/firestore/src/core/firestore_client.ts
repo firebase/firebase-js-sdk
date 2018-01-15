@@ -45,6 +45,11 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  NoOpWebStorage, PersistedWebStorage,
+  WebStorage
+} from '../local/web_storage';
+import {AutoId} from '../util/misc';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -65,7 +70,10 @@ export class FirestoreClient {
   private persistence: Persistence;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
+  private webStorage: WebStorage;
   private syncEngine: SyncEngine;
+  private ownerId: string = this.generateOwnerId();
+
 
   constructor(
     private platform: Platform,
@@ -241,8 +249,9 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new IndexedDbPersistence(storagePrefix, serializer);
-    return this.persistence.start();
+    this.webStorage = new PersistedWebStorage(this.asyncQueue,storagePrefix, this.ownerId);
+    this.persistence = new IndexedDbPersistence(storagePrefix, this.ownerId, serializer);
+    return this.webStorage.start().then(() => this.persistence.start());
   }
 
   /**
@@ -253,6 +262,7 @@ export class FirestoreClient {
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
     this.persistence = new MemoryPersistence();
+    this.webStorage = new NoOpWebStorage();
     return this.persistence.start();
   }
 
@@ -292,16 +302,12 @@ export class FirestoreClient {
           onlineStateChangedHandler
         );
 
-        this.syncEngine = new SyncEngine(
-          this.localStore,
-          this.remoteStore,
-          user
-        );
+        this.syncEngine = new SyncEngine(this.localStore, this.remoteStore, this.webStorage, user);
 
         // Setup wiring between sync engine and remote store
         this.remoteStore.syncEngine = this.syncEngine;
 
-        this.eventMgr = new EventManager(this.syncEngine);
+        this.eventMgr = new EventManager(this.asyncQueue, this.syncEngine);
 
         // NOTE: RemoteStore depends on LocalStore (for persisting stream
         // tokens, refilling mutation queue, etc.) so must be started after
@@ -336,6 +342,8 @@ export class FirestoreClient {
       .then(() => {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         return this.persistence.shutdown();
+      }).then(() => {
+        return this.webStorage.shutdown();
       });
   }
 
@@ -378,5 +386,10 @@ export class FirestoreClient {
       .then(() => {
         return this.syncEngine.runTransaction(updateFunction);
       });
+  }
+
+  private generateOwnerId(): string {
+    // For convenience, just use an AutoId.
+    return AutoId.newId();
   }
 }

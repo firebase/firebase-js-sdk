@@ -20,9 +20,12 @@ import { AnyDuringMigration, AnyJs } from './misc';
 import { Deferred } from './promise';
 import { Code, FirestoreError } from './error';
 
+
+// tslint:disable-next-line:no-any Accept any return type from setTimeout().
+type OperationHandle = any;
+
 type DelayedOperation<T> = {
-  // tslint:disable-next-line:no-any Accept any return type from setTimeout().
-  handle: any;
+  handle: OperationHandle;
   op: () => Promise<T>;
   deferred: Deferred<T>;
 };
@@ -44,6 +47,10 @@ export class AsyncQueue {
   //
   // Visible for testing.
   delayedOperationsCount = 0;
+
+  private intervalOperations: OperationHandle[];
+
+  intervalOperationsCount = 0;
 
   // visible for testing
   failure: Error;
@@ -92,6 +99,11 @@ export class AsyncQueue {
     } else {
       return this.scheduleInternal(op);
     }
+  }
+
+  scheduleRepeatedly<T>(op: () => Promise<T>, interval?: number) : void  {
+    this.intervalOperations.push(() => setInterval(() => this.scheduleInternal(op), interval));
+    ++this.intervalOperationsCount;
   }
 
   private scheduleInternal<T>(op: () => Promise<T>): Promise<T> {
@@ -163,6 +175,11 @@ export class AsyncQueue {
     });
     this.delayedOperations = [];
     this.delayedOperationsCount = 0;
+    this.intervalOperations.forEach( handle => {
+      clearInterval(handle);
+    });
+    this.intervalOperations = [];
+    this.intervalOperationsCount = 0;
     return this.schedule(() => Promise.resolve());
   }
 }

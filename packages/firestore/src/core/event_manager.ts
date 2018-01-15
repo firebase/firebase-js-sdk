@@ -16,7 +16,7 @@
 
 import { Query } from './query';
 import { SyncEngine } from './sync_engine';
-import { OnlineState, TargetId } from './types';
+import {OnlineState, TargetId, VisibilityState} from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
 import { DocumentSet } from '../model/document_set';
@@ -24,6 +24,7 @@ import { assert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
+import {AsyncQueue} from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -55,11 +56,34 @@ export class EventManager {
 
   private onlineState: OnlineState = OnlineState.Unknown;
 
-  constructor(private syncEngine: SyncEngine) {
+  constructor(private asyncQueue: AsyncQueue, private syncEngine: SyncEngine) {
     this.syncEngine.subscribe(
       this.onChange.bind(this),
       this.onError.bind(this)
     );
+    this.registerVisibilityListener();
+  }
+
+  private registerVisibilityListener() : boolean {
+    if (window) {
+      window.addEventListener("visibilityChange", () => {
+        let visibility = VisibilityState.Unknown;
+
+        if (window.document.visibilityState === "visible") {
+          visibility = VisibilityState.Foreground;
+        } else if (window.document.visibilityState === "hidden") {
+          visibility = VisibilityState.Background;
+        }
+
+        this.asyncQueue.schedule(() => {
+          this.syncEngine.applyVisibilityChange(VisibilityState.Unknown);
+          return Promise.resolve();
+        });
+      });
+      return true;
+    }
+
+    return false;
   }
 
   listen(listener: QueryListener): Promise<TargetId> {
