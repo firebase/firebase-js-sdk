@@ -61,7 +61,6 @@ export enum OnlineState {
   Failed
 }
 
-
 export enum VisibilityState {
   Unknown,
   Foreground,

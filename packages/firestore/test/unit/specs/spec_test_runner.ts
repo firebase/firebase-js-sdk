@@ -72,7 +72,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import {AnyDuringMigration, AnyJs, AutoId} from '../../../src/util/misc';
+import { AnyDuringMigration, AnyJs, AutoId } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -88,7 +88,7 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import {NoOpWebStorage, WebStorage} from '../../../src/local/web_storage';
+import { NoOpWebStorage, WebStorage } from '../../../src/local/web_storage';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -396,7 +396,12 @@ abstract class TestRunner {
     );
     this.webStorage = new NoOpWebStorage();
 
-    this.syncEngine = new SyncEngine(this.localStore, this.remoteStore, this.webStorage, this.user);
+    this.syncEngine = new SyncEngine(
+      this.localStore,
+      this.remoteStore,
+      this.webStorage,
+      this.user
+    );
 
     // Setup wiring between sync engine and remote store
     this.remoteStore.syncEngine = this.syncEngine;

@@ -46,10 +46,11 @@ import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
-  NoOpWebStorage, PersistedWebStorage,
+  NoOpWebStorage,
+  PersistedWebStorage,
   WebStorage
 } from '../local/web_storage';
-import {AutoId} from '../util/misc';
+import { AutoId } from '../util/misc';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -73,7 +74,6 @@ export class FirestoreClient {
   private webStorage: WebStorage;
   private syncEngine: SyncEngine;
   private ownerId: string = this.generateOwnerId();
-
 
   constructor(
     private platform: Platform,
@@ -249,8 +249,16 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.webStorage = new PersistedWebStorage(this.asyncQueue,storagePrefix, this.ownerId);
-    this.persistence = new IndexedDbPersistence(storagePrefix, this.ownerId, serializer);
+    this.webStorage = new PersistedWebStorage(
+      this.asyncQueue,
+      storagePrefix,
+      this.ownerId
+    );
+    this.persistence = new IndexedDbPersistence(
+      storagePrefix,
+      this.ownerId,
+      serializer
+    );
     return this.webStorage.start().then(() => this.persistence.start());
   }
 
@@ -302,7 +310,12 @@ export class FirestoreClient {
           onlineStateChangedHandler
         );
 
-        this.syncEngine = new SyncEngine(this.localStore, this.remoteStore, this.webStorage, user);
+        this.syncEngine = new SyncEngine(
+          this.localStore,
+          this.remoteStore,
+          this.webStorage,
+          user
+        );
 
         // Setup wiring between sync engine and remote store
         this.remoteStore.syncEngine = this.syncEngine;
@@ -342,7 +355,8 @@ export class FirestoreClient {
       .then(() => {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         return this.persistence.shutdown();
-      }).then(() => {
+      })
+      .then(() => {
         return this.webStorage.shutdown();
       });
   }

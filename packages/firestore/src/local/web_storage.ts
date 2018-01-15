@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import {Code, FirestoreError} from '../util/error';import {
-  VisibilityState
-} from '../core/types';
-import {assert} from '../util/assert';
-import {AsyncQueue} from '../util/async_queue';
-
+import { Code, FirestoreError } from '../util/error';
+import { VisibilityState } from '../core/types';
+import { assert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
 
 const WEB_STORAGE_REFRESH_INTERVAL_MS = 4000;
 const VISIBILITY_KEY = 'visibility';
@@ -35,8 +33,11 @@ export class PersistedWebStorage implements WebStorage {
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
 
-  constructor(private asyncQueue: AsyncQueue, private persistenceKey : string, private instanceId: string) {
-  }
+  constructor(
+    private asyncQueue: AsyncQueue,
+    private persistenceKey: string,
+    private instanceId: string
+  ) {}
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
@@ -46,8 +47,8 @@ export class PersistedWebStorage implements WebStorage {
   start(): Promise<void> {
     if (!PersistedWebStorage.isAvailable()) {
       const persistenceError = new FirestoreError(
-          Code.UNIMPLEMENTED,
-          'Local Storage is not available on this platform'
+        Code.UNIMPLEMENTED,
+        'Local Storage is not available on this platform'
       );
       return Promise.reject(persistenceError);
     }
@@ -58,7 +59,6 @@ export class PersistedWebStorage implements WebStorage {
     this.scheduleRefresh();
     return Promise.resolve();
   }
-
 
   shutdown(): Promise<void> {
     assert(!this.started, 'PersistedWebStorage shutdown without started');
@@ -71,33 +71,34 @@ export class PersistedWebStorage implements WebStorage {
     this.persistState();
   }
 
-  private scheduleRefresh() : void {
-      this.asyncQueue.scheduleRepeatedly(() => {
-        if (this.started) {
+  private scheduleRefresh(): void {
+    this.asyncQueue.scheduleRepeatedly(() => {
+      if (this.started) {
         this.persistState();
-          }
-        return Promise.resolve();
-      }, WEB_STORAGE_REFRESH_INTERVAL_MS);
+      }
+      return Promise.resolve();
+    }, WEB_STORAGE_REFRESH_INTERVAL_MS);
   }
 
-
-  private persistState() : void {
+  private persistState(): void {
     assert(!this.started, 'PersistedWebStorage not started');
-    this.localStorage[this.buildKey(VISIBILITY_KEY, this.persistenceKey, this.instanceId)] = this.buildValue({
-      visibilityState: this.visibilityState.toString(),
+    this.localStorage[
+      this.buildKey(VISIBILITY_KEY, this.persistenceKey, this.instanceId)
+    ] = this.buildValue({
+      visibilityState: this.visibilityState.toString()
     });
   }
 
-  private buildKey(...elements:string[]) : string {
+  private buildKey(...elements: string[]): string {
     elements.forEach(value => {
       assert(value.indexOf('_') === -1, "Key element cannot contain '_'");
     });
 
-    return elements.join("_");
+    return elements.join('_');
   }
 
-  private buildValue(data: { [key: string] :  string } ) : string {
-    const persistedData = Object.assign({lastUpdateTime: Date.now()}, data);
+  private buildValue(data: { [key: string]: string }): string {
+    const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);
   }
 }
@@ -106,8 +107,7 @@ export class NoOpWebStorage implements WebStorage {
   shutdown(): Promise<void> {
     return Promise.resolve();
   }
-  setVisibility(visibilityState: VisibilityState): void {
-  }
+  setVisibility(visibilityState: VisibilityState): void {}
   start(): Promise<void> {
     return Promise.resolve();
   }

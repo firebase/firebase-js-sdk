@@ -55,7 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import {WebStorage} from './web_storage';
+import { WebStorage } from './web_storage';
 
 const LOG_TAG = 'LocalStore';
 

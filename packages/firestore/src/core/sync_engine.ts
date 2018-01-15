@@ -43,7 +43,10 @@ import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
 import {
-  BatchId, OnlineState, ProtoByteString, TargetId,
+  BatchId,
+  OnlineState,
+  ProtoByteString,
+  TargetId,
   VisibilityState
 } from './types';
 import {
@@ -54,7 +57,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {WebStorage} from '../local/web_storage';
+import { WebStorage } from '../local/web_storage';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -128,10 +131,12 @@ export class SyncEngine implements RemoteSyncer {
 
   private visibilityState: VisibilityState = VisibilityState.Unknown;
 
-  constructor(private localStore: LocalStore,
-              private remoteStore: RemoteStore,
-              private webStorage: WebStorage
-      , private currentUser: User) {}
+  constructor(
+    private localStore: LocalStore,
+    private remoteStore: RemoteStore,
+    private webStorage: WebStorage,
+    private currentUser: User
+  ) {}
 
   /** Subscribes view and error handler. Can be called only once. */
   subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {

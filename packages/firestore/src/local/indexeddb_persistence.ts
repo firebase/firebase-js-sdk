@@ -34,7 +34,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbTransaction } from './simple_db';
-import {PersistedWebStorage, WebStorage} from './web_storage';
+import { PersistedWebStorage, WebStorage } from './web_storage';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -109,7 +109,11 @@ export class IndexedDbPersistence implements Persistence {
 
   private serializer: LocalSerializer;
 
-  constructor(prefix: string, private ownerId : string, serializer: JsonProtoSerializer) {
+  constructor(
+    prefix: string,
+    private ownerId: string,
+    serializer: JsonProtoSerializer
+  ) {
     this.dbName = prefix + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.localStoragePrefix = prefix;

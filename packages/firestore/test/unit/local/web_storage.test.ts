@@ -1,9 +1,12 @@
-import {IndexedDbPersistence} from '../../../src/local/indexeddb_persistence';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import * as persistenceHelpers from './persistence_test_helpers';
-import {PersistedWebStorage, WebStorage} from '../../../src/local/web_storage';
-import {VisibilityState} from '../../../src/core/types';
-import {AutoId} from '../../../src/util/misc';
-import {expect} from 'chai';
+import {
+  PersistedWebStorage,
+  WebStorage
+} from '../../../src/local/web_storage';
+import { VisibilityState } from '../../../src/core/types';
+import { AutoId } from '../../../src/util/misc';
+import { expect } from 'chai';
 
 /**
  * Copyright 2018 Google Inc.
@@ -23,14 +26,13 @@ import {expect} from 'chai';
 
 const ALLOWED_TIME_OFFSET_MS = 500;
 
-
 describe('WebStorageTests', () => {
   if (!PersistedWebStorage.isAvailable()) {
     console.warn('No WebStorage. Skipping WebStorageTests tests.');
     return;
   }
 
-  let webStorage : WebStorage;
+  let webStorage: WebStorage;
   let storage = window.localStorage;
   let ownerId;
 
@@ -41,13 +43,20 @@ describe('WebStorageTests', () => {
     });
   });
 
-  function assertInstanceState(key: string, expecetedContents: { [key:string] : string }) {
-    const actual = JSON.parse(storage[`${key}_${persistenceHelpers.testPersistencePrefix}_${ownerId}`]);
+  function assertInstanceState(
+    key: string,
+    expecetedContents: { [key: string]: string }
+  ) {
+    const actual = JSON.parse(
+      storage[`${key}_${persistenceHelpers.testPersistencePrefix}_${ownerId}`]
+    );
     expect(actual.lastUpdateTime).to.be.a('number');
-    expect(actual.lastUpdateTime).to.be.greaterThan(Date.now() - ALLOWED_TIME_OFFSET_MS);
+    expect(actual.lastUpdateTime).to.be.greaterThan(
+      Date.now() - ALLOWED_TIME_OFFSET_MS
+    );
     expect(actual.lastUpdateTime).to.be.at.most(Date.now());
 
-    Object.keys(expecetedContents).forEach((key) => {
+    Object.keys(expecetedContents).forEach(key => {
       expect(actual[key]).to.be.equal(expecetedContents[key]);
     });
   }
@@ -55,17 +64,17 @@ describe('WebStorageTests', () => {
   describe('persists visibility state', () => {
     it.only('unknown', () => {
       webStorage.setVisibility(VisibilityState.Unknown);
-      assertInstanceState('visibility',  { visibilityState: 'Unknown' });
+      assertInstanceState('visibility', { visibilityState: 'Unknown' });
     });
 
     it.only('foreground', () => {
       webStorage.setVisibility(VisibilityState.Foreground);
-      assertInstanceState('visibility',  { visibilityState: 'Foreground' });
+      assertInstanceState('visibility', { visibilityState: 'Foreground' });
     });
 
     it.only('background', () => {
       webStorage.setVisibility(VisibilityState.Background);
-      assertInstanceState('visibility',  { visibilityState: 'Background' });
+      assertInstanceState('visibility', { visibilityState: 'Background' });
     });
   });
 });
