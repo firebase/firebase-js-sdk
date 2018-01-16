@@ -1,30 +1,4 @@
 /**
- * Copyright 2017 Google Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import * as persistenceHelpers from './persistence_test_helpers';
-import {
-  PersistedWebStorage,
-  WebStorage
-} from '../../../src/local/web_storage';
-import { VisibilityState } from '../../../src/core/types';
-import { AutoId } from '../../../src/util/misc';
-import { expect } from 'chai';
-
-/**
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,6 +13,15 @@ import { expect } from 'chai';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import * as persistenceHelpers from './persistence_test_helpers';
+import {
+  PersistedWebStorage,
+  WebStorage
+} from '../../../src/local/web_storage';
+import { VisibilityState } from '../../../src/core/types';
+import { AutoId } from '../../../src/util/misc';
+import { expect } from 'chai';
 
 const ALLOWED_TIME_OFFSET_MS = 500;
 
