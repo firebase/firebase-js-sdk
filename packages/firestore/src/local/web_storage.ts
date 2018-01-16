@@ -21,9 +21,9 @@ import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
 
 /**
- * By default, we refresh the contents of WebStorage every four seconds.
+ * Refresh the contents of WebStorage every four seconds.
  */
-const DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
+const WEB_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
 
 // Prefix keys used in WebStorage.
 const VISIBILITY_PREFIX = 'visibility';
@@ -50,8 +50,8 @@ export interface WebStorage {
  * WebStorage class.
  *
  * Once started, PersistedWebStorage will rewrite its contents to Local Storage
- * every four seconds. Other clients may disregard its state after 5 seconds of
- * inactivity.
+ * every four seconds. Other clients may disregard its state after five seconds
+ * of inactivity.
  */
 export class PersistedWebStorage implements WebStorage {
   private localStorage: Storage;
@@ -61,14 +61,8 @@ export class PersistedWebStorage implements WebStorage {
   constructor(
     private persistenceKey: string,
     private instanceId: string,
-    private asyncQueue: AsyncQueue,
-    private refreshIntervalMs?: number
-  ) {
-    this.refreshIntervalMs =
-      refreshIntervalMs !== undefined
-        ? refreshIntervalMs
-        : DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS;
-  }
+    private asyncQueue: AsyncQueue
+  ) {}
 
   /** Returns true if LocalStorage is available in the current environment. */
   static isAvailable(): boolean {
@@ -110,7 +104,7 @@ export class PersistedWebStorage implements WebStorage {
         this.persistState();
       }
       return Promise.resolve();
-    }, this.refreshIntervalMs);
+    }, WEB_STORAGE_REFRESH_INTERVAL_MS);
   }
 
   /** Persists the entire known state. */
@@ -133,7 +127,7 @@ export class PersistedWebStorage implements WebStorage {
     return elements.join('_');
   }
 
-  /** JSON-encodes the provided valued and its current update time. */
+  /** JSON-encodes the provided value and its current update time. */
   private buildValue(data: { [key: string]: string }): string {
     const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);

@@ -29,9 +29,6 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
 
-/** WebStorage refresh interval used for tests. */
-export const TEST_WEB_STORAGE_REFRESH_INTERVAL_MS = 100;
-
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
  * any previous contents if they existed.
@@ -73,8 +70,7 @@ export async function testWebStoragePersistence(
   const persistence = new PersistedWebStorage(
     TEST_PERSISTENCE_PREFIX,
     ownerId,
-    queue,
-    TEST_WEB_STORAGE_REFRESH_INTERVAL_MS
+    queue
   );
   await persistence.start();
   return persistence;

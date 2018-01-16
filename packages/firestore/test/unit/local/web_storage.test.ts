@@ -23,8 +23,6 @@ import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { Deferred } from '../../../src/util/promise';
-
 const GRACE_INTERVAL_MS = 100;
 
 describe('WebStorageTests', () => {
@@ -53,7 +51,6 @@ describe('WebStorageTests', () => {
 
   afterEach(() => {
     queue.drain(/* executeDelayedTasks= */ false);
-    expect(queue.periodicOperationsCount).to.be.equal(0);
   });
 
   function assertInstanceState(
@@ -99,13 +96,10 @@ describe('WebStorageTests', () => {
     localStorage.clear();
 
     // Verify that the state is written again.
-    const deferred = new Deferred<void>();
-    setTimeout(() => {
-      // Note that LocalStorage observers can't be used here since they don't fire for changes
-      // in the originating tab.
+    // Note that LocalStorage observers can't be used here since they don't fire
+    // for changes in the originating tab. Instead, we drain the AsyncQueue.
+    return queue.drain(/* executeDelayedTasks= */ true).then(() => {
       assertInstanceState('visibility', { visibilityState: 'Foreground' });
-      deferred.resolve();
-    }, persistenceHelpers.TEST_WEB_STORAGE_REFRESH_INTERVAL_MS + GRACE_INTERVAL_MS);
-    return deferred.promise;
+    });
   });
 });
