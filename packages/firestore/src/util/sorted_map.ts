@@ -44,7 +44,10 @@ export class SortedMap<K, V> {
   // visible for testing
   root: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
 
-  constructor(public comparator: Comparator<K>, root?: LLRBNode<K, V> | LLRBEmptyNode<K, V>) {
+  constructor(
+    public comparator: Comparator<K>,
+    root?: LLRBNode<K, V> | LLRBEmptyNode<K, V>
+  ) {
     this.root = root ? root : LLRBNode.EMPTY;
   }
 
@@ -252,7 +255,6 @@ export class SortedMap<K, V> {
 
 // An iterator over an LLRBNode.
 export class SortedMapIterator<K, V, T> {
-
   private resultGenerator: ((k: K, v: V) => T) | null;
   private isReverse: boolean;
   private nodeStack: Array<LLRBNode<K, V> | LLRBEmptyNode<K, V>>;
@@ -299,7 +301,7 @@ export class SortedMapIterator<K, V, T> {
     }
   }
 
-  getNext(): T | Entry<K, V>  {
+  getNext(): T | Entry<K, V> {
     assert(
       this.nodeStack.length > 0,
       'getNext() called on iterator when hasNext() is false.'
@@ -546,7 +548,13 @@ export class LLRBNode<K, V> {
 
   private rotateLeft(): LLRBNode<K, V> {
     const nl = this.copy(null, null, LLRBNode.RED, null, this.right.left);
-    return (this.right as LLRBNode<K, V>).copy(null, null, this.color, nl, null) ;
+    return (this.right as LLRBNode<K, V>).copy(
+      null,
+      null,
+      this.color,
+      nl,
+      null
+    );
   }
 
   private rotateRight(): LLRBNode<K, V> {
