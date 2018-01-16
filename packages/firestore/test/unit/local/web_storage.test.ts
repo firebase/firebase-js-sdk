@@ -22,8 +22,10 @@ import {
 import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
+import {AsyncQueue} from '../../../src/util/async_queue';
+import {Deferred} from '../../../src/util/promise';
 
-const ALLOWED_TIME_OFFSET_MS = 500;
+const GRACE_INTERVAL_MS = 100;
 
 describe('WebStorageTests', () => {
   if (!PersistedWebStorage.isAvailable()) {
@@ -31,27 +33,37 @@ describe('WebStorageTests', () => {
     return;
   }
 
+  const localStorage = window.localStorage;
+
   let webStorage: WebStorage;
-  let storage = window.localStorage;
+  let queue: AsyncQueue;
   let ownerId;
 
   beforeEach(() => {
     ownerId = AutoId.newId();
-    return persistenceHelpers.testWebStoragePersistence(ownerId).then(ws => {
+    queue = new AsyncQueue();
+    expect(queue.periodicOperationsCount).to.be.equal(0);
+    return persistenceHelpers.testWebStoragePersistence(ownerId, queue).then(ws => {
       webStorage = ws;
+      expect(queue.periodicOperationsCount).to.be.equal(1);
     });
+  });
+
+  afterEach(() => {
+    queue.drain(/* executeDelayedTasks= */ false);
+    expect(queue.periodicOperationsCount).to.be.equal(0);
   });
 
   function assertInstanceState(
     key: string,
-    expectedContents: { [key: string]: string }
+    expectedContents: { [key: string]: string },
   ) {
     const actual = JSON.parse(
-      storage[`${key}_${persistenceHelpers.testPersistencePrefix}_${ownerId}`]
+        localStorage[`${key}_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`]
     );
     expect(actual.lastUpdateTime).to.be.a('number');
     expect(actual.lastUpdateTime).to.be.greaterThan(
-      Date.now() - ALLOWED_TIME_OFFSET_MS
+      Date.now() - GRACE_INTERVAL_MS
     );
     expect(actual.lastUpdateTime).to.be.at.most(Date.now());
 
@@ -61,19 +73,35 @@ describe('WebStorageTests', () => {
   }
 
   describe('persists visibility state', () => {
-    it.only('unknown', () => {
+    it('unknown', () => {
       webStorage.setVisibility(VisibilityState.Unknown);
       assertInstanceState('visibility', { visibilityState: 'Unknown' });
     });
 
-    it.only('foreground', () => {
+    it('foreground', () => {
       webStorage.setVisibility(VisibilityState.Foreground);
       assertInstanceState('visibility', { visibilityState: 'Foreground' });
     });
 
-    it.only('background', () => {
+    it('background', () => {
       webStorage.setVisibility(VisibilityState.Background);
       assertInstanceState('visibility', { visibilityState: 'Background' });
     });
+  });
+
+  it('refreshes state periodically', () => {
+    webStorage.setVisibility(VisibilityState.Foreground);
+    assertInstanceState('visibility', { visibilityState: 'Foreground' });
+    localStorage.clear();
+
+    // Verify that the state is written again.
+    const deferred = new Deferred<void>();
+    setTimeout(() => {
+      // Note that LocalStorage observers can't be used here since they don't fire for changes
+      // in the originating tab.
+      assertInstanceState('visibility', { visibilityState: 'Foreground' });
+      deferred.resolve();
+    }, persistenceHelpers.TEST_WEB_STORAGE_REFRESH_INTERVAL_MS + GRACE_INTERVAL_MS);
+    return deferred.promise;
   });
 });

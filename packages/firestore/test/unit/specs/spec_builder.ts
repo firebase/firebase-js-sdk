@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
-import { TargetId } from '../../../src/core/types';
+import { TargetId, VisibilityState } from '../../../src/core/types';
 import { Document, NoDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -31,7 +31,6 @@ import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
 import { RpcError } from './spec_rpc_error';
-import { VisibilityState } from '../../../src/core/types';
 import {
   runSpec,
   SpecConfig,
@@ -198,7 +197,7 @@ export class SpecBuilder {
   tabBecomesHidden(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      tabState: { visibility: 'background' }
+      metadataChange: { visibility: 'background' }
     };
     return this;
   }
@@ -206,7 +205,7 @@ export class SpecBuilder {
   tabBecomesVisible(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      tabState: { visibility: 'foreground' }
+      metadataChange: { visibility: 'foreground' }
     };
     return this;
   }

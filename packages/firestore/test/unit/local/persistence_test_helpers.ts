@@ -26,7 +26,11 @@ import {
 import { AutoId } from '../../../src/util/misc';
 import { AsyncQueue } from '../../../src/util/async_queue';
 
-export const testPersistencePrefix = 'PersistenceTestHelpers';
+/** The persistence prefix used for testing in IndexedBD and LocalStorage. */
+export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
+
+/** WebStorage refresh interval used for tests. */
+export const TEST_WEB_STORAGE_REFRESH_INTERVAL_MS = 100;
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -58,18 +62,15 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 /**
- * Creates and starts an IndexedDbPersistence instance for testing, destroying
+ * Creates and starts a PersistedWebStorage instance for testing, destroying
  * any previous contents if they existed.
  */
 export async function testWebStoragePersistence(
-  ownerId: string
+  ownerId: string,
+  queue: AsyncQueue
 ): Promise<WebStorage> {
   window.localStorage.clear();
-  const persistence = new PersistedWebStorage(
-    new AsyncQueue(),
-    testPersistencePrefix,
-    ownerId
-  );
+  const persistence = new PersistedWebStorage(TEST_PERSISTENCE_PREFIX, ownerId, queue, TEST_WEB_STORAGE_REFRESH_INTERVAL_MS);
   await persistence.start();
   return persistence;
 }

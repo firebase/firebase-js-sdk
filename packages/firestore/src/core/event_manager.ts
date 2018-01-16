@@ -65,7 +65,7 @@ export class EventManager {
   }
 
   private registerVisibilityListener(): boolean {
-    if (window) {
+    if (typeof window !== 'undefined') {
       window.addEventListener('visibilityChange', () => {
         let visibility = VisibilityState.Unknown;
 
@@ -76,7 +76,7 @@ export class EventManager {
         }
 
         this.asyncQueue.schedule(() => {
-          this.syncEngine.applyVisibilityChange(VisibilityState.Unknown);
+          this.syncEngine.applyVisibilityChange(visibility);
           return Promise.resolve();
         });
       });

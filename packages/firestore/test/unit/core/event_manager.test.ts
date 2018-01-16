@@ -27,6 +27,7 @@ import { View } from '../../../src/core/view';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentSet } from '../../../src/model/document_set';
+import {AsyncQueue} from '../../../src/util/async_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   ackTarget,
@@ -37,6 +38,8 @@ import {
 } from '../../util/helpers';
 
 describe('EventManager', () => {
+  const queue = new AsyncQueue();
+
   // tslint:disable-next-line:no-any mock object.
   function fakeQueryListener(query: Query): any {
     return {
@@ -63,7 +66,7 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query);
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
+    const eventManager = new EventManager(queue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(syncEngineSpy.listen.calledWith(query)).to.be.true;
@@ -82,7 +85,7 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
-    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
+    const eventManager = new EventManager(queue, syncEngineSpy);
     eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
   });
@@ -106,7 +109,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
+    const eventManager = new EventManager(queue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     eventManager.listen(fakeListener2);
@@ -135,7 +138,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(this.asyncQueue, syncEngineSpy);
+    const eventManager = new EventManager(queue, syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);

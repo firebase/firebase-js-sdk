@@ -20,7 +20,7 @@ import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 import { VisibilityState } from '../../../src/core/types';
 
-describeSpec('Multi-Tab:', ['multi-tab', 'exclusive'], () => {
+describeSpec('Multi-Tab:', ['multi-tab'], () => {
   specTest('Persists visibility state', [], () => {
     return spec()
       .tabBecomesVisible()

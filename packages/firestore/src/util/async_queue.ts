@@ -47,9 +47,8 @@ export class AsyncQueue {
   // Visible for testing.
   delayedOperationsCount = 0;
 
-  private repeatedOperations: OperationHandle[] = [];
-
-  repeatedOperationsCount = 0;
+  // A list with handles for periodically scheduled operations.
+  private periodicOperations: OperationHandle[] = [];
 
   // visible for testing
   failure: Error;
@@ -57,6 +56,15 @@ export class AsyncQueue {
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  /**
+   * The number of operations that are currently scheduled for periodic
+   * execution.
+   */
+  // visible for testing
+  get periodicOperationsCount() : number {
+    return this.periodicOperations.length;
+  }
 
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
@@ -100,11 +108,9 @@ export class AsyncQueue {
     }
   }
 
-  scheduleRepeatedly<T>(op: () => Promise<T>, interval?: number): void {
-    this.repeatedOperations.push(() =>
-      setInterval(() => this.scheduleInternal(op), interval)
-    );
-    ++this.repeatedOperationsCount;
+  schedulePeriodically<T>(op: () => Promise<T>, interval?: number): void {
+    const handle = setInterval(() => this.scheduleInternal(op), interval);
+    this.periodicOperations.push(handle);
   }
 
   private scheduleInternal<T>(op: () => Promise<T>): Promise<T> {
@@ -152,8 +158,9 @@ export class AsyncQueue {
   }
 
   /**
-   * Waits until all currently scheduled tasks are finished executing. Tasks
-   * scheduled with a delay can be rejected or queued for immediate execution.
+   * Waits until all currently scheduled tasks are finished executing.
+   * Non-periodic tasks that are scheduled with a delay can be rejected or
+   * queued for immediate execution. Periodic tasks are cleared immediately.
    */
   drain(executeDelayedTasks: boolean): Promise<void> {
     this.delayedOperations.forEach(entry => {
@@ -176,11 +183,10 @@ export class AsyncQueue {
     });
     this.delayedOperations = [];
     this.delayedOperationsCount = 0;
-    this.repeatedOperations.forEach(handle => {
+    this.periodicOperations.forEach(handle => {
       clearInterval(handle);
     });
-    this.repeatedOperations = [];
-    this.repeatedOperationsCount = 0;
+    this.periodicOperations = [];
     return this.schedule(() => Promise.resolve());
   }
 }

@@ -249,17 +249,14 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.webStorage = new PersistedWebStorage(
-      this.asyncQueue,
-      storagePrefix,
-      this.ownerId
-    );
+    this.webStorage = new PersistedWebStorage(storagePrefix, this.ownerId, this.asyncQueue);
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       this.ownerId,
       serializer
     );
-    return this.webStorage.start().then(() => this.persistence.start());
+    this.webStorage.start();
+    return this.persistence.start();
   }
 
   /**
@@ -357,7 +354,7 @@ export class FirestoreClient {
         return this.persistence.shutdown();
       })
       .then(() => {
-        return this.webStorage.shutdown();
+        this.webStorage.shutdown();
       });
   }
 

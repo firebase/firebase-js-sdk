@@ -30,7 +30,8 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   OnlineState,
   ProtoByteString,
-  TargetId
+  TargetId,
+  VisibilityState
 } from '../../../src/core/types';
 import {
   ChangeType,
@@ -89,7 +90,6 @@ import {
   version
 } from '../../util/helpers';
 import { WebStorage } from '../../../src/local/web_storage';
-import { VisibilityState } from '../../../src/core/types';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -512,8 +512,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
-    } else if ('tabState' in step) {
-      return this.doApplyTabState(step.tabState!);
+    } else if ('metadataChange' in step) {
+      return this.doApplyTabState(step.metadataChange!);
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -1130,7 +1130,8 @@ export interface SpecStep {
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
 
-  tabState?: SpecTabState;
+  /** Change the metadata state of a tab. */
+  metadataChange?: SpecTabState;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1197,10 +1198,6 @@ export type SpecUserPatch = [string, JsonObject<AnyJs>];
 /** key */
 export type SpecUserDelete = string;
 
-export type SpecTabState = {
-  visibility?: 'foreground' | 'background' | 'unknown';
-};
-
 /** [<target-id>, ...] */
 export type SpecWatchAck = TargetId[];
 
@@ -1224,6 +1221,10 @@ export type SpecSnapshotVersion = TestSnapshotVersion;
 
 export type SpecWatchStreamClose = {
   error: SpecError;
+};
+
+export type SpecTabState = {
+  visibility?: 'foreground' | 'background' | 'unknown';
 };
 
 export type SpecWriteAck = {

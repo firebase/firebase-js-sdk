@@ -18,52 +18,77 @@ import { Code, FirestoreError } from '../util/error';
 import { VisibilityState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
+import {debug} from '../util/log';
 
-const WEB_STORAGE_REFRESH_INTERVAL_MS = 4000;
-const VISIBILITY_KEY = 'visibility';
+/**
+ * By default, we refresh the contents of WebStorage every four seconds.
+ */
+const DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS : number = 4000;
 
+// Prefix keys used in WebStorage.
+const VISIBILITY_PREFIX = 'visibility';
+
+const LOG_TAG = 'WebStorage';
+
+/**
+ * WebStorage of the Firestore client. Firestore uses WebStorage for cross-tab
+ * notifications and to persist the metadata state of each tab. WebStorage is
+ * used to perform leader election and to inform other tabs about changes in the
+ * IndexedDB-backed persistence layer.
+ *
+ * WebStorage is only used in Persistence-enabled Firestore instances. If you
+ * are not using Persistence, consider using the `NoOpWebStorage` class.
+ */
 export interface WebStorage {
   setVisibility(visibilityState: VisibilityState): void;
-  start(): Promise<void>;
-  shutdown(): Promise<void>;
+  start(): void;
+  shutdown(): void;
 }
 
+/**
+ * `PersistedWebStorage` uses Local Storage as the backing store for the
+ * WebStorage class.
+ *
+ * Once started, PersistedWebStorage will rewrite its contents to Local Storage
+ * every four seconds. Other clients may disregard its state after 5 seconds of
+ * inactivity.
+ */
 export class PersistedWebStorage implements WebStorage {
   private localStorage: Storage;
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
 
-  constructor(
-    private asyncQueue: AsyncQueue,
-    private persistenceKey: string,
-    private instanceId: string
-  ) {}
+  constructor(private persistenceKey: string,
+              private instanceId: string,
+              private asyncQueue: AsyncQueue,
+              private refreshIntervalMs?: number) {
+    this.refreshIntervalMs = refreshIntervalMs !== undefined ? refreshIntervalMs : DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS;
+  }
 
-  /** Returns true if IndexedDB is available in the current environment. */
+  /** Returns true if LocalStorage is available in the current environment. */
   static isAvailable(): boolean {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  start(): Promise<void> {
+  start(): void {
     if (!PersistedWebStorage.isAvailable()) {
-      const persistenceError = new FirestoreError(
+      throw new FirestoreError(
         Code.UNIMPLEMENTED,
         'Local Storage is not available on this platform'
       );
-      return Promise.reject(persistenceError);
     }
+
+    assert(!this.started, 'PersistedWebStorage already started');
 
     this.localStorage = window.localStorage;
     this.started = true;
     this.persistState();
     this.scheduleRefresh();
-    return Promise.resolve();
   }
 
-  shutdown(): Promise<void> {
-    assert(!this.started, 'PersistedWebStorage shutdown without started');
+  shutdown(): void {
+    assert(this.started, 'PersistedWebStorage.shutdown() called when not started');
     this.started = false;
-    return Promise.resolve();
   }
 
   setVisibility(visibilityState: VisibilityState): void {
@@ -72,23 +97,26 @@ export class PersistedWebStorage implements WebStorage {
   }
 
   private scheduleRefresh(): void {
-    this.asyncQueue.scheduleRepeatedly(() => {
+    this.asyncQueue.schedulePeriodically(() => {
       if (this.started) {
         this.persistState();
       }
       return Promise.resolve();
-    }, WEB_STORAGE_REFRESH_INTERVAL_MS);
+    }, this.refreshIntervalMs);
   }
 
+  /** Persists the entire known state. */
   private persistState(): void {
     assert(this.started, 'PersistedWebStorage not started');
+    debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localStorage[
-      this.buildKey(VISIBILITY_KEY, this.persistenceKey, this.instanceId)
+      this.buildKey(VISIBILITY_PREFIX, this.persistenceKey, this.instanceId)
     ] = this.buildValue({
       visibilityState: VisibilityState[this.visibilityState]
     });
   }
 
+  /** Assembles a key for LocalStorage */
   private buildKey(...elements: string[]): string {
     elements.forEach(value => {
       assert(value.indexOf('_') === -1, "Key element cannot contain '_'");
@@ -97,18 +125,20 @@ export class PersistedWebStorage implements WebStorage {
     return elements.join('_');
   }
 
+  /** JSON-encodes the provided valued and its current update time. */
   private buildValue(data: { [key: string]: string }): string {
     const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);
   }
 }
 
+/**
+ * `NoOpWebStorage` implements the WebStorage API but neither persist data nor
+ * delivers notifications. This call should be used for non-persistence enabled
+ * clients.
+ */
 export class NoOpWebStorage implements WebStorage {
-  shutdown(): Promise<void> {
-    return Promise.resolve();
-  }
+  start(): void {}
+  shutdown(): void {}
   setVisibility(visibilityState: VisibilityState): void {}
-  start(): Promise<void> {
-    return Promise.resolve();
-  }
 }
