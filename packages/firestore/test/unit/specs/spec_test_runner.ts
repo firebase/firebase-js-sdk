@@ -88,10 +88,8 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import {
-  WebStorage
-} from '../../../src/local/web_storage';
-import {VisibilityState} from '../../../src/core/types';
+import { WebStorage } from '../../../src/local/web_storage';
+import { VisibilityState } from '../../../src/core/types';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -289,7 +287,7 @@ export class MockWebStorage implements WebStorage {
   visibilityState: VisibilityState | undefined;
 
   private assertRunning() {
-    assert(this.startCalled, "start() not called");
+    assert(this.startCalled, 'start() not called');
     assert(!this.shutdownCalled, 'shutdown() already called');
   }
 
@@ -807,7 +805,7 @@ abstract class TestRunner {
   }
 
   private doApplyTabState(tabState: SpecTabState): Promise<void> {
-    switch(tabState.visibility) {
+    switch (tabState.visibility) {
       case 'foreground':
         this.syncEngine.applyVisibilityChange(VisibilityState.Foreground);
         break;
@@ -896,7 +894,9 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('tabState' in expectation) {
-        expect(VisibilityState[this.webStorage.visibilityState]).to.equal(VisibilityState[expectation.tabState.visibilityState]);
+        expect(VisibilityState[this.webStorage.visibilityState]).to.equal(
+          VisibilityState[expectation.tabState.visibilityState]
+        );
       }
     }
 
@@ -1198,8 +1198,8 @@ export type SpecUserPatch = [string, JsonObject<AnyJs>];
 export type SpecUserDelete = string;
 
 export type SpecTabState = {
-  visibility? : 'foreground' | 'background' | 'unknown';
-}
+  visibility?: 'foreground' | 'background' | 'unknown';
+};
 
 /** [<target-id>, ...] */
 export type SpecWatchAck = TargetId[];
@@ -1321,6 +1321,6 @@ export interface StateExpectation {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
   };
   tabState?: {
-    visibilityState?: VisibilityState
+    visibilityState?: VisibilityState;
   };
 }

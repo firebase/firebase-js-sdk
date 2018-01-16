@@ -20,14 +20,14 @@ import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
-import {VisibilityState} from '../../../src/core/types';
+import { VisibilityState } from '../../../src/core/types';
 
 describeSpec('Multi-Tab:', ['multi-tab', 'exclusive'], () => {
   specTest('Persists visibility state', [], () => {
     return spec()
-        .tabBecomesVisible()
-        .expectVisibilityState(VisibilityState.Foreground)
-        .tabBecomesHidden()
-        .expectVisibilityState(VisibilityState.Background)
+      .tabBecomesVisible()
+      .expectVisibilityState(VisibilityState.Foreground)
+      .tabBecomesHidden()
+      .expectVisibilityState(VisibilityState.Background);
   });
 });

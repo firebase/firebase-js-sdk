@@ -627,7 +627,7 @@ export class SyncEngine implements RemoteSyncer {
       });
   }
 
-  applyVisibilityChange(visibilityState: VisibilityState) : void {
+  applyVisibilityChange(visibilityState: VisibilityState): void {
     this.visibilityState = visibilityState;
     this.webStorage.setVisibility(visibilityState);
   }

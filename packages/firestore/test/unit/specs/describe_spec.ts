@@ -44,8 +44,8 @@ const KNOWN_TAGS = [
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
   tags.indexOf(NO_WEB_TAG) === -1;
 
-const MULTI_TAB_TEST_FILTER = (tags: string[], persistenceEnabled:boolean) =>
-    tags.indexOf(MULTI_TAB_TAG) !== -1 && persistenceEnabled;
+const MULTI_TAB_TEST_FILTER = (tags: string[], persistenceEnabled: boolean) =>
+  tags.indexOf(MULTI_TAB_TAG) !== -1 && persistenceEnabled;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -99,11 +99,14 @@ export function specTest(
   }
 
   const getTestRunner = (tags, persistenceEnabled) => {
-    if (!MULTI_TAB_TEST_FILTER(tags, persistenceEnabled) || !WEB_SPEC_TEST_FILTER(tags)) {
+    if (
+      !MULTI_TAB_TEST_FILTER(tags, persistenceEnabled) ||
+      !WEB_SPEC_TEST_FILTER(tags)
+    ) {
       return it.skip;
-    }else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+    } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
       return it.only;
-    }  else {
+    } else {
       return it;
     }
   };
