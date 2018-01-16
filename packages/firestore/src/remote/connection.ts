@@ -41,7 +41,11 @@ export interface Connection {
    * @param token the Token to use for the RPC.
    * @return a Promise containing the JSON object encoding of the response
    */
-  invokeRPC(rpcName: string, request: any, token: Token | null): Promise<any>;
+  invokeRPC<Req, Resp>(
+    rpcName: string,
+    request: Req,
+    token: Token | null
+  ): Promise<Resp>;
 
   /**
    * Invokes a streaming RPC by name, given a request message as a JavaScript
@@ -54,11 +58,11 @@ export interface Connection {
    * @return a Promise containing an array with the JSON object encodings of the
    * responses
    */
-  invokeStreamingRPC(
+  invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    request: any,
+    request: Req,
     token: Token | null
-  ): Promise<any[]>;
+  ): Promise<Resp[]>;
 
   /**
    * Opens a stream to the given stream RPC endpoint. Returns a stream which
@@ -66,7 +70,10 @@ export interface Connection {
    * @param rpcName the name of the RPC to open the stream on
    * @param token the Token to use for the RPC.
    */
-  openStream(rpcName: string, token: Token | null): Stream<any, any>;
+  openStream<Req, Resp>(
+    rpcName: string,
+    token: Token | null
+  ): Stream<Req, Resp>;
 
   // TODO(mcg): subscribe to connection state changes.
 }
