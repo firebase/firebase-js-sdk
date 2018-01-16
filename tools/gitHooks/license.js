@@ -38,7 +38,8 @@ async function doLicenseCommit() {
   const filesMissingPaths = fileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
     .filter(
-      ({ buffer }) => String(buffer).match(/Copyright \d{4} Google Inc\./) == null
+      ({ buffer }) =>
+        String(buffer).match(/Copyright \d{4} Google Inc\./) == null
     );
 
   await Promise.all(
