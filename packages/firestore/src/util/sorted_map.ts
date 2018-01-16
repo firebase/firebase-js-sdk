@@ -44,7 +44,7 @@ export class SortedMap<K, V> {
   // visible for testing
   root: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
 
-  constructor(public comparator: Comparator<K>, root?: LLRBNode<K, V>) {
+  constructor(public comparator: Comparator<K>, root?: LLRBNode<K, V> | LLRBEmptyNode<K, V>) {
     this.root = root ? root : LLRBNode.EMPTY;
   }
 
@@ -252,6 +252,7 @@ export class SortedMap<K, V> {
 
 // An iterator over an LLRBNode.
 export class SortedMapIterator<K, V, T> {
+
   private resultGenerator: ((k: K, v: V) => T) | null;
   private isReverse: boolean;
   private nodeStack: Array<LLRBNode<K, V> | LLRBEmptyNode<K, V>>;
@@ -298,14 +299,14 @@ export class SortedMapIterator<K, V, T> {
     }
   }
 
-  getNext(): T {
+  getNext(): T | Entry<K, V>  {
     assert(
       this.nodeStack.length > 0,
       'getNext() called on iterator when hasNext() is false.'
     );
 
     let node = this.nodeStack.pop()!;
-    let result: any;
+    let result: T | Entry<K, V>;
     if (this.resultGenerator) {
       result = this.resultGenerator(node.key, node.value);
     } else {
@@ -333,7 +334,7 @@ export class SortedMapIterator<K, V, T> {
     return this.nodeStack.length > 0;
   }
 
-  peek(): any {
+  peek(): T | Entry<K, V> {
     if (this.nodeStack.length === 0) return null;
 
     const node = this.nodeStack[this.nodeStack.length - 1];
@@ -352,6 +353,7 @@ export class LLRBNode<K, V> {
   readonly right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
   readonly size: number;
 
+  // tslint:disable-next-line:no-any Empty node is shared between all LLRB trees.
   static EMPTY: LLRBEmptyNode<any, any> = null as any;
 
   static RED = true;
@@ -377,7 +379,7 @@ export class LLRBNode<K, V> {
     color: boolean | null,
     left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
     right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
-  ): any {
+  ): LLRBNode<K, V> {
     return new LLRBNode<K, V>(
       key != null ? key : this.key,
       value != null ? value : this.value,
@@ -440,7 +442,7 @@ export class LLRBNode<K, V> {
 
   // Returns new tree, with the key/value added.
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let n = this;
+    let n = this as LLRBNode<K, V>;
     const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
@@ -544,12 +546,12 @@ export class LLRBNode<K, V> {
 
   private rotateLeft(): LLRBNode<K, V> {
     const nl = this.copy(null, null, LLRBNode.RED, null, this.right.left);
-    return this.right.copy(null, null, this.color, nl, null);
+    return (this.right as LLRBNode<K, V>).copy(null, null, this.color, nl, null) ;
   }
 
   private rotateRight(): LLRBNode<K, V> {
     const nr = this.copy(null, null, LLRBNode.RED, this.left.right, null);
-    return this.left.copy(null, null, this.color, null, nr);
+    return (this.left as LLRBNode<K, V>).copy(null, null, this.color, null, nr);
   }
 
   private colorFlip(): LLRBNode<K, V> {
