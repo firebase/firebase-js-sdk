@@ -70,7 +70,12 @@ export async function testWebStoragePersistence(
   queue: AsyncQueue
 ): Promise<WebStorage> {
   window.localStorage.clear();
-  const persistence = new PersistedWebStorage(TEST_PERSISTENCE_PREFIX, ownerId, queue, TEST_WEB_STORAGE_REFRESH_INTERVAL_MS);
+  const persistence = new PersistedWebStorage(
+    TEST_PERSISTENCE_PREFIX,
+    ownerId,
+    queue,
+    TEST_WEB_STORAGE_REFRESH_INTERVAL_MS
+  );
   await persistence.start();
   return persistence;
 }

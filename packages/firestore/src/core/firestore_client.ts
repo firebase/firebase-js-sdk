@@ -249,7 +249,11 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.webStorage = new PersistedWebStorage(storagePrefix, this.ownerId, this.asyncQueue);
+    this.webStorage = new PersistedWebStorage(
+      storagePrefix,
+      this.ownerId,
+      this.asyncQueue
+    );
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       this.ownerId,

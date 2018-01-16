@@ -62,7 +62,7 @@ export class AsyncQueue {
    * execution.
    */
   // visible for testing
-  get periodicOperationsCount() : number {
+  get periodicOperationsCount(): number {
     return this.periodicOperations.length;
   }
 

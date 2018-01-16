@@ -18,12 +18,12 @@ import { Code, FirestoreError } from '../util/error';
 import { VisibilityState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
-import {debug} from '../util/log';
+import { debug } from '../util/log';
 
 /**
  * By default, we refresh the contents of WebStorage every four seconds.
  */
-const DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS : number = 4000;
+const DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
 
 // Prefix keys used in WebStorage.
 const VISIBILITY_PREFIX = 'visibility';
@@ -58,11 +58,16 @@ export class PersistedWebStorage implements WebStorage {
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
 
-  constructor(private persistenceKey: string,
-              private instanceId: string,
-              private asyncQueue: AsyncQueue,
-              private refreshIntervalMs?: number) {
-    this.refreshIntervalMs = refreshIntervalMs !== undefined ? refreshIntervalMs : DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS;
+  constructor(
+    private persistenceKey: string,
+    private instanceId: string,
+    private asyncQueue: AsyncQueue,
+    private refreshIntervalMs?: number
+  ) {
+    this.refreshIntervalMs =
+      refreshIntervalMs !== undefined
+        ? refreshIntervalMs
+        : DEFAULT_WEB_STORAGE_REFRESH_INTERVAL_MS;
   }
 
   /** Returns true if LocalStorage is available in the current environment. */
@@ -87,7 +92,10 @@ export class PersistedWebStorage implements WebStorage {
   }
 
   shutdown(): void {
-    assert(this.started, 'PersistedWebStorage.shutdown() called when not started');
+    assert(
+      this.started,
+      'PersistedWebStorage.shutdown() called when not started'
+    );
     this.started = false;
   }
 

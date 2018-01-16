@@ -27,7 +27,7 @@ import { View } from '../../../src/core/view';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentSet } from '../../../src/model/document_set';
-import {AsyncQueue} from '../../../src/util/async_queue';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   ackTarget,

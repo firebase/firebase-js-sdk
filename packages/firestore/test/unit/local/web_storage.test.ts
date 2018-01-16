@@ -22,8 +22,8 @@ import {
 import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
-import {AsyncQueue} from '../../../src/util/async_queue';
-import {Deferred} from '../../../src/util/promise';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { Deferred } from '../../../src/util/promise';
 
 const GRACE_INTERVAL_MS = 100;
 
@@ -43,10 +43,12 @@ describe('WebStorageTests', () => {
     ownerId = AutoId.newId();
     queue = new AsyncQueue();
     expect(queue.periodicOperationsCount).to.be.equal(0);
-    return persistenceHelpers.testWebStoragePersistence(ownerId, queue).then(ws => {
-      webStorage = ws;
-      expect(queue.periodicOperationsCount).to.be.equal(1);
-    });
+    return persistenceHelpers
+      .testWebStoragePersistence(ownerId, queue)
+      .then(ws => {
+        webStorage = ws;
+        expect(queue.periodicOperationsCount).to.be.equal(1);
+      });
   });
 
   afterEach(() => {
@@ -56,10 +58,12 @@ describe('WebStorageTests', () => {
 
   function assertInstanceState(
     key: string,
-    expectedContents: { [key: string]: string },
+    expectedContents: { [key: string]: string }
   ) {
     const actual = JSON.parse(
-        localStorage[`${key}_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`]
+      localStorage[
+        `${key}_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`
+      ]
     );
     expect(actual.lastUpdateTime).to.be.a('number');
     expect(actual.lastUpdateTime).to.be.greaterThan(
