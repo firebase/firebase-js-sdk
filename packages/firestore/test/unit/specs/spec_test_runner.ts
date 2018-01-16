@@ -88,7 +88,10 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import { NoOpWebStorage, WebStorage } from '../../../src/local/web_storage';
+import {
+  WebStorage
+} from '../../../src/local/web_storage';
+import {VisibilityState} from '../../../src/core/types';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -279,6 +282,33 @@ class MockConnection implements Connection {
   }
 }
 
+export class MockWebStorage implements WebStorage {
+  private startCalled = false;
+  private shutdownCalled = false;
+
+  visibilityState: VisibilityState | undefined;
+
+  private assertRunning() {
+    assert(this.startCalled, "start() not called");
+    assert(!this.shutdownCalled, 'shutdown() already called');
+  }
+
+  setVisibility(visibilityState: VisibilityState): void {
+    this.assertRunning();
+    this.visibilityState = visibilityState;
+  }
+
+  start(): Promise<void> {
+    this.startCalled = true;
+    return Promise.resolve();
+  }
+
+  shutdown(): Promise<void> {
+    this.shutdownCalled = true;
+    return Promise.resolve();
+  }
+}
+
 /**
  * Interface used for object that contain exactly one of either a view snapshot
  * or an error for the given query.
@@ -337,7 +367,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
-  private webStorage: WebStorage;
+  private webStorage: MockWebStorage;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -394,7 +424,7 @@ abstract class TestRunner {
       this.datastore,
       onlineStateChangedHandler
     );
-    this.webStorage = new NoOpWebStorage();
+    this.webStorage = new MockWebStorage();
 
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -423,6 +453,7 @@ abstract class TestRunner {
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
+    await this.webStorage.start();
     await this.localStore.start();
     await this.remoteStore.start();
   }
@@ -430,6 +461,7 @@ abstract class TestRunner {
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
+    await this.webStorage.shutdown();
     await this.destroyPersistence();
   }
 
@@ -482,6 +514,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
+    } else if ('tabState' in step) {
+      return this.doApplyTabState(step.tabState!);
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -772,6 +806,20 @@ abstract class TestRunner {
     });
   }
 
+  private doApplyTabState(tabState: SpecTabState): Promise<void> {
+    switch(tabState.visibility) {
+      case 'foreground':
+        this.syncEngine.applyVisibilityChange(VisibilityState.Foreground);
+        break;
+      case 'background':
+        this.syncEngine.applyVisibilityChange(VisibilityState.Background);
+        break;
+      default:
+        this.syncEngine.applyVisibilityChange(VisibilityState.Unknown);
+    }
+    return Promise.resolve();
+  }
+
   private async doDisableNetwork(): Promise<void> {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
@@ -846,6 +894,9 @@ abstract class TestRunner {
       }
       if ('activeTargets' in expectation) {
         this.expectedActiveTargets = expectation.activeTargets!;
+      }
+      if ('tabState' in expectation) {
+        expect(VisibilityState[this.webStorage.visibilityState]).to.equal(VisibilityState[expectation.tabState.visibilityState]);
       }
     }
 
@@ -1079,6 +1130,8 @@ export interface SpecStep {
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
 
+  tabState?: SpecTabState;
+
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
   /** Marks the query results as current */
@@ -1143,6 +1196,10 @@ export type SpecUserPatch = [string, JsonObject<AnyJs>];
 
 /** key */
 export type SpecUserDelete = string;
+
+export type SpecTabState = {
+  visibility? : 'foreground' | 'background' | 'unknown';
+}
 
 /** [<target-id>, ...] */
 export type SpecWatchAck = TargetId[];
@@ -1262,5 +1319,8 @@ export interface StateExpectation {
    */
   activeTargets?: {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
+  };
+  tabState?: {
+    visibilityState?: VisibilityState
   };
 }

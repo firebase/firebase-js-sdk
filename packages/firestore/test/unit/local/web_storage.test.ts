@@ -61,7 +61,7 @@ describe('WebStorageTests', () => {
 
   function assertInstanceState(
     key: string,
-    expecetedContents: { [key: string]: string }
+    expectedContents: { [key: string]: string }
   ) {
     const actual = JSON.parse(
       storage[`${key}_${persistenceHelpers.testPersistencePrefix}_${ownerId}`]
@@ -72,8 +72,8 @@ describe('WebStorageTests', () => {
     );
     expect(actual.lastUpdateTime).to.be.at.most(Date.now());
 
-    Object.keys(expecetedContents).forEach(key => {
-      expect(actual[key]).to.be.equal(expecetedContents[key]);
+    Object.keys(expectedContents).forEach(key => {
+      expect(actual[key]).to.be.equal(expectedContents[key]);
     });
   }
 

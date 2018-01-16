@@ -97,11 +97,11 @@ export class PersistedWebStorage implements WebStorage {
   }
 
   private persistState(): void {
-    assert(!this.started, 'PersistedWebStorage not started');
+    assert(this.started, 'PersistedWebStorage not started');
     this.localStorage[
       this.buildKey(VISIBILITY_KEY, this.persistenceKey, this.instanceId)
     ] = this.buildValue({
-      visibilityState: this.visibilityState.toString()
+      visibilityState: VisibilityState[this.visibilityState]
     });
   }
 

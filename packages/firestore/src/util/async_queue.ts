@@ -47,9 +47,9 @@ export class AsyncQueue {
   // Visible for testing.
   delayedOperationsCount = 0;
 
-  private intervalOperations: OperationHandle[];
+  private repeatedOperations: OperationHandle[] = [];
 
-  intervalOperationsCount = 0;
+  repeatedOperationsCount = 0;
 
   // visible for testing
   failure: Error;
@@ -101,10 +101,10 @@ export class AsyncQueue {
   }
 
   scheduleRepeatedly<T>(op: () => Promise<T>, interval?: number): void {
-    this.intervalOperations.push(() =>
+    this.repeatedOperations.push(() =>
       setInterval(() => this.scheduleInternal(op), interval)
     );
-    ++this.intervalOperationsCount;
+    ++this.repeatedOperationsCount;
   }
 
   private scheduleInternal<T>(op: () => Promise<T>): Promise<T> {
@@ -176,11 +176,11 @@ export class AsyncQueue {
     });
     this.delayedOperations = [];
     this.delayedOperationsCount = 0;
-    this.intervalOperations.forEach(handle => {
+    this.repeatedOperations.forEach(handle => {
       clearInterval(handle);
     });
-    this.intervalOperations = [];
-    this.intervalOperationsCount = 0;
+    this.repeatedOperations = [];
+    this.repeatedOperationsCount = 0;
     return this.schedule(() => Promise.resolve());
   }
 }

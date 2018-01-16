@@ -31,6 +31,7 @@ import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
 import { RpcError } from './spec_rpc_error';
+import {VisibilityState} from '../../../src/core/types';
 import {
   runSpec,
   SpecConfig,
@@ -194,6 +195,22 @@ export class SpecBuilder {
     return this;
   }
 
+  tabBecomesHidden(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      tabState: { visibility : 'background' }
+    };
+    return this;
+  }
+
+  tabBecomesVisible(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      tabState: { visibility : 'foreground' }
+    };
+    return this;
+  }
+
   changeUser(uid: string | null): SpecBuilder {
     this.nextStep();
     this.currentStep = { changeUser: uid };
@@ -295,6 +312,13 @@ export class SpecBuilder {
     return this;
   }
 
+  expectVisibilityState(expectedVisibiliyy:VisibilityState) {
+    this.assertStep('Visibility State expectation requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.tabState = Object.assign(currentStep.stateExpect.tabState || {}, { visibilityState : expectedVisibiliyy });
+    return this;
+  }
   /**
    * Special helper for limbo documents that acks with either a document or
    * with no document for NoDocument. This is translated into normal watch
