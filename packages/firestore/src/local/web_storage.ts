@@ -73,7 +73,7 @@ export class PersistedWebStorage implements WebStorage {
     if (!PersistedWebStorage.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
-        'Local Storage is not available on this platform'
+        'LocalStorage is not available on this platform.'
       );
     }
 

@@ -259,8 +259,7 @@ export class FirestoreClient {
       this.ownerId,
       serializer
     );
-    this.webStorage.start();
-    return this.persistence.start();
+    return this.persistence.start().then(() => this.webStorage.start());
   }
 
   /**
