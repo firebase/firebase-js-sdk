@@ -1,13 +1,13 @@
 {
   "name": "firebase-webpack-test",
-  "version": "0.2.0-0",
+  "version": "0.2.1-0",
   "private": true,
   "scripts": {
     "pretest": "webpack",
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "4.9.0-0"
+    "firebase": "^4.9.0-1"
   },
   "devDependencies": {
     "chai": "^4.1.1",

@@ -1,12 +1,12 @@
 {
   "name": "firebase-typescript-test",
   "private": true,
-  "version": "0.2.0-0",
+  "version": "0.2.1-0",
   "scripts": {
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "4.9.0-0"
+    "firebase": "^4.9.0-1"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
