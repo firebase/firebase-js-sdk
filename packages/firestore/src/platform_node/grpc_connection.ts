@@ -151,7 +151,10 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp> {
-    const rpc = this.getRpcCallable<Req, Resp>(rpcName, token) as UnaryRpc<Req, Resp>;
+    const rpc = this.getRpcCallable<Req, Resp>(rpcName, token) as UnaryRpc<
+      Req,
+      Resp
+    >;
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
       return rpc(request, (grpcError?: grpc.ServiceError, value?: Resp) => {
