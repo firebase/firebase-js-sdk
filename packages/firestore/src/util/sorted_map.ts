@@ -253,7 +253,7 @@ export class SortedMapIterator<K, V> {
     );
 
     let node = this.nodeStack.pop()!;
-    let result = { key: node.key, value: node.value };
+    const result = { key: node.key, value: node.value };
 
     if (this.isReverse) {
       node = node.left;

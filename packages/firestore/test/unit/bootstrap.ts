@@ -22,6 +22,9 @@ import '../../src/platform_browser/browser_init';
  * Taken from karma-webpack source:
  * https://github.com/webpack-contrib/karma-webpack#alternative-usage
  */
+
+// 'context()' definition requires additional dependency on webpack-env package.
+// tslint:disable-next-line:no-any
 const testsContext = (require as any).context('.', true, /.test$/);
 const browserTests = testsContext
   .keys()
