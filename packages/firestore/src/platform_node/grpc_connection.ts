@@ -134,40 +134,15 @@ export class GrpcConnection implements Connection {
   }
 
   private getRpcCallable<Req, Resp>(
-    rpcName: string
+    rpcName: string,
+    token: Token | null
   ): UnaryRpc<Req, Resp> | ReadableRpc<Req> | DuplexRpc {
     // RPC Methods have the first character lower-cased
     // (e.g. Listen => listen(), BatchGetDocuments => batchGetDocuments()).
     const rpcMethod = rpcName.charAt(0).toLowerCase() + rpcName.slice(1);
-    const rpc = this.cachedStub.stub[rpcMethod];
+    const stub = this.ensureActiveStub(token);
+    const rpc = stub[rpcMethod];
     assert(rpc != null, 'Unknown RPC: ' + rpcName);
-    return rpc;
-  }
-
-  private getUnaryRpc<Req, Resp>(
-    rpcName: string,
-    token: Token | null
-  ): UnaryRpc<Req, Resp> {
-    const stub = this.ensureActiveStub(token);
-    const rpc = this.getRpcCallable<Req, Resp>(rpcName) as UnaryRpc<Req, Resp>;
-    return rpc.bind(stub);
-  }
-
-  private getBidirectionalStreamingRpc<Req, Resp>(
-    rpcName: string,
-    token: Token | null
-  ): DuplexRpc {
-    const stub = this.ensureActiveStub(token);
-    const rpc = this.getRpcCallable<Req, Resp>(rpcName) as DuplexRpc;
-    return rpc.bind(stub);
-  }
-
-  private getStreamingRpc<Req, Resp>(
-    rpcName: string,
-    token: Token | null
-  ): ReadableRpc<Req> {
-    const stub = this.ensureActiveStub(token);
-    const rpc = this.getRpcCallable<Req, Resp>(rpcName) as ReadableRpc<Req>;
     return rpc.bind(stub);
   }
 
@@ -176,7 +151,7 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp> {
-    const rpc = this.getUnaryRpc<Req, Resp>(rpcName, token);
+    const rpc = this.getRpcCallable<Req, Resp>(rpcName, token) as UnaryRpc<Req, Resp>;
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
       return rpc(request, (grpcError?: grpc.ServiceError, value?: Resp) => {
@@ -205,7 +180,7 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp[]> {
-    const rpc = this.getStreamingRpc(rpcName, token);
+    const rpc = this.getRpcCallable(rpcName, token) as ReadableRpc<Req>;
     const results = [];
     const responseDeferred = new Deferred<Resp[]>();
 
@@ -237,7 +212,7 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     token: Token | null
   ): Stream<Req, Resp> {
-    const rpc = this.getBidirectionalStreamingRpc(rpcName, token);
+    const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc;
     const grpcStream = rpc();
 
     let closed = false;
