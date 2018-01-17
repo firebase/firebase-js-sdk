@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "gulp dev",
     "lint": "tslint -c tslint.json src/**/*.ts test/**/*.ts",
-    "test": "run-p test:browser test:node",
+    "test": "run-s lint test:all",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
