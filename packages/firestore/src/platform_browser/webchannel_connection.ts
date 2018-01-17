@@ -35,6 +35,7 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { Rejecter, Resolver } from '../util/promise';
+import { StringMap } from '../util/types';
 
 const LOG_TAG = 'Connection';
 
@@ -70,10 +71,7 @@ export class WebChannelConnection implements Connection {
    * Modifies the headers for a request, adding any authorization token if
    * present and any additional headers for the request.
    */
-  private modifyHeadersForRequest(
-    headers: { [key: string]: string },
-    token: Token | null
-  ) {
+  private modifyHeadersForRequest(headers: StringMap, token: Token | null) {
     if (token) {
       for (const header in token.authHeaders) {
         if (token.authHeaders.hasOwnProperty(header)) {
@@ -89,16 +87,21 @@ export class WebChannelConnection implements Connection {
       `databases/${this.databaseId.database}`;
   }
 
-  invokeRPC(rpcName: string, request: any, token: Token | null): Promise<any> {
+  invokeRPC<Req, Resp>(
+    rpcName: string,
+    request: Req,
+    token: Token | null
+  ): Promise<Resp> {
     const url = this.makeUrl(rpcName);
 
-    return new Promise((resolve: Resolver<any>, reject: Rejecter) => {
+    return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
+      // tslint:disable-next-line:no-any XhrIoPool doesn't have TS typings.
       this.pool.getObject((xhr: any) => {
         xhr.listenOnce(EventType.COMPLETE, () => {
           try {
             switch (xhr.getLastErrorCode()) {
               case ErrorCode.NO_ERROR:
-                const json = xhr.getResponseJson();
+                const json = xhr.getResponseJson() as Resp;
                 log.debug(LOG_TAG, 'XHR received:', JSON.stringify(json));
                 resolve(json);
                 break;
@@ -158,7 +161,7 @@ export class WebChannelConnection implements Connection {
         // we will need to change this code to potentially use the
         // $httpOverwrite parameter supported by ESF to avoid
         // triggering preflight requests.
-        const headers: any = { 'Content-Type': 'text/plain' };
+        const headers: StringMap = { 'Content-Type': 'text/plain' };
 
         this.modifyHeadersForRequest(headers, token);
 
@@ -167,17 +170,20 @@ export class WebChannelConnection implements Connection {
     });
   }
 
-  invokeStreamingRPC(
+  invokeStreamingRPC<Req, Resp>(
     rpcName: string,
-    request: any,
+    request: Req,
     token: Token | null
-  ): Promise<any[]> {
+  ): Promise<Resp[]> {
     // The REST API automatically aggregates all of the streamed results, so we
     // can just use the normal invoke() method.
-    return this.invokeRPC(rpcName, request, token);
+    return this.invokeRPC<Req, Resp[]>(rpcName, request, token);
   }
 
-  openStream(rpcName: string, token: Token | null): Stream<any, any> {
+  openStream<Req, Resp>(
+    rpcName: string,
+    token: Token | null
+  ): Stream<Req, Resp> {
     const urlParts = [
       this.baseUrl,
       '/',
@@ -222,9 +228,8 @@ export class WebChannelConnection implements Connection {
     // on a closed stream
     let closed = false;
 
-    // tslint:disable-next-line:no-any
-    const streamBridge = new StreamBridge<any, any>({
-      sendFn: (msg: any) => {
+    const streamBridge = new StreamBridge<Req, Resp>({
+      sendFn: (msg: Req) => {
         if (!closed) {
           if (!opened) {
             log.debug(LOG_TAG, 'Opening WebChannel transport.');
@@ -244,13 +249,13 @@ export class WebChannelConnection implements Connection {
     // exception and rethrow using a setTimeout so they become visible again.
     // Note that eventually this function could go away if we are confident
     // enough the code is exception free.
-    const unguardedEventListen = (
+    const unguardedEventListen = <T>(
       type: WebChannel.EventType,
-      fn: (param: any) => void
+      fn: (param?: T) => void
     ) => {
       // TODO(dimond): closure typing seems broken because WebChannel does
       // not implement goog.events.Listenable
-      channel.listen(type, (param: any) => {
+      channel.listen(type, (param?: T) => {
         try {
           fn(param);
         } catch (e) {
@@ -275,7 +280,7 @@ export class WebChannelConnection implements Connection {
       }
     });
 
-    unguardedEventListen(WebChannel.EventType.ERROR, (err: any) => {
+    unguardedEventListen<Error>(WebChannel.EventType.ERROR, err => {
       if (!closed) {
         closed = true;
         log.debug(LOG_TAG, 'WebChannel transport errored:', err);
@@ -288,42 +293,49 @@ export class WebChannelConnection implements Connection {
       }
     });
 
-    unguardedEventListen(WebChannel.EventType.MESSAGE, (msg: any) => {
-      if (!closed) {
-        // WebChannel delivers message events as array. If batching
-        // is not enabled (it's off by default) each message will be
-        // delivered alone, resulting in a single element array.
-        const msgData = msg.data[0];
-        assert(!!msgData, 'Got a webchannel message without data.');
-        // TODO(b/35143891): There is a bug in One Platform that caused errors
-        // (and only errors) to be wrapped in an extra array. To be forward
-        // compatible with the bug we need to check either condition. The latter
-        // can be removed once the fix has been rolled out.
-        const error = msgData.error || (msgData[0] && msgData[0].error);
-        if (error) {
-          log.debug(LOG_TAG, 'WebChannel received error:', error);
-          // error.status will be a string like 'OK' or 'NOT_FOUND'.
-          const status: string = error.status;
-          let code = mapCodeFromRpcStatus(status);
-          let message = error.message;
-          if (code === undefined) {
-            code = Code.INTERNAL;
-            message =
-              'Unknown error status: ' +
-              status +
-              ' with message ' +
-              error.message;
+    // WebChannel delivers message events as array. If batching is not enabled
+    // (it's off by default) each message will be delivered alone, resulting in
+    // a single element array.
+    type WebChannelResponse = { data: Resp[] };
+
+    unguardedEventListen<WebChannelResponse>(
+      WebChannel.EventType.MESSAGE,
+      msg => {
+        if (!closed) {
+          const msgData = msg.data[0];
+          assert(!!msgData, 'Got a webchannel message without data.');
+          // TODO(b/35143891): There is a bug in One Platform that caused errors
+          // (and only errors) to be wrapped in an extra array. To be forward
+          // compatible with the bug we need to check either condition. The latter
+          // can be removed once the fix has been rolled out.
+          const error =
+            // tslint:disable-next-line:no-any msgData.error is not typed.
+            (msgData as any).error || (msgData[0] && msgData[0].error);
+          if (error) {
+            log.debug(LOG_TAG, 'WebChannel received error:', error);
+            // error.status will be a string like 'OK' or 'NOT_FOUND'.
+            const status: string = error.status;
+            let code = mapCodeFromRpcStatus(status);
+            let message = error.message;
+            if (code === undefined) {
+              code = Code.INTERNAL;
+              message =
+                'Unknown error status: ' +
+                status +
+                ' with message ' +
+                error.message;
+            }
+            // Mark closed so no further events are propagated
+            closed = true;
+            streamBridge.callOnClose(new FirestoreError(code, message));
+            channel.close();
+          } else {
+            log.debug(LOG_TAG, 'WebChannel received:', msgData);
+            streamBridge.callOnMessage(msgData);
           }
-          // Mark closed so no further events are propagated
-          closed = true;
-          streamBridge.callOnClose(new FirestoreError(code, message));
-          channel.close();
-        } else {
-          log.debug(LOG_TAG, 'WebChannel received:', msgData);
-          streamBridge.callOnMessage(msgData);
         }
       }
-    });
+    );
 
     setTimeout(() => {
       // Technically we could/should wait for the WebChannel opened event,

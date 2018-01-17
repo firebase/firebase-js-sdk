@@ -20,6 +20,9 @@ import { AnyJs } from './misc';
 // tslint:disable-next-line:no-any variable-name
 const NumberAsAny = Number as any;
 
+// An Object whose keys and values are strings.
+export type StringMap = { [key: string]: string };
+
 /**
  * Minimum safe integer in Javascript because of floating point precision.
  * Added to not rely on ES6 features.
