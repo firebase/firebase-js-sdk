@@ -1,14 +1,14 @@
 {
   "name": "firebase-messaging-selenium-test",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.2.0-0",
   "scripts": {
     "pretest:manual": "node ./download-browsers.js",
     "test": "echo 'Automated tests temporarily disabled, run `npm run test:manual` to execute these tests'",
     "test:manual": "mocha --retries 3 --exit"
   },
   "dependencies": {
-    "firebase": "4.8.2"
+    "firebase": "4.9.0-0"
   },
   "devDependencies": {
     "chai": "^4.1.1",
