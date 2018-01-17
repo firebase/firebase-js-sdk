@@ -184,78 +184,45 @@ export class SortedMap<K, V> {
   }
 
   // Returns an iterator over the SortedMap.
-  getIterator(): SortedMapIterator<K, V, Entry<K, V>>;
-  getIterator<T>(
-    resultGenerator: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getIterator<T>(
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator<K, V, T>(
+  getIterator(): SortedMapIterator<K, V> {
+    return new SortedMapIterator<K, V>(
       this.root,
       null,
       this.comparator,
-      false,
-      resultGenerator
+      false
     );
   }
 
-  getIteratorFrom(key: K): SortedMapIterator<K, V, Entry<K, V>>;
-  getIteratorFrom<T>(
-    key: K,
-    resultGenerator: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getIteratorFrom<T>(
-    key: K,
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator<K, V, T>(
+  getIteratorFrom(key: K): SortedMapIterator<K, V> {
+    return new SortedMapIterator<K, V>(
       this.root,
       key,
       this.comparator,
-      false,
-      resultGenerator
+      false
     );
   }
 
-  getReverseIterator(): SortedMapIterator<K, V, Entry<K, V>>;
-  getReverseIterator<T>(
-    resultGenerator: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getReverseIterator<T>(
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator<K, V, T>(
+  getReverseIterator(): SortedMapIterator<K, V> {
+    return new SortedMapIterator<K, V>(
       this.root,
       null,
       this.comparator,
-      true,
-      resultGenerator
+      true
     );
   }
 
-  getReverseIteratorFrom(key: K): SortedMapIterator<K, V, Entry<K, V>>;
-  getReverseIteratorFrom<T>(
-    key: K,
-    resultGenerator: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T>;
-  getReverseIteratorFrom<T>(
-    key: K,
-    resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
-    return new SortedMapIterator<K, V, T>(
+  getReverseIteratorFrom(key: K): SortedMapIterator<K, V> {
+    return new SortedMapIterator<K, V>(
       this.root,
       key,
       this.comparator,
       true,
-      resultGenerator
     );
   }
 } // end SortedMap
 
 // An iterator over an LLRBNode.
-export class SortedMapIterator<K, V, T> {
-  private resultGenerator: ((k: K, v: V) => T) | null;
+export class SortedMapIterator<K, V> {
   private isReverse: boolean;
   private nodeStack: Array<LLRBNode<K, V> | LLRBEmptyNode<K, V>>;
 
@@ -263,10 +230,8 @@ export class SortedMapIterator<K, V, T> {
     node: LLRBNode<K, V> | LLRBEmptyNode<K, V>,
     startKey: K | null,
     comparator: Comparator<K>,
-    isReverse: boolean,
-    resultGenerator?: (k: K, v: V) => T
+    isReverse: boolean
   ) {
-    this.resultGenerator = resultGenerator || null;
     this.isReverse = isReverse;
     this.nodeStack = [];
 
@@ -301,19 +266,14 @@ export class SortedMapIterator<K, V, T> {
     }
   }
 
-  getNext(): T | Entry<K, V> {
+  getNext(): Entry<K, V> {
     assert(
       this.nodeStack.length > 0,
       'getNext() called on iterator when hasNext() is false.'
     );
 
     let node = this.nodeStack.pop()!;
-    let result: T | Entry<K, V>;
-    if (this.resultGenerator) {
-      result = this.resultGenerator(node.key, node.value);
-    } else {
-      result = { key: node.key, value: node.value };
-    }
+    let result ={ key: node.key, value: node.value };
 
     if (this.isReverse) {
       node = node.left;
@@ -336,15 +296,11 @@ export class SortedMapIterator<K, V, T> {
     return this.nodeStack.length > 0;
   }
 
-  peek(): T | Entry<K, V> {
+  peek(): Entry<K, V> {
     if (this.nodeStack.length === 0) return null;
 
     const node = this.nodeStack[this.nodeStack.length - 1];
-    if (this.resultGenerator) {
-      return this.resultGenerator(node.key, node.value);
-    } else {
-      return { key: node.key, value: node.value };
-    }
+    return { key: node.key, value: node.value };
   }
 } // end SortedMapIterator
 
@@ -444,7 +400,7 @@ export class LLRBNode<K, V> {
 
   // Returns new tree, with the key/value added.
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let n = this as LLRBNode<K, V>;
+    let n : LLRBNode<K, V> = this;
     const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
