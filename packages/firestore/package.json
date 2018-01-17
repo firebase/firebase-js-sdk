@@ -1,12 +1,13 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.2.3",
+  "version": "0.3.1-1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "dev": "gulp dev",
     "lint": "tslint -c tslint.json src/**/*.ts test/**/*.ts",
-    "test": "run-p test:browser test:node",
+    "test": "run-s lint test:all",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "//": "Disable the ts-node cache as it can hide type-check failures.",
@@ -21,7 +22,7 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/firestore-types": "0.1.1",
+    "@firebase/firestore-types": "0.2.1-1",
     "@firebase/webchannel-wrapper": "0.2.6",
     "grpc": "^1.7.1"
   },

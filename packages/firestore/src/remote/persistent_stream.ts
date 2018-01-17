@@ -533,7 +533,10 @@ export class PersistentListenStream extends PersistentStream<
   protected startRpc(
     token: Token | null
   ): Stream<api.ListenRequest, api.ListenResponse> {
-    return this.connection.openStream('Listen', token);
+    return this.connection.openStream<api.ListenRequest, api.ListenResponse>(
+      'Listen',
+      token
+    );
   }
 
   protected onMessage(watchChangeProto: api.ListenResponse): Promise<void> {
@@ -664,7 +667,10 @@ export class PersistentWriteStream extends PersistentStream<
   protected startRpc(
     token: Token | null
   ): Stream<api.WriteRequest, api.WriteResponse> {
-    return this.connection.openStream('Write', token);
+    return this.connection.openStream<api.WriteRequest, api.WriteResponse>(
+      'Write',
+      token
+    );
   }
 
   protected onMessage(responseProto: api.WriteResponse): Promise<void> {
