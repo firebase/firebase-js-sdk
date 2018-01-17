@@ -185,39 +185,19 @@ export class SortedMap<K, V> {
 
   // Returns an iterator over the SortedMap.
   getIterator(): SortedMapIterator<K, V> {
-    return new SortedMapIterator<K, V>(
-      this.root,
-      null,
-      this.comparator,
-      false
-    );
+    return new SortedMapIterator<K, V>(this.root, null, this.comparator, false);
   }
 
   getIteratorFrom(key: K): SortedMapIterator<K, V> {
-    return new SortedMapIterator<K, V>(
-      this.root,
-      key,
-      this.comparator,
-      false
-    );
+    return new SortedMapIterator<K, V>(this.root, key, this.comparator, false);
   }
 
   getReverseIterator(): SortedMapIterator<K, V> {
-    return new SortedMapIterator<K, V>(
-      this.root,
-      null,
-      this.comparator,
-      true
-    );
+    return new SortedMapIterator<K, V>(this.root, null, this.comparator, true);
   }
 
   getReverseIteratorFrom(key: K): SortedMapIterator<K, V> {
-    return new SortedMapIterator<K, V>(
-      this.root,
-      key,
-      this.comparator,
-      true,
-    );
+    return new SortedMapIterator<K, V>(this.root, key, this.comparator, true);
   }
 } // end SortedMap
 
@@ -273,7 +253,7 @@ export class SortedMapIterator<K, V> {
     );
 
     let node = this.nodeStack.pop()!;
-    let result ={ key: node.key, value: node.value };
+    let result = { key: node.key, value: node.value };
 
     if (this.isReverse) {
       node = node.left;
@@ -400,7 +380,7 @@ export class LLRBNode<K, V> {
 
   // Returns new tree, with the key/value added.
   insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
-    let n : LLRBNode<K, V> = this;
+    let n: LLRBNode<K, V> = this;
     const cmp = comparator(key, n.key);
     if (cmp < 0) {
       n = n.copy(null, null, null, n.left.insert(key, value, comparator), null);
