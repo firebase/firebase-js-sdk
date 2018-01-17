@@ -35,14 +35,14 @@ export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number): void {
   // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their
   // types. https://github.com/Microsoft/TypeScript/issues/14322
   db.createObjectStore(
-    // tslint:disable-next-line:no-any
     DbMutationBatch.store,
+    // tslint:disable-next-line:no-any
     { keyPath: DbMutationBatch.keyPath as any }
   );
 
   const targetDocumentsStore = db.createObjectStore(
-    // tslint:disable-next-line:no-any
     DbTargetDocument.store,
+    // tslint:disable-next-line:no-any
     { keyPath: DbTargetDocument.keyPath as any }
   );
   targetDocumentsStore.createIndex(
