@@ -81,7 +81,7 @@ describe('PersistencePromise', () => {
   });
 
   it('ignores catches without errors', () => {
-    let catchClause = 'unset';
+    let catchClause: Error | undefined = undefined;
     return sync(1)
       .next(x => x + 1)
       .catch(x => {
@@ -89,13 +89,13 @@ describe('PersistencePromise', () => {
       })
       .next(x => {
         expect(x).to.equal(2);
-        expect(catchClause).to.equal('unset');
+        expect(catchClause).to.be.undefined;
       })
       .toPromise();
   });
 
   it('ignores catches without errors async', () => {
-    let catchClause = 'unset';
+    let catchClause: Error | undefined = undefined;
     return async(1)
       .next(x => x + 1)
       .catch(x => {
@@ -103,7 +103,7 @@ describe('PersistencePromise', () => {
       })
       .next(x => {
         expect(x).to.equal(2);
-        expect(catchClause).to.equal('unset');
+        expect(catchClause).to.be.undefined;
       })
       .toPromise();
   });

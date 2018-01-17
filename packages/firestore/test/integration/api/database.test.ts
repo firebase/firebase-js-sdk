@@ -216,7 +216,7 @@ apiDescribe('Database', persistence => {
             expect(err.message).to.exist;
             // TODO: Change this to just match "no document to update" once the
             // backend response is consistent.
-            expect(err.message).to.match(/no (document|entity) to update/);
+            expect(err.message).to.match(/no (document|entity) to update/i);
             expect(err.code).to.equal('not-found');
           }
         )
