@@ -46,7 +46,7 @@
     "gulp-sourcemaps": "^2.6.1",
     "gulp-typescript": "^3.2.3",
     "husky": "^0.14.3",
-    "inquirer": "^3.2.3",
+    "inquirer": "^5.0.0",
     "istanbul-instrumenter-loader": "^3.0.0",
     "lcov-result-merger": "^1.2.0",
     "lerna": "^2.1.0",
