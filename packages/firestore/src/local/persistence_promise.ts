@@ -20,10 +20,10 @@ export type FulfilledHandler<T, R> =
   | ((result: T) => R | PersistencePromise<R>)
   | null;
 export type RejectedHandler<R> =
-  | ((reason: any) => R | PersistencePromise<R>)
+  | ((reason: Error) => R | PersistencePromise<R>)
   | null;
 export type Resolver<T> = (value?: T) => void;
-export type Rejector = (error: any) => void;
+export type Rejector = (error: Error) => void;
 
 /**
  * PersistencePromise<> is essentially a re-implementation of Promise<> except
@@ -41,12 +41,14 @@ export type Rejector = (error: any) => void;
 export class PersistencePromise<T> {
   // NOTE: next/catchCallback will always point to our own wrapper functions,
   // not the user's raw next() or catch() callbacks.
+  // tslint:disable-next-line:no-any Accept any result type for the next call in the Promise chain.
   private nextCallback: FulfilledHandler<T, any> = null;
+  // tslint:disable-next-line:no-any Accept any result type for the error handler.
   private catchCallback: RejectedHandler<any> = null;
 
   // When the operation resolves, we'll set result or error and mark isDone.
   private result: T | undefined = undefined;
-  private error: any = null;
+  private error: Error | undefined = undefined;
   private isDone = false;
 
   // Set to true when .then() or .catch() are called and prevents additional
@@ -75,7 +77,7 @@ export class PersistencePromise<T> {
   }
 
   catch<R>(
-    fn: (error: any) => R | PersistencePromise<R>
+    fn: (error: Error) => R | PersistencePromise<R>
   ): PersistencePromise<R> {
     return this.next(undefined, fn);
   }
@@ -99,7 +101,7 @@ export class PersistencePromise<T> {
         this.nextCallback = (value: T) => {
           this.wrapSuccess(nextFn, value).next(resolve, reject);
         };
-        this.catchCallback = (error: any) => {
+        this.catchCallback = (error: Error) => {
           this.wrapFailure(catchFn, error).next(resolve, reject);
         };
       });
@@ -136,13 +138,14 @@ export class PersistencePromise<T> {
     } else {
       // If there's no nextFn, then R must be the same as T but we
       // can't express that in the type system.
+      // tslint:disable-next-line:no-any
       return PersistencePromise.resolve<R>(value as any);
     }
   }
 
   private wrapFailure<R>(
     catchFn: RejectedHandler<R> | undefined,
-    error: any
+    error: Error
   ): PersistencePromise<R> {
     if (catchFn) {
       return this.wrapUserFunction(() => catchFn(error));
@@ -159,13 +162,14 @@ export class PersistencePromise<T> {
     });
   }
 
-  static reject<R>(error: any): PersistencePromise<R> {
+  static reject<R>(error: Error): PersistencePromise<R> {
     return new PersistencePromise<R>((resolve, reject) => {
       reject(error);
     });
   }
 
   static waitFor(
+    // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
     all: Array<PersistencePromise<any>>
   ): PersistencePromise<void> {
     return all.reduce((promise, nextPromise, idx) => {
@@ -179,6 +183,7 @@ export class PersistencePromise<T> {
     const results: R[] = [];
     let first = true;
     // initial is ignored, so we can cheat on the type.
+    // tslint:disable-next-line:no-any
     const initial = PersistencePromise.resolve<R>(null as any);
     return all
       .reduce((promise, nextPromise) => {
