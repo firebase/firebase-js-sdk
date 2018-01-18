@@ -59,7 +59,9 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     private persistenceKey: string,
     private instanceId: string,
     private asyncQueue: AsyncQueue
-  ) {}
+  ) {
+    this.visibilityKey = this.buildKey(VISIBILITY_PREFIX, this.persistenceKey, this.instanceId);
+  }
 
   /** Returns true if LocalStorage is available in the current environment. */
   static isAvailable(): boolean {
@@ -104,13 +106,13 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     }, LCOAL_STORAGE_REFRESH_INTERVAL_MS);
   }
 
+  private visibilityKey: string;
+
   /** Persists the entire known state. */
   private persistState(): void {
     assert(this.started, 'LocalStorageNotificationChannel not started');
     debug(LOG_TAG, 'Persisting state in LocalStorage');
-    this.localStorage[
-      this.buildKey(VISIBILITY_PREFIX, this.persistenceKey, this.instanceId)
-    ] = this.buildValue({
+    this.localStorage[this.visibilityKey] = this.buildValue({
       visibilityState: VisibilityState[this.visibilityState]
     });
   }

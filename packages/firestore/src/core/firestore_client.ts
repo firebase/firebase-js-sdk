@@ -74,7 +74,6 @@ export class FirestoreClient {
   private notificationChannel?: TabNotificationChannel;
   private windowEventListener?: WindowEventListener;
   private syncEngine: SyncEngine;
-  private ownerId: string = AutoId.newId();
   constructor(
     private platform: Platform,
     private databaseInfo: DatabaseInfo,
@@ -239,6 +238,8 @@ export class FirestoreClient {
    * @returns A promise indicating success or failure.
    */
   private startIndexedDbPersistence(): Promise<void> {
+    const ownerId = AutoId.newId();
+
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
@@ -251,7 +252,7 @@ export class FirestoreClient {
     });
     this.notificationChannel = new LocalStorageNotificationChannel(
       storagePrefix,
-      this.ownerId,
+      ownerId,
       this.asyncQueue
     );
     this.windowEventListener = new WindowEventListener(
@@ -260,7 +261,7 @@ export class FirestoreClient {
     );
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
-      this.ownerId,
+      ownerId,
       serializer
     );
     return this.persistence.start().then(() => {
