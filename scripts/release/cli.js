@@ -54,8 +54,12 @@ const { runTests, setupTestDeps } = require('./utils/tests');
     /** 
      * Commit and tag the version updates
      */
-    // await commitAndTag(versions, isPrerelease);
+    await commitAndTag(versions, isPrerelease);
     
+    /**
+     * Push new version to Github
+     */
+    await pushUpdatesToGithub();
 
   } catch(err) {
     console.error(err);

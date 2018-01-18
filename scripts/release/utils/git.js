@@ -30,7 +30,8 @@ exports.commitAndTag = async (updatedVersions, isPrerelease) => {
 
 exports.pushUpdatesToGithub = async () => {
   await git.push('origin', 'master', {
-    '--follow-tags': null
+    '--follow-tags': null,
+    '--no-verify': null
   });
 }
 
