@@ -1,3 +1,7 @@
+const chalk = require('chalk');
+const { inc, prerelease } = require('semver');
+const { mapPackageNameToPkgJson } = require('./workspace');
+
 function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }

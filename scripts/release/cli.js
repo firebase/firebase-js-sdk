@@ -1,11 +1,9 @@
 const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
-const { getOrderedUpdates, mapPackageNameToPkgJson, updateWorkspaceVersions } = require('./utils/workspace');
-const { inc, prerelease } = require('semver');
+const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspace');
 const { commitAndTag, pushUpdatesToGithub, cleanTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
-const chalk = require('chalk');
 
 (async () => {
   try {
