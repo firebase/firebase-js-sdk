@@ -39,8 +39,8 @@ const { runTests, setupTestDeps } = require('./utils/tests');
      * Clean install dependencies
      */
     console.log('\r\nVerifying Build');
-    await cleanTree();
-    await reinstallDeps();
+    // await cleanTree();
+    // await reinstallDeps();
 
     /**
      * Ensure all tests are passing
@@ -51,7 +51,7 @@ const { runTests, setupTestDeps } = require('./utils/tests');
     /** 
      * Commit and tag the version updates
      */
-    await commitAndTag(versions, isPrerelease);
+    // await commitAndTag(versions, isPrerelease);
     
 
   } catch(err) {

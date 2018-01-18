@@ -20,5 +20,5 @@ exports.runTests = async () => {
 };
 
 exports.setupTestDeps = async() => {
-  await spawn('yarn', ['test:setup']);
+  await spawn('yarn', ['test:setup'], { stdio: 'inherit' });
 }
