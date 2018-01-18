@@ -65,7 +65,7 @@ const { publishToNpm } = require('./utils/npm');
     /**
      * Release new versions to NPM
      */
-    await publishToNpm(updates);
+    await publishToNpm(updates, isPrerelease);
 
   } catch(err) {
     console.error(err);

@@ -2,9 +2,13 @@ const { root } = require('./constants');
 const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 
-exports.publishToNpm = async updates => {
-  updates.forEach(async update => {
-    const path = await mapPkgNameToPkgPath(update);
-    console.log(path);
-  });
+exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
+  await Promise.all(updatedPkgs.map(async pkg => {
+    const path = await mapPkgNameToPkgPath(pkg);
+    let args = ['npm', 'publish'];
+    if (isPrerelease) {
+      args = [...args, '--tag', 'next'];
+    }
+    await spawn('echo', args, { cwd: path });
+  }));
 };
