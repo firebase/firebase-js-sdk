@@ -4,8 +4,9 @@ const ora = require('ora');
 
 exports.runTests = async () => {
   const spinner = ora(' Running test suite').start();
+  let result;
   try {
-    const result = await exec('yarn test', {
+    result = await exec('yarn test', {
       cwd: root
     });
     spinner.stopAndPersist({
