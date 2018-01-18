@@ -10,7 +10,7 @@
     "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
+    "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register/type-check --require index.node.ts --retries 5 --timeout 5000 --exit",
     "prepare": "gulp build"
   },
   "main": "dist/cjs/index.node.js",
@@ -50,7 +50,7 @@
     "sinon": "^4.0.2",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.1.0",
-    "ts-node": "^3.3.0",
+    "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1",
