@@ -5,6 +5,7 @@ const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspac
 const { commitAndTag, pushUpdatesToGithub, cleanTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
+const { runTests } = require('./utils/tests');
 
 (async () => {
   try {
