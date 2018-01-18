@@ -21,9 +21,9 @@ import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
 
 /**
- * Refresh the contents of WebStorage every four seconds.
+ * Refresh the contents of LocalStorage every four seconds.
  */
-const WEB_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
+const LCOAL_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
 
 // Prefix keys used in WebStorage.
 const VISIBILITY_PREFIX = 'visibility';
@@ -101,7 +101,7 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
         this.persistState();
       }
       return Promise.resolve();
-    }, WEB_STORAGE_REFRESH_INTERVAL_MS);
+    }, LCOAL_STORAGE_REFRESH_INTERVAL_MS);
   }
 
   /** Persists the entire known state. */

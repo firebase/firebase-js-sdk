@@ -59,10 +59,10 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 /**
- * Creates and starts a LocalStorageNotificationChannel instance for testing, destroying
- * any previous contents if they existed.
+ * Creates and starts a LocalStorageNotificationChannel instance for testing,
+ * destroying any previous contents if they existed.
  */
-export async function testWebStoragePersistence(
+export async function testLocalStorageNotificationChannel(
   ownerId: string,
   queue: AsyncQueue
 ): Promise<TabNotificationChannel> {

@@ -27,7 +27,6 @@ import { View } from '../../../src/core/view';
 import { ChangeType, ViewSnapshot } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentSet } from '../../../src/model/document_set';
-import { AsyncQueue } from '../../../src/util/async_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   ackTarget,
@@ -38,8 +37,6 @@ import {
 } from '../../util/helpers';
 
 describe('EventManager', () => {
-  const queue = new AsyncQueue();
-
   // tslint:disable-next-line:no-any mock object.
   function fakeQueryListener(query: Query): any {
     return {
@@ -66,7 +63,7 @@ describe('EventManager', () => {
     const fakeListener2 = fakeQueryListener(query);
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(queue, syncEngineSpy);
+    const eventManager = new EventManager(syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(syncEngineSpy.listen.calledWith(query)).to.be.true;
@@ -85,7 +82,7 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
-    const eventManager = new EventManager(queue, syncEngineSpy);
+    const eventManager = new EventManager(syncEngineSpy);
     eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
   });
@@ -109,7 +106,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(queue, syncEngineSpy);
+    const eventManager = new EventManager(syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     eventManager.listen(fakeListener2);
@@ -138,7 +135,7 @@ describe('EventManager', () => {
     };
 
     const syncEngineSpy = makeSyncEngineSpy();
-    const eventManager = new EventManager(queue, syncEngineSpy);
+    const eventManager = new EventManager(syncEngineSpy);
 
     eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
@@ -151,26 +148,26 @@ describe('QueryListener', () => {
   addEqualityMatcher();
 
   function queryListener(
-    query: Query,
-    events?: ViewSnapshot[],
-    errors?: Error[],
-    options?: ListenOptions
+      query: Query,
+      events?: ViewSnapshot[],
+      errors?: Error[],
+      options?: ListenOptions
   ): QueryListener {
     return new QueryListener(
-      query,
-      {
-        next: (snap: ViewSnapshot) => {
-          if (events !== undefined) {
-            events.push(snap);
+        query,
+        {
+          next: (snap: ViewSnapshot) => {
+            if (events !== undefined) {
+              events.push(snap);
+            }
+          },
+          error: (error: Error) => {
+            if (errors !== undefined) {
+              errors.push(error);
+            }
           }
         },
-        error: (error: Error) => {
-          if (errors !== undefined) {
-            errors.push(error);
-          }
-        }
-      },
-      options
+        options
     );
   }
 
@@ -281,10 +278,10 @@ describe('QueryListener', () => {
     const fullEvents: ViewSnapshot[] = [];
     const query = Query.atPath(path('rooms'));
     const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasLocalMutations: true }
+        'rooms/Eros',
+        1,
+        { name: 'Eros' },
+        { hasLocalMutations: true }
     );
     const doc2 = doc('rooms/Hades', 2, { name: 'Hades' });
     const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
@@ -327,16 +324,16 @@ describe('QueryListener', () => {
     const fullEvents: ViewSnapshot[] = [];
     const query = Query.atPath(path('rooms'));
     const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasLocalMutations: true }
+        'rooms/Eros',
+        1,
+        { name: 'Eros' },
+        { hasLocalMutations: true }
     );
     const doc2 = doc(
-      'rooms/Hades',
-      2,
-      { name: 'Hades' },
-      { hasLocalMutations: true }
+        'rooms/Hades',
+        2,
+        { name: 'Hades' },
+        { hasLocalMutations: true }
     );
     const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
     const doc2prime = doc('rooms/Hades', 2, { name: 'Hades' });
@@ -370,42 +367,42 @@ describe('QueryListener', () => {
   });
 
   it(
-    'Metadata-only document changes are filtered out when ' +
+      'Metadata-only document changes are filtered out when ' +
       'includeDocumentMetadataChanges is false',
-    () => {
-      const filteredEvents: ViewSnapshot[] = [];
-      const query = Query.atPath(path('rooms'));
-      const doc1 = doc(
-        'rooms/Eros',
-        1,
-        { name: 'Eros' },
-        { hasLocalMutations: true }
-      );
-      const doc2 = doc('rooms/Hades', 2, { name: 'Hades' });
-      const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
-      const doc3 = doc('rooms/Other', 3, { name: 'Other' });
-      const filteredListener = queryListener(query, filteredEvents);
+      () => {
+        const filteredEvents: ViewSnapshot[] = [];
+        const query = Query.atPath(path('rooms'));
+        const doc1 = doc(
+            'rooms/Eros',
+            1,
+            { name: 'Eros' },
+            { hasLocalMutations: true }
+        );
+        const doc2 = doc('rooms/Hades', 2, { name: 'Hades' });
+        const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
+        const doc3 = doc('rooms/Other', 3, { name: 'Other' });
+        const filteredListener = queryListener(query, filteredEvents);
 
-      const view = new View(query, documentKeySet());
-      const snap1 = applyDocChanges(view, doc1, doc2).snapshot!;
-      const snap2 = applyDocChanges(view, doc1prime, doc3).snapshot!;
+        const view = new View(query, documentKeySet());
+        const snap1 = applyDocChanges(view, doc1, doc2).snapshot!;
+        const snap2 = applyDocChanges(view, doc1prime, doc3).snapshot!;
 
-      const change3 = { type: ChangeType.Added, doc: doc3 };
+        const change3 = { type: ChangeType.Added, doc: doc3 };
 
-      filteredListener.onViewSnapshot(snap1);
-      filteredListener.onViewSnapshot(snap2);
+        filteredListener.onViewSnapshot(snap1);
+        filteredListener.onViewSnapshot(snap2);
 
-      const expectedSnap2 = {
-        query: snap2.query,
-        docs: snap2.docs,
-        oldDocs: snap1.docs,
-        docChanges: [change3],
-        fromCache: snap2.fromCache,
-        syncStateChanged: snap2.syncStateChanged,
-        hasPendingWrites: snap2.hasPendingWrites
-      };
-      expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
-    }
+        const expectedSnap2 = {
+          query: snap2.query,
+          docs: snap2.docs,
+          oldDocs: snap1.docs,
+          docChanges: [change3],
+          fromCache: snap2.fromCache,
+          syncStateChanged: snap2.syncStateChanged,
+          hasPendingWrites: snap2.hasPendingWrites
+        };
+        expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
+      }
   );
 
   it('Will wait for sync if online', () => {

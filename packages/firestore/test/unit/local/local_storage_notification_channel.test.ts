@@ -25,9 +25,9 @@ import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
 const GRACE_INTERVAL_MS = 100;
 
-describe('WebStorageTests', () => {
+describe('LocalStorageNotificationChannelTests', () => {
   if (!LocalStorageNotificationChannel.isAvailable()) {
-    console.warn('No WebStorage. Skipping WebStorageTests tests.');
+    console.warn('No LocalStorage. Skipping LocalStorageNotificationChannelTests tests.');
     return;
   }
 
@@ -42,7 +42,7 @@ describe('WebStorageTests', () => {
     queue = new AsyncQueue();
     expect(queue.periodicOperationsCount).to.be.equal(0);
     return persistenceHelpers
-      .testWebStoragePersistence(ownerId, queue)
+      .testLocalStorageNotificationChannel(ownerId, queue)
       .then(ws => {
         webStorage = ws;
         expect(queue.periodicOperationsCount).to.be.equal(1);

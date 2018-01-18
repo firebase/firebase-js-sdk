@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import { OnlineState, TargetId, VisibilityState } from '../core/types';
-import { ObjectMap } from '../util/obj_map';
-import { Query } from '../core/query';
-import { AsyncQueue } from '../util/async_queue';
-import { SyncEngine } from '../core/sync_engine';
-import { TabNotificationChannel } from '../local/tab_notification_channel';
-import { Code, FirestoreError } from '../util/error';
+import {VisibilityState} from '../core/types';
+import {AsyncQueue} from '../util/async_queue';
+import {TabNotificationChannel} from '../local/tab_notification_channel';
+import {Code, FirestoreError} from '../util/error';
 
+/** Listener for window events raised by the browser. */
 export class WindowEventListener {
   constructor(
     private asyncQueue: AsyncQueue,
@@ -41,21 +39,19 @@ export class WindowEventListener {
       );
     }
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('visibilityChange', () => {
-        let visibility = VisibilityState.Unknown;
+    window.addEventListener('visibilityChange', () => {
+      let visibility = VisibilityState.Unknown;
 
-        if (window.document.visibilityState === 'visible') {
-          visibility = VisibilityState.Foreground;
-        } else if (window.document.visibilityState === 'hidden') {
-          visibility = VisibilityState.Background;
-        }
+      if (window.document.visibilityState === 'visible') {
+        visibility = VisibilityState.Foreground;
+      } else if (window.document.visibilityState === 'hidden') {
+        visibility = VisibilityState.Background;
+      }
 
-        this.asyncQueue.schedule(() => {
-          this.notificationChannel.setVisibility(visibility);
-          return Promise.resolve();
-        });
+      this.asyncQueue.schedule(() => {
+        this.notificationChannel.setVisibility(visibility);
+        return Promise.resolve();
       });
-    }
+    });
   }
 }
