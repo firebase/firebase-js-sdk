@@ -893,9 +893,9 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('tabState' in expectation) {
-        expect(VisibilityState[this.notificationChannel.visibilityState]).to.equal(
-          VisibilityState[expectation.tabState.visibilityState]
-        );
+        expect(
+          VisibilityState[this.notificationChannel.visibilityState]
+        ).to.equal(VisibilityState[expectation.tabState.visibilityState]);
       }
     }
 
