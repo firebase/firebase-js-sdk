@@ -23,9 +23,7 @@ import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import {
-  StringMap
-} from '../../../src/util/types';
+import { StringMap } from '../../../src/util/types';
 
 const GRACE_INTERVAL_MS = 100;
 
@@ -59,10 +57,7 @@ describe('LocalStorageNotificationChannelTests', () => {
     queue.drain(/* executeDelayedTasks= */ false);
   });
 
-  function assertInstanceState(
-    key: string,
-    expectedContents: StringMap
-  ) {
+  function assertInstanceState(key: string, expectedContents: StringMap) {
     const actual = JSON.parse(
       localStorage[
         `${key}_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`
