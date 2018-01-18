@@ -51,6 +51,18 @@ function mapPackagesToDepGraph(packagePaths) {
   return graph;
 }
 
+exports.mapPkgNameToPkgPath = async pkgName => {
+  const packages = await mapWorkspaceToPackages(workspaces);
+  return packages.filter(path => {
+    try {
+      const json = require(`${path}/package.json`);
+      return json.name === pkgName;
+    } catch (err) {
+      return null;
+    }
+  }).reduce(val => val);
+}
+
 exports.getOrderedUpdates = async () => {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
@@ -60,7 +72,7 @@ exports.getOrderedUpdates = async () => {
   return processingOrder.filter(pkg => updated.includes(pkg));
 };
 
-exports.mapPackageNameToPkgJson = async packageName => {
+exports.mapPkgNameToPkgJson = async packageName => {
   const packages = await mapWorkspaceToPackages(workspaces);
   return mapPackagestoPkgJson(packages).filter(pkg => pkg.name === packageName).reduce(val => val);
 };

@@ -6,6 +6,7 @@ const { commitAndTag, pushUpdatesToGithub, cleanTree, resetWorkingTree } = requi
 const { releaseType, packageVersionUpdate, validateVersions } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
+const { publishToNpm } = require('./utils/npm');
 
 (async () => {
   try {
@@ -38,28 +39,33 @@ const { runTests, setupTestDeps } = require('./utils/tests');
      */
     await updateWorkspaceVersions(versions);
 
-    /**
-     * Clean install dependencies
-     */
-    console.log('\r\nVerifying Build');
-    await cleanTree();
-    await reinstallDeps();
+    // /**
+    //  * Clean install dependencies
+    //  */
+    // console.log('\r\nVerifying Build');
+    // await cleanTree();
+    // await reinstallDeps();
 
-    /**
-     * Ensure all tests are passing
-     */
-    await setupTestDeps();
-    await runTests();
+    // /**
+    //  * Ensure all tests are passing
+    //  */
+    // await setupTestDeps();
+    // await runTests();
 
-    /** 
-     * Commit and tag the version updates
-     */
-    await commitAndTag(versions, isPrerelease);
+    // /** 
+    //  * Commit and tag the version updates
+    //  */
+    // await commitAndTag(versions, isPrerelease);
     
+    // /**
+    //  * Push new version to Github
+    //  */
+    // await pushUpdatesToGithub();
+
     /**
-     * Push new version to Github
+     * Release new versions to NPM
      */
-    await pushUpdatesToGithub();
+    await publishToNpm(updates);
 
   } catch(err) {
     console.error(err);

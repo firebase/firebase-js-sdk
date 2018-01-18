@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const { inc, prerelease } = require('semver');
-const { mapPackageNameToPkgJson } = require('./workspace');
+const { mapPkgNameToPkgJson } = require('./workspace');
 
 function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -10,7 +10,7 @@ exports.packageVersionUpdate = async (package, isPrerelease) => {
   /**
    * Get the current package version
    */
-  const { version } = await mapPackageNameToPkgJson(package);
+  const { version } = await mapPkgNameToPkgJson(package);
 
   /**
    * If the current version is a prerelease allow the developer to
@@ -60,7 +60,7 @@ exports.releaseType = {
 };
 
 exports.validateVersions = versionMap => {
-  let message = 'Are you sure these are the versions you want to publish?\r\n';
+  let message = '\r\nAre you sure these are the versions you want to publish?\r\n';
   Object.keys(versionMap)
     .map(name => ({ name, version: versionMap[name] }))
     .forEach(({ name, version }) => {
