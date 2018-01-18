@@ -265,8 +265,8 @@ export class FirestoreClient {
       );
       this.notificationChannel.start();
       this.windowEventListener = new WindowEventListener(
-          this.asyncQueue,
-          this.notificationChannel
+        this.asyncQueue,
+        this.notificationChannel
       );
       this.windowEventListener.start();
     });
