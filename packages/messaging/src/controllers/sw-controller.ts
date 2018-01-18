@@ -17,6 +17,7 @@
 
 import ControllerInterface from './controller-interface';
 import Errors from '../models/errors';
+import FCMDetails from '../models/fcm-details';
 import WorkerPageMessage from '../models/worker-page-message';
 
 const FCM_MSG = 'FCM_MSG';
@@ -359,5 +360,20 @@ export default class SWController extends ControllerInterface {
    */
   getSWRegistration_() {
     return Promise.resolve((self as any).registration);
+  }
+
+  /**
+   * This will return the default VAPID key or the uint8array version of the
+   * public VAPID key provided by the developer.
+   */
+  getPublicVapidKey_(): Promise<Uint8Array> {
+    return this.getSWRegistration_().then(swReg => {
+      return swReg.pushManager.getSubscription().then(subscription => {
+        if (subscription !== null && subscription.options !== null) {
+          return subscription.options.applicationServerKey;
+        }
+        return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+      });
+    });
   }
 }

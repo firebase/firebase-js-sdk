@@ -97,10 +97,14 @@ export default class ControllerInterface {
     tokenDetails: Object,
     swReg: ServiceWorkerRegistration
   ): Promise<string> {
-    const publicVapidKey = this.getPublicVapidKey_();
+    let publicVapidKey: Uint8Array;
     let updatedToken: string;
     let subscription: PushSubscription;
-    return this.getPushSubscription_(swReg, publicVapidKey)
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
       .then(pushSubscription => {
         subscription = pushSubscription;
         return this.iidModel_.updateToken(
@@ -134,10 +138,14 @@ export default class ControllerInterface {
   }
 
   private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
-    const publicVapidKey = this.getPublicVapidKey_();
+    let publicVapidKey: Uint8Array;
     let subscription: PushSubscription;
     let tokenDetails: Object;
-    return this.getPushSubscription_(swReg, publicVapidKey)
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
       .then(pushSubscription => {
         subscription = pushSubscription;
         return this.iidModel_.getToken(
@@ -199,7 +207,7 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
-  getPublicVapidKey_(): Uint8Array {
+  getPublicVapidKey_(): Promise<Uint8Array> {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
