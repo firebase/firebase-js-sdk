@@ -15,3 +15,9 @@ exports.commitAndTag = async (updatedVersions, isPrerelease) => {
       await git.addTag(`${name}@${version}`);
     });
 };
+
+exports.pushUpdatesToGithub = async () => {
+  await git.push('origin', 'master', {
+    '--follow-tags': null
+  });
+}
