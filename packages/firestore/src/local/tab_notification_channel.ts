@@ -35,9 +35,6 @@ const LOG_TAG = 'TabNotificationChannel';
  * notifications and to persist the metadata state of each tab. WebStorage is
  * used to perform leader election and to inform other tabs about changes in the
  * IndexedDB-backed persistence layer.
- *
- * WebStorage is only used in Persistence-enabled Firestore instances. If you
- * are not using Persistence, consider using the `NoOpWebStorage` class.
  */
 export interface TabNotificationChannel {
   setVisibility(visibilityState: VisibilityState): void;
@@ -46,12 +43,12 @@ export interface TabNotificationChannel {
 }
 
 /**
- * `LocalStorageNotificationChannel` uses Local Storage as the backing store for the
- * WebStorage class.
+ * `LocalStorageNotificationChannel` uses LocalStorage as the backing store for
+ * the TabNotificationChannel class.
  *
- * Once started, LocalStorageNotificationChannel will rewrite its contents to Local Storage
- * every four seconds. Other clients may disregard its state after five seconds
- * of inactivity.
+ * Once started, LocalStorageNotificationChannel will rewrite its contents to
+ * LocalStorage every four seconds. Other clients may disregard its state after
+ * five seconds of inactivity.
  */
 export class LocalStorageNotificationChannel implements TabNotificationChannel {
   private localStorage: Storage;
@@ -132,15 +129,4 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);
   }
-}
-
-/**
- * `NoOpWebStorage` implements the WebStorage API but neither persist data nor
- * delivers notifications. This call should be used for non-persistence enabled
- * clients.
- */
-export class NoOpWebStorage implements TabNotificationChannel {
-  start(): void {}
-  shutdown(): void {}
-  setVisibility(visibilityState: VisibilityState): void {}
 }

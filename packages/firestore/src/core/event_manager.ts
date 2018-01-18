@@ -16,7 +16,7 @@
 
 import { Query } from './query';
 import { SyncEngine } from './sync_engine';
-import { OnlineState, TargetId, VisibilityState } from './types';
+import { OnlineState, TargetId } from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
 import { DocumentSet } from '../model/document_set';
@@ -24,7 +24,6 @@ import { assert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
-import { AsyncQueue } from '../util/async_queue';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -56,7 +55,7 @@ export class EventManager {
 
   private onlineState: OnlineState = OnlineState.Unknown;
 
-  constructor(private asyncQueue: AsyncQueue, private syncEngine: SyncEngine) {
+  constructor(private syncEngine: SyncEngine) {
     this.syncEngine.subscribe(
       this.onChange.bind(this),
       this.onError.bind(this)

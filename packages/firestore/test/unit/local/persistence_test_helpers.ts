@@ -22,7 +22,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   LocalStorageNotificationChannel,
   TabNotificationChannel
-} from '../../../src/local/web_storage';
+} from '../../../src/local/tab_notification_channel';
 import { AutoId } from '../../../src/util/misc';
 import { AsyncQueue } from '../../../src/util/async_queue';
 

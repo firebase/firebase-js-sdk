@@ -18,7 +18,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import {
   LocalStorageNotificationChannel,
   TabNotificationChannel
-} from '../../../src/local/web_storage';
+} from '../../../src/local/tab_notification_channel';
 import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';

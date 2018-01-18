@@ -89,7 +89,7 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import { TabNotificationChannel } from '../../../src/local/web_storage';
+import { TabNotificationChannel } from '../../../src/local/tab_notification_channel';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<

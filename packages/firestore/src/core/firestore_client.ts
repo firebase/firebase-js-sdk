@@ -46,10 +46,9 @@ import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
-  NoOpWebStorage,
   LocalStorageNotificationChannel,
   TabNotificationChannel
-} from '../local/web_storage';
+} from '../local/tab_notification_channel';
 import { AutoId } from '../util/misc';
 import { WindowEventListener } from '../platform_browser/window_event_listener';
 
@@ -75,8 +74,7 @@ export class FirestoreClient {
   private notificationChannel?: TabNotificationChannel;
   private windowEventListener?: WindowEventListener;
   private syncEngine: SyncEngine;
-  private ownerId: string = this.generateOwnerId();
-
+  private ownerId: string = AutoId.newId();
   constructor(
     private platform: Platform,
     private databaseInfo: DatabaseInfo,
@@ -267,7 +265,7 @@ export class FirestoreClient {
     );
     return this.persistence.start().then(() => {
       this.notificationChannel.start();
-      this.windowEventListener.register();
+      this.windowEventListener.start();
     });
   }
 
@@ -327,7 +325,7 @@ export class FirestoreClient {
         // Setup wiring between sync engine and remote store
         this.remoteStore.syncEngine = this.syncEngine;
 
-        this.eventMgr = new EventManager(this.asyncQueue, this.syncEngine);
+        this.eventMgr = new EventManager(this.syncEngine);
 
         // NOTE: RemoteStore depends on LocalStore (for persisting stream
         // tokens, refilling mutation queue, etc.) so must be started after
@@ -409,10 +407,5 @@ export class FirestoreClient {
       .then(() => {
         return this.syncEngine.runTransaction(updateFunction);
       });
-  }
-
-  private generateOwnerId(): string {
-    // For convenience, just use an AutoId.
-    return AutoId.newId();
   }
 }
