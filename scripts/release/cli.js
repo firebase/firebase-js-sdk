@@ -5,7 +5,7 @@ const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspac
 const { commitAndTag, pushUpdatesToGithub, cleanTree, resetWorkingTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
-const { runTests } = require('./utils/tests');
+const { runTests, setupTestDeps } = require('./utils/tests');
 
 (async () => {
   try {
@@ -45,6 +45,7 @@ const { runTests } = require('./utils/tests');
     /**
      * Ensure all tests are passing
      */
+    await setupTestDeps();
     await runTests();
 
     /** 
