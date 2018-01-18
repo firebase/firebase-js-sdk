@@ -95,7 +95,7 @@ const { publishToNpm } = require('./utils/npm');
 
     const { readyToPush } = await prompt(validateReadyToPush);
     if (!readyToPush) throw new Error('Push Check Failed');
-    
+
     /**
      * Push new version to Github
      */
