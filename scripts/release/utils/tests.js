@@ -3,8 +3,8 @@ const { root } = require('./constants');
 const ora = require('ora');
 
 exports.runTests = async () => {
+  const spinner = ora(' Running test suite').start();
   try {
-    const spinner = ora(' Reinstalling Dependencies').start();
     const result = await exec('yarn test', {
       cwd: root
     });
