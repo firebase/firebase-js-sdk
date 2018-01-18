@@ -117,7 +117,7 @@ exports.updateWorkspaceVersions = async newVersionObj => {
           });
         });
 
-      writeFile(pkgJsonPath, JSON.stringify(pkg, null, 2));
+      writeFile(pkgJsonPath, `${JSON.stringify(pkg, null, 2)}\n`);
     });
   } catch (err) {
     console.log(err);
