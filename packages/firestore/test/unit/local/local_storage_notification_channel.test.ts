@@ -23,6 +23,10 @@ import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import {
+  StringMap
+} from '../../../src/util/types';
+
 const GRACE_INTERVAL_MS = 100;
 
 describe('LocalStorageNotificationChannelTests', () => {
@@ -57,7 +61,7 @@ describe('LocalStorageNotificationChannelTests', () => {
 
   function assertInstanceState(
     key: string,
-    expectedContents: { [key: string]: string }
+    expectedContents: StringMap
   ) {
     const actual = JSON.parse(
       localStorage[

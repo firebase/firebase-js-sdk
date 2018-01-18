@@ -19,6 +19,7 @@ import { VisibilityState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
+import { StringMap } from '../util/types';
 
 /**
  * Refresh the contents of LocalStorage every four seconds.
@@ -131,7 +132,7 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
   }
 
   /** JSON-encodes the provided value and its current update time. */
-  private buildValue(data: { [key: string]: string }): string {
+  private buildValue(data: StringMap): string {
     const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);
   }
