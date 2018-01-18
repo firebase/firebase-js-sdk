@@ -27,7 +27,9 @@ const GRACE_INTERVAL_MS = 100;
 
 describe('LocalStorageNotificationChannelTests', () => {
   if (!LocalStorageNotificationChannel.isAvailable()) {
-    console.warn('No LocalStorage. Skipping LocalStorageNotificationChannelTests tests.');
+    console.warn(
+      'No LocalStorage. Skipping LocalStorageNotificationChannelTests tests.'
+    );
     return;
   }
 
