@@ -9,6 +9,8 @@ exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
     if (isPrerelease) {
       args = [...args, '--tag', 'next'];
     }
+
+    console.log(`📦  Publishing: ${pkg}`)
     await spawn('echo', args, { cwd: path, stdio: 'inherit' });
   }));
 };
