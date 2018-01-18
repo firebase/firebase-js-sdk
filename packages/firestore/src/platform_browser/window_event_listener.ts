@@ -1,13 +1,15 @@
-import {OnlineState, TargetId, VisibilityState} from '../core/types';
-import {ObjectMap} from '../util/obj_map';
-import {Query} from '../core/query';
-import {AsyncQueue} from '../util/async_queue';
-import {SyncEngine} from '../core/sync_engine';
-import {TabNotificationChannel} from '../local/web_storage';
+import { OnlineState, TargetId, VisibilityState } from '../core/types';
+import { ObjectMap } from '../util/obj_map';
+import { Query } from '../core/query';
+import { AsyncQueue } from '../util/async_queue';
+import { SyncEngine } from '../core/sync_engine';
+import { TabNotificationChannel } from '../local/web_storage';
 
 export class WindowEventListener {
-  constructor(private asyncQueue: AsyncQueue, private notificationChannel: TabNotificationChannel) {
-  }
+  constructor(
+    private asyncQueue: AsyncQueue,
+    private notificationChannel: TabNotificationChannel
+  ) {}
 
   register(): boolean {
     if (typeof window !== 'undefined') {

@@ -63,28 +63,28 @@ export type ErrorHandler = (query: Query, error: Error) => void;
  */
 class QueryView {
   constructor(
-      /**
-       * The query itself.
-       */
-      public query: Query,
-      /**
-       * The target number created by the client that is used in the watch
-       * stream to identify this query.
-       */
-      public targetId: TargetId,
-      /**
-       * An identifier from the datastore backend that indicates the last state
-       * of the results that was received. This can be used to indicate where
-       * to continue receiving new doc changes for the query.
-       */
-      public resumeToken: ProtoByteString,
-      /**
-       * The view is responsible for computing the final merged truth of what
-       * docs are in the query. It gets notified of local and remote changes,
-       * and applies the query filters and limits to determine the most correct
-       * possible results.
-       */
-      public view: View
+    /**
+     * The query itself.
+     */
+    public query: Query,
+    /**
+     * The target number created by the client that is used in the watch
+     * stream to identify this query.
+     */
+    public targetId: TargetId,
+    /**
+     * An identifier from the datastore backend that indicates the last state
+     * of the results that was received. This can be used to indicate where
+     * to continue receiving new doc changes for the query.
+     */
+    public resumeToken: ProtoByteString,
+    /**
+     * The view is responsible for computing the final merged truth of what
+     * docs are in the query. It gets notified of local and remote changes,
+     * and applies the query filters and limits to determine the most correct
+     * possible results.
+     */
+    public view: View
   ) {}
 }
 
@@ -107,11 +107,11 @@ export class SyncEngine implements RemoteSyncer {
   private errorHandler: ErrorHandler | null = null;
 
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
-      q.canonicalId()
+    q.canonicalId()
   );
   private queryViewsByTarget: { [targetId: number]: QueryView } = {};
   private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
-      DocumentKey.comparator
+    DocumentKey.comparator
   );
   private limboKeysByTarget: { [targetId: number]: DocumentKey } = {};
   private limboDocumentRefs = new ReferenceSet();
@@ -123,20 +123,20 @@ export class SyncEngine implements RemoteSyncer {
   private targetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   constructor(
-      private localStore: LocalStore,
-      private remoteStore: RemoteStore,
-      private currentUser: User
+    private localStore: LocalStore,
+    private remoteStore: RemoteStore,
+    private currentUser: User
   ) {}
 
   /** Subscribes view and error handler. Can be called only once. */
   subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
     assert(
-        viewHandler !== null && errorHandler !== null,
-        'View and error handlers cannot be null'
+      viewHandler !== null && errorHandler !== null,
+      'View and error handlers cannot be null'
     );
     assert(
-        this.viewHandler === null && this.errorHandler === null,
-        'SyncEngine already has a subscriber.'
+      this.viewHandler === null && this.errorHandler === null,
+      'SyncEngine already has a subscriber.'
     );
     this.viewHandler = viewHandler;
     this.errorHandler = errorHandler;
@@ -151,44 +151,44 @@ export class SyncEngine implements RemoteSyncer {
   listen(query: Query): Promise<TargetId> {
     this.assertSubscribed('listen()');
     assert(
-        !this.queryViewsByQuery.has(query),
-        'We already listen to the query: ' + query
+      !this.queryViewsByQuery.has(query),
+      'We already listen to the query: ' + query
     );
 
     return this.localStore.allocateQuery(query).then(queryData => {
       return this.localStore
-          .executeQuery(query)
-          .then(docs => {
-            return this.localStore
-                .remoteDocumentKeys(queryData.targetId)
-                .then(remoteKeys => {
-                  const view = new View(query, remoteKeys);
-                  const viewDocChanges = view.computeDocChanges(docs);
-                  const viewChange = view.applyChanges(viewDocChanges);
-                  assert(
-                      viewChange.limboChanges.length === 0,
-                      'View returned limbo docs before target ack from the server.'
-                  );
-                  assert(
-                      !!viewChange.snapshot,
-                      'applyChanges for new view should always return a snapshot'
-                  );
+        .executeQuery(query)
+        .then(docs => {
+          return this.localStore
+            .remoteDocumentKeys(queryData.targetId)
+            .then(remoteKeys => {
+              const view = new View(query, remoteKeys);
+              const viewDocChanges = view.computeDocChanges(docs);
+              const viewChange = view.applyChanges(viewDocChanges);
+              assert(
+                viewChange.limboChanges.length === 0,
+                'View returned limbo docs before target ack from the server.'
+              );
+              assert(
+                !!viewChange.snapshot,
+                'applyChanges for new view should always return a snapshot'
+              );
 
-                  const data = new QueryView(
-                      query,
-                      queryData.targetId,
-                      queryData.resumeToken,
-                      view
-                  );
-                  this.queryViewsByQuery.set(query, data);
-                  this.queryViewsByTarget[queryData.targetId] = data;
-                  this.viewHandler!([viewChange.snapshot!]);
-                  this.remoteStore.listen(queryData);
-                });
-          })
-          .then(() => {
-            return queryData.targetId;
-          });
+              const data = new QueryView(
+                query,
+                queryData.targetId,
+                queryData.resumeToken,
+                view
+              );
+              this.queryViewsByQuery.set(query, data);
+              this.queryViewsByTarget[queryData.targetId] = data;
+              this.viewHandler!([viewChange.snapshot!]);
+              this.remoteStore.listen(queryData);
+            });
+        })
+        .then(() => {
+          return queryData.targetId;
+        });
     });
   }
 
@@ -220,14 +220,14 @@ export class SyncEngine implements RemoteSyncer {
   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
     return this.localStore
-        .localWrite(batch)
-        .then(result => {
-          this.addMutationCallback(result.batchId, userCallback);
-          return this.emitNewSnapsAndNotifyLocalStore(result.changes);
-        })
-        .then(() => {
-          return this.remoteStore.fillWritePipeline();
-        });
+      .localWrite(batch)
+      .then(result => {
+        this.addMutationCallback(result.batchId, userCallback);
+        return this.emitNewSnapsAndNotifyLocalStore(result.changes);
+      })
+      .then(() => {
+        return this.remoteStore.fillWritePipeline();
+      });
   }
 
   // TODO(klimt): Wrap the given error in a standard Firestore error object.
@@ -253,8 +253,8 @@ export class SyncEngine implements RemoteSyncer {
    * The promise returned is resolved when the transaction is fully committed.
    */
   runTransaction<T>(
-      updateFunction: (transaction: Transaction) => Promise<T>,
-      retries = 5
+    updateFunction: (transaction: Transaction) => Promise<T>,
+    retries = 5
   ): Promise<T> {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
     const transaction = this.remoteStore.createTransaction();
@@ -262,12 +262,12 @@ export class SyncEngine implements RemoteSyncer {
       try {
         const userPromise = updateFunction(transaction);
         if (
-            isNullOrUndefined(userPromise) ||
-            !userPromise.catch ||
-            !userPromise.then
+          isNullOrUndefined(userPromise) ||
+          !userPromise.catch ||
+          !userPromise.then
         ) {
           return Promise.reject<T>(
-              Error('Transaction callback must return a Promise')
+            Error('Transaction callback must return a Promise')
           );
         }
         return userPromise.catch(e => {
@@ -279,17 +279,17 @@ export class SyncEngine implements RemoteSyncer {
     };
     return wrappedUpdateFunction().then(result => {
       return transaction
-          .commit()
-          .then(() => {
-            return result;
-          })
-          .catch(error => {
-            if (retries === 0) {
-              return Promise.reject<T>(error);
-            }
-            // TODO(klimt): Put in a retry delay?
-            return this.runTransaction(updateFunction, retries - 1);
-          });
+        .commit()
+        .then(() => {
+          return result;
+        })
+        .catch(error => {
+          if (retries === 0) {
+            return Promise.reject<T>(error);
+          }
+          // TODO(klimt): Put in a retry delay?
+          return this.runTransaction(updateFunction, retries - 1);
+        });
     });
   }
 
@@ -298,44 +298,44 @@ export class SyncEngine implements RemoteSyncer {
 
     // Make sure limbo documents are deleted if there were no results
     objUtils.forEachNumber(
-        remoteEvent.targetChanges,
-        (targetId, targetChange) => {
-          const limboKey = this.limboKeysByTarget[targetId];
-          if (
-              limboKey &&
-              targetChange.currentStatusUpdate ===
-              CurrentStatusUpdate.MarkCurrent &&
-              !remoteEvent.documentUpdates.get(limboKey)
-          ) {
-            // When listening to a query the server responds with a snapshot
-            // containing documents matching the query and a current marker
-            // telling us we're now in sync. It's possible for these to arrive
-            // as separate remote events or as a single remote event.
-            // For a document query, there will be no documents sent in the
-            // response if the document doesn't exist.
-            //
-            // If the snapshot arrives separately from the current marker,
-            // we handle it normally and updateTrackedLimbos will resolve the
-            // limbo status of the document, removing it from limboDocumentRefs.
-            // This works because clients only initiate limbo resolution when
-            // a target is current and because all current targets are
-            // always at a consistent snapshot.
-            //
-            // However, if the document doesn't exist and the current marker
-            // arrives, the document is not present in the snapshot and our
-            // normal view handling would consider the document to remain in
-            // limbo indefinitely because there are no updates to the document.
-            // To avoid this, we specially handle this just this case here:
-            // synthesizing a delete.
-            //
-            // TODO(dimond): Ideally we would have an explicit lookup query
-            // instead resulting in an explicit delete message and we could
-            // remove this special logic.
-            remoteEvent.addDocumentUpdate(
-                new NoDocument(limboKey, remoteEvent.snapshotVersion)
-            );
-          }
+      remoteEvent.targetChanges,
+      (targetId, targetChange) => {
+        const limboKey = this.limboKeysByTarget[targetId];
+        if (
+          limboKey &&
+          targetChange.currentStatusUpdate ===
+            CurrentStatusUpdate.MarkCurrent &&
+          !remoteEvent.documentUpdates.get(limboKey)
+        ) {
+          // When listening to a query the server responds with a snapshot
+          // containing documents matching the query and a current marker
+          // telling us we're now in sync. It's possible for these to arrive
+          // as separate remote events or as a single remote event.
+          // For a document query, there will be no documents sent in the
+          // response if the document doesn't exist.
+          //
+          // If the snapshot arrives separately from the current marker,
+          // we handle it normally and updateTrackedLimbos will resolve the
+          // limbo status of the document, removing it from limboDocumentRefs.
+          // This works because clients only initiate limbo resolution when
+          // a target is current and because all current targets are
+          // always at a consistent snapshot.
+          //
+          // However, if the document doesn't exist and the current marker
+          // arrives, the document is not present in the snapshot and our
+          // normal view handling would consider the document to remain in
+          // limbo indefinitely because there are no updates to the document.
+          // To avoid this, we specially handle this just this case here:
+          // synthesizing a delete.
+          //
+          // TODO(dimond): Ideally we would have an explicit lookup query
+          // instead resulting in an explicit delete message and we could
+          // remove this special logic.
+          remoteEvent.addDocumentUpdate(
+            new NoDocument(limboKey, remoteEvent.snapshotVersion)
+          );
         }
+      }
     );
 
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
@@ -352,8 +352,8 @@ export class SyncEngine implements RemoteSyncer {
     this.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       assert(
-          viewChange.limboChanges.length === 0,
-          'OnlineState should not affect limbo documents.'
+        viewChange.limboChanges.length === 0,
+        'OnlineState should not affect limbo documents.'
       );
       if (viewChange.snapshot) {
         newViewSnapshots.push(viewChange.snapshot);
@@ -379,11 +379,11 @@ export class SyncEngine implements RemoteSyncer {
       // store to purge a document. However, it would be tricky to keep all of
       // the local store's invariants with another method.
       let docMap = new SortedMap<DocumentKey, MaybeDocument>(
-          DocumentKey.comparator
+        DocumentKey.comparator
       );
       docMap = docMap.insert(
-          limboKey,
-          new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
+        limboKey,
+        new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
       );
       const event = new RemoteEvent(SnapshotVersion.MIN, {}, docMap);
       return this.applyRemoteEvent(event);
@@ -399,7 +399,7 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   applySuccessfulWrite(
-      mutationBatchResult: MutationBatchResult
+    mutationBatchResult: MutationBatchResult
   ): Promise<void> {
     this.assertSubscribed('applySuccessfulWrite()');
 
@@ -408,15 +408,15 @@ export class SyncEngine implements RemoteSyncer {
     // up), so we raise user callbacks first so that they consistently happen
     // before listen events.
     this.processUserCallback(
-        mutationBatchResult.batch.batchId,
-        /*error=*/ null
+      mutationBatchResult.batch.batchId,
+      /*error=*/ null
     );
 
     return this.localStore
-        .acknowledgeBatch(mutationBatchResult)
-        .then(changes => {
-          return this.emitNewSnapsAndNotifyLocalStore(changes);
-        });
+      .acknowledgeBatch(mutationBatchResult)
+      .then(changes => {
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      });
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -434,13 +434,13 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   private addMutationCallback(
-      batchId: BatchId,
-      callback: Deferred<void>
+    batchId: BatchId,
+    callback: Deferred<void>
   ): void {
     let newCallbacks = this.mutationUserCallbacks[this.currentUser.toKey()];
     if (!newCallbacks) {
       newCallbacks = new SortedMap<BatchId, Deferred<void>>(
-          primitiveComparator
+        primitiveComparator
       );
     }
     newCallbacks = newCallbacks.insert(batchId, callback);
@@ -460,8 +460,8 @@ export class SyncEngine implements RemoteSyncer {
       const callback = newCallbacks.get(batchId);
       if (callback) {
         assert(
-            batchId === newCallbacks.minKey(),
-            'Mutation callbacks processed out-of-order?'
+          batchId === newCallbacks.minKey(),
+          'Mutation callbacks processed out-of-order?'
         );
         if (error) {
           callback.reject(error);
@@ -483,8 +483,8 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   private updateTrackedLimbos(
-      targetId: TargetId,
-      limboChanges: LimboDocumentChange[]
+    targetId: TargetId,
+    limboChanges: LimboDocumentChange[]
   ): Promise<void> {
     for (const limboChange of limboChanges) {
       if (limboChange instanceof AddedLimboDocument) {
@@ -508,11 +508,11 @@ export class SyncEngine implements RemoteSyncer {
       const query = Query.atPath(key.path);
       this.limboKeysByTarget[limboTargetId] = key;
       this.remoteStore.listen(
-          new QueryData(query, limboTargetId, QueryPurpose.Listen)
+        new QueryData(query, limboTargetId, QueryPurpose.Listen)
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
-          key,
-          limboTargetId
+        key,
+        limboTargetId
       );
     }
   }
@@ -521,20 +521,20 @@ export class SyncEngine implements RemoteSyncer {
     // HACK: We can use a null transaction here, because we know that the
     // reference set is entirely within memory and doesn't need a store engine.
     return this.limboCollector
-        .collectGarbage(null)
-        .next(keys => {
-          keys.forEach(key => {
-            const limboTargetId = this.limboTargetsByKey.get(key);
-            if (limboTargetId === null) {
-              // This target already got removed, because the query failed.
-              return;
-            }
-            this.remoteStore.unlisten(limboTargetId);
-            this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
-            delete this.limboKeysByTarget[limboTargetId];
-          });
-        })
-        .toPromise();
+      .collectGarbage(null)
+      .next(keys => {
+        keys.forEach(key => {
+          const limboTargetId = this.limboTargetsByKey.get(key);
+          if (limboTargetId === null) {
+            // This target already got removed, because the query failed.
+            return;
+          }
+          this.remoteStore.unlisten(limboTargetId);
+          this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
+          delete this.limboKeysByTarget[limboTargetId];
+        });
+      })
+      .toPromise();
   }
 
   // Visible for testing
@@ -543,8 +543,8 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   private emitNewSnapsAndNotifyLocalStore(
-      changes: MaybeDocumentMap,
-      remoteEvent?: RemoteEvent
+    changes: MaybeDocumentMap,
+    remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
     const docChangesInAllViews: LocalViewChanges[] = [];
@@ -552,68 +552,68 @@ export class SyncEngine implements RemoteSyncer {
 
     this.queryViewsByQuery.forEach((_, queryView) => {
       queriesProcessed.push(
-          Promise.resolve()
-              .then(() => {
-                const viewDocChanges = queryView.view.computeDocChanges(changes);
-                if (!viewDocChanges.needsRefill) {
-                  return viewDocChanges;
-                }
-                // The query has a limit and some docs were removed, so we need
-                // to re-run the query against the local store to make sure we
-                // didn't lose any good docs that had been past the limit.
-                return this.localStore.executeQuery(queryView.query).then(docs => {
-                  return queryView.view.computeDocChanges(docs, viewDocChanges);
-                });
-              })
-              .then((viewDocChanges: ViewDocumentChanges) => {
-                const targetChange =
-                    remoteEvent && remoteEvent.targetChanges[queryView.targetId];
-                const viewChange = queryView.view.applyChanges(
-                    viewDocChanges,
-                    targetChange
+        Promise.resolve()
+          .then(() => {
+            const viewDocChanges = queryView.view.computeDocChanges(changes);
+            if (!viewDocChanges.needsRefill) {
+              return viewDocChanges;
+            }
+            // The query has a limit and some docs were removed, so we need
+            // to re-run the query against the local store to make sure we
+            // didn't lose any good docs that had been past the limit.
+            return this.localStore.executeQuery(queryView.query).then(docs => {
+              return queryView.view.computeDocChanges(docs, viewDocChanges);
+            });
+          })
+          .then((viewDocChanges: ViewDocumentChanges) => {
+            const targetChange =
+              remoteEvent && remoteEvent.targetChanges[queryView.targetId];
+            const viewChange = queryView.view.applyChanges(
+              viewDocChanges,
+              targetChange
+            );
+            return this.updateTrackedLimbos(
+              queryView.targetId,
+              viewChange.limboChanges
+            ).then(() => {
+              if (viewChange.snapshot) {
+                newSnaps.push(viewChange.snapshot);
+                const docChanges = LocalViewChanges.fromSnapshot(
+                  viewChange.snapshot
                 );
-                return this.updateTrackedLimbos(
-                    queryView.targetId,
-                    viewChange.limboChanges
-                ).then(() => {
-                  if (viewChange.snapshot) {
-                    newSnaps.push(viewChange.snapshot);
-                    const docChanges = LocalViewChanges.fromSnapshot(
-                        viewChange.snapshot
-                    );
-                    docChangesInAllViews.push(docChanges);
-                  }
-                });
-              })
+                docChangesInAllViews.push(docChanges);
+              }
+            });
+          })
       );
     });
 
     return Promise.all(queriesProcessed)
-        .then(() => {
-          this.viewHandler!(newSnaps);
-          return this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-        })
-        .then(() => {
-          return this.localStore.collectGarbage();
-        });
+      .then(() => {
+        this.viewHandler!(newSnaps);
+        return this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+      })
+      .then(() => {
+        return this.localStore.collectGarbage();
+      });
   }
 
   private assertSubscribed(fnName: string): void {
     assert(
-        this.viewHandler !== null && this.errorHandler !== null,
-        'Trying to call ' + fnName + ' before calling subscribe().'
+      this.viewHandler !== null && this.errorHandler !== null,
+      'Trying to call ' + fnName + ' before calling subscribe().'
     );
   }
 
   handleUserChange(user: User): Promise<void> {
     this.currentUser = user;
     return this.localStore
-        .handleUserChange(user)
-        .then(changes => {
-          return this.emitNewSnapsAndNotifyLocalStore(changes);
-        })
-        .then(() => {
-          return this.remoteStore.handleUserChange(user);
-        });
+      .handleUserChange(user)
+      .then(changes => {
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      })
+      .then(() => {
+        return this.remoteStore.handleUserChange(user);
+      });
   }
 }

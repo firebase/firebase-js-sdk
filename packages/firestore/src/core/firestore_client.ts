@@ -51,7 +51,7 @@ import {
   TabNotificationChannel
 } from '../local/web_storage';
 import { AutoId } from '../util/misc';
-import {WindowEventListener} from '../platform_browser/window_event_listener';
+import { WindowEventListener } from '../platform_browser/window_event_listener';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -251,8 +251,15 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.notificationChannel = new LocalStorageNotificationChannel(storagePrefix, this.ownerId, this.asyncQueue);
-    this.windowEventListener = new WindowEventListener(this.asyncQueue,this.notificationChannel);
+    this.notificationChannel = new LocalStorageNotificationChannel(
+      storagePrefix,
+      this.ownerId,
+      this.asyncQueue
+    );
+    this.windowEventListener = new WindowEventListener(
+      this.asyncQueue,
+      this.notificationChannel
+    );
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       this.ownerId,
