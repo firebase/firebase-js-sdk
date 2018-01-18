@@ -6,8 +6,7 @@ exports.runTests = async () => {
   const spinner = ora(' Running test suite').start();
   try {
     await spawn('yarn', ['test'], {
-      cwd: root,
-      stdio: 'inherit'
+      cwd: root
     });
     spinner.stopAndPersist({
       symbol: '✅'
