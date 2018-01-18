@@ -3,6 +3,7 @@ const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
 const { getOrderedUpdates, mapPackageNameToPkgJson, updateWorkspaceVersions } = require('./utils/workspace');
 const { inc, prerelease } = require('semver');
+const { commitAndTag } = require('./utils/git');
 const chalk = require('chalk');
 
 const releaseType = {
@@ -76,15 +77,25 @@ async function packageVersionUpdate(package, isPrerelease) {
     const responses = await prompt([
       releaseType
     ]);
+    const isPrerelease = responses.releaseType === 'Staging';
 
     /**
      * Prompt user for the new versions
      */
     const updates = await getOrderedUpdates();
-    const versionUpdates = await Promise.all(updates.map(pkg => packageVersionUpdate(pkg, responses.releaseType === 'Staging')));
+    const versionUpdates = await Promise.all(updates.map(pkg => packageVersionUpdate(pkg, isPrerelease)));
     const versions = await prompt(versionUpdates);
 
+    /**
+     * Update the package.json dependencies throughout the SDK
+     */
     updateWorkspaceVersions(versions);
+
+    /** 
+     * Commit and tag the version updates
+     */
+    commitAndTag(versions, isPrerelease);
+
   } catch(err) {
     console.error(err);
     process.exit(1);
