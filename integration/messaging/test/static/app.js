@@ -16,6 +16,8 @@
 
 'use strict';
 
+const EIGHT_DAYS_IN_MS = 8 * 86400000;
+
 /**
  * This class just wraps the expected behavior or a demo app that will
  * be orchestrated by selenium tests (Although manual use of the demo will
@@ -28,10 +30,13 @@ class DemoApp {
    * getting the current FCM token if one is available.
    */
   constructor(firebaseConfig, options = {}) {
+    this._clock = sinon.useFakeTimers();
     this._token = null;
     this._errors = [];
     this._messages = [];
     this._triggerDeleteToken = this.triggerDeleteToken;
+    this._triggerGetToken = this.triggerGetToken;
+    this._triggerTimeForward = this.triggerTimeForward;
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
@@ -77,6 +82,22 @@ class DemoApp {
       this._errors.push(e);
       console.log('deleteToken() failed: ', e.message, e.stack);
     }
+  }
+
+  async triggerGetToken() {
+    try {
+      this._token = await this._messaging.getToken();
+      console.log('getToken() worked: ', this._token);
+    } catch (e) {
+      this._token = null;
+      this._errors.push(e);
+      console.log('getToken() failed: ', e.message, e.stack);
+    }
+    return this._token;
+  }
+
+  async triggerTimeForward() {
+    this._clock.tick(EIGHT_DAYS_IN_MS);
   }
 
   get token() {

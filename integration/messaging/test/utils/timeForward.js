@@ -15,15 +15,13 @@
  */
 
 module.exports = async webdriver => {
-  console.log('Getting token...');
+  console.log('Rolling time forward 8 days...');
   await webdriver.wait(() => {
     return webdriver.executeScript(() => {
       return !!window.__test;
     });
   });
-  return webdriver.executeAsyncScript(cb => {
-    window.__test.triggerGetToken().then(token => {
-      cb(token);
-    });
+  return webdriver.executeScript(() => {
+    return window.__test.triggerTimeForward();
   });
 };

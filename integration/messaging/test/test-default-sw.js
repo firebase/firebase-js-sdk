@@ -20,7 +20,7 @@ const expect = require('chai').expect;
 
 const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const getFCMToken = require('./utils/getFCMToken');
+const retrieveFCMToken = require('./utils/retrieveFCMToken');
 const makeFCMAPICall = require('./utils/makeFCMAPICall');
 const getReceivedMessages = require('./utils/getReceivedMessages');
 
@@ -74,7 +74,7 @@ describe(`Firebase Messaging Integration Tests > Use 'firebase-messaging-sw.js' 
     await globalWebDriver.get(`${testServer.serverAddress}/${demoInfo.name}/`);
 
     // If we have a token, then we know the default SW worked.
-    const token = await getFCMToken(globalWebDriver);
+    const token = await retrieveFCMToken(globalWebDriver);
     expect(token).to.exist;
 
     const result = await globalWebDriver.executeAsyncScript(function(cb) {

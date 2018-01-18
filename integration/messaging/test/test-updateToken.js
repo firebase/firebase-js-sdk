@@ -19,15 +19,16 @@ const expect = require('chai').expect;
 
 const setupNotificationPermission = require('./utils/setupNotificationPermission');
 const testServer = require('./utils/test-server');
-const getErrors = require('./utils/getErrors');
 const retrieveFCMToken = require('./utils/retrieveFCMToken');
-const deleteFCMToken = require('./utils/deleteFCMToken');
+const timeForward = require('./utils/timeForward');
+const getFCMToken = require('./utils/getFCMToken');
+const getErrors = require('./utils/getErrors');
 const demoSetup = require('./utils/getDemoSetup');
 
 const ENDPOINT = 'https://fcm.googleapis.com';
 const DEMOS = demoSetup.DEMOS;
 
-describe('Firebase Messaging Integration Tests > get and delete token', function() {
+describe('Firebase Messaging Integration Tests > update a token', function() {
   this.timeout(60 * 1000);
   if (process.env.TRAVIS) {
     this.retries(3);
@@ -71,33 +72,29 @@ describe('Firebase Messaging Integration Tests > get and delete token', function
             assistantBrowser,
             testServer.serverAddress
           );
-
           globalWebDriver = await assistantBrowser.getSeleniumDriver();
         });
 
-        it(`should get a token and delete it`, async function() {
+        it(`should update a token`, async function() {
+          // Skip this test for unstable builds
+          if (assistantBrowser.getReleaseName() === 'unstable') {
+            console.warn('Skipping tests for unstable releases');
+            return;
+          }
           await globalWebDriver.get(
             `${testServer.serverAddress}/${demoInfo.name}/`
           );
+
           const token = await retrieveFCMToken(globalWebDriver);
           expect(token).to.exist;
-          try {
-            await deleteFCMToken(globalWebDriver, token);
-          } catch (e) {
-            console.log('Error trying to delete FCM token: ', e);
-            fail();
-          }
-        });
 
-        it(`should fail to delete an invalid token`, async function() {
-          await globalWebDriver.get(
-            `${testServer.serverAddress}/${demoInfo.name}/`
-          );
-          await deleteFCMToken(globalWebDriver, 'invalid-token');
+          // roll the clock forward > 7days
+          await timeForward(globalWebDriver);
+          const updatedToken = await getFCMToken(globalWebDriver);
           const errors = await getErrors(globalWebDriver);
           expect(errors).to.exist;
-          expect(errors.length).to.equal(1);
-          expect(errors[0].code).to.equal('messaging/invalid-delete-token');
+          expect(errors.length).to.equal(0);
+          expect(updatedToken).to.exist;
         });
       });
     });
