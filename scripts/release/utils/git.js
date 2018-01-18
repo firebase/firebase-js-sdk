@@ -3,7 +3,7 @@ const { root } = require('./constants');
 const git = simpleGit(root);
 
 exports.cleanTree = async () => {
-  await git.clean('n', {
+  await git.clean('f', {
     '-xd': null
   });
 }
