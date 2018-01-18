@@ -57,7 +57,10 @@ export const parseRepoInfo = function(
   }
 
   // Catch common error of uninitialized namespace value.
-  if ((!namespace || namespace == 'undefined') && parsedUrl.domain !== 'localhost') {
+  if (
+    (!namespace || namespace == 'undefined') &&
+    parsedUrl.domain !== 'localhost'
+  ) {
     fatal(
       'Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com'
     );
