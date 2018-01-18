@@ -20,7 +20,7 @@ import { Query } from '../core/query';
 import { AsyncQueue } from '../util/async_queue';
 import { SyncEngine } from '../core/sync_engine';
 import { TabNotificationChannel } from '../local/tab_notification_channel';
-import {Code, FirestoreError} from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 
 export class WindowEventListener {
   constructor(
@@ -36,8 +36,8 @@ export class WindowEventListener {
   start(): void {
     if (!WindowEventListener.isAvailable()) {
       throw new FirestoreError(
-          Code.UNIMPLEMENTED,
-          "'window' is not available on this platform."
+        Code.UNIMPLEMENTED,
+        "'window' is not available on this platform."
       );
     }
 
