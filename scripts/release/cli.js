@@ -38,6 +38,7 @@ const { runTests } = require('./utils/tests');
     /**
      * Clean install dependencies
      */
+    console.log('\r\nVerifying Build');
     await cleanTree();
     await reinstallDeps();
 
