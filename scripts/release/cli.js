@@ -3,7 +3,7 @@ const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
 const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspace');
 const { commitAndTag, pushUpdatesToGithub, cleanTree, resetWorkingTree } = require('./utils/git');
-const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
+const { releaseType, packageVersionUpdate, validateVersions } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
 
@@ -29,6 +29,9 @@ const { runTests, setupTestDeps } = require('./utils/tests');
     const updates = await getOrderedUpdates();
     const versionUpdates = await Promise.all(updates.map(pkg => packageVersionUpdate(pkg, isPrerelease)));
     const versions = await prompt(versionUpdates);
+    const versionCheck = await prompt(validateVersions(versions));
+
+    if (!versionCheck) throw new Error('Version Check Failed');
 
     /**
      * Update the package.json dependencies throughout the SDK
@@ -39,8 +42,8 @@ const { runTests, setupTestDeps } = require('./utils/tests');
      * Clean install dependencies
      */
     console.log('\r\nVerifying Build');
-    // await cleanTree();
-    // await reinstallDeps();
+    await cleanTree();
+    await reinstallDeps();
 
     /**
      * Ensure all tests are passing

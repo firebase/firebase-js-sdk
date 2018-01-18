@@ -58,3 +58,19 @@ exports.releaseType = {
   ],
   default: 'Staging'
 };
+
+exports.validateVersions = versionMap => {
+  let message = 'Are you sure these are the versions you want to publish?\r\n';
+  Object.keys(versionMap)
+    .map(name => ({ name, version: versionMap[name] }))
+    .forEach(({ name, version }) => {
+      message += `${name}@${version}\n`;
+    });
+
+  return {
+    type: 'confirm',
+    name: 'confirmVersions',
+    message,
+    default: false
+  };
+}
