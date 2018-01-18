@@ -12,7 +12,7 @@ exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
      */
     if (pkgJson.private) return;
 
-    let args = ['npm', 'publish'];
+    let args = ['publish'];
 
     /**
      * Ensure prereleases are tagged with the `next` tag
@@ -21,7 +21,7 @@ exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
       args = [...args, '--tag', 'next'];
     }
 
-    console.log(`📦  Publishing: ${pkg}@${pkgJson.version} (path: ${path}`);
-    await spawn('echo', args, { cwd: path, stdio: 'inherit' });
+    console.log(`📦  Publishing: ${pkg}@${pkgJson.version}`);
+    await spawn('npm', args, { cwd: path, stdio: 'inherit' });
   }));
 };

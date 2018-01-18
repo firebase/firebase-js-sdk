@@ -30,8 +30,15 @@ const { publishToNpm } = require('./utils/npm');
     const updates = await getOrderedUpdates();
     const versionUpdates = await Promise.all(updates.map(pkg => packageVersionUpdate(pkg, isPrerelease)));
     const versions = await prompt(versionUpdates);
+
+    /**
+     * Verify that the versions selected are correct
+     */
     const versionCheck = await prompt(validateVersions(versions));
 
+    /**
+     * If the versions where incorrect, bail.
+     */
     if (!versionCheck) throw new Error('Version Check Failed');
 
     /**
@@ -68,8 +75,20 @@ const { publishToNpm } = require('./utils/npm');
     await publishToNpm(updates, isPrerelease);
 
   } catch(err) {
+    /**
+     * Log any errors that happened during the process
+     */
     console.error(err);
+
+    /**
+     * Reset the working tree (will remove unneeded changes if they weren't
+     * committed already)
+     */
     await resetWorkingTree();
+
+    /**
+     * Exit with an error code
+     */
     process.exit(1);
   }
 })();
