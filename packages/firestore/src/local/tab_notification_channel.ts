@@ -60,7 +60,11 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     private instanceId: string,
     private asyncQueue: AsyncQueue
   ) {
-    this.visibilityKey = this.buildKey(VISIBILITY_PREFIX, this.persistenceKey, this.instanceId);
+    this.visibilityKey = this.buildKey(
+      VISIBILITY_PREFIX,
+      this.persistenceKey,
+      this.instanceId
+    );
   }
 
   /** Returns true if LocalStorage is available in the current environment. */
