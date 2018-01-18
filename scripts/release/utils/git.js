@@ -1,19 +1,18 @@
 const simpleGit = require('simple-git/promise');
 const { root } = require('./constants');
 const git = simpleGit(root);
+const { exec } = require('child-process-promise');
 
 exports.cleanTree = async () => {
-  await git.clean('f', {
-    '-xd': null
-  });
+  await exec('git clean -xdf');
 }
 
 exports.commitAndTag = async (updatedVersions, isPrerelease) => {
   await git.add('*/package.json');
   await git.commit(
-    isPrerelease 
-    ? 'Publish Prerelease'
-    : 'Publish'
+    isPrerelease
+      ? 'Publish Prerelease'
+      : 'Publish'
   );
   Object.keys(updatedVersions)
     .map(name => ({ name, version: updatedVersions[name] }))
