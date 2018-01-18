@@ -280,7 +280,7 @@ class MockConnection implements Connection {
   }
 }
 
-export class MockWebStorage implements TabNotificationChannel {
+export class MockNotificationChannel implements TabNotificationChannel {
   private startCalled = false;
   private shutdownCalled = false;
 
@@ -365,7 +365,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
-  private webStorage: MockWebStorage;
+  private notificationChannel: MockNotificationChannel;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -422,12 +422,11 @@ abstract class TestRunner {
       this.datastore,
       onlineStateChangedHandler
     );
-    this.webStorage = new MockWebStorage();
+    this.notificationChannel = new MockNotificationChannel();
 
     this.syncEngine = new SyncEngine(
       this.localStore,
       this.remoteStore,
-      this.webStorage,
       this.user
     );
 
@@ -451,7 +450,7 @@ abstract class TestRunner {
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
-    await this.webStorage.start();
+    await this.notificationChannel.start();
     await this.localStore.start();
     await this.remoteStore.start();
   }
@@ -459,7 +458,7 @@ abstract class TestRunner {
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
-    await this.webStorage.shutdown();
+    await this.notificationChannel.shutdown();
     await this.destroyPersistence();
   }
 
@@ -807,13 +806,13 @@ abstract class TestRunner {
   private doApplyTabState(tabState: SpecTabState): Promise<void> {
     switch (tabState.visibility) {
       case 'foreground':
-        this.syncEngine.applyVisibilityChange(VisibilityState.Foreground);
+        this.notificationChannel.setVisibility(VisibilityState.Foreground);
         break;
       case 'background':
-        this.syncEngine.applyVisibilityChange(VisibilityState.Background);
+        this.notificationChannel.setVisibility(VisibilityState.Background);
         break;
       default:
-        this.syncEngine.applyVisibilityChange(VisibilityState.Unknown);
+        this.notificationChannel.setVisibility(VisibilityState.Unknown);
     }
     return Promise.resolve();
   }
@@ -894,7 +893,7 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('tabState' in expectation) {
-        expect(VisibilityState[this.webStorage.visibilityState]).to.equal(
+        expect(VisibilityState[this.notificationChannel.visibilityState]).to.equal(
           VisibilityState[expectation.tabState.visibilityState]
         );
       }

@@ -364,7 +364,9 @@ export class FirestoreClient {
         return this.persistence.shutdown();
       })
       .then(() => {
-        this.notificationChannel.shutdown();
+        if (this.notificationChannel) {
+          this.notificationChannel.shutdown();
+        }
       });
   }
 

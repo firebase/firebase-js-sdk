@@ -61,29 +61,6 @@ export class EventManager {
       this.onChange.bind(this),
       this.onError.bind(this)
     );
-    this.registerVisibilityListener();
-  }
-
-  private registerVisibilityListener(): boolean {
-    if (typeof window !== 'undefined') {
-      window.addEventListener('visibilityChange', () => {
-        let visibility = VisibilityState.Unknown;
-
-        if (window.document.visibilityState === 'visible') {
-          visibility = VisibilityState.Foreground;
-        } else if (window.document.visibilityState === 'hidden') {
-          visibility = VisibilityState.Background;
-        }
-
-        this.asyncQueue.schedule(() => {
-          this.syncEngine.applyVisibilityChange(visibility);
-          return Promise.resolve();
-        });
-      });
-      return true;
-    }
-
-    return false;
   }
 
   listen(listener: QueryListener): Promise<TargetId> {
