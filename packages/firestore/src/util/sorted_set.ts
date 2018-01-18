@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Entry, SortedMap, SortedMapIterator } from './sorted_map';
+import { SortedMap, SortedMapIterator } from './sorted_map';
 
 /**
  * SortedSet is an immutable (copy-on-write) collection that holds elements
@@ -84,7 +84,7 @@ export class SortedSet<T> {
    * Iterates over `elem`s such that: start <= elem until false is returned.
    */
   forEachWhile(cb: (elem: T) => boolean, start?: T): void {
-    let iter: SortedMapIterator<T, boolean, Entry<T, boolean>>;
+    let iter: SortedMapIterator<T, boolean>;
     if (start !== undefined) {
       iter = this.data.getIteratorFrom(start);
     } else {

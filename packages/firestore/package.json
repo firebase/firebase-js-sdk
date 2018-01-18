@@ -1,15 +1,16 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.2.3",
+  "version": "0.3.1-1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "dev": "gulp dev",
     "lint": "tslint -c tslint.json src/**/*.ts test/**/*.ts",
-    "test": "run-p test:browser test:node",
+    "test": "run-s lint test:all",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
-    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
+    "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register/type-check --require index.node.ts --retries 5 --timeout 5000 --exit",
     "prepare": "gulp build"
   },
   "main": "dist/cjs/index.node.js",
@@ -20,7 +21,7 @@
   "module": "dist/esm/index.js",
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/firestore-types": "0.1.1",
+    "@firebase/firestore-types": "0.2.1-1",
     "@firebase/webchannel-wrapper": "0.2.6",
     "grpc": "^1.7.1"
   },
@@ -49,7 +50,7 @@
     "sinon": "^4.0.2",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.1.0",
-    "ts-node": "^3.3.0",
+    "ts-node": "^4.1.0",
     "tslint": "^5.8.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1",
