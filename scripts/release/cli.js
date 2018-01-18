@@ -3,7 +3,7 @@ const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
 const { getOrderedUpdates, mapPackageNameToPkgJson, updateWorkspaceVersions } = require('./utils/workspace');
 const { inc, prerelease } = require('semver');
-const { commitAndTag, pushUpdatesToGithub } = require('./utils/git');
+const { commitAndTag, pushUpdatesToGithub, cleanTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
 const chalk = require('chalk');
 
@@ -43,7 +43,7 @@ const chalk = require('chalk');
     /**
      * Clean install dependencies
      */
-
+    await cleanTree();
     
 
   } catch(err) {

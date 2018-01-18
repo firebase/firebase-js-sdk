@@ -2,6 +2,12 @@ const simpleGit = require('simple-git/promise');
 const { root } = require('./constants');
 const git = simpleGit(root);
 
+exports.cleanTree = async () => {
+  await git.clean('n', {
+    '-xd': null
+  });
+}
+
 exports.commitAndTag = async (updatedVersions, isPrerelease) => {
   await git.add('*/package.json');
   await git.commit(
