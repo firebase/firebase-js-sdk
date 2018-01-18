@@ -433,7 +433,7 @@ abstract class TestRunner {
     // Setup wiring between sync engine and remote store
     this.remoteStore.syncEngine = this.syncEngine;
 
-    this.eventManager = new EventManager(this.queue, this.syncEngine);
+    this.eventManager = new EventManager(this.syncEngine);
   }
 
   private getGarbageCollector(): GarbageCollector {

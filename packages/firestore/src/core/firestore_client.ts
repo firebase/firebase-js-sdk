@@ -250,22 +250,24 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.notificationChannel = new LocalStorageNotificationChannel(
-      storagePrefix,
-      ownerId,
-      this.asyncQueue
-    );
-    this.windowEventListener = new WindowEventListener(
-      this.asyncQueue,
-      this.notificationChannel
-    );
+
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       ownerId,
       serializer
     );
+
     return this.persistence.start().then(() => {
+      this.notificationChannel = new LocalStorageNotificationChannel(
+        storagePrefix,
+        ownerId,
+        this.asyncQueue
+      );
       this.notificationChannel.start();
+      this.windowEventListener = new WindowEventListener(
+          this.asyncQueue,
+          this.notificationChannel
+      );
       this.windowEventListener.start();
     });
   }
