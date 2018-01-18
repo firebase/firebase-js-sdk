@@ -5,12 +5,23 @@ const { mapPkgNameToPkgPath } = require('./workspace');
 exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
   await Promise.all(updatedPkgs.map(async pkg => {
     const path = await mapPkgNameToPkgPath(pkg);
+    const pkgJson = require(`${path}/package.json`);
+
+    /**
+     * Skip private packages
+     */
+    if (pkgJson.private) return;
+
     let args = ['npm', 'publish'];
+
+    /**
+     * Ensure prereleases are tagged with the `next` tag
+     */
     if (isPrerelease) {
       args = [...args, '--tag', 'next'];
     }
 
-    console.log(`📦  Publishing: ${pkg}`)
+    console.log(`📦  Publishing: ${pkg}@${pkgJson.version} (path: ${path}`);
     await spawn('echo', args, { cwd: path, stdio: 'inherit' });
   }));
 };
