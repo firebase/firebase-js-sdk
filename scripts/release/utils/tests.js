@@ -3,18 +3,12 @@ const { root } = require('./constants');
 const ora = require('ora');
 
 exports.runTests = async () => {
-  const spinner = ora(' Running test suite').start();
   try {
     await spawn('yarn', ['test'], {
-      cwd: root
-    });
-    spinner.stopAndPersist({
-      symbol: '✅'
+      cwd: root,
+      stdio: 'inherit'
     });
   } catch(err) {
-    spinner.stopAndPersist({
-      symbol: '❌'
-    });
     throw err;
   }
 };
