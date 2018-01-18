@@ -2,7 +2,7 @@ const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
 const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspace');
-const { commitAndTag, pushUpdatesToGithub, cleanTree } = require('./utils/git');
+const { commitAndTag, pushUpdatesToGithub, cleanTree, resetWorkingTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
 const { runTests } = require('./utils/tests');
@@ -54,6 +54,7 @@ const { runTests } = require('./utils/tests');
 
   } catch(err) {
     console.error(err);
+    await resetWorkingTree();
     process.exit(1);
   }
 })();

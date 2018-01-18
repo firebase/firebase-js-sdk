@@ -33,3 +33,7 @@ exports.pushUpdatesToGithub = async () => {
     '--follow-tags': null
   });
 }
+
+exports.resetWorkingTree = async () => {
+  await git.checkout('.');
+}
