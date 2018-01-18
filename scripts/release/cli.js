@@ -39,28 +39,28 @@ const { publishToNpm } = require('./utils/npm');
      */
     await updateWorkspaceVersions(versions);
 
-    // /**
-    //  * Clean install dependencies
-    //  */
-    // console.log('\r\nVerifying Build');
-    // await cleanTree();
-    // await reinstallDeps();
+    /**
+     * Clean install dependencies
+     */
+    console.log('\r\nVerifying Build');
+    await cleanTree();
+    await reinstallDeps();
 
-    // /**
-    //  * Ensure all tests are passing
-    //  */
-    // await setupTestDeps();
-    // await runTests();
+    /**
+     * Ensure all tests are passing
+     */
+    await setupTestDeps();
+    await runTests();
 
-    // /** 
-    //  * Commit and tag the version updates
-    //  */
-    // await commitAndTag(versions, isPrerelease);
+    /** 
+     * Commit and tag the version updates
+     */
+    await commitAndTag(versions, isPrerelease);
     
-    // /**
-    //  * Push new version to Github
-    //  */
-    // await pushUpdatesToGithub();
+    /**
+     * Push new version to Github
+     */
+    await pushUpdatesToGithub();
 
     /**
      * Release new versions to NPM
