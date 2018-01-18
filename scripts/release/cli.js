@@ -30,6 +30,7 @@ const {
 const {
   releaseType,
   packageVersionUpdate,
+  validateReadyToPush,
   validateVersions
 } = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
@@ -62,7 +63,7 @@ const { publishToNpm } = require('./utils/npm');
     /**
      * Verify that the versions selected are correct
      */
-    const versionCheck = await prompt(validateVersions(versions));
+    const { versionCheck } = await prompt(validateVersions(versions));
 
     /**
      * If the versions where incorrect, bail.
@@ -91,6 +92,8 @@ const { publishToNpm } = require('./utils/npm');
      * Commit and tag the version updates
      */
     await commitAndTag(versions, isPrerelease);
+
+    const { readyToPush } = await prompt(validateReadyToPush);
 
     /**
      * Push new version to Github

@@ -80,8 +80,15 @@ exports.validateVersions = versionMap => {
 
   return {
     type: 'confirm',
-    name: 'confirmVersions',
+    name: 'versionCheck',
     message,
     default: false
   };
+};
+
+exports.validateReadyToPush = {
+  type: 'confirm',
+  name: 'readyToPush',
+  message: '\r\nAre you sure you are ready to push to Github/NPM?\r\n',
+  default: false
 };
