@@ -47,10 +47,11 @@ import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
   NoOpWebStorage,
-  PersistedWebStorage,
-  WebStorage
+  LocalStorageNotificationChannel,
+  TabNotificationChannel
 } from '../local/web_storage';
 import { AutoId } from '../util/misc';
+import {WindowEventListener} from '../platform_browser/window_event_listener';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -71,7 +72,8 @@ export class FirestoreClient {
   private persistence: Persistence;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
-  private webStorage: WebStorage;
+  private notificationChannel?: TabNotificationChannel;
+  private windowEventListener?: WindowEventListener;
   private syncEngine: SyncEngine;
   private ownerId: string = this.generateOwnerId();
 
@@ -249,17 +251,17 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.webStorage = new PersistedWebStorage(
-      storagePrefix,
-      this.ownerId,
-      this.asyncQueue
-    );
+    this.notificationChannel = new LocalStorageNotificationChannel(storagePrefix, this.ownerId, this.asyncQueue);
+    this.windowEventListener = new WindowEventListener(this.asyncQueue,this.notificationChannel);
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       this.ownerId,
       serializer
     );
-    return this.persistence.start().then(() => this.webStorage.start());
+    return this.persistence.start().then(() => {
+      this.notificationChannel.start();
+      this.windowEventListener.register();
+    });
   }
 
   /**
@@ -270,7 +272,6 @@ export class FirestoreClient {
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
     this.persistence = new MemoryPersistence();
-    this.webStorage = new NoOpWebStorage();
     return this.persistence.start();
   }
 
@@ -313,7 +314,6 @@ export class FirestoreClient {
         this.syncEngine = new SyncEngine(
           this.localStore,
           this.remoteStore,
-          this.webStorage,
           user
         );
 
@@ -357,7 +357,7 @@ export class FirestoreClient {
         return this.persistence.shutdown();
       })
       .then(() => {
-        this.webStorage.shutdown();
+        this.notificationChannel.shutdown();
       });
   }
 

@@ -89,7 +89,7 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
-import { WebStorage } from '../../../src/local/web_storage';
+import { TabNotificationChannel } from '../../../src/local/web_storage';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -280,7 +280,7 @@ class MockConnection implements Connection {
   }
 }
 
-export class MockWebStorage implements WebStorage {
+export class MockWebStorage implements TabNotificationChannel {
   private startCalled = false;
   private shutdownCalled = false;
 

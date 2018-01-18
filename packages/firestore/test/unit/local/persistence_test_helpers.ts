@@ -20,8 +20,8 @@ import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
-  PersistedWebStorage,
-  WebStorage
+  LocalStorageNotificationChannel,
+  TabNotificationChannel
 } from '../../../src/local/web_storage';
 import { AutoId } from '../../../src/util/misc';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -59,15 +59,15 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 /**
- * Creates and starts a PersistedWebStorage instance for testing, destroying
+ * Creates and starts a LocalStorageNotificationChannel instance for testing, destroying
  * any previous contents if they existed.
  */
 export async function testWebStoragePersistence(
   ownerId: string,
   queue: AsyncQueue
-): Promise<WebStorage> {
+): Promise<TabNotificationChannel> {
   window.localStorage.clear();
-  const persistence = new PersistedWebStorage(
+  const persistence = new LocalStorageNotificationChannel(
     TEST_PERSISTENCE_PREFIX,
     ownerId,
     queue

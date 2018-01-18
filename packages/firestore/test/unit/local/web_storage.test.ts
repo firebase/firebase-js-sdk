@@ -16,8 +16,8 @@
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import {
-  PersistedWebStorage,
-  WebStorage
+  LocalStorageNotificationChannel,
+  TabNotificationChannel
 } from '../../../src/local/web_storage';
 import { VisibilityState } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
@@ -26,14 +26,14 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 const GRACE_INTERVAL_MS = 100;
 
 describe('WebStorageTests', () => {
-  if (!PersistedWebStorage.isAvailable()) {
+  if (!LocalStorageNotificationChannel.isAvailable()) {
     console.warn('No WebStorage. Skipping WebStorageTests tests.');
     return;
   }
 
   const localStorage = window.localStorage;
 
-  let webStorage: WebStorage;
+  let webStorage: TabNotificationChannel;
   let queue: AsyncQueue;
   let ownerId;
 

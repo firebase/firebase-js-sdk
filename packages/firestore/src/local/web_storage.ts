@@ -28,7 +28,7 @@ const WEB_STORAGE_REFRESH_INTERVAL_MS: number = 4000;
 // Prefix keys used in WebStorage.
 const VISIBILITY_PREFIX = 'visibility';
 
-const LOG_TAG = 'WebStorage';
+const LOG_TAG = 'TabNotificationChannel';
 
 /**
  * WebStorage of the Firestore client. Firestore uses WebStorage for cross-tab
@@ -39,21 +39,21 @@ const LOG_TAG = 'WebStorage';
  * WebStorage is only used in Persistence-enabled Firestore instances. If you
  * are not using Persistence, consider using the `NoOpWebStorage` class.
  */
-export interface WebStorage {
+export interface TabNotificationChannel {
   setVisibility(visibilityState: VisibilityState): void;
   start(): void;
   shutdown(): void;
 }
 
 /**
- * `PersistedWebStorage` uses Local Storage as the backing store for the
+ * `LocalStorageNotificationChannel` uses Local Storage as the backing store for the
  * WebStorage class.
  *
- * Once started, PersistedWebStorage will rewrite its contents to Local Storage
+ * Once started, LocalStorageNotificationChannel will rewrite its contents to Local Storage
  * every four seconds. Other clients may disregard its state after five seconds
  * of inactivity.
  */
-export class PersistedWebStorage implements WebStorage {
+export class LocalStorageNotificationChannel implements TabNotificationChannel {
   private localStorage: Storage;
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
@@ -70,14 +70,14 @@ export class PersistedWebStorage implements WebStorage {
   }
 
   start(): void {
-    if (!PersistedWebStorage.isAvailable()) {
+    if (!LocalStorageNotificationChannel.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
         'LocalStorage is not available on this platform.'
       );
     }
 
-    assert(!this.started, 'PersistedWebStorage already started');
+    assert(!this.started, 'LocalStorageNotificationChannel already started');
 
     this.localStorage = window.localStorage;
     this.started = true;
@@ -88,7 +88,7 @@ export class PersistedWebStorage implements WebStorage {
   shutdown(): void {
     assert(
       this.started,
-      'PersistedWebStorage.shutdown() called when not started'
+      'LocalStorageNotificationChannel.shutdown() called when not started'
     );
     this.started = false;
   }
@@ -109,7 +109,7 @@ export class PersistedWebStorage implements WebStorage {
 
   /** Persists the entire known state. */
   private persistState(): void {
-    assert(this.started, 'PersistedWebStorage not started');
+    assert(this.started, 'LocalStorageNotificationChannel not started');
     debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localStorage[
       this.buildKey(VISIBILITY_PREFIX, this.persistenceKey, this.instanceId)
@@ -139,7 +139,7 @@ export class PersistedWebStorage implements WebStorage {
  * delivers notifications. This call should be used for non-persistence enabled
  * clients.
  */
-export class NoOpWebStorage implements WebStorage {
+export class NoOpWebStorage implements TabNotificationChannel {
   start(): void {}
   shutdown(): void {}
   setVisibility(visibilityState: VisibilityState): void {}
