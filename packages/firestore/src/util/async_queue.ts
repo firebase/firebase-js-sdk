@@ -20,11 +20,13 @@ import { AnyDuringMigration, AnyJs } from './misc';
 import { Deferred } from './promise';
 import { Code, FirestoreError } from './error';
 
+// tslint:disable-next-line:no-any Accept any return type from setTimeout().
+type OperationHandle = any;
+
 type DelayedOperation<T> = {
-  // tslint:disable-next-line:no-any Accept any return type from setTimeout().
-  handle: any;
+  handle: OperationHandle;
   op: () => Promise<T>;
-  deferred: Deferred<T>;
+  deferred?: Deferred<T>;
 };
 
 export class AsyncQueue {
@@ -45,12 +47,24 @@ export class AsyncQueue {
   // Visible for testing.
   delayedOperationsCount = 0;
 
+  // A list with handles for periodically scheduled operations.
+  private periodicOperations: Array<DelayedOperation<AnyJs>> = [];
+
   // visible for testing
   failure: Error;
 
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  /**
+   * The number of operations that are currently scheduled for periodic
+   * execution.
+   */
+  // visible for testing
+  get periodicOperationsCount(): number {
+    return this.periodicOperations.length;
+  }
 
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
@@ -92,6 +106,11 @@ export class AsyncQueue {
     } else {
       return this.scheduleInternal(op);
     }
+  }
+
+  schedulePeriodically<T>(op: () => Promise<T>, interval?: number): void {
+    const handle = setInterval(() => this.scheduleInternal(op), interval);
+    this.periodicOperations.push({ handle, op });
   }
 
   private scheduleInternal<T>(op: () => Promise<T>): Promise<T> {
@@ -139,8 +158,9 @@ export class AsyncQueue {
   }
 
   /**
-   * Waits until all currently scheduled tasks are finished executing. Tasks
-   * scheduled with a delay can be rejected or queued for immediate execution.
+   * Waits until all currently scheduled tasks are finished executing.
+   * Tasks that are scheduled with a delay or scheduled for periodic execution
+   * can be rejected or queued once for immediate execution.
    */
   drain(executeDelayedTasks: boolean): Promise<void> {
     this.delayedOperations.forEach(entry => {
@@ -163,6 +183,13 @@ export class AsyncQueue {
     });
     this.delayedOperations = [];
     this.delayedOperationsCount = 0;
+    this.periodicOperations.forEach(entry => {
+      clearInterval(entry.handle);
+      if (executeDelayedTasks) {
+        this.scheduleInternal(entry.op);
+      }
+    });
+    this.periodicOperations = [];
     return this.schedule(() => Promise.resolve());
   }
 }

@@ -24,6 +24,8 @@ import { SpecStep } from './spec_test_runner';
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
+// Multi-tab related tests. Requires persistence.
+const MULTI_TAB_TAG = 'multi-tab';
 // Persistence-related tests.
 const PERSISTENCE_TAG = 'persistence';
 // Explicit per-platform disable flags.
@@ -32,6 +34,7 @@ const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 const KNOWN_TAGS = [
   EXCLUSIVE_TAG,
+  MULTI_TAB_TAG,
   PERSISTENCE_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
@@ -40,6 +43,10 @@ const KNOWN_TAGS = [
 
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
   tags.indexOf(NO_WEB_TAG) === -1;
+
+// Filters out mutil-tab tests if persistence is not enabled.
+const MULTI_TAB_TEST_FILTER = (tags: string[], persistenceEnabled: boolean) =>
+  tags.indexOf(MULTI_TAB_TAG) !== -1 && persistenceEnabled;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -92,20 +99,27 @@ export function specTest(
     );
   }
 
+  /** Gets the test runner based on the specified tags. */
+  const getTestRunner = (tags, persistenceEnabled) => {
+    if (
+      !MULTI_TAB_TEST_FILTER(tags, persistenceEnabled) ||
+      !WEB_SPEC_TEST_FILTER(tags)
+    ) {
+      return it.skip;
+    } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+      return it.only;
+    } else {
+      return it;
+    }
+  };
+
   if (!writeJSONFile) {
     const persistenceModes = IndexedDbPersistence.isAvailable()
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
       const spec = builder();
-      let runner: Function;
-      if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
-        runner = it.only;
-      } else if (!WEB_SPEC_TEST_FILTER(tags)) {
-        runner = it.skip;
-      } else {
-        runner = it;
-      }
+      const runner = getTestRunner(tags, usePersistence);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
       runner(fullName, () => {

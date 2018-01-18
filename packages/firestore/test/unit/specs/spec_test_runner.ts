@@ -30,7 +30,8 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   OnlineState,
   ProtoByteString,
-  TargetId
+  TargetId,
+  VisibilityState
 } from '../../../src/core/types';
 import {
   ChangeType,
@@ -72,7 +73,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
+import { AnyDuringMigration, AnyJs, AutoId } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -88,6 +89,7 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
+import { TabNotificationChannel } from '../../../src/local/tab_notification_channel';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -278,6 +280,33 @@ class MockConnection implements Connection {
   }
 }
 
+export class MockNotificationChannel implements TabNotificationChannel {
+  private startCalled = false;
+  private shutdownCalled = false;
+
+  visibilityState: VisibilityState | undefined;
+
+  private assertRunning() {
+    assert(this.startCalled, 'start() not called');
+    assert(!this.shutdownCalled, 'shutdown() already called');
+  }
+
+  setVisibility(visibilityState: VisibilityState): void {
+    this.assertRunning();
+    this.visibilityState = visibilityState;
+  }
+
+  start(): Promise<void> {
+    this.startCalled = true;
+    return Promise.resolve();
+  }
+
+  shutdown(): Promise<void> {
+    this.shutdownCalled = true;
+    return Promise.resolve();
+  }
+}
+
 /**
  * Interface used for object that contain exactly one of either a view snapshot
  * or an error for the given query.
@@ -336,6 +365,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
+  private notificationChannel: MockNotificationChannel;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -392,6 +422,7 @@ abstract class TestRunner {
       this.datastore,
       onlineStateChangedHandler
     );
+    this.notificationChannel = new MockNotificationChannel();
 
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -419,6 +450,7 @@ abstract class TestRunner {
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
+    await this.notificationChannel.start();
     await this.localStore.start();
     await this.remoteStore.start();
   }
@@ -426,6 +458,7 @@ abstract class TestRunner {
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
+    await this.notificationChannel.shutdown();
     await this.destroyPersistence();
   }
 
@@ -478,6 +511,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
+    } else if ('metadataChange' in step) {
+      return this.doApplyTabState(step.metadataChange!);
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -768,6 +803,20 @@ abstract class TestRunner {
     });
   }
 
+  private doApplyTabState(tabState: SpecTabState): Promise<void> {
+    switch (tabState.visibility) {
+      case 'foreground':
+        this.notificationChannel.setVisibility(VisibilityState.Foreground);
+        break;
+      case 'background':
+        this.notificationChannel.setVisibility(VisibilityState.Background);
+        break;
+      default:
+        this.notificationChannel.setVisibility(VisibilityState.Unknown);
+    }
+    return Promise.resolve();
+  }
+
   private async doDisableNetwork(): Promise<void> {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
@@ -842,6 +891,11 @@ abstract class TestRunner {
       }
       if ('activeTargets' in expectation) {
         this.expectedActiveTargets = expectation.activeTargets!;
+      }
+      if ('tabState' in expectation) {
+        expect(
+          VisibilityState[this.notificationChannel.visibilityState]
+        ).to.equal(VisibilityState[expectation.tabState.visibilityState]);
       }
     }
 
@@ -1016,6 +1070,7 @@ class IndexedDbTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
+      AutoId.newId(),
       serializer
     );
   }
@@ -1073,6 +1128,9 @@ export interface SpecStep {
   userPatch?: SpecUserPatch;
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
+
+  /** Change the metadata state of a tab. */
+  metadataChange?: SpecTabState;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1162,6 +1220,10 @@ export type SpecSnapshotVersion = TestSnapshotVersion;
 
 export type SpecWatchStreamClose = {
   error: SpecError;
+};
+
+export type SpecTabState = {
+  visibility?: 'foreground' | 'background' | 'unknown';
 };
 
 export type SpecWriteAck = {
@@ -1257,5 +1319,8 @@ export interface StateExpectation {
    */
   activeTargets?: {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
+  };
+  tabState?: {
+    visibilityState?: VisibilityState;
   };
 }

@@ -60,3 +60,28 @@ export enum OnlineState {
    */
   Failed
 }
+
+/**
+ * Describes the foreground state of the tab that is hosting the Firestore
+ * client. These values are determined on a best-effort basis and may (e.g. for
+ * throttled tabs) not always reflect the tab's current visibility.
+ */
+export enum VisibilityState {
+  /**
+   * It is not known what state the tab is in. This is usually the state used
+   * during the initial rendering phase.
+   */
+  Unknown,
+
+  /**
+   * The tab has received a notification from the browser that it is at least
+   * partially visible (in a foreground tab that is non-minimized).
+   */
+  Foreground,
+
+  /**
+   * The tab has received a notification from the browser that it is not visible
+   * (in a background tab or minimized).
+   */
+  Background
+}

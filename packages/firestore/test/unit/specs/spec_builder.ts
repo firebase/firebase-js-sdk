@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
-import { TargetId } from '../../../src/core/types';
+import { TargetId, VisibilityState } from '../../../src/core/types';
 import { Document, NoDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -194,6 +194,22 @@ export class SpecBuilder {
     return this;
   }
 
+  tabBecomesHidden(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      metadataChange: { visibility: 'background' }
+    };
+    return this;
+  }
+
+  tabBecomesVisible(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      metadataChange: { visibility: 'foreground' }
+    };
+    return this;
+  }
+
   changeUser(uid: string | null): SpecBuilder {
     this.nextStep();
     this.currentStep = { changeUser: uid };
@@ -295,6 +311,16 @@ export class SpecBuilder {
     return this;
   }
 
+  expectVisibilityState(expectedVisibiliyy: VisibilityState) {
+    this.assertStep('Visibility State expectation requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.tabState = Object.assign(
+      currentStep.stateExpect.tabState || {},
+      { visibilityState: expectedVisibiliyy }
+    );
+    return this;
+  }
   /**
    * Special helper for limbo documents that acks with either a document or
    * with no document for NoDocument. This is translated into normal watch

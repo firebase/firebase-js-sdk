@@ -94,7 +94,6 @@ export class IndexedDbPersistence implements Persistence {
   private started: boolean;
   private dbName: string;
   private localStoragePrefix: string;
-  private ownerId: string = this.generateOwnerId();
 
   /**
    * Set to an Error object if we encounter an unrecoverable error. All further
@@ -109,7 +108,11 @@ export class IndexedDbPersistence implements Persistence {
 
   private serializer: LocalSerializer;
 
-  constructor(prefix: string, serializer: JsonProtoSerializer) {
+  constructor(
+    prefix: string,
+    private ownerId: string,
+    serializer: JsonProtoSerializer
+  ) {
     this.dbName = prefix + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.localStoragePrefix = prefix;
@@ -404,10 +407,5 @@ export class IndexedDbPersistence implements Persistence {
 
   private zombiedOwnerLocalStorageKey(): string {
     return this.localStoragePrefix + ZOMBIE_OWNER_LOCALSTORAGE_SUFFIX;
-  }
-
-  private generateOwnerId(): string {
-    // For convenience, just use an AutoId.
-    return AutoId.newId();
   }
 }

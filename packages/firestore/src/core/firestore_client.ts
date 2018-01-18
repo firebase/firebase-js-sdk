@@ -45,6 +45,12 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  LocalStorageNotificationChannel,
+  TabNotificationChannel
+} from '../local/tab_notification_channel';
+import { AutoId } from '../util/misc';
+import { WindowEventListener } from '../platform_browser/window_event_listener';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -65,8 +71,9 @@ export class FirestoreClient {
   private persistence: Persistence;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
+  private notificationChannel?: TabNotificationChannel;
+  private windowEventListener?: WindowEventListener;
   private syncEngine: SyncEngine;
-
   constructor(
     private platform: Platform,
     private databaseInfo: DatabaseInfo,
@@ -231,6 +238,8 @@ export class FirestoreClient {
    * @returns A promise indicating success or failure.
    */
   private startIndexedDbPersistence(): Promise<void> {
+    const ownerId = AutoId.newId();
+
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
@@ -241,8 +250,26 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new IndexedDbPersistence(storagePrefix, serializer);
-    return this.persistence.start();
+
+    this.persistence = new IndexedDbPersistence(
+      storagePrefix,
+      ownerId,
+      serializer
+    );
+
+    return this.persistence.start().then(() => {
+      this.notificationChannel = new LocalStorageNotificationChannel(
+        storagePrefix,
+        ownerId,
+        this.asyncQueue
+      );
+      this.notificationChannel.start();
+      this.windowEventListener = new WindowEventListener(
+        this.asyncQueue,
+        this.notificationChannel
+      );
+      this.windowEventListener.start();
+    });
   }
 
   /**
@@ -336,6 +363,11 @@ export class FirestoreClient {
       .then(() => {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         return this.persistence.shutdown();
+      })
+      .then(() => {
+        if (this.notificationChannel) {
+          this.notificationChannel.shutdown();
+        }
       });
   }
 
