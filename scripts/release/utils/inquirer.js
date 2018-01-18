@@ -18,18 +18,15 @@ exports.packageVersionUpdate = async (package, isPrerelease) => {
    */
   let prereleaseVersions = ['prepatch', 'preminor', 'premajor'];
   if (prerelease(version)) {
-    prereleaseVersions = [
-      'prerelease',
-      ...prereleaseVersions
-    ]
+    prereleaseVersions = ['prerelease', ...prereleaseVersions];
   }
 
   /**
    * Determine which set of increments we will be using
    */
-  const increments = isPrerelease ?
-    prereleaseVersions :
-    ['patch', 'minor', 'major'];
+  const increments = isPrerelease
+    ? prereleaseVersions
+    : ['patch', 'minor', 'major'];
 
   /**
    * Create prompts
@@ -44,23 +41,21 @@ exports.packageVersionUpdate = async (package, isPrerelease) => {
         name: chalk`${capitalize(increment)} {gray ${newVersion}}`,
         value: newVersion
       };
-    }),
+    })
   };
-}
+};
 
 exports.releaseType = {
   type: 'list',
   name: 'releaseType',
   message: 'Is this a staging, or a production release?',
-  choices: [
-    'Staging',
-    'Production'
-  ],
+  choices: ['Staging', 'Production'],
   default: 'Staging'
 };
 
 exports.validateVersions = versionMap => {
-  let message = '\r\nAre you sure these are the versions you want to publish?\r\n';
+  let message =
+    '\r\nAre you sure these are the versions you want to publish?\r\n';
   Object.keys(versionMap)
     .map(name => ({ name, version: versionMap[name] }))
     .forEach(({ name, version }) => {
@@ -73,4 +68,4 @@ exports.validateVersions = versionMap => {
     message,
     default: false
   };
-}
+};

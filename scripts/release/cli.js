@@ -1,9 +1,21 @@
 const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
-const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspace');
-const { commitAndTag, pushUpdatesToGithub, cleanTree, resetWorkingTree } = require('./utils/git');
-const { releaseType, packageVersionUpdate, validateVersions } = require('./utils/inquirer');
+const {
+  getOrderedUpdates,
+  updateWorkspaceVersions
+} = require('./utils/workspace');
+const {
+  commitAndTag,
+  pushUpdatesToGithub,
+  cleanTree,
+  resetWorkingTree
+} = require('./utils/git');
+const {
+  releaseType,
+  packageVersionUpdate,
+  validateVersions
+} = require('./utils/inquirer');
 const { reinstallDeps } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
 const { publishToNpm } = require('./utils/npm');
@@ -19,16 +31,16 @@ const { publishToNpm } = require('./utils/npm');
     /**
      * Prompt for the release type (i.e. staging/prod)
      */
-    const responses = await prompt([
-      releaseType
-    ]);
+    const responses = await prompt([releaseType]);
     const isPrerelease = responses.releaseType === 'Staging';
 
     /**
      * Prompt user for the new versions
      */
     const updates = await getOrderedUpdates();
-    const versionUpdates = await Promise.all(updates.map(pkg => packageVersionUpdate(pkg, isPrerelease)));
+    const versionUpdates = await Promise.all(
+      updates.map(pkg => packageVersionUpdate(pkg, isPrerelease))
+    );
     const versions = await prompt(versionUpdates);
 
     /**
@@ -59,11 +71,11 @@ const { publishToNpm } = require('./utils/npm');
     await setupTestDeps();
     await runTests();
 
-    /** 
+    /**
      * Commit and tag the version updates
      */
     await commitAndTag(versions, isPrerelease);
-    
+
     /**
      * Push new version to Github
      */
@@ -73,8 +85,7 @@ const { publishToNpm } = require('./utils/npm');
      * Release new versions to NPM
      */
     await publishToNpm(updates, isPrerelease);
-
-  } catch(err) {
+  } catch (err) {
     /**
      * Log any errors that happened during the process
      */

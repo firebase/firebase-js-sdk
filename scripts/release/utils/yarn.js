@@ -10,4 +10,4 @@ exports.reinstallDeps = async () => {
   spinner.stopAndPersist({
     symbol: '✅'
   });
-}
+};

@@ -12,7 +12,7 @@ function getLernaUpdateJson() {
       env: npmRunPath.env(),
       cwd: root
     });
-  
+
     cache = JSON.parse(result.stdout);
 
     return cache;

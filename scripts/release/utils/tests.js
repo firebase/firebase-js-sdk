@@ -8,11 +8,11 @@ exports.runTests = async () => {
       cwd: root,
       stdio: 'inherit'
     });
-  } catch(err) {
+  } catch (err) {
     throw err;
   }
 };
 
-exports.setupTestDeps = async() => {
+exports.setupTestDeps = async () => {
   await spawn('yarn', ['test:setup'], { stdio: 'inherit' });
-}
+};
