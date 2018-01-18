@@ -20,8 +20,6 @@
     "prepush": "node tools/gitHooks/prepush.js",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
-    "prepublish:packages": "./scripts/prepublish.sh --prod",
-    "publish:packages": "./scripts/publish.sh",
     "repl": "node tools/repl.js",
     "release": "node scripts/release/cli.js",
     "pretest": "node tools/pretest.js",
