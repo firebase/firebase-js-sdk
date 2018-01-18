@@ -4,6 +4,7 @@ const { hasUpdatedPackages } = require('./utils/lerna');
 const { getOrderedUpdates, updateWorkspaceVersions } = require('./utils/workspace');
 const { commitAndTag, pushUpdatesToGithub, cleanTree } = require('./utils/git');
 const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
+const { reinstallDeps } = require('./utils/yarn');
 
 (async () => {
   try {
@@ -33,15 +34,21 @@ const { releaseType, packageVersionUpdate } = require('./utils/inquirer');
      */
     await updateWorkspaceVersions(versions);
 
-    /** 
-     * Commit and tag the version updates
-     */
-    await commitAndTag(versions, isPrerelease);
-
     /**
      * Clean install dependencies
      */
     await cleanTree();
+    await reinstallDeps();
+
+    /**
+     * Ensure all tests are passing
+     */
+    await runTests();
+
+    /** 
+     * Commit and tag the version updates
+     */
+    await commitAndTag(versions, isPrerelease);
     
 
   } catch(err) {

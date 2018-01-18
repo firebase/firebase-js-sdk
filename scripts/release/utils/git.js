@@ -4,7 +4,9 @@ const git = simpleGit(root);
 const { exec } = require('child-process-promise');
 
 exports.cleanTree = async () => {
-  await exec('git clean -xdf');
+  await exec('git clean -xdf', {
+    cwd: root
+  });
 }
 
 exports.commitAndTag = async (updatedVersions, isPrerelease) => {
