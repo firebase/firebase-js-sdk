@@ -5,7 +5,7 @@ const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 const { DepGraph } = require('dependency-graph');
 const { getUpdatedPackages } = require('./lerna');
 const { promisify } = require('util');
-const { writeFile: _writeFile } = require('fs');
+const { writeFile: _writeFile, existsSync } = require('fs');
 const writeFile = promisify(_writeFile);
 const clone = require('clone');
 
@@ -67,7 +67,9 @@ exports.mapPackageNameToPkgJson = async packageName => {
 
 exports.updateWorkspaceVersions = async newVersionObj => {
   try {
-    const packages = await mapWorkspaceToPackages(workspaces);
+    let packages = await mapWorkspaceToPackages(workspaces);
+    packages = packages.filter(package => existsSync(`${package}/package.json`));
+    
     const pkgJsons = mapPackagestoPkgJson(packages);
 
     pkgJsons.forEach((rawPkg, idx) => {
@@ -75,33 +77,33 @@ exports.updateWorkspaceVersions = async newVersionObj => {
       const pkgJsonPath = `${packages[idx]}/package.json`;
 
       Object.keys(newVersionObj)
-      .forEach(updatedPkg => {
-        /**
-         * If the current package has been updated, bump the version property
-         */
-        if (pkg.name === updatedPkg) {
-          pkg = Object.assign({}, pkg, {
-            version: newVersionObj[updatedPkg]
-          });
-        }
-
-        /**
-         * If the packages dependencies, peerDependencies, or devDependencies have
-         * been updated, update that version here
-         */
-        const depKeys = ['dependencies', 'peerDependencies', 'devDependencies'];
-        depKeys.forEach(dep => {
-          const deps = pkg[dep];
-
-          if (deps && deps[updatedPkg]) {
+        .forEach(updatedPkg => {
+          /**
+           * If the current package has been updated, bump the version property
+           */
+          if (pkg.name === updatedPkg) {
             pkg = Object.assign({}, pkg, {
-              [dep]: Object.assign({}, pkg[dep], {
-                [updatedPkg]: newVersionObj[updatedPkg]
-              })
+              version: newVersionObj[updatedPkg]
             });
           }
+
+          /**
+           * If the packages dependencies, peerDependencies, or devDependencies have
+           * been updated, update that version here
+           */
+          const depKeys = ['dependencies', 'peerDependencies', 'devDependencies'];
+          depKeys.forEach(dep => {
+            const deps = pkg[dep];
+
+            if (deps && deps[updatedPkg]) {
+              pkg = Object.assign({}, pkg, {
+                [dep]: Object.assign({}, pkg[dep], {
+                  [updatedPkg]: newVersionObj[updatedPkg]
+                })
+              });
+            }
+          });
         });
-      });
 
       writeFile(pkgJsonPath, JSON.stringify(pkg, null, 2));
     });
