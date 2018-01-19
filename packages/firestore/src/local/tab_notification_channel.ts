@@ -95,7 +95,6 @@ class WatchTargetRow {
   err?: FirestoreError;
 }
 
-
 /**
  * `LocalStorageNotificationChannel` uses LocalStorage as the backing store for
  * the TabNotificationChannel class.
