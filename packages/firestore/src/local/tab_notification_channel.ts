@@ -75,6 +75,12 @@ class InstanceRow {
   pendingBatches: BatchId[];
 }
 
+class MasterRow {
+  instanceId: InstanceId;
+  updateTime: Date;
+  onlineState: OnlineState;
+}
+
 class BatchUpdateRow {
   updateTime: Date;
   batchId: BatchId;
@@ -89,11 +95,6 @@ class WatchTargetRow {
   err?: FirestoreError;
 }
 
-class MasterRow {
-  instanceId: InstanceId;
-  updateTime: Date;
-  onlineState: OnlineState;
-}
 
 /**
  * `LocalStorageNotificationChannel` uses LocalStorage as the backing store for
@@ -166,6 +167,8 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     this.started = false;
   }
 
+  // Methods called by sync engine. These mutate local state which will be
+  // immediately reflected in LocalStorage and updated every 4 seconds.
   setVisibility(visibilityState: VisibilityState): void {
     this.visibilityState = visibilityState;
     this.persistState();
@@ -202,6 +205,8 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     }
   }
 
+  // Callback for the LocalStorage observer. 'key' is the key that changed, and
+  // value is the new value.
   private onUpdate(key: string, value: string) {
     if (this.primary) {
       if (isUserRow(key)) {
