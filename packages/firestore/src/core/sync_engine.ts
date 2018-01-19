@@ -51,7 +51,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {TabNotificationChannel} from '../local/tab_notification_channel';
+import { TabNotificationChannel } from '../local/tab_notification_channel';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -234,7 +234,6 @@ export class SyncEngine implements RemoteSyncer {
         return this.remoteStore.fillWritePipeline();
       });
   }
-
 
   // TODO(klimt): Wrap the given error in a standard Firestore error object.
   private wrapUpdateFunctionError(error: AnyJs): AnyJs {
@@ -427,7 +426,9 @@ export class SyncEngine implements RemoteSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        this.notificationChannel.acknowledgeMutation(mutationBatchResult.batch.batchId);
+        this.notificationChannel.acknowledgeMutation(
+          mutationBatchResult.batch.batchId
+        );
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       });
   }
@@ -634,12 +635,12 @@ export class SyncEngine implements RemoteSyncer {
   updateBatch(mutationBatchId: BatchId, type: string, err?: FirestoreError) {
     switch (type) {
       case append:
-        assert (primary);
+        assert(primary);
         return this.localStore.getMutationBatch(mutationBatchId).then(batch => {
           return this.write(batch.mutations, null);
         });
       case acknowledge:
-        assert (!primary);
+        assert(!primary);
         return this.localStore.getMutationBatch(mutationBatchId).then(batch => {
           const affectedDocs = [];
           for (let mutation of batch.mutations) {
@@ -649,20 +650,20 @@ export class SyncEngine implements RemoteSyncer {
           this.processUserCallback(mutationBatchId, null);
         });
       case reject:
-        assert (!primary);
-        return this.rejectFailedWrite(mutationBatchId, err)
+        assert(!primary);
+        return this.rejectFailedWrite(mutationBatchId, err);
     }
   }
 
   updateWatch(targetId: number, type: string) {
     switch (type) {
       case append:
-        assert (primary);
+        assert(primary);
         return this.localStore.getQuery(targetId).then(query => {
           return this.listen(query);
         });
       case update:
-        assert (!primary);
+        assert(!primary);
         return this.localStore.getQuery(targetId).then(query => {
           // The logic in "listen" will work for us since it raises the snapshots
           // from cache (albeit with the wrong metadata). We should factor it out
@@ -670,8 +671,8 @@ export class SyncEngine implements RemoteSyncer {
           return this.listen(query);
         });
       case reject:
-        assert (!primary);
-        return this.rejectListen(targetId, err)
+        assert(!primary);
+        return this.rejectListen(targetId, err);
     }
   }
 

@@ -55,7 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import {TabNotificationChannel} from './tab_notification_channel';
+import { TabNotificationChannel } from './tab_notification_channel';
 
 const LOG_TAG = 'LocalStore';
 
@@ -842,7 +842,7 @@ export class LocalStore {
     return promiseChain;
   }
 
-  getMutationBatch(batchId: BatchId) : Promise<MutationBatch> {
+  getMutationBatch(batchId: BatchId): Promise<MutationBatch> {
     return this.mutationQueue.lookupMutationBatch(batchId);
   }
 }

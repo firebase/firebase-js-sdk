@@ -207,9 +207,9 @@ apiDescribe('Database', persistence => {
   });
 
   it('cannot update nonexistent document', () => {
-    firebase.firestore.setLogLevel
+    firebase.firestore.setLogLevel;
     return withTestDoc(persistence, doc => {
-      doc.firestore
+      doc.firestore;
       return doc
         .update({ owner: 'abc' })
         .then(

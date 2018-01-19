@@ -15,12 +15,12 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import {BatchId, OnlineState, TargetId, VisibilityState} from '../core/types';
+import { BatchId, OnlineState, TargetId, VisibilityState } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
 import { StringMap } from '../util/types';
-import {SyncEngine} from '../core/sync_engine';
+import { SyncEngine } from '../core/sync_engine';
 
 /**
  * Refresh the contents of LocalStorage every four seconds.
@@ -71,7 +71,7 @@ class InstanceRow {
   instanceId: InstanceId;
   updateTime: Date;
   visibilityState: VisibilityState;
-  activeTargets : TargetId[];
+  activeTargets: TargetId[];
   pendingBatches: BatchId[];
 }
 
@@ -107,15 +107,19 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
   private localStorage: Storage;
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
-  private pendingBatchIds : { [key: number ] : InstanceId} = {};
-  private acknowledgedBatchIds : { [key: number ] : Date } = {};
-  private rejectedBatchIds : { [key: number ] : { date: Date, error: FirestoreError } } = {};
-  private activeTargetIds : { [key: number ] : InstanceId} = {};
-  private updatedTargetIds : { [key: number ] : Date } = {};
-  private rejectedTargetIds : { [key: number ] : { date: Date, error: FirestoreError }} = {};
+  private pendingBatchIds: { [key: number]: InstanceId } = {};
+  private acknowledgedBatchIds: { [key: number]: Date } = {};
+  private rejectedBatchIds: {
+    [key: number]: { date: Date; error: FirestoreError };
+  } = {};
+  private activeTargetIds: { [key: number]: InstanceId } = {};
+  private updatedTargetIds: { [key: number]: Date } = {};
+  private rejectedTargetIds: {
+    [key: number]: { date: Date; error: FirestoreError };
+  } = {};
 
-  private knownInstances: { [ key: string ]: InstanceRow}  = {};
-  private masterRow : MasterRow;
+  private knownInstances: { [key: string]: InstanceRow } = {};
+  private masterRow: MasterRow;
 
   private primary = false;
 
@@ -198,18 +202,18 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     }
   }
 
-  private onUpdate(key:string, value: string) {
+  private onUpdate(key: string, value: string) {
     if (this.primary) {
       if (isUserRow(key)) {
         const userRow: InstanceRow = parseUser();
         for (const batchId of userRow.pendingBatches) {
-          this.syncEngine.updateBatch(batchId, 'append')
+          this.syncEngine.updateBatch(batchId, 'append');
         }
         for (const targetId of userRow.activeTargets) {
-          this.syncEngine.updateWatch(targetId, 'append')
+          this.syncEngine.updateWatch(targetId, 'append');
         }
         this.knownInstances[userRow.instanceId] = userRow;
-      } else if (isMasterRow(key)){
+      } else if (isMasterRow(key)) {
         const masterRow: MasterRow = parseMaster();
         if (masterRow.instanceId !== this.instanceId) {
           warn('Master lease lost');
@@ -220,22 +224,22 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
       }
     } else {
       if (isUserRow(key)) {
-        const userRow : InstanceRow = parseUser();
+        const userRow: InstanceRow = parseUser();
         for (const batchId of userRow.pendingBatches) {
-          this.syncEngine.updateBatch(batchId, 'append')
+          this.syncEngine.updateBatch(batchId, 'append');
         }
         for (const targetId of userRow.activeTargets) {
-          this.syncEngine.updateWatch(targetId, 'append')
+          this.syncEngine.updateWatch(targetId, 'append');
         }
         this.knownInstances[userRow.instanceId] = userRow;
         this.tryBecomeMaster();
       } else if (isBatchUpdatedRow()) {
-        const batch : BatchUpdateRow = parseBatch();
+        const batch: BatchUpdateRow = parseBatch();
         this.syncEngine.updateBatch(batch.batchId, batch.status, batch.err);
       } else if (isWatchUpdatedRow()) {
-        const target : WatchTargetRow = parseWatch();
+        const target: WatchTargetRow = parseWatch();
         this.syncEngine.updateWatch(target.targetId, target.status, target.err);
-      } else if (isMasterRow(key)){
+      } else if (isMasterRow(key)) {
         const masterRow: MasterRow = parseMaster();
         this.masterRow = masterRow;
       }
@@ -279,7 +283,7 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
   }
 
   private tryBecomeMaster() {
-    this.masterRow = localStorage["master"];
+    this.masterRow = localStorage['master'];
 
     if (!this.isExpired(this.masterRow.updateTime)) {
       return;
@@ -287,7 +291,10 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
 
     if (this.visibilityState !== VisibilityState.Foreground) {
       Object.keys(this.knownInstances).forEach(key => {
-        if (this.knownInstances[key].visibilityState === VisibilityState.Foreground) {
+        if (
+          this.knownInstances[key].visibilityState ===
+          VisibilityState.Foreground
+        ) {
           return; // Someone else should become master
         }
       });
