@@ -33,8 +33,8 @@ function getLernaUpdateJson() {
       cache = JSON.parse(result.stdout);
 
       return cache;
-    } catch(err) {
-     return []; 
+    } catch (err) {
+      return [];
     }
   })();
 }
