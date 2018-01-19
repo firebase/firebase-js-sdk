@@ -839,4 +839,8 @@ export class LocalStore {
     });
     return promiseChain;
   }
+
+  getMutationBatch(batchId: BatchId): Promise<MutationBatch> {
+    return this.mutationQueue.lookupMutationBatch(batchId);
+  }
 }

@@ -51,6 +51,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { TabNotificationChannel } from '../local/tab_notification_channel';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -125,6 +126,7 @@ export class SyncEngine implements RemoteSyncer {
   constructor(
     private localStore: LocalStore,
     private remoteStore: RemoteStore,
+    private notificationChannel: TabNotificationChannel,
     private currentUser: User
   ) {}
 
@@ -156,6 +158,7 @@ export class SyncEngine implements RemoteSyncer {
     );
 
     return this.localStore.allocateQuery(query).then(queryData => {
+      this.notificationChannel.addQuery(queryData.targetId);
       return this.localStore
         .executeQuery(query)
         .then(docs => {
@@ -199,6 +202,7 @@ export class SyncEngine implements RemoteSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
+    this.notificationChannel.removeQuery(queryView.targetId);
     return this.localStore.releaseQuery(query).then(() => {
       this.remoteStore.unlisten(queryView.targetId);
       return this.removeAndCleanupQuery(queryView).then(() => {
@@ -223,6 +227,7 @@ export class SyncEngine implements RemoteSyncer {
       .localWrite(batch)
       .then(result => {
         this.addMutationCallback(result.batchId, userCallback);
+        this.notificationChannel.addMutation(result.batchId);
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
       .then(() => {
@@ -296,10 +301,14 @@ export class SyncEngine implements RemoteSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
+    const updatedTargetIds = [];
+
     // Make sure limbo documents are deleted if there were no results
     objUtils.forEachNumber(
       remoteEvent.targetChanges,
       (targetId, targetChange) => {
+        updatedTargetIds.push(targetId);
+
         const limboKey = this.limboKeysByTarget[targetId];
         if (
           limboKey &&
@@ -339,6 +348,7 @@ export class SyncEngine implements RemoteSyncer {
     );
 
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
+      this.notificationChannel.updateQuery(updatedTargetIds);
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
   }
@@ -360,6 +370,7 @@ export class SyncEngine implements RemoteSyncer {
       }
     });
     this.viewHandler(newViewSnapshots);
+    this.notificationChannel.setOnlineState(onlineState);
   }
 
   rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
@@ -391,6 +402,7 @@ export class SyncEngine implements RemoteSyncer {
       const queryView = this.queryViewsByTarget[targetId];
       assert(!!queryView, 'Unknown targetId: ' + targetId);
       return this.localStore.releaseQuery(queryView.query).then(() => {
+        this.notificationChannel.rejectQuery(targetId, err);
         return this.removeAndCleanupQuery(queryView).then(() => {
           this.errorHandler!(queryView.query, err);
         });
@@ -402,7 +414,6 @@ export class SyncEngine implements RemoteSyncer {
     mutationBatchResult: MutationBatchResult
   ): Promise<void> {
     this.assertSubscribed('applySuccessfulWrite()');
-
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught
     // up), so we raise user callbacks first so that they consistently happen
@@ -415,6 +426,9 @@ export class SyncEngine implements RemoteSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        this.notificationChannel.acknowledgeMutation(
+          mutationBatchResult.batch.batchId
+        );
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       });
   }
@@ -429,6 +443,7 @@ export class SyncEngine implements RemoteSyncer {
     this.processUserCallback(batchId, error);
 
     return this.localStore.rejectBatch(batchId).then(changes => {
+      this.notificationChannel.rejectMutation(batchId, error);
       return this.emitNewSnapsAndNotifyLocalStore(changes);
     });
   }
@@ -615,5 +630,57 @@ export class SyncEngine implements RemoteSyncer {
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  updateBatch(mutationBatchId: BatchId, type: string, err?: FirestoreError) {
+    switch (type) {
+      case append:
+        assert(primary);
+        return this.localStore.getMutationBatch(mutationBatchId).then(batch => {
+          return this.write(batch.mutations, null);
+        });
+      case acknowledge:
+        assert(!primary);
+        return this.localStore.getMutationBatch(mutationBatchId).then(batch => {
+          const affectedDocs = [];
+          for (let mutation of batch.mutations) {
+            affectedDocs.push(mutation.key);
+          }
+          this.refreshDocuments(affectedDocs);
+          this.processUserCallback(mutationBatchId, null);
+        });
+      case reject:
+        assert(!primary);
+        return this.rejectFailedWrite(mutationBatchId, err);
+    }
+  }
+
+  updateWatch(targetId: number, type: string) {
+    switch (type) {
+      case append:
+        assert(primary);
+        return this.localStore.getQuery(targetId).then(query => {
+          return this.listen(query);
+        });
+      case update:
+        assert(!primary);
+        return this.localStore.getQuery(targetId).then(query => {
+          // The logic in "listen" will work for us since it raises the snapshots
+          // from cache (albeit with the wrong metadata). We should factor it out
+          // and add a flag to control the metadata.
+          return this.listen(query);
+        });
+      case reject:
+        assert(!primary);
+        return this.rejectListen(targetId, err);
+    }
+  }
+
+  setMasterState(primary: boolean) {
+    if (primary) {
+      this.remoteStore.enableNetwork();
+    } else {
+      this.remoteStore.disableNetwork();
+    }
   }
 }
