@@ -55,6 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import {TabNotificationChannel} from './tab_notification_channel';
 
 const LOG_TAG = 'LocalStore';
 
@@ -166,7 +167,8 @@ export class LocalStore {
      * cached (e.g. if they are no longer retained by the above reference sets
      * and the garbage collector is performing eager collection).
      */
-    private garbageCollector: GarbageCollector
+    private garbageCollector: GarbageCollector,
+    private notificationChannel?: TabNotificationChannel
   ) {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
@@ -838,5 +840,9 @@ export class LocalStore {
         });
     });
     return promiseChain;
+  }
+
+  getMutationBatch(batchId: BatchId) : Promise<MutationBatch> {
+    return this.mutationQueue.lookupMutationBatch(batchId);
   }
 }

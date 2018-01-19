@@ -15,11 +15,12 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import { VisibilityState } from '../core/types';
+import {BatchId, OnlineState, TargetId, VisibilityState} from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { debug } from '../util/log';
 import { StringMap } from '../util/types';
+import {SyncEngine} from '../core/sync_engine';
 
 /**
  * Refresh the contents of LocalStorage every four seconds.
@@ -41,6 +42,57 @@ export interface TabNotificationChannel {
   setVisibility(visibilityState: VisibilityState): void;
   start(): void;
   shutdown(): void;
+
+  addMutation(batchId: BatchId): void;
+  rejectMutation(batchId: BatchId, error: FirestoreError): void;
+  acknowledgeMutation(batchId: BatchId): void;
+
+  addQuery(targetId: TargetId): void;
+  removeQuery(targetId: TargetId): void;
+  rejectQuery(targetId: TargetId, err: FirestoreError): void;
+  updateQuery(updatedTargetIds: TargetId[]): void;
+}
+
+type InstanceId = String;
+
+enum MutationBatchStatus {
+  PENDING,
+  ACKNOWLEDGED,
+  REJECTED
+}
+
+enum WatchTargetStatus {
+  PENDING,
+  UPDATED,
+  REJECTED
+}
+
+class InstanceRow {
+  instanceId: InstanceId;
+  updateTime: Date;
+  visibilityState: VisibilityState;
+  activeTargets : TargetId[];
+  pendingBatches: BatchId[];
+}
+
+class BatchUpdateRow {
+  updateTime: Date;
+  batchId: BatchId;
+  status: MutationBatchStatus;
+  err?: FirestoreError;
+}
+
+class WatchTargetRow {
+  updateTime: Date;
+  targetId: TargetId;
+  status: WatchTargetStatus;
+  err?: FirestoreError;
+}
+
+class MasterRow {
+  instanceId: InstanceId;
+  updateTime: Date;
+  onlineState: OnlineState;
 }
 
 /**
@@ -55,17 +107,30 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
   private localStorage: Storage;
   private visibilityState: VisibilityState = VisibilityState.Unknown;
   private started = false;
+  private pendingBatchIds : { [key: number ] : InstanceId} = {};
+  private acknowledgedBatchIds : { [key: number ] : Date } = {};
+  private rejectedBatchIds : { [key: number ] : { date: Date, error: FirestoreError } } = {};
+  private activeTargetIds : { [key: number ] : InstanceId} = {};
+  private updatedTargetIds : { [key: number ] : Date } = {};
+  private rejectedTargetIds : { [key: number ] : { date: Date, error: FirestoreError }} = {};
+
+  private knownInstances: { [ key: string ]: InstanceRow}  = {};
+  private masterRow : MasterRow;
+
+  private primary = false;
 
   constructor(
     private persistenceKey: string,
     private instanceId: string,
-    private asyncQueue: AsyncQueue
+    private asyncQueue: AsyncQueue,
+    private syncEngine: SyncEngine
   ) {
     this.visibilityKey = this.buildKey(
       VISIBILITY_PREFIX,
       this.persistenceKey,
       this.instanceId
     );
+    this.initInstances();
   }
 
   /** Returns true if LocalStorage is available in the current environment. */
@@ -102,6 +167,81 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     this.persistState();
   }
 
+  addMutation(batchId: BatchId): void {
+    this.pendingBatchIds[batchId] = this.instanceId;
+  }
+
+  rejectMutation(batchId: BatchId, error: FirestoreError): void {
+    delete batchId[batchId];
+    this.rejectedBatchIds[batchId] = { date: new Date(), error };
+  }
+
+  acknowledgeMutation(batchId: BatchId): void {
+    this.acknowledgedBatchIds[batchId] = new Date();
+  }
+
+  addQuery(targetId: TargetId): void {
+    this.activeTargetIds[targetId] = this.instanceId;
+  }
+
+  removeQuery(targetId: TargetId): void {
+    delete this.activeTargetIds[targetId];
+  }
+
+  rejectQuery(targetId: TargetId, error: FirestoreError): void {
+    this.rejectedTargetIds[targetId] = { date: new Date(), error };
+  }
+
+  updateQuery(updatedTargetIds: TargetId[]): void {
+    for (const targetId of updatedTargetIds) {
+      this.updatedTargetIds[targetId] = new Date();
+    }
+  }
+
+  private onUpdate(key:string, value: string) {
+    if (this.primary) {
+      if (isUserRow(key)) {
+        const userRow: InstanceRow = parseUser();
+        for (const batchId of userRow.pendingBatches) {
+          this.syncEngine.updateBatch(batchId, 'append')
+        }
+        for (const targetId of userRow.activeTargets) {
+          this.syncEngine.updateWatch(targetId, 'append')
+        }
+        this.knownInstances[userRow.instanceId] = userRow;
+      } else if (isMasterRow(key)){
+        const masterRow: MasterRow = parseMaster();
+        if (masterRow.instanceId !== this.instanceId) {
+          warn('Master lease lost');
+          this.primary = false;
+          this.syncEngine.setMasterState(false);
+        }
+        this.masterRow = masterRow;
+      }
+    } else {
+      if (isUserRow(key)) {
+        const userRow : InstanceRow = parseUser();
+        for (const batchId of userRow.pendingBatches) {
+          this.syncEngine.updateBatch(batchId, 'append')
+        }
+        for (const targetId of userRow.activeTargets) {
+          this.syncEngine.updateWatch(targetId, 'append')
+        }
+        this.knownInstances[userRow.instanceId] = userRow;
+        this.tryBecomeMaster();
+      } else if (isBatchUpdatedRow()) {
+        const batch : BatchUpdateRow = parseBatch();
+        this.syncEngine.updateBatch(batch.batchId, batch.status, batch.err);
+      } else if (isWatchUpdatedRow()) {
+        const target : WatchTargetRow = parseWatch();
+        this.syncEngine.updateWatch(target.targetId, target.status, target.err);
+      } else if (isMasterRow(key)){
+        const masterRow: MasterRow = parseMaster();
+        this.masterRow = masterRow;
+      }
+    }
+  }
+
   private scheduleRefresh(): void {
     this.asyncQueue.schedulePeriodically(() => {
       if (this.started) {
@@ -120,6 +260,7 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     this.localStorage[this.visibilityKey] = this.buildValue({
       visibilityState: VisibilityState[this.visibilityState]
     });
+    this.tryBecomeMaster();
   }
 
   /** Assembles a key for LocalStorage */
@@ -135,5 +276,25 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
   private buildValue(data: StringMap): string {
     const persistedData = Object.assign({ lastUpdateTime: Date.now() }, data);
     return JSON.stringify(persistedData);
+  }
+
+  private tryBecomeMaster() {
+    this.masterRow = localStorage["master"];
+
+    if (!this.isExpired(this.masterRow.updateTime)) {
+      return;
+    }
+
+    if (this.visibilityState !== VisibilityState.Foreground) {
+      Object.keys(this.knownInstances).forEach(key => {
+        if (this.knownInstances[key].visibilityState === VisibilityState.Foreground) {
+          return; // Someone else should become master
+        }
+      });
+    }
+
+    // set master row
+    // read master row
+    this.primary = this.masterRow.instanceId === this.instanceId;
   }
 }
