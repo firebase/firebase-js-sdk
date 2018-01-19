@@ -13,3 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+const { readFile: _readFile } = require('fs');
+const { promisify } = require('util');
+const { resolve } = require('path');
+const readFile = promisify(_readFile);
+
+exports.bannerText = async () => {
+  let BANNER_TEXT = await readFile(resolve(__dirname, 'banner.txt'), 'utf8');
+  if (process.platform === 'darwin') {
+    BANNER_TEXT = BANNER_TEXT.replace(/#/g, '🔥');
+  }
+  console.log(BANNER_TEXT);
+};

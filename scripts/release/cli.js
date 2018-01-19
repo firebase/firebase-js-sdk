@@ -36,14 +36,23 @@ const {
 const { reinstallDeps } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
 const { publishToNpm } = require('./utils/npm');
+const { bannerText } = require('./utils/banner');
 
 (async () => {
   try {
     /**
+     * Welcome to the firebase release CLI!
+     */
+    await bannerText();
+
+    /**
      * If there are no packages that have been updated
      * skip the release cycle
      */
-    if (!await hasUpdatedPackages()) return;
+    if (!await hasUpdatedPackages()) {
+      console.log('No packages need to be updated. Exiting...');
+      return;
+    }
 
     /**
      * Prompt for the release type (i.e. staging/prod)
