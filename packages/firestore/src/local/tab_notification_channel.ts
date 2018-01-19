@@ -300,6 +300,8 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
       });
     }
 
+    // TODO: Come up with a clever way to solve this race, or move the
+    // MasterRow to IndexedDB.
     // set master row
     // read master row
     this.primary = this.masterRow.instanceId === this.instanceId;
