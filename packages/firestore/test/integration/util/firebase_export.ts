@@ -20,4 +20,4 @@
 // instead.
 
 import firebase from '@firebase/app';
-export default firebase as any;
+export default firebase;
