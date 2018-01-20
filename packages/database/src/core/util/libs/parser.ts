@@ -138,7 +138,6 @@ export const parseURL = function(
       domain = parts[0];
     } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
-      subdomain = 'localhost';
     }
 
     // If we have a port, use scheme for determining if it's secure.
