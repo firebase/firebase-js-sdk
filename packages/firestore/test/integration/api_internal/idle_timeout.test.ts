@@ -16,6 +16,7 @@
 
 import { apiDescribe, withTestDb } from '../util/helpers';
 import { drainAsyncQueue } from '../util/internal_helpers';
+import { Deferred } from '../../util/promise';
 
 apiDescribe('Idle Timeout', persistence => {
   it('can write document after idle timeout', () => {
