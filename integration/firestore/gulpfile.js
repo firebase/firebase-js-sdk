@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const del = require('del');
 const gulp = require('gulp');
 const replace = require('gulp-replace');
 const { resolve } = require('path');
@@ -21,13 +22,25 @@ const webpackStream = require('webpack-stream');
 const webpack = require('webpack');
 const filter = require('gulp-filter');
 
-function reworkFirebasePaths() {
+function clean() {
+  return del(['temp/**/*', 'dist/**/*']);
+}
+
+function copyTests() {
+  /**
+   * NOTE: We intentionally don't copy src/ files (to make sure we are only
+   * testing the minified client and don't mix in classes loaded from src/).
+   * Therefore these tests and helpers cannot have any src/ dependencies.
+   */
+  const testBase = resolve(__dirname, '../../packages/firestore/test');
   return gulp
     .src(
       [
-        resolve(__dirname, '../../packages/firestore/**/*.ts'),
-        `!${resolve(__dirname, '../../packages/firestore/node_modules/**/*')}`,
-        `!${resolve(__dirname, '../../packages/firestore/dist/**/*')}`
+        testBase + '/integration/api/*.ts',
+        testBase + '/integration/util/events_accumulator.ts',
+        testBase + '/integration/util/helpers.ts',
+        testBase + '/util/equality_matcher.ts',
+        testBase + '/util/promise.ts'
       ],
       { base: '../../packages/firestore' }
     )
@@ -35,7 +48,7 @@ function reworkFirebasePaths() {
       replace(
         /**
          * This regex is designed to match the following statement used in our
-         * firestore integratino test suites:
+         * firestore integration test suites:
          *
          * import firebase from '../../util/firebase_export';
          *
@@ -76,4 +89,4 @@ function compileWebpack() {
     .pipe(gulp.dest('dist'));
 }
 
-gulp.task('compile-tests', gulp.series(reworkFirebasePaths, compileWebpack));
+gulp.task('compile-tests', gulp.series(clean, copyTests, compileWebpack));

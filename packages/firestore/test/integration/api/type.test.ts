@@ -19,8 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-import * as testHelpers from '../../util/helpers';
-
 apiDescribe('Firestore', persistence => {
   function expectRoundtrip(
     db: firestore.FirebaseFirestore,

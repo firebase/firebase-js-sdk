@@ -17,9 +17,9 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import * as testHelpers from '../../util/helpers';
-import firebase from '../util/firebase_export';
+import { EventsAccumulator } from '../util/events_accumulator';
 import * as integrationHelpers from '../util/helpers';
+import firebase from '../util/firebase_export';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 
@@ -114,9 +114,7 @@ apiDescribe('Database batch writes', persistence => {
       collection => {
         const docA = collection.doc('a');
         const docB = collection.doc('b');
-        const accumulator = new testHelpers.EventsAccumulator<
-          firestore.QuerySnapshot
-        >();
+        const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
           { includeQueryMetadataChanges: true },
           accumulator.storeEvent
@@ -137,7 +135,7 @@ apiDescribe('Database batch writes', persistence => {
           })
           .then(localSnap => {
             expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
               { a: 1 },
               { b: 2 }
             ]);
@@ -145,7 +143,7 @@ apiDescribe('Database batch writes', persistence => {
           })
           .then(serverSnap => {
             expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
-            expect(testHelpers.toDataArray(serverSnap)).to.deep.equal([
+            expect(integrationHelpers.toDataArray(serverSnap)).to.deep.equal([
               { a: 1 },
               { b: 2 }
             ]);
@@ -162,9 +160,7 @@ apiDescribe('Database batch writes', persistence => {
       collection => {
         const docA = collection.doc('a');
         const docB = collection.doc('b');
-        const accumulator = new testHelpers.EventsAccumulator<
-          firestore.QuerySnapshot
-        >();
+        const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
           { includeQueryMetadataChanges: true },
           accumulator.storeEvent
@@ -193,7 +189,7 @@ apiDescribe('Database batch writes', persistence => {
           .then(localSnap => {
             // Local event with the set document.
             expect(localSnap.metadata.hasPendingWrites).to.equal(true);
-            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
               { a: 1 }
             ]);
 
@@ -230,9 +226,7 @@ apiDescribe('Database batch writes', persistence => {
       collection => {
         const docA = collection.doc('a');
         const docB = collection.doc('b');
-        const accumulator = new testHelpers.EventsAccumulator<
-          firestore.QuerySnapshot
-        >();
+        const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
           { includeQueryMetadataChanges: true },
           accumulator.storeEvent
@@ -258,7 +252,7 @@ apiDescribe('Database batch writes', persistence => {
           .then(localSnap => {
             expect(localSnap.metadata.hasPendingWrites).to.equal(true);
             expect(localSnap.docs.length).to.equal(2);
-            expect(testHelpers.toDataArray(localSnap)).to.deep.equal([
+            expect(integrationHelpers.toDataArray(localSnap)).to.deep.equal([
               { when: null },
               { when: null }
             ]);
@@ -279,9 +273,7 @@ apiDescribe('Database batch writes', persistence => {
 
   it('can write the same document multiple times', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {
-      const accumulator = new testHelpers.EventsAccumulator<
-        firestore.DocumentSnapshot
-      >();
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
       const unsubscribe = doc.onSnapshot(
         { includeMetadataChanges: true },
         accumulator.storeEvent

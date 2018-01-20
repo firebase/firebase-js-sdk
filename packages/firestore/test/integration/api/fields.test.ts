@@ -15,9 +15,13 @@
  */
 
 import { expect } from 'chai';
-import { toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
-import { apiDescribe, withTestCollection, withTestDoc } from '../util/helpers';
+import {
+  apiDescribe,
+  toDataArray,
+  withTestCollection,
+  withTestDoc
+} from '../util/helpers';
 
 const FieldPath = firebase.firestore.FieldPath;
 

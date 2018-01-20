@@ -15,24 +15,19 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { Datastore } from '../../../src/remote/datastore';
-
 import firebase from './firebase_export';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { AsyncQueue } from '../../../src/util/async_queue';
+
+/**
+ * NOTE: These helpers are used by api/ tests and therefore may not have any
+ * dependencies on src/ files.
+ */
 
 // tslint:disable-next-line:no-any __karma__ is an untyped global
 declare const __karma__: any;
 
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
-export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
-export const ALT_PROJECT_ID = 'test-db2';
-
-const DEFAULT_SETTINGS = getDefaultSettings();
+export const DEFAULT_SETTINGS = getDefaultSettings();
 
 function getDefaultSettings(): firestore.Settings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
@@ -45,6 +40,9 @@ function getDefaultSettings(): firestore.Settings {
     };
   }
 }
+
+export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
+export const ALT_PROJECT_ID = 'test-db2';
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
@@ -81,44 +79,11 @@ export function apiDescribe(
   }
 }
 
-/** Drains the AsyncQueue. Delayed tasks are executed immediately. */
-export function drainAsyncQueue(
-  db: firestore.FirebaseFirestore
-): Promise<void> {
-  const firestoreInternal = db.INTERNAL as any;
-  return firestoreInternal.drainAsyncQueue(/* executeDelayedTasks= */ true);
-}
-
-export function getDefaultDatabaseInfo(): DatabaseInfo {
-  return new DatabaseInfo(
-    new DatabaseId(DEFAULT_PROJECT_ID),
-    'persistenceKey',
-    DEFAULT_SETTINGS.host,
-    DEFAULT_SETTINGS.ssl
-  );
-}
-
-export function withTestDatastore(
-  fn: (datastore: Datastore) => Promise<void>,
-  queue?: AsyncQueue
-): Promise<void> {
-  const databaseInfo = getDefaultDatabaseInfo();
-  return PlatformSupport.getPlatform()
-    .loadConnection(databaseInfo)
-    .then(conn => {
-      const serializer = PlatformSupport.getPlatform().newSerializer(
-        databaseInfo.databaseId
-      );
-      const datastore = new Datastore(
-        databaseInfo,
-        queue || new AsyncQueue(),
-        conn,
-        new EmptyCredentialsProvider(),
-        serializer
-      );
-
-      return fn(datastore);
-    });
+/** Converts a DocumentSet to an array with the data of each document */
+export function toDataArray(
+  docSet: firestore.QuerySnapshot
+): firestore.DocumentData[] {
+  return docSet.docs.map(d => d.data());
 }
 
 export function withTestDb(

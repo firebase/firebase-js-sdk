@@ -195,7 +195,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
-  private _queue = new AsyncQueue();
+
+  // Public for use in tests.
+  // TODO(mikelehen): Use modularized initialization instead.
+  readonly _queue = new AsyncQueue();
+
   _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
@@ -389,10 +393,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       } else {
         return Promise.resolve();
       }
-    },
-    // Exposed via INTERNAL for use in tests.
-    drainAsyncQueue: (executeDelayedTasks: boolean) =>
-      this._queue.drain(executeDelayedTasks)
+    }
   };
 
   collection(pathString: string): firestore.CollectionReference {
