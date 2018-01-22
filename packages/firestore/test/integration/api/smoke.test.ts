@@ -16,8 +16,7 @@
 
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
-import * as testHelpers from '../../util/helpers';
-import { EventsAccumulator } from '../../util/helpers';
+import { EventsAccumulator } from '../util/events_accumulator';
 import * as integrationHelpers from '../util/helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
@@ -131,7 +130,7 @@ apiDescribe('Smoke Test', persistence => {
       return ref.get().then(result => {
         expect(result.empty).to.equal(false);
         expect(result.size).to.equal(3);
-        expect(testHelpers.toDataArray(result)).to.deep.equal([
+        expect(integrationHelpers.toDataArray(result)).to.deep.equal([
           testDocs[1],
           testDocs[2],
           testDocs[3]
@@ -155,7 +154,7 @@ apiDescribe('Smoke Test', persistence => {
       coll => {
         const query = coll.where('filter', '==', true).orderBy('sort', 'desc');
         return query.get().then(result => {
-          expect(testHelpers.toDataArray(result)).to.deep.equal([
+          expect(integrationHelpers.toDataArray(result)).to.deep.equal([
             testDocs[2],
             testDocs[3],
             testDocs[1]

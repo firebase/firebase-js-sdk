@@ -15,10 +15,10 @@
  */
 
 import { expect } from 'chai';
-import { toDataArray } from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  toDataArray,
   withTestCollection,
   withTestDb,
   withTestDbs

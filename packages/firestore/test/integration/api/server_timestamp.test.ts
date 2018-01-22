@@ -17,9 +17,9 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
+import { EventsAccumulator } from '../util/events_accumulator';
 
 apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
@@ -40,7 +40,7 @@ apiDescribe('Server Timestamps', persistence => {
   let docRef: firestore.DocumentReference;
 
   // Accumulator used to capture events during the test.
-  let accumulator: testHelpers.EventsAccumulator<firestore.DocumentSnapshot>;
+  let accumulator: EventsAccumulator<firestore.DocumentSnapshot>;
 
   // Listener registration for a listener maintained during the course of the
   // test.
@@ -161,9 +161,7 @@ apiDescribe('Server Timestamps', persistence => {
       // Set variables for use during test.
       docRef = doc;
 
-      accumulator = new testHelpers.EventsAccumulator<
-        firestore.DocumentSnapshot
-      >();
+      accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
       listenerRegistration = docRef.onSnapshot(accumulator.storeEvent);
 
       // wait for initial null snapshot to avoid potential races.
