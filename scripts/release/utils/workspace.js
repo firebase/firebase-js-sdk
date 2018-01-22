@@ -66,11 +66,10 @@ function mapPackagesToDepGraph(packagePaths) {
 
   packages.forEach(pkg => graph.addNode(pkg.name));
   packages.forEach(
-    ({ name, dependencies, peerDependencies, devDependencies }) => {
+    ({ name, dependencies, devDependencies }) => {
       const allDeps = Object.assign(
         {},
         dependencies,
-        peerDependencies,
         devDependencies
       );
       Object.keys(allDeps)
@@ -135,10 +134,10 @@ exports.updateWorkspaceVersions = async newVersionObj => {
         }
 
         /**
-         * If the packages dependencies, peerDependencies, or devDependencies have
+         * If the packages dependencies, or devDependencies have
          * been updated, update that version here
          */
-        const depKeys = ['dependencies', 'peerDependencies', 'devDependencies'];
+        const depKeys = ['dependencies', 'devDependencies'];
         depKeys.forEach(dep => {
           const deps = pkg[dep];
 
