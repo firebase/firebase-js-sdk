@@ -11,12 +11,15 @@
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register",
+        "--require", "ts-node/register/type-check",
         "--require", "index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|integration)/**/}*.test.ts",
         "--exit"
       ],
+      "env": {
+        "TS_NODE_CACHE": "NO"
+      },
       "sourceMaps": true,
       "protocol": "inspector"
     },
@@ -27,12 +30,15 @@
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": [
-        "--require", "ts-node/register",
+        "--require", "ts-node/register/type-check",
         "--require", "index.node.ts",
         "--timeout", "5000",
         "test/{,!(browser|unit)/**/}*.test.ts",
         "--exit"
       ],
+      "env": {
+        "TS_NODE_CACHE": "NO"
+      },
       "sourceMaps": true,
       "protocol": "inspector"
     },
