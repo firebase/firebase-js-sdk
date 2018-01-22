@@ -64,10 +64,16 @@ describe('Database Tests', function() {
     expect(db.ref().toString()).to.equal('https://foo.bar.com/');
   });
 
-  it('Can get database with localhost URL', function() {
+  it('Can get database with localhost URL and port', function() {
     var db = defaultApp.database('http://localhost:80');
     expect(db).to.be.ok;
     expect(db.ref().toString()).to.equal('http://localhost:80/');
+  });
+
+  it('Can get database with localhost URL', function() {
+    var db = defaultApp.database('http://localhost');
+    expect(db).to.be.ok;
+    expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
   it('Different instances for different URLs', function() {

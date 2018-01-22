@@ -127,7 +127,14 @@ export const parseURL = function(
     host = dataURL.substring(0, slashInd);
     pathString = decodePath(dataURL.substring(slashInd));
 
+    // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
+    if (colonInd >= 0) {
+      secure = scheme === 'https' || scheme === 'wss';
+      port = parseInt(host.substring(colonInd + 1), 10);
+    } else {
+      colonInd = dataURL.length;
+    }
 
     const parts = host.split('.');
     if (parts.length === 3) {
@@ -138,12 +145,6 @@ export const parseURL = function(
       domain = parts[0];
     } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
-    }
-
-    // If we have a port, use scheme for determining if it's secure.
-    if (colonInd >= 0) {
-      secure = scheme === 'https' || scheme === 'wss';
-      port = parseInt(host.substring(colonInd + 1), 10);
     }
   }
 
