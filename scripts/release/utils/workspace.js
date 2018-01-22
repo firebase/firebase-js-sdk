@@ -65,18 +65,12 @@ function mapPackagesToDepGraph(packagePaths) {
   const packages = mapPackagestoPkgJson(packagePaths);
 
   packages.forEach(pkg => graph.addNode(pkg.name));
-  packages.forEach(
-    ({ name, dependencies, devDependencies }) => {
-      const allDeps = Object.assign(
-        {},
-        dependencies,
-        devDependencies
-      );
-      Object.keys(allDeps)
-        .filter(dep => graph.hasNode(dep))
-        .forEach(dep => graph.addDependency(name, dep));
-    }
-  );
+  packages.forEach(({ name, dependencies, devDependencies }) => {
+    const allDeps = Object.assign({}, dependencies, devDependencies);
+    Object.keys(allDeps)
+      .filter(dep => graph.hasNode(dep))
+      .forEach(dep => graph.addDependency(name, dep));
+  });
   return graph;
 }
 
