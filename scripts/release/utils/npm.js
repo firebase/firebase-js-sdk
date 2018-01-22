@@ -19,7 +19,7 @@ const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 
 exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
-  for (pkg in updatedPkgs) {
+  for (const pkg of updatedPkgs) {
     const path = await mapPkgNameToPkgPath(pkg);
     const pkgJson = require(`${path}/package.json`);
   
