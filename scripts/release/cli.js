@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const { exec } = require('child-process-promise');
 const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
@@ -40,6 +41,9 @@ const { bannerText } = require('./utils/banner');
 
 (async () => {
   try {
+    const result = await exec('npm whoami');
+    console.log(result.stdout);
+
     /**
      * Welcome to the firebase release CLI!
      */
