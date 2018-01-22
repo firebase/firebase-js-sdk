@@ -445,13 +445,6 @@ export function keySet(...keys: DocumentKey[]): DocumentKeySet {
   return keySet;
 }
 
-/** Converts a DocumentSet to an array with the data of each document */
-export function toDataArray(
-  docSet: firestore.QuerySnapshot
-): firestore.DocumentData[] {
-  return docSet.docs.map(d => d.data());
-}
-
 /** Converts a DocumentSet to an array. */
 export function documentSetAsArray(docs: DocumentSet): Document[] {
   const result: Document[] = [];
@@ -635,57 +628,4 @@ export function size(obj: JsonObject<AnyJs>): number {
   let c = 0;
   forEach(obj, () => c++);
   return c;
-}
-
-/**
- * A helper object that can accumulate an arbitrary amount of events and resolve
- * a promise when expected number has been emitted.
- */
-export class EventsAccumulator<T> {
-  private events: T[] = [];
-  private waitingFor: number;
-  private deferred: Deferred<T[]> | null = null;
-
-  storeEvent: (evt: T) => void = (evt: T) => {
-    this.events.push(evt);
-    this.checkFulfilled();
-  };
-
-  awaitEvents(length: number): Promise<T[]> {
-    assert(this.deferred === null, 'Already waiting for events.');
-    this.waitingFor = length;
-    this.deferred = new Deferred<T[]>();
-    const promise = this.deferred.promise;
-    this.checkFulfilled();
-    return promise;
-  }
-
-  awaitEvent(): Promise<T> {
-    return this.awaitEvents(1).then(events => events[0]);
-  }
-
-  assertNoAdditionalEvents(): Promise<void> {
-    return new Promise((resolve: (val: void) => void, reject) => {
-      setTimeout(() => {
-        if (this.events.length > 0) {
-          reject(
-            'Received ' +
-              this.events.length +
-              ' events: ' +
-              JSON.stringify(this.events)
-          );
-        } else {
-          resolve(undefined);
-        }
-      }, 0);
-    });
-  }
-
-  private checkFulfilled() {
-    if (this.deferred !== null && this.events.length >= this.waitingFor) {
-      const events = this.events.splice(0, this.waitingFor);
-      this.deferred.resolve(events);
-      this.deferred = null;
-    }
-  }
 }

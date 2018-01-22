@@ -17,11 +17,10 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import { Deferred } from '../../../src/util/promise';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc
@@ -629,42 +628,6 @@ apiDescribe('Database', persistence => {
             expect(doc.data()).to.deep.equal({ foo: 'bar' });
           });
       });
-    });
-  });
-
-  it('can write document after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('test-collection').doc();
-      return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => docRef.set({ foo: 'bar' }));
-    });
-  });
-
-  it('can watch documents after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const awaitOnlineSnapshot = () => {
-        const docRef = db.collection('test-collection').doc();
-        const deferred = new Deferred<void>();
-        const unregister = docRef.onSnapshot(
-          { includeMetadataChanges: true },
-          snapshot => {
-            if (!snapshot.metadata.fromCache) {
-              deferred.resolve();
-            }
-          }
-        );
-        return deferred.promise.then(unregister);
-      };
-
-      return awaitOnlineSnapshot()
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => awaitOnlineSnapshot());
     });
   });
 

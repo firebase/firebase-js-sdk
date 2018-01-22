@@ -24,7 +24,7 @@ import {
 import { MutationResult } from '../../../src/model/mutation';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { key, setMutation } from '../../util/helpers';
-import { withTestDatastore } from '../util/helpers';
+import { withTestDatastore } from '../util/internal_helpers';
 
 describe('Remote Storage', () => {
   addEqualityMatcher();
