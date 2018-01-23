@@ -62,7 +62,7 @@ const { argv } = require('yargs');
     /**
      * Determine if the current release is a staging or production release
      */
-    const isPrerelease = (() => {
+    const isPrerelease = await (async () => {
       /**
        * Capture the release type if it was passed to the CLI via args
        */
