@@ -132,7 +132,6 @@ const { argv } = require('yargs');
      */
     await updateWorkspaceVersions(versions, argv.canary);
 
-    return;
     /**
      * Clean install dependencies
      */
