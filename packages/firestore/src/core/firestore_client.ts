@@ -15,6 +15,7 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
+import { DocumentReference, DocumentSnapshot, Query, QuerySnapshot } from '../api/database';
 import { User } from '../auth/user';
 import {
   EventManager,
@@ -23,6 +24,7 @@ import {
   QueryListener
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
+import { View, ViewChange, ViewDocumentChanges } from './view';
 import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { GarbageCollector } from '../local/garbage_collector';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
@@ -30,18 +32,21 @@ import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
 import { Persistence } from '../local/persistence';
+import { DocumentKeySet, documentKeySet } from '../model/collections';
+import { Document, MaybeDocument } from '../model/document';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query } from './query';
+import { Query as InternalQuery } from './query';
 import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
@@ -340,7 +345,7 @@ export class FirestoreClient {
   }
 
   listen(
-    query: Query,
+    query: InternalQuery,
     observer: Observer<ViewSnapshot>,
     options: ListenOptions
   ): QueryListener {
@@ -354,6 +359,45 @@ export class FirestoreClient {
   unlisten(listener: QueryListener): void {
     this.asyncQueue.schedule(() => {
       return this.eventMgr.unlisten(listener);
+    });
+  }
+
+  getDocumentFromLocalCache(
+    doc: DocumentReference,
+    observer: Observer<DocumentSnapshot>
+  ): void {
+    this.asyncQueue.schedule(() => {
+      return this.localStore.readDocument(doc._key).then(maybeDoc => {
+        if (maybeDoc instanceof Document) {
+          observer.next(new DocumentSnapshot(doc.firestore, doc._key, maybeDoc, true));
+        } else {
+          observer.error(new Error(
+              "Failed to get document from cache. (However, this document may "
+              + "exist on the server. Run again without setting 'source' in "
+              + "the GetOptions to attempt to retrieve the document from the "
+              + "server.)"));
+        }
+      });
+    });
+  }
+
+  getDocumentsFromLocalCache(
+    query: Query,
+    observer: Observer<QuerySnapshot>
+  ): void {
+    this.asyncQueue.schedule(() => {
+      return this.localStore.executeQuery(query._query).then(docs => {
+        const remoteKeys:DocumentKeySet = documentKeySet();
+
+        const view = new View(query._query, remoteKeys);
+        const viewDocChanges:ViewDocumentChanges = view.computeDocChanges(docs);
+        const viewChange:ViewChange = view.applyChanges(viewDocChanges);
+        assert(viewChange.limboChanges.length === 0, "View returned limbo documents during local-only query execution.");
+
+        const snapshot:ViewSnapshot = viewChange.snapshot;
+
+        observer.next(new QuerySnapshot(query.firestore, query._query, snapshot));
+      });
     });
   }
 

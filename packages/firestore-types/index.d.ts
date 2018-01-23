@@ -395,6 +395,35 @@ export interface SetOptions {
 }
 
 /**
+ * An options object that configures the behavior of `get()` calls in
+ * `DocumentReference` and `Query`. By providing a `GetOptions` object, these
+ * methods can be configured to fetch results only from the server, only from
+ * the local cache or attempt the server and fall back to the cache (which is
+ * the default).
+ */
+export interface GetOptions {
+  /**
+   * Describes whether we should get from server or cache.
+   *
+   * Setting to 'default' (or not setting at all), if online, causes Firestore
+   * to try to give a consistent (server-retrieved) snapshot, or else revert to
+   * the cache to provide a value.
+   *
+   * Setting to 'server' causes Firestore to avoid the cache (generating an
+   * error if a value cannot be retrieved from the server). The cache will be
+   * updated if the RPC succeeds. Latency compensation still occurs (implying
+   * that if the cache is more up to date, then it's values will be merged into
+   * the results).
+   *
+   * Setting to 'cache' causes Firestore to immediately return a value from the
+   * cache, ignoring the server completely (implying that the returned value
+   * may be stale with respect to the value on the server.) For a single
+   * document, the get will fail if the document doesn't exist.
+   */
+  readonly source?: 'default' | 'server' | 'cache';
+}
+
+/**
  * A `DocumentReference` refers to a document location in a Firestore database
  * and can be used to write, read, or listen to the location. The document at
  * the referenced location may or may not exist. A `DocumentReference` can
@@ -495,14 +524,16 @@ export class DocumentReference {
   /**
    * Reads the document referred to by this `DocumentReference`.
    *
-   * Note: get() attempts to provide up-to-date data when possible by waiting
-   * for data from the server, but it may return cached data or fail if you
-   * are offline and the server cannot be reached.
+   * Note: By default, get() attempts to provide up-to-date data when possible
+   * by waiting for data from the server, but it may return cached data or fail
+   * if you are offline and the server cannot be reached. This behavior can be
+   * altered via the `GetOptions` parameter.
    *
+   * @param options An object to configure the get behavior.
    * @return A Promise resolved with a DocumentSnapshot containing the
    * current document contents.
    */
-  get(): Promise<DocumentSnapshot>;
+  get(options?: GetOptions): Promise<DocumentSnapshot>;
 
   /**
    * Attaches a listener for DocumentSnapshot events. You may either pass
@@ -876,9 +907,10 @@ export class Query {
   /**
    * Executes the query and returns the results as a QuerySnapshot.
    *
+   * @param options An object to configure the get behavior.
    * @return A Promise that will be resolved with the results of the Query.
    */
-  get(): Promise<QuerySnapshot>;
+  get(options?: GetOptions): Promise<QuerySnapshot>;
 
   /**
    * Attaches a listener for QuerySnapshot events. You may either pass

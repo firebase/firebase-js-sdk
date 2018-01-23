@@ -956,10 +956,20 @@ export class DocumentReference implements firestore.DocumentReference {
     };
   }
 
-  get(): Promise<firestore.DocumentSnapshot> {
-    validateExactNumberOfArgs('DocumentReference.get', arguments, 0);
+  get(
+    options?: firestore.GetOptions
+  ): Promise<firestore.DocumentSnapshot> {
+    validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
     return new Promise(
       (resolve: Resolver<firestore.DocumentSnapshot>, reject: Rejecter) => {
+        if (options && options.source === "cache") {
+          this._firestoreClient.getDocumentFromLocalCache(this, {
+            next: (snap: firestore.DocumentSnapshot) => resolve(snap),
+            error: reject
+          });
+          return;
+        }
+
         const unlisten = this.onSnapshotInternal(
           {
             includeQueryMetadataChanges: true,
@@ -1566,10 +1576,19 @@ export class Query implements firestore.Query {
     };
   }
 
-  get(): Promise<firestore.QuerySnapshot> {
-    validateExactNumberOfArgs('Query.get', arguments, 0);
+  get(
+    options?: firestore.GetOptions
+  ): Promise<firestore.QuerySnapshot> {
+    validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
+        if (options && options.source === 'cache') {
+          this.firestore.ensureClientConfigured().getDocumentsFromLocalCache(this, {
+            next: (snap: firestore.QuerySnapshot) => resolve(snap),
+            error: reject
+          });
+          return;
+        }
         const unlisten = this.onSnapshotInternal(
           {
             includeDocumentMetadataChanges: false,
