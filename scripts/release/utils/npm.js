@@ -18,7 +18,7 @@ const { root } = require('./constants');
 const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 
-exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
+exports.publishToNpm = async (updatedPkgs, releaseType) => {
   for (const pkg of updatedPkgs) {
     const path = await mapPkgNameToPkgPath(pkg);
     const pkgJson = require(`${path}/package.json`);
@@ -33,8 +33,10 @@ exports.publishToNpm = async (updatedPkgs, isPrerelease) => {
     /**
      * Ensure prereleases are tagged with the `next` tag
      */
-    if (isPrerelease) {
+    if (releaseType === 'Staging') {
       args = [...args, '--tag', 'next'];
+    } else if (releaseType === 'Canary') {
+      args = [...args, '--tag', 'canary'];      
     }
 
     console.log(`📦  Publishing: ${pkg}@${pkgJson.version}`);

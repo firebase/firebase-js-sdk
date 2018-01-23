@@ -22,7 +22,7 @@ function capitalize(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-exports.packageVersionUpdate = async (package, isPrerelease) => {
+exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Get the current package version
    */
@@ -40,7 +40,7 @@ exports.packageVersionUpdate = async (package, isPrerelease) => {
   /**
    * Determine which set of increments we will be using
    */
-  const increments = isPrerelease
+  const increments = releaseType === 'Staging'
     ? prereleaseVersions
     : ['patch', 'minor', 'major'];
 

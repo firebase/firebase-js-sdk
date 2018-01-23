@@ -88,6 +88,12 @@ exports.mapPkgNameToPkgPath = async pkgName => {
     .reduce(val => val);
 };
 
+exports.getAllPackages = async () => {
+  const packages = await mapWorkspaceToPackages(workspaces);
+  const dependencies = mapPackagesToDepGraph(packages);
+  return dependencies.overallOrder();
+}
+
 exports.getOrderedUpdates = async () => {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
@@ -104,7 +110,7 @@ exports.mapPkgNameToPkgJson = async packageName => {
     .reduce(val => val);
 };
 
-exports.updateWorkspaceVersions = async newVersionObj => {
+exports.updateWorkspaceVersions = async (newVersionObj, includePeerDeps) => {
   try {
     let packages = await mapWorkspaceToPackages(workspaces);
     packages = packages.filter(package =>
@@ -131,7 +137,11 @@ exports.updateWorkspaceVersions = async newVersionObj => {
          * If the packages dependencies, or devDependencies have
          * been updated, update that version here
          */
-        const depKeys = ['dependencies', 'devDependencies'];
+        let depKeys = ['dependencies', 'devDependencies'];
+        if (includePeerDeps) {
+          depKeys = [...depKeys, 'peerDependencies'];
+        }
+
         depKeys.forEach(dep => {
           const deps = pkg[dep];
 

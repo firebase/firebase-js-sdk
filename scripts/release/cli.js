@@ -19,6 +19,7 @@ const { createPromptModule } = require('inquirer');
 const prompt = createPromptModule();
 const { hasUpdatedPackages } = require('./utils/lerna');
 const {
+  getAllPackages,
   getOrderedUpdates,
   updateWorkspaceVersions
 } = require('./utils/workspace');
@@ -26,7 +27,8 @@ const {
   commitAndTag,
   pushUpdatesToGithub,
   cleanTree,
-  resetWorkingTree
+  resetWorkingTree,
+  getCurrentSha
 } = require('./utils/git');
 const {
   releaseType,
@@ -62,7 +64,8 @@ const { argv } = require('yargs');
     /**
      * Determine if the current release is a staging or production release
      */
-    const isPrerelease = await (async () => {
+    const releaseType = await (async () => {
+      if (argv.canary) return 'Canary';
       /**
        * Capture the release type if it was passed to the CLI via args
        */
@@ -82,24 +85,38 @@ const { argv } = require('yargs');
       return responses.releaseType === 'Staging';
     })(); 
 
-    /**
-     * Prompt user for the new versions
-     */
-    const updates = await getOrderedUpdates();
-    const versionUpdates = await Promise.all(
-      updates.map(pkg => packageVersionUpdate(pkg, isPrerelease))
-    );
-    const versions = await prompt(versionUpdates);
+    let versions;
 
-    /**
-     * Verify that the versions selected are correct
-     */
-    const { versionCheck } = await prompt(validateVersions(versions));
+    if (argv.canary) {
+      const sha = await getCurrentSha();
+      const pkgs = await getAllPackages();
+      versions = pkgs.reduce((map, pkg) => {
+        map[pkg] = sha;
+        return map;
+      }, {});
+    } else {
+      /**
+       * Prompt user for the new versions
+       */
+      const updates = await getOrderedUpdates();
+      const versionUpdates = await Promise.all(
+        updates.map(pkg => packageVersionUpdate(pkg, releaseType))
+      );
+      versions = await prompt(versionUpdates);
 
-    /**
-     * If the versions where incorrect, bail.
-     */
-    if (!versionCheck) throw new Error('Version Check Failed');
+      /**
+       * Verify that the versions selected are correct
+       */
+      const { versionCheck } = await prompt(validateVersions(versions));
+
+      /**
+       * If the versions where incorrect, bail.
+       */
+      if (!versionCheck) throw new Error('Version Check Failed');
+    }
+
+    console.log(versions);
+    return;
 
     /**
      * Update the package.json dependencies throughout the SDK
@@ -114,28 +131,36 @@ const { argv } = require('yargs');
     await reinstallDeps();
 
     /**
-     * Ensure all tests are passing
+     * Don't do the following for canary releases:
+     * - Rerun tests (this is supposed to be a representation of the sha)
+     * - Commit/Tag the release (again, we aren't creating new tags)
+     * - Push updates to github
      */
-    await setupTestDeps();
-    await runTests();
+    if (!argv.canary) {
+      /**
+       * Ensure all tests are passing
+       */
+      await setupTestDeps();
+      await runTests();
 
-    /**
-     * Commit and tag the version updates
-     */
-    await commitAndTag(versions, isPrerelease);
+      /**
+       * Commit and tag the version updates
+       */
+      await commitAndTag(versions, releaseType);
 
-    const { readyToPush } = await prompt(validateReadyToPush);
-    if (!readyToPush) throw new Error('Push Check Failed');
+      const { readyToPush } = await prompt(validateReadyToPush);
+      if (!readyToPush) throw new Error('Push Check Failed');
 
-    /**
-     * Push new version to Github
-     */
-    await pushUpdatesToGithub();
+      /**
+       * Push new version to Github
+       */
+      await pushUpdatesToGithub();
+    }
 
     /**
      * Release new versions to NPM
      */
-    await publishToNpm(updates, isPrerelease);
+    await publishToNpm(updates, releaseType);
   } catch (err) {
     /**
      * Log any errors that happened during the process

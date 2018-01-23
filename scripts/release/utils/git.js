@@ -30,9 +30,9 @@ exports.cleanTree = async () => {
   });
 };
 
-exports.commitAndTag = async (updatedVersions, isPrerelease) => {
+exports.commitAndTag = async (updatedVersions, releaseType) => {
   await git.add('*/package.json');
-  await git.commit(isPrerelease ? 'Publish Prerelease' : 'Publish');
+  await git.commit(releaseType === 'Staging' ? 'Publish Prerelease' : 'Publish');
   Object.keys(updatedVersions)
     .map(name => ({ name, version: updatedVersions[name] }))
     .forEach(async ({ name, version }) => {
@@ -49,4 +49,8 @@ exports.pushUpdatesToGithub = async () => {
 
 exports.resetWorkingTree = async () => {
   await git.checkout('.');
+};
+
+exports.getCurrentSha = async () => {
+  return await git.revparse(['--short', 'HEAD']);
 };
