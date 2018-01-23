@@ -115,9 +115,6 @@ const { argv } = require('yargs');
       if (!versionCheck) throw new Error('Version Check Failed');
     }
 
-    console.log(versions);
-    return;
-
     /**
      * Update the package.json dependencies throughout the SDK
      */
