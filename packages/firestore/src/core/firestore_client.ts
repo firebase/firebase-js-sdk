@@ -15,7 +15,12 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { DocumentReference, DocumentSnapshot, Query, QuerySnapshot } from '../api/database';
+import {
+  DocumentReference,
+  DocumentSnapshot,
+  Query,
+  QuerySnapshot
+} from '../api/database';
 import { User } from '../auth/user';
 import {
   EventManager,
@@ -369,13 +374,18 @@ export class FirestoreClient {
     this.asyncQueue.schedule(() => {
       return this.localStore.readDocument(doc._key).then(maybeDoc => {
         if (maybeDoc instanceof Document) {
-          observer.next(new DocumentSnapshot(doc.firestore, doc._key, maybeDoc, true));
+          observer.next(
+            new DocumentSnapshot(doc.firestore, doc._key, maybeDoc, true)
+          );
         } else {
-          observer.error(new Error(
-              "Failed to get document from cache. (However, this document may "
-              + "exist on the server. Run again without setting 'source' in "
-              + "the GetOptions to attempt to retrieve the document from the "
-              + "server.)"));
+          observer.error(
+            new Error(
+              'Failed to get document from cache. (However, this document may ' +
+                "exist on the server. Run again without setting 'source' in " +
+                'the GetOptions to attempt to retrieve the document from the ' +
+                'server.)'
+            )
+          );
         }
       });
     });
@@ -387,16 +397,23 @@ export class FirestoreClient {
   ): void {
     this.asyncQueue.schedule(() => {
       return this.localStore.executeQuery(query._query).then(docs => {
-        const remoteKeys:DocumentKeySet = documentKeySet();
+        const remoteKeys: DocumentKeySet = documentKeySet();
 
         const view = new View(query._query, remoteKeys);
-        const viewDocChanges:ViewDocumentChanges = view.computeDocChanges(docs);
-        const viewChange:ViewChange = view.applyChanges(viewDocChanges);
-        assert(viewChange.limboChanges.length === 0, "View returned limbo documents during local-only query execution.");
+        const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
+          docs
+        );
+        const viewChange: ViewChange = view.applyChanges(viewDocChanges);
+        assert(
+          viewChange.limboChanges.length === 0,
+          'View returned limbo documents during local-only query execution.'
+        );
 
-        const snapshot:ViewSnapshot = viewChange.snapshot;
+        const snapshot: ViewSnapshot = viewChange.snapshot;
 
-        observer.next(new QuerySnapshot(query.firestore, query._query, snapshot));
+        observer.next(
+          new QuerySnapshot(query.firestore, query._query, snapshot)
+        );
       });
     });
   }
