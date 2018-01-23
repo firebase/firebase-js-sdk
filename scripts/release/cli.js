@@ -176,6 +176,15 @@ const { argv } = require('yargs');
      * Release new versions to NPM
      */
     await publishToNpm(updates, releaseType);
+
+    /**
+     * If this wasn't a production release there
+     * are now, unstaged chages. Drop them as this
+     * was a prerelease/canary release.
+     */
+    if (releaseType !== 'Production') {
+      await resetWorkingTree();
+    }
   } catch (err) {
     /**
      * Log any errors that happened during the process
