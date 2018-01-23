@@ -170,9 +170,7 @@ const { argv } = require('yargs');
     /**
      * Log any errors that happened during the process
      */
-    console.error(
-      'An error occurred, check the `yarn-error.log` at the root of the package for more information'
-    );
+    console.error(err);
 
     /**
      * Reset the working tree (will remove unneeded changes if they weren't
