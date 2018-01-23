@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+const { exec } = require('child-process-promise');
+const { gt } = require('semver');
 const chalk = require('chalk');
 const { inc, prerelease } = require('semver');
 const { mapPkgNameToPkgJson } = require('./workspace');
@@ -26,7 +28,21 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Get the current package version
    */
-  const { version } = await mapPkgNameToPkgJson(package);
+  let { version } = await mapPkgNameToPkgJson(package);
+
+  /**
+   * Check and see if we are currently in a prerelease cycle
+   */
+  if (releaseType === 'Staging') {
+    const { stdout: nextVersion } = (await exec(`npm info ${package}@next version`)).trim();
+    /**
+     * If we are currently in a prerelease cycle, give users the ability to
+     * bump the current prerelease version
+     */
+    if (gt(nextVersion, version)) {
+      version = nextVersion;
+    }
+  }
 
   /**
    * If the current version is a prerelease allow the developer to

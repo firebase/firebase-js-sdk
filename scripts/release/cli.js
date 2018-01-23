@@ -139,9 +139,11 @@ const { argv } = require('yargs');
       await runTests();
 
       /**
-       * Commit and tag the version updates
+       * Only commit/tag the version update on a production push
        */
-      await commitAndTag(versions, releaseType);
+      if (releaseType === 'Production') {
+        await commitAndTag(versions, releaseType);
+      }
 
       const { readyToPush } = await prompt(validateReadyToPush);
       if (!readyToPush) throw new Error('Push Check Failed');
