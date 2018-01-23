@@ -32,7 +32,7 @@ const {
   getCurrentSha
 } = require('./utils/git');
 const {
-  releaseType,
+  releaseType: releaseTypePrompt,
   packageVersionUpdate,
   validateReadyToPush,
   validateVersions
@@ -80,7 +80,7 @@ const { argv } = require('yargs');
       /**
        * Prompt for the release type (i.e. staging/prod)
        */
-      const responses = await prompt([releaseType]);
+      const responses = await prompt([releaseTypePrompt]);
       return responses.releaseType === 'Staging';
     })();
 
