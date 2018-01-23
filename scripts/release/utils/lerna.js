@@ -30,8 +30,8 @@ function getLernaUpdateJson() {
         cwd: root
       });
 
-      cache = JSON.parse(result.stdout);
-
+      cache = JSON.parse(result.stdout).filter(pkg => !pkg.private);
+      
       return cache;
     } catch (err) {
       return [];
