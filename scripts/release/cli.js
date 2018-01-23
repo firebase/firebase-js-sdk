@@ -95,13 +95,14 @@ const { argv } = require('yargs');
      * 
      * $ npm install @firebase/app@0.0.0-canary.0000000
      */
+    let updates;
     if (argv.canary) {
       const sha = await getCurrentSha();
-      const pkgs = await getAllPackages();
+      updates = await getAllPackages();
       const pkgJsons = await Promise.all(
-        pkgs.map(pkg => mapPkgNameToPkgJson(pkg))
+        updates.map(pkg => mapPkgNameToPkgJson(pkg))
       );
-      versions = pkgs.reduce((map, pkg, idx) => {
+      versions = updates.reduce((map, pkg, idx) => {
         const { version } = pkgJsons[idx];
         map[pkg] = `${version}-canary.${sha}`;
         return map;
@@ -110,7 +111,7 @@ const { argv } = require('yargs');
       /**
        * Prompt user for the new versions
        */
-      const updates = await getOrderedUpdates();
+      updates = await getOrderedUpdates();
       const versionUpdates = await Promise.all(
         updates.map(pkg => packageVersionUpdate(pkg, releaseType))
       );
