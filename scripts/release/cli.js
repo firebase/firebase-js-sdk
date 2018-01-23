@@ -69,12 +69,10 @@ const { argv } = require('yargs');
       /**
        * Capture the release type if it was passed to the CLI via args
        */
-      if (argv.releaseType && 
-          (
-            argv.releaseType === 'Staging' ||
-            argv.releaseType === 'Production'
-          )
-        ) {
+      if (
+        argv.releaseType &&
+        (argv.releaseType === 'Staging' || argv.releaseType === 'Production')
+      ) {
         return argv.releaseType;
       }
 
@@ -83,7 +81,7 @@ const { argv } = require('yargs');
        */
       const responses = await prompt([releaseType]);
       return responses.releaseType === 'Staging';
-    })(); 
+    })();
 
     let versions;
 
@@ -162,7 +160,9 @@ const { argv } = require('yargs');
     /**
      * Log any errors that happened during the process
      */
-    console.error('An error occurred, check the `yarn-error.log` at the root of the package for more information');
+    console.error(
+      'An error occurred, check the `yarn-error.log` at the root of the package for more information'
+    );
 
     /**
      * Reset the working tree (will remove unneeded changes if they weren't

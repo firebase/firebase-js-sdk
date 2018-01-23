@@ -92,7 +92,7 @@ exports.getAllPackages = async () => {
   const packages = await mapWorkspaceToPackages(workspaces);
   const dependencies = mapPackagesToDepGraph(packages);
   return dependencies.overallOrder();
-}
+};
 
 exports.getOrderedUpdates = async () => {
   const packages = await mapWorkspaceToPackages(workspaces);

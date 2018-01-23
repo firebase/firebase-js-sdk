@@ -32,7 +32,9 @@ exports.cleanTree = async () => {
 
 exports.commitAndTag = async (updatedVersions, releaseType) => {
   await git.add('*/package.json');
-  await git.commit(releaseType === 'Staging' ? 'Publish Prerelease' : 'Publish');
+  await git.commit(
+    releaseType === 'Staging' ? 'Publish Prerelease' : 'Publish'
+  );
   Object.keys(updatedVersions)
     .map(name => ({ name, version: updatedVersions[name] }))
     .forEach(async ({ name, version }) => {

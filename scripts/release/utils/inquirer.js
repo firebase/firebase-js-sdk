@@ -40,9 +40,10 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Determine which set of increments we will be using
    */
-  const increments = releaseType === 'Staging'
-    ? prereleaseVersions
-    : ['patch', 'minor', 'major'];
+  const increments =
+    releaseType === 'Staging'
+      ? prereleaseVersions
+      : ['patch', 'minor', 'major'];
 
   /**
    * Create prompts

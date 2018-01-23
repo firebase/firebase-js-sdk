@@ -27,7 +27,7 @@ exports.reinstallDeps = async () => {
     spinner.stopAndPersist({
       symbol: '✅'
     });
-  } catch (err) { 
-    throw err 
+  } catch (err) {
+    throw err;
   }
 };

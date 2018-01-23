@@ -36,7 +36,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
     if (releaseType === 'Staging') {
       args = [...args, '--tag', 'next'];
     } else if (releaseType === 'Canary') {
-      args = [...args, '--tag', 'canary'];      
+      args = [...args, '--tag', 'canary'];
     }
 
     console.log(`📦  Publishing: ${pkg}@${pkgJson.version}`);
