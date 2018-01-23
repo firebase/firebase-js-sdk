@@ -19,11 +19,15 @@ const { root } = require('./constants');
 const ora = require('ora');
 
 exports.reinstallDeps = async () => {
-  const spinner = ora(' Reinstalling Dependencies').start();
-  await spawn('yarn', {
-    cwd: root
-  });
-  spinner.stopAndPersist({
-    symbol: '✅'
-  });
+  try {
+    const spinner = ora(' Reinstalling Dependencies').start();
+    await spawn('yarn', {
+      cwd: root
+    });
+    spinner.stopAndPersist({
+      symbol: '✅'
+    });
+  } catch (err) { 
+    throw err 
+  }
 };
