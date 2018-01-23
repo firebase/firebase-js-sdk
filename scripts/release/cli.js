@@ -38,12 +38,10 @@ const { reinstallDeps } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
 const { publishToNpm } = require('./utils/npm');
 const { bannerText } = require('./utils/banner');
+const { argv } = require('yargs');
 
 (async () => {
   try {
-    const result = await exec('npm whoami');
-    console.log(result.stdout);
-
     /**
      * Welcome to the firebase release CLI!
      */
@@ -58,11 +56,31 @@ const { bannerText } = require('./utils/banner');
       return;
     }
 
+    const whoami = await exec('npm whoami');
+    console.log(`Publishing as ${whoami.stdout}`);
+
     /**
-     * Prompt for the release type (i.e. staging/prod)
+     * Determine if the current release is a staging or production release
      */
-    const responses = await prompt([releaseType]);
-    const isPrerelease = responses.releaseType === 'Staging';
+    const isPrerelease = (() => {
+      /**
+       * Capture the release type if it was passed to the CLI via args
+       */
+      if (argv.releaseType && 
+          (
+            argv.releaseType === 'Staging' ||
+            argv.releaseType === 'Production'
+          )
+        ) {
+        return argv.releaseType;
+      }
+
+      /**
+       * Prompt for the release type (i.e. staging/prod)
+       */
+      const responses = await prompt([releaseType]);
+      return responses.releaseType === 'Staging';
+    })(); 
 
     /**
      * Prompt user for the new versions
