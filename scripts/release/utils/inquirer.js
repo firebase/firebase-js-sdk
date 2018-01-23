@@ -36,7 +36,6 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   if (releaseType === 'Staging' && !private) {
     const { stdout: nextVersion } = await exec(`npm info ${package}@next version`);
 
-    console.log(nextVersion);
     /**
      * If we are currently in a prerelease cycle, fast-forward the version
      * to the prereleased version instead of the current version
