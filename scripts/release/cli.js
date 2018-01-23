@@ -143,8 +143,9 @@ const { argv } = require('yargs');
     /**
      * Don't do the following for canary releases:
      * - Rerun tests (this is supposed to be a representation of the sha)
-     * - Commit/Tag the release (again, we aren't creating new tags)
-     * - Push updates to github
+     * - Commit/Tag the release (we aren't creating new tags, just exposing the
+     *   current version)
+     * - Push updates to github (no updates to push)
      */
     if (!argv.canary) {
       /**
