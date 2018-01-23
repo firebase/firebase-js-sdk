@@ -151,7 +151,9 @@ const { argv } = require('yargs');
       /**
        * Push new version to Github
        */
-      await pushUpdatesToGithub();
+      if (releaseType === 'Production') {      
+        await pushUpdatesToGithub();
+      }
     }
 
     /**
