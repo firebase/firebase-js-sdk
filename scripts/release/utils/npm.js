@@ -17,11 +17,14 @@
 const { root } = require('./constants');
 const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
+const { readFile: _readFile } = require('fs');
+const { promisify } = require('util');
+const readFile = promisify(_readFile);
 
 exports.publishToNpm = async (updatedPkgs, releaseType) => {
   for (const pkg of updatedPkgs) {
     const path = await mapPkgNameToPkgPath(pkg);
-    const pkgJson = require(`${path}/package.json`);
+    const pkgJson = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
 
     /**
      * Skip private packages
