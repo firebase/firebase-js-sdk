@@ -28,12 +28,12 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Get the current package version
    */
-  let { version } = await mapPkgNameToPkgJson(package);
+  let { version, private } = await mapPkgNameToPkgJson(package);
 
   /**
    * Check and see if we are trying to publish a prerelease
    */
-  if (releaseType === 'Staging') {
+  if (releaseType === 'Staging' && !private) {
     const { stdout: nextVersion } = (await exec(`npm info ${package}@next version`)).trim();
     /**
      * If we are currently in a prerelease cycle, fast-forward the version
