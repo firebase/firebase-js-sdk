@@ -81,7 +81,7 @@ const { argv } = require('yargs');
        * Prompt for the release type (i.e. staging/prod)
        */
       const responses = await prompt([releaseTypePrompt]);
-      return responses.releaseType === 'Staging';
+      return responses.releaseType;
     })();
 
     let versions;
