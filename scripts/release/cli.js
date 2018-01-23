@@ -21,7 +21,8 @@ const { hasUpdatedPackages } = require('./utils/lerna');
 const {
   getAllPackages,
   getOrderedUpdates,
-  updateWorkspaceVersions
+  updateWorkspaceVersions,
+  mapPkgNameToPkgJson
 } = require('./utils/workspace');
 const {
   commitAndTag,
@@ -88,8 +89,12 @@ const { argv } = require('yargs');
     if (argv.canary) {
       const sha = await getCurrentSha();
       const pkgs = await getAllPackages();
-      versions = pkgs.reduce((map, pkg) => {
-        map[pkg] = `canary-${sha}`;
+      const pkgJsons = await Promise.all(
+        pkgs.map(pkg => mapPkgNameToPkgJson(pkg))
+      );
+      versions = pkgs.reduce((map, pkg, idx) => {
+        const { version } = pkgJsons[idx];
+        map[pkg] = `${version}-canary.${sha}`;
         return map;
       }, {});
     } else {
@@ -118,6 +123,7 @@ const { argv } = require('yargs');
      */
     await updateWorkspaceVersions(versions, argv.canary);
 
+    return;
     /**
      * Clean install dependencies
      */
