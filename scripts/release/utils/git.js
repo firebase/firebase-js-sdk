@@ -52,5 +52,5 @@ exports.resetWorkingTree = async () => {
 };
 
 exports.getCurrentSha = async () => {
-  return await git.revparse(['--short', 'HEAD']);
+  return (await git.revparse(['--short', 'HEAD'])).trim();
 };

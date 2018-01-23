@@ -91,7 +91,7 @@ const { argv } = require('yargs');
       const sha = await getCurrentSha();
       const pkgs = await getAllPackages();
       versions = pkgs.reduce((map, pkg) => {
-        map[pkg] = sha;
+        map[pkg] = `canary-${sha}`;
         return map;
       }, {});
     } else {
@@ -121,7 +121,7 @@ const { argv } = require('yargs');
     /**
      * Update the package.json dependencies throughout the SDK
      */
-    await updateWorkspaceVersions(versions);
+    await updateWorkspaceVersions(versions, argv.canary);
 
     /**
      * Clean install dependencies
