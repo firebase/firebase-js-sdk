@@ -1971,9 +1971,7 @@ describe('Query Tests', function() {
     expect(val).to.equal(2);
   });
 
-  it('.startAt() with two arguments works properly (case 1169).', function(
-    done
-  ) {
+  it('.startAt() with two arguments works properly (case 1169).', function(done) {
     const ref = getRandomNode() as Reference;
     const data = {
       Walker: {
@@ -2110,9 +2108,7 @@ describe('Query Tests', function() {
     });
   });
 
-  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", function(
-    done
-  ) {
+  it(".endAt(null, 'f').limitToLast(5) returns the right set of children.", function(done) {
     const ref = getRandomNode() as Reference;
     ref.set(
       { a: 'a', b: 'b', c: 'c', d: 'd', e: 'e', f: 'f', g: 'g', h: 'h' },
@@ -2134,9 +2130,7 @@ describe('Query Tests', function() {
     );
   });
 
-  it('complex update() at query root raises correct value event', function(
-    done
-  ) {
+  it('complex update() at query root raises correct value event', function(done) {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2241,9 +2235,7 @@ describe('Query Tests', function() {
       });
   });
 
-  it('listen for child_added events with limit and different types fires properly', function(
-    done
-  ) {
+  it('listen for child_added events with limit and different types fires properly', function(done) {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2285,9 +2277,7 @@ describe('Query Tests', function() {
     });
   });
 
-  it('listen for child_changed events with limit and different types fires properly', function(
-    done
-  ) {
+  it('listen for child_changed events with limit and different types fires properly', function(done) {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2338,9 +2328,7 @@ describe('Query Tests', function() {
     });
   });
 
-  it('listen for child_remove events with limit and different types fires properly', function(
-    done
-  ) {
+  it('listen for child_remove events with limit and different types fires properly', function(done) {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
@@ -2442,9 +2430,7 @@ describe('Query Tests', function() {
     );
   });
 
-  it('listen for child_remove events when parent set to scalar', function(
-    done
-  ) {
+  it('listen for child_remove events when parent set to scalar', function(done) {
     const nodePair = getRandomNode(2);
     const writer = nodePair[0];
     const reader = nodePair[1];
