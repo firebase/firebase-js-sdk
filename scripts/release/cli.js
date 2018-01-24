@@ -73,7 +73,7 @@ const { argv } = require('yargs');
     /**
      * Log the user who will be publishing the packages
      */
-    const { stdout:whoami } = await exec('npm whoami');
+    const { stdout: whoami } = await exec('npm whoami');
     console.log(`Publishing as ${whoami}`);
 
     /**
