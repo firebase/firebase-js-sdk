@@ -101,7 +101,7 @@ const { argv } = require('yargs');
     let versions;
 
     /**
-     * Set the canary version following, the pattern below:
+     * Set the canary version following the pattern below:
      *
      * Version: <version>-canary.<git sha>
      *
