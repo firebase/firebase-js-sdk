@@ -60,16 +60,3 @@ exports.getCurrentSha = async () => {
 exports.hasDiff = async () => {
   return !!await git.diff();
 }
-
-exports.treeAtHead = async () => {
-  try {
-    const raw = await git.raw(['ls-remote', 'https://github.com/firebase/firebase-js-sdk', '--branch', 'master']);
-    const regex = /([^\s]+)/;
-    const [,sha] = raw.match(regex);
-
-    return sha === await git.revparse(['HEAD']);
-  } catch(err) {
-    console.error(err);
-  }
-  return false;
-}
