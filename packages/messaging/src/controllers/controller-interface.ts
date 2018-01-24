@@ -136,8 +136,10 @@ export default class ControllerInterface {
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
       })
       .then(() => {
-        return this.vapidDetailsModel_
-          .saveVapidDetails(swReg.scope, publicVapidKey);
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
       })
       .then(() => {
         return updatedToken;
@@ -174,8 +176,10 @@ export default class ControllerInterface {
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
       })
       .then(() => {
-        return this.vapidDetailsModel_
-          .saveVapidDetails(swReg.scope, publicVapidKey);
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
       })
       .then(() => {
         return tokenDetails['token'];
@@ -300,8 +304,10 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return Promise.all([this.tokenDetailsModel_.closeDatabase(),
-      this.vapidDetailsModel_.closeDatabase()]);
+    return Promise.all([
+      this.tokenDetailsModel_.closeDatabase(),
+      this.vapidDetailsModel_.closeDatabase()
+    ]);
   }
 
   /**

@@ -367,14 +367,15 @@ export default class SWController extends ControllerInterface {
    * public VAPID key provided by the developer.
    */
   getPublicVapidKey_(): Promise<Uint8Array> {
-    return this.getSWRegistration_().then(swReg => {
-      return this.getVapidDetailsModel().getVapidFromSWScope(swReg.scope);
-    })
-    .then(vapidKeyFromDatabase => {
-      if (vapidKeyFromDatabase === null) {
-        return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
-      }
-      return vapidKeyFromDatabase;
-    });
+    return this.getSWRegistration_()
+      .then(swReg => {
+        return this.getVapidDetailsModel().getVapidFromSWScope(swReg.scope);
+      })
+      .then(vapidKeyFromDatabase => {
+        if (vapidKeyFromDatabase === null) {
+          return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+        }
+        return vapidKeyFromDatabase;
+      });
   }
 }
