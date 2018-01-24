@@ -15,4 +15,4 @@
  */
 
 const { dirname, resolve } = require('path');
-exports.root = dirname(resolve(__dirname, '../../../package.json'));
+exports.projectRoot = dirname(resolve(__dirname, '../../../package.json'));

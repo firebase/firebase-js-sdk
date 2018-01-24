@@ -15,7 +15,7 @@
  */
 
 const glob = require('glob');
-const { root } = require('./constants');
+const { projectRoot: root } = require('./constants');
 const { workspaces: rawWorkspaces } = require(`${root}/package.json`);
 const workspaces = rawWorkspaces.map(workspace => `${root}/${workspace}`);
 const { DepGraph } = require('dependency-graph');

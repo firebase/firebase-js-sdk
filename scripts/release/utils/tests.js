@@ -15,7 +15,7 @@
  */
 
 const { spawn } = require('child-process-promise');
-const { root } = require('./constants');
+const { projectRoot: root } = require('./constants');
 const ora = require('ora');
 
 exports.runTests = async () => {

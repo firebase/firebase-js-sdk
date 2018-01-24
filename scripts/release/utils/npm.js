@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { root } = require('./constants');
+const { projectRoot: root } = require('./constants');
 const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 const { readFile: _readFile } = require('fs');

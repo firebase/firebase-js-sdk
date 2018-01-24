@@ -16,7 +16,7 @@
 
 const { exec } = require('child-process-promise');
 const npmRunPath = require('npm-run-path');
-const { root } = require('./constants');
+const { projectRoot: root } = require('./constants');
 
 function getLernaUpdateJson() {
   let cache;
