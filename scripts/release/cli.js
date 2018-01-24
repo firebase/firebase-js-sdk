@@ -21,19 +21,21 @@ const { hasUpdatedPackages } = require('./utils/lerna');
 const {
   getAllPackages,
   getOrderedUpdates,
+  mapPkgNameToPkgJson,
   updateWorkspaceVersions,
-  mapPkgNameToPkgJson
 } = require('./utils/workspace');
 const {
-  commitAndTag,
-  pushUpdatesToGithub,
   cleanTree,
+  commitAndTag,
+  getCurrentSha, 
+  hasDiff,
+  pushUpdatesToGithub,
   resetWorkingTree,
-  getCurrentSha
+  treeAtHead
 } = require('./utils/git');
 const {
-  releaseType: releaseTypePrompt,
   packageVersionUpdate,
+  releaseType: releaseTypePrompt,
   validateReadyToPush,
   validateVersions
 } = require('./utils/inquirer');
@@ -49,6 +51,17 @@ const { argv } = require('yargs');
      * Welcome to the firebase release CLI!
      */
     await bannerText();
+
+    /**
+     * If there are unstaged changes, error
+     */
+    if (await hasDiff()) {
+      throw new Error('You have unstaged changes, stash your changes before attempting to publish');
+    }
+
+    if (await !treeAtHead()) {
+      throw new Error('Your local build is not up to date with the remote master, please update your local git tree before attempting to publish');
+    }
 
     /**
      * If there are no packages that have been updated

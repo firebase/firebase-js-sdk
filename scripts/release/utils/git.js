@@ -56,3 +56,17 @@ exports.resetWorkingTree = async () => {
 exports.getCurrentSha = async () => {
   return (await git.revparse(['--short', 'HEAD'])).trim();
 };
+
+exports.hasDiff = async () => {
+  return !!await git.diff();
+}
+
+exports.treeAtHead = async () => {
+  try {
+    const sha = await git.raw(['ls-remote', 'https://github.com/firebase/firebase-js-sdk', '--tag', 'HEAD']);
+    console.log(sha);
+  } catch(err) {
+    console.error(err);
+  }
+  return false;
+}
