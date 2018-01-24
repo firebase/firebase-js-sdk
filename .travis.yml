@@ -29,3 +29,12 @@ addons:
     packages:
       - google-chrome-stable
       - g++-4.8
+
+# NPM Canary Build Config
+deploy:
+  - provider: script
+    before_script:
+      - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+    script: yarn release --canary
+    on:
+      branch: master
