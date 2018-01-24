@@ -22,12 +22,12 @@ const {
   getAllPackages,
   getOrderedUpdates,
   mapPkgNameToPkgJson,
-  updateWorkspaceVersions,
+  updateWorkspaceVersions
 } = require('./utils/workspace');
 const {
   cleanTree,
   commitAndTag,
-  getCurrentSha, 
+  getCurrentSha,
   hasDiff,
   pushUpdatesToGithub,
   resetWorkingTree,
@@ -56,7 +56,9 @@ const { argv } = require('yargs');
      * If there are unstaged changes, error
      */
     if (await hasDiff()) {
-      throw new Error('You have unstaged changes, stash your changes before attempting to publish');
+      throw new Error(
+        'You have unstaged changes, stash your changes before attempting to publish'
+      );
     }
 
     /**

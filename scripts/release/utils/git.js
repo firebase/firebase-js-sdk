@@ -59,4 +59,4 @@ exports.getCurrentSha = async () => {
 
 exports.hasDiff = async () => {
   return !!await git.diff();
-}
+};
