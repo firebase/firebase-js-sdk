@@ -67,8 +67,6 @@ exports.treeAtHead = async () => {
     const regex = /([^\s]+)/;
     const [,sha] = raw.match(regex);
 
-    console.log(sha, await git.revparse(['HEAD']));
-
     return sha === await git.revparse(['HEAD']);
   } catch(err) {
     console.error(err);
