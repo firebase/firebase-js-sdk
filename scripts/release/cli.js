@@ -70,8 +70,11 @@ const { argv } = require('yargs');
       return;
     }
 
-    const whoami = await exec('npm whoami');
-    console.log(`Publishing as ${whoami.stdout}`);
+    /**
+     * Log the user who will be publishing the packages
+     */
+    const { stdout:whoami } = await exec('npm whoami');
+    console.log(`Publishing as ${whoami}`);
 
     /**
      * Determine if the current release is a staging or production release
