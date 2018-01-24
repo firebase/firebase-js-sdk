@@ -67,8 +67,10 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
       task: () => publishPackage(pkg)
     }
   }));
-  return new Listr(taskArray, {
+  const tasks = new Listr(taskArray, {
     concurrent: true,
     exitOnError: false
   });
+
+  return tasks.run();
 };
