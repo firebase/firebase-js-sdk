@@ -88,11 +88,11 @@ const { argv } = require('yargs');
 
     /**
      * Set the canary version following, the pattern below:
-     * 
+     *
      * Version: <version>-canary.<git sha>
-     * 
+     *
      * A user would be able to install a package canary as follows:
-     * 
+     *
      * $ npm install @firebase/app@0.0.0-canary.0000000
      */
     let updates;
@@ -167,7 +167,7 @@ const { argv } = require('yargs');
       /**
        * Push new version to Github
        */
-      if (releaseType === 'Production') {      
+      if (releaseType === 'Production') {
         await pushUpdatesToGithub();
       }
     }

@@ -26,7 +26,9 @@ async function publishPackage(pkg, releaseType) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
-    const { private } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
+    const { private } = JSON.parse(
+      await readFile(`${path}/package.json`, 'utf8')
+    );
 
     /**
      * Skip private packages
@@ -35,7 +37,8 @@ async function publishPackage(pkg, releaseType) {
 
     /**
      * Default publish args
-     */    
+     */
+
     let args = ['publish'];
 
     /**
@@ -54,19 +57,23 @@ async function publishPackage(pkg, releaseType) {
 }
 
 exports.publishToNpm = async (updatedPkgs, releaseType) => {
-  const taskArray = await Promise.all(updatedPkgs.map(async pkg => {
-    const path = await mapPkgNameToPkgPath(pkg);
-    
-    /**
-     * Can't require here because we have a cached version of the required JSON
-     * in memory and it doesn't contain the updates
-     */
-    const { version } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
-    return {
-      title: `📦  ${pkg}@${version}`,
-      task: () => publishPackage(pkg, releaseType)
-    }
-  }));
+  const taskArray = await Promise.all(
+    updatedPkgs.map(async pkg => {
+      const path = await mapPkgNameToPkgPath(pkg);
+
+      /**
+       * Can't require here because we have a cached version of the required JSON
+       * in memory and it doesn't contain the updates
+       */
+      const { version } = JSON.parse(
+        await readFile(`${path}/package.json`, 'utf8')
+      );
+      return {
+        title: `📦  ${pkg}@${version}`,
+        task: () => publishPackage(pkg, releaseType)
+      };
+    })
+  );
   const tasks = new Listr(taskArray, {
     concurrent: true,
     exitOnError: false

@@ -34,7 +34,9 @@ exports.packageVersionUpdate = async (package, releaseType) => {
    * Check and see if we are trying to publish a prerelease
    */
   if (releaseType === 'Staging' && !private) {
-    let { stdout: nextVersion } = await exec(`npm info ${package}@next version`);
+    let { stdout: nextVersion } = await exec(
+      `npm info ${package}@next version`
+    );
     /**
      * Trim this stdout string as the whitespace returned from this function
      * will break the `semver` module parsing
