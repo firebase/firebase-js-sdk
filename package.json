@@ -51,6 +51,7 @@
     "istanbul-instrumenter-loader": "^3.0.0",
     "lcov-result-merger": "^1.2.0",
     "lerna": "^2.1.0",
+    "listr": "^0.13.0",
     "merge2": "^1.2.0",
     "mkdirp": "^0.5.1",
     "mz": "^2.7.0",

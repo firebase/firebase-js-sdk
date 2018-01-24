@@ -19,65 +19,56 @@ const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 const { readFile: _readFile } = require('fs');
 const { promisify } = require('util');
-const ora = require('ora');
+const Listr = require('listr');
 const readFile = promisify(_readFile);
 
-exports.publishToNpm = async (updatedPkgs, releaseType) => {
-  const publishPromises = updatedPkgs.map(async pkg => {
-    const status = { status: 'pending' };
-    let spinner;
-    try {
-      const path = await mapPkgNameToPkgPath(pkg);
-      /**
-       * Can't require here because we have a cached version of the required JSON
-       * in memory and it doesn't contain the updates
-       */
-      const pkgJson = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
+async function publishPackage(pkg) {
+  try {
+    const path = await mapPkgNameToPkgPath(pkg);
 
-      /**
-       * Skip private packages
-       */
-      if (pkgJson.private) return;
+    const { private } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
 
-      /**
-       * Start the publishing tracker
-       */
-      spinner = ora(` 📦  Publishing: ${pkg}@${pkgJson.version}`).start();
+    /**
+     * Skip private packages
+     */
+    if (private) return;
 
-      let args = ['publish'];
-
-      /**
-       * Ensure prereleases are tagged with the `next` tag
-       */
-      if (releaseType === 'Staging') {
-        args = [...args, '--tag', 'next'];
-      } else if (releaseType === 'Canary') {
-        args = [...args, '--tag', 'canary'];
-      }
-
-      await spawn('npm', args, { cwd: path });
-      spinner.stopAndPersist({
-        symbol: '✅'
-      });
-      status.status = 'success';
-    } catch(err) {
-      spinner.stopAndPersist({
-        symbol: '❌'
-      });
-      status.status = 'failed';
-      status.data = err;
+    /**
+     * Default publish args
+     */    
+    let args = ['publish'];
+    
+    /**
+     * Ensure prereleases are tagged with the `next` tag
+     */
+    if (releaseType === 'Staging') {
+      args = [...args, '--tag', 'next'];
+    } else if (releaseType === 'Canary') {
+      args = [...args, '--tag', 'canary'];
     }
-    return status;
-  });
 
-  const processes = await publishPromises;
-  if (processes.every(process => process.status === 'success')) {
-    console.log('Publish Successful!');
-  } else {
-    processes
-    .filter(process => process.status !== 'success')
-    .forEach(process => {
-      console.error(process.data);
-    });
+    return spawn('npm', args, { cwd: path });
+  } catch (err) {
+    throw err;
   }
+}
+
+exports.publishToNpm = async (updatedPkgs, releaseType) => {
+  const taskArray = await Promise.all(updatedPkgs.map(async pkg => {
+    const path = await mapPkgNameToPkgPath(pkg);
+    
+    /**
+     * Can't require here because we have a cached version of the required JSON
+     * in memory and it doesn't contain the updates
+     */
+    const { version } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
+    return {
+      title: `📦  Publishing: ${pkg}@${pkgJson.version}`,
+      task: () => publishPackage(pkg)
+    }
+  }));
+  const tasks = new Listr(taskArray, {
+    concurrent: true,
+    exitOnError: false
+  });
 };
