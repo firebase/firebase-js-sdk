@@ -148,8 +148,8 @@ const { argv } = require('yargs');
      * Clean install dependencies
      */
     console.log('\r\nVerifying Build');
-    // await cleanTree();
-    // await reinstallDeps();
+    await cleanTree();
+    await reinstallDeps();
 
     /**
      * Don't do the following for canary releases:
@@ -162,8 +162,8 @@ const { argv } = require('yargs');
       /**
        * Ensure all tests are passing
        */
-      // await setupTestDeps();
-      // await runTests();
+      await setupTestDeps();
+      await runTests();
 
       /**
        * Only commit/tag the version update on a production push
