@@ -66,8 +66,8 @@ exports.treeAtHead = async () => {
     const raw = await git.raw(['ls-remote', 'https://github.com/firebase/firebase-js-sdk', '--tag', 'HEAD']);
     const regex = /([^\s]+)/;
     const [,sha] = raw.match(regex);
-    console.log(git.revparse('HEAD'));
-    return sha === git.revparse(['HEAD']);
+    console.log(await git.revparse(['HEAD']));
+    return sha === await git.revparse(['HEAD']);
   } catch(err) {
     console.error(err);
   }
