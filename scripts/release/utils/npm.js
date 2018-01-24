@@ -63,7 +63,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
      */
     const { version } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
     return {
-      title: `📦  Publishing: ${pkg}@${pkgJson.version}`,
+      title: `📦  Publishing: ${pkg}@${version}`,
       task: () => publishPackage(pkg)
     }
   }));
