@@ -22,27 +22,61 @@ const { promisify } = require('util');
 const readFile = promisify(_readFile);
 
 exports.publishToNpm = async (updatedPkgs, releaseType) => {
-  for (const pkg of updatedPkgs) {
-    const path = await mapPkgNameToPkgPath(pkg);
-    const pkgJson = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
+  const publishPromises = updatedPkgs.map(async pkg => {
+    const status = { status: 'pending' };
+    let spinner;
+    try {
+      const path = await mapPkgNameToPkgPath(pkg);
+      /**
+       * Can't require here because we have a cached version of the required JSON
+       * in memory and it doesn't contain the updates
+       */
+      const pkgJson = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
 
-    /**
-     * Skip private packages
-     */
-    if (pkgJson.private) return;
+      /**
+       * Skip private packages
+       */
+      if (pkgJson.private) return;
 
-    let args = ['publish'];
+      /**
+       * Start the publishing tracker
+       */
+      spinner = ora(` 📦  Publishing: ${pkg}@${pkgJson.version}`).start();
 
-    /**
-     * Ensure prereleases are tagged with the `next` tag
-     */
-    if (releaseType === 'Staging') {
-      args = [...args, '--tag', 'next'];
-    } else if (releaseType === 'Canary') {
-      args = [...args, '--tag', 'canary'];
+      let args = ['publish'];
+
+      /**
+       * Ensure prereleases are tagged with the `next` tag
+       */
+      if (releaseType === 'Staging') {
+        args = [...args, '--tag', 'next'];
+      } else if (releaseType === 'Canary') {
+        args = [...args, '--tag', 'canary'];
+      }
+
+      await spawn('npm', args, { cwd: path });
+      spinner.stopAndPersist({
+        symbol: '✅'
+      });
+      status.status = 'success';
+    } catch(err) {
+      spinner.stopAndPersist({
+        symbol: '❌'
+      });
+      status.status = 'failed';
+      status.data = err;
     }
+    return status;
+  });
 
-    console.log(`📦  Publishing: ${pkg}@${pkgJson.version}`);
-    await spawn('npm', args, { cwd: path, stdio: 'inherit' });
+  const processes = await publishPromises;
+  if (processes.every(process => process.status === 'success')) {
+    console.log('Publish Successful!');
+  } else {
+    process
+    .filter(process => process.status !== 'success')
+    .forEach(process => {
+      console.error(process.data);
+    });
   }
 };
