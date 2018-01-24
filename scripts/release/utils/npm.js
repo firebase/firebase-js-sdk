@@ -37,7 +37,7 @@ async function publishPackage(pkg) {
      * Default publish args
      */    
     let args = ['publish'];
-    
+
     /**
      * Ensure prereleases are tagged with the `next` tag
      */
@@ -67,7 +67,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
       task: () => publishPackage(pkg)
     }
   }));
-  const tasks = new Listr(taskArray, {
+  return new Listr(taskArray, {
     concurrent: true,
     exitOnError: false
   });
