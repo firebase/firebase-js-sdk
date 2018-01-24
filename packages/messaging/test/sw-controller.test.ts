@@ -19,6 +19,7 @@ import makeFakeApp from './make-fake-app';
 import makeFakeSWReg from './make-fake-sw-reg';
 
 import FCMDetails from '../src/models/fcm-details';
+import VapidDetailsModel from '../src/models/vapid-details-model';
 import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 import SWController from '../src/controllers/sw-controller';
 
@@ -882,6 +883,42 @@ describe('Firebase Messaging > *SWController', function() {
           expect(err).to.exist;
           expect(err.code).to.equal('messaging/unable-to-resubscribe');
         });
+    });
+  });
+
+  describe('getPublicVapidKey_()', function() {
+    it('should return the default key by default', function() {
+      self['registration'] = makeFakeSWReg();
+      const controller = new SWController(app);
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+        .callsFake(() => Promise.resolve(null));
+      return controller.getPublicVapidKey_().then(pubKey => {
+        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+      });
+    });
+
+    it('should return the default key', function() {
+      self['registration'] = makeFakeSWReg();
+      const controller = new SWController(app);
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
+      return controller.getPublicVapidKey_().then(pubKey => {
+        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+      });
+    });
+
+    it('should return the custom key if set', function() {
+      self['registration'] = makeFakeSWReg();
+      const controller = new SWController(app);
+      let vapidKeyInUse = base64ToArrayBuffer(VALID_VAPID_KEY);
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+        .callsFake(() => Promise.resolve(vapidKeyInUse));
+      return controller.getPublicVapidKey_().then(pubKey => {
+        expect(pubKey).deep.equal(vapidKeyInUse);
+      });
     });
   });
 });

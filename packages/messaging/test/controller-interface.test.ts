@@ -19,6 +19,7 @@ import makeFakeApp from './make-fake-app';
 
 import ControllerInterface from '../src/controllers/controller-interface';
 import TokenDetailsModel from '../src/models/token-details-model';
+import VapidDetailsModel from '../src/models/vapid-details-model';
 import IIDModel from '../src/models/iid-model';
 
 describe('Firebase Messaging > *ControllerInterface', function() {
@@ -188,6 +189,14 @@ describe('Firebase Messaging > *ControllerInterface', function() {
       const controller = new ControllerInterface(app);
       const result = controller.getTokenDetailsModel();
       expect(result).to.be.instanceof(TokenDetailsModel);
+    });
+  });
+
+  describe('getVapidDetailsModel', function() {
+    it('should return an instance of VapidDetailsModel', function() {
+      const controller = new ControllerInterface(app);
+      const result = controller.getVapidDetailsModel();
+      expect(result).to.be.instanceof(VapidDetailsModel);
     });
   });
 

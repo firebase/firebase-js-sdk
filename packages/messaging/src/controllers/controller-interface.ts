@@ -18,6 +18,7 @@
 import { ErrorFactory } from '@firebase/util';
 import Errors from '../models/errors';
 import TokenDetailsModel from '../models/token-details-model';
+import VapidDetailsModel from '../models/vapid-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
 
@@ -31,6 +32,7 @@ export default class ControllerInterface {
   protected errorFactory_;
   private messagingSenderId_: string;
   private tokenDetailsModel_: TokenDetailsModel;
+  private vapidDetailsModel_: VapidDetailsModel;
   private iidModel_: IIDModel;
 
   /**
@@ -50,6 +52,7 @@ export default class ControllerInterface {
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
 
     this.tokenDetailsModel_ = new TokenDetailsModel();
+    this.vapidDetailsModel_ = new VapidDetailsModel();
     this.iidModel_ = new IIDModel();
 
     this.app = app;
@@ -133,6 +136,10 @@ export default class ControllerInterface {
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
       })
       .then(() => {
+        return this.vapidDetailsModel_
+          .saveVapidDetails(swReg.scope, publicVapidKey);
+      })
+      .then(() => {
         return updatedToken;
       });
   }
@@ -165,6 +172,10 @@ export default class ControllerInterface {
           fcmPushSet: tokenDetails['pushSet']
         };
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return this.vapidDetailsModel_
+          .saveVapidDetails(swReg.scope, publicVapidKey);
       })
       .then(() => {
         return tokenDetails['token'];
@@ -289,7 +300,8 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return Promise.all([this.tokenDetailsModel_.closeDatabase()]);
+    return Promise.all([this.tokenDetailsModel_.closeDatabase(),
+      this.vapidDetailsModel_.closeDatabase()]);
   }
 
   /**
@@ -301,12 +313,12 @@ export default class ControllerInterface {
     return (Notification as any).permission;
   }
 
-  /**
-   * @protected
-   * @returns {TokenDetailsModel}
-   */
-  getTokenDetailsModel() {
+  getTokenDetailsModel(): TokenDetailsModel {
     return this.tokenDetailsModel_;
+  }
+
+  getVapidDetailsModel(): VapidDetailsModel {
+    return this.vapidDetailsModel_;
   }
 
   /**

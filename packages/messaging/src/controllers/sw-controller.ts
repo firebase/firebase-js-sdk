@@ -368,12 +368,13 @@ export default class SWController extends ControllerInterface {
    */
   getPublicVapidKey_(): Promise<Uint8Array> {
     return this.getSWRegistration_().then(swReg => {
-      return swReg.pushManager.getSubscription().then(subscription => {
-        if (subscription !== null && subscription.options !== null) {
-          return subscription.options.applicationServerKey;
-        }
+      return this.getVapidDetailsModel().getVapidFromSWScope(swReg.scope);
+    })
+    .then(vapidKeyFromDatabase => {
+      if (vapidKeyFromDatabase === null) {
         return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
-      });
+      }
+      return vapidKeyFromDatabase;
     });
   }
 }

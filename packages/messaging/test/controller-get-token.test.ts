@@ -26,6 +26,7 @@ import ControllerInterface from '../src/controllers/controller-interface';
 import DefaultSW from '../src/models/default-sw';
 import FCMDetails from '../src/models/fcm-details';
 import TokenDetailsModel from '../src/models/token-details-model';
+import VapidDetailsModel from '../src/models/vapid-details-model';
 import IIDModel from '../src/models/iid-model';
 import NotificationPermission from '../src/models/notification-permission';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
@@ -42,8 +43,8 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
   const CUSTOM_VAPID_KEY =
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-    'emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_A';
+    'BDd3_hVL9fZi9Ybo2UUzA284WG5FZR30_95YeZJsiApwXK' +
+    'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo';
   const DEFAULT_VAPID_KEY = arrayBufferToBase64(
     FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
   );
@@ -260,6 +261,10 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
 
       sandbox
+        .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
+
+      sandbox
         .stub(ServiceClass.prototype, 'getPushSubscription_')
         .callsFake(() => Promise.resolve(subscription));
 
@@ -269,6 +274,10 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
+        .callsFake(() => Promise.resolve());
+
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
         .callsFake(() => Promise.resolve());
 
       const serviceInstance = new ServiceClass(app);
@@ -298,13 +307,21 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
           .stub(ServiceClass.prototype, 'getPushSubscription_')
           .callsFake(() => Promise.resolve(subscription));
 
+        let vapidKeyToUse = FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
         if (VapidSetup['name'] === 'custom') {
-          sandbox
-            .stub(ServiceClass.prototype, 'getPublicVapidKey_')
-            .callsFake(() =>
-              Promise.resolve(base64ToArrayBuffer(CUSTOM_VAPID_KEY))
-            );
+          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
         }
+        sandbox
+          .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+          .callsFake(() => Promise.resolve(vapidKeyToUse));
+
+        sandbox
+          .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+          .callsFake(() => Promise.resolve(vapidKeyToUse));
+
+        sandbox
+          .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
+          .callsFake(() => Promise.resolve());
 
         sandbox
           .stub(IIDModel.prototype, 'getToken')
@@ -322,26 +339,35 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         return serviceInstance.getToken().then(token => {
           assert.equal('example-token', token);
 
-          // Ensure save token is called.
+          // Ensure save token is called in VAPID and Token model.
+          assert.equal(
+            VapidDetailsModel.prototype.saveVapidDetails['callCount'],
+            1
+          );
+          const vapidModelArgs = VapidDetailsModel.prototype.saveVapidDetails[
+            'getCall'
+          ](0)['args'][0];
+
           assert.equal(
             TokenDetailsModel.prototype.saveTokenDetails['callCount'],
             1
           );
-          const saveArgs = TokenDetailsModel.prototype.saveTokenDetails[
+          const tokenModelArgs = TokenDetailsModel.prototype.saveTokenDetails[
             'getCall'
           ](0)['args'][0];
 
           Promise.resolve(registration).then(reg => {
-            assert.equal(saveArgs.swScope, reg.scope);
+            assert.equal(tokenModelArgs.swScope, reg.scope);
+            assert.equal(vapidModelArgs.swScope, reg.scope);
           });
           assert.equal(
-            arrayBufferToBase64(saveArgs.vapidKey),
+            arrayBufferToBase64(tokenModelArgs.vapidKey),
             VapidSetup['details']['vapidKey']
           );
-          assert.equal(saveArgs.subscription, subscription);
-          assert.equal(saveArgs.fcmSenderId, EXAMPLE_SENDER_ID);
-          assert.equal(saveArgs.fcmToken, TOKEN_DETAILS['token']);
-          assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
+          assert.equal(tokenModelArgs.subscription, subscription);
+          assert.equal(tokenModelArgs.fcmSenderId, EXAMPLE_SENDER_ID);
+          assert.equal(tokenModelArgs.fcmToken, TOKEN_DETAILS['token']);
+          assert.equal(tokenModelArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
         });
       });
     });
@@ -368,6 +394,14 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       sandbox
         .stub(ServiceClass.prototype, 'getPushSubscription_')
         .callsFake(() => Promise.resolve(subscription));
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
+
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
 
       sandbox
         .stub(IIDModel.prototype, 'updateToken')
