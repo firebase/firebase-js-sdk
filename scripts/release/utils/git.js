@@ -63,8 +63,11 @@ exports.hasDiff = async () => {
 
 exports.treeAtHead = async () => {
   try {
-    const sha = await git.raw(['ls-remote', 'https://github.com/firebase/firebase-js-sdk', '--tag', 'HEAD']);
-    console.log(sha);
+    const raw = await git.raw(['ls-remote', 'https://github.com/firebase/firebase-js-sdk', '--tag', 'HEAD']);
+    const regex = /([^\s]+)/;
+    const [,sha] = raw.match(regex);
+    console.log(git.revparse('HEAD'));
+    return sha === git.revparse(['HEAD']);
   } catch(err) {
     console.error(err);
   }
