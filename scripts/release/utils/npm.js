@@ -63,7 +63,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
      */
     const { version } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
     return {
-      title: `📦  Publishing: ${pkg}@${version}`,
+      title: `📦  ${pkg}@${version}`,
       task: () => publishPackage(pkg, releaseType)
     }
   }));
@@ -72,6 +72,6 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
     exitOnError: false
   });
 
-  console.log('\r\nPublishing Packages to NPM');
+  console.log('\r\nPublishing Packages to NPM:');
   return tasks.run();
 };
