@@ -19,6 +19,7 @@ const { spawn } = require('child-process-promise');
 const { mapPkgNameToPkgPath } = require('./workspace');
 const { readFile: _readFile } = require('fs');
 const { promisify } = require('util');
+const ora = require('ora');
 const readFile = promisify(_readFile);
 
 exports.publishToNpm = async (updatedPkgs, releaseType) => {
@@ -73,7 +74,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
   if (processes.every(process => process.status === 'success')) {
     console.log('Publish Successful!');
   } else {
-    process
+    processes
     .filter(process => process.status !== 'success')
     .forEach(process => {
       console.error(process.data);
