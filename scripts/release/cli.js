@@ -59,7 +59,7 @@ const { argv } = require('yargs');
       throw new Error('You have unstaged changes, stash your changes before attempting to publish');
     }
 
-    if (await !treeAtHead()) {
+    if (!await treeAtHead()) {
       throw new Error('Your local build is not up to date with the remote master, please update your local git tree before attempting to publish');
     }
 
