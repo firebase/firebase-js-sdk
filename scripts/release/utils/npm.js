@@ -22,7 +22,7 @@ const { promisify } = require('util');
 const Listr = require('listr');
 const readFile = promisify(_readFile);
 
-async function publishPackage(pkg) {
+async function publishPackage(pkg, releaseType) {
   try {
     const path = await mapPkgNameToPkgPath(pkg);
 
@@ -64,7 +64,7 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
     const { version } = JSON.parse(await readFile(`${path}/package.json`, 'utf8'));
     return {
       title: `📦  Publishing: ${pkg}@${version}`,
-      task: () => publishPackage(pkg)
+      task: () => publishPackage(pkg, releaseType)
     }
   }));
   const tasks = new Listr(taskArray, {
