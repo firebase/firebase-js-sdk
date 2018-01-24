@@ -72,5 +72,6 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
     exitOnError: false
   });
 
+  console.log('Publishing Packages to NPM');
   return tasks.run();
 };
