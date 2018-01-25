@@ -62,7 +62,9 @@ export class Logger {
     instances.push(this);
   }
   private _logLevel = LogLevel.WARN;
-  get logLevel() { return this._logLevel; }
+  get logLevel() {
+    return this._logLevel;
+  }
   set logLevel(val) {
     if (!(val in LogLevel)) {
       throw new TypeError('Attempted to Invalid value assigned to `logLevel`');
@@ -71,7 +73,9 @@ export class Logger {
   }
 
   private _logHandler: typeof defaultLogHandler = defaultLogHandler;
-  get logHandler() { return this._logHandler; }
+  get logHandler() {
+    return this._logHandler;
+  }
   set logHandler(val) {
     if (typeof val !== 'function') {
       throw new TypeError('Value assigned to `logHandler` must be a function');
