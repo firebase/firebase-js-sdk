@@ -3664,15 +3664,15 @@ grpc@1.7.1:
     node-pre-gyp "^0.6.39"
     protobufjs "^5.0.0"
 
-grpc@^1.6.6:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/grpc/-/grpc-1.8.0.tgz#9d49f1b05c19c4a35c480bd14c632386de6bf664"
+grpc@^1.7.1:
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/grpc/-/grpc-1.8.4.tgz#81d1b49ccdd25a7149f189f3c36b123ca46caa95"
   dependencies:
     arguejs "^0.2.3"
-    lodash "^4.17.4"
-    nan "^2.8.0"
+    lodash "^4.15.0"
+    nan "^2.0.0"
     node-pre-gyp "^0.6.39"
-    protobufjs "^5.0.2"
+    protobufjs "^5.0.0"
 
 gtoken@^1.2.1:
   version "1.2.3"
@@ -5886,7 +5886,7 @@ mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.0.0, nan@^2.3.0, nan@^2.8.0:
+nan@^2.0.0, nan@^2.3.0:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
 
@@ -6678,7 +6678,7 @@ prompt@1.0.0:
     utile "0.3.x"
     winston "2.1.x"
 
-protobufjs@^5.0.0, protobufjs@^5.0.2:
+protobufjs@^5.0.0:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-5.0.2.tgz#59748d7dcf03d2db22c13da9feb024e16ab80c91"
   dependencies:

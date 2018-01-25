@@ -21,6 +21,7 @@ import TokenDetailsModel from '../models/token-details-model';
 import VapidDetailsModel from '../models/vapid-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
+import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
@@ -84,16 +85,54 @@ export default class ControllerInterface {
       })
       .then(tokenDetails => {
         if (tokenDetails) {
-          // TODO Validate the details are still accurate
-          const now = Date.now();
-          if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
-            return tokenDetails['fcmToken'];
-          } else {
-            return this.updateToken(tokenDetails, swReg);
-          }
+          return this.manageExistingToken(tokenDetails, swReg);
         }
         return this.getNewToken(swReg);
       });
+  }
+
+  /**
+   * manageExistingToken is triggered if there's an existing FCM token in the
+   * database and it can take 3 different actions:
+   * 1) Retrieve the existing FCM token from the database.
+   * 2) If VAPID details have changed: Delete the existing token and create a
+   * new one with the new VAPID key.
+   * 3) If the database cache is invalidated: Send a request to FCM to update
+   * the token, and to check if the token is still valid on FCM-side.
+   */
+  private manageExistingToken(
+    tokenDetails: Object,
+    swReg: ServiceWorkerRegistration
+  ): Promise<string> {
+    return this.isTokenStillValid(tokenDetails).then(isValid => {
+      if (isValid) {
+        const now = Date.now();
+        if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
+          return tokenDetails['fcmToken'];
+        } else {
+          return this.updateToken(tokenDetails, swReg);
+        }
+      } else {
+        // If the VAPID details are updated, delete the existing token,
+        // and create a new one.
+        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
+          return this.getNewToken(swReg);
+        });
+      }
+    });
+  }
+
+  /*
+   * Checks if the tokenDetails match the details provided in the clients.
+   */
+  private isTokenStillValid(tokenDetails: Object): Promise<Boolean> {
+    // TODO Validate rest of the details.
+    return this.getPublicVapidKey_().then(publicKey => {
+      if (arrayBufferToBase64(publicKey) !== tokenDetails['vapidKey']) {
+        return false;
+      }
+      return true;
+    });
   }
 
   private updateToken(
