@@ -71,6 +71,12 @@ const { argv } = require('yargs');
     }
 
     /**
+     * TODO: Add a check that the current sha exists on Github somewhere
+     * 
+     * This should validate that the local branch isn't local-only
+     */
+
+    /**
      * Log the user who will be publishing the packages
      */
     const { stdout: whoami } = await exec('npm whoami');
