@@ -296,11 +296,10 @@ export default class TokenDetailsModel extends DBInterface {
    * This method deletes details of the current FCM token.
    * It's returning a promise in case we need to move to an async
    * method for deleting at a later date.
-   * @param {string} token Token to be deleted
    * @return {Promise<Object>} Resolves once the FCM token details have been
    * deleted and returns the deleted details.
    */
-  deleteToken(token) {
+  deleteToken(token: string) {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
         this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN)

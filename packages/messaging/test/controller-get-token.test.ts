@@ -26,8 +26,11 @@ import ControllerInterface from '../src/controllers/controller-interface';
 import DefaultSW from '../src/models/default-sw';
 import FCMDetails from '../src/models/fcm-details';
 import TokenDetailsModel from '../src/models/token-details-model';
+import VapidDetailsModel from '../src/models/vapid-details-model';
 import IIDModel from '../src/models/iid-model';
 import NotificationPermission from '../src/models/notification-permission';
+import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 import TOKEN_EXPIRATION_MILLIS from '../src/controllers/controller-interface';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -39,33 +42,56 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
-  const EXAMPLE_TOKEN_DETAILS = {
+  const CUSTOM_VAPID_KEY =
+    'BDd3_hVL9fZi9Ybo2UUzA284WG5FZR30_95YeZJsiApwXK' +
+    'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo';
+  const DEFAULT_VAPID_KEY = arrayBufferToBase64(
+    FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
+  );
+
+  const EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID = {
     swScope: '/example-scope',
-    vapidKey:
-      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+    vapidKey: DEFAULT_VAPID_KEY,
     subscription: makeFakeSubscription(),
-    fcmSenderId: '1234567890',
-    fcmToken: 'qwerty',
+    fcmSenderId: EXAMPLE_SENDER_ID,
+    fcmToken: 'qwerty1',
+    fcmPushSet: '87654321',
+    createTime: now
+  };
+  const EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID = {
+    swScope: '/example-scope',
+    vapidKey: CUSTOM_VAPID_KEY,
+    subscription: makeFakeSubscription(),
+    fcmSenderId: EXAMPLE_SENDER_ID,
+    fcmToken: 'qwerty2',
     fcmPushSet: '7654321',
     createTime: now
   };
   const EXAMPLE_EXPIRED_TOKEN_DETAILS = {
     swScope: '/example-scope',
-    vapidKey:
-      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+    vapidKey: DEFAULT_VAPID_KEY,
     subscription: makeFakeSubscription(),
-    fcmSenderId: '1234567890',
-    fcmToken: 'qwerty',
-    fcmPushSet: '7654321',
+    fcmSenderId: EXAMPLE_SENDER_ID,
+    fcmToken: 'qwerty3',
+    fcmPushSet: '654321',
     createTime: expiredDate
   };
+
+  const customVAPIDSetup = {
+    name: 'custom',
+    details: EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID
+  };
+  const defaultVAPIDSetup = {
+    name: 'default',
+    details: EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID
+  };
+
   const app = makeFakeApp({
-    messagingSenderId: EXAMPLE_TOKEN_DETAILS.fcmSenderId
+    messagingSenderId: EXAMPLE_SENDER_ID
   });
 
   const servicesToTest = [WindowController, SWController];
+  const vapidSetupToTest = [defaultVAPIDSetup, customVAPIDSetup];
 
   const mockGetReg = fakeReg => {
     servicesToTest.forEach(serviceClass => {
@@ -184,46 +210,59 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   });
 
   servicesToTest.forEach(ServiceClass => {
-    it(`should get saved token in ${ServiceClass.name}`, function() {
-      const registration = makeFakeSWReg();
-      const subscription = makeFakeSubscription();
+    vapidSetupToTest.forEach(VapidSetup => {
+      it(`should get saved token in ${ServiceClass.name} for ${
+        VapidSetup.name
+      } VAPID setup`, function() {
+        const registration = generateFakeReg(Promise.resolve(null));
+        const subscription = makeFakeSubscription();
+        mockGetReg(Promise.resolve(registration));
 
-      sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
-        .callsFake(() => Promise.resolve(subscription));
+        sandbox
+          .stub(ServiceClass.prototype, 'getPushSubscription_')
+          .callsFake(() => Promise.resolve(subscription));
 
-      sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.granted);
+        if (VapidSetup['name'] == 'custom') {
+          sandbox
+            .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+            .callsFake(() =>
+              Promise.resolve(base64ToArrayBuffer(CUSTOM_VAPID_KEY))
+            );
+        }
 
-      mockGetReg(Promise.resolve(registration));
+        sandbox
+          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .callsFake(() => NotificationPermission.granted);
 
-      sandbox
-        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-        .callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS));
+        sandbox
+          .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+          .callsFake(() => Promise.resolve(VapidSetup['details']));
 
-      const serviceInstance = new ServiceClass(app);
-      return serviceInstance.getToken().then(token => {
-        assert.equal(EXAMPLE_TOKEN_DETAILS['fcmToken'], token);
+        const serviceInstance = new ServiceClass(app);
+        return serviceInstance.getToken().then(token => {
+          assert.equal(VapidSetup['details']['fcmToken'], token);
+        });
       });
     });
   });
 
-  // TODO: Make this work for ServiceWorkerController
-  [WindowController].forEach(ServiceClass => {
+  servicesToTest.forEach(ServiceClass => {
     it(`should update token in ${ServiceClass.name} every 7 days`, function() {
-      const registration = makeFakeSWReg();
+      const registration = generateFakeReg(Promise.resolve(null));
       const subscription = makeFakeSubscription();
+      mockGetReg(Promise.resolve(registration));
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
         .callsFake(() => NotificationPermission.granted);
 
-      mockGetReg(Promise.resolve(registration));
-
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
         .callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
 
       sandbox
         .stub(ServiceClass.prototype, 'getPushSubscription_')
@@ -237,6 +276,10 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
         .callsFake(() => Promise.resolve());
 
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
+        .callsFake(() => Promise.resolve());
+
       const serviceInstance = new ServiceClass(app);
       return serviceInstance.getToken().then(token => {
         assert.equal(EXAMPLE_FCM_TOKEN, token);
@@ -244,74 +287,105 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     });
   });
 
-  // TODO: Make this work for ServiceWorkerController
-  [WindowController].forEach(ServiceClass => {
-    it('should get a new token', function() {
-      const registration = makeFakeSWReg();
-      const subscription = makeFakeSubscription();
-      const TOKEN_DETAILS = {
-        token: 'example-token',
-        pushSet: 'example-pushSet'
-      };
+  servicesToTest.forEach(ServiceClass => {
+    vapidSetupToTest.forEach(VapidSetup => {
+      it('should get a new token in ${ServiceClass.name} for ${VapidSetup.name} VAPID setup', function() {
+        const registration = generateFakeReg(Promise.resolve(null));
+        const subscription = makeFakeSubscription();
+        mockGetReg(Promise.resolve(registration));
 
-      sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.granted);
+        const TOKEN_DETAILS = {
+          token: 'example-token',
+          pushSet: 'example-pushSet'
+        };
 
-      sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
-        .callsFake(() => Promise.resolve(subscription));
+        sandbox
+          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .callsFake(() => NotificationPermission.granted);
 
-      sandbox
-        .stub(IIDModel.prototype, 'getToken')
-        .callsFake(() => Promise.resolve(TOKEN_DETAILS));
+        sandbox
+          .stub(ServiceClass.prototype, 'getPushSubscription_')
+          .callsFake(() => Promise.resolve(subscription));
 
-      mockGetReg(Promise.resolve(registration));
+        let vapidKeyToUse = FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+        if (VapidSetup['name'] === 'custom') {
+          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
+        }
+        sandbox
+          .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+          .callsFake(() => Promise.resolve(vapidKeyToUse));
 
-      sandbox
-        .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-        .callsFake(() => Promise.resolve(null));
+        sandbox
+          .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+          .callsFake(() => Promise.resolve(vapidKeyToUse));
 
-      sandbox
-        .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
-        .callsFake(() => Promise.resolve());
+        sandbox
+          .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
+          .callsFake(() => Promise.resolve());
 
-      const serviceInstance = new ServiceClass(app);
-      return serviceInstance.getToken().then(token => {
-        assert.equal('example-token', token);
+        sandbox
+          .stub(IIDModel.prototype, 'getToken')
+          .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
-        // Ensure save token is called.
-        assert.equal(
-          TokenDetailsModel.prototype.saveTokenDetails['callCount'],
-          1
-        );
-        const saveArgs = TokenDetailsModel.prototype.saveTokenDetails[
-          'getCall'
-        ](0)['args'][0];
-        assert.equal(saveArgs.swScope, registration.scope);
-        assert.equal(saveArgs.vapidKey, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
-        assert.equal(saveArgs.subscription, subscription);
-        assert.equal(saveArgs.fcmSenderId, EXAMPLE_SENDER_ID);
-        assert.equal(saveArgs.fcmToken, TOKEN_DETAILS['token']);
-        assert.equal(saveArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
+        sandbox
+          .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+          .callsFake(() => Promise.resolve(null));
+
+        sandbox
+          .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
+          .callsFake(() => Promise.resolve());
+
+        const serviceInstance = new ServiceClass(app);
+        return serviceInstance.getToken().then(token => {
+          assert.equal('example-token', token);
+
+          // Ensure save token is called in VAPID and Token model.
+          assert.equal(
+            VapidDetailsModel.prototype.saveVapidDetails['callCount'],
+            1
+          );
+          const vapidModelArgs = VapidDetailsModel.prototype.saveVapidDetails[
+            'getCall'
+          ](0)['args'][0];
+
+          assert.equal(
+            TokenDetailsModel.prototype.saveTokenDetails['callCount'],
+            1
+          );
+          const tokenModelArgs = TokenDetailsModel.prototype.saveTokenDetails[
+            'getCall'
+          ](0)['args'][0];
+
+          Promise.resolve(registration).then(reg => {
+            assert.equal(tokenModelArgs.swScope, reg.scope);
+            assert.equal(vapidModelArgs.swScope, reg.scope);
+          });
+          assert.equal(
+            arrayBufferToBase64(tokenModelArgs.vapidKey),
+            VapidSetup['details']['vapidKey']
+          );
+          assert.equal(tokenModelArgs.subscription, subscription);
+          assert.equal(tokenModelArgs.fcmSenderId, EXAMPLE_SENDER_ID);
+          assert.equal(tokenModelArgs.fcmToken, TOKEN_DETAILS['token']);
+          assert.equal(tokenModelArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
+        });
       });
     });
   });
 
-  // TODO: Make this work for ServiceWorkerController
-  [WindowController].forEach(ServiceClass => {
+  servicesToTest.forEach(ServiceClass => {
     it(`should handle update token errors in ${
       ServiceClass.name
     }`, async function() {
       const registration = generateFakeReg(Promise.resolve(null));
       const subscription = makeFakeSubscription();
+      mockGetReg(Promise.resolve(registration));
+
       const errorMsg = 'messaging/' + Errors.codes.TOKEN_UPDATE_FAILED;
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
         .callsFake(() => NotificationPermission.granted);
-
-      mockGetReg(Promise.resolve(registration));
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
@@ -320,6 +394,14 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       sandbox
         .stub(ServiceClass.prototype, 'getPushSubscription_')
         .callsFake(() => Promise.resolve(subscription));
+
+      sandbox
+        .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
+
+      sandbox
+        .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
+        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
 
       sandbox
         .stub(IIDModel.prototype, 'updateToken')

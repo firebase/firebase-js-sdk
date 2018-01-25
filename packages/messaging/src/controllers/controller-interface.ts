@@ -18,6 +18,7 @@
 import { ErrorFactory } from '@firebase/util';
 import Errors from '../models/errors';
 import TokenDetailsModel from '../models/token-details-model';
+import VapidDetailsModel from '../models/vapid-details-model';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
 import IIDModel from '../models/iid-model';
 
@@ -31,6 +32,7 @@ export default class ControllerInterface {
   protected errorFactory_;
   private messagingSenderId_: string;
   private tokenDetailsModel_: TokenDetailsModel;
+  private vapidDetailsModel_: VapidDetailsModel;
   private iidModel_: IIDModel;
 
   /**
@@ -50,6 +52,7 @@ export default class ControllerInterface {
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
 
     this.tokenDetailsModel_ = new TokenDetailsModel();
+    this.vapidDetailsModel_ = new VapidDetailsModel();
     this.iidModel_ = new IIDModel();
 
     this.app = app;
@@ -97,10 +100,14 @@ export default class ControllerInterface {
     tokenDetails: Object,
     swReg: ServiceWorkerRegistration
   ): Promise<string> {
-    const publicVapidKey = this.getPublicVapidKey_();
+    let publicVapidKey: Uint8Array;
     let updatedToken: string;
     let subscription: PushSubscription;
-    return this.getPushSubscription_(swReg, publicVapidKey)
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
       .then(pushSubscription => {
         subscription = pushSubscription;
         return this.iidModel_.updateToken(
@@ -129,15 +136,25 @@ export default class ControllerInterface {
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
       })
       .then(() => {
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
+      })
+      .then(() => {
         return updatedToken;
       });
   }
 
   private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
-    const publicVapidKey = this.getPublicVapidKey_();
+    let publicVapidKey: Uint8Array;
     let subscription: PushSubscription;
     let tokenDetails: Object;
-    return this.getPushSubscription_(swReg, publicVapidKey)
+    return this.getPublicVapidKey_()
+      .then(publicKey => {
+        publicVapidKey = publicKey;
+        return this.getPushSubscription_(swReg, publicVapidKey);
+      })
       .then(pushSubscription => {
         subscription = pushSubscription;
         return this.iidModel_.getToken(
@@ -157,6 +174,12 @@ export default class ControllerInterface {
           fcmPushSet: tokenDetails['pushSet']
         };
         return this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      })
+      .then(() => {
+        return this.vapidDetailsModel_.saveVapidDetails(
+          swReg.scope,
+          publicVapidKey
+        );
       })
       .then(() => {
         return tokenDetails['token'];
@@ -199,7 +222,7 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
-  getPublicVapidKey_(): Uint8Array {
+  getPublicVapidKey_(): Promise<Uint8Array> {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
@@ -281,7 +304,10 @@ export default class ControllerInterface {
    * It closes any currently open indexdb database connections.
    */
   delete() {
-    return Promise.all([this.tokenDetailsModel_.closeDatabase()]);
+    return Promise.all([
+      this.tokenDetailsModel_.closeDatabase(),
+      this.vapidDetailsModel_.closeDatabase()
+    ]);
   }
 
   /**
@@ -293,12 +319,12 @@ export default class ControllerInterface {
     return (Notification as any).permission;
   }
 
-  /**
-   * @protected
-   * @returns {TokenDetailsModel}
-   */
-  getTokenDetailsModel() {
+  getTokenDetailsModel(): TokenDetailsModel {
     return this.tokenDetailsModel_;
+  }
+
+  getVapidDetailsModel(): VapidDetailsModel {
+    return this.vapidDetailsModel_;
   }
 
   /**

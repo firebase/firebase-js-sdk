@@ -332,17 +332,17 @@ describe('Firebase Messaging > *WindowController', function() {
   describe('getPublicVapidKey_()', function() {
     it('should return the default key by default', function() {
       const controller = new WindowController(app);
-      expect(controller.getPublicVapidKey_()).to.equal(
-        FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
-      );
+      return controller.getPublicVapidKey_().then(pubKey => {
+        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+      });
     });
 
-    it('should return the default key by default', function() {
+    it('should return the custom key if set', function() {
       const controller = new WindowController(app);
       controller.usePublicVapidKey(VALID_VAPID_KEY);
-      expect(controller.getPublicVapidKey_()).to.deep.equal(
-        base64ToArrayBuffer(VALID_VAPID_KEY)
-      );
+      return controller.getPublicVapidKey_().then(pubKey => {
+        expect(pubKey).deep.equal(base64ToArrayBuffer(VALID_VAPID_KEY));
+      });
     });
   });
 
