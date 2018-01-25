@@ -29,4 +29,4 @@ export function setLogLevel(level: LogLevel) {
   });
 }
 
-export { Logger, LogLevel } from './src/logger';
+export { Logger, LogLevel, LogHandler } from './src/logger';

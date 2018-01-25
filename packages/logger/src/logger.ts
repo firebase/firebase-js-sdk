@@ -34,7 +34,9 @@ export enum LogLevel {
   ERROR
 }
 
-const defaultLogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => {
+export type LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => void;
+
+const defaultLogHandler: LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => {
   if (type < level) return;
   switch (type) {
     case LogLevel.VERBOSE:
@@ -54,6 +56,7 @@ const defaultLogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => {
   }
 };
 
+
 export class Logger {
   constructor() {
     /**
@@ -72,7 +75,7 @@ export class Logger {
     this._logLevel = val;
   }
 
-  private _logHandler: typeof defaultLogHandler = defaultLogHandler;
+  private _logHandler: LogHandler = defaultLogHandler;
   get logHandler() {
     return this._logHandler;
   }
