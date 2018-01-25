@@ -11,7 +11,7 @@ before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
   - npm install -g yarn
-  - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+  - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc
 before_script:
   - cp config/ci.config.json config/project.json
 script:
