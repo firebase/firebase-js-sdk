@@ -11,6 +11,7 @@ before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
   - npm install -g yarn
+  - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
 before_script:
   - cp config/ci.config.json config/project.json
 script:
@@ -34,6 +35,6 @@ addons:
 deploy:
   skip_cleanup: true
   provider: script
-  script: echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc && yarn release --canary
+  script: yarn release --canary
   on:
     branch: master
