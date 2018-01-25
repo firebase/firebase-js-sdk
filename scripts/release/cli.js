@@ -72,7 +72,7 @@ const { argv } = require('yargs');
 
     /**
      * TODO: Add a check that the current sha exists on Github somewhere
-     * 
+     *
      * This should validate that the local branch isn't local-only
      */
 
