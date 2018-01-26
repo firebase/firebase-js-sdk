@@ -19,10 +19,27 @@ export { base64, base64Decode, base64Encode } from './src/crypt';
 export { CONSTANTS } from './src/constants';
 export { deepCopy, deepExtend, patchProperty } from './src/deepCopy';
 export { Deferred } from './src/deferred';
-export { getUA, isMobileCordova, isNodeSdk, isReactNative } from './src/environment';
-export { ErrorFactory, ErrorList, FirebaseError, patchCapture, StringLike } from './src/errors';
+export {
+  getUA,
+  isMobileCordova,
+  isNodeSdk,
+  isReactNative
+} from './src/environment';
+export {
+  ErrorFactory,
+  ErrorList,
+  FirebaseError,
+  patchCapture,
+  StringLike
+} from './src/errors';
 export { jsonEval, stringify } from './src/json';
-export { decode, isAdmin, issuedAtTime, isValidFormat, isValidTimestamp } from './src/jwt';
+export {
+  decode,
+  isAdmin,
+  issuedAtTime,
+  isValidFormat,
+  isValidTimestamp
+} from './src/jwt';
 export {
   clone,
   contains,
@@ -54,5 +71,11 @@ export {
   Subscribe,
   Unsubscribe
 } from './src/subscribe';
-export { errorPrefix, validateArgCount, validateCallback, validateContextObject, validateNamespace } from './src/validation';
+export {
+  errorPrefix,
+  validateArgCount,
+  validateCallback,
+  validateContextObject,
+  validateNamespace
+} from './src/validation';
 export { stringLength, stringToByteArray } from './src/utf8';
