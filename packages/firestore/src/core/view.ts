@@ -244,7 +244,8 @@ export class View {
       );
     });
 
-    const limboChanges = this.applyTargetChange(targetChange);
+    this.applyTargetChange(targetChange);
+    const limboChanges = this.updateLimboDocuments();
     const synced = this.limboDocuments.size === 0 && this.current;
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
@@ -320,9 +321,7 @@ export class View {
    * Updates syncedDocuments, current, and limbo docs based on the given change.
    * Returns the list of changes to which docs are in limbo.
    */
-  private applyTargetChange(
-    targetChange?: TargetChange
-  ): LimboDocumentChange[] {
+  private applyTargetChange(targetChange?: TargetChange): void {
     if (targetChange) {
       const targetMapping = targetChange.mapping;
       if (targetMapping instanceof ResetMapping) {
@@ -348,19 +347,23 @@ export class View {
           );
       }
     }
+  }
 
-    // Recompute the set of limbo docs.
+  private updateLimboDocuments(): LimboDocumentChange[] {
+    // We can only determine limbo documents when we're in-sync with the server.
+    if (!this.current) {
+      return [];
+    }
+
     // TODO(klimt): Do this incrementally so that it's not quadratic when
     // updating many documents.
     const oldLimboDocuments = this.limboDocuments;
     this.limboDocuments = documentKeySet();
-    if (this.current) {
-      this.documentSet.forEach(doc => {
-        if (this.shouldBeInLimbo(doc.key)) {
-          this.limboDocuments = this.limboDocuments.add(doc.key);
-        }
-      });
-    }
+    this.documentSet.forEach(doc => {
+      if (this.shouldBeInLimbo(doc.key)) {
+        this.limboDocuments = this.limboDocuments.add(doc.key);
+      }
+    });
 
     // Diff the new limbo docs with the old limbo docs.
     const changes: LimboDocumentChange[] = [];
