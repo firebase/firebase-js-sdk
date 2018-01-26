@@ -115,4 +115,35 @@ describeSpec('Offline:', [], () => {
         .expectEvents(query, { fromCache: false })
     );
   });
+
+  specTest('Queries with limbo documents handle going offline.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 1005, { key: 'b' });
+    const limboQuery = Query.atPath(docA.key.path);
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .watchResets(query)
+        // No more documents
+        .watchCurrents(query, 'resume-token-1001')
+        .watchSnapshots(1001)
+        // docA will now be in limbo (triggering fromCache=true)
+        .expectLimboDocs(docA.key)
+        .expectEvents(query, { fromCache: true })
+        // first error triggers unknown state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .restoreListen(query, 'resume-token-1001')
+        // getting two more errors triggers offline state.
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchAcksFull(query, 1001)
+        .watchAcksFull(limboQuery, 1001)
+        // Limbo document is resolved. No longer from cache.
+        .expectEvents(query, { removed: [docA], fromCache: false })
+        .expectLimboDocs()
+    );
+  });
 });
