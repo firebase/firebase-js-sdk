@@ -19,7 +19,7 @@
 import { SDK_VERSION } from '../core/version';
 import { AnyJs } from './misc';
 import { PlatformSupport } from '../platform/platform';
-import { Logger, LogLevel as _LogLevel } from "@firebase/logger";
+import { Logger, LogLevel as _LogLevel } from '@firebase/logger';
 
 const client = new Logger();
 
@@ -33,12 +33,12 @@ export enum LogLevel {
 export function getLogLevel(): LogLevel {
   if (client.logLevel === _LogLevel.DEBUG) {
     return LogLevel.DEBUG;
-  } 
-  
+  }
+
   if (client.logLevel === _LogLevel.SILENT) {
     return LogLevel.SILENT;
   }
-  
+
   return LogLevel.ERROR;
 }
 export function setLogLevel(newLevel: LogLevel): void {

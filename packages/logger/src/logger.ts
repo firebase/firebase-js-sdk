@@ -29,12 +29,12 @@ export const instances: Logger[] = [];
 /**
  * The JS SDK supports 5 log levels and also allows a user the ability to
  * silence the logs altogether.
- * 
+ *
  * The order is a follows:
  * DEBUG < VERBOSE < INFO < WARN < ERROR < SILENT
- * 
+ *
  * All of the log types above the current log level will be captured (i.e. if
- * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and 
+ * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and
  * `VERBOSE` logs will not)
  */
 export enum LogLevel {
@@ -51,14 +51,22 @@ export enum LogLevel {
  * type of log, the current log level, and any other arguments passed (i.e. the
  * messages that the user wants to log) to this function.
  */
-export type LogHandler = (logType: LogLevel, currentLogLevel: LogLevel, ...args: any[]) => void;
+export type LogHandler = (
+  logType: LogLevel,
+  currentLogLevel: LogLevel,
+  ...args: any[]
+) => void;
 
 /**
  * The default log handler will forward DEBUG, VERBOSE, INFO, WARN, and ERROR
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
-const defaultLogHandler: LogHandler = (logType: LogLevel, currentLevel: LogLevel, ...args: any[]) => {
+const defaultLogHandler: LogHandler = (
+  logType: LogLevel,
+  currentLevel: LogLevel,
+  ...args: any[]
+) => {
   if (logType < currentLevel) return;
   switch (logType) {
     case LogLevel.SILENT:
@@ -79,7 +87,6 @@ const defaultLogHandler: LogHandler = (logType: LogLevel, currentLevel: LogLevel
       console.debug(...args);
   }
 };
-
 
 export class Logger {
   constructor() {

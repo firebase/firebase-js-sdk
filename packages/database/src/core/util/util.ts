@@ -27,7 +27,7 @@ import { stringToByteArray } from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { SessionStorage } from '../storage/storage';
 import { isNodeSdk } from '@firebase/util';
-import { Logger } from "@firebase/logger";
+import { Logger } from '@firebase/logger';
 
 const logClient = new Logger();
 
