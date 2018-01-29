@@ -1,16 +1,23 @@
 # Unreleased
+- [fixed] Fixed a regression in Firebase JS release 4.9.0 that could in certain
+  cases result in an "OnlineState should not affect limbo documents." assertion
+  crash when the client loses its network connection.
+
+# 0.3.1
 - [changed] Snapshot listeners (with the `includeMetadataChanges` option
   enabled) now receive an event with `snapshot.metadata.fromCache` set to
   `true` if the SDK loses its connection to the backend. A new event with
   `snapshot.metadata.fromCache` set to false will be raised once the
   connection is restored and the query is in sync with the backend again.
-- [added] Added `SnapshotOptions` API to control how DocumentSnapshots 
+- [feature] Added `SnapshotOptions` API to control how DocumentSnapshots
   return unresolved server timestamps.
-- [changed] For non-existing documents, `DocumentSnapshot.data()` now returns 
-  `undefined` instead of throwing an exception. A new 
-  `QueryDocumentSnapshot` class is introduced for Queries to reduce the number 
+- [feature] Added `disableNetwork()` and `enableNetwork()` methods to
+  `Firestore` class, allowing for explicit network management.
+- [changed] For non-existing documents, `DocumentSnapshot.data()` now returns
+  `undefined` instead of throwing an exception. A new
+  `QueryDocumentSnapshot` class is introduced for Queries to reduce the number
   of undefined-checks in your code.
-- [added] Added `isEqual` API to `GeoPoint`, `Blob`, `SnapshotMetadata`, 
+- [added] Added `isEqual` API to `GeoPoint`, `Blob`, `SnapshotMetadata`,
   `DocumentSnapshot`, `QuerySnapshot`, `CollectionReference`, `FieldValue`
   and `FieldPath`.
 - [changed] A "Could not reach Firestore backend." message will be
