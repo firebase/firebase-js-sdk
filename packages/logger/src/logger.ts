@@ -47,6 +47,21 @@ export enum LogLevel {
 }
 
 /**
+ * A container for the default log level
+ */
+let defaultLogLevel: LogLevel = LogLevel.WARN;
+
+/**
+ * A function to set the default log level externally
+ */
+export function setDefaultLogLevel(val: LogLevel) {
+  if (!(val in LogLevel)) {
+    throw new TypeError('Attempted to Invalid value assigned to `logLevel`');
+  }
+  defaultLogLevel = val;
+}
+
+/**
  * We allow users the ability to pass their own log handler. We will pass the
  * type of log, the current log level, and any other arguments passed (i.e. the
  * messages that the user wants to log) to this function.
@@ -100,7 +115,7 @@ export class Logger {
    * The log level of the given logger. Though all of the log levels can be
    * centrally set, each logger can be set individually if it desires.
    */
-  private _logLevel = LogLevel.WARN;
+  private _logLevel = defaultLogLevel;
   get logLevel() {
     return this._logLevel;
   }
