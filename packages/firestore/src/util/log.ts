@@ -19,6 +19,9 @@
 import { SDK_VERSION } from '../core/version';
 import { AnyJs } from './misc';
 import { PlatformSupport } from '../platform/platform';
+import { Logger, LogLevel as _LogLevel } from "@firebase/logger";
+
+const client = new Logger();
 
 export enum LogLevel {
   DEBUG,
@@ -26,30 +29,32 @@ export enum LogLevel {
   SILENT
 }
 
-let logLevel = LogLevel.ERROR;
-
 // Helper methods are needed because variables can't be exported as read/write
 export function getLogLevel(): LogLevel {
-  return logLevel;
+  if (client.logLevel === _LogLevel.DEBUG) {
+    return LogLevel.DEBUG;
+  } 
+  
+  if (client.logLevel === _LogLevel.SILENT) {
+    return LogLevel.SILENT;
+  }
+  
+  return LogLevel.ERROR;
 }
 export function setLogLevel(newLevel: LogLevel): void {
-  logLevel = newLevel;
+  client.logLevel = newLevel;
 }
 
 export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
-  if (logLevel <= LogLevel.DEBUG) {
-    const time = new Date().toISOString();
-    const args = obj.map(argToString);
-    console.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
-  }
+  const time = new Date().toISOString();
+  const args = obj.map(argToString);
+  client.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
 }
 
 export function error(msg: string, ...obj: AnyJs[]): void {
-  if (logLevel <= LogLevel.ERROR) {
-    const time = new Date().toISOString();
-    const args = obj.map(argToString);
-    console.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
-  }
+  const time = new Date().toISOString();
+  const args = obj.map(argToString);
+  client.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
 }
 
 /**
