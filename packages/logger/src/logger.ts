@@ -31,7 +31,8 @@ export enum LogLevel {
   VERBOSE,
   INFO,
   WARN,
-  ERROR
+  ERROR,
+  SILENT
 }
 
 export type LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => void;
@@ -39,6 +40,8 @@ export type LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => vo
 const defaultLogHandler: LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => {
   if (type < level) return;
   switch (type) {
+    case LogLevel.SILENT:
+      return;
     case LogLevel.VERBOSE:
       console.log(...args);
       break;
