@@ -26,6 +26,17 @@
  */
 export const instances: Logger[] = [];
 
+/**
+ * The JS SDK supports 5 log levels and also allows a user the ability to
+ * silence the logs altogether.
+ * 
+ * The order is a follows:
+ * DEBUG < VERBOSE < INFO < WARN < ERROR < SILENT
+ * 
+ * All of the log types above the current log level will be captured (i.e. if
+ * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and 
+ * `VERBOSE` logs will not)
+ */
 export enum LogLevel {
   DEBUG,
   VERBOSE,
@@ -35,11 +46,21 @@ export enum LogLevel {
   SILENT
 }
 
-export type LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => void;
+/**
+ * We allow users the ability to pass their own log handler. We will pass the
+ * type of log, the current log level, and any other arguments passed (i.e. the
+ * messages that the user wants to log) to this function.
+ */
+export type LogHandler = (logType: LogLevel, currentLogLevel: LogLevel, ...args: any[]) => void;
 
-const defaultLogHandler: LogHandler = (type: LogLevel, level: LogLevel, ...args: any[]) => {
-  if (type < level) return;
-  switch (type) {
+/**
+ * The default log handler will forward DEBUG, VERBOSE, INFO, WARN, and ERROR
+ * messages on to their corresponding console counterparts (if the log method
+ * is supported by the current log level)
+ */
+const defaultLogHandler: LogHandler = (logType: LogLevel, currentLevel: LogLevel, ...args: any[]) => {
+  if (logType < currentLevel) return;
+  switch (logType) {
     case LogLevel.SILENT:
       return;
     case LogLevel.VERBOSE:
@@ -67,6 +88,11 @@ export class Logger {
      */
     instances.push(this);
   }
+
+  /**
+   * The log level of the given logger. Though all of the log levels can be
+   * centrally set, each logger can be set individually if it desires.
+   */
   private _logLevel = LogLevel.WARN;
   get logLevel() {
     return this._logLevel;
@@ -78,6 +104,11 @@ export class Logger {
     this._logLevel = val;
   }
 
+  /**
+   * The log handler for the current logger instance. This can be set to any
+   * function value, though this should not be needed the vast majority of the
+   * time
+   */
   private _logHandler: LogHandler = defaultLogHandler;
   get logHandler() {
     return this._logHandler;
@@ -88,6 +119,10 @@ export class Logger {
     }
     this._logHandler = val;
   }
+
+  /**
+   * The functions below are all based on the `console` interface
+   */
 
   debug(...args) {
     this._logHandler(LogLevel.DEBUG, this._logLevel, ...args);
