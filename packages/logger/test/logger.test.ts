@@ -13,3 +13,80 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { expect } from "chai";
+import { spy as Spy } from "sinon";
+import { Logger, LogLevel } from "../src/logger";
+import { setLogLevel } from "../index";
+import { debug } from "util";
+
+describe('@firebase/logger', () => {
+  const message = 'Hello there!';  
+  let client: Logger;
+  const spies = {
+    debugSpy: null,
+    logSpy: null,
+    infoSpy: null,
+    warnSpy: null,
+    errorSpy: null
+  }
+  /**
+   * Before each test, instantiate a new instance of Logger and set the log
+   * level so that all 
+   * 
+   * Also spy on all of the console methods so we can assert against them as
+   * needed
+   */
+  beforeEach(() => {
+    client = new Logger();
+
+    spies.debugSpy = Spy(console, 'debug');
+    spies.logSpy = Spy(console, 'log');
+    spies.infoSpy = Spy(console, 'info');
+    spies.warnSpy = Spy(console, 'warn');
+    spies.errorSpy = Spy(console, 'error');
+  });
+
+  afterEach(() => {
+    spies.debugSpy.restore();
+    spies.logSpy.restore();
+    spies.infoSpy.restore();
+    spies.warnSpy.restore();
+    spies.errorSpy.restore();
+  });
+
+  function testLog(message, channel, shouldLog) {
+    it(`Should ${shouldLog ? '' : 'not'} call \`console.${channel}\` if \`.${channel}\` is called`, () => {
+      client[channel](message);
+      expect(
+        spies[`${channel}Spy`] && spies[`${channel}Spy`].called, 
+        `Expected ${channel} to ${shouldLog ? '' : 'not'} log`
+    ).to.be[shouldLog ? 'true' : 'false'];
+    });
+  }
+
+  describe('Class instance methods', () => {
+    /**
+     * Allow all logs to be exported for this block of tests
+     */
+    before(() => {
+      setLogLevel(LogLevel.DEBUG);
+    });
+    testLog(message, 'debug', true);
+    testLog(message, 'log', true);
+    testLog(message, 'info', true);
+    testLog(message, 'warn', true);
+    testLog(message, 'error', true);
+  });
+
+  describe('Defaults', () => {
+    before(() => {
+      setLogLevel(LogLevel.WARN);
+    });
+    testLog(message, 'debug', false);
+    testLog(message, 'log', false);
+    testLog(message, 'info', false);
+    testLog(message, 'warn', true);
+    testLog(message, 'error', true);
+  });
+});
