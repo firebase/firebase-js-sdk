@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { expect } from "chai";
-import { spy as Spy } from "sinon";
-import { Logger, LogLevel } from "../src/logger";
-import { setLogLevel } from "../index";
-import { debug } from "util";
+import { expect } from 'chai';
+import { spy as Spy } from 'sinon';
+import { Logger, LogLevel } from '../src/logger';
+import { setLogLevel } from '../index';
+import { debug } from 'util';
 
 describe('@firebase/logger', () => {
-  const message = 'Hello there!';  
+  const message = 'Hello there!';
   let client: Logger;
   const spies = {
     debugSpy: null,
@@ -29,11 +29,11 @@ describe('@firebase/logger', () => {
     infoSpy: null,
     warnSpy: null,
     errorSpy: null
-  }
+  };
   /**
    * Before each test, instantiate a new instance of Logger and set the log
-   * level so that all 
-   * 
+   * level so that all
+   *
    * Also spy on all of the console methods so we can assert against them as
    * needed
    */
@@ -56,12 +56,14 @@ describe('@firebase/logger', () => {
   });
 
   function testLog(message, channel, shouldLog) {
-    it(`Should ${shouldLog ? '' : 'not'} call \`console.${channel}\` if \`.${channel}\` is called`, () => {
+    it(`Should ${shouldLog ? '' : 'not'} call \`console.${channel}\` if \`.${
+      channel
+    }\` is called`, () => {
       client[channel](message);
       expect(
-        spies[`${channel}Spy`] && spies[`${channel}Spy`].called, 
+        spies[`${channel}Spy`] && spies[`${channel}Spy`].called,
         `Expected ${channel} to ${shouldLog ? '' : 'not'} log`
-    ).to.be[shouldLog ? 'true' : 'false'];
+      ).to.be[shouldLog ? 'true' : 'false'];
     });
   }
 
