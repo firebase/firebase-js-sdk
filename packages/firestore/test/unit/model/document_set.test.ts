@@ -50,10 +50,6 @@ describe('DocumentSet', () => {
     const results: Document[] = [];
     set.forEach((d: Document) => results.push(d));
     expect(results).to.deep.equal([d3, d1, d2]);
-
-    expect(set.prevDoc(d3.key)).to.deep.equal(null);
-    expect(set.prevDoc(d1.key)).to.deep.equal(d3);
-    expect(set.prevDoc(d2.key)).to.deep.equal(d1);
   });
 
   it('adds and deletes elements', () => {
@@ -90,7 +86,6 @@ describe('DocumentSet', () => {
     const set = documentSet(comp, doc1, doc2);
     expect(set.has(doc1.key)).to.equal(true);
     expect(set.has(doc2.key)).to.equal(true);
-    expect(set.prevDoc(doc2.key)).to.equal(doc1);
   });
 
   it('equals to other document set with the same elements and order', () => {
