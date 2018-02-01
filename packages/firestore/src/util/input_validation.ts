@@ -193,9 +193,9 @@ export function validateNamedPropertyEquals<T>(
     Code.INVALID_ARGUMENT,
     `Invalid value ${actualDescription} provided to function ${
       functionName
-    }() for option "serverTimestamps". Acceptable values: ${expectedDescription.join(
-      ', '
-    )}`
+    }() for option "${
+      optionName
+    }". Acceptable values: ${expectedDescription.join(', ')}`
   );
 }
 
