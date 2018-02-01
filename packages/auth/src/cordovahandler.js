@@ -35,6 +35,7 @@ goog.require('fireauth.AuthEvent');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.OAuthSignInHandler');
+goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.storage.AuthEventManager');
@@ -724,16 +725,6 @@ fireauth.CordovaHandler.prototype.extractAuthEventFromUrl_ =
 fireauth.CordovaHandler.prototype.setAuthEventListener_ = function() {
   // https://github.com/nordnet/cordova-universal-links-plugin
   var self = this;
-  // Get universal link subscriber.
-  var subscribe = fireauth.util.getObjectRef(
-      'universalLinks.subscribe', goog.global);
-  // Should not occur as initializeAndWait will ensure that.
-  if (typeof subscribe !== 'function') {
-    // Universal link plugin not installed.
-    throw new fireauth.AuthError(
-        fireauth.authenum.Error.INVALID_CORDOVA_CONFIGURATION);
-  }
-  // Universal link plugin installed.
   // Default no redirect event result.
   var noEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.UNKNOWN,
@@ -805,7 +796,7 @@ fireauth.CordovaHandler.prototype.setAuthEventListener_ = function() {
       }
     }
   };
-  subscribe(null, universalLinkCb);
+  fireauth.UniversalLinkSubscriber.getInstance().subscribe(universalLinkCb);
 };
 
 
