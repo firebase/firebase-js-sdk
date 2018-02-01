@@ -25,6 +25,7 @@ goog.require('fireauth.AuthEvent');
 goog.require('fireauth.CordovaHandler');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
+goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
@@ -183,6 +184,7 @@ function tearDown() {
   if (goog.global['handleOpenURL']) {
     delete goog.global['handleOpenURL'];
   }
+  fireauth.UniversalLinkSubscriber.clear();
 }
 
 
