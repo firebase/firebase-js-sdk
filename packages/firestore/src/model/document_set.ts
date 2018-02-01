@@ -79,20 +79,6 @@ export class DocumentSet {
   }
 
   /**
-   * Returns previous document or null if it's a first doc.
-   *
-   * @param key A key that MUST be present in the DocumentSet.
-   */
-  prevDoc(key: DocumentKey): Document | null {
-    assert(
-      this.has(key),
-      'Trying to get a previous document to non-existing key: ' + key
-    );
-    const doc = this.keyedMap.get(key);
-    return this.sortedSet.getPredecessorKey(doc!);
-  }
-
-  /**
    * Returns the index of the provided key in the document set, or -1 if the
    * document key is not present in the set;
    */
