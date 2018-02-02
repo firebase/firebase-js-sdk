@@ -251,7 +251,6 @@ export class LocalStorageNotificationChannel implements TabNotificationChannel {
     }
   };
 
-
   constructor(private persistenceKey: string, private instanceId: string) {
     this.currentInstanceKey = this.buildKey(
       INSTANCE_ROW_PREFIX,
