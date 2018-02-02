@@ -26,6 +26,11 @@ export type BatchId = number;
  */
 export type TargetId = number;
 
+/**
+ * A randomly-generated key assigned to each Firestore instance at startup.
+ */
+export type InstanceKey = string;
+
 // TODO(b/35918695): In GRPC / node, tokens are Uint8Array. In WebChannel,
 // they're strings. We should probably (de-)serialize to a common internal type.
 export type ProtoByteString = Uint8Array | string;

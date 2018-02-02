@@ -19,6 +19,21 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  InstanceState,
+  LocalStorageNotificationChannel,
+  TabNotificationChannel
+} from '../../../src/local/tab_notification_channel';
+import { AutoId } from '../../../src/util/misc';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { StringMap } from '../../../src/util/types';
+import { BatchId, InstanceKey, TargetId } from '../../../src/core/types';
+
+/** The persistence prefix used for testing in IndexedBD and LocalStorage. */
+export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
+
+/** The instance key of the secondary instance in LocalStorage. */
+const SECONDARY_INSTANCE_KEY: InstanceKey = 'AlternativePersistence';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -27,7 +42,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 export async function testIndexedDbPersistence(): Promise<
   IndexedDbPersistence
 > {
-  const prefix = 'PersistenceTestHelpers/';
+  const prefix = '${testPersistencePrefix}/';
   await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
@@ -43,4 +58,43 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   const persistence = new MemoryPersistence();
   await persistence.start();
   return persistence;
+}
+
+/**
+ * Creates LocalStorageNotificationChannel instance for testing, destroying any
+ * previous contents if they existed.
+ */
+export async function testLocalStorageNotificationChannel(
+  ownerId: string,
+  existingMutationBatches: BatchId[],
+  existingQueryTargets: TargetId[]
+): Promise<TabNotificationChannel> {
+  window.localStorage.clear();
+  const instances = [];
+
+  if (existingMutationBatches.length + existingQueryTargets.length != 0) {
+    const secondaryChannel = new LocalStorageNotificationChannel(
+      TEST_PERSISTENCE_PREFIX,
+      SECONDARY_INSTANCE_KEY
+    );
+
+    instances.push(SECONDARY_INSTANCE_KEY);
+
+    await secondaryChannel.start([]);
+
+    for (const batchId of existingMutationBatches) {
+      secondaryChannel.addPendingMutation(batchId);
+    }
+
+    for (const targetId of existingQueryTargets) {
+      secondaryChannel.addActiveQueryTarget(targetId);
+    }
+  }
+
+  const notificationChannel = new LocalStorageNotificationChannel(
+    TEST_PERSISTENCE_PREFIX,
+    ownerId
+  );
+  await notificationChannel.start(instances);
+  return notificationChannel;
 }
