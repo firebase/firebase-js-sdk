@@ -34,6 +34,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbTransaction } from './simple_db';
+import {IndexedDbMigrations} from './indexeddb_migrations';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -127,7 +128,7 @@ export class IndexedDbPersistence implements Persistence {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     this.started = true;
 
-    return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
+    return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, IndexedDbMigrations.runMigrations)
       .then(db => {
         this.simpleDb = db;
       })

@@ -24,51 +24,6 @@ import { encode, EncodedResourcePath } from './encoded_resource_path';
 
 export const SCHEMA_VERSION = 1;
 
-/** Performs database creation and (in the future) upgrades between versions. */
-export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number): void {
-  assert(oldVersion === 0, 'Unexpected upgrade from version ' + oldVersion);
-
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
-
-  // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their
-  // types. https://github.com/Microsoft/TypeScript/issues/14322
-  db.createObjectStore(
-    DbMutationBatch.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbMutationBatch.keyPath as any }
-  );
-
-  const targetDocumentsStore = db.createObjectStore(
-    DbTargetDocument.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbTargetDocument.keyPath as any }
-  );
-  targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
-    { unique: true }
-  );
-
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
-  });
-  // NOTE: This is unique only because the TargetId is the suffix.
-  targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
-    { unique: true }
-  );
-
-  // NOTE: keys for these stores are specified explicitly rather than using a
-  // keyPath.
-  db.createObjectStore(DbDocumentMutation.store);
-  db.createObjectStore(DbRemoteDocument.store);
-  db.createObjectStore(DbOwner.store);
-  db.createObjectStore(DbTargetGlobal.store);
-}
-
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
  */
@@ -452,6 +407,21 @@ export class DbTargetGlobal {
      * prevents our cache from ever going backwards in time.
      */
     public lastRemoteSnapshotVersion: DbTimestamp
+  ) {}
+}
+
+export type DbInstanceKey = [string, string];
+
+export class DbInstance {
+  static store = 'instances';
+
+  static keyPath = ['userId', 'instanceId'];
+
+  constructor(
+      public userId: string,
+      public instanceId: string,
+      public updateTimeMs: number,
+      public visibilityState: VisibilityState
   ) {}
 }
 
