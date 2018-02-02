@@ -20,13 +20,9 @@ import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
-  InstanceState,
   LocalStorageNotificationChannel,
   TabNotificationChannel
 } from '../../../src/local/tab_notification_channel';
-import { AutoId } from '../../../src/util/misc';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { StringMap } from '../../../src/util/types';
 import { BatchId, InstanceKey, TargetId } from '../../../src/core/types';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */

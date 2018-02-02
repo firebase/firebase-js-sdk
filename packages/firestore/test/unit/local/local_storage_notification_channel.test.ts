@@ -138,10 +138,11 @@ describe('LocalStorageNotificationChannel', () => {
   });
 
   describe('combines instance data', () => {
-    const initialTargets = [3, 4];
+    let browserCallback;
     let eventCallback;
 
     beforeEach(() => {
+      browserCallback = window.addEventListener;
       window.addEventListener = (type, callback) => {
         expect(type).to.be.equal('storage');
         eventCallback = callback;
@@ -153,6 +154,10 @@ describe('LocalStorageNotificationChannel', () => {
           notificationChannel = nc;
           expect(eventCallback).to.not.be.undefined;
         });
+    });
+
+    afterEach(() => {
+      window.addEventListener = browserCallback;
     });
 
     const verifyState = (minBatchId: BatchId, activeTargets: TargetId[]) => {

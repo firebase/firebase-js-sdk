@@ -25,7 +25,6 @@ import {
   validateNamedOptionalType,
   validateNamedType
 } from '../util/input_validation';
-import { StringMap } from '../util/types';
 
 // Prefix keys used in WebStorage.
 const FIRESTORE_PREFIX = 'fs';
@@ -46,7 +45,7 @@ export interface TabNotificationChannel {
   /** Associates a new Mutation Batch with the current Firestore instance. */
   addPendingMutation(batchId: BatchId): void;
 
-  /** Removes a Mutation Batch from the current Firestore instance .*/
+  /** Removes a Mutation Batch from the current Firestore instance. */
   removePendingMutation(batchId: BatchId): void;
 
   /** Gets the minimum mutation batch for all active instances. */
