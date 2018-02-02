@@ -3707,16 +3707,6 @@ grpc@1.7.1, grpc@^1.7.1:
     node-pre-gyp "^0.6.39"
     protobufjs "^5.0.0"
 
-grpc@^1.6.6:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/grpc/-/grpc-1.8.0.tgz#9d49f1b05c19c4a35c480bd14c632386de6bf664"
-  dependencies:
-    arguejs "^0.2.3"
-    lodash "^4.17.4"
-    nan "^2.8.0"
-    node-pre-gyp "^0.6.39"
-    protobufjs "^5.0.2"
-
 gtoken@^1.2.1:
   version "1.2.3"
   resolved "https://registry.yarnpkg.com/gtoken/-/gtoken-1.2.3.tgz#5509571b8afd4322e124cf66cf68115284c476d8"
@@ -6012,7 +6002,7 @@ mz@^2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.0.0, nan@^2.3.0, nan@^2.8.0:
+nan@^2.0.0, nan@^2.3.0:
   version "2.8.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.8.0.tgz#ed715f3fe9de02b57a5e6252d90a96675e1f085a"
 
@@ -6804,7 +6794,7 @@ prompt@1.0.0:
     utile "0.3.x"
     winston "2.1.x"
 
-protobufjs@^5.0.0, protobufjs@^5.0.2:
+protobufjs@^5.0.0:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-5.0.2.tgz#59748d7dcf03d2db22c13da9feb024e16ab80c91"
   dependencies:
@@ -7684,6 +7674,18 @@ sinon@^4.0.2:
     supports-color "^4.4.0"
     type-detect "^4.0.0"
 
+sinon@^4.1.3:
+  version "4.2.2"
+  resolved "https://registry.npmjs.org/sinon/-/sinon-4.2.2.tgz#e039ab27bdb426fc61363c380726e996a2e2c620"
+  dependencies:
+    diff "^3.1.0"
+    formatio "1.2.0"
+    lodash.get "^4.4.2"
+    lolex "^2.2.0"
+    nise "^1.2.0"
+    supports-color "^5.1.0"
+    type-detect "^4.0.5"
+
 slice-ansi@0.0.4:
   version "0.0.4"
   resolved "https://registry.npmjs.org/slice-ansi/-/slice-ansi-0.0.4.tgz#edbf8903f66f7ce2f8eafd6ceed65e264c831b35"
@@ -8219,6 +8221,12 @@ supports-color@^3.1.0, supports-color@^3.1.2:
 supports-color@^4.0.0, supports-color@^4.2.1, supports-color@^4.4.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-4.5.0.tgz#be7a0de484dec5c5cddf8b3d59125044912f635b"
+  dependencies:
+    has-flag "^2.0.0"
+
+supports-color@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/supports-color/-/supports-color-5.1.0.tgz#058a021d1b619f7ddf3980d712ea3590ce7de3d5"
   dependencies:
     has-flag "^2.0.0"
 
