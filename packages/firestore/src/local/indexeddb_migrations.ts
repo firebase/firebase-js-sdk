@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 import {
-  DbDocumentMutation, DbInstance,
-  DbMutationBatch, DbMutationQueue, DbOwner,
-  DbRemoteDocument, DbTarget,
-  DbTargetDocument, DbTargetGlobal
+  DbDocumentMutation,
+  DbInstance,
+  DbMutationBatch,
+  DbMutationQueue,
+  DbOwner,
+  DbRemoteDocument,
+  DbTarget,
+  DbTargetDocument,
+  DbTargetGlobal
 } from './indexeddb_schema';
-import {assert, fail} from '../util/assert';
+import { assert, fail } from '../util/assert';
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
 // https://github.com/Microsoft/TypeScript/issues/14322
 type KeyPath = any; // tslint:disable-line:no-any
 
 function createCache(db: IDBDatabase): void {
-  const targetDocumentsStore = db.createObjectStore(
-      DbTargetDocument.store,
-      { keyPath: DbTargetDocument.keyPath as KeyPath }
-  );
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
+    keyPath: DbTargetDocument.keyPath as KeyPath
+  });
   targetDocumentsStore.createIndex(
-      DbTargetDocument.documentTargetsIndex,
-      DbTargetDocument.documentTargetsKeyPath,
-      { unique: true }
+    DbTargetDocument.documentTargetsIndex,
+    DbTargetDocument.documentTargetsKeyPath,
+    { unique: true }
   );
 
   const targetStore = db.createObjectStore(DbTarget.store, {
@@ -42,9 +46,9 @@ function createCache(db: IDBDatabase): void {
 
   // NOTE: This is unique only because the TargetId is the suffix.
   targetStore.createIndex(
-      DbTarget.queryTargetsIndexName,
-      DbTarget.queryTargetsKeyPath,
-      { unique: true }
+    DbTarget.queryTargetsIndexName,
+    DbTarget.queryTargetsKeyPath,
+    { unique: true }
   );
   db.createObjectStore(DbRemoteDocument.store);
   db.createObjectStore(DbTargetGlobal.store);
@@ -57,25 +61,24 @@ function dropCache(db: IDBDatabase): void {
   db.deleteObjectStore(DbTargetGlobal.store);
 }
 
-function createOwnerStore(db: IDBDatabase) : void {
+function createOwnerStore(db: IDBDatabase): void {
   db.createObjectStore(DbOwner.store);
 }
 
-function createInstanceStore(db: IDBDatabase) : void {
+function createInstanceStore(db: IDBDatabase): void {
   db.createObjectStore(DbInstance.store, {
     keyPath: DbInstance.keyPath as KeyPath
   });
 }
 
-function createMutationQueue(db: IDBDatabase) : void {
+function createMutationQueue(db: IDBDatabase): void {
   db.createObjectStore(DbMutationQueue.store, {
     keyPath: DbMutationQueue.keyPath
   });
 
-  db.createObjectStore(
-      DbMutationBatch.store,
-      { keyPath: DbMutationBatch.keyPath as KeyPath }
-  );
+  db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath as KeyPath
+  });
 
   // NOTE: keys for these stores are specified explicitly rather than using a
   // keyPath.
@@ -86,9 +89,19 @@ function createMutationQueue(db: IDBDatabase) : void {
  * Runs any migrations needed to bring the given database up to the current
  * schema version.
  */
-export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number, newVersion: number): void   {
-  assert(oldVersion >= 0 || oldVersion <= 1, 'Unexpected upgrade from version ' + oldVersion);
-  assert(newVersion >= 1 || newVersion <= 2, 'Unexpected upgrade to version ' + newVersion);
+export function createOrUpgradeDb(
+  db: IDBDatabase,
+  oldVersion: number,
+  newVersion: number
+): void {
+  assert(
+    oldVersion >= 0 || oldVersion <= 1,
+    'Unexpected upgrade from version ' + oldVersion
+  );
+  assert(
+    newVersion >= 1 || newVersion <= 2,
+    'Unexpected upgrade to version ' + newVersion
+  );
 
   const createV1 = newVersion >= 1 && oldVersion <= 1;
   const dropV1 = oldVersion >= 1;

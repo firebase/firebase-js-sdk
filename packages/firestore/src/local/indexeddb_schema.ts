@@ -21,7 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {SnapshotVersion} from '../core/snapshot_version';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 export const SCHEMA_VERSION = 1;
 
@@ -88,14 +88,13 @@ export class DbMutationQueue {
      * only a single stream token is retained.
      */
     public lastStreamToken: string,
-
     /**
      * An identifier for the highest numbered batch that has been acknowledged
      * by the server. All MutationBatches in this queue with batchIds less
      * than or equal to this value are considered to have been acknowledged by
      * the server.
      */
-    public highestPendingBatchId: number,
+    public highestPendingBatchId: number
   ) {}
 }
 
@@ -368,7 +367,6 @@ export class DbTargetDocument {
      * The targetId identifying a target.
      */
     public targetId: TargetId,
-
     public snapshotVersion: number,
     /**
      * The path to the document, as encoded in the key.
@@ -429,9 +427,9 @@ export class DbInstance {
   static keyPath = ['userId', 'instanceId'];
 
   constructor(
-      public userId: string,
-      public instanceId: string,
-      public updateTimeMs: number
+    public userId: string,
+    public instanceId: string,
+    public updateTimeMs: number
   ) {}
 }
 

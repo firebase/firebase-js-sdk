@@ -19,7 +19,7 @@ import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
-import {SCHEMA_VERSION} from './indexeddb_schema';
+import { SCHEMA_VERSION } from './indexeddb_schema';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -35,7 +35,11 @@ export class SimpleDb {
   static openOrCreate(
     name: string,
     version: number,
-    runUpgrade: (db: IDBDatabase, oldVersion: number, newVersion: number) => void
+    runUpgrade: (
+      db: IDBDatabase,
+      oldVersion: number,
+      newVersion: number
+    ) => void
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),

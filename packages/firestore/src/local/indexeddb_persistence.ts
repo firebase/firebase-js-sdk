@@ -34,7 +34,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbTransaction } from './simple_db';
-import {createOrUpgradeDb} from './indexeddb_migrations';
+import { createOrUpgradeDb } from './indexeddb_migrations';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
