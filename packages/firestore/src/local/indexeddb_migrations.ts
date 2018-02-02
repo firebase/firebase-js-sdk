@@ -15,28 +15,20 @@
  */
 import {
   DbDocumentMutation, DbInstance,
-  DbMutationBatch, DbMutationQueue, DbOwner, DbRemoteDocument, DbTarget,
+  DbMutationBatch, DbMutationQueue, DbOwner,
+  DbRemoteDocument, DbTarget,
   DbTargetDocument, DbTargetGlobal
 } from './indexeddb_schema';
-import {fail} from '../util/assert';
+import {assert, fail} from '../util/assert';
 
-export function createDb(db: IDBDatabase): void {
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
+// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
+// https://github.com/Microsoft/TypeScript/issues/14322
+type KeyPath = any; // tslint:disable-line:no-any
 
-  // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their
-  // types. https://github.com/Microsoft/TypeScript/issues/14322
-  db.createObjectStore(
-      DbMutationBatch.store,
-      // tslint:disable-next-line:no-any
-      { keyPath: DbMutationBatch.keyPath as any }
-  );
-
+function createCache(db: IDBDatabase): void {
   const targetDocumentsStore = db.createObjectStore(
       DbTargetDocument.store,
-      // tslint:disable-next-line:no-any
-      { keyPath: DbTargetDocument.keyPath as any }
+      { keyPath: DbTargetDocument.keyPath as KeyPath }
   );
   targetDocumentsStore.createIndex(
       DbTargetDocument.documentTargetsIndex,
@@ -47,45 +39,72 @@ export function createDb(db: IDBDatabase): void {
   const targetStore = db.createObjectStore(DbTarget.store, {
     keyPath: DbTarget.keyPath
   });
+
   // NOTE: This is unique only because the TargetId is the suffix.
   targetStore.createIndex(
       DbTarget.queryTargetsIndexName,
       DbTarget.queryTargetsKeyPath,
       { unique: true }
   );
+  db.createObjectStore(DbRemoteDocument.store);
+  db.createObjectStore(DbTargetGlobal.store);
+}
 
-  const instanceStore = db.createObjectStore(DbInstance.store, {
-    keyPath: DbInstance.keyPath as any
+function dropCache(db: IDBDatabase): void {
+  db.deleteObjectStore(DbTargetDocument.store);
+  db.deleteObjectStore(DbTarget.keyPath);
+  db.deleteObjectStore(DbRemoteDocument.store);
+  db.deleteObjectStore(DbTargetGlobal.store);
+}
+
+function createOwnerStore(db: IDBDatabase) : void {
+  db.createObjectStore(DbOwner.store);
+}
+
+function createInstanceStore(db: IDBDatabase) : void {
+  db.createObjectStore(DbInstance.store, {
+    keyPath: DbInstance.keyPath as KeyPath
   });
+}
+
+function createMutationQueue(db: IDBDatabase) : void {
+  db.createObjectStore(DbMutationQueue.store, {
+    keyPath: DbMutationQueue.keyPath
+  });
+
+  db.createObjectStore(
+      DbMutationBatch.store,
+      { keyPath: DbMutationBatch.keyPath as KeyPath }
+  );
 
   // NOTE: keys for these stores are specified explicitly rather than using a
   // keyPath.
   db.createObjectStore(DbDocumentMutation.store);
-  db.createObjectStore(DbRemoteDocument.store);
-  db.createObjectStore(DbOwner.store);
-  db.createObjectStore(DbTargetGlobal.store);
 }
 
-export function upgradeDbFromV1(db: IDBDatabase): void {
+/**
+ * Runs any migrations needed to bring the given database up to the current
+ * schema version.
+ */
+export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number, newVersion: number): void   {
+  assert(oldVersion >= 0 || oldVersion <= 1, 'Unexpected upgrade from version ' + oldVersion);
+  assert(newVersion >= 1 || newVersion <= 2, 'Unexpected upgrade to version ' + newVersion);
 
-}
+  const createV1 = newVersion >= 1 && oldVersion <= 1;
+  const dropV1 = oldVersion >= 1;
+  const createV2 = newVersion >= 2 && oldVersion <= 2;
 
-export class IndexedDbMigrations {
-  /**
-   * Runs any migrations needed to bring the given database up to the current
-   * schema version.
-   */
-  static runMigrations(db: IDBDatabase, oldVersion: number) {
-    if (oldVersion == 0) {
-      createDb(db, oldVersion);
-      return;
-    }
+  if (dropV1) {
+    dropCache(db);
+  }
 
-    if (oldVersion == 1) {
-      upgradeDbFromV1(db, oldVersion);
-      return;
-    }
+  if (createV1) {
+    createOwnerStore(db);
+    createMutationQueue(db);
+    createCache(db);
+  }
 
-    fail('Unexpected upgrade from version ' + oldVersion);
+  if (createV2) {
+    createInstanceStore(db);
   }
 }

@@ -21,6 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
+import {SnapshotVersion} from '../core/snapshot_version';
 
 export const SCHEMA_VERSION = 1;
 
@@ -86,7 +87,15 @@ export class DbMutationQueue {
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
      */
-    public lastStreamToken: string
+    public lastStreamToken: string,
+
+    /**
+     * An identifier for the highest numbered batch that has been acknowledged
+     * by the server. All MutationBatches in this queue with batchIds less
+     * than or equal to this value are considered to have been acknowledged by
+     * the server.
+     */
+    public highestPendingBatchId: number,
   ) {}
 }
 
@@ -345,8 +354,8 @@ export class DbTargetDocument {
   /** Name of the IndexedDb object store.  */
   static store = 'targetDocuments';
 
-  /** Keys are automatically assigned via the targetId, path properties. */
-  static keyPath = ['targetId', 'path'];
+  /** Keys are automatically assigned via the targetId, snapshotVersion, and path properties. */
+  static keyPath = ['targetId', 'snapshotVersion', 'path'];
 
   /** The index name for the reverse index. */
   static documentTargetsIndex = 'documentTargetsIndex';
@@ -359,6 +368,8 @@ export class DbTargetDocument {
      * The targetId identifying a target.
      */
     public targetId: TargetId,
+
+    public snapshotVersion: number,
     /**
      * The path to the document, as encoded in the key.
      */
@@ -420,8 +431,7 @@ export class DbInstance {
   constructor(
       public userId: string,
       public instanceId: string,
-      public updateTimeMs: number,
-      public visibilityState: VisibilityState
+      public updateTimeMs: number
   ) {}
 }
 
@@ -437,5 +447,6 @@ export const ALL_STORES = [
   DbTarget.store,
   DbOwner.store,
   DbTargetGlobal.store,
-  DbTargetDocument.store
+  DbTargetDocument.store,
+  DbInstance.store
 ];
