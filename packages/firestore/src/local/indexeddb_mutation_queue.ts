@@ -80,7 +80,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
     assert(user.uid !== '', 'UserID must not be an empty string.');
-    const userId = user.isUnauthenticated() ? '' : user.uid!;
+    const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(userId, serializer);
   }
 
