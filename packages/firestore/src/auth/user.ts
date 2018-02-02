@@ -29,8 +29,8 @@ export class User {
 
   constructor(readonly uid: string | null) {}
 
-  isUnauthenticated(): boolean {
-    return this.uid == null;
+  isAuthenticated(): boolean {
+    return this.uid != null;
   }
 
   /**
@@ -38,10 +38,10 @@ export class User {
    * dictionary.
    */
   toKey(): string {
-    if (this.isUnauthenticated()) {
-      return 'anonymous-user';
-    } else {
+    if (this.isAuthenticated()) {
       return 'uid:' + this.uid;
+    } else {
+      return 'anonymous-user';
     }
   }
 
