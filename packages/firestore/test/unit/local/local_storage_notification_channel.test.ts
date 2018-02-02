@@ -87,15 +87,13 @@ describe('LocalStorageNotificationChannel', () => {
         });
     });
 
+    it('with empty batch', () => {
+      assertInstanceState([]);
+    });
+
     it('with one batch', () => {
       notificationChannel.addPendingMutation(0);
       assertInstanceState([], 0, 0);
-    });
-
-    it('with empty batch', () => {
-      notificationChannel.addPendingMutation(0);
-      notificationChannel.removePendingMutation(0);
-      assertInstanceState([]);
     });
 
     it('with multiple batches', () => {
@@ -123,8 +121,6 @@ describe('LocalStorageNotificationChannel', () => {
     });
 
     it('with empty targets', () => {
-      notificationChannel.addActiveQueryTarget(0);
-      notificationChannel.removeActiveQueryTarget(0);
       assertInstanceState([]);
     });
 

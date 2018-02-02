@@ -62,12 +62,12 @@ export interface TabNotificationChannel {
   getAllActiveQueryTargets(): Set<TargetId>;
 
   /**
-   * Starts the TabNotificationChannel,  reads existing instance data for all
+   * Starts the TabNotificationChannel, reads existing instance data for all
    * `knownInstances` and registers listeners for newly added instances.
    */
   start(knownInstances: InstanceKey[]): void;
 
-  /** Shutdown the `TabNotificationChannel` and its listeners. */
+  /** Shuts down the `TabNotificationChannel` and its listeners. */
   shutdown(): void;
 }
 
