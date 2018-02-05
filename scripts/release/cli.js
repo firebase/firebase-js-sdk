@@ -154,11 +154,16 @@ const { argv } = require('yargs');
     await updateWorkspaceVersions(versions, argv.canary);
 
     /**
-     * Clean install dependencies
+     * Users can pass --skipRebuild to skip the rebuild step
      */
-    console.log('\r\nVerifying Build');
-    await cleanTree();
-    await reinstallDeps();
+    if (!argv.skipRebuild) {
+      /**
+       * Clean install dependencies
+       */
+      console.log('\r\nVerifying Build');
+      await cleanTree();
+      await reinstallDeps();
+    }
 
     /**
      * Don't do the following for canary releases:
@@ -171,8 +176,14 @@ const { argv } = require('yargs');
       /**
        * Ensure all tests are passing
        */
-      await setupTestDeps();
-      await runTests();
+
+      /**
+       * Users can pass --skipTests to skip the testing step
+       */
+      if (!argv.skipTests) {
+        await setupTestDeps();
+        await runTests();
+      }
 
       const { readyToPush } = await prompt(validateReadyToPush);
       if (!readyToPush) throw new Error('Push Check Failed');
