@@ -21,9 +21,38 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SnapshotVersion } from '../core/snapshot_version';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+/**
+ * Performs database creation and schema migrations up to schema version 2.
+ */
+export function createOrUpgradeDb(
+  db: IDBDatabase,
+  fromVersion: number,
+  toVersion: number
+): void {
+  assert(
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
+  );
+
+  if (toVersion === 2) {
+    createInstanceMetadataStore(db);
+    createTargetChangeStore(db);
+  }
+
+  if (fromVersion == 0 && toVersion >= 1) {
+    createOwnerStore(db);
+    createMutationQueue(db);
+    createQueryCache(db);
+    createRemoteDocumentCache(db);
+  }
+}
+
+// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
+// https://github.com/Microsoft/TypeScript/issues/14322
+type KeyPath = any; // tslint:disable-line:no-any
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -50,6 +79,10 @@ export class DbOwner {
   constructor(public ownerId: string, public leaseTimestampMs: number) {}
 }
 
+function createOwnerStore(db: IDBDatabase): void {
+  db.createObjectStore(DbOwner.store);
+}
+
 /** Object keys in the 'mutationQueues' store are userId strings. */
 export type DbMutationQueueKey = string;
 
@@ -68,18 +101,19 @@ export class DbMutationQueue {
 
   constructor(
     /**
-     * The normalized user ID to which this queue belongs.
+     * @param userId - The normalized user ID to which this queue belongs.
      */
     public userId: string,
     /**
-     * An identifier for the highest numbered batch that has been acknowledged
-     * by the server. All MutationBatches in this queue with batchIds less
-     * than or equal to this value are considered to have been acknowledged by
-     * the server.
+     * @param lastAcknowledgedBatchId - An identifier for the highest numbered
+     * batch that has been acknowledged by the server. All MutationBatches in
+     * this queue with batchIds less than or equal to this value are considered
+     * to have been acknowledged by the server.
      */
     public lastAcknowledgedBatchId: number,
     /**
-     * A stream token that was previously sent by the server.
+     * @param lastStreamToken - A stream token that was previously sent by the
+     * server.
      *
      * See StreamingWriteRequest in datastore.proto for more details about
      * usage.
@@ -89,10 +123,11 @@ export class DbMutationQueue {
      */
     public lastStreamToken: string,
     /**
-     * An identifier for the highest numbered batch that has been acknowledged
-     * by the server. All MutationBatches in this queue with batchIds less
-     * than or equal to this value are considered to have been acknowledged by
-     * the server.
+     * @param highestPendingBatchId - An identifier for the highest numbered
+     * batch in the mutation queue. This allows for efficient insert of new
+     * batches without relying on in-memory state.
+     *
+     * PORTING NOTE: iOS and Android clients keep this value in-memory.
      */
     public highestPendingBatchId: number
   ) {}
@@ -117,21 +152,22 @@ export class DbMutationBatch {
 
   constructor(
     /**
-     * The normalized user ID to which this batch belongs.
+     * @userId userId - The normalized user ID to which this batch belongs.
      */
     public userId: string,
     /**
-     * An identifier for this batch, allocated by the mutation queue in a
-     * monotonically increasing manner.
+     * @batchId batchId - An identifier for this batch, allocated by the
+     * mutation queue in a monotonically increasing manner.
      */
     public batchId: BatchId,
     /**
-     * The local write time of the batch, stored as milliseconds since the
-     * epoch.
+     * @param localWriteTimeMs - The local write time of the batch, stored as
+     * milliseconds since the epoch.
      */
     public localWriteTimeMs: number,
     /**
-     * A list of mutations to apply. All mutations will be applied atomically.
+     * @param mutations - A list of mutations to apply. All mutations will be
+     * applied atomically.
      *
      * Mutations are serialized via JsonProtoSerializer.toMutation().
      */
@@ -145,6 +181,20 @@ export class DbMutationBatch {
  * sort.
  */
 export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
+
+function createMutationQueue(db: IDBDatabase): void {
+  db.createObjectStore(DbMutationQueue.store, {
+    keyPath: DbMutationQueue.keyPath
+  });
+
+  db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath as KeyPath
+  });
+
+  // NOTE: keys for these stores are specified explicitly rather than using a
+  // keyPath.
+  db.createObjectStore(DbDocumentMutation.store);
+}
 
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
@@ -204,6 +254,10 @@ export class DbDocumentMutation {
  */
 export type DbRemoteDocumentKey = string[];
 
+function createRemoteDocumentCache(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocument.store);
+}
+
 /**
  * Represents the known absence of a document at a particular version.
  * Stored in IndexedDb as part of a DbRemoteDocument object.
@@ -225,13 +279,13 @@ export class DbRemoteDocument {
 
   constructor(
     /**
-     * Set to an instance of a DbNoDocument if it is known that no document
-     * exists.
+     * @param noDocument - Set to an instance of a DbNoDocument if it is known
+     * that no document exists.
      */
     public noDocument: DbNoDocument | null,
     /**
-     * Set to an instance of a Document if there's a cached version of the
-     * document.
+     * @param document - Set to an instance of a Document if there's a cached
+     * version of the document.
      */
     public document: api.Document | null
   ) {}
@@ -276,7 +330,8 @@ export class DbTarget {
 
   constructor(
     /**
-     * An auto-generated sequential numeric identifier for the query.
+     * @param targetId - An auto-generated sequential numeric identifier for the
+     * query.
      *
      * Queries are stored using their canonicalId as the key, but these
      * canonicalIds can be quite long so we additionally assign a unique
@@ -285,20 +340,23 @@ export class DbTarget {
      */
     public targetId: TargetId,
     /**
-     * The canonical string representing this query. This is not unique.
+     * @param canonicalId - The canonical string representing this query. This
+     * is not unique.
      */
     public canonicalId: string,
     /**
-     * The last readTime received from the Watch Service for this query.
+     * @param readTime - The last readTime received from the Watch Service for
+     * this query.
      *
      * This is the same value as TargetChange.read_time in the protos.
      */
     public readTime: DbTimestamp,
     /**
-     * An opaque, server-assigned token that allows watching a query to be
-     * resumed after disconnecting without retransmitting all the data
-     * that matches the query. The resume token essentially identifies a
-     * point in time from which the server should resume sending results.
+     * @param resumeToken - An opaque, server-assigned token that allows
+     * watching a query to be resumed after disconnecting without retransmitting
+     * all the data that matches the query. The resume token essentially
+     * identifies a point in time from which the server should resume sending
+     * results.
      *
      * This is related to the snapshotVersion in that the resumeToken
      * effectively also encodes that value, but the resumeToken is opaque
@@ -313,8 +371,9 @@ export class DbTarget {
      */
     public resumeToken: string,
     /**
-     * A sequence number representing the last time this query was
-     * listened to, used for garbage collection purposes.
+     * @param lastListenSequenceNumber - A sequence number representing the
+     * last time this query was listened to, used for garbage collection
+     * purposes.
      *
      * Conventionally this would be a timestamp value, but device-local
      * clocks are unreliable and they must be able to create new listens
@@ -328,7 +387,7 @@ export class DbTarget {
      */
     public lastListenSequenceNumber: number,
     /**
-     * The query for this target.
+     * @param query - The query for this target.
      *
      * Because canonical ids are not unique we must store the actual query. We
      * use the proto to have an object we can persist without having to
@@ -353,8 +412,8 @@ export class DbTargetDocument {
   /** Name of the IndexedDb object store.  */
   static store = 'targetDocuments';
 
-  /** Keys are automatically assigned via the targetId, snapshotVersion, and path properties. */
-  static keyPath = ['targetId', 'snapshotVersion', 'path'];
+  /** Keys are automatically assigned via the targetId, path properties. */
+  static keyPath = ['targetId', 'path'];
 
   /** The index name for the reverse index. */
   static documentTargetsIndex = 'documentTargetsIndex';
@@ -364,12 +423,11 @@ export class DbTargetDocument {
 
   constructor(
     /**
-     * The targetId identifying a target.
+     * @param targetId - The targetId identifying a target.
      */
     public targetId: TargetId,
-    public snapshotVersion: number,
     /**
-     * The path to the document, as encoded in the key.
+     * @param path - The path to the document, as encoded in the key.
      */
     public path: EncodedResourcePath
   ) {}
@@ -396,55 +454,141 @@ export class DbTargetGlobal {
 
   constructor(
     /**
-     * The highest numbered target id across all targets.
+     * @param highestTargetId - The highest numbered target id across all
+     * targets.
      *
      * See DbTarget.targetId.
      */
     public highestTargetId: TargetId,
     /**
-     * The highest numbered lastListenSequenceNumber across all targets.
+     * @param highestListenSequenceNumber - The highest numbered
+     * lastListenSequenceNumber across all targets.
      *
      * See DbTarget.lastListenSequenceNumber.
      */
     public highestListenSequenceNumber: number,
     /**
-     * A global snapshot version representing the last consistent snapshot we
-     * received from the backend. This is monotonically increasing and any
-     * snapshots received from the backend prior to this version (e.g. for
-     * targets resumed with a resumeToken) should be suppressed (buffered)
-     * until the backend has caught up to this snapshot version again. This
-     * prevents our cache from ever going backwards in time.
+     * @param lastRemoteSnapshotVersion - A global snapshot version representing
+     * the last consistent snapshot we received from the backend. This is
+     * monotonically increasing and any snapshots received from the backend
+     * prior to this version (e.g. for targets resumed with a resumeToken)
+     * should be suppressed (buffered) until the backend has caught up to this
+     * snapshot version again. This prevents our cache from ever going backwards
+     * in time.
      */
     public lastRemoteSnapshotVersion: DbTimestamp
   ) {}
 }
 
-export type DbInstanceKey = [string, string];
+function createQueryCache(db: IDBDatabase): void {
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
+    keyPath: DbTargetDocument.keyPath as KeyPath
+  });
+  targetDocumentsStore.createIndex(
+    DbTargetDocument.documentTargetsIndex,
+    DbTargetDocument.documentTargetsKeyPath,
+    { unique: true }
+  );
 
-export class DbInstance {
-  static store = 'instances';
+  const targetStore = db.createObjectStore(DbTarget.store, {
+    keyPath: DbTarget.keyPath
+  });
 
-  static keyPath = ['userId', 'instanceId'];
+  // NOTE: This is unique only because the TargetId is the suffix.
+  targetStore.createIndex(
+    DbTarget.queryTargetsIndexName,
+    DbTarget.queryTargetsKeyPath,
+    { unique: true }
+  );
+  db.createObjectStore(DbTargetGlobal.store);
+}
+
+/**
+ * An object representing the changes at a particular snapshot version for the
+ * given target. This is used to facilitate storing query changelogs in the
+ * targetChanges object store.
+ *
+ * PORTING NOTE: This is used for change propagation during multi-tab syncing
+ * and not needed on iOS and Android.
+ */
+export class DbTargetChange {
+  /** Name of the IndexedDb object store.  */
+  static store = 'targetChanges';
+
+  /** Keys are automatically assigned via the targetId and snapshotVersion. */
+  static keyPath = ['targetId', 'snapshotVersion'];
 
   constructor(
-    public userId: string,
-    public instanceId: string,
-    public updateTimeMs: number
+    /**
+     * @param targetId - The targetId identifying a target.
+     */
+    public targetId: TargetId,
+    /**
+     * @param snapshotVersion - The snapshot version for this change.
+     */
+    public snapshotVersion: DbTimestamp,
+    /**
+     * @param changes - The keys of the changed documents in this snapshot.
+     */
+    public changes: {
+      added?: EncodedResourcePath[];
+      modified?: EncodedResourcePath[];
+      removed?: EncodedResourcePath[];
+    }
   ) {}
 }
+
+function createTargetChangeStore(db: IDBDatabase): void {
+  db.createObjectStore(DbTargetChange.store, {
+    keyPath: DbTargetChange.keyPath as KeyPath
+  });
+}
+
+/**
+ * A record of the metadata state of each instance.
+ *
+ * PORTING NOTE: This is used for primary-tab selection to support multi-tab
+ * persistence and does not need to be ported to iOS or Android.
+ */
+export class DbInstanceMetadata {
+  /** Name of the IndexedDb object store. */
+  static store = 'instanceMetadata';
+
+  /** Keys are automatically assigned via the userId and instanceKey properties. */
+  static keyPath = ['userId', 'instanceKey'];
+
+  constructor(
+    /** userId - The normalized user ID to which this batch belongs.*/
+    public userId: string,
+    /** instanceKey - The auto-generated instance key assigned at client startup. */
+    public instanceKey: string,
+    /** updateTimeMs - The last time this state was updated. */
+    public updateTimeMs: DbTimestamp
+  ) {}
+}
+
+function createInstanceMetadataStore(db: IDBDatabase): void {
+  db.createObjectStore(DbInstanceMetadata.store, {
+    keyPath: DbInstanceMetadata.keyPath as KeyPath
+  });
+}
+
+// Exported for testing.
+export const V1_STORES = [
+  DbDocumentMutation.store,
+  DbMutationQueue.store,
+  DbMutationBatch.store,
+  DbOwner.store,
+  DbRemoteDocument.store,
+  DbTargetDocument.store,
+  DbTargetGlobal.store,
+  DbTarget.store
+];
+
+const SCHEMA_V2_STORES = [DbInstanceMetadata.store, DbTargetChange.store];
 
 /**
  * The list of all IndexedDB stored used by the SDK. This is used when creating
  * transactions so that access across all stores is done atomically.
  */
-export const ALL_STORES = [
-  DbMutationQueue.store,
-  DbMutationBatch.store,
-  DbDocumentMutation.store,
-  DbRemoteDocument.store,
-  DbTarget.store,
-  DbOwner.store,
-  DbTargetGlobal.store,
-  DbTargetDocument.store,
-  DbInstance.store
-];
+export const ALL_STORES = [...V1_STORES, ...SCHEMA_V2_STORES];

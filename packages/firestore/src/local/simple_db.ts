@@ -37,8 +37,8 @@ export class SimpleDb {
     version: number,
     runUpgrade: (
       db: IDBDatabase,
-      oldVersion: number,
-      newVersion: number
+      fromVersion: number,
+      toVersion: number
     ) => void
   ): Promise<SimpleDb> {
     assert(
