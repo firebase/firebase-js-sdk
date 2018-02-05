@@ -43,10 +43,7 @@ exports.commitAndTag = async (updatedVersions, releaseType) => {
 };
 
 exports.pushUpdatesToGithub = async () => {
-  await git.push('origin', 'master', {
-    '--follow-tags': null,
-    '--no-verify': null
-  });
+  await exec(`git push origin --follow-tags --no-verify -u`, { cwd: root });
 };
 
 exports.resetWorkingTree = async () => {
