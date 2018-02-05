@@ -43,7 +43,10 @@ exports.commitAndTag = async (updatedVersions, releaseType) => {
 };
 
 exports.pushUpdatesToGithub = async () => {
-  await exec(`git push origin --follow-tags --no-verify -u`, { cwd: root });
+  let { stdout:currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
+  currentBranch = currentBranch.trim();
+  
+  await exec(`git push origin ${currentBranch} --follow-tags --no-verify -u`, { cwd: root });
 };
 
 exports.resetWorkingTree = async () => {
