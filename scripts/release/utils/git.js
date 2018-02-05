@@ -30,23 +30,40 @@ exports.cleanTree = async () => {
   });
 };
 
-exports.commitAndTag = async (updatedVersions, releaseType) => {
-  await git.add('*/package.json');
-  await git.commit(
-    releaseType === 'Staging' ? 'Publish Prerelease' : 'Publish'
+/**
+ * Commits the current state of the repository and tags it with the appropriate
+ * version changes.
+ *
+ * Returns the tagged commits
+ */
+exports.commitAndTag = async updatedVersions => {
+  await exec('git add */package.json');
+
+  let result = await exec(
+    `git commit -m "Publish firebase@${updatedVersions.firebase}"`
   );
-  Object.keys(updatedVersions)
-    .map(name => ({ name, version: updatedVersions[name] }))
-    .forEach(async ({ name, version }) => {
-      await git.addTag(`${name}@${version}`);
-    });
+
+  const tags = [];
+  await Promise.all(
+    Object.keys(updatedVersions)
+      .map(name => ({ name, version: updatedVersions[name] }))
+      .map(async ({ name, version }) => {
+        const tag = `${name}@${version}`;
+        const result = await exec(`git tag ${tag}`);
+        tags.push(tag);
+      })
+  );
+  return tags;
 };
 
-exports.pushUpdatesToGithub = async () => {
-  await git.push('origin', 'master', {
-    '--follow-tags': null,
-    '--no-verify': null
-  });
+exports.pushUpdatesToGithub = async tags => {
+  let { stdout: currentBranch, stderr } = await exec(
+    `git rev-parse --abbrev-ref HEAD`
+  );
+  currentBranch = currentBranch.trim();
+
+  await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
+  await exec(`git push origin ${tags.join(' ')}`);
 };
 
 exports.resetWorkingTree = async () => {
