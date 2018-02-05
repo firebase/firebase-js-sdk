@@ -195,12 +195,12 @@ const { argv } = require('yargs');
         /**
          * Commit the version changes and tag the associated versions
          */
-        await commitAndTag(versions, releaseType);
+        const tags = await commitAndTag(versions, releaseType);
 
         /**
          * Push new version to Github
          */
-        await pushUpdatesToGithub();
+        await pushUpdatesToGithub(tags);
       }
     }
 
