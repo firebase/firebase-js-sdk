@@ -32,16 +32,23 @@ exports.cleanTree = async () => {
 
 exports.commitAndTag = async (updatedVersions, releaseType) => {
   await exec('git add */package.json');
-  await exec(`git commit -m "Publish firebase@${updatedVersions.firebase}"`);
+
+  let result = await exec(`git commit -m "Publish firebase@${updatedVersions.firebase}"`);
+
+  console.log(result);
+
   await Promise.all(
     Object.keys(updatedVersions)
       .map(name => ({ name, version: updatedVersions[name] }))
-      .map(({name, version}) => exec(`git tag ${name}@${version}`))
+      .map(async ({name, version}) => {
+        const result = await exec(`git tag ${name}@${version}`);
+        console.log(result);
+      })
   );
 };
 
 exports.pushUpdatesToGithub = async () => {
-  let { stdout:currentBranch } = await exec(`git rev-parse --abbrev-ref HEAD`);
+  let { stdout:currentBranch, stderr } = await exec(`git rev-parse --abbrev-ref HEAD`);
   currentBranch = currentBranch.trim();
   
   await exec(`git push origin ${currentBranch} --follow-tags --no-verify -u`, { cwd: root });
