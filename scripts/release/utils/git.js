@@ -36,7 +36,7 @@ exports.cleanTree = async () => {
  *
  * Returns the tagged commits
  */
-exports.commitAndTag = async (updatedVersions, releaseType) => {
+exports.commitAndTag = async updatedVersions => {
   await exec('git add */package.json');
 
   let result = await exec(
