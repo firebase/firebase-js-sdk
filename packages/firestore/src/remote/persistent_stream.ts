@@ -251,10 +251,10 @@ export abstract class PersistentStream<
   markIdle(): void {
     this.idle = true;
     this.queue
-      .schedule(() => {
+      .scheduleWithDelay(() => {
         return this.handleIdleCloseTimer();
       }, IDLE_TIMEOUT_MS)
-      .catch((err: FirestoreError) => {
+      .promise.catch((err: FirestoreError) => {
         // When the AsyncQueue gets drained during testing, pending Promises
         // (including these idle checks) will get rejected. We special-case
         // these cancelled idle checks to make sure that these specific Promise
