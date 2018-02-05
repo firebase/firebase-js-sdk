@@ -31,15 +31,13 @@ exports.cleanTree = async () => {
 };
 
 exports.commitAndTag = async (updatedVersions, releaseType) => {
-  await git.add('*/package.json');
-  await git.commit(
-    releaseType === 'Staging' ? 'Publish Prerelease' : 'Publish'
+  await exec('git add */package.json');
+  await exec(`git commit -m "Publish firebase@${updatedVersions.firebase}"`);
+  await Promise.all(
+    Object.keys(updatedVersions)
+      .map(name => ({ name, version: updatedVersions[name] }))
+      .map(({name, version}) => exec(`git tag ${name}@${version}`))
   );
-  Object.keys(updatedVersions)
-    .map(name => ({ name, version: updatedVersions[name] }))
-    .forEach(async ({ name, version }) => {
-      await git.addTag(`${name}@${version}`);
-    });
 };
 
 exports.pushUpdatesToGithub = async () => {
