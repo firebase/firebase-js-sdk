@@ -68,12 +68,12 @@ export function addEqualityMatcher() {
             const left = utils.flag(this, 'object');
 
             this.assert(
-                customDeepEqual(left, right),
-                'expected #{act} to roughly deeply equal #{exp}',
-                'expected #{act} to not roughly deeply equal #{exp}',
-                left,
-                right,
-                true
+              customDeepEqual(left, right),
+              'expected #{act} to roughly deeply equal #{exp}',
+              'expected #{act} to not roughly deeply equal #{exp}',
+              left,
+              right,
+              true
             );
           } else {
             _super.apply(this, args);
