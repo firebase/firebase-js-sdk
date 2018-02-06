@@ -375,7 +375,13 @@ abstract class TestRunner {
     this.connection = new MockConnection(this.queue);
     // Set backoff delay to 1ms so simulated disconnects don't delay the tests.
     const initialBackoffDelay = 1;
-    this.datastore = new Datastore(this.queue, this.connection, new EmptyCredentialsProvider(), this.serializer, initialBackoffDelay);
+    this.datastore = new Datastore(
+      this.queue,
+      this.connection,
+      new EmptyCredentialsProvider(),
+      this.serializer,
+      initialBackoffDelay
+    );
     const onlineStateChangedHandler = (onlineState: OnlineState) => {
       this.syncEngine.applyOnlineStateChange(onlineState);
       this.eventManager.applyOnlineStateChange(onlineState);

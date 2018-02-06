@@ -46,18 +46,32 @@ interface CommitRequest extends api.CommitRequest {
  * client SDK architecture to consume.
  */
 export class Datastore {
-  constructor(private queue: AsyncQueue,
-              private connection: Connection,
-              private credentials: CredentialsProvider,
-              private serializer: JsonProtoSerializer,
-              private initialBackoffDelay?: number) {}
+  constructor(
+    private queue: AsyncQueue,
+    private connection: Connection,
+    private credentials: CredentialsProvider,
+    private serializer: JsonProtoSerializer,
+    private initialBackoffDelay?: number
+  ) {}
 
   newPersistentWriteStream(): PersistentWriteStream {
-    return new PersistentWriteStream(this.queue, this.connection, this.credentials, this.serializer, this.initialBackoffDelay);
+    return new PersistentWriteStream(
+      this.queue,
+      this.connection,
+      this.credentials,
+      this.serializer,
+      this.initialBackoffDelay
+    );
   }
 
   newPersistentWatchStream(): PersistentListenStream {
-    return new PersistentListenStream(this.queue, this.connection, this.credentials, this.serializer, this.initialBackoffDelay);
+    return new PersistentListenStream(
+      this.queue,
+      this.connection,
+      this.credentials,
+      this.serializer,
+      this.initialBackoffDelay
+    );
   }
 
   commit(mutations: Mutation[]): Promise<MutationResult[]> {

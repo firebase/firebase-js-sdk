@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { DocumentKey } from '../model/document_key';

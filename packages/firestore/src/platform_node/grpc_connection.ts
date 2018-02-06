@@ -44,7 +44,7 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${
 type DuplexRpc = () => grpc.ClientDuplexStream;
 type ReadableRpc<Req> = (req: Req) => grpc.ClientReadableStream;
 type UnaryRpc<Req, Resp> = (
-  req:Req,
+  req: Req,
   callback: (err?: grpc.ServiceError, resp?: Resp) => void
 ) => grpc.ClientUnaryCall;
 

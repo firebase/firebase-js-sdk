@@ -532,11 +532,13 @@ export class PersistentListenStream extends PersistentStream<
   api.ListenResponse,
   WatchStreamListener
 > {
-  constructor(queue: AsyncQueue,
-              connection: Connection,
-              credentials: CredentialsProvider,
-              private serializer: JsonProtoSerializer,
-              initialBackoffDelay?: number) {
+  constructor(
+    queue: AsyncQueue,
+    connection: Connection,
+    credentials: CredentialsProvider,
+    private serializer: JsonProtoSerializer,
+    initialBackoffDelay?: number
+  ) {
     super(queue, connection, credentials, initialBackoffDelay);
   }
 
@@ -633,11 +635,13 @@ export class PersistentWriteStream extends PersistentStream<
 > {
   private handshakeComplete_ = false;
 
-  constructor(queue: AsyncQueue,
-              connection: Connection,
-              credentials: CredentialsProvider,
-              private serializer: JsonProtoSerializer,
-              initialBackoffDelay?: number) {
+  constructor(
+    queue: AsyncQueue,
+    connection: Connection,
+    credentials: CredentialsProvider,
+    private serializer: JsonProtoSerializer,
+    initialBackoffDelay?: number
+  ) {
     super(queue, connection, credentials, initialBackoffDelay);
   }
 
