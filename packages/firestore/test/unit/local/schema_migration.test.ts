@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ALL_STORES,
