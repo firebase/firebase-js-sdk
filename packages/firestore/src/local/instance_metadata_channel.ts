@@ -143,7 +143,7 @@ class InstanceState {
       isSafeInteger(instanceData.minMutationBatchId) &&
       isSafeInteger(instanceData.maxMutationBatchId);
 
-    let activeTargetIdsArray = instanceData.activeTargetIds;
+    const activeTargetIdsArray = instanceData.activeTargetIds;
     let activeTargetIdsSet = new SortedSet<TargetId>(primitiveComparator);
 
     for (let i = 0; validData && i < activeTargetIdsArray.length; ++i) {
@@ -439,7 +439,8 @@ function toLocalStorageKey(...segments: string[]): string {
 
 /**
  * Parses the segments from a key in LocalStorage. Returns null if the key
- * doesn't match the provided regular expression. */
+ * doesn't match the provided regular expression.
+ */
 function fromLocalStorageKey(
   key: string,
   expectedMatch: RegExp,
