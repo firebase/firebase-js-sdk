@@ -35,7 +35,6 @@ import {
 import { Transaction as InternalTransaction } from '../core/transaction';
 import {
   ChangeType,
-  DocumentViewChange,
   ViewSnapshot
 } from '../core/view_snapshot';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

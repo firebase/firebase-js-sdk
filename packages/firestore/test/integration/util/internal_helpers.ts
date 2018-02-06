@@ -52,13 +52,7 @@ export function withTestDatastore(
       const serializer = PlatformSupport.getPlatform().newSerializer(
         databaseInfo.databaseId
       );
-      const datastore = new Datastore(
-        databaseInfo,
-        queue || new AsyncQueue(),
-        conn,
-        new EmptyCredentialsProvider(),
-        serializer
-      );
+      const datastore = new Datastore(queue || new AsyncQueue(), conn, new EmptyCredentialsProvider(), serializer);
 
       return fn(datastore);
     });

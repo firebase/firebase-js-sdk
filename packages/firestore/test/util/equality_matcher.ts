@@ -85,7 +85,7 @@ export function addEqualityMatcher() {
   afterEach(() => {
     if (originalFunction) {
       use(chai => {
-        const wrappedDefault = _super => {
+        return _super => {
           return function(...args) {
             originalFunction.apply(this, args);
           };

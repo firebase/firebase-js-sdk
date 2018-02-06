@@ -20,10 +20,8 @@ import { SnapshotOptions } from '../api/database';
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { assert, fail } from '../util/assert';
-import { AnyJs, primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
+import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
-import * as typeUtils from '../util/types';
 
 import { DocumentKey } from './document_key';
 import { FieldPath } from './path';

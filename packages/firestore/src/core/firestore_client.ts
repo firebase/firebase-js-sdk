@@ -273,13 +273,7 @@ export class FirestoreClient {
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
         );
-        const datastore = new Datastore(
-          this.databaseInfo,
-          this.asyncQueue,
-          connection,
-          this.credentials,
-          serializer
-        );
+        const datastore = new Datastore(this.asyncQueue, connection, this.credentials, serializer);
 
         const onlineStateChangedHandler = (onlineState: OnlineState) => {
           this.syncEngine.applyOnlineStateChange(onlineState);

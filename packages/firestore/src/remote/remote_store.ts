@@ -15,7 +15,6 @@
  */
 
 import { User } from '../auth/user';
-import { DatabaseInfo } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { BatchId, OnlineState, TargetId } from '../core/types';
@@ -31,7 +30,6 @@ import {
 } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
@@ -291,7 +289,6 @@ export class RemoteStore {
       objUtils.contains(this.listenTargets, targetId),
       'unlisten called without assigned target ID!'
     );
-    const queryData = this.listenTargets[targetId];
     delete this.listenTargets[targetId];
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);

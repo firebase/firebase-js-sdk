@@ -222,7 +222,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => {
         const promises: Array<PersistencePromise<void>> = [];
         for (const mutation of mutations) {
-          const encodedPath = EncodedResourcePath.encode(mutation.key.path);
           const indexKey = DbDocumentMutation.key(
             this.userId,
             mutation.key.path,
@@ -379,7 +378,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       queryPath
     );
-    const encodedQueryPath = indexPrefix[1];
     const indexStart = IDBKeyRange.lowerBound(indexPrefix);
 
     // Collect up unique batchIDs encountered during a scan of the index. Use a
@@ -517,7 +515,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     let containsKey = false;
     return documentMutationsStore(txn)
       .iterate({ range: startRange, keysOnly: true }, (key, _, control) => {
-        const [userID, keyPath, batchID] = key;
+        const [userID, keyPath] = key;
         if (userID === this.userId && keyPath === encodedPath) {
           containsKey = true;
         }
