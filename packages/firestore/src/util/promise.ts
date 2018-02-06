@@ -24,6 +24,10 @@ export interface Rejecter {
   (reason?: Error): void;
 }
 
+export interface CancelablePromise<T> extends Promise<T> {
+  cancel(): void;
+}
+
 export class Deferred<R> {
   promise: Promise<R>;
   resolve: Resolver<R>;
