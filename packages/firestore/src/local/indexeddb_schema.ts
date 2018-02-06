@@ -569,7 +569,7 @@ export class DbInstanceMetadata {
      * @param isInForeground - Whether the instance is known to run in a
      * foreground tab.
      */
-    public isInForeground: boolean,
+    public isInForeground: boolean
   ) {}
 }
 
