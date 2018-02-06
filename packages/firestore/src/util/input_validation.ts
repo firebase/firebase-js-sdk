@@ -94,24 +94,6 @@ export function validateBetweenNumberOfArgs(
 }
 
 /**
- * Validates the provided argument is an array.
- */
-export function validateNamedArray<T>(
-  functionName: string,
-  value: T[],
-  name: string
-): T[] {
-  if (!(value instanceof Array)) {
-    throw new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${functionName}() requires its ${name} argument to be an array`
-    );
-  }
-
-  return value;
-}
-
-/**
  * Validates the provided argument is an array and has as least the expected
  * number of elements.
  */
@@ -135,63 +117,56 @@ export function validateNamedArrayAtLeastNumberOfElements<T>(
  * Validates the provided positional argument has the native JavaScript type
  * using typeof checks.
  */
-export function validateArgType<T>(
+export function validateArgType(
   functionName: string,
   type: string,
   position: number,
   argument: AnyJs
-): T {
-  return validateType(
-    functionName,
-    type,
-    `${ordinal(position)} argument`,
-    argument
-  );
+): void {
+  validateType(functionName, type, `${ordinal(position)} argument`, argument);
 }
 
 /**
  * Validates the provided argument has the native JavaScript type using
  * typeof checks or is undefined.
  */
-export function validateOptionalArgType<T>(
+export function validateOptionalArgType(
   functionName: string,
   type: string,
   position: number,
   argument: AnyJs
-): T | undefined {
+): void {
   if (argument !== undefined) {
-    return validateArgType(functionName, type, position, argument);
+    validateArgType(functionName, type, position, argument);
   }
-  return undefined;
 }
 
 /**
  * Validates the provided named option has the native JavaScript type using
  * typeof checks.
  */
-export function validateNamedType<T>(
+export function validateNamedType(
   functionName: string,
   type: string,
   optionName: string,
   argument: AnyJs
-): T {
-  return validateType(functionName, type, `${optionName} option`, argument);
+): void {
+  validateType(functionName, type, `${optionName} option`, argument);
 }
 
 /**
  * Validates the provided named option has the native JavaScript type using
  * typeof checks or is undefined.
  */
-export function validateNamedOptionalType<T>(
+export function validateNamedOptionalType(
   functionName: string,
   type: string,
   optionName: string,
   argument: AnyJs
-): T | undefined {
+): void {
   if (argument !== undefined) {
-    return validateNamedType(functionName, type, optionName, argument);
+    validateNamedType(functionName, type, optionName, argument);
   }
-  return undefined;
 }
 
 /**
@@ -247,12 +222,12 @@ export function validateNamedOptionalPropertyEquals<T>(
 }
 
 /** Helper to validate the type of a provided input. */
-function validateType<T>(
+function validateType(
   functionName: string,
   type: string,
   inputName: string,
   input: AnyJs
-): T {
+): void {
   if (typeof input !== type || (type === 'object' && !isPlainObject(input))) {
     const description = valueDescription(input);
     throw new FirestoreError(
@@ -261,8 +236,6 @@ function validateType<T>(
         `to be of type ${type}, but it was: ${description}`
     );
   }
-
-  return input as T;
 }
 
 /**

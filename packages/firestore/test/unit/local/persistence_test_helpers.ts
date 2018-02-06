@@ -20,16 +20,20 @@ import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
-  LocalStorageNotificationChannel,
-  TabNotificationChannel
-} from '../../../src/local/tab_notification_channel';
-import { BatchId, InstanceKey, TargetId } from '../../../src/core/types';
+  WebStorageMetadataChannel,
+  InstanceMetadataChannel,
+  InstanceKey
+} from '../../../src/local/instance_metadata_channel';
+import { BatchId, TargetId } from '../../../src/core/types';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
 
 /** The instance key of the secondary instance in LocalStorage. */
 const SECONDARY_INSTANCE_KEY: InstanceKey = 'AlternativePersistence';
+
+/** The prefix used by the keys that Firestore writes to Local Storage. */
+const LOCAL_STORAGE_PREFIX = 'fs_';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -38,7 +42,7 @@ const SECONDARY_INSTANCE_KEY: InstanceKey = 'AlternativePersistence';
 export async function testIndexedDbPersistence(): Promise<
   IndexedDbPersistence
 > {
-  const prefix = '${testPersistencePrefix}/';
+  const prefix = '${TEST_PERSISTENCE_PREFIX}/';
   await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
@@ -57,40 +61,51 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 /**
- * Creates LocalStorageNotificationChannel instance for testing, destroying any
- * previous contents if they existed.
+ * Creates and starts a LocalStorageMetadataNotifier instance for testing,
+ * destroying any previous contents if they existed.
  */
 export async function testLocalStorageNotificationChannel(
-  ownerId: string,
-  existingMutationBatches: BatchId[],
-  existingQueryTargets: TargetId[]
-): Promise<TabNotificationChannel> {
-  window.localStorage.clear();
-  const instances = [];
+  instanceKey: string,
+  existingMutationBatchIds: BatchId[],
+  existingQueryTargetIds: TargetId[]
+): Promise<InstanceMetadataChannel> {
+  let key;
+  for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
+    if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
+  }
 
-  if (existingMutationBatches.length + existingQueryTargets.length != 0) {
-    const secondaryChannel = new LocalStorageNotificationChannel(
+  const knownInstances = [];
+
+  if (
+    existingMutationBatchIds.length > 0 ||
+    existingQueryTargetIds.length > 0
+  ) {
+    // HACK: Create a secondary channel to seed data into LocalStorage.
+    // NOTE: We don't call shutdown() on it because that would delete the data.
+    const secondaryChannel = new WebStorageMetadataChannel(
       TEST_PERSISTENCE_PREFIX,
       SECONDARY_INSTANCE_KEY
     );
 
-    instances.push(SECONDARY_INSTANCE_KEY);
+    knownInstances.push(SECONDARY_INSTANCE_KEY);
 
     await secondaryChannel.start([]);
 
-    for (const batchId of existingMutationBatches) {
-      secondaryChannel.addPendingMutation(batchId);
+    for (const batchId of existingMutationBatchIds) {
+      secondaryChannel.addLocalPendingMutation(batchId);
     }
 
-    for (const targetId of existingQueryTargets) {
-      secondaryChannel.addActiveQueryTarget(targetId);
+    for (const targetId of existingQueryTargetIds) {
+      secondaryChannel.addLocallyActiveQueryTarget(targetId);
     }
   }
 
-  const notificationChannel = new LocalStorageNotificationChannel(
+  const notificationChannel = new WebStorageMetadataChannel(
     TEST_PERSISTENCE_PREFIX,
-    ownerId
+    instanceKey
   );
-  await notificationChannel.start(instances);
+  await notificationChannel.start(knownInstances);
   return notificationChannel;
 }
