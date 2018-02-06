@@ -558,15 +558,18 @@ export class DbInstanceMetadata {
   static keyPath = ['userId', 'instanceKey'];
 
   constructor(
-    /** @param userId - The normalized user ID to which this batch belongs. */
-    public userId: string,
     /**
      * @param  instanceKey - The auto-generated instance key assigned at client
      * startup.
      */
     public instanceKey: string,
     /** @param  updateTimeMs - The last time this state was updated. */
-    public updateTimeMs: DbTimestamp
+    public updateTimeMs: DbTimestamp,
+    /**
+     * @param isInForeground - Whether the instance is known to run in a
+     * foreground tab.
+     */
+    public isInForeground: boolean,
   ) {}
 }
 
