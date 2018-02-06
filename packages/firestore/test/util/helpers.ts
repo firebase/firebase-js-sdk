@@ -232,7 +232,7 @@ export function bound(
 ): Bound {
   const components: FieldValue[] = [];
   for (const value of values) {
-    const dataValue = value[1];
+    const [_, dataValue] = value;
     components.push(wrap(dataValue));
   }
   return new Bound(components, before);

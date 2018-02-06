@@ -514,8 +514,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const startRange = IDBKeyRange.lowerBound(indexKey);
     let containsKey = false;
     return documentMutationsStore(txn)
-      .iterate({ range: startRange, keysOnly: true }, (key, _, control) => {
-        const [userID, keyPath] = key;
+      .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
+        const [userID, keyPath, /*batchID*/ _] = key;
         if (userID === this.userId && keyPath === encodedPath) {
           containsKey = true;
         }
