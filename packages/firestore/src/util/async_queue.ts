@@ -50,13 +50,18 @@ class DelayedOperation<T> implements CancelablePromise<T> {
     asyncQueue: AsyncQueue,
     op: () => Promise<T>,
     delayMs: number
-  ) {
+  ): DelayedOperation<T> {
     const delayedOp = new DelayedOperation(asyncQueue, op);
-    delayedOp.timerHandle = setTimeout(
-      () => delayedOp.handleDelayElapsed(),
-      delayMs
-    );
+    delayedOp.start(delayMs);
     return delayedOp;
+  }
+
+  /**
+   * Starts the timer. This is called immediately after construction by
+   * createAndSchedule().
+   */
+  private start(delayMs: number): void {
+    this.timerHandle = setTimeout(() => this.handleDelayElapsed(), delayMs);
   }
 
   /**
@@ -70,6 +75,9 @@ class DelayedOperation<T> implements CancelablePromise<T> {
   /**
    * Cancels the operation if it hasn't already been executed or canceled. The
    * promise will be rejected.
+   *
+   * As long as the operation has not yet been run, calling cancel() provides a
+   * guarantee that the operation will not be run.
    */
   cancel(reason?: string): void {
     if (this.timerHandle !== null) {

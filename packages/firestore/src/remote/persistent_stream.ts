@@ -256,6 +256,8 @@ export abstract class PersistentStream<
    * states imply pending network operations.
    */
   markIdle(): void {
+    // Starts the idle time if we are in state 'Open' and are not yet already
+    // running a timer (in which case the previous idle timeout still applies).
     if (this.isOpen() && this.inactivityTimerPromise === null) {
       this.inactivityTimerPromise = this.queue.scheduleWithDelay(
         () => this.handleIdleCloseTimer(),
