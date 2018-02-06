@@ -42,7 +42,7 @@ export function createOrUpgradeDb(
     createTargetChangeStore(db);
   }
 
-  if (fromVersion == 0 && toVersion >= 1) {
+  if (fromVersion === 0 && toVersion >= 1) {
     createOwnerStore(db);
     createMutationQueue(db);
     createQueryCache(db);
@@ -129,7 +129,7 @@ export class DbMutationQueue {
      *
      * PORTING NOTE: iOS and Android clients keep this value in-memory.
      */
-    public highestPendingBatchId: number
+    public highestPendingBatchId?: number
   ) {}
 }
 
@@ -558,11 +558,14 @@ export class DbInstanceMetadata {
   static keyPath = ['userId', 'instanceKey'];
 
   constructor(
-    /** userId - The normalized user ID to which this batch belongs.*/
+    /** @param userId - The normalized user ID to which this batch belongs. */
     public userId: string,
-    /** instanceKey - The auto-generated instance key assigned at client startup. */
+    /**
+     * @param  instanceKey - The auto-generated instance key assigned at client
+     * startup.
+     */
     public instanceKey: string,
-    /** updateTimeMs - The last time this state was updated. */
+    /** @param  updateTimeMs - The last time this state was updated. */
     public updateTimeMs: DbTimestamp
   ) {}
 }
