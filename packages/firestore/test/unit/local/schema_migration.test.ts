@@ -22,11 +22,11 @@ import {
   V1_STORES
 } from '../../../src/local/indexeddb_schema';
 import { Deferred } from '../../../src/util/promise';
-import {SimpleDb} from '../../../src/local/simple_db';
+import { SimpleDb } from '../../../src/local/simple_db';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 
-function initDb(targetVersion) : Promise<IDBDatabase> {
+function initDb(targetVersion): Promise<IDBDatabase> {
   const deferred = new Deferred<IDBDatabase>();
 
   const request = window.indexedDB.open(INDEXEDDB_TEST_DATABASE, targetVersion);
