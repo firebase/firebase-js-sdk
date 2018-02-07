@@ -40,8 +40,11 @@ import {
   version,
   wrapObject
 } from '../../util/helpers';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 
 describe('Mutation', () => {
+  addEqualityMatcher();
+
   const timestamp = Timestamp.now();
 
   it('can apply sets to documents', () => {
