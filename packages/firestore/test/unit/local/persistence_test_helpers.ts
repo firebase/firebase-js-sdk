@@ -20,17 +20,17 @@ import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
-  WebStorageMetadataChannel,
-  InstanceMetadataChannel,
-  InstanceKey
-} from '../../../src/local/instance_metadata_channel';
+  WebStorageSynchronizedClientState,
+  SharedClientState,
+  ClientKey
+} from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
 
 /** The instance key of the secondary instance in LocalStorage. */
-const SECONDARY_INSTANCE_KEY: InstanceKey = 'AlternativePersistence';
+const SECONDARY_INSTANCE_KEY: ClientKey = 'AlternativePersistence';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'fs_';
@@ -68,7 +68,7 @@ export async function testLocalStorageNotificationChannel(
   instanceKey: string,
   existingMutationBatchIds: BatchId[],
   existingQueryTargetIds: TargetId[]
-): Promise<InstanceMetadataChannel> {
+): Promise<SharedClientState> {
   let key;
   for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
     if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
@@ -84,7 +84,7 @@ export async function testLocalStorageNotificationChannel(
   ) {
     // HACK: Create a secondary channel to seed data into LocalStorage.
     // NOTE: We don't call shutdown() on it because that would delete the data.
-    const secondaryChannel = new WebStorageMetadataChannel(
+    const secondaryChannel = new WebStorageSynchronizedClientState(
       TEST_PERSISTENCE_PREFIX,
       SECONDARY_INSTANCE_KEY
     );
@@ -102,7 +102,7 @@ export async function testLocalStorageNotificationChannel(
     }
   }
 
-  const notificationChannel = new WebStorageMetadataChannel(
+  const notificationChannel = new WebStorageSynchronizedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );

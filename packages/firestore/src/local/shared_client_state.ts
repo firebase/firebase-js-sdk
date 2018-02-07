@@ -21,57 +21,59 @@ import { debug, error } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
+import {forEach} from '../util/obj';
+import * as objUtils from '../util/obj';
 
-const LOG_TAG = 'InstanceMetadataChannel';
+const LOG_TAG = 'SharedClientState';
 
 const FIRESTORE_PREFIX = 'fs';
 
 // The format of an instance key is:
-//   fs_instances_<persistence_prefix>_<instance_key>
-const INSTANCE_KEY_NAMESPACE = 'instances';
+//   fs_clients_<persistence_prefix>_<instance_key>
+const CLIENT_KEY_NAMESPACE = 'clients';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
  */
-export type InstanceKey = string;
+export type ClientKey = string;
 
 /**
- * The `InstanceMetadataChannel` keeps track of the global state of the
- * mutations and query targets for all active instances of the current project.
- * It relays local changes to other instances and updates its local state as new
- * metadata is observed.
+ * The `SharedClientState` keeps track of the global state of the mutations
+ * and query targets for all active clients of the current project. It relays
+ * local changes to other clients and updates its local state as new metadata is
+ * observed.
  *
- * `InstanceMetadataChannel` is primarily used for synchronization in Multi-Tab
+ * `SharedClientState` is primarily used for synchronization in Multi-Tab
  * environments. Each tab is responsible for registering its active query
  * targets and mutations. As state changes happen in other clients, the
- * `InstanceMetadataChannel` class will call back into SyncEngine to keep the
+ * `SharedClientState` class will call back into SyncEngine to keep the
  * local state up to date.
  *
  * TODO(multitab): Add callbacks to SyncEngine
  */
-export interface InstanceMetadataChannel {
-  /** Associates a new Mutation Batch ID with the current Firestore instance. */
+export interface SharedClientState {
+  /** Associates a new Mutation Batch ID with the current Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
 
-  /** Removes a Mutation Batch ID from the current Firestore instance. */
+  /** Removes a Mutation Batch ID from the current Firestore client. */
   removeLocalPendingMutation(batchId: BatchId): void;
 
   /**
-   * Gets the minimum mutation batch for all active instances.
+   * Gets the minimum mutation batch for all active clients.
    *
    * The implementation for this may require O(n) runtime, where 'n' is the
-   * number of instances.
+   * number of clients.
    */
   getMinimumGloballyPendingMutation(): BatchId | null;
 
-  /** Associates a new Query Target ID with the current Firestore instance. */
+  /** Associates a new Query Target ID with the current Firestore clients. */
   addLocallyActiveQueryTarget(targetId: TargetId): void;
 
-  /** Removes a Query Target ID from the current Firestore instance. */
+  /** Removes a Query Target ID from the current Firestore clients. */
   removeLocallyActiveQueryTarget(targetId: TargetId): void;
 
   /**
-   * Gets the active Query Targets IDs for all active instances.
+   * Gets the active Query Targets IDs for all active clients.
    *
    * The implementation for this may require O(n) runtime, where 'n' is the size
    * of the result set.
@@ -79,22 +81,22 @@ export interface InstanceMetadataChannel {
   getGloballyActiveQueryTargets(): SortedSet<TargetId>;
 
   /**
-   * Starts the InstanceMetadataChannel, reads existing instance data for all
-   * `knownInstances` and registers listeners for newly added instances.
+   * Starts the SharedClientState, reads existing client data for all
+   * `knownClients` and registers listeners for newly added clients.
    */
-  start(knownInstances: InstanceKey[]): void;
+  start(knownClients: ClientKey[]): void;
 
-  /** Shuts down the `InstanceMetadataChannel` and its listeners. */
+  /** Shuts down the `SharedClientState` and its listeners. */
   shutdown(): void;
 }
 
 /**
- * The JSON representation of an instances's metadata as used in the
- * LocalStorage serialization. The InstanceKey is omitted here here as it is
- * encoded as part of the key.
+ * The JSON representation of a clients's metadata as used in the LocalStorage
+ * serialization. The ClientKey is omitted here here as it is encoded as part of
+ * the key.
  */
-export interface InstanceStateSchema {
-  // Visible for testing.
+// Visible for testing.
+export interface ClientStateSchema {
   lastUpdateTime: number;
   activeTargetIds: number[];
   minMutationBatchId?: number;
@@ -102,16 +104,16 @@ export interface InstanceStateSchema {
 }
 
 /**
- * Metadata state of a single instance. Includes query targets, as well as
- * minimum and maximum pending mutation batch ids.
+ * Metadata state of a single client. Includes query targets, as well as minimum
+ * and maximum pending mutation batch ids.
  *
- * This class represents the immutable state of an another instance as read from
+ * This class represents the immutable state of a client as read from
  * LocalStorage. It contains the list of all active query targets and the range
- * of the instance's pending mutation batch IDs.
+ * of the client's pending mutation batch IDs.
  */
-class InstanceState {
+class ClientState {
   constructor(
-    readonly instanceKey: InstanceKey,
+    readonly clientKey: ClientKey,
     public lastUpdateTime: Date,
     public activeTargetIds: SortedSet<TargetId>,
     private readonly _minMutationBatchId: BatchId | null,
@@ -127,23 +129,23 @@ class InstanceState {
   }
 
   /**
-   * Parses an InstanceState from its JSON representation in LocalStorage.
+   * Parses a ClientState from its JSON representation in LocalStorage.
    * Logs a warning and returns null if the data could not be parsed.
    */
   static fromLocalStorageEntry(
-    instanceKey: string,
+    clientKey: string,
     value: string
-  ): InstanceState | null {
-    const instanceData = JSON.parse(value) as InstanceStateSchema;
+  ): ClientState | null {
+    const clientState = JSON.parse(value) as ClientStateSchema;
 
     let validData =
-      typeof instanceData === 'object' &&
-      isSafeInteger(instanceData.lastUpdateTime) &&
-      instanceData.activeTargetIds instanceof Array &&
-      isSafeInteger(instanceData.minMutationBatchId) &&
-      isSafeInteger(instanceData.maxMutationBatchId);
+      typeof clientState === 'object' &&
+      isSafeInteger(clientState.lastUpdateTime) &&
+      clientState.activeTargetIds instanceof Array &&
+      isSafeInteger(clientState.minMutationBatchId) &&
+      isSafeInteger(clientState.maxMutationBatchId);
 
-    const activeTargetIdsArray = instanceData.activeTargetIds;
+    const activeTargetIdsArray = clientState.activeTargetIds;
     let activeTargetIdsSet = new SortedSet<TargetId>(primitiveComparator);
 
     for (let i = 0; validData && i < activeTargetIdsArray.length; ++i) {
@@ -152,39 +154,39 @@ class InstanceState {
     }
 
     if (validData) {
-      return new InstanceState(
-        instanceKey,
-        new Date(instanceData.lastUpdateTime),
+      return new ClientState(
+        clientKey,
+        new Date(clientState.lastUpdateTime),
         activeTargetIdsSet,
-        instanceData.minMutationBatchId,
-        instanceData.maxMutationBatchId
+        clientState.minMutationBatchId,
+        clientState.maxMutationBatchId
       );
     }
 
     error(
       LOG_TAG,
-      `Failed to parse instance metadata for instance '${instanceKey}'`
+      `Failed to parse client data for instance '${clientKey}': ${value}`
     );
     return null;
   }
 }
 
 /**
- * Instance state of the local instance. Unlike `InstanceState`, this class
- * is mutable and keeps track of all pending mutations, which allows us to
+ * Metadata state of the local client. Unlike `ClientState`, this class is
+ * mutable and keeps track of all pending mutations, which allows us to
  * update the range of pending mutation batch IDs as new mutations are added or
  * removed.
  *
- * The data in `LocalInstanceState` is not read from LocalStorage and instead
+ * The data in `LocalClientState` is not read from LocalStorage and instead
  * updated via its instance methods. The updated state can be serialized via
  * `toLocalStorageJSON()`.
  */
-class LocalInstanceState extends InstanceState {
+class LocalClientState extends ClientState {
   private pendingBatchIds = new SortedSet<BatchId>(primitiveComparator);
 
-  constructor(instanceKey: InstanceKey) {
+  constructor(clientKey: ClientKey) {
     super(
-      instanceKey,
+      clientKey,
       new Date(),
       new SortedSet<TargetId>(primitiveComparator),
       null,
@@ -239,10 +241,10 @@ class LocalInstanceState extends InstanceState {
 
   /**
    * Converts this entry into a JSON-encoded format we can use for LocalStorage.
-   * Does not encode `instanceKey` as it is part of the key in LocalStorage.
+   * Does not encode `clientKey` as it is part of the key in LocalStorage.
    */
   toLocalStorageJSON(): string {
-    const data: InstanceStateSchema = {
+    const data: ClientStateSchema = {
       lastUpdateTime: this.lastUpdateTime.getTime(),
       activeTargetIds: []
     };
@@ -261,30 +263,30 @@ class LocalInstanceState extends InstanceState {
 }
 
 /**
- * `WebStorageMetadataChannel` uses WebStorage (window.localStorage) as the
- * backing store for the InstanceMetadataChannel. It keeps track of all active
- * instances and supports modification of the current instance's data.
+ * `WebStorageSynchronizedClientState` uses WebStorage (window.localStorage) as
+ * the backing store for the SharedClientState. It keeps track of all active
+ * clients and supports modification of the current client's data.
  */
-export class WebStorageMetadataChannel implements InstanceMetadataChannel {
+export class WebStorageSynchronizedClientState implements SharedClientState {
   private readonly localStorage: Storage;
   private readonly storageKey: string;
-  private readonly activeInstances: { [key: string]: InstanceState } = {};
+  private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleStorageEvent.bind(this);
-  private readonly instanceKeyRe: RegExp;
+  private readonly clientStateRe: RegExp;
   private started = false;
 
-  constructor(private persistenceKey: string, private instanceKey: string) {
+  constructor(private persistenceKey: string, private clientKey: string) {
     this.localStorage = window ? window.localStorage : undefined;
     this.storageKey = toLocalStorageKey(
-      INSTANCE_KEY_NAMESPACE,
+      CLIENT_KEY_NAMESPACE,
       this.persistenceKey,
-      this.instanceKey
+      this.clientKey
     );
-    this.activeInstances[this.instanceKey] = new LocalInstanceState(
-      this.instanceKey
+    this.activeClients[this.clientKey] = new LocalClientState(
+      this.clientKey
     );
-    this.instanceKeyRe = new RegExp(
-      `^fs_instances_${persistenceKey}_[^_]{20}$`
+    this.clientStateRe = new RegExp(
+      `^fs_clients_${persistenceKey}_[^_]{20}$`
     );
   }
 
@@ -293,8 +295,8 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  start(knownInstances: InstanceKey[]): void {
-    if (!WebStorageMetadataChannel.isAvailable()) {
+  start(knownClients: ClientKey[]): void {
+    if (!WebStorageSynchronizedClientState.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
         'LocalStorage is not available on this platform.'
@@ -304,18 +306,18 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
 
     window.addEventListener('storage', this.storageListener);
 
-    for (const instanceKey of knownInstances) {
+    for (const clientKey of knownClients) {
       const storageKey = toLocalStorageKey(
-        INSTANCE_KEY_NAMESPACE,
+        CLIENT_KEY_NAMESPACE,
         this.persistenceKey,
-        instanceKey
+        clientKey
       );
-      const instanceState = InstanceState.fromLocalStorageEntry(
-        instanceKey,
+      const clientState = ClientState.fromLocalStorageEntry(
+        clientKey,
         this.localStorage.getItem(storageKey)
       );
-      if (instanceState) {
-        this.activeInstances[instanceState.instanceKey] = instanceState;
+      if (clientState) {
+        this.activeClients[clientState.clientKey] = clientState;
       }
     }
 
@@ -325,12 +327,12 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
 
   getMinimumGloballyPendingMutation(): BatchId | null {
     let minMutationBatch = null;
-    Object.keys(this.activeInstances).forEach(key => {
+    Object.keys(this.activeClients).forEach(key => {
       if (minMutationBatch === null) {
-        minMutationBatch = this.activeInstances[key].minMutationBatchId;
+        minMutationBatch = this.activeClients[key].minMutationBatchId;
       } else {
         minMutationBatch = Math.min(
-          this.activeInstances[key].minMutationBatchId,
+          this.activeClients[key].minMutationBatchId,
           minMutationBatch
         );
       }
@@ -342,9 +344,9 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
   getGloballyActiveQueryTargets(): SortedSet<TargetId> {
     let activeTargets = new SortedSet<TargetId>(primitiveComparator);
 
-    Object.keys(this.activeInstances).forEach(key => {
+    Object.keys(this.activeClients).forEach(key => {
       activeTargets = activeTargets.unionWith(
-        this.activeInstances[key].activeTargetIds
+        this.activeClients[key].activeTargetIds
       );
     });
 
@@ -352,22 +354,22 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
   }
 
   addLocalPendingMutation(batchId: BatchId): void {
-    this.localInstanceState.addPendingMutation(batchId);
+    this.localClientState.addPendingMutation(batchId);
     this.persistState();
   }
 
   removeLocalPendingMutation(batchId: BatchId): void {
-    this.localInstanceState.removePendingMutation(batchId);
+    this.localClientState.removePendingMutation(batchId);
     this.persistState();
   }
 
   addLocallyActiveQueryTarget(targetId: TargetId): void {
-    this.localInstanceState.addQueryTarget(targetId);
+    this.localClientState.addQueryTarget(targetId);
     this.persistState();
   }
 
   removeLocallyActiveQueryTarget(targetId: TargetId): void {
-    this.localInstanceState.removeQueryTarget(targetId);
+    this.localClientState.removeQueryTarget(targetId);
     this.persistState();
   }
 
@@ -393,34 +395,34 @@ export class WebStorageMetadataChannel implements InstanceMetadataChannel {
         'Received LocalStorage notification for local change.'
       );
 
-      const instanceKey = fromLocalStorageKey(event.key, this.instanceKeyRe, 3);
-      if (instanceKey) {
+      const clientKey = fromLocalStorageKey(event.key, this.clientStateRe, 3);
+      if (clientKey) {
         if (event.newValue == null) {
-          delete this.activeInstances[instanceKey];
+          delete this.activeClients[clientKey];
         } else {
-          const newInstance = InstanceState.fromLocalStorageEntry(
-            instanceKey,
+          const newClient = ClientState.fromLocalStorageEntry(
+            clientKey,
             event.newValue
           );
-          if (newInstance) {
-            this.activeInstances[newInstance.instanceKey] = newInstance;
+          if (newClient) {
+            this.activeClients[newClient.clientKey] = newClient;
           }
         }
       }
     }
   }
 
-  private get localInstanceState(): LocalInstanceState {
-    return this.activeInstances[this.instanceKey] as LocalInstanceState;
+  private get localClientState(): LocalClientState {
+    return this.activeClients[this.clientKey] as LocalClientState;
   }
 
   private persistState(): void {
     assert(this.started, 'LocalStorageMetadataNotifier used before started.');
     debug(LOG_TAG, 'Persisting state in LocalStorage');
-    this.localInstanceState.refreshLastUpdateTime();
+    this.localClientState.refreshLastUpdateTime();
     this.localStorage.setItem(
       this.storageKey,
-      this.localInstanceState.toLocalStorageJSON()
+      this.localClientState.toLocalStorageJSON()
     );
   }
 }
@@ -444,12 +446,12 @@ function toLocalStorageKey(...segments: string[]): string {
 function fromLocalStorageKey(
   key: string,
   expectedMatch: RegExp,
-  dataSegement: number
+  dataSegment: number
 ): string | null {
   if (!expectedMatch.test(key)) {
     console.log('key didnt match ' + key);
     return null;
   }
 
-  return key.split('_')[dataSegement];
+  return key.split('_')[dataSegment];
 }

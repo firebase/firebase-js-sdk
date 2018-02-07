@@ -16,41 +16,41 @@
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import {
-  InstanceStateSchema,
-  WebStorageMetadataChannel,
-  InstanceMetadataChannel
-} from '../../../src/local/instance_metadata_channel';
+  ClientStateSchema,
+  WebStorageSynchronizedClientState,
+  SharedClientState
+} from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 
 const GRACE_INTERVAL_MS = 100;
 
-describe('WebStorageMetadataChannel', () => {
-  if (!WebStorageMetadataChannel.isAvailable()) {
+describe('WebStorageSynchronizedClientState', () => {
+  if (!WebStorageSynchronizedClientState.isAvailable()) {
     console.warn(
-      'No LocalStorage. Skipping LocalStorageNotificationChannelTests tests.'
+      'No LocalStorage. Skipping WebStorageSynchronizedClientState tests.'
     );
     return;
   }
 
   const localStorage = window.localStorage;
 
-  let notificationChannel: InstanceMetadataChannel;
+  let notificationChannel: SharedClientState;
   let ownerId;
 
   beforeEach(() => {
     ownerId = AutoId.newId();
   });
 
-  function assertInstanceState(
+  function assertClientState(
     activeTargetIds: number[],
     minMutationBatchId?: number,
     maxMutationBatchId?: number
   ): void {
     const actual = JSON.parse(
       localStorage.getItem(
-        `fs_instances_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`
+        `fs_clients_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${ownerId}`
       )
     );
 
@@ -92,26 +92,26 @@ describe('WebStorageMetadataChannel', () => {
     });
 
     it('with empty batch', () => {
-      assertInstanceState([]);
+      assertClientState([]);
     });
 
     it('with one batch', () => {
       notificationChannel.addLocalPendingMutation(0);
-      assertInstanceState([], 0, 0);
+      assertClientState([], 0, 0);
     });
 
     it('with multiple batches', () => {
       notificationChannel.addLocalPendingMutation(0);
       notificationChannel.addLocalPendingMutation(1);
-      assertInstanceState([], 0, 1);
+      assertClientState([], 0, 1);
 
       notificationChannel.addLocalPendingMutation(2);
       notificationChannel.addLocalPendingMutation(3);
-      assertInstanceState([], 0, 3);
+      assertClientState([], 0, 3);
 
       notificationChannel.removeLocalPendingMutation(0);
       notificationChannel.removeLocalPendingMutation(2);
-      assertInstanceState([], 1, 3);
+      assertClientState([], 1, 3);
     });
   });
 
@@ -129,23 +129,23 @@ describe('WebStorageMetadataChannel', () => {
     });
 
     it('with empty targets', () => {
-      assertInstanceState([]);
+      assertClientState([]);
     });
 
     it('with multiple targets', () => {
       notificationChannel.addLocallyActiveQueryTarget(0);
-      assertInstanceState([0]);
+      assertClientState([0]);
 
       notificationChannel.addLocallyActiveQueryTarget(1);
       notificationChannel.addLocallyActiveQueryTarget(2);
-      assertInstanceState([0, 1, 2]);
+      assertClientState([0, 1, 2]);
 
       notificationChannel.removeLocallyActiveQueryTarget(1);
-      assertInstanceState([0, 2]);
+      assertClientState([0, 2]);
     });
   });
 
-  describe('combines instance data', () => {
+  describe('combines client data', () => {
     let previousAddEventListener;
     let storageCallback: (StorageEvent) => void;
 
@@ -184,8 +184,8 @@ describe('WebStorageMetadataChannel', () => {
       ).to.be.equal(minBatchId);
     };
 
-    it('with existing instance', () => {
-      // The prior instance has one pending mutation and two active query targets
+    it('with existing client', () => {
+      // The prior client has one pending mutation and two active query targets
       verifyState(1, [3, 4]);
 
       notificationChannel.addLocalPendingMutation(3);
@@ -201,37 +201,37 @@ describe('WebStorageMetadataChannel', () => {
       verifyState(1, [3, 4]);
     });
 
-    it('from new instances', () => {
-      const secondaryInstanceKey = `fs_instances_${
+    it('from new clients', () => {
+      const secondaryClientKey = `fs_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
-      const oldState: InstanceStateSchema = {
+      const oldState: ClientStateSchema = {
         lastUpdateTime: Date.now(),
         activeTargetIds: [5],
         minMutationBatchId: 0,
         maxMutationBatchId: 0
       };
 
-      const updatedState: InstanceStateSchema = {
+      const updatedState: ClientStateSchema = {
         lastUpdateTime: Date.now(),
         activeTargetIds: [5, 6],
         minMutationBatchId: 0,
         maxMutationBatchId: 0
       };
 
-      // The prior instance has one pending mutation and two active query targets
+      // The prior client has one pending mutation and two active query targets
       verifyState(1, [3, 4]);
 
       storageCallback({
-        key: secondaryInstanceKey,
+        key: secondaryClientKey,
         storageArea: window.localStorage,
         newValue: JSON.stringify(oldState)
       });
       verifyState(0, [3, 4, 5]);
 
       storageCallback({
-        key: secondaryInstanceKey,
+        key: secondaryClientKey,
         storageArea: window.localStorage,
         newValue: JSON.stringify(updatedState),
         oldValue: JSON.stringify(oldState)
@@ -239,7 +239,7 @@ describe('WebStorageMetadataChannel', () => {
       verifyState(0, [3, 4, 5, 6]);
 
       storageCallback({
-        key: secondaryInstanceKey,
+        key: secondaryClientKey,
         storageArea: window.localStorage,
         oldValue: JSON.stringify(updatedState)
       });
@@ -247,7 +247,7 @@ describe('WebStorageMetadataChannel', () => {
     });
 
     it('rejects invalid state', () => {
-      const secondaryInstanceKey = `fs_instances_${
+      const secondaryClientKey = `fs_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
@@ -261,7 +261,7 @@ describe('WebStorageMetadataChannel', () => {
 
       // We ignore the newly added target.
       storageCallback({
-        key: secondaryInstanceKey,
+        key: secondaryClientKey,
         storageArea: window.localStorage,
         newValue: JSON.stringify(invalidState)
       });
