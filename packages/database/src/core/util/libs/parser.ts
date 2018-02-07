@@ -153,8 +153,8 @@ export const parseURL = function(
         const queryString = host.substring(queryStartIndex, host.length);
         const match = queryString.match(/ns=([a-zA-Z0-9-]+)/);
         if (match.length > 0) {
-            subdomain = match[1];
-            host = host.substring(0, queryStartIndex);
+          subdomain = match[1];
+          host = host.substring(0, queryStartIndex);
         }
       }
     }
