@@ -146,6 +146,18 @@ export const parseURL = function(
     } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
     }
+    // Support `ns` query param if subdomain not already set
+    if (subdomain === '') {
+      const queryStartIndex = host.indexOf('?');
+      if (queryStartIndex != -1) {
+        const queryString = host.substring(queryStartIndex, host.length);
+        const match = queryString.match(/ns=([a-zA-Z0-9-]+)/);
+        if (match.length > 0) {
+            subdomain = match[1];
+            host = host.substring(0, queryStartIndex);
+        }
+      }
+    }
   }
 
   return {
