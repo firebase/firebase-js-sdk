@@ -87,7 +87,7 @@ describe('Database Tests', function() {
     var db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('bar');
-    expect(db.ref().toString()).to.equal('https://bar.firebaseio.com?ns=foo/');
+    expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
   });
 
   it('Different instances for different URLs', function() {
