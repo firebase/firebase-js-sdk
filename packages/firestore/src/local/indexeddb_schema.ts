@@ -21,8 +21,6 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {IndexedDbMutationQueue} from './indexeddb_mutation_queue';
-import {SimpleDb} from './simple_db';
 
 /**
  * Schema version containing the Mutation Queue, the Query and the Remote
