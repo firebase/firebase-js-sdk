@@ -485,7 +485,7 @@ export class LLRBNode<K, V> {
 
   // In a balanced RB tree, the black-depth (number of black nodes) from root to
   // leaves is equal on both sides.  This function verifies that or asserts.
-  private check(): number {
+  protected check(): number {
     if (this.isRed() && this.left.isRed()) {
       throw fail('Red node has red child(' + this.key + ',' + this.value + ')');
     }
@@ -562,7 +562,7 @@ export class LLRBEmptyNode<K, V> {
     return true;
   }
 
-  private check() {
+  protected check() {
     return 0;
   }
 } // end LLRBEmptyNode

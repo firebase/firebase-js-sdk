@@ -16,7 +16,6 @@
 
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 
 import { Stream } from './connection';
 

@@ -16,7 +16,6 @@
 
 import * as api from '../protos/firestore_proto_api';
 import { CredentialsProvider } from '../api/credentials';
-import { DatabaseInfo } from '../core/database_info';
 import { maybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -27,9 +26,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { Connection } from './connection';
 import {
   PersistentListenStream,
-  PersistentWriteStream,
-  WatchStreamListener,
-  WriteStreamListener
+  PersistentWriteStream
 } from './persistent_stream';
 import { JsonProtoSerializer } from './serializer';
 
@@ -50,7 +47,6 @@ interface CommitRequest extends api.CommitRequest {
  */
 export class Datastore {
   constructor(
-    private databaseInfo: DatabaseInfo,
     private queue: AsyncQueue,
     private connection: Connection,
     private credentials: CredentialsProvider,
@@ -60,7 +56,6 @@ export class Datastore {
 
   newPersistentWriteStream(): PersistentWriteStream {
     return new PersistentWriteStream(
-      this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
@@ -71,7 +66,6 @@ export class Datastore {
 
   newPersistentWatchStream(): PersistentListenStream {
     return new PersistentListenStream(
-      this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
