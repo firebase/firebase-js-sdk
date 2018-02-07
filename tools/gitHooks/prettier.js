@@ -29,7 +29,7 @@ async function doPrettierCommit() {
   const stylingSpinner = ora(' Formatting code with prettier').start();
   await spawn(
     'prettier',
-    ['--config', `${resolve(root, '.prettierrc')}`, '--wrfite', '**/*.{ts,js}'],
+    ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
     {
       stdio: ['ignore', 'ignore', process.stderr],
       cwd: root,

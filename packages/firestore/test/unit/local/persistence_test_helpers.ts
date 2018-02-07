@@ -20,7 +20,7 @@ import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
-  WebStorageSynchronizedClientState,
+  WebStorageSharedClientState,
   SharedClientState,
   ClientKey
 } from '../../../src/local/shared_client_state';
@@ -61,10 +61,10 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 /**
- * Creates and starts a LocalStorageMetadataNotifier instance for testing,
+ * Creates and starts a WebStorageSharedClientState instance for testing,
  * destroying any previous contents if they existed.
  */
-export async function testLocalStorageNotificationChannel(
+export async function testWebStorageSharedClientState(
   instanceKey: string,
   existingMutationBatchIds: BatchId[],
   existingQueryTargetIds: TargetId[]
@@ -82,9 +82,9 @@ export async function testLocalStorageNotificationChannel(
     existingMutationBatchIds.length > 0 ||
     existingQueryTargetIds.length > 0
   ) {
-    // HACK: Create a secondary channel to seed data into LocalStorage.
+    // HACK: Create a secondary client state to seed data into LocalStorage.
     // NOTE: We don't call shutdown() on it because that would delete the data.
-    const secondaryChannel = new WebStorageSynchronizedClientState(
+    const secondaryChannel = new WebStorageSharedClientState(
       TEST_PERSISTENCE_PREFIX,
       SECONDARY_INSTANCE_KEY
     );
@@ -98,14 +98,14 @@ export async function testLocalStorageNotificationChannel(
     }
 
     for (const targetId of existingQueryTargetIds) {
-      secondaryChannel.addLocallyActiveQueryTarget(targetId);
+      secondaryChannel.addLocalQueryTarget(targetId);
     }
   }
 
-  const notificationChannel = new WebStorageSynchronizedClientState(
+  const sharedClientState = new WebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );
-  await notificationChannel.start(knownInstances);
-  return notificationChannel;
+  await sharedClientState.start(knownInstances);
+  return sharedClientState;
 }
