@@ -53,27 +53,35 @@ function customDeepEqual(left, right) {
   return true;
 }
 
+/** The original equality function passed in by chai(). */
+let originalFunction = null;
+
 export function addEqualityMatcher() {
-  let originalFunction;
-  beforeEach(() => {
+  let isActive = true;
+
+  before(() => {
     use((chai, utils) => {
       const Assertion = chai.Assertion;
 
       const assertEql = _super => {
         originalFunction = originalFunction || _super;
         return function(...args) {
-          const [right, msg] = args;
-          utils.flag(this, 'message', msg);
-          const left = utils.flag(this, 'object');
+          if (isActive) {
+            const [right, msg] = args;
+            utils.flag(this, 'message', msg);
+            const left = utils.flag(this, 'object');
 
-          this.assert(
-            customDeepEqual(left, right),
-            'expected #{act} to roughly deeply equal #{exp}',
-            'expected #{act} to not roughly deeply equal #{exp}',
-            left,
-            right,
-            true
-          );
+            chai.assert(
+              customDeepEqual(left, right),
+              'expected #{act} to roughly deeply equal #{exp}',
+              'expected #{act} to not roughly deeply equal #{exp}',
+              left,
+              right,
+              true
+            );
+          } else {
+            originalFunction.apply(this, args);
+          }
         };
       };
 
@@ -82,15 +90,7 @@ export function addEqualityMatcher() {
     });
   });
 
-  afterEach(() => {
-    if (originalFunction) {
-      use(chai => {
-        const wrappedDefault = _super => {
-          return function(...args) {
-            originalFunction.apply(this, args);
-          };
-        };
-      });
-    }
+  after(() => {
+    isActive = false;
   });
 }

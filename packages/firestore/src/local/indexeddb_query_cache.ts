@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Timestamp } from '../core/timestamp';
@@ -27,7 +26,6 @@ import { immediateSuccessor } from '../util/misc';
 import * as EncodedResourcePath from './encoded_resource_path';
 import { GarbageCollector } from './garbage_collector';
 import {
-  DbQuery,
   DbTarget,
   DbTargetDocument,
   DbTargetDocumentKey,
@@ -237,7 +235,6 @@ export class IndexedDbQueryCache implements QueryCache {
     txn: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<DocumentKeySet> {
-    const promises: Array<PersistencePromise<void>> = [];
     const range = IDBKeyRange.bound(
       [targetId],
       [targetId + 1],

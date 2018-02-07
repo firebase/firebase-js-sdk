@@ -376,7 +376,6 @@ abstract class TestRunner {
     // Set backoff delay to 1ms so simulated disconnects don't delay the tests.
     const initialBackoffDelay = 1;
     this.datastore = new Datastore(
-      this.databaseInfo,
       this.queue,
       this.connection,
       new EmptyCredentialsProvider(),

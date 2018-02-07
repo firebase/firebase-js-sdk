@@ -90,7 +90,6 @@ import {
 import { assert, fail } from '../../src/util/assert';
 import { AnyJs, primitiveComparator } from '../../src/util/misc';
 import { forEach } from '../../src/util/obj';
-import { Deferred } from '../../src/util/promise';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 
@@ -233,7 +232,7 @@ export function bound(
 ): Bound {
   const components: FieldValue[] = [];
   for (const value of values) {
-    const [field, dataValue] = value;
+    const [_, dataValue] = value;
     components.push(wrap(dataValue));
   }
   return new Bound(components, before);
@@ -460,16 +459,12 @@ export class DocComparator {
     return Document.compareByField.bind(this, path);
   }
 }
-type MochaTestRunner = (
-  expectation: string,
-  callback?: (this: Mocha.ITestCallbackContext, done: MochaDone) => AnyJs
-) => Mocha.ITest;
 
 /**
  * Two helper functions to simplify testing isEqual() method.
  */
 // tslint:disable-next-line:no-any so we can dynamically call .isEqual().
-export function expectEqual<T>(left: any, right: any, message?: string): void {
+export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
     return fail(
