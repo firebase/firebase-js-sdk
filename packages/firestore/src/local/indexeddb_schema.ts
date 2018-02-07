@@ -23,8 +23,8 @@ import { assert } from '../util/assert';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 
 /**
- * Schema version containing the Mutation Queue, the Query and the Remote
- * Document Cache.
+ * Default Schema Version for the Web client (containing the Mutation Queue, the
+ * Query and the Remote Document Cache).
  */
 export const DEFAULT_SCHEMA_VERSION = 1;
 
@@ -130,7 +130,7 @@ export class DbMutationQueue {
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
      */
-    public lastStreamToken: string,
+    public lastStreamToken: string
   ) {}
 }
 
@@ -565,14 +565,14 @@ function createClientMetadataStore(db: IDBDatabase): void {
 
 // Exported for testing.
 export const V1_STORES = [
-  DbDocumentMutation.store,
   DbMutationQueue.store,
   DbMutationBatch.store,
-  DbOwner.store,
+  DbDocumentMutation.store,
   DbRemoteDocument.store,
-  DbTargetDocument.store,
+  DbTarget.store,
+  DbOwner.store,
   DbTargetGlobal.store,
-  DbTarget.store
+  DbTargetDocument.store
 ];
 
 const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
