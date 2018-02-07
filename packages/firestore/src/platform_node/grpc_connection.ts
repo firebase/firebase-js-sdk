@@ -29,7 +29,6 @@ import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { AnyJs } from '../util/misc';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 
@@ -45,7 +44,7 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${
 type DuplexRpc = () => grpc.ClientDuplexStream;
 type ReadableRpc<Req> = (req: Req) => grpc.ClientReadableStream;
 type UnaryRpc<Req, Resp> = (
-  req,
+  req: Req,
   callback: (err?: grpc.ServiceError, resp?: Resp) => void
 ) => grpc.ClientUnaryCall;
 

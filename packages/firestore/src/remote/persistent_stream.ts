@@ -16,7 +16,6 @@
 
 import * as api from '../protos/firestore_proto_api';
 import { CredentialsProvider, Token } from '../api/credentials';
-import { DatabaseInfo } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData } from '../local/query_data';
@@ -534,7 +533,6 @@ export class PersistentListenStream extends PersistentStream<
   WatchStreamListener
 > {
   constructor(
-    private databaseInfo: DatabaseInfo,
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
@@ -638,7 +636,6 @@ export class PersistentWriteStream extends PersistentStream<
   private handshakeComplete_ = false;
 
   constructor(
-    private databaseInfo: DatabaseInfo,
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,

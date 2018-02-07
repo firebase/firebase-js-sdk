@@ -17,7 +17,6 @@
 import { BatchId, TargetId } from '../core/types';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 

@@ -16,7 +16,7 @@
 
 import { assert, fail } from './assert';
 import * as log from './log';
-import { AnyDuringMigration, AnyJs } from './misc';
+import { AnyJs } from './misc';
 import { Deferred, CancelablePromise } from './promise';
 import { Code, FirestoreError } from './error';
 

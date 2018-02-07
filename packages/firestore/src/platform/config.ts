@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
