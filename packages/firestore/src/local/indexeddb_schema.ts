@@ -563,8 +563,7 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
-// Exported for testing.
-export const V1_STORES = [
+const V1_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,
@@ -578,7 +577,14 @@ export const V1_STORES = [
 const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
 
 /**
- * The list of all IndexedDB stores used by the SDK. This is used when creating
- * transactions so that access across all stores is done atomically.
+ * The list of all default IndexedDB stores used throughout the SDK. This is
+ * used when creating transactions so that access across all stores is done
+ * atomically.
+ */
+export const DEFAULT_STORES = V1_STORES;
+
+/**
+ * The list of all IndexedDb stores. This is only available in multi-tab enabled
+ * clients with the schema version 2.
  */
 export const ALL_STORES = [...V1_STORES, ...V2_STORES];
