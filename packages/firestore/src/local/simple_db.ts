@@ -19,7 +19,7 @@ import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
-import { SCHEMA_VERSION } from './indexeddb_schema';
+import { DEFAULT_SCHEMA_VERSION } from './indexeddb_schema';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -75,7 +75,7 @@ export class SimpleDb {
         // cheating and just passing the raw IndexedDB in, since
         // createObjectStore(), etc. are synchronous.
         const db = (event.target as IDBOpenDBRequest).result;
-        runUpgrade(db, event.oldVersion, SCHEMA_VERSION);
+        runUpgrade(db, event.oldVersion, DEFAULT_SCHEMA_VERSION);
       };
     }).toPromise();
   }

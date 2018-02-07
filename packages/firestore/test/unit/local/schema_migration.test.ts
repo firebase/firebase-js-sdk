@@ -22,24 +22,11 @@ import {
   V1_STORES
 } from '../../../src/local/indexeddb_schema';
 import { Deferred } from '../../../src/util/promise';
+import {SimpleDb} from '../../../src/local/simple_db';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 
-function deleteDb() {
-  const deferred = new Deferred<void>();
-
-  const request = window.indexedDB.deleteDatabase(INDEXEDDB_TEST_DATABASE);
-  request.onsuccess = (event: Event) => {
-    deferred.resolve();
-  };
-  request.onerror = (event: ErrorEvent) => {
-    deferred.reject((event.target as IDBOpenDBRequest).error);
-  };
-
-  return deferred;
-}
-
-function initDb(targetVersion) {
+function initDb(targetVersion) : Promise<IDBDatabase> {
   const deferred = new Deferred<IDBDatabase>();
 
   const request = window.indexedDB.open(INDEXEDDB_TEST_DATABASE, targetVersion);
@@ -67,31 +54,27 @@ function getAllObjectStores(db: IDBDatabase): String[] {
   return objectStores;
 }
 
-// Sorting these arrays directly should not affect the functionality of the SDK.
-V1_STORES.sort();
-ALL_STORES.sort();
-
-describe('SchemaMigration', () => {
+describe('IndexedDbSchema: createOrUpgradeDb', () => {
   if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbMutationQueue tests.');
+    console.warn('No IndexedDB. Skipping createOrUpgradeDb() tests.');
     return;
   }
 
   beforeEach(() => {
-    return deleteDb();
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE);
   });
 
   it('can install schema version 1', () => {
     return initDb(1).then(db => {
       expect(db.version).to.be.equal(1);
-      expect(getAllObjectStores(db)).to.deep.equal(V1_STORES);
+      expect(getAllObjectStores(db)).to.have.members(V1_STORES);
     });
   });
 
   it('can install schema version 2', () => {
     return initDb(2).then(db => {
       expect(db.version).to.be.equal(2);
-      expect(getAllObjectStores(db)).to.deep.equal(ALL_STORES);
+      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
     });
   });
 
@@ -100,7 +83,7 @@ describe('SchemaMigration', () => {
       .then(() => initDb(2))
       .then(db => {
         expect(db.version).to.be.equal(2);
-        expect(getAllObjectStores(db)).to.deep.equal(ALL_STORES);
+        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
       });
   });
 });
