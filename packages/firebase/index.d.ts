@@ -699,7 +699,7 @@ declare namespace firebase.firestore {
     /**
      * The `FirebaseApp` associated with this `Firestore` instance.
      */
-    app: any;
+    app: firebase.app.App;
 
     /**
      * Re-enables use of the network for this Firestore instance after a prior
