@@ -59,7 +59,12 @@ describe('WebStorageSharedClientState', () => {
       )
     );
 
-    expect(Object.keys(actual)).to.have.members(['lastUpdateTime', 'activeTargetIds', 'minMutationBatchId', 'maxMutationBatchId']);
+    expect(Object.keys(actual)).to.have.members([
+      'lastUpdateTime',
+      'activeTargetIds',
+      'minMutationBatchId',
+      'maxMutationBatchId'
+    ]);
     expect(actual.lastUpdateTime)
       .to.be.a('number')
       .greaterThan(Date.now() - GRACE_INTERVAL_MS)
