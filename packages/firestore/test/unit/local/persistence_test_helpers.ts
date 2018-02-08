@@ -62,7 +62,7 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 
 /**
  * Creates and starts a WebStorageSharedClientState instance for testing,
- * destroying any previous contents if they existed.
+ * destroying any previous contents in LocalStorage if they existed.
  */
 export async function testWebStorageSharedClientState(
   instanceKey: string,

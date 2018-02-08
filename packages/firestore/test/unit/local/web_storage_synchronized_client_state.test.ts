@@ -25,9 +25,9 @@ import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 
 /**
- * The test asserts that update time of each row in LocalStorage. We allow a
- * 0.1s difference in update time and local time to account for processing and
- * locking in LocalStorage.
+ * The test asserts that the lastUpdateTime of each row in LocalStorage gets
+ * updated. We allow a 0.1s difference in update time to account for processing
+ * and locking time in LocalStorage.
  */
 const GRACE_INTERVAL_MS = 100;
 
@@ -114,6 +114,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalPendingMutation(3);
       assertClientState([], 0, 3);
 
+      // Note: The Firestore client only ever removes mutations in order.
       sharedClientState.removeLocalPendingMutation(0);
       sharedClientState.removeLocalPendingMutation(2);
       assertClientState([], 1, 3);
@@ -195,7 +196,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(4);
       verifyState(1, [3, 4]);
 
-      // This is technically invalid as ID of the minimum mutation batch should
+      // This is technically invalid as IDs of minimum mutation batches should
       // never decrease over the lifetime of a client, but we use it here to
       // test the underlying logic that extracts the mutation batch IDs.
       sharedClientState.addLocalPendingMutation(0);
@@ -207,7 +208,7 @@ describe('WebStorageSharedClientState', () => {
       verifyState(1, [3, 4]);
     });
 
-    it.only('with data from new clients', () => {
+    it('with data from new clients', () => {
       const secondaryClientKey = `fs_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;

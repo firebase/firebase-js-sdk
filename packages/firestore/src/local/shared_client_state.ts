@@ -21,13 +21,12 @@ import { debug, error } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
-import { forEach } from '../util/obj';
 import * as objUtils from '../util/obj';
 
 const LOG_TAG = 'SharedClientState';
 
-// The format of a the key for the client state in LocalStorage is:
-//   fs_clients_<persistence_prefix>_<instance_key>
+// The format of the LocalStorage key storing the client state is:
+//     fs_clients_<persistence_prefix>_<instance_key>
 const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 
 /**
@@ -39,7 +38,7 @@ export type ClientKey = string;
  * The `SharedClientState` keeps track of the global state of the mutations
  * and query targets for all active clients with the same persistence key (i.e.
  * project ID and FirebaseApp name). It relays local changes to other clients
- * and updates its local state as new metadata is observed.
+ * and updates its local state as new state is observed.
  *
  * `SharedClientState` is primarily used for synchronization in Multi-Tab
  * environments. Each tab is responsible for registering its active query
@@ -103,8 +102,8 @@ interface ClientStateSchema {
 
 /**
  * Metadata state of a single client. Includes query targets, the minimum
- * pending and maximum pending mutation batch ID the last update time of this
- * state.
+ * pending and maximum pending mutation batch ID, as well as the last update
+ * time of this state.
  */
 // Visible for testing.
 export interface ClientState {
@@ -115,9 +114,9 @@ export interface ClientState {
 }
 
 /**
- * This class represents the immutable ClientState of clients read from
- * LocalStorage. It contains the list of all active query targets and the range
- * of the client's pending mutation batch IDs.
+ * This class represents the immutable ClientState for a client read from
+ * LocalStorage. It contains the list of its active query targets and the range
+ * of its pending mutation batch IDs.
  */
 class RemoteClientState implements ClientState {
   constructor(
@@ -129,7 +128,7 @@ class RemoteClientState implements ClientState {
   ) {}
 
   /**
-   * Parses a ClientState from its JSON representation in LocalStorage.
+   * Parses a ClientState from the JSON representation in LocalStorage.
    * Logs a warning and returns null if the data could not be parsed.
    */
   static fromLocalStorageEntry(
@@ -258,7 +257,7 @@ export class LocalClientState implements ClientState {
 /**
  * `WebStorageSharedClientState` uses WebStorage (window.localStorage) as the
  *  backing store for the SharedClientState. It keeps track of all active
- * clients and supports modification of the current client's data.
+ * clients and supports modifications of the current client's data.
  */
 export class WebStorageSharedClientState implements SharedClientState {
   private readonly storage: Storage;
@@ -322,11 +321,9 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   getAllActiveQueryTargets(): SortedSet<TargetId> {
     let activeTargets = new SortedSet<TargetId>(primitiveComparator);
-
     objUtils.forEach(this.activeClients, (key, value) => {
       activeTargets = activeTargets.unionWith(value.activeTargetIds);
     });
-
     return activeTargets;
   }
 
@@ -371,7 +368,6 @@ export class WebStorageSharedClientState implements SharedClientState {
         event.key !== this.storageKey,
         'Received LocalStorage notification for local change.'
       );
-      console.log(event.newValue);
       const clientKey = this.fromLocalStorageClientKey(event.key);
       if (clientKey) {
         if (event.newValue == null) {
@@ -395,7 +391,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private persistState(): void {
     // TODO(multitab): Consider rate limiting/combining state updates for
-    // clients that frequently change update client state.
+    // clients that frequently update their client state.
     assert(this.started, 'WebStorageSharedClientState used before started.');
     debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localClientState.refreshLastUpdateTime();
@@ -405,7 +401,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
   }
 
-  /** Assembles the key for client states in LocalStorage */
+  /** Assembles the key for a client state in LocalStorage */
   private toLocalStorageClientKey(clientKey: string): string {
     assert(
       clientKey.indexOf('_') === -1,
