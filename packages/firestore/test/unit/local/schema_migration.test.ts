@@ -60,14 +60,13 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return;
   }
 
-  beforeEach(() => {
-    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE);
-  });
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
   it('can install schema version 1', () => {
     return initDb(1).then(db => {
       expect(db.version).to.be.equal(1);
       expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
+      db.close();
     });
   });
 
@@ -75,15 +74,20 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return initDb(2).then(db => {
       expect(db.version).to.be.equal(2);
       expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+      db.close();
     });
   });
 
   it('can upgrade from schema version 1 to 2', () => {
     return initDb(1)
-      .then(() => initDb(2))
+      .then(db => {
+        db.close();
+        return initDb(2)
+      })
       .then(db => {
         expect(db.version).to.be.equal(2);
         expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+        db.close();
       });
   });
 });
