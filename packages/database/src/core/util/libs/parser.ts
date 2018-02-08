@@ -152,7 +152,9 @@ export const parseURL = function(
       // For pathString, questionInd will always come after slashInd
       pathString = decodePath(dataURL.substring(slashInd, questionInd));
     }
-    let queryParams = decodeQuery(dataURL.substring(Math.min(dataURL.length, questionInd + 1)));
+    let queryParams = decodeQuery(
+      dataURL.substring(Math.min(dataURL.length, questionInd + 1))
+    );
 
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
@@ -176,7 +178,7 @@ export const parseURL = function(
     // Support `ns` query param if subdomain not already set
     if (subdomain === '' && queryParams.has('ns')) {
       subdomain = queryParams.get('ns');
-      console.log("here", queryParams, subdomain);
+      console.log('here', queryParams, subdomain);
     }
   }
 
