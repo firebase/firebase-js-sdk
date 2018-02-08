@@ -53,7 +53,6 @@ export function withTestDatastore(
         databaseInfo.databaseId
       );
       const datastore = new Datastore(
-        databaseInfo,
         queue || new AsyncQueue(),
         conn,
         new EmptyCredentialsProvider(),

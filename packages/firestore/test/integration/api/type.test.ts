@@ -18,8 +18,11 @@ import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 
 apiDescribe('Firestore', persistence => {
+  addEqualityMatcher();
+
   function expectRoundtrip(
     db: firestore.FirebaseFirestore,
     data: {}

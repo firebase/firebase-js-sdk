@@ -22,7 +22,6 @@ import { ChangeType, ViewSnapshot } from './view_snapshot';
 import { DocumentSet } from '../model/document_set';
 import { assert } from '../util/assert';
 import { EventHandler } from '../util/misc';
-import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 
 /**

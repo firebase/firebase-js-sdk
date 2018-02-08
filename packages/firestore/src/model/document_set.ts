@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { documentMap } from './collections';

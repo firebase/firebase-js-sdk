@@ -274,7 +274,6 @@ export class FirestoreClient {
           this.databaseInfo.databaseId
         );
         const datastore = new Datastore(
-          this.databaseInfo,
           this.asyncQueue,
           connection,
           this.credentials,

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { DocumentKey } from '../model/document_key';
@@ -247,13 +245,6 @@ class ParseContext {
     if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
       throw this.createError('Document fields cannot begin and end with __');
     }
-  }
-
-  private isWrite(): boolean {
-    return (
-      this.dataSource === UserDataSource.Set ||
-      this.dataSource === UserDataSource.Update
-    );
   }
 }
 /**
