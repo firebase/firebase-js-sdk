@@ -38,6 +38,25 @@ function decodePath(pathString: string): string {
 }
 
 /**
+ * @param {!string} queryString
+ * @return {!Map<string, string>} key value hash
+ */
+function decodeQuery(queryString: string): Map<string, string> {
+  let results = new Map<string, string>();
+  const pieces = queryString.split('&');
+  for (let i = 0; i < pieces.length; i++) {
+    if (pieces[i].length > 0) {
+      try {
+        const piece = decodeURIComponent(pieces[i]);
+        const kv = piece.split('=');
+        results.set(kv[0], kv[1]);
+      } catch (e) {}
+    }
+  }
+  return results;
+}
+
+/**
  *
  * @param {!string} dataURL
  * @return {{repoInfo: !RepoInfo, path: !Path}}
@@ -119,13 +138,21 @@ export const parseURL = function(
       dataURL = dataURL.substring(colonInd + 2);
     }
 
-    // Parse host and path.
+    // Parse host, path, and query string.
     let slashInd = dataURL.indexOf('/');
     if (slashInd === -1) {
       slashInd = dataURL.length;
     }
-    host = dataURL.substring(0, slashInd);
-    pathString = decodePath(dataURL.substring(slashInd));
+    let questionInd = dataURL.indexOf('?');
+    if (questionInd === -1) {
+      questionInd = dataURL.length;
+    }
+    host = dataURL.substring(0, Math.min(slashInd, questionInd));
+    if (slashInd < questionInd) {
+      // For pathString, questionInd will always come after slashInd
+      pathString = decodePath(dataURL.substring(slashInd, questionInd));
+    }
+    let queryParams = decodeQuery(dataURL.substring(Math.min(dataURL.length, questionInd + 1)));
 
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
@@ -147,17 +174,9 @@ export const parseURL = function(
       domain = 'localhost';
     }
     // Support `ns` query param if subdomain not already set
-    const queryStartIndex = host.indexOf('?');
-    if (queryStartIndex > 0) {
-      if (subdomain === '') {
-        const queryString = host.substring(queryStartIndex, host.length);
-        const match = queryString.match(/ns=([a-zA-Z0-9-]+)/);
-        if (match.length > 0) {
-          subdomain = match[1];
-        }
-      }
-      // Always remove all query params from the host
-      host = host.substring(0, queryStartIndex);
+    if (subdomain === '' && queryParams.has('ns')) {
+      subdomain = queryParams.get('ns');
+      console.log("here", queryParams, subdomain);
     }
   }
 

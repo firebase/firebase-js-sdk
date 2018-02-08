@@ -77,7 +77,7 @@ describe('Database Tests', function() {
   });
 
   it('Can read ns query param', function() {
-    var db = defaultApp.database('http://localhost:80?ns=foo');
+    var db = defaultApp.database('http://localhost:80/?ns=foo');
     expect(db).to.be.ok;
     expect(db.repo_.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('http://localhost:80/');
