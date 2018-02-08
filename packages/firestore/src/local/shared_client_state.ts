@@ -121,8 +121,8 @@ export interface ClientState {
 class RemoteClientState implements ClientState {
   private constructor(
     readonly clientKey: ClientKey,
-    public readonly lastUpdateTime: Date,
-    public readonly activeTargetIds: SortedSet<TargetId>,
+    readonly lastUpdateTime: Date,
+    readonly activeTargetIds: SortedSet<TargetId>,
     readonly minMutationBatchId: BatchId | null,
     readonly maxMutationBatchId: BatchId | null
   ) {}
