@@ -30,9 +30,9 @@ type TimerHandle = any;
  */
 export enum TimerId {
   ListenStreamIdle,
-  ListenStreamBackoff,
+  ListenStreamConnection,
   WriteStreamIdle,
-  WriteStreamBackoff
+  WriteStreamConnection
 }
 
 /**
@@ -52,7 +52,7 @@ class DelayedOperation<T> implements CancelablePromise<T> {
   private constructor(
     private readonly asyncQueue: AsyncQueue,
     readonly timerId: TimerId,
-    readonly targetTime: number,
+    readonly targetTimeMs: number,
     private readonly op: () => Promise<T>,
     private readonly removalCallback: (op: DelayedOperation<T>) => void
   ) {}
@@ -292,7 +292,7 @@ export class AsyncQueue {
       );
 
       // Run ops in the same order they'd run if they ran naturally.
-      this.delayedOperations.sort((a, b) => a.targetTime - b.targetTime);
+      this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
 
       for (const op of this.delayedOperations) {
         op.skipDelay();

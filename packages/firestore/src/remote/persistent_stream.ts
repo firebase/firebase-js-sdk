@@ -163,14 +163,14 @@ export abstract class PersistentStream<
 
   constructor(
     private queue: AsyncQueue,
-    backoffTimerId: TimerId,
+    connectionTimerId: TimerId,
     private idleTimerId: TimerId,
     protected connection: Connection,
     private credentialsProvider: CredentialsProvider
   ) {
     this.backoff = new ExponentialBackoff(
       queue,
-      backoffTimerId,
+      connectionTimerId,
       BACKOFF_INITIAL_DELAY_MS,
       BACKOFF_FACTOR,
       BACKOFF_MAX_DELAY_MS
@@ -539,7 +539,7 @@ export class PersistentListenStream extends PersistentStream<
   ) {
     super(
       queue,
-      TimerId.ListenStreamBackoff,
+      TimerId.ListenStreamConnection,
       TimerId.ListenStreamIdle,
       connection,
       credentials
@@ -647,7 +647,7 @@ export class PersistentWriteStream extends PersistentStream<
   ) {
     super(
       queue,
-      TimerId.WriteStreamBackoff,
+      TimerId.WriteStreamConnection,
       TimerId.WriteStreamIdle,
       connection,
       credentials
