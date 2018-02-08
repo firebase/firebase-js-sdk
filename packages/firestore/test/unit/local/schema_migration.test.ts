@@ -82,7 +82,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return initDb(1)
       .then(db => {
         db.close();
-        return initDb(2)
+        return initDb(2);
       })
       .then(db => {
         expect(db.version).to.be.equal(2);
