@@ -84,21 +84,21 @@ export async function testWebStorageSharedClientState(
   ) {
     // HACK: Create a secondary client state to seed data into LocalStorage.
     // NOTE: We don't call shutdown() on it because that would delete the data.
-    const secondaryChannel = new WebStorageSharedClientState(
+    const secondaryClientState = new WebStorageSharedClientState(
       TEST_PERSISTENCE_PREFIX,
       SECONDARY_INSTANCE_KEY
     );
 
     knownInstances.push(SECONDARY_INSTANCE_KEY);
 
-    await secondaryChannel.start([]);
+    await secondaryClientState.start([]);
 
     for (const batchId of existingMutationBatchIds) {
-      secondaryChannel.addLocalPendingMutation(batchId);
+      secondaryClientState.addLocalPendingMutation(batchId);
     }
 
     for (const targetId of existingQueryTargetIds) {
-      secondaryChannel.addLocalQueryTarget(targetId);
+      secondaryClientState.addLocalQueryTarget(targetId);
     }
   }
 

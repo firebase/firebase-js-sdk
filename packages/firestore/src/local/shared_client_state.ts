@@ -119,16 +119,16 @@ export interface ClientState {
  * of its pending mutation batch IDs.
  */
 class RemoteClientState implements ClientState {
-  constructor(
+  private constructor(
     readonly clientKey: ClientKey,
-    public lastUpdateTime: Date,
-    public activeTargetIds: SortedSet<TargetId>,
+    public readonly lastUpdateTime: Date,
+    public readonly activeTargetIds: SortedSet<TargetId>,
     readonly minMutationBatchId: BatchId | null,
     readonly maxMutationBatchId: BatchId | null
   ) {}
 
   /**
-   * Parses a ClientState from the JSON representation in LocalStorage.
+   * Parses a RemoteClientState from the JSON representation in LocalStorage.
    * Logs a warning and returns null if the data could not be parsed.
    */
   static fromLocalStorageEntry(
@@ -261,13 +261,13 @@ export class LocalClientState implements ClientState {
  */
 export class WebStorageSharedClientState implements SharedClientState {
   private readonly storage: Storage;
-  private readonly storageKey: string;
+  private readonly localClientStorageKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleStorageEvent.bind(this);
   private readonly clientStateKeyRe: RegExp;
   private started = false;
 
-  constructor(private persistenceKey: string, private clientKey: string) {
+  constructor(private readonly persistenceKey: string, private readonly localClientKey: string) {
     if (!WebStorageSharedClientState.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -275,8 +275,8 @@ export class WebStorageSharedClientState implements SharedClientState {
       );
     }
     this.storage = window.localStorage;
-    this.storageKey = this.toLocalStorageClientKey(this.clientKey);
-    this.activeClients[this.clientKey] = new LocalClientState();
+    this.localClientStorageKey = this.toLocalStorageClientKey(this.localClientKey);
+    this.activeClients[this.localClientKey] = new LocalClientState();
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
     );
@@ -353,7 +353,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       'WebStorageSharedClientState.shutdown() called when not started'
     );
     window.removeEventListener('storage', this.storageListener);
-    this.storage.removeItem(this.storageKey);
+    this.storage.removeItem(this.localClientStorageKey);
     this.started = false;
   }
 
@@ -365,7 +365,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       // TODO(multitab): This assert will likely become invalid as we add garbage
       // collection.
       assert(
-        event.key !== this.storageKey,
+        event.key !== this.localClientStorageKey,
         'Received LocalStorage notification for local change.'
       );
       const clientKey = this.fromLocalStorageClientKey(event.key);
@@ -386,7 +386,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private get localClientState(): LocalClientState {
-    return this.activeClients[this.clientKey] as LocalClientState;
+    return this.activeClients[this.localClientKey] as LocalClientState;
   }
 
   private persistState(): void {
@@ -396,7 +396,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localClientState.refreshLastUpdateTime();
     this.storage.setItem(
-      this.storageKey,
+      this.localClientStorageKey,
       this.localClientState.toLocalStorageJSON()
     );
   }
