@@ -25,7 +25,7 @@ import * as objUtils from '../util/obj';
 
 const LOG_TAG = 'SharedClientState';
 
-// The format of the LocalStorage key storing the client state is:
+// The format of the LocalStorage key that stores the client state is:
 //     fs_clients_<persistence_prefix>_<instance_key>
 const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 
@@ -35,7 +35,7 @@ const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 export type ClientKey = string;
 
 /**
- * The `SharedClientState` keeps track of the global state of the mutations
+ * A `SharedClientState` keeps track of the global state of the mutations
  * and query targets for all active clients with the same persistence key (i.e.
  * project ID and FirebaseApp name). It relays local changes to other clients
  * and updates its local state as new state is observed.
@@ -89,7 +89,7 @@ export interface SharedClientState {
 }
 
 /**
- * The JSON representation of a clients's metadata as used in the LocalStorage
+ * The JSON representation of a clients's metadata as used during LocalStorage
  * serialization. The ClientKey is omitted here as it is encoded as part of the
  * key.
  */

@@ -25,7 +25,7 @@ import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 
 /**
- * The test asserts that the lastUpdateTime of each row in LocalStorage gets
+ * The tests assert that the lastUpdateTime of each row in LocalStorage gets
  * updated. We allow a 0.1s difference in update time to account for processing
  * and locking time in LocalStorage.
  */
@@ -50,8 +50,8 @@ describe('WebStorageSharedClientState', () => {
 
   function assertClientState(
     activeTargetIds: number[],
-    minMutationBatchId?: number,
-    maxMutationBatchId?: number
+    minMutationBatchId: number | null,
+    maxMutationBatchId: number | null
   ): void {
     const actual = JSON.parse(
       localStorage.getItem(
@@ -59,28 +59,16 @@ describe('WebStorageSharedClientState', () => {
       )
     );
 
-    let expectedKeyCount = /* lastUpdateTime + activeTargetIds */ 2;
-
+    expect(Object.keys(actual)).to.have.members(['lastUpdateTime', 'activeTargetIds', 'minMutationBatchId', 'maxMutationBatchId']);
     expect(actual.lastUpdateTime)
       .to.be.a('number')
       .greaterThan(Date.now() - GRACE_INTERVAL_MS)
       .and.at.most(Date.now());
-
     expect(actual.activeTargetIds)
       .to.be.an('array')
       .and.have.members(activeTargetIds);
-
-    if (minMutationBatchId !== undefined) {
-      ++expectedKeyCount;
-      expect(actual.minMutationBatchId).to.equal(minMutationBatchId);
-    }
-
-    if (maxMutationBatchId !== undefined) {
-      ++expectedKeyCount;
-      expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
-    }
-
-    expect(Object.keys(actual).length).to.equal(expectedKeyCount);
+    expect(actual.minMutationBatchId).to.equal(minMutationBatchId);
+    expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
   describe('persists mutation batches', () => {
@@ -97,7 +85,7 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('when empty', () => {
-      assertClientState([]);
+      assertClientState([], null, null);
     });
 
     it('with one batch', () => {
@@ -135,19 +123,19 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('when empty', () => {
-      assertClientState([]);
+      assertClientState([], null, null);
     });
 
     it('with multiple targets', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0]);
+      assertClientState([0], null, null);
 
       sharedClientState.addLocalQueryTarget(1);
       sharedClientState.addLocalQueryTarget(2);
-      assertClientState([0, 1, 2]);
+      assertClientState([0, 1, 2], null, null);
 
       sharedClientState.removeLocalQueryTarget(1);
-      assertClientState([0, 2]);
+      assertClientState([0, 2], null, null);
     });
   });
 
