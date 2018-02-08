@@ -17,12 +17,14 @@ import { assert } from 'chai';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import VapidDetailsModel from '../src/models/vapid-details-model';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
   const EXAMPLE_SCOPE = '/example-scope';
   const EXAMPLE_VAPID_STRING =
     'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
     '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
 
   let vapidModel;
 
@@ -33,7 +35,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
     }
 
     return promiseChain
-      .then(() => deleteDatabase(VapidDetailsModel.dbName))
+      .then(() => deleteDatabase(VapidDetailsModel.DB_NAME))
       .then(() => (vapidModel = null));
   };
 
@@ -49,7 +51,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_STRING).then(
+      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_KEY).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -78,16 +80,16 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
   it('should save and delete details', function() {
     vapidModel = new VapidDetailsModel();
     return vapidModel
-      .saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_STRING)
+      .saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY)
       .then(() => {
         return vapidModel.deleteVapidDetails(EXAMPLE_SCOPE);
       })
       .then(vapidKey => {
-        assert.equal(vapidKey, EXAMPLE_VAPID_STRING);
+        assert.deepEqual(vapidKey, EXAMPLE_VAPID_KEY);
         return vapidModel.getVapidFromSWScope(EXAMPLE_SCOPE);
       })
       .then(vapid => {
-        assert.equal(vapid, null);
+        assert.deepEqual(vapid, null);
       });
   });
 });

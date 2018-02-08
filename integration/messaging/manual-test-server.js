@@ -14,5 +14,8 @@
  * limitations under the License.
  */
 
-const testServer = require('./test-server');
-testServer.start();
+const testServer = require('./test/utils/test-server');
+testServer
+  .start()
+  .then(() => console.log(`Test server: ${testServer.serverAddress}`))
+  .catch(err => console.error(err));
