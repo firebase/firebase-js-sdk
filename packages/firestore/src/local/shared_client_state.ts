@@ -267,7 +267,10 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly clientStateKeyRe: RegExp;
   private started = false;
 
-  constructor(private readonly persistenceKey: string, private readonly localClientKey: string) {
+  constructor(
+    private readonly persistenceKey: string,
+    private readonly localClientKey: string
+  ) {
     if (!WebStorageSharedClientState.isAvailable()) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -275,7 +278,9 @@ export class WebStorageSharedClientState implements SharedClientState {
       );
     }
     this.storage = window.localStorage;
-    this.localClientStorageKey = this.toLocalStorageClientKey(this.localClientKey);
+    this.localClientStorageKey = this.toLocalStorageClientKey(
+      this.localClientKey
+    );
     this.activeClients[this.localClientKey] = new LocalClientState();
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
