@@ -3,9 +3,8 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "pretest:manual": "node ./download-browsers.js",
-    "test": "echo 'Automated tests temporarily disabled, run `npm run test:manual` to execute these tests'",
-    "test:manual": "mocha --retries 3 --exit"
+    "pretest": "node ./download-browsers.js",
+    "test": "mocha --exit"
   },
   "dependencies": {
     "firebase": "4.9.1"
@@ -17,6 +16,7 @@
     "geckodriver": "^1.8.0",
     "mocha": "^4.0.1",
     "node-fetch": "^1.7.2",
-    "selenium-assistant": "^5.1.0"
+    "selenium-assistant": "^5.2.0",
+    "sinon": "^4.1.3"
   }
 }

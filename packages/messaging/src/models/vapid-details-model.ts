@@ -20,13 +20,14 @@ import Errors from './errors';
 
 const FCM_VAPID_OBJ_STORE = 'fcm_vapid_object_Store';
 const DB_VERSION = 1;
+const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;
 
 export default class VapidDetailsModel extends DBInterface {
   constructor() {
-    super(VapidDetailsModel.dbName, DB_VERSION);
+    super(VapidDetailsModel.DB_NAME, DB_VERSION);
   }
 
-  static get dbName() {
+  static get DB_NAME() {
     return 'fcm_vapid_details_db';
   }
 
@@ -43,25 +44,23 @@ export default class VapidDetailsModel extends DBInterface {
   /**
    * Given a service worker scope, this method will look up the vapid key
    * in indexedDB.
-   * @param {string} swScope
-   * @return {Promise<string>} The vapid key associated with that scope.
    */
-  getVapidFromSWScope(swScope) {
+  getVapidFromSWScope(swScope: string): Promise<Uint8Array> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
       return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
     }
 
     return this.openDatabase().then(db => {
-      return new Promise((resolve, reject) => {
+      return new Promise<Uint8Array>((resolve, reject) => {
         const transaction = db.transaction([FCM_VAPID_OBJ_STORE]);
         const objectStore = transaction.objectStore(FCM_VAPID_OBJ_STORE);
         const scopeRequest = objectStore.get(swScope);
-        scopeRequest.onerror = event => {
-          reject((<IDBRequest>event.target).error);
+        scopeRequest.onerror = () => {
+          reject(scopeRequest.error);
         };
 
-        scopeRequest.onsuccess = event => {
-          let result = (<IDBRequest>event.target).result;
+        scopeRequest.onsuccess = () => {
+          let result = scopeRequest.result;
           let vapidKey = null;
           if (result) {
             vapidKey = result.vapidKey;
@@ -74,18 +73,13 @@ export default class VapidDetailsModel extends DBInterface {
 
   /**
    * Save a vapid key against a swScope for later date.
-   * @param  {string} swScope The service worker scope to be associated with
-   * this push subscription.
-   * @param {string} vapidKey The public vapid key to be associated with
-   * the swScope.
-   * @return {Promise<void>}
    */
-  saveVapidDetails(swScope, vapidKey) {
+  saveVapidDetails(swScope: string, vapidKey: Uint8Array): Promise<void> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
       return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
     }
 
-    if (typeof vapidKey !== 'string' || vapidKey.length === 0) {
+    if (vapidKey === null || vapidKey.length !== UNCOMPRESSED_PUBLIC_KEY_SIZE) {
       return Promise.reject(
         this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
       );
@@ -97,17 +91,17 @@ export default class VapidDetailsModel extends DBInterface {
     };
 
     return this.openDatabase().then(db => {
-      return new Promise((resolve, reject) => {
+      return new Promise<void>((resolve, reject) => {
         const transaction = db.transaction(
           [FCM_VAPID_OBJ_STORE],
           this.TRANSACTION_READ_WRITE
         );
         const objectStore = transaction.objectStore(FCM_VAPID_OBJ_STORE);
         const request = objectStore.put(details);
-        request.onerror = event => {
-          reject((<IDBRequest>event.target).error);
+        request.onerror = () => {
+          reject(request.error);
         };
-        request.onsuccess = event => {
+        request.onsuccess = () => {
           resolve();
         };
       });
@@ -116,29 +110,28 @@ export default class VapidDetailsModel extends DBInterface {
 
   /**
    * This method deletes details of the current FCM VAPID key for a SW scope.
-   * @param {string} swScope Scope to be deleted
-   * @return {Promise<string>} Resolves once the scope / vapid details have been
-   * deleted and returns the deleted vapid key.
+   * Resolves once the scope/vapid details have been deleted and returns the
+   * deleted vapid key.
    */
-  deleteVapidDetails(swScope) {
+  deleteVapidDetails(swScope: string): Promise<Uint8Array> {
     return this.getVapidFromSWScope(swScope).then(vapidKey => {
       if (!vapidKey) {
         throw this.errorFactory_.create(Errors.codes.DELETE_SCOPE_NOT_FOUND);
       }
 
       return this.openDatabase().then(db => {
-        return new Promise((resolve, reject) => {
+        return new Promise<Uint8Array>((resolve, reject) => {
           const transaction = db.transaction(
             [FCM_VAPID_OBJ_STORE],
             this.TRANSACTION_READ_WRITE
           );
           const objectStore = transaction.objectStore(FCM_VAPID_OBJ_STORE);
           const request = objectStore.delete(swScope);
-          request.onerror = event => {
-            reject((<IDBRequest>event.target).error);
+          request.onerror = () => {
+            reject(request.error);
           };
-          request.onsuccess = event => {
-            if ((<IDBRequest>event.target).result === 0) {
+          request.onsuccess = () => {
+            if (request.result === 0) {
               reject(
                 this.errorFactory_.create(Errors.codes.FAILED_DELETE_VAPID_KEY)
               );

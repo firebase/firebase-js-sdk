@@ -21,6 +21,8 @@ import Errors from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
 import DefaultSW from '../models/default-sw';
 import NOTIFICATION_PERMISSION from '../models/notification-permission';
+import FCMDetails from '../models/fcm-details';
+import base64ToArrayBuffer from '../helpers/base64-to-array-buffer';
 import { createSubscribe } from '@firebase/util';
 
 declare const firebase: any;
@@ -28,6 +30,7 @@ declare const firebase: any;
 export default class WindowController extends ControllerInterface
   implements FirebaseMessaging {
   private registrationToUse_;
+  private publicVapidKeyToUse_;
   private manifestCheckPromise_;
   private messageObserver_ = null;
   private onMessage_ = createSubscribe(observer => {
@@ -44,6 +47,42 @@ export default class WindowController extends ControllerInterface
    */
   constructor(app) {
     super(app);
+
+    /**
+     * @private
+     * @type {ServiceWorkerRegistration}
+     */
+    this.registrationToUse_;
+
+    /**
+     * @private
+     * @type {Promise}
+     */
+    this.manifestCheckPromise_;
+
+    /**
+     * @private
+     * @type {firebase.Observer}
+     */
+    this.messageObserver_ = null;
+
+    /**
+     * @private {!firebase.Subscribe} The subscribe function to the onMessage
+     * observer.
+     */
+    this.onMessage_ = createSubscribe(observer => {
+      this.messageObserver_ = observer;
+    });
+
+    /**
+     * @private
+     * @type {firebase.Observer}
+     */
+    this.tokenRefreshObserver_ = null;
+    this.onTokenRefresh_ = createSubscribe(observer => {
+      this.tokenRefreshObserver_ = observer;
+    });
+
     this.setupSWMessageListener_();
   }
 
@@ -145,15 +184,9 @@ export default class WindowController extends ControllerInterface
       // The Notification.requestPermission API was changed to
       // return a promise so now have to handle both in case
       // browsers stop support callbacks for promised version
-      const permissionPromise = Notification.requestPermission(result => {
-        if (permissionPromise) {
-          // Let the promise manage this
-          return;
-        }
-
-        managePermissionResult(result);
-      });
-
+      const permissionPromise = Notification.requestPermission(
+        managePermissionResult
+      );
       if (permissionPromise) {
         // Prefer the promise version as it's the future API.
         permissionPromise.then(managePermissionResult);
@@ -181,6 +214,34 @@ export default class WindowController extends ControllerInterface
   }
 
   /**
+   * This method allows a developer to override the default vapid key
+   * and instead use a custom VAPID public key.
+   * @export
+   * @param {!string} publicKey A URL safe base64 encoded string.
+   */
+  usePublicVapidKey(publicKey) {
+    if (typeof publicKey !== 'string') {
+      throw this.errorFactory_.create(Errors.codes.INVALID_PUBLIC_VAPID_KEY);
+    }
+
+    if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
+      throw this.errorFactory_.create(
+        Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
+      );
+    }
+
+    const parsedKey = base64ToArrayBuffer(publicKey);
+
+    if (parsedKey.length !== 65) {
+      throw this.errorFactory_.create(
+        Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED
+      );
+    }
+
+    this.publicVapidKeyToUse_ = parsedKey;
+  }
+
+  /**
    * @export
    * @param {!firebase.Observer|function(*)} nextOrObserver An observer object
    * or a function triggered on message.
@@ -190,7 +251,7 @@ export default class WindowController extends ControllerInterface
    * observer is removed.
    * @return {!function()} The unsubscribe function for the observer.
    */
-  onMessage(nextOrObserver, optError, optCompleted) {
+  onMessage(nextOrObserver, optError?, optCompleted?) {
     return this.onMessage_(nextOrObserver, optError, optCompleted);
   }
 
@@ -296,6 +357,41 @@ export default class WindowController extends ControllerInterface
   }
 
   /**
+   * This will return the default VAPID key or the uint8array version of the public VAPID key
+   * provided by the developer.
+   * @private
+   */
+  getPublicVapidKey_(): Promise<Uint8Array> {
+    if (this.publicVapidKeyToUse_) {
+      return Promise.resolve(this.publicVapidKeyToUse_);
+    }
+
+    return Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+  }
+
+  /**
+   * Gets a PushSubscription for the current user.
+   * @private
+   * @param {ServiceWorkerRegistration} registration
+   * @return {Promise<PushSubscription>}
+   */
+  getPushSubscription_(swRegistration, publicVapidKey) {
+    // Check for existing subscription first
+    let subscription;
+    let fcmTokenDetails;
+    return swRegistration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        return subscription;
+      }
+
+      return swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicVapidKey
+      });
+    });
+  }
+
+  /**
    * This method will set up a message listener to handle
    * events from the service worker that should trigger
    * events in the page.
@@ -321,7 +417,9 @@ export default class WindowController extends ControllerInterface
           case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
             const pushMessage =
               workerPageMessage[WorkerPageMessage.PARAMS.DATA];
-            this.messageObserver_.next(pushMessage);
+            if (this.messageObserver_) {
+              this.messageObserver_.next(pushMessage);
+            }
             break;
           default:
             // Noop.

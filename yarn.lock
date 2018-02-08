@@ -7468,7 +7468,7 @@ select-hose@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
 
-selenium-assistant@^5.1.0:
+selenium-assistant@^5.2.0:
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/selenium-assistant/-/selenium-assistant-5.2.0.tgz#5bb5b863da70419578ebcf3993781ec6eb0327f7"
   dependencies:
@@ -7673,6 +7673,18 @@ sinon@^4.0.2:
     nise "^1.2.0"
     supports-color "^4.4.0"
     type-detect "^4.0.0"
+
+sinon@^4.1.3:
+  version "4.2.2"
+  resolved "https://registry.npmjs.org/sinon/-/sinon-4.2.2.tgz#e039ab27bdb426fc61363c380726e996a2e2c620"
+  dependencies:
+    diff "^3.1.0"
+    formatio "1.2.0"
+    lodash.get "^4.4.2"
+    lolex "^2.2.0"
+    nise "^1.2.0"
+    supports-color "^5.1.0"
+    type-detect "^4.0.5"
 
 slice-ansi@0.0.4:
   version "0.0.4"
@@ -8212,6 +8224,12 @@ supports-color@^4.0.0, supports-color@^4.2.1, supports-color@^4.4.0:
   dependencies:
     has-flag "^2.0.0"
 
+supports-color@^5.1.0:
+  version "5.1.0"
+  resolved "https://registry.npmjs.org/supports-color/-/supports-color-5.1.0.tgz#058a021d1b619f7ddf3980d712ea3590ce7de3d5"
+  dependencies:
+    has-flag "^2.0.0"
+
 sver-compat@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/sver-compat/-/sver-compat-1.5.0.tgz#3cf87dfeb4d07b4a3f14827bc186b3fd0c645cd8"
@@ -8630,7 +8648,7 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
-type-detect@^4.0.0:
+type-detect@^4.0.0, type-detect@^4.0.5:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/type-detect/-/type-detect-4.0.5.tgz#d70e5bc81db6de2a381bcaca0c6e0cbdc7635de2"
 

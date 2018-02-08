@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import * as sinon from 'sinon';
 import makeFakeSubscription from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
 import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { compareDetails } from './testing-utils/detail-comparator';
 
 describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
-    vapidKey:
+    vapidKey: base64ToArrayBuffer(
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+    ),
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567',
     fcmToken: 'qwerty',
@@ -42,7 +46,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     }
 
     return Promise.all(promises)
-      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => deleteDatabase(TokenDetailsModel.DB_NAME))
       .then(() => (globalTokenModel = null));
   };
 
@@ -86,39 +90,22 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
 
   it('should delete current token', function() {
     globalTokenModel = new TokenDetailsModel();
+    const now = Date.now();
+    let clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .saveTokenDetails(EXAMPLE_INPUT)
       .then(() => {
         return globalTokenModel.deleteToken(EXAMPLE_INPUT.fcmToken);
       })
       .then(details => {
-        const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
-        const subscriptionValues = {
-          endpoint: EXAMPLE_INPUT.subscription.endpoint,
-          auth: arrayBufferToBase64(EXAMPLE_INPUT.subscription.getKey('auth')),
-          p256dh: arrayBufferToBase64(
-            EXAMPLE_INPUT.subscription.getKey('p256dh')
-          )
-        };
-
-        subscriptionKeys.forEach(keyName => {
-          assert.equal(details[keyName], subscriptionValues[keyName]);
-        });
-
-        Object.keys(details).forEach(keyName => {
-          if (subscriptionKeys.indexOf(keyName) !== -1) {
-            return;
-          }
-
-          assert.equal(details[keyName], EXAMPLE_INPUT[keyName]);
-        });
-
+        compareDetails(EXAMPLE_INPUT, details, now);
         return globalTokenModel.getTokenDetailsFromToken(
           EXAMPLE_INPUT.fcmToken
         );
       })
       .then(tokenDetails => {
         assert.equal(null, tokenDetails);
+        clock.restore();
       });
   });
 

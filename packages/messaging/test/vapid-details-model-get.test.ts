@@ -17,12 +17,14 @@ import { assert } from 'chai';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import VapidDetailsModel from '../src/models/vapid-details-model';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > VapidDetailsModel.getVapidFromSWScope()', function() {
   const EXAMPLE_SCOPE = '/example-scope';
   const EXAMPLE_VAPID_STRING =
     'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
     '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
 
   let vapidModel;
 
@@ -33,7 +35,7 @@ describe('Firebase Messaging > VapidDetailsModel.getVapidFromSWScope()', functio
     }
 
     return promiseChain
-      .then(() => deleteDatabase(VapidDetailsModel.dbName))
+      .then(() => deleteDatabase(VapidDetailsModel.DB_NAME))
       .then(() => (vapidModel = null));
   };
 
@@ -65,15 +67,14 @@ describe('Firebase Messaging > VapidDetailsModel.getVapidFromSWScope()', functio
     return vapidModel
       .getVapidFromSWScope(EXAMPLE_SCOPE)
       .then(vapidKey => {
-        assert.equal(null, vapidKey);
-
-        return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_STRING);
+        assert.deepEqual(null, vapidKey);
+        return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY);
       })
       .then(() => {
         return vapidModel.getVapidFromSWScope(EXAMPLE_SCOPE);
       })
       .then(vapidKey => {
-        assert.equal(EXAMPLE_VAPID_STRING, vapidKey);
+        assert.deepEqual(EXAMPLE_VAPID_KEY, vapidKey);
       });
   });
 });
