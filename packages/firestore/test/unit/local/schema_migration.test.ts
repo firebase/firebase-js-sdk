@@ -26,23 +26,23 @@ import { SimpleDb } from '../../../src/local/simple_db';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 
-function initDb(targetVersion): Promise<IDBDatabase> {
-  const deferred = new Deferred<IDBDatabase>();
-
-  const request = window.indexedDB.open(INDEXEDDB_TEST_DATABASE, targetVersion);
-  request.onsuccess = (event: Event) => {
-    const db = (event.target as IDBOpenDBRequest).result;
-    deferred.resolve(db);
-  };
-  request.onerror = (event: ErrorEvent) => {
-    deferred.reject((event.target as IDBOpenDBRequest).error);
-  };
-  request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-    const db = (event.target as IDBOpenDBRequest).result;
-    createOrUpgradeDb(db, event.oldVersion, targetVersion);
-  };
-
-  return deferred.promise;
+function withDb(schemaVersion, fn: (db: IDBDatabase) => void): Promise<void> {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = window.indexedDB.open(INDEXEDDB_TEST_DATABASE, schemaVersion);
+    request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      createOrUpgradeDb(db, event.oldVersion, schemaVersion);
+    };
+    request.onsuccess = (event: Event) => {
+      resolve((event.target as IDBOpenDBRequest).result);
+    };
+    request.onerror = (event: ErrorEvent) => {
+      reject((event.target as IDBOpenDBRequest).error);
+    };
+  }).then(db => {
+    fn(db);
+    return db;
+  }).then(db => { db.close()});
 }
 
 function getAllObjectStores(db: IDBDatabase): String[] {
@@ -63,31 +63,23 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
   it('can install schema version 1', () => {
-    return initDb(1).then(db => {
+    return withDb(1, db => {
       expect(db.version).to.be.equal(1);
       expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
-      db.close();
     });
   });
 
   it('can install schema version 2', () => {
-    return initDb(2).then(db => {
+    return withDb(2,db => {
       expect(db.version).to.be.equal(2);
       expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-      db.close();
     });
   });
 
   it('can upgrade from schema version 1 to 2', () => {
-    return initDb(1)
-      .then(db => {
-        db.close();
-        return initDb(2);
-      })
-      .then(db => {
+    return withDb(1,() => {}).then(() => withDb(2, (db) => {
         expect(db.version).to.be.equal(2);
         expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-        db.close();
-      });
+      }));
   });
 });
