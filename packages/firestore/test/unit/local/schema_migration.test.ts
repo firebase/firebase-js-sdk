@@ -28,7 +28,10 @@ const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 
 function withDb(schemaVersion, fn: (db: IDBDatabase) => void): Promise<void> {
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = window.indexedDB.open(INDEXEDDB_TEST_DATABASE, schemaVersion);
+    const request = window.indexedDB.open(
+      INDEXEDDB_TEST_DATABASE,
+      schemaVersion
+    );
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
       createOrUpgradeDb(db, event.oldVersion, schemaVersion);
@@ -39,10 +42,14 @@ function withDb(schemaVersion, fn: (db: IDBDatabase) => void): Promise<void> {
     request.onerror = (event: ErrorEvent) => {
       reject((event.target as IDBOpenDBRequest).error);
     };
-  }).then(db => {
-    fn(db);
-    return db;
-  }).then(db => { db.close()});
+  })
+    .then(db => {
+      fn(db);
+      return db;
+    })
+    .then(db => {
+      db.close();
+    });
 }
 
 function getAllObjectStores(db: IDBDatabase): String[] {
@@ -70,16 +77,18 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   });
 
   it('can install schema version 2', () => {
-    return withDb(2,db => {
+    return withDb(2, db => {
       expect(db.version).to.be.equal(2);
       expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
     });
   });
 
   it('can upgrade from schema version 1 to 2', () => {
-    return withDb(1,() => {}).then(() => withDb(2, (db) => {
+    return withDb(1, () => {}).then(() =>
+      withDb(2, db => {
         expect(db.version).to.be.equal(2);
         expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-      }));
+      })
+    );
   });
 });
