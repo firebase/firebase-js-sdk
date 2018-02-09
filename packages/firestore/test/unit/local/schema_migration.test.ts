@@ -18,7 +18,8 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DEFAULT_STORES,
-  createOrUpgradeDb, V1_STORES,
+  createOrUpgradeDb,
+  V1_STORES
 } from '../../../src/local/indexeddb_schema';
 import { Deferred } from '../../../src/util/promise';
 import { SimpleDb } from '../../../src/local/simple_db';
@@ -41,11 +42,10 @@ function withDb(schemaVersion, fn: (db: IDBDatabase) => void): Promise<void> {
     request.onerror = (event: ErrorEvent) => {
       reject((event.target as IDBOpenDBRequest).error);
     };
-  })
-    .then(db => {
-      fn(db);
-      db.close();
-    });
+  }).then(db => {
+    fn(db);
+    db.close();
+  });
 }
 
 function getAllObjectStores(db: IDBDatabase): String[] {
