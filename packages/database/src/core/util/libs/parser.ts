@@ -16,7 +16,7 @@
 
 import { Path } from '../Path';
 import { RepoInfo } from '../../RepoInfo';
-import { warnIfPageIsSecure, fatal } from '../util';
+import { warnIfPageIsSecure, warn, fatal } from '../util';
 
 /**
  * @param {!string} pathString
@@ -39,18 +39,19 @@ function decodePath(pathString: string): string {
 
 /**
  * @param {!string} queryString
- * @return {!Map<string, string>} key value hash
+ * @return {!{[key:string]:string}} key value hash
  */
-function decodeQuery(queryString: string): Map<string, string> {
-  let results = new Map<string, string>();
-  const pieces = queryString.split('&');
-  for (let i = 0; i < pieces.length; i++) {
-    if (pieces[i].length > 0) {
-      try {
-        const piece = decodeURIComponent(pieces[i]);
-        const kv = piece.split('=');
-        results.set(kv[0], kv[1]);
-      } catch (e) {}
+function decodeQuery(queryString: string): { [key: string]: string } {
+  let results = {};
+  if (queryString.startsWith('?')) {
+    queryString = queryString.substring(1);
+  }
+  for (const segment of queryString.split('&')) {
+    const kv = segment.split('=');
+    if (kv.length === 2) {
+      results[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
+    } else {
+      warn('Invalid query string segment: ' + segment);
     }
   }
   return results;
@@ -143,17 +144,17 @@ export const parseURL = function(
     if (slashInd === -1) {
       slashInd = dataURL.length;
     }
-    let questionInd = dataURL.indexOf('?');
-    if (questionInd === -1) {
-      questionInd = dataURL.length;
+    let questionMarkInd = dataURL.indexOf('?');
+    if (questionMarkInd === -1) {
+      questionMarkInd = dataURL.length;
     }
-    host = dataURL.substring(0, Math.min(slashInd, questionInd));
-    if (slashInd < questionInd) {
-      // For pathString, questionInd will always come after slashInd
-      pathString = decodePath(dataURL.substring(slashInd, questionInd));
+    host = dataURL.substring(0, Math.min(slashInd, questionMarkInd));
+    if (slashInd < questionMarkInd) {
+      // For pathString, questionMarkInd will always come after slashInd
+      pathString = decodePath(dataURL.substring(slashInd, questionMarkInd));
     }
     let queryParams = decodeQuery(
-      dataURL.substring(Math.min(dataURL.length, questionInd + 1))
+      dataURL.substring(Math.min(dataURL.length, questionMarkInd))
     );
 
     // If we have a port, use scheme for determining if it's secure.
@@ -176,9 +177,8 @@ export const parseURL = function(
       domain = 'localhost';
     }
     // Support `ns` query param if subdomain not already set
-    if (subdomain === '' && queryParams.has('ns')) {
-      subdomain = queryParams.get('ns');
-      console.log('here', queryParams, subdomain);
+    if (subdomain === '' && 'ns' in queryParams) {
+      subdomain = queryParams['ns'];
     }
   }
 
