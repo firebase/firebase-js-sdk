@@ -220,7 +220,7 @@ export class AsyncQueue {
     // While not necessarily harmful, we currently don't expect to have multiple
     // ops with the same timer id in the queue, so defensively reject them.
     assert(
-      !this.hasDelayedOperation(timerId),
+      !this.containsDelayedOperation(timerId),
       `Attempted to schedule multiple operations with timer id ${
         TimerId[timerId]
       }.`
@@ -269,9 +269,10 @@ export class AsyncQueue {
   }
 
   /**
-   * For Tests: Determine if a particular delayed operation exists.
+   * For Tests: Determine if a delayed operation with a particular TimerId
+   * exists.
    */
-  hasDelayedOperation(timerId: TimerId): boolean {
+  containsDelayedOperation(timerId: TimerId): boolean {
     return this.delayedOperations.findIndex(op => op.timerId === timerId) >= 0;
   }
 
@@ -287,7 +288,7 @@ export class AsyncQueue {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
       assert(
-        lastTimerId === undefined || this.hasDelayedOperation(lastTimerId),
+        lastTimerId === undefined || this.containsDelayedOperation(lastTimerId),
         `Attempted to drain to missing operation ${lastTimerId}`
       );
 

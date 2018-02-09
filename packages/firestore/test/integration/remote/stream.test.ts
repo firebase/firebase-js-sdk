@@ -227,7 +227,8 @@ describe('Write Stream', () => {
         })
         .then(() => {
           writeStream.markIdle();
-          expect(queue.hasDelayedOperation(TimerId.WriteStreamIdle)).to.be.true;
+          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
+            .true;
           return Promise.all([
             queue.runDelayedOperationsEarly(TimerId.WriteStreamIdle),
             streamListener.awaitCallback('close')
@@ -254,7 +255,8 @@ describe('Write Stream', () => {
         .then(() => {
           // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
           writeStream.markIdle();
-          expect(queue.hasDelayedOperation(TimerId.WriteStreamIdle)).to.be.true;
+          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
+            .true;
           writeStream.writeMutations(SINGLE_MUTATION);
           return streamListener.awaitCallback('mutationResult');
         })

@@ -152,9 +152,9 @@ describe('AsyncQueue', () => {
       doStep(2)
     );
 
-    expect(queue.hasDelayedOperation(timerId1)).to.be.true;
+    expect(queue.containsDelayedOperation(timerId1)).to.be.true;
     delayedPromise.cancel();
-    expect(queue.hasDelayedOperation(timerId1)).to.be.false;
+    expect(queue.containsDelayedOperation(timerId1)).to.be.false;
 
     await delayedPromise.then(
       () => expect.fail('resolved promise', 'rejected promise'),
