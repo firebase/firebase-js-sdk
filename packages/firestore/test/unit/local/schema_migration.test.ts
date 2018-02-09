@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  DEFAULT_STORES,
+  ALL_STORES,
   createOrUpgradeDb,
   V1_STORES
 } from '../../../src/local/indexeddb_schema';
@@ -75,7 +75,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can install schema version 2', () => {
     return withDb(2, db => {
       expect(db.version).to.be.equal(2);
-      expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
+      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
     });
   });
 
@@ -83,7 +83,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return withDb(1, () => {}).then(() =>
       withDb(2, db => {
         expect(db.version).to.be.equal(2);
-        expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
+        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
       })
     );
   });

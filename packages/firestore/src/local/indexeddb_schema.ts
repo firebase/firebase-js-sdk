@@ -582,4 +582,4 @@ const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const DEFAULT_STORES = [...V1_STORES, ...V2_STORES];
+export const ALL_STORES = [...V1_STORES, ...V2_STORES];

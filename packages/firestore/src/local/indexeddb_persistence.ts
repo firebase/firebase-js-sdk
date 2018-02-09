@@ -26,7 +26,7 @@ import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbQueryCache } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
-  DEFAULT_STORES,
+  ALL_STORES,
   createOrUpgradeDb,
   DbOwner,
   DbOwnerKey,
@@ -177,7 +177,7 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction('readwrite', DEFAULT_STORES, txn => {
+    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       // Verify that we still have the owner lease as part of every transaction.
       return this.ensureOwnerLease(txn).next(() => operation(txn));
     });
