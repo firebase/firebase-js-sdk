@@ -23,16 +23,16 @@ import { assert } from '../util/assert';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 
 /**
- * Default Schema Version for the Web client (containing the Mutation Queue, the
- * Query and the Remote Document Cache).
+ * Schema Version for the Web client (containing the Mutation Queue, the Query
+ * and the Remote Document Cache) and Multi-Tab Support.
  */
-export const DEFAULT_SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /**
  * Performs database creation and schema upgrades.
  *
  * Note that in production, this method is only ever used to upgrade the schema
- * to DEFAULT_SCHEMA_VERSION. Different versions are only used for testing and
+ * to SCHEMA_VERSION. Different versions are only used for testing and
  * local feature development.
  */
 export function createOrUpgradeDb(
@@ -581,10 +581,4 @@ const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const DEFAULT_STORES = V1_STORES;
-
-/**
- * The list of all IndexedDb stores. This is only available in multi-tab enabled
- * clients with the schema version 2.
- */
-export const ALL_STORES = [...V1_STORES, ...V2_STORES];
+export const DEFAULT_STORES = [...V1_STORES, ...V2_STORES];

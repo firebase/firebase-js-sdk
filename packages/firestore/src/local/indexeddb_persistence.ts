@@ -30,7 +30,7 @@ import {
   createOrUpgradeDb,
   DbOwner,
   DbOwnerKey,
-  DEFAULT_SCHEMA_VERSION
+  SCHEMA_VERSION
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
@@ -134,7 +134,7 @@ export class IndexedDbPersistence implements Persistence {
 
     return SimpleDb.openOrCreate(
       this.dbName,
-      DEFAULT_SCHEMA_VERSION,
+      SCHEMA_VERSION,
       createOrUpgradeDb
     )
       .then(db => {
