@@ -563,7 +563,8 @@ function createClientMetadataStore(db: IDBDatabase): void {
   });
 }
 
-const V1_STORES = [
+// Visible for testing
+export const V1_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,

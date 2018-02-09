@@ -18,8 +18,7 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DEFAULT_STORES,
-  createOrUpgradeDb,
-  ALL_STORES
+  createOrUpgradeDb, V1_STORES,
 } from '../../../src/local/indexeddb_schema';
 import { Deferred } from '../../../src/util/promise';
 import { SimpleDb } from '../../../src/local/simple_db';
@@ -45,9 +44,6 @@ function withDb(schemaVersion, fn: (db: IDBDatabase) => void): Promise<void> {
   })
     .then(db => {
       fn(db);
-      return db;
-    })
-    .then(db => {
       db.close();
     });
 }
@@ -72,14 +68,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can install schema version 1', () => {
     return withDb(1, db => {
       expect(db.version).to.be.equal(1);
-      expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
+      expect(getAllObjectStores(db)).to.have.members(V1_STORES);
     });
   });
 
   it('can install schema version 2', () => {
     return withDb(2, db => {
       expect(db.version).to.be.equal(2);
-      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+      expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
     });
   });
 
@@ -87,7 +83,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return withDb(1, () => {}).then(() =>
       withDb(2, db => {
         expect(db.version).to.be.equal(2);
-        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+        expect(getAllObjectStores(db)).to.have.members(DEFAULT_STORES);
       })
     );
   });
