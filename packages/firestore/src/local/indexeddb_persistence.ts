@@ -132,11 +132,7 @@ export class IndexedDbPersistence implements Persistence {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     this.started = true;
 
-    return SimpleDb.openOrCreate(
-      this.dbName,
-      SCHEMA_VERSION,
-      createOrUpgradeDb
-    )
+    return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
         this.simpleDb = db;
       })
