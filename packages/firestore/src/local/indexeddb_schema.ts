@@ -22,52 +22,47 @@ import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 
-export const SCHEMA_VERSION = 1;
+/**
+ * Schema Version for the Web client (containing the Mutation Queue, the Query
+ * and the Remote Document Cache) and Multi-Tab Support.
+ */
+export const SCHEMA_VERSION = 2;
 
-/** Performs database creation and (in the future) upgrades between versions. */
-export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number): void {
-  assert(oldVersion === 0, 'Unexpected upgrade from version ' + oldVersion);
-
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
-
-  // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their
-  // types. https://github.com/Microsoft/TypeScript/issues/14322
-  db.createObjectStore(
-    DbMutationBatch.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbMutationBatch.keyPath as any }
+/**
+ * Performs database creation and schema upgrades.
+ *
+ * Note that in production, this method is only ever used to upgrade the schema
+ * to SCHEMA_VERSION. Different versions are only used for testing and
+ * local feature development.
+ */
+export function createOrUpgradeDb(
+  db: IDBDatabase,
+  fromVersion: number,
+  toVersion: number
+): void {
+  // This function currently supports migrating to schema version 1 (Mutation
+  // Queue, Query and Remote Document Cache) and schema version 2 (Multi-Tab).
+  assert(
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
 
-  const targetDocumentsStore = db.createObjectStore(
-    DbTargetDocument.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbTargetDocument.keyPath as any }
-  );
-  targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
-    { unique: true }
-  );
+  if (fromVersion < 1 && toVersion >= 1) {
+    createOwnerStore(db);
+    createMutationQueue(db);
+    createQueryCache(db);
+    createRemoteDocumentCache(db);
+  }
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
-  });
-  // NOTE: This is unique only because the TargetId is the suffix.
-  targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
-    { unique: true }
-  );
-
-  // NOTE: keys for these stores are specified explicitly rather than using a
-  // keyPath.
-  db.createObjectStore(DbDocumentMutation.store);
-  db.createObjectStore(DbRemoteDocument.store);
-  db.createObjectStore(DbOwner.store);
-  db.createObjectStore(DbTargetGlobal.store);
+  if (fromVersion < 2 && toVersion >= 2) {
+    createClientMetadataStore(db);
+    createTargetChangeStore(db);
+  }
 }
+
+// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
+// https://github.com/Microsoft/TypeScript/issues/14322
+type KeyPath = any; // tslint:disable-line:no-any
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -92,6 +87,10 @@ export class DbOwner {
   static store = 'owner';
 
   constructor(public ownerId: string, public leaseTimestampMs: number) {}
+}
+
+function createOwnerStore(db: IDBDatabase): void {
+  db.createObjectStore(DbOwner.store);
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -183,6 +182,18 @@ export class DbMutationBatch {
  */
 export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
 
+function createMutationQueue(db: IDBDatabase): void {
+  db.createObjectStore(DbMutationQueue.store, {
+    keyPath: DbMutationQueue.keyPath
+  });
+
+  db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath as KeyPath
+  });
+
+  db.createObjectStore(DbDocumentMutation.store);
+}
+
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
  *
@@ -240,6 +251,10 @@ export class DbDocumentMutation {
  * segments that make up the path.
  */
 export type DbRemoteDocumentKey = string[];
+
+function createRemoteDocumentCache(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocument.store);
+}
 
 /**
  * Represents the known absence of a document at a particular version.
@@ -455,11 +470,101 @@ export class DbTargetGlobal {
   ) {}
 }
 
+function createQueryCache(db: IDBDatabase): void {
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
+    keyPath: DbTargetDocument.keyPath as KeyPath
+  });
+  targetDocumentsStore.createIndex(
+    DbTargetDocument.documentTargetsIndex,
+    DbTargetDocument.documentTargetsKeyPath,
+    { unique: true }
+  );
+
+  const targetStore = db.createObjectStore(DbTarget.store, {
+    keyPath: DbTarget.keyPath
+  });
+
+  // NOTE: This is unique only because the TargetId is the suffix.
+  targetStore.createIndex(
+    DbTarget.queryTargetsIndexName,
+    DbTarget.queryTargetsKeyPath,
+    { unique: true }
+  );
+  db.createObjectStore(DbTargetGlobal.store);
+}
+
 /**
- * The list of all IndexedDB stored used by the SDK. This is used when creating
- * transactions so that access across all stores is done atomically.
+ * An object representing the changes at a particular snapshot version for the
+ * given target. This is used to facilitate storing query changelogs in the
+ * targetChanges object store.
+ *
+ * PORTING NOTE: This is used for change propagation during multi-tab syncing
+ * and not needed on iOS and Android.
  */
-export const ALL_STORES = [
+export class DbTargetChange {
+  /** Name of the IndexedDb object store.  */
+  static store = 'targetChanges';
+
+  /** Keys are automatically assigned via the targetId and snapshotVersion. */
+  static keyPath = ['targetId', 'snapshotVersion'];
+
+  constructor(
+    /**
+     * The targetId identifying a target.
+     */
+    public targetId: TargetId,
+    /**
+     * The snapshot version for this change.
+     */
+    public snapshotVersion: DbTimestamp,
+    /**
+     * The keys of the changed documents in this snapshot.
+     */
+    public changes: {
+      added?: EncodedResourcePath[];
+      modified?: EncodedResourcePath[];
+      removed?: EncodedResourcePath[];
+    }
+  ) {}
+}
+
+function createTargetChangeStore(db: IDBDatabase): void {
+  db.createObjectStore(DbTargetChange.store, {
+    keyPath: DbTargetChange.keyPath as KeyPath
+  });
+}
+
+/**
+ * A record of the metadata state of each client.
+ *
+ * PORTING NOTE: This is used to synchronize multi-tab state and does not need
+ * to be ported to iOS or Android.
+ */
+export class DbClientMetadata {
+  /** Name of the IndexedDb object store. */
+  static store = 'clientMetadata';
+
+  /** Keys are automatically assigned via the clientKey properties. */
+  static keyPath = ['clientKey'];
+
+  constructor(
+    /** The auto-generated client key assigned at client startup. */
+    public clientKey: string,
+    /** The last time this state was updated. */
+    public updateTimeMs: DbTimestamp,
+    /** Whether this client is running in a foreground tab. */
+    public inForeground: boolean
+  ) {}
+}
+
+function createClientMetadataStore(db: IDBDatabase): void {
+  db.createObjectStore(DbClientMetadata.store, {
+    keyPath: DbClientMetadata.keyPath as KeyPath
+  });
+}
+
+// Visible for testing
+export const V1_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,
@@ -469,3 +574,12 @@ export const ALL_STORES = [
   DbTargetGlobal.store,
   DbTargetDocument.store
 ];
+
+const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
+
+/**
+ * The list of all default IndexedDB stores used throughout the SDK. This is
+ * used when creating transactions so that access across all stores is done
+ * atomically.
+ */
+export const ALL_STORES = [...V1_STORES, ...V2_STORES];
