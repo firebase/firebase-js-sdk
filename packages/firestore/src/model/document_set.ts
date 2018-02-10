@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { documentMap } from './collections';
@@ -79,20 +78,6 @@ export class DocumentSet {
   }
 
   /**
-   * Returns previous document or null if it's a first doc.
-   *
-   * @param key A key that MUST be present in the DocumentSet.
-   */
-  prevDoc(key: DocumentKey): Document | null {
-    assert(
-      this.has(key),
-      'Trying to get a previous document to non-existing key: ' + key
-    );
-    const doc = this.keyedMap.get(key);
-    return this.sortedSet.getPredecessorKey(doc!);
-  }
-
-  /**
    * Returns the index of the provided key in the document set, or -1 if the
    * document key is not present in the set;
    */
@@ -133,7 +118,7 @@ export class DocumentSet {
     return this.copy(this.keyedMap.remove(key), this.sortedSet.remove(doc));
   }
 
-  equals(other: DocumentSet | null | undefined): boolean {
+  isEqual(other: DocumentSet | null | undefined): boolean {
     if (!(other instanceof DocumentSet)) return false;
     if (this.size !== other.size) return false;
 
@@ -142,7 +127,7 @@ export class DocumentSet {
     while (thisIt.hasNext()) {
       const thisDoc = thisIt.getNext().key;
       const otherDoc = otherIt.getNext().key;
-      if (!thisDoc.equals(otherDoc)) return false;
+      if (!thisDoc.isEqual(otherDoc)) return false;
     }
     return true;
   }

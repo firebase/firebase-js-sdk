@@ -16,7 +16,11 @@
 
 import { expect } from 'chai';
 import { GeoPoint } from '../../../src/api/geo_point';
-import { expectCorrectComparisons } from '../../util/helpers';
+import {
+  expectCorrectComparisons,
+  expectEqual,
+  expectNotEqual
+} from '../../util/helpers';
 
 describe('GeoPoint', () => {
   function expectGeoPointEquals(
@@ -25,7 +29,7 @@ describe('GeoPoint', () => {
   ): void {
     expect(geoPoint.latitude).to.equal(value[0]);
     expect(geoPoint.longitude).to.equal(value[1]);
-    expect(geoPoint._equals(new GeoPoint(value[0], value[1]))).to.equal(true);
+    expect(geoPoint.isEqual(new GeoPoint(value[0], value[1]))).to.equal(true);
   }
 
   it('constructs values', () => {
@@ -87,5 +91,12 @@ describe('GeoPoint', () => {
     expectCorrectComparisons(values, (left: GeoPoint, right: GeoPoint) => {
       return left._compareTo(right);
     });
+  });
+
+  it('support equality checking with isEqual()', () => {
+    expectEqual(new GeoPoint(1, 2), new GeoPoint(1, 2));
+    expectNotEqual(new GeoPoint(1, 2), new GeoPoint(2, 2));
+    expectNotEqual(new GeoPoint(1, 2), new GeoPoint(1, 1));
+    expectNotEqual(new GeoPoint(1, 2), new GeoPoint(2, 1));
   });
 });

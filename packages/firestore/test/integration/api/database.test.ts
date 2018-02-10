@@ -17,11 +17,10 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import { Deferred } from '../../../src/util/promise';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc
@@ -90,6 +89,16 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
         });
+    });
+  });
+
+  it('can retrieve document that does not exist', () => {
+    return withTestDoc(persistence, doc => {
+      return doc.get().then(snapshot => {
+        expect(snapshot.exists).to.equal(false);
+        expect(snapshot.data()).to.equal(undefined);
+        expect(snapshot.get('foo')).to.equal(undefined);
+      });
     });
   });
 
@@ -205,7 +214,7 @@ apiDescribe('Database', persistence => {
             expect(err.message).to.exist;
             // TODO: Change this to just match "no document to update" once the
             // backend response is consistent.
-            expect(err.message).to.match(/no (document|entity) to update/);
+            expect(err.message).to.match(/no (document|entity) to update/i);
             expect(err.code).to.equal('not-found');
           }
         )
@@ -568,16 +577,14 @@ apiDescribe('Database', persistence => {
 
   it('can queue writes while offline', () => {
     return withTestDoc(persistence, docRef => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
+      const firestore = docRef.firestore;
 
-      return firestoreInternal
+      return firestore
         .disableNetwork()
         .then(() => {
           return Promise.all([
             docRef.set({ foo: 'bar' }),
-            firestoreInternal.enableNetwork()
+            firestore.enableNetwork()
           ]);
         })
         .then(() => docRef.get())
@@ -589,18 +596,16 @@ apiDescribe('Database', persistence => {
 
   it('can get documents while offline', () => {
     return withTestDoc(persistence, docRef => {
-      // TODO(mikelehen): Find better way to expose this to tests.
-      // tslint:disable-next-line:no-any enableNetwork isn't exposed via d.ts
-      const firestoreInternal = docRef.firestore.INTERNAL as any;
+      const firestore = docRef.firestore;
 
-      return firestoreInternal.disableNetwork().then(() => {
+      return firestore.disableNetwork().then(() => {
         const writePromise = docRef.set({ foo: 'bar' });
 
         return docRef
           .get()
           .then(doc => {
             expect(doc.metadata.fromCache).to.be.true;
-            return firestoreInternal.enableNetwork();
+            return firestore.enableNetwork();
           })
           .then(() => writePromise)
           .then(() => docRef.get())
@@ -612,39 +617,15 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can write document after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('test-collection').doc();
-      return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => docRef.set({ foo: 'bar' }));
-    });
-  });
-
-  it('can watch documents after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const awaitOnlineSnapshot = () => {
-        const docRef = db.collection('test-collection').doc();
-        const deferred = new Deferred<void>();
-        const unregister = docRef.onSnapshot(
-          { includeMetadataChanges: true },
-          snapshot => {
-            if (!snapshot.metadata.fromCache) {
-              deferred.resolve();
-            }
-          }
-        );
-        return deferred.promise.then(unregister);
-      };
-
-      return awaitOnlineSnapshot()
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => awaitOnlineSnapshot());
+  it('can enable and disable networking', () => {
+    return withTestDb(persistence, async db => {
+      // There's not currently a way to check if networking is in fact disabled,
+      // so for now just test that the method is well-behaved and doesn't throw.
+      await db.enableNetwork();
+      await db.enableNetwork();
+      await db.disableNetwork();
+      await db.disableNetwork();
+      await db.enableNetwork();
     });
   });
 });

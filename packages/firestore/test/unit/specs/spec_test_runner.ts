@@ -374,7 +374,6 @@ abstract class TestRunner {
     // Set backoff delay to 1ms so simulated disconnects don't delay the tests.
     const initialBackoffDelay = 1;
     this.datastore = new Datastore(
-      this.databaseInfo,
       this.queue,
       this.connection,
       new EmptyCredentialsProvider(),
@@ -382,7 +381,8 @@ abstract class TestRunner {
       initialBackoffDelay
     );
     const onlineStateChangedHandler = (onlineState: OnlineState) => {
-      this.eventManager.onOnlineStateChanged(onlineState);
+      this.syncEngine.applyOnlineStateChange(onlineState);
+      this.eventManager.applyOnlineStateChange(onlineState);
     };
     this.remoteStore = new RemoteStore(
       this.localStore,
@@ -496,7 +496,10 @@ abstract class TestRunner {
 
     await this.queue.schedule(async () => {
       const targetId = await this.eventManager.listen(queryListener);
-      expect(targetId).to.equal(expectedTargetId);
+      expect(targetId).to.equal(
+        expectedTargetId,
+        'targetId assigned to listen'
+      );
     });
     // Open should always have happened after a listen
     await this.connection.waitForWatchOpen();

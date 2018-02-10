@@ -32,7 +32,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { Datastore } from '../../../src/remote/datastore';
 import { setMutation } from '../../util/helpers';
-import { drainAsyncQueue, withTestDatastore } from '../util/helpers';
+import { drainAsyncQueue, withTestDatastore } from '../util/internal_helpers';
 import { FirestoreError } from '@firebase/firestore-types';
 
 /**

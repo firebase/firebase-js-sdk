@@ -10,7 +10,7 @@ const glob = promisify(globRaw);
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
 const licenseHeader = `/**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,8 @@ async function doLicenseCommit() {
   const filesMissingPaths = fileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
     .filter(
-      ({ buffer }) => !~String(buffer).indexOf('Copyright 2017 Google Inc.')
+      ({ buffer }) =>
+        String(buffer).match(/Copyright \d{4} Google Inc\./) == null
     );
 
   await Promise.all(

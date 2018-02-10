@@ -17,7 +17,6 @@
 import { User } from '../auth/user';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 
@@ -144,7 +143,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     // the uid may have changed.
     this.tokenListener = () => {
       const newUser = this.getUser();
-      if (!this.currentUser || !newUser.equals(this.currentUser)) {
+      if (!this.currentUser || !newUser.isEqual(this.currentUser)) {
         this.currentUser = newUser;
         this.userCounter++;
         if (this.userListener) {

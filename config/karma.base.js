@@ -17,7 +17,7 @@
 const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
-const { argv } = require('yargs');
+const {argv} = require('yargs');
 
 /**
  * Custom SauceLabs Launchers
@@ -54,14 +54,11 @@ const config = {
   browserNoActivityTimeout: 65000,
 
   // preprocess matching files before serving them to the browser
-  // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
-  preprocessors: {
-    'test/**/*.ts': ['webpack', 'sourcemap']
-  },
+  // available preprocessors:
+  // https://npmjs.org/browse/keyword/karma-preprocessor
+  preprocessors: {'test/**/*.ts': ['webpack', 'sourcemap']},
 
-  mime: {
-    'text/x-typescript': ['ts', 'tsx']
-  },
+  mime: {'text/x-typescript': ['ts', 'tsx']},
 
   // test results reporter to use
   // possible values: 'dots', 'progress'
@@ -75,26 +72,24 @@ const config = {
   colors: true,
 
   // level of logging
-  // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
+  // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN
+  // || config.LOG_INFO || config.LOG_DEBUG
   logLevel: karma.constants.LOG_INFO,
 
-  // enable / disable watching file and executing tests whenever any file changes
+  // enable / disable watching file and executing tests whenever any file
+  // changes
   autoWatch: false,
 
   customLaunchers: sauceLabsBrowsers,
 
   // start these browsers
-  // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
+  // available browser launchers:
+  // https://npmjs.org/browse/keyword/karma-launcher
   browsers: ['ChromeHeadless'],
 
   webpack: webpackTestConfig,
 
-  webpackMiddleware: {
-    quiet: true,
-    stats: {
-      colors: true
-    }
-  },
+  webpackMiddleware: {quiet: true, stats: {colors: true}},
 
   sauceLabs: {
     tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
@@ -106,10 +101,7 @@ const config = {
   singleRun: false,
 
   client: {
-    mocha: {
-      timeout: 20000,
-      retries: 3
-    },
+    mocha: {timeout: 20000, retries: 3},
 
     // Pass through --grep option to filter the tests that run.
     args: argv.grep ? ['--grep', argv.grep] : []
@@ -118,7 +110,7 @@ const config = {
   coverageIstanbulReporter: {
     dir: path.resolve(process.cwd(), 'coverage/browser/%browser%'),
     fixWebpackSourcePaths: true,
-    reports: ['lcovonly']
+    reports: ['html', 'lcovonly']
   }
 };
 

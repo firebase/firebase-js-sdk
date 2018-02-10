@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-
 import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../core/timestamp';
 import { DocumentKey } from '../model/document_key';
@@ -248,13 +246,6 @@ class ParseContext {
       throw this.createError('Document fields cannot begin and end with __');
     }
   }
-
-  private isWrite(): boolean {
-    return (
-      this.dataSource === UserDataSource.Set ||
-      this.dataSource === UserDataSource.Update
-    );
-  }
 }
 /**
  * An interface that allows arbitrary pre-converting of user data. This
@@ -287,7 +278,7 @@ export class DocumentKeyReference {
 export class UserDataConverter {
   constructor(private preConverter: DataPreConverter) {}
 
-  /** Parse document data from a non-merge set() call.*/
+  /** Parse document data from a non-merge set() call. */
   parseSetData(methodName: string, input: AnyJs): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.Set,
@@ -296,7 +287,7 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let updateData = this.parseData(input, context);
+    const updateData = this.parseData(input, context);
 
     return new ParsedSetData(
       updateData as ObjectValue,
@@ -314,7 +305,7 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    let updateData = this.parseData(input, context);
+    const updateData = this.parseData(input, context);
     const fieldMask = new FieldMask(context.fieldMask);
     return new ParsedSetData(
       updateData as ObjectValue,
@@ -540,7 +531,7 @@ export class UserDataConverter {
       return new RefValue(value.databaseId, value.key);
     } else if (value instanceof FieldValueImpl) {
       if (value instanceof DeleteFieldValueImpl) {
-        if (context.dataSource == UserDataSource.MergeSet) {
+        if (context.dataSource === UserDataSource.MergeSet) {
           return null;
         } else if (context.dataSource === UserDataSource.Update) {
           assert(

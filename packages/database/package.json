@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.node.js",
@@ -10,7 +10,7 @@
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
-    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register -r src/nodePatches.ts --retries 5 --timeout 5000 --exit",
+    "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register/type-check -r src/nodePatches.ts --retries 5 --timeout 5000 --exit",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@firebase/database-types": "0.1.1",
-    "@firebase/util": "0.1.6",
+    "@firebase/util": "0.1.8",
     "faye-websocket": "0.11.1",
     "tslib": "^1.9.0"
   },
@@ -45,7 +45,7 @@
     "sinon": "^4.0.2",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.1.0",
-    "ts-node": "^3.3.0",
+    "ts-node": "^4.1.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1"
   },

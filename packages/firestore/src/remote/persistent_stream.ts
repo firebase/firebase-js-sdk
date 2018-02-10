@@ -16,7 +16,6 @@
 
 import * as api from '../protos/firestore_proto_api';
 import { CredentialsProvider, Token } from '../api/credentials';
-import { DatabaseInfo } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData } from '../local/query_data';
@@ -31,6 +30,7 @@ import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
 import { isNullOrUndefined } from '../util/types';
+import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -154,7 +154,7 @@ export abstract class PersistentStream<
   ListenerType extends PersistentStreamListener
 > {
   private state: PersistentStreamState;
-  private idle: boolean = false;
+  private inactivityTimerPromise: CancelablePromise<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
@@ -245,16 +245,25 @@ export abstract class PersistentStream<
   }
 
   /**
-   * Initializes the idle timer. If no write takes place within one minute, the
-   * WebChannel stream will be closed.
+   * Marks this stream as idle. If no further actions are performed on the
+   * stream for one minute, the stream will automatically close itself and
+   * notify the stream's onClose() handler with Status.OK. The stream will then
+   * be in a !isStarted() state, requiring the caller to start the stream again
+   * before further use.
+   *
+   * Only streams that are in state 'Open' can be marked idle, as all other
+   * states imply pending network operations.
    */
   markIdle(): void {
-    this.idle = true;
-    this.queue
-      .schedule(() => {
-        return this.handleIdleCloseTimer();
-      }, IDLE_TIMEOUT_MS)
-      .catch((err: FirestoreError) => {
+    // Starts the idle time if we are in state 'Open' and are not yet already
+    // running a timer (in which case the previous idle timeout still applies).
+    if (this.isOpen() && this.inactivityTimerPromise === null) {
+      this.inactivityTimerPromise = this.queue.scheduleWithDelay(
+        () => this.handleIdleCloseTimer(),
+        IDLE_TIMEOUT_MS
+      );
+
+      this.inactivityTimerPromise.catch((err: FirestoreError) => {
         // When the AsyncQueue gets drained during testing, pending Promises
         // (including these idle checks) will get rejected. We special-case
         // these cancelled idle checks to make sure that these specific Promise
@@ -266,6 +275,7 @@ export abstract class PersistentStream<
           }`
         );
       });
+    }
   }
 
   /** Sends a message to the underlying stream. */
@@ -276,7 +286,7 @@ export abstract class PersistentStream<
 
   /** Called by the idle timer when the stream should close due to inactivity. */
   private async handleIdleCloseTimer(): Promise<void> {
-    if (this.isOpen() && this.idle) {
+    if (this.isOpen()) {
       // When timing out an idle stream there's no reason to force the stream into backoff when
       // it restarts so set the stream state to Initial instead of Error.
       return this.close(PersistentStreamState.Initial);
@@ -285,7 +295,10 @@ export abstract class PersistentStream<
 
   /** Marks the stream as active again. */
   private cancelIdleCheck() {
-    this.idle = false;
+    if (this.inactivityTimerPromise) {
+      this.inactivityTimerPromise.cancel();
+      this.inactivityTimerPromise = null;
+    }
   }
 
   /**
@@ -307,13 +320,13 @@ export abstract class PersistentStream<
     error?: FirestoreError
   ): Promise<void> {
     assert(
-      finalState == PersistentStreamState.Error || isNullOrUndefined(error),
+      finalState === PersistentStreamState.Error || isNullOrUndefined(error),
       "Can't provide an error when not in an error state."
     );
 
     this.cancelIdleCheck();
 
-    if (finalState != PersistentStreamState.Error) {
+    if (finalState !== PersistentStreamState.Error) {
       // If this is an intentional close ensure we don't delay our next connection attempt.
       this.backoff.reset();
     } else if (error && error.code === Code.RESOURCE_EXHAUSTED) {
@@ -342,7 +355,7 @@ export abstract class PersistentStream<
 
     // If the caller explicitly requested a stream stop, don't notify them of a closing stream (it
     // could trigger undesirable recovery logic, etc.).
-    if (finalState != PersistentStreamState.Stopped) {
+    if (finalState !== PersistentStreamState.Stopped) {
       return listener.onClose(error);
     }
   }
@@ -512,7 +525,6 @@ export class PersistentListenStream extends PersistentStream<
   WatchStreamListener
 > {
   constructor(
-    private databaseInfo: DatabaseInfo,
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
@@ -525,7 +537,10 @@ export class PersistentListenStream extends PersistentStream<
   protected startRpc(
     token: Token | null
   ): Stream<api.ListenRequest, api.ListenResponse> {
-    return this.connection.openStream('Listen', token);
+    return this.connection.openStream<api.ListenRequest, api.ListenResponse>(
+      'Listen',
+      token
+    );
   }
 
   protected onMessage(watchChangeProto: api.ListenResponse): Promise<void> {
@@ -613,7 +628,6 @@ export class PersistentWriteStream extends PersistentStream<
   private handshakeComplete_ = false;
 
   constructor(
-    private databaseInfo: DatabaseInfo,
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
@@ -631,7 +645,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  public lastStreamToken: ProtoByteString;
+  lastStreamToken: ProtoByteString;
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and
@@ -656,7 +670,10 @@ export class PersistentWriteStream extends PersistentStream<
   protected startRpc(
     token: Token | null
   ): Stream<api.WriteRequest, api.WriteResponse> {
-    return this.connection.openStream('Write', token);
+    return this.connection.openStream<api.WriteRequest, api.WriteResponse>(
+      'Write',
+      token
+    );
   }
 
   protected onMessage(responseProto: api.WriteResponse): Promise<void> {

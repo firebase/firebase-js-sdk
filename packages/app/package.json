@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.1.6",
+  "version": "0.1.8",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.js",
@@ -10,13 +10,13 @@
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
+    "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register/type-check --exit",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-types": "0.1.1",
-    "@firebase/util": "0.1.6"
+    "@firebase/util": "0.1.8"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
@@ -41,7 +41,7 @@
     "sinon": "^4.0.2",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.1.0",
-    "ts-node": "^3.3.0",
+    "ts-node": "^4.1.0",
     "typescript": "^2.4.2",
     "webpack": "^3.8.1"
   },

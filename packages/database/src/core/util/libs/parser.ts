@@ -57,7 +57,10 @@ export const parseRepoInfo = function(
   }
 
   // Catch common error of uninitialized namespace value.
-  if (!namespace || namespace == 'undefined') {
+  if (
+    (!namespace || namespace == 'undefined') &&
+    parsedUrl.domain !== 'localhost'
+  ) {
     fatal(
       'Cannot parse Firebase url. Please use https://<YOUR FIREBASE>.firebaseio.com'
     );
@@ -124,6 +127,15 @@ export const parseURL = function(
     host = dataURL.substring(0, slashInd);
     pathString = decodePath(dataURL.substring(slashInd));
 
+    // If we have a port, use scheme for determining if it's secure.
+    colonInd = host.indexOf(':');
+    if (colonInd >= 0) {
+      secure = scheme === 'https' || scheme === 'wss';
+      port = parseInt(host.substring(colonInd + 1), 10);
+    } else {
+      colonInd = dataURL.length;
+    }
+
     const parts = host.split('.');
     if (parts.length === 3) {
       // Normalize namespaces to lowercase to share storage / connection.
@@ -131,13 +143,8 @@ export const parseURL = function(
       subdomain = parts[0].toLowerCase();
     } else if (parts.length === 2) {
       domain = parts[0];
-    }
-
-    // If we have a port, use scheme for determining if it's secure.
-    colonInd = host.indexOf(':');
-    if (colonInd >= 0) {
-      secure = scheme === 'https' || scheme === 'wss';
-      port = parseInt(host.substring(colonInd + 1), 10);
+    } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
+      domain = 'localhost';
     }
   }
 

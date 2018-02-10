@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
@@ -25,6 +24,7 @@ import {
   PublicDocumentSnapshot,
   PublicFirestore,
   PublicQuery,
+  PublicQueryDocumentSnapshot,
   PublicQuerySnapshot,
   PublicTransaction,
   PublicWriteBatch
@@ -36,16 +36,17 @@ import { shallowCopy } from '../util/obj';
 
 const firestoreNamespace = {
   Firestore: PublicFirestore,
-  GeoPoint: GeoPoint,
+  GeoPoint,
   Blob: PublicBlob,
   Transaction: PublicTransaction,
   WriteBatch: PublicWriteBatch,
   DocumentReference: PublicDocumentReference,
   DocumentSnapshot: PublicDocumentSnapshot,
   Query: PublicQuery,
+  QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
   QuerySnapshot: PublicQuerySnapshot,
   CollectionReference: PublicCollectionReference,
-  FieldPath: FieldPath,
+  FieldPath,
   FieldValue: PublicFieldValue,
   setLogLevel: Firestore.setLogLevel
 };

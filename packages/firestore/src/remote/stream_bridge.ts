@@ -16,7 +16,6 @@
 
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 
 import { Stream } from './connection';
 
@@ -26,9 +25,9 @@ import { Stream } from './connection';
  * interface. The stream callbacks are invoked with the callOn... methods.
  */
 export class StreamBridge<I, O> implements Stream<I, O> {
-  private wrappedOnOpen: () => void = null as any;
-  private wrappedOnClose: (err?: FirestoreError) => void = null as any;
-  private wrappedOnMessage: (msg: O) => void = null as any;
+  private wrappedOnOpen: () => void | undefined;
+  private wrappedOnClose: (err?: FirestoreError) => void | undefined;
+  private wrappedOnMessage: (msg: O) => void | undefined;
 
   private sendFn: (msg: I) => void;
   private closeFn: () => void;
@@ -63,25 +62,25 @@ export class StreamBridge<I, O> implements Stream<I, O> {
 
   callOnOpen(): void {
     assert(
-      this.wrappedOnOpen !== null,
-      'Cannot call onOpen because no callback ' + 'was set'
+      this.wrappedOnOpen !== undefined,
+      'Cannot call onOpen because no callback was set'
     );
-    this.wrappedOnOpen();
+    this.wrappedOnOpen!();
   }
 
   callOnClose(err?: FirestoreError): void {
     assert(
-      this.wrappedOnClose !== null,
-      'Cannot call onClose because no ' + 'callback was set'
+      this.wrappedOnClose !== undefined,
+      'Cannot call onClose because no callback was set'
     );
-    this.wrappedOnClose(err);
+    this.wrappedOnClose!(err);
   }
 
   callOnMessage(msg: O): void {
     assert(
-      this.wrappedOnMessage !== null,
-      'Cannot call onMessage because no ' + 'callback was set'
+      this.wrappedOnMessage !== undefined,
+      'Cannot call onMessage because no callback was set'
     );
-    this.wrappedOnMessage(msg);
+    this.wrappedOnMessage!(msg);
   }
 }

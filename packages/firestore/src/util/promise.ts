@@ -20,9 +20,12 @@ export interface Resolver<R> {
   (value?: R | Promise<R>): void;
 }
 
-// tslint:disable-next-line:no-any
 export interface Rejecter {
-  (value?: any): void;
+  (reason?: Error): void;
+}
+
+export interface CancelablePromise<T> extends Promise<T> {
+  cancel(): void;
 }
 
 export class Deferred<R> {
