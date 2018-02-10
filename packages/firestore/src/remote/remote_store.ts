@@ -365,7 +365,7 @@ export class RemoteStore {
   }
 
   private async onWatchStreamClose(
-    error: FirestoreError | null,
+    error: FirestoreError | null
   ): Promise<void> {
     assert(
       this.isNetworkEnabled(),

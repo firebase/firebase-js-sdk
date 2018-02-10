@@ -108,9 +108,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         return Promise.resolve(EXAMPLE_TOKEN_SAVE);
       });
 
-    sandbox
-      .stub(IIDModel.prototype, 'deleteToken')
-      .callsFake(async () => {});
+    sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
     globalMessagingService = new WindowController(app);
     return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -129,9 +127,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         return Promise.resolve(EXAMPLE_TOKEN_SAVE);
       });
 
-    sandbox
-      .stub(IIDModel.prototype, 'deleteToken')
-      .callsFake(async () => {});
+    sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
     globalMessagingService = new WindowController(app);
     return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
@@ -158,9 +154,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
           return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(async () => {});
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -185,9 +179,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
           return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(async () => {});
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService
@@ -256,9 +248,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
           return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(async () => {});
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);

@@ -472,9 +472,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         return Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
       });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(async () => {});
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       sandbox
         .stub(IIDModel.prototype, 'getToken')
@@ -536,9 +534,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
       });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(async () => {});
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       const serviceInstance = new ServiceClass(app);
       try {

@@ -162,7 +162,7 @@ export default class WindowController extends ControllerInterface
    */
   async requestPermission() {
     if ((Notification as any).permission === NOTIFICATION_PERMISSION.granted) {
-      return
+      return;
     }
 
     return new Promise((resolve, reject) => {

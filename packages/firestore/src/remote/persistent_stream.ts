@@ -476,7 +476,7 @@ export abstract class PersistentStream<
       this.queue.schedule(async () => {
         if (this.state === PersistentStreamState.Stopped) {
           // Stream can be stopped while waiting for backoff to complete.
-          return
+          return;
         }
 
         this.state = PersistentStreamState.Initial;

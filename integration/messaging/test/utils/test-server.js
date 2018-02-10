@@ -44,7 +44,7 @@ class MessagingTestServer {
 
   async start() {
     if (this._server) {
-      return
+      return;
     }
 
     return new Promise((resolve, reject) => {
@@ -59,7 +59,7 @@ class MessagingTestServer {
   async stop() {
     if (this._server) {
       this._server.close();
-      this._server = null;      
+      this._server = null;
     }
   }
 }
