@@ -15,8 +15,8 @@
  */
 
 import * as log from '../util/log';
-import { Deferred } from '../util/promise';
-
+import { CancelablePromise } from '../util/promise';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 const LOG_TAG = 'ExponentialBackoff';
 
 /**
@@ -30,8 +30,17 @@ const LOG_TAG = 'ExponentialBackoff';
  */
 export class ExponentialBackoff {
   private currentBaseMs: number;
+  private timerPromise: CancelablePromise<void> | null = null;
 
   constructor(
+    /**
+     * The AsyncQueue to run backoff operations on.
+     */
+    private readonly queue: AsyncQueue,
+    /**
+     * The ID to use when scheduling backoff operations on the AsyncQueue.
+     */
+    private readonly timerId: TimerId,
     /**
      * The initial delay (used as the base delay on the first retry attempt).
      * Note that jitter will still be applied, so the actual delay could be as
@@ -74,10 +83,13 @@ export class ExponentialBackoff {
 
   /**
    * Returns a promise that resolves after currentDelayMs, and increases the
-   * delay for any subsequent attempts.
+   * delay for any subsequent attempts. If there was a pending backoff operation
+   * already, it will be canceled.
    */
-  backoffAndWait(): Promise<void> {
-    const def = new Deferred<void>();
+  backoffAndRun(op: () => Promise<void>): void {
+    if (this.timerPromise !== null) {
+      this.timerPromise.cancel();
+    }
 
     // First schedule using the current base (which may be 0 and should be
     // honored as such).
@@ -89,9 +101,11 @@ export class ExponentialBackoff {
           `(base delay: ${this.currentBaseMs} ms)`
       );
     }
-    setTimeout(() => {
-      def.resolve();
-    }, delayWithJitterMs);
+    this.timerPromise = this.queue.enqueueAfterDelay(
+      this.timerId,
+      delayWithJitterMs,
+      op
+    );
 
     // Apply backoff factor to determine next delay and ensure it is within
     // bounds.
@@ -102,8 +116,6 @@ export class ExponentialBackoff {
     if (this.currentBaseMs > this.maxDelayMs) {
       this.currentBaseMs = this.maxDelayMs;
     }
-
-    return def.promise;
   }
 
   /** Returns a random value in the range [-currentBaseMs/2, currentBaseMs/2] */
