@@ -17,7 +17,7 @@
 const karma = require('karma');
 const path = require('path');
 const webpackTestConfig = require('./webpack.test');
-const {argv} = require('yargs');
+const { argv } = require('yargs');
 
 /**
  * Custom SauceLabs Launchers
@@ -56,9 +56,9 @@ const config = {
   // preprocess matching files before serving them to the browser
   // available preprocessors:
   // https://npmjs.org/browse/keyword/karma-preprocessor
-  preprocessors: {'test/**/*.ts': ['webpack', 'sourcemap']},
+  preprocessors: { 'test/**/*.ts': ['webpack', 'sourcemap'] },
 
-  mime: {'text/x-typescript': ['ts', 'tsx']},
+  mime: { 'text/x-typescript': ['ts', 'tsx'] },
 
   // test results reporter to use
   // possible values: 'dots', 'progress'
@@ -89,7 +89,7 @@ const config = {
 
   webpack: webpackTestConfig,
 
-  webpackMiddleware: {quiet: true, stats: {colors: true}},
+  webpackMiddleware: { quiet: true, stats: { colors: true } },
 
   sauceLabs: {
     tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
@@ -101,7 +101,7 @@ const config = {
   singleRun: false,
 
   client: {
-    mocha: {timeout: 20000, retries: 3},
+    mocha: { timeout: 20000, retries: 3 },
 
     // Pass through --grep option to filter the tests that run.
     args: argv.grep ? ['--grep', argv.grep] : []
