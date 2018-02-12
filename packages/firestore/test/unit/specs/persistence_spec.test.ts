@@ -19,7 +19,7 @@ import { Query } from '../../../src/core/query';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 
 describeSpec('Persistence:', ['persistence'], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
@@ -180,6 +180,52 @@ describeSpec('Persistence:', ['persistence'], () => {
           added: [anonDoc],
           hasPendingWrites: true
         })
+    );
+  });
+
+  specTest('Single tab acquires primary lease', ['multi-client'], () => {
+    // This test simulates primary state handoff between two background tabs.
+    // With all instances are in the background, the first active tab acquires
+    // ownership.
+    return client(0)
+      .becomeHidden()
+      .expectPrimaryState(true)
+      .client(1)
+      .becomeHidden()
+      .expectPrimaryState(false)
+      .client(0)
+      .shutdown()
+      .expectPrimaryState(false)
+      .client(1)
+      .restart()
+      .expectPrimaryState(true);
+  });
+
+  specTest('Foreground tab acquires primary lease', ['multi-client'], () => {
+    // This test verifies that in a multi-client scenario, a foreground tab
+    // takes precedence when a new primary client is elected.
+    return (
+      client(0)
+        .becomeHidden()
+        .expectPrimaryState(true)
+        .client(1)
+        .becomeHidden()
+        .expectPrimaryState(false)
+        .client(2)
+        .becomeVisible()
+        .expectPrimaryState(false)
+        .client(0)
+        // Shutdown the client that is currently holding the primary lease.
+        .shutdown()
+        .expectPrimaryState(false)
+        .client(1)
+        // Restart client 1. This client is in the background and doesn't grab
+        // the primary lease as client 2 is in the foreground.
+        .restart()
+        .expectPrimaryState(false)
+        .client(2)
+        .restart()
+        .expectPrimaryState(true)
     );
   });
 });

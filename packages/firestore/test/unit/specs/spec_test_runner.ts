@@ -50,7 +50,11 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { emptyByteString } from '../../../src/platform/platform';
+import {
+  emptyByteString,
+  Platform,
+  PlatformSupport
+} from '../../../src/platform/platform';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -342,7 +346,11 @@ abstract class TestRunner {
 
   private serializer: JsonProtoSerializer;
 
-  constructor(private readonly name: string, config: SpecConfig) {
+  constructor(
+    private readonly name: string,
+    protected readonly platform: MockPlatform,
+    config: SpecConfig
+  ) {
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
       'persistenceKey',
@@ -398,6 +406,7 @@ abstract class TestRunner {
       this.user
     );
 
+    this.persistence.setPrimaryStateListener(this.syncEngine);
     // Setup wiring between sync engine and remote store
     this.remoteStore.syncEngine = this.syncEngine;
 
@@ -413,7 +422,6 @@ abstract class TestRunner {
   protected abstract getPersistence(
     serializer: JsonProtoSerializer
   ): Persistence;
-  protected abstract destroyPersistence(): Promise<void>;
 
   async start(): Promise<void> {
     this.connection.reset();
@@ -425,18 +433,15 @@ abstract class TestRunner {
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
-    await this.destroyPersistence();
   }
 
-  run(steps: SpecStep[]): Promise<void> {
-    console.log('Running spec: ' + this.name);
-    return sequence(steps, async step => {
-      await this.doStep(step);
-      await this.queue.drain(/* executeDelayedTasks */ false);
-      this.validateStepExpectations(step.expect!);
-      this.validateStateExpectations(step.stateExpect!);
-      this.eventList = [];
-    });
+  /** Runs a single SpecStep on this runner. */
+  async run(step: SpecStep): Promise<void> {
+    await this.doStep(step);
+    await this.queue.drain(/* executeDelayedTasks */ false);
+    this.validateStepExpectations(step.expect!);
+    this.validateStateExpectations(step.stateExpect!);
+    this.eventList = [];
   }
 
   private doStep(step: SpecStep): Promise<void> {
@@ -475,6 +480,11 @@ abstract class TestRunner {
     } else if ('restart' in step) {
       assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
+    } else if ('shutdown' in step) {
+      assert(step.shutdown!, 'Shutdown cannot be false');
+      return this.doShutdown();
+    } else if ('applyClientState' in step) {
+      return this.doApplyClientState(step.applyClientState!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else {
@@ -778,6 +788,11 @@ abstract class TestRunner {
     await this.remoteStore.enableNetwork();
   }
 
+  private async doShutdown(): Promise<void> {
+    await this.remoteStore.shutdown();
+    await this.persistence.shutdown();
+  }
+
   private async doRestart(): Promise<void> {
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
@@ -791,6 +806,15 @@ abstract class TestRunner {
       await this.localStore.start();
       await this.remoteStore.start();
     });
+
+    await this.persistence.tryBecomePrimary();
+  }
+
+  private doApplyClientState(state: SpecClientState): Promise<void> {
+    if (state.visibility) {
+      this.platform.fireVisibilityEvent(state.visibility!);
+    }
+    return Promise.resolve();
   }
 
   private doChangeUser(user: string | null): Promise<void> {
@@ -841,6 +865,9 @@ abstract class TestRunner {
       }
       if ('activeTargets' in expectation) {
         this.expectedActiveTargets = expectation.activeTargets!;
+      }
+      if ('isPrimary' in expectation) {
+        expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
       }
     }
 
@@ -999,12 +1026,86 @@ class MemoryTestRunner extends TestRunner {
     return new MemoryPersistence();
   }
 
-  protected destroyPersistence(): Promise<void> {
+  static destroyPersistence(): Promise<void> {
     // Nothing to do.
     return Promise.resolve();
   }
 }
 
+/**
+ * Implementation of `Platform` that allows mocking of `visibilitychange`
+ * events.
+ * */
+class MockPlatform implements Platform {
+  private visibilityState: VisibilityState = 'unloaded';
+  private visibilityListener: EventListener | null = null;
+  private mockDocument: Document;
+
+  constructor(private readonly basePlatform: Platform) {
+    this.initMockDocument();
+  }
+
+  initMockDocument() {
+    this.mockDocument = {
+      visibilityState: this.visibilityState,
+      addEventListener: (type: string, listener: EventListener) => {
+        assert(
+          type === 'visibilitychange',
+          "MockPlatform only supports events of type 'visibilitychange'"
+        );
+        this.visibilityListener = listener;
+      },
+      removeEventListener: (type: string, listener: EventListener) => {
+        if (listener === this.visibilityListener) {
+          this.visibilityListener = null;
+        }
+      }
+    } as any; // tslint:disable-line:no-any Not implementing the entire document interface
+  }
+
+  fireVisibilityEvent(visibility: VisibilityState) {
+    this.visibilityState = visibility;
+    if (this.visibilityListener) {
+      this.visibilityListener(new Event('visibilitychange'));
+    }
+  }
+
+  get window(): Window | null {
+    return this.basePlatform.window;
+  }
+
+  get document(): Document {
+    return this.mockDocument;
+  }
+
+  get base64Available(): boolean {
+    return this.basePlatform.base64Available;
+  }
+
+  get emptyByteString(): ProtoByteString {
+    return this.basePlatform.emptyByteString;
+  }
+
+  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+    return this.basePlatform.loadConnection(databaseInfo);
+  }
+
+  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+    return this.basePlatform.newSerializer(databaseId);
+  }
+
+  formatJSON(value: AnyJs): string {
+    return this.basePlatform.formatJSON(value);
+  }
+
+  atob(encoded: string): string {
+    return this.basePlatform.atob(encoded);
+  }
+
+  btoa(raw: string): string {
+    return this.basePlatform.btoa(raw);
+  }
+}
 /**
  * Runs the specs using IndexedDbPersistence, the creator must ensure that it is
  * enabled for the platform.
@@ -1015,11 +1116,12 @@ class IndexedDbTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
+      this.platform,
       serializer
     );
   }
 
-  protected destroyPersistence(): Promise<void> {
+  static destroyPersistence(): Promise<void> {
     return SimpleDb.delete(
       IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE
     );
@@ -1037,17 +1139,31 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  let runner: TestRunner;
-  if (usePersistence) {
-    runner = new IndexedDbTestRunner(name, config);
-  } else {
-    runner = new MemoryTestRunner(name, config);
+  console.log('Running spec: ' + name);
+  const platform = new MockPlatform(PlatformSupport.getPlatform());
+  let runners: TestRunner[] = [];
+  for (let i = 0; i < config.numClients; ++i) {
+    if (usePersistence) {
+      runners.push(new IndexedDbTestRunner(name, platform, config));
+    } else {
+      runners.push(new MemoryTestRunner(name, platform, config));
+    }
+    await runners[i].start();
   }
-  await runner.start();
   try {
-    await runner.run(steps);
+    let stepcnt = 0;
+    await sequence(steps, async step => {
+      return runners[step.clientIndex || 0].run(step);
+    });
   } finally {
-    await runner.shutdown();
+    for (const runner of runners) {
+      await runner.shutdown();
+    }
+    if (usePersistence) {
+      await IndexedDbTestRunner.destroyPersistence();
+    } else {
+      await MemoryTestRunner.destroyPersistence();
+    }
   }
 }
 
@@ -1055,6 +1171,9 @@ export async function runSpec(
 export interface SpecConfig {
   /** A boolean to enable / disable GC. */
   useGarbageCollection: boolean;
+
+  /** The number of active clients for this test run. */
+  numClients: number;
 }
 
 /**
@@ -1062,6 +1181,8 @@ export interface SpecConfig {
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
+  /** The index of the current client for multi-client spec tests. */
+  clientIndex?: number;
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
@@ -1101,6 +1222,9 @@ export interface SpecStep {
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
 
+  /** Changes the metadata state of a client instance. */
+  applyClientState?: SpecClientState;
+
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
 
@@ -1110,6 +1234,9 @@ export interface SpecStep {
    * etc. and then simulate an app restart.
    */
   restart?: boolean;
+
+  /** Shut down the client and close it network connection. */
+  shutdown?: boolean;
 
   /**
    * Optional list of expected events.
@@ -1190,6 +1317,11 @@ export interface SpecWatchEntity {
   removedTargets?: TargetId[];
 }
 
+export type SpecClientState = {
+  /** The visibility state of the browser tab running the client. */
+  visibility?: VisibilityState;
+};
+
 /**
  * [[<target-id>, ...], <key>, ...]
  * Note that the last parameter is really of type ...string (spread operator)
@@ -1251,6 +1383,10 @@ export interface StateExpectation {
   watchStreamRequestCount?: number;
   /** Current documents in limbo. Verified in each step until overwritten. */
   limboDocs?: string[];
+  /**
+   * Whether the instance holds the primary lease. Used in multi-client tests.
+   */
+  isPrimary?: boolean;
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */

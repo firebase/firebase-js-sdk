@@ -241,7 +241,11 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new IndexedDbPersistence(storagePrefix, serializer);
+    this.persistence = new IndexedDbPersistence(
+      storagePrefix,
+      this.platform,
+      serializer
+    );
     return this.persistence.start();
   }
 
@@ -299,6 +303,7 @@ export class FirestoreClient {
 
         // Setup wiring between sync engine and remote store
         this.remoteStore.syncEngine = this.syncEngine;
+        this.persistence.setPrimaryStateListener(this.syncEngine);
 
         this.eventMgr = new EventManager(this.syncEngine);
 

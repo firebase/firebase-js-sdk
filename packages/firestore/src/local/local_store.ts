@@ -182,7 +182,8 @@ export class LocalStore {
 
   /** Performs any initial startup actions required by the local store. */
   start(): Promise<void> {
-    return this.persistence.runTransaction('Start LocalStore', txn => {
+    // TODO(multitab): Ensure that we in fact don't need the primary lease.
+    return this.persistence.runTransaction('Start LocalStore', false, txn => {
       return this.startMutationQueue(txn).next(() => this.startQueryCache(txn));
     });
   }
@@ -194,7 +195,7 @@ export class LocalStore {
    * returns any resulting document changes.
    */
   handleUserChange(user: User): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction('Handle user change', txn => {
+    return this.persistence.runTransaction('Handle user change', true, txn => {
       // Swap out the mutation queue, grabbing the pending mutation batches
       // before and after.
       let oldBatches: MutationBatch[];
@@ -282,23 +283,27 @@ export class LocalStore {
 
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
-    return this.persistence.runTransaction('Locally write mutations', txn => {
-      let batch: MutationBatch;
-      const localWriteTime = Timestamp.now();
-      return this.mutationQueue
-        .addMutationBatch(txn, localWriteTime, mutations)
-        .next(promisedBatch => {
-          batch = promisedBatch;
-          // TODO(koss): This is doing an N^2 update by replaying ALL the
-          // mutations on each document (instead of just the ones added) in
-          // this batch.
-          const keys = batch.keys();
-          return this.localDocuments.getDocuments(txn, keys);
-        })
-        .next((changedDocuments: MaybeDocumentMap) => {
-          return { batchId: batch.batchId, changes: changedDocuments };
-        });
-    });
+    return this.persistence.runTransaction(
+      'Locally write mutations',
+      true,
+      txn => {
+        let batch: MutationBatch;
+        const localWriteTime = Timestamp.now();
+        return this.mutationQueue
+          .addMutationBatch(txn, localWriteTime, mutations)
+          .next(promisedBatch => {
+            batch = promisedBatch;
+            // TODO(koss): This is doing an N^2 update by replaying ALL the
+            // mutations on each document (instead of just the ones added) in
+            // this batch.
+            const keys = batch.keys();
+            return this.localDocuments.getDocuments(txn, keys);
+          })
+          .next((changedDocuments: MaybeDocumentMap) => {
+            return { batchId: batch.batchId, changes: changedDocuments };
+          });
+      }
+    );
   }
 
   /**
@@ -318,7 +323,7 @@ export class LocalStore {
   acknowledgeBatch(
     batchResult: MutationBatchResult
   ): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction('Acknowledge batch', txn => {
+    return this.persistence.runTransaction('Acknowledge batch', true, txn => {
       let affected: DocumentKeySet;
       return this.mutationQueue
         .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
@@ -357,7 +362,7 @@ export class LocalStore {
    * @returns The resulting modified documents.
    */
   rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction('Reject batch', txn => {
+    return this.persistence.runTransaction('Reject batch', true, txn => {
       let toReject: MutationBatch;
       let affectedKeys: DocumentKeySet;
       return this.mutationQueue
@@ -394,9 +399,13 @@ export class LocalStore {
 
   /** Returns the last recorded stream token for the current user. */
   getLastStreamToken(): Promise<ProtoByteString> {
-    return this.persistence.runTransaction('Get last stream token', txn => {
-      return this.mutationQueue.getLastStreamToken(txn);
-    });
+    return this.persistence.runTransaction(
+      'Get last stream token',
+      false, // todo: this does require owner lease
+      txn => {
+        return this.mutationQueue.getLastStreamToken(txn);
+      }
+    );
   }
 
   /**
@@ -405,9 +414,13 @@ export class LocalStore {
    * response to an error that requires clearing the stream token.
    */
   setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
-    return this.persistence.runTransaction('Set last stream token', txn => {
-      return this.mutationQueue.setLastStreamToken(txn, streamToken);
-    });
+    return this.persistence.runTransaction(
+      'Set last stream token',
+      true,
+      txn => {
+        return this.mutationQueue.setLastStreamToken(txn, streamToken);
+      }
+    );
   }
 
   /**
@@ -428,7 +441,7 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
-    return this.persistence.runTransaction('Apply remote event', txn => {
+    return this.persistence.runTransaction('Apply remote event', true, txn => {
       const promises = [] as Array<PersistencePromise<void>>;
       objUtils.forEachNumber(
         remoteEvent.targetChanges,
@@ -556,28 +569,35 @@ export class LocalStore {
    * Notify local store of the changed views to locally pin documents.
    */
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
-    return this.persistence.runTransaction('Notify local view changes', txn => {
-      const promises = [] as Array<PersistencePromise<void>>;
-      for (const view of viewChanges) {
-        promises.push(
-          this.queryCache
-            .getQueryData(txn, view.query)
-            .next((queryData: QueryData | null) => {
-              assert(
-                queryData !== null,
-                'Local view changes contain unallocated query.'
-              );
-              const targetId = queryData!.targetId;
-              this.localViewReferences.addReferences(view.addedKeys, targetId);
-              this.localViewReferences.removeReferences(
-                view.removedKeys,
-                targetId
-              );
-            })
-        );
+    return this.persistence.runTransaction(
+      'Notify local view changes',
+      true,
+      txn => {
+        const promises = [] as Array<PersistencePromise<void>>;
+        for (const view of viewChanges) {
+          promises.push(
+            this.queryCache
+              .getQueryData(txn, view.query)
+              .next((queryData: QueryData | null) => {
+                assert(
+                  queryData !== null,
+                  'Local view changes contain unallocated query.'
+                );
+                const targetId = queryData!.targetId;
+                this.localViewReferences.addReferences(
+                  view.addedKeys,
+                  targetId
+                );
+                this.localViewReferences.removeReferences(
+                  view.removedKeys,
+                  targetId
+                );
+              })
+          );
+        }
+        return PersistencePromise.waitFor(promises);
       }
-      return PersistencePromise.waitFor(promises);
-    });
+    );
   }
 
   /**
@@ -587,15 +607,20 @@ export class LocalStore {
    * @returns The next mutation or null if there wasn't one.
    */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
-    return this.persistence.runTransaction('Get next mutation batch', txn => {
-      if (afterBatchId === undefined) {
-        afterBatchId = BATCHID_UNKNOWN;
+    // TODO(multitab): This needs to run in O(1).
+    return this.persistence.runTransaction(
+      'Get next mutation batch',
+      false,
+      txn => {
+        if (afterBatchId === undefined) {
+          afterBatchId = BATCHID_UNKNOWN;
+        }
+        return this.mutationQueue.getNextMutationBatchAfterBatchId(
+          txn,
+          afterBatchId
+        );
       }
-      return this.mutationQueue.getNextMutationBatchAfterBatchId(
-        txn,
-        afterBatchId
-      );
-    });
+    );
   }
 
   /**
@@ -603,7 +628,7 @@ export class LocalStore {
    * found - used for testing.
    */
   readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('read document', txn => {
+    return this.persistence.runTransaction('read document', true, txn => {
       return this.localDocuments.getDocument(txn, key);
     });
   }
@@ -614,7 +639,7 @@ export class LocalStore {
    * the store can be used to manage its view.
    */
   allocateQuery(query: Query): Promise<QueryData> {
-    return this.persistence.runTransaction('Allocate query', txn => {
+    return this.persistence.runTransaction('Allocate query', true, txn => {
       let queryData: QueryData;
       return this.queryCache
         .getQueryData(txn, query)
@@ -644,7 +669,7 @@ export class LocalStore {
 
   /** Unpin all the documents associated with the given query. */
   releaseQuery(query: Query): Promise<void> {
-    return this.persistence.runTransaction('Release query', txn => {
+    return this.persistence.runTransaction('Release query', true, txn => {
       return this.queryCache
         .getQueryData(txn, query)
         .next((queryData: QueryData | null) => {
@@ -684,7 +709,7 @@ export class LocalStore {
    * returns the results.
    */
   executeQuery(query: Query): Promise<DocumentMap> {
-    return this.persistence.runTransaction('Execute query', txn => {
+    return this.persistence.runTransaction('Execute query', true, txn => {
       return this.localDocuments.getDocumentsMatchingQuery(txn, query);
     });
   }
@@ -694,9 +719,13 @@ export class LocalStore {
    * target id in the remote table.
    */
   remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction('Remote document keys', txn => {
-      return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
-    });
+    return this.persistence.runTransaction(
+      'Remote document keys',
+      true,
+      txn => {
+        return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
+      }
+    );
   }
 
   /**
@@ -708,7 +737,7 @@ export class LocalStore {
   collectGarbage(): Promise<void> {
     // Call collectGarbage regardless of whether isGCEnabled so the referenceSet
     // doesn't continue to accumulate the garbage keys.
-    return this.persistence.runTransaction('Garbage collection', txn => {
+    return this.persistence.runTransaction('Garbage collection', true, txn => {
       return this.garbageCollector.collectGarbage(txn).next(garbage => {
         const promises = [] as Array<PersistencePromise<void>>;
         garbage.forEach(key => {

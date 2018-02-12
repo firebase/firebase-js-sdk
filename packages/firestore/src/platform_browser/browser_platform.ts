@@ -27,6 +27,10 @@ export class BrowserPlatform implements Platform {
 
   readonly emptyByteString = '';
 
+  readonly document = document;
+
+  readonly window = window;
+
   constructor() {
     this.base64Available = typeof atob !== 'undefined';
   }

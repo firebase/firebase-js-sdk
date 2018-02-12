@@ -26,6 +26,8 @@ import { SpecStep } from './spec_test_runner';
 const EXCLUSIVE_TAG = 'exclusive';
 // Persistence-related tests.
 const PERSISTENCE_TAG = 'persistence';
+// Multi-client related tests. Requires persistence.
+const MULTI_CLIENT_TAG = 'multi-client';
 // Explicit per-platform disable flags.
 const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
@@ -33,10 +35,17 @@ const NO_IOS_TAG = 'no-ios';
 const KNOWN_TAGS = [
   EXCLUSIVE_TAG,
   PERSISTENCE_TAG,
+  MULTI_CLIENT_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
   NO_IOS_TAG
 ];
+
+// Filters out multi-client tests if persistence is not enabled.
+const MULTI_CLIENT_TEST_FILTER = (
+  tags: string[],
+  persistenceEnabled: boolean
+) => tags.indexOf(MULTI_CLIENT_TAG) !== -1 && persistenceEnabled;
 
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
   tags.indexOf(NO_WEB_TAG) === -1;
@@ -69,6 +78,20 @@ export function setSpecJSONHandler(writer: (json: string) => void) {
   writeJSONFile = writer;
 }
 
+/** Gets the test runner based on the specified tags. */
+function getTestRunner(tags, persistenceEnabled): Function {
+  if (
+    !MULTI_CLIENT_TEST_FILTER(tags, persistenceEnabled) ||
+    !WEB_SPEC_TEST_FILTER(tags)
+  ) {
+    return it.skip;
+  } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+    return it.only;
+  } else {
+    return it;
+  }
+}
+
 /**
  * Like it(), but for spec tests.
  * @param name A name to give the test.
@@ -98,14 +121,7 @@ export function specTest(
       : [false];
     for (const usePersistence of persistenceModes) {
       const spec = builder();
-      let runner: Function;
-      if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
-        runner = it.only;
-      } else if (!WEB_SPEC_TEST_FILTER(tags)) {
-        runner = it.skip;
-      } else {
-        runner = it;
-      }
+      const runner = getTestRunner(tags, usePersistence);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
       runner(fullName, () => {

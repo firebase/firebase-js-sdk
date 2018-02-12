@@ -22,7 +22,11 @@ import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import {
+  Persistence,
+  PersistenceTransaction,
+  PrimaryStateListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -61,6 +65,16 @@ export class MemoryPersistence implements Persistence {
     return Promise.resolve();
   }
 
+  tryBecomePrimary(): Promise<boolean> {
+    // All clients using memory persistence act as primary.
+    return Promise.resolve(true);
+  }
+
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
+    // All clients using memory persistence act as primary.
+    primaryStateListener.applyPrimaryState(true);
+  }
+
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
@@ -80,10 +94,13 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
+    requirePrimaryLease: boolean,
+    transactionOperation: (
+      transaction: PersistenceTransaction
+    ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return operation(new MemoryPersistenceTransaction()).toPromise();
+    return transactionOperation(new MemoryPersistenceTransaction()).toPromise();
   }
 }
 

@@ -545,21 +545,24 @@ export class DbClientMetadata {
   static store = 'clientMetadata';
 
   /** Keys are automatically assigned via the clientKey properties. */
-  static keyPath = ['clientKey'];
+  static key = ['clientKey'];
 
   constructor(
     /** The auto-generated client key assigned at client startup. */
     public clientKey: string,
     /** The last time this state was updated. */
-    public updateTimeMs: DbTimestamp,
+    public updateTimeMs: number,
     /** Whether this client is running in a foreground tab. */
     public inForeground: boolean
   ) {}
 }
 
+/** Object keys in the 'clientMetadata' store are clientKey strings. */
+export type DbClientMetadataKey = string;
+
 function createClientMetadataStore(db: IDBDatabase): void {
   db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath as KeyPath
+    keyPath: DbClientMetadata.key as KeyPath
   });
 }
 
