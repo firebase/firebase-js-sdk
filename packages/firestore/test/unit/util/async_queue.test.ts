@@ -15,12 +15,18 @@
  */
 
 import { expect } from 'chai';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { AnyJs } from '../../../src/util/misc';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
+import { Code } from '../../../src/util/error';
 
 describe('AsyncQueue', () => {
+  // We reuse these TimerIds for generic testing.
+  const timerId1 = TimerId.ListenStreamConnection;
+  const timerId2 = TimerId.ListenStreamIdle;
+  const timerId3 = TimerId.WriteStreamConnection;
+
   it('schedules ops in right order', () => {
     const queue = new AsyncQueue();
     const results: string[] = [];
@@ -29,7 +35,7 @@ describe('AsyncQueue', () => {
       results.push(result);
     }
 
-    const op1 = queue.schedule(() => {
+    const op1 = queue.enqueue(() => {
       return defer(() => 'Hello')
         .then((result: string) => {
           return defer(() => result + ' world!');
@@ -37,13 +43,13 @@ describe('AsyncQueue', () => {
         .then(pushResult);
     });
 
-    const op2 = queue.schedule(() => {
+    const op2 = queue.enqueue(() => {
       return defer(() => 'Bye bye.').then(pushResult);
     });
 
     const op4 = new Deferred<void>();
-    const op3 = queue.schedule(() => {
-      queue.schedule(() => {
+    const op3 = queue.enqueue(() => {
+      queue.enqueue(() => {
         return Promise.resolve('Bye for good.')
           .then(pushResult)
           .then(op4.resolve);
@@ -74,7 +80,7 @@ describe('AsyncQueue', () => {
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
-      .schedule(() => {
+      .enqueue(() => {
         // This promise represents something that is rejected
         return defer(() => {
           throw expected;
@@ -95,7 +101,7 @@ describe('AsyncQueue', () => {
     // Schedule a second failing operation (before the first one has actually
     // executed and failed). It should not be run.
     const op2Promise = queue
-      .schedule(() => {
+      .enqueue(() => {
         return defer(() => {
           expect.fail('op2 should not be executed.');
         });
@@ -116,12 +122,86 @@ describe('AsyncQueue', () => {
       // synchronously throw with "already failed" error.
       const dummyOp = () => Promise.reject('dummyOp should not be run');
       expect(() => {
-        queue.schedule(dummyOp);
+        queue.enqueue(dummyOp);
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
       setLogLevel(oldLogLevel);
     });
+  });
+
+  it('can schedule ops in the future', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps = [];
+    const doStep = (n: number) => defer(() => completedSteps.push(n));
+    queue.enqueue(() => doStep(1));
+    const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
+    queue.enqueueAfterDelay(timerId2, 1, () => doStep(3));
+    queue.enqueue(() => doStep(2));
+
+    await last;
+    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+  });
+
+  it('Can cancel delayed operations', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps = [];
+    const doStep = (n: number) => defer(() => completedSteps.push(n));
+    queue.enqueue(() => doStep(1));
+    const delayedPromise = queue.enqueueAfterDelay(timerId1, 1, () =>
+      doStep(2)
+    );
+
+    expect(queue.containsDelayedOperation(timerId1)).to.be.true;
+    delayedPromise.cancel();
+    expect(queue.containsDelayedOperation(timerId1)).to.be.false;
+
+    await delayedPromise.then(
+      () => expect.fail('resolved promise', 'rejected promise'),
+      err => expect(err.code === Code.CANCELLED)
+    );
+
+    await queue.runDelayedOperationsEarly();
+    expect(completedSteps).to.deep.equal([1]);
+  });
+
+  it('Can run all delayed operations early', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps = [];
+    const doStep = (n: number) => defer(() => completedSteps.push(n));
+    queue.enqueue(() => doStep(1));
+    queue.enqueueAfterDelay(timerId1, 20000, () => doStep(4));
+    queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
+    queue.enqueue(() => doStep(2));
+
+    await queue.runDelayedOperationsEarly();
+    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+  });
+
+  it('Can run some delayed operations early', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps = [];
+    const doStep = (n: number) => defer(() => completedSteps.push(n));
+    queue.enqueue(() => doStep(1));
+    queue.enqueueAfterDelay(timerId1, 20000, () => doStep(5));
+    queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
+    queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
+    queue.enqueue(() => doStep(2));
+
+    await queue.runDelayedOperationsEarly(timerId3);
+    expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
+  });
+
+  it('Can drain (non-delayed) operations', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps = [];
+    const doStep = (n: number) => defer(() => completedSteps.push(n));
+    queue.enqueue(() => doStep(1));
+    queue.enqueueAfterDelay(timerId1, 10000, () => doStep(5));
+    queue.enqueue(() => doStep(2));
+
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([1, 2]);
   });
 });
 

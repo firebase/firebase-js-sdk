@@ -24,6 +24,18 @@ import { Code, FirestoreError } from './error';
 type TimerHandle = any;
 
 /**
+ * Wellknown "timer" IDs used when scheduling delayed operations on the
+ * AsyncQueue. These IDs can then be used from tests to check for the presence
+ * of operations or to run them early.
+ */
+export enum TimerId {
+  ListenStreamIdle,
+  ListenStreamConnection,
+  WriteStreamIdle,
+  WriteStreamConnection
+}
+
+/**
  * Represents an operation scheduled to be run in the future on an AsyncQueue.
  *
  * It is created via DelayedOperation.createAndSchedule().
@@ -38,20 +50,42 @@ class DelayedOperation<T> implements CancelablePromise<T> {
   private readonly deferred = new Deferred<T>();
 
   private constructor(
-    private asyncQueue: AsyncQueue,
-    private op: () => Promise<T>
+    private readonly asyncQueue: AsyncQueue,
+    readonly timerId: TimerId,
+    readonly targetTimeMs: number,
+    private readonly op: () => Promise<T>,
+    private readonly removalCallback: (op: DelayedOperation<T>) => void
   ) {}
 
   /**
    * Creates and returns a DelayedOperation that has been scheduled to be
    * executed on the provided asyncQueue after the provided delayMs.
+   *
+   * @param asyncQueue The queue to schedule the operation on.
+   * @param id A Timer ID identifying the type of operation this is.
+   * @param delayMs The delay (ms) before the operation should be scheduled.
+   * @param op The operation to run.
+   * @param removalCallback A callback to be called synchronously once the
+   *   operation is executed or canceled, notifying the AsyncQueue to remove it
+   *   from its delayedOperations list.
+   *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
+   *   the DelayedOperation class public.
    */
   static createAndSchedule<T>(
     asyncQueue: AsyncQueue,
+    timerId: TimerId,
+    delayMs: number,
     op: () => Promise<T>,
-    delayMs: number
+    removalCallback: (op: DelayedOperation<T>) => void
   ): DelayedOperation<T> {
-    const delayedOp = new DelayedOperation(asyncQueue, op);
+    const targetTime = Date.now() + delayMs;
+    const delayedOp = new DelayedOperation(
+      asyncQueue,
+      timerId,
+      targetTime,
+      op,
+      removalCallback
+    );
     delayedOp.start(delayMs);
     return delayedOp;
   }
@@ -97,7 +131,7 @@ class DelayedOperation<T> implements CancelablePromise<T> {
   catch = this.deferred.promise.catch.bind(this.deferred.promise);
 
   private handleDelayElapsed(): void {
-    this.asyncQueue.schedule(() => {
+    this.asyncQueue.enqueue(() => {
       if (this.timerHandle !== null) {
         this.clearTimeout();
         return this.op().then(result => {
@@ -110,7 +144,8 @@ class DelayedOperation<T> implements CancelablePromise<T> {
   }
 
   private clearTimeout() {
-    if (this.timerHandle) {
+    if (this.timerHandle !== null) {
+      this.removalCallback(this);
       clearTimeout(this.timerHandle);
       this.timerHandle = null;
     }
@@ -121,16 +156,9 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<AnyJs | void> = Promise.resolve();
 
-  // A list with timeout handles and their respective deferred promises.
-  // Contains an entry for each operation that is queued to run in the future
-  // (i.e. it has a delay that has not yet elapsed).
+  // Operations scheduled to be queued in the future. Operations are
+  // automatically removed after they are run or canceled.
   private delayedOperations: Array<DelayedOperation<AnyJs>> = [];
-
-  // The number of operations that are queued to be run in the future (i.e. they
-  // have a delay that has not yet elapsed). Used for testing.
-  get delayedOperationsCount() {
-    return this.delayedOperations.length;
-  }
 
   // visible for testing
   failure: Error;
@@ -143,7 +171,7 @@ export class AsyncQueue {
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    */
-  schedule<T>(op: () => Promise<T>): Promise<T> {
+  enqueue<T>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
@@ -178,25 +206,35 @@ export class AsyncQueue {
   }
 
   /**
-   * Schedules an operation to be run on the AsyncQueue once the specified
-   * `delayMs` has elapsed. The returned DelayedOperationResult can be
-   * used to cancel the operation prior to its running.
+   * Schedules an operation to be queued on the AsyncQueue once the specified
+   * `delayMs` has elapsed. The returned CancelablePromise can be used to cancel
+   * the operation prior to its running.
    */
-  scheduleWithDelay<T>(
-    op: () => Promise<T>,
-    delayMs: number
+  enqueueAfterDelay<T>(
+    timerId: TimerId,
+    delayMs: number,
+    op: () => Promise<T>
   ): CancelablePromise<T> {
     this.verifyNotFailed();
 
-    const delayedOp = DelayedOperation.createAndSchedule(this, op, delayMs);
+    // While not necessarily harmful, we currently don't expect to have multiple
+    // ops with the same timer id in the queue, so defensively reject them.
+    assert(
+      !this.containsDelayedOperation(timerId),
+      `Attempted to schedule multiple operations with timer id ${
+        TimerId[timerId]
+      }.`
+    );
+
+    const delayedOp = DelayedOperation.createAndSchedule(
+      this,
+      timerId,
+      delayMs,
+      op,
+      op => this.removeDelayedOperation(op)
+    );
     this.delayedOperations.push(delayedOp);
 
-    delayedOp.catch(err => {}).then(() => {
-      // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
-      const index = this.delayedOperations.indexOf(delayedOp);
-      assert(index >= 0, 'Delayed operation not found.');
-      this.delayedOperations.slice(index, 1);
-    });
     return delayedOp;
   }
 
@@ -223,17 +261,56 @@ export class AsyncQueue {
   }
 
   /**
-   * Waits until all currently scheduled tasks are finished executing. Tasks
-   * scheduled with a delay can be rejected or queued for immediate execution.
+   * Waits until all currently queued tasks are finished executing. Delayed
+   * operations are not run.
    */
-  drain(executeDelayedTasks: boolean): Promise<void> {
-    this.delayedOperations.forEach(delayedOp => {
-      if (executeDelayedTasks) {
-        delayedOp.skipDelay();
-      } else {
-        delayedOp.cancel('shutdown');
+  drain(): Promise<void> {
+    return this.enqueue(() => Promise.resolve());
+  }
+
+  /**
+   * For Tests: Determine if a delayed operation with a particular TimerId
+   * exists.
+   */
+  containsDelayedOperation(timerId: TimerId): boolean {
+    return this.delayedOperations.findIndex(op => op.timerId === timerId) >= 0;
+  }
+
+  /**
+   * For Tests: Runs some or all delayed operations early.
+   *
+   * @param lastTimerId If specified, only delayed operations up to and
+   *   including this TimerId will be drained. Throws if no such operation
+   *   exists.
+   * @returns a Promise that resolves once all operations have been run.
+   */
+  runDelayedOperationsEarly(lastTimerId?: TimerId): Promise<void> {
+    // Note that draining may generate more delayed ops, so we do that first.
+    return this.drain().then(() => {
+      assert(
+        lastTimerId === undefined || this.containsDelayedOperation(lastTimerId),
+        `Attempted to drain to missing operation ${lastTimerId}`
+      );
+
+      // Run ops in the same order they'd run if they ran naturally.
+      this.delayedOperations.sort((a, b) => a.targetTimeMs - b.targetTimeMs);
+
+      for (const op of this.delayedOperations) {
+        op.skipDelay();
+        if (lastTimerId !== undefined && op.timerId === lastTimerId) {
+          break;
+        }
       }
+
+      return this.drain();
     });
-    return this.schedule(() => Promise.resolve());
+  }
+
+  /** Called once a DelayedOperation is run or canceled. */
+  private removeDelayedOperation<T>(op: DelayedOperation<T>) {
+    // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
+    const index = this.delayedOperations.indexOf(op);
+    assert(index >= 0, 'Delayed operation not found.');
+    this.delayedOperations.splice(index, 1);
   }
 }

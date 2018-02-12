@@ -28,11 +28,11 @@ import {
   ExistenceFilterChange,
   WatchTargetChange
 } from '../../../src/remote/watch_change';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
 import { Datastore } from '../../../src/remote/datastore';
 import { setMutation } from '../../util/helpers';
-import { drainAsyncQueue, withTestDatastore } from '../util/internal_helpers';
+import { withTestDatastore } from '../util/internal_helpers';
 import { FirestoreError } from '@firebase/firestore-types';
 
 /**
@@ -227,10 +227,11 @@ describe('Write Stream', () => {
         })
         .then(() => {
           writeStream.markIdle();
-          expect(queue.delayedOperationsCount).to.be.equal(1);
+          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
+            .true;
           return Promise.all([
-            streamListener.awaitCallback('close'),
-            queue.drain(/*executeDelayedTasks=*/ true)
+            queue.runDelayedOperationsEarly(TimerId.WriteStreamIdle),
+            streamListener.awaitCallback('close')
           ]);
         })
         .then(() => {
@@ -254,11 +255,12 @@ describe('Write Stream', () => {
         .then(() => {
           // Mark the stream idle, but immediately cancel the idle timer by issuing another write.
           writeStream.markIdle();
-          expect(queue.delayedOperationsCount).to.be.equal(1);
+          expect(queue.containsDelayedOperation(TimerId.WriteStreamIdle)).to.be
+            .true;
           writeStream.writeMutations(SINGLE_MUTATION);
           return streamListener.awaitCallback('mutationResult');
         })
-        .then(() => queue.drain(/*executeDelayedTasks=*/ true))
+        .then(() => queue.runDelayedOperationsEarly())
         .then(() => {
           expect(writeStream.isOpen()).to.be.true;
         });

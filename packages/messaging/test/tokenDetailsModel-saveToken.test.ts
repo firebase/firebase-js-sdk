@@ -18,13 +18,15 @@ import makeFakeSubscription from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import Errors from '../src/models/errors';
 import TokenDetailsModel from '../src/models/token-details-model';
+import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
-    vapidKey:
+    vapidKey: base64ToArrayBuffer(
       'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+    ),
     subscription: makeFakeSubscription(),
     fcmSenderId: '1234567',
     fcmToken: 'qwerty',
@@ -40,7 +42,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     }
 
     return Promise.all(promises)
-      .then(() => deleteDatabase(TokenDetailsModel.dbName))
+      .then(() => deleteDatabase(TokenDetailsModel.DB_NAME))
       .then(() => (globalTokenModel = null));
   };
 
@@ -152,7 +154,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad pushset input', function() {
+  it('should throw on bad pushSet input', function() {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
