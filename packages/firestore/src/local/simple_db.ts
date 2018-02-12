@@ -37,9 +37,10 @@ export class SimpleDb {
     version: number,
     runUpgrade: (
       db: IDBDatabase,
+      txn: IDBTransaction,
       fromVersion: number,
       toVersion: number
-    ) => void
+    ) => PersistencePromise<void>
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),
@@ -75,7 +76,12 @@ export class SimpleDb {
         // cheating and just passing the raw IndexedDB in, since
         // createObjectStore(), etc. are synchronous.
         const db = (event.target as IDBOpenDBRequest).result;
-        runUpgrade(db, event.oldVersion, SCHEMA_VERSION);
+        runUpgrade(db, request.transaction, event.oldVersion, SCHEMA_VERSION)
+          .next(() => {
+            debug(LOG_TAG,
+             'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+            );
+          });
       };
     }).toPromise();
   }

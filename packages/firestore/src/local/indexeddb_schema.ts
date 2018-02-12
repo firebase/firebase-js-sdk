@@ -21,6 +21,8 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
+import {SimpleDb, SimpleDbTransaction} from './simple_db';
+import {PersistencePromise} from './persistence_promise';
 
 /**
  * Schema Version for the Web client (containing the Mutation Queue, the Query
@@ -37,9 +39,10 @@ export const SCHEMA_VERSION = 2;
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
+  txn: IDBTransaction,
   fromVersion: number,
   toVersion: number
-): void {
+): PersistencePromise<void> {
   // This function currently supports migrating to schema version 1 (Mutation
   // Queue, Query and Remote Document Cache) and schema version 2 (Multi-Tab).
   assert(
@@ -54,10 +57,11 @@ export function createOrUpgradeDb(
     createRemoteDocumentCache(db);
   }
 
+  let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    createClientMetadataStore(db);
-    createTargetChangeStore(db);
+    p = addTargetCount(p, txn);
   }
+  return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -466,7 +470,12 @@ export class DbTargetGlobal {
      * until the backend has caught up to this snapshot version again. This
      * prevents our cache from ever going backwards in time.
      */
-    public lastRemoteSnapshotVersion: DbTimestamp
+    public lastRemoteSnapshotVersion: DbTimestamp,
+
+    /**
+     * A cache of the number of targets persisted.
+     */
+    public targetCount: number
   ) {}
 }
 
@@ -491,6 +500,35 @@ function createQueryCache(db: IDBDatabase): void {
     { unique: true }
   );
   db.createObjectStore(DbTargetGlobal.store);
+}
+
+function mapRequest<R, T>(req: IDBRequest, resultMapper?: (R) => T): PersistencePromise<T> {
+  return new PersistencePromise((resolve, reject) => {
+    req.onsuccess = () => {
+      const value = req.result as R;
+      resolve(resultMapper(value));
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function wrapRequest<R>(req: IDBRequest): PersistencePromise<R> {
+  return mapRequest(req, (result) => result);
+}
+
+function addTargetCount(p: PersistencePromise<void>,
+                        txn: IDBTransaction): PersistencePromise<void> {
+  const globalStore = txn.objectStore(DbTargetGlobal.store);
+  return p.next(() =>
+    wrapRequest<number>(txn.objectStore(DbTarget.store).count())
+  ).next((count: number) =>
+    mapRequest(globalStore.get(DbTargetGlobal.key),(metadata: DbTargetGlobal) => {
+      metadata.targetCount = count;
+      return metadata;
+    })
+  ).next((metadata: DbTargetGlobal) =>
+    wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key))
+  );
 }
 
 /**
