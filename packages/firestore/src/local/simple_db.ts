@@ -76,12 +76,17 @@ export class SimpleDb {
         // cheating and just passing the raw IndexedDB in, since
         // createObjectStore(), etc. are synchronous.
         const db = (event.target as IDBOpenDBRequest).result;
-        runUpgrade(db, request.transaction, event.oldVersion, SCHEMA_VERSION)
-          .next(() => {
-            debug(LOG_TAG,
-             'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
-            );
-          });
+        runUpgrade(
+          db,
+          request.transaction,
+          event.oldVersion,
+          SCHEMA_VERSION
+        ).next(() => {
+          debug(
+            LOG_TAG,
+            'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+          );
+        });
       };
     }).toPromise();
   }

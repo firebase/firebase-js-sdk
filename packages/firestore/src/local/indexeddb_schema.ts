@@ -21,9 +21,9 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {SimpleDb, SimpleDbTransaction, wrapRequest} from './simple_db';
-import {PersistencePromise} from './persistence_promise';
-import {SnapshotVersion} from '../core/snapshot_version';
+import { SimpleDb, SimpleDbTransaction, wrapRequest } from './simple_db';
+import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Schema Version for the Web client (containing the Mutation Queue, the Query
@@ -473,7 +473,6 @@ export class DbTargetGlobal {
      * prevents our cache from ever going backwards in time.
      */
     public lastRemoteSnapshotVersion: DbTimestamp,
-
     /**
      * A cache of the number of targets persisted.
      */
@@ -504,39 +503,52 @@ function createQueryCache(db: IDBDatabase): void {
   db.createObjectStore(DbTargetGlobal.store);
 }
 
-function addTargetCount(p: PersistencePromise<void>,
-                        txn: IDBTransaction): PersistencePromise<void> {
+function addTargetCount(
+  p: PersistencePromise<void>,
+  txn: IDBTransaction
+): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return p.next(() =>
-    wrapRequest<number>(txn.objectStore(DbTarget.store).count())
-  ).next((count: number) =>
-    wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key))
-      .next((metadata: DbTargetGlobal) => {
-      metadata.targetCount = count;
-      return metadata;
-    })
-  ).next((metadata: DbTargetGlobal) =>
-    wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key))
-  );
+  return p
+    .next(() => wrapRequest<number>(txn.objectStore(DbTarget.store).count()))
+    .next((count: number) =>
+      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key)).next(
+        (metadata: DbTargetGlobal) => {
+          metadata.targetCount = count;
+          return metadata;
+        }
+      )
+    )
+    .next((metadata: DbTargetGlobal) =>
+      wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key))
+    );
 }
 
-function ensureTargetGlobal(p: PersistencePromise<void>,
-                            txn: IDBTransaction): PersistencePromise<void> {
+function ensureTargetGlobal(
+  p: PersistencePromise<void>,
+  txn: IDBTransaction
+): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return p.next(() =>
-    wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
-  ).next((metadata: DbTargetGlobal | null) => {
-    if (metadata != null) {
-      return PersistencePromise.resolve();
-    } else {
-      return wrapRequest<void>(globalStore.put(new DbTargetGlobal(
-        /*highestTargetId=*/ 0,
-        /*lastListenSequenceNumber=*/ 0,
-        SnapshotVersion.MIN.toTimestamp(),
-        /*targetCount=*/ 0
-      ), DbTargetGlobal.key));
-    }
-  });
+  return p
+    .next(() =>
+      wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
+    )
+    .next((metadata: DbTargetGlobal | null) => {
+      if (metadata != null) {
+        return PersistencePromise.resolve();
+      } else {
+        return wrapRequest<void>(
+          globalStore.put(
+            new DbTargetGlobal(
+              /*highestTargetId=*/ 0,
+              /*lastListenSequenceNumber=*/ 0,
+              SnapshotVersion.MIN.toTimestamp(),
+              /*targetCount=*/ 0
+            ),
+            DbTargetGlobal.key
+          )
+        );
+      }
+    });
 }
 
 // Visible for testing
