@@ -503,6 +503,13 @@ function createQueryCache(db: IDBDatabase): void {
   db.createObjectStore(DbTargetGlobal.store);
 }
 
+/**
+ * Counts the number of targets persisted and adds that value to the target
+ * global singleton.
+ * @param {PersistencePromise<void>} p The promise used to keep the transaction open
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+ * @return {PersistencePromise<void>} A promise of the operations to add the count to the metadata row.
+ */
 function addTargetCount(
   p: PersistencePromise<void>,
   txn: IDBTransaction
@@ -523,6 +530,12 @@ function addTargetCount(
     );
 }
 
+/**
+ * Ensures that the target global singleton row exists by adding it if it's missing.
+ * @param {PersistencePromise<void>} p The promise used to keep the transaction open
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+ * @return {PersistencePromise<void>} A promise of operations to ensure that the metadata row exists
+ */
 function ensureTargetGlobal(
   p: PersistencePromise<void>,
   txn: IDBTransaction

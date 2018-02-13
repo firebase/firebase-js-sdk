@@ -30,6 +30,7 @@ import { QueryData } from './query_data';
  * The cache is keyed by Query and entries in the cache are QueryData instances.
  */
 export interface QueryCache extends GarbageSource {
+
   /**
    * Starts up the query cache.
    */
@@ -67,14 +68,26 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<void>;
 
   /**
-   * Adds or replaces an entry in the cache.
+   * Adds an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. If there is already a
-   * cache entry for the key, it will be replaced.
+   * The cache key is extracted from `queryData.query`. The key must not already
+   * exist in the cache.
    *
    * @param queryData A QueryData instance to put in the cache.
    */
   addQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void>;
+
+  /**
+   * Updates an entry in the cache.
+   *
+   * The cache key is extracted from `queryData.query`. The entry must already
+   * exist in the cache, and it will be replaced.
+   * @param {QueryData} queryData The QueryData to be replaced into the cache.
+   */
+  updateQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void>;
@@ -87,6 +100,11 @@ export interface QueryCache extends GarbageSource {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void>;
+
+  /**
+   * The number of targets currently in the cache.
+   */
+  count(): number;
 
   /**
    * Looks up a QueryData entry in the cache.

@@ -42,6 +42,10 @@ export class TestQueryCache {
     });
   }
 
+  count(): number {
+    return this.cache.count();
+  }
+
   removeQueryData(queryData: QueryData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', txn => {
       return this.cache.removeQueryData(txn, queryData);

@@ -44,6 +44,8 @@ export class MemoryQueryCache implements QueryCache {
    */
   private references = new ReferenceSet();
 
+  private targetCount: number = 0;
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.
     return PersistencePromise.resolve();
@@ -65,15 +67,29 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  addQueryData(
-    transaction: PersistenceTransaction,
-    queryData: QueryData
-  ): PersistencePromise<void> {
+  private saveQueryData(queryData: QueryData) {
     this.queries.set(queryData.query, queryData);
     const targetId = queryData.targetId;
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
+    // TODO(gsoltis): track sequence number
+  }
+
+  addQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    this.saveQueryData(queryData);
+    this.targetCount += 1;
+    return PersistencePromise.resolve();
+  }
+
+  updateQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    this.saveQueryData(queryData);
     return PersistencePromise.resolve();
   }
 
@@ -83,7 +99,12 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     this.queries.delete(queryData.query);
     this.references.removeReferencesForId(queryData.targetId);
+    this.targetCount -= 1;
     return PersistencePromise.resolve();
+  }
+
+  count(): number {
+    return this.targetCount;
   }
 
   getQueryData(

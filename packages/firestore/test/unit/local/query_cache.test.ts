@@ -131,9 +131,11 @@ function genericQueryCacheTests() {
     // equal canonicalIDs.
     expect(await cache.getQueryData(q2)).to.equal(null);
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
+    expect(cache.count()).to.equal(1);
 
     const data2 = testQueryData(q2, 2, 1);
     await cache.addQueryData(data2);
+    expect(cache.count()).to.equal(2);
 
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
@@ -141,10 +143,12 @@ function genericQueryCacheTests() {
     await cache.removeQueryData(data1);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
+    expect(cache.count()).to.equal(1);
 
     await cache.removeQueryData(data2);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.equal(null);
+    expect(cache.count()).to.equal(0);
   });
 
   it('can set query to new value', async () => {

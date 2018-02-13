@@ -31,8 +31,7 @@ import {
   DbTargetDocumentKey,
   DbTargetGlobal,
   DbTargetGlobalKey,
-  DbTargetKey,
-  DbTimestamp
+  DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
@@ -98,22 +97,49 @@ export class IndexedDbQueryCache implements QueryCache {
     );
   }
 
+  private saveQueryData(transaction: PersistenceTransaction,
+                        queryData: QueryData): PersistencePromise<void> {
+    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
+  }
+
+  private updateMetadataForQueryData(queryData: QueryData): boolean {
+    let needsUpdate = false;
+    if (queryData.targetId > this.metadata.highestTargetId) {
+      this.metadata.highestTargetId = queryData.targetId;
+      needsUpdate = true;
+    }
+
+    // TODO(gsoltis): add sequence number check
+    return needsUpdate;
+  }
+
+  private saveMetadata(transaction: PersistenceTransaction): PersistencePromise<void> {
+    return globalTargetStore(transaction)
+      .put(DbTargetGlobal.key, this.metadata);
+  }
+
   addQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const targetId = queryData.targetId;
-    const addedQueryPromise = targetsStore(transaction).put(
-      this.serializer.toDbTarget(queryData)
-    );
-    if (targetId > this.metadata.highestTargetId) {
-      this.metadata.highestTargetId = targetId;
-      return addedQueryPromise.next(() =>
-        globalTargetStore(transaction).put(DbTargetGlobal.key, this.metadata)
-      );
-    } else {
-      return addedQueryPromise;
-    }
+    return this.saveQueryData(transaction, queryData).next(() => {
+      this.metadata.targetCount += 1;
+      this.updateMetadataForQueryData(queryData);
+      return this.saveMetadata(transaction);
+    });
+  }
+
+  updateQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    return this.saveQueryData(transaction, queryData).next(() => {
+      if (this.updateMetadataForQueryData(queryData)) {
+        return this.saveMetadata(transaction);
+      } else {
+        return PersistencePromise.resolve();
+      }
+    });
   }
 
   removeQueryData(
@@ -123,9 +149,16 @@ export class IndexedDbQueryCache implements QueryCache {
     return this.removeMatchingKeysForTargetId(
       transaction,
       queryData.targetId
+    ).next(() =>
+      targetsStore(transaction).delete(queryData.targetId)
     ).next(() => {
-      targetsStore(transaction).delete(queryData.targetId);
+      this.metadata.targetCount -= 1;
+      return this.saveMetadata(transaction);
     });
+  }
+
+  count(): number {
+    return this.metadata.targetCount;
   }
 
   getQueryData(
