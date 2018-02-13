@@ -45,7 +45,8 @@ export function createOrUpgradeDb(
   toVersion: number
 ): PersistencePromise<void> {
   // This function currently supports migrating to schema version 1 (Mutation
-  // Queue, Query and Remote Document Cache) and schema version 2 (Multi-Tab).
+  // Queue, Query and Remote Document Cache) and schema version 2 (Query
+  // counting).
   assert(
     fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
     'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
@@ -506,9 +507,11 @@ function createQueryCache(db: IDBDatabase): void {
 /**
  * Counts the number of targets persisted and adds that value to the target
  * global singleton.
- * @param {PersistencePromise<void>} p The promise used to keep the transaction open
+ * @param {PersistencePromise<void>} p The promise used to keep the transaction
+ *                                     open
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- * @return {PersistencePromise<void>} A promise of the operations to add the count to the metadata row.
+ * @return {PersistencePromise<void>} A promise of the operations to add the
+ *                                    count to the metadata row.
  */
 function addTargetCount(
   p: PersistencePromise<void>,
@@ -531,10 +534,13 @@ function addTargetCount(
 }
 
 /**
- * Ensures that the target global singleton row exists by adding it if it's missing.
- * @param {PersistencePromise<void>} p The promise used to keep the transaction open
+ * Ensures that the target global singleton row exists by adding it if it's
+ * missing.
+ * @param {PersistencePromise<void>} p The promise used to keep the transaction
+ *                                     open
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- * @return {PersistencePromise<void>} A promise of operations to ensure that the metadata row exists
+ * @return {PersistencePromise<void>} A promise of operations to ensure that the
+ *                                    metadata row exists
  */
 function ensureTargetGlobal(
   p: PersistencePromise<void>,
