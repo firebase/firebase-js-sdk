@@ -30,7 +30,6 @@ import { QueryData } from './query_data';
  * The cache is keyed by Query and entries in the cache are QueryData instances.
  */
 export interface QueryCache extends GarbageSource {
-
   /**
    * Starts up the query cache.
    */

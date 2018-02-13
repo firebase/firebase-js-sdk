@@ -97,8 +97,10 @@ export class IndexedDbQueryCache implements QueryCache {
     );
   }
 
-  private saveQueryData(transaction: PersistenceTransaction,
-                        queryData: QueryData): PersistencePromise<void> {
+  private saveQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
     return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
   }
 
@@ -113,9 +115,13 @@ export class IndexedDbQueryCache implements QueryCache {
     return needsUpdate;
   }
 
-  private saveMetadata(transaction: PersistenceTransaction): PersistencePromise<void> {
-    return globalTargetStore(transaction)
-      .put(DbTargetGlobal.key, this.metadata);
+  private saveMetadata(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    return globalTargetStore(transaction).put(
+      DbTargetGlobal.key,
+      this.metadata
+    );
   }
 
   addQueryData(
@@ -146,15 +152,12 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    return this.removeMatchingKeysForTargetId(
-      transaction,
-      queryData.targetId
-    ).next(() =>
-      targetsStore(transaction).delete(queryData.targetId)
-    ).next(() => {
-      this.metadata.targetCount -= 1;
-      return this.saveMetadata(transaction);
-    });
+    return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+      .next(() => targetsStore(transaction).delete(queryData.targetId))
+      .next(() => {
+        this.metadata.targetCount -= 1;
+        return this.saveMetadata(transaction);
+      });
   }
 
   count(): number {
