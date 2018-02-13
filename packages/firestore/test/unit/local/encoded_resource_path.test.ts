@@ -45,6 +45,7 @@ describe('EncodedResourcePath', () => {
       .then(() => {
         return SimpleDb.openOrCreate(dbName, 1, db => {
           db.createObjectStore('test');
+          return PersistencePromise.resolve();
         });
       })
       .then(simpleDb => {

@@ -505,7 +505,7 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
  * Wraps an IDBRequest in a PersistencePromise, using the onsuccess / onerror
  * handlers to resolve / reject the PersistencePromise as appropriate.
  */
-function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
+export function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
   return new PersistencePromise<R>((resolve, reject) => {
     request.onsuccess = (event: Event) => {
       const result = (event.target as IDBRequest).result;

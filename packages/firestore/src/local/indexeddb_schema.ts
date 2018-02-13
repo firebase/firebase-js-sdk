@@ -21,8 +21,9 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {SimpleDb, SimpleDbTransaction} from './simple_db';
+import {SimpleDb, SimpleDbTransaction, wrapRequest} from './simple_db';
 import {PersistencePromise} from './persistence_promise';
+import {SnapshotVersion} from '../core/snapshot_version';
 
 /**
  * Schema Version for the Web client (containing the Mutation Queue, the Query
@@ -59,6 +60,7 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
+    p = ensureTargetGlobal(p, txn);
     p = addTargetCount(p, txn);
   }
   return p;
@@ -502,27 +504,14 @@ function createQueryCache(db: IDBDatabase): void {
   db.createObjectStore(DbTargetGlobal.store);
 }
 
-function mapRequest<R, T>(req: IDBRequest, resultMapper?: (R) => T): PersistencePromise<T> {
-  return new PersistencePromise((resolve, reject) => {
-    req.onsuccess = () => {
-      const value = req.result as R;
-      resolve(resultMapper(value));
-    };
-    req.onerror = () => reject(req.error);
-  });
-}
-
-function wrapRequest<R>(req: IDBRequest): PersistencePromise<R> {
-  return mapRequest(req, (result) => result);
-}
-
 function addTargetCount(p: PersistencePromise<void>,
                         txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
   return p.next(() =>
     wrapRequest<number>(txn.objectStore(DbTarget.store).count())
   ).next((count: number) =>
-    mapRequest(globalStore.get(DbTargetGlobal.key),(metadata: DbTargetGlobal) => {
+    wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key))
+      .next((metadata: DbTargetGlobal) => {
       metadata.targetCount = count;
       return metadata;
     })
@@ -531,73 +520,22 @@ function addTargetCount(p: PersistencePromise<void>,
   );
 }
 
-/**
- * An object representing the changes at a particular snapshot version for the
- * given target. This is used to facilitate storing query changelogs in the
- * targetChanges object store.
- *
- * PORTING NOTE: This is used for change propagation during multi-tab syncing
- * and not needed on iOS and Android.
- */
-export class DbTargetChange {
-  /** Name of the IndexedDb object store.  */
-  static store = 'targetChanges';
-
-  /** Keys are automatically assigned via the targetId and snapshotVersion. */
-  static keyPath = ['targetId', 'snapshotVersion'];
-
-  constructor(
-    /**
-     * The targetId identifying a target.
-     */
-    public targetId: TargetId,
-    /**
-     * The snapshot version for this change.
-     */
-    public snapshotVersion: DbTimestamp,
-    /**
-     * The keys of the changed documents in this snapshot.
-     */
-    public changes: {
-      added?: EncodedResourcePath[];
-      modified?: EncodedResourcePath[];
-      removed?: EncodedResourcePath[];
+function ensureTargetGlobal(p: PersistencePromise<void>,
+                            txn: IDBTransaction): PersistencePromise<void> {
+  const globalStore = txn.objectStore(DbTargetGlobal.store);
+  return p.next(() =>
+    wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
+  ).next((metadata: DbTargetGlobal | null) => {
+    if (metadata != null) {
+      return PersistencePromise.resolve();
+    } else {
+      return wrapRequest<void>(globalStore.put(new DbTargetGlobal(
+        /*highestTargetId=*/ 0,
+        /*lastListenSequenceNumber=*/ 0,
+        SnapshotVersion.MIN.toTimestamp(),
+        /*targetCount=*/ 0
+      ), DbTargetGlobal.key));
     }
-  ) {}
-}
-
-function createTargetChangeStore(db: IDBDatabase): void {
-  db.createObjectStore(DbTargetChange.store, {
-    keyPath: DbTargetChange.keyPath as KeyPath
-  });
-}
-
-/**
- * A record of the metadata state of each client.
- *
- * PORTING NOTE: This is used to synchronize multi-tab state and does not need
- * to be ported to iOS or Android.
- */
-export class DbClientMetadata {
-  /** Name of the IndexedDb object store. */
-  static store = 'clientMetadata';
-
-  /** Keys are automatically assigned via the clientKey properties. */
-  static keyPath = ['clientKey'];
-
-  constructor(
-    /** The auto-generated client key assigned at client startup. */
-    public clientKey: string,
-    /** The last time this state was updated. */
-    public updateTimeMs: DbTimestamp,
-    /** Whether this client is running in a foreground tab. */
-    public inForeground: boolean
-  ) {}
-}
-
-function createClientMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath as KeyPath
   });
 }
 
@@ -613,11 +551,9 @@ export const V1_STORES = [
   DbTargetDocument.store
 ];
 
-const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
-
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = [...V1_STORES, ...V2_STORES];
+export const ALL_STORES = [...V1_STORES];
