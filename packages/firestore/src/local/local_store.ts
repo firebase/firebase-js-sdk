@@ -401,7 +401,7 @@ export class LocalStore {
   getLastStreamToken(): Promise<ProtoByteString> {
     return this.persistence.runTransaction(
       'Get last stream token',
-      false, // todo: this does require owner lease
+      false, // TODO(multitab): This requires the owner lease
       txn => {
         return this.mutationQueue.getLastStreamToken(txn);
       }
