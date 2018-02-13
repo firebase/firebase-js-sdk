@@ -348,7 +348,7 @@ abstract class TestRunner {
 
   constructor(
     private readonly name: string,
-    protected readonly platform: MockPlatform,
+    protected readonly platform: TestPlatform,
     config: SpecConfig
   ) {
     this.databaseInfo = new DatabaseInfo(
@@ -812,7 +812,7 @@ abstract class TestRunner {
 
   private doApplyClientState(state: SpecClientState): Promise<void> {
     if (state.visibility) {
-      this.platform.fireVisibilityEvent(state.visibility!);
+      this.platform.raiseVisibilityEvent(state.visibility!);
     }
     return Promise.resolve();
   }
@@ -1033,49 +1033,53 @@ class MemoryTestRunner extends TestRunner {
 }
 
 /**
- * Implementation of `Platform` that allows mocking of `visibilitychange`
- * events.
- * */
-class MockPlatform implements Platform {
-  private visibilityState: VisibilityState = 'unloaded';
-  private visibilityListener: EventListener | null = null;
-  private mockDocument: Document;
+ * `Document` mock that implements the `visibilitychange` API used by Firestore.
+ */
+class MockDocument {
+  private _visibilityState: VisibilityState = 'unloaded';
+  private visibilityListener: EventListener | null;
 
-  constructor(private readonly basePlatform: Platform) {
-    this.initMockDocument();
+  get visibilityState(): VisibilityState {
+    return this._visibilityState;
   }
 
-  initMockDocument() {
-    this.mockDocument = {
-      visibilityState: this.visibilityState,
-      addEventListener: (type: string, listener: EventListener) => {
-        assert(
-          type === 'visibilitychange',
-          "MockPlatform only supports events of type 'visibilitychange'"
-        );
-        this.visibilityListener = listener;
-      },
-      removeEventListener: (type: string, listener: EventListener) => {
-        if (listener === this.visibilityListener) {
-          this.visibilityListener = null;
-        }
-      }
-    } as any; // tslint:disable-line:no-any Not implementing the entire document interface
+  addEventListener(type: string, listener: EventListener) {
+    assert(
+      type === 'visibilitychange',
+      "MockDocument only supports events of type 'visibilitychange'"
+    );
+    this.visibilityListener = listener;
   }
 
-  fireVisibilityEvent(visibility: VisibilityState) {
-    this.visibilityState = visibility;
+  removeEventListener(type: string, listener: EventListener) {
+    if (listener === this.visibilityListener) {
+      this.visibilityListener = null;
+    }
+  }
+
+  raiseVisibilityEvent(visibility: VisibilityState) {
+    this._visibilityState = visibility;
     if (this.visibilityListener) {
       this.visibilityListener(new Event('visibilitychange'));
     }
   }
+}
+
+/**
+ * Implementation of `Platform` that allows mocking of `document` and `window`.
+ */
+class TestPlatform implements Platform {
+  private mockDocument = new MockDocument();
+
+  constructor(private readonly basePlatform: Platform) {}
 
   get window(): Window | null {
     return this.basePlatform.window;
   }
 
   get document(): Document {
-    return this.mockDocument;
+    // tslint:disable-next-line:no-any MockDocument doesn't support full Document interface.
+    return (this.mockDocument as any) as Document;
   }
 
   get base64Available(): boolean {
@@ -1084,6 +1088,10 @@ class MockPlatform implements Platform {
 
   get emptyByteString(): ProtoByteString {
     return this.basePlatform.emptyByteString;
+  }
+
+  raiseVisibilityEvent(visibility: VisibilityState) {
+    this.mockDocument.raiseVisibilityEvent(visibility);
   }
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
@@ -1140,7 +1148,7 @@ export async function runSpec(
   steps: SpecStep[]
 ): Promise<void> {
   console.log('Running spec: ' + name);
-  const platform = new MockPlatform(PlatformSupport.getPlatform());
+  const platform = new TestPlatform(PlatformSupport.getPlatform());
   let runners: TestRunner[] = [];
   for (let i = 0; i < config.numClients; ++i) {
     if (usePersistence) {

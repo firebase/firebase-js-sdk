@@ -109,8 +109,8 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  private readonly document: Document | null;
-  private readonly window: Window | null;
+  private readonly document: Document;
+  private readonly window: Window;
 
   private simpleDb: SimpleDb;
   private started: boolean;
@@ -134,7 +134,7 @@ export class IndexedDbPersistence implements Persistence {
   private serializer: LocalSerializer;
 
   /** Our 'visibilitychange` listener if registered. */
-  private documentVisibilityHandler: ((e: Event) => void) | null;
+  private documentVisibilityHandler: ((e?: Event) => void) | null;
 
   /** Callback for primary state notifications. */
   private primaryStateListener = IndexedDbPersistence.EMPTY_PRIMARY_STATE_LISTENER;
@@ -160,29 +160,32 @@ export class IndexedDbPersistence implements Persistence {
       return Promise.reject(this.persistenceError);
     }
 
-    if (this.document) {
-      this.documentVisibilityHandler = () => {
-        const inForeground = document.visibilityState === 'visible';
-        if (inForeground !== this.inForeground) {
-          this.inForeground = inForeground;
-          this.refreshClientState();
-        }
-      };
-
-      this.document.addEventListener(
-        'visibilitychange',
-        this.documentVisibilityHandler
-      );
-    }
-
     assert(!this.started, 'IndexedDbPersistence double-started!');
     this.started = true;
+
+    assert(
+      this.window !== null && this.document !== null,
+      "Expected 'window' and 'document' to be defined"
+    );
+
+    this.documentVisibilityHandler = () => {
+      const inForeground = this.document.visibilityState === 'visible';
+      if (inForeground !== this.inForeground) {
+        this.inForeground = inForeground;
+        this.refreshClientState();
+      }
+    };
 
     return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
         this.simpleDb = db;
       })
       .then(() => {
+        this.document.addEventListener(
+          'visibilitychange',
+          this.documentVisibilityHandler
+        );
+        this.inForeground = this.document.visibilityState === 'visible';
         this.refreshClientState();
         this.scheduleClientStateRefresh();
         this.attachWindowUnloadHook();
