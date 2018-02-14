@@ -228,7 +228,10 @@ export class RemoteStore {
     });
   }
 
-  /** Temporarily disables the network. The network can be re-enabled using enableNetwork(). */
+  /**
+   * Temporarily disables the network. The network can be re-enabled using
+   * enableNetwork().
+   */
   async disableNetwork(): Promise<void> {
     this.disableNetworkInternal();
     // Set the OnlineState to failed so get()'s return from cache, etc.
