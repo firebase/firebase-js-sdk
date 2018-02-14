@@ -61,7 +61,7 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = p.next(() => ensureTargetGlobal(txn)).next(() => addTargetCount(txn));
+    p = p.next(() => ensureTargetGlobal(txn)).next(() => saveTargetCount(txn));
   }
   return p;
 }
@@ -510,7 +510,7 @@ function createQueryCache(db: IDBDatabase): void {
  * @return {PersistencePromise<void>} A promise of the operations to add the
  *                                    count to the metadata row.
  */
-function addTargetCount(txn: IDBTransaction): PersistencePromise<void> {
+function saveTargetCount(txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
   return wrapRequest<number>(txn.objectStore(DbTarget.store).count()).next(
     (count: number) =>
