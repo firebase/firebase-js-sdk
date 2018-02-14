@@ -20,7 +20,8 @@ import {
   ALL_STORES,
   createOrUpgradeDb,
   DbTarget,
-  DbTargetGlobal, DbTargetGlobalKey,
+  DbTargetGlobal,
+  DbTargetGlobalKey,
   V1_STORES
 } from '../../../src/local/indexeddb_schema';
 import { Deferred } from '../../../src/util/promise';
@@ -111,10 +112,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(db.version).to.be.equal(2);
         expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction(
-          'readonly',
-          [DbTargetGlobal.store],
-          (txn) =>
+        return sdb
+          .runTransaction('readonly', [DbTargetGlobal.store], txn =>
             txn
               .store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store)
               .get(DbTargetGlobal.key)
