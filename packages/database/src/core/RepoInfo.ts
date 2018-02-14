@@ -49,7 +49,7 @@ export class RepoInfo {
   }
 
   needsQueryParam(): boolean {
-    return this.host !== this.internalHost;
+    return this.host !== this.internalHost || this.isCustomHost();
   }
 
   isCacheableHost(): boolean {

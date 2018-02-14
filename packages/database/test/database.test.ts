@@ -76,6 +76,20 @@ describe('Database Tests', function() {
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
+  it('Can read ns query param', function() {
+    var db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db.ref().toString()).to.equal('http://localhost:80/');
+  });
+
+  it('Only reads ns query param when subdomain not set', function() {
+    var db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
+    expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
+  });
+
   it('Different instances for different URLs', function() {
     var db1 = defaultApp.database('http://foo1.bar.com');
     var db2 = defaultApp.database('http://foo2.bar.com');
