@@ -16,7 +16,7 @@
 
 import { Path } from '../Path';
 import { RepoInfo } from '../../RepoInfo';
-import { warnIfPageIsSecure, fatal } from '../util';
+import { warnIfPageIsSecure, warn, fatal } from '../util';
 
 /**
  * @param {!string} pathString
@@ -35,6 +35,26 @@ function decodePath(pathString: string): string {
     }
   }
   return pathStringDecoded;
+}
+
+/**
+ * @param {!string} queryString
+ * @return {!{[key:string]:string}} key value hash
+ */
+function decodeQuery(queryString: string): { [key: string]: string } {
+  let results = {};
+  if (queryString.startsWith('?')) {
+    queryString = queryString.substring(1);
+  }
+  for (const segment of queryString.split('&')) {
+    const kv = segment.split('=');
+    if (kv.length === 2) {
+      results[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
+    } else {
+      warn('Invalid query string segment: ' + segment);
+    }
+  }
+  return results;
 }
 
 /**
@@ -119,13 +139,23 @@ export const parseURL = function(
       dataURL = dataURL.substring(colonInd + 2);
     }
 
-    // Parse host and path.
+    // Parse host, path, and query string.
     let slashInd = dataURL.indexOf('/');
     if (slashInd === -1) {
       slashInd = dataURL.length;
     }
-    host = dataURL.substring(0, slashInd);
-    pathString = decodePath(dataURL.substring(slashInd));
+    let questionMarkInd = dataURL.indexOf('?');
+    if (questionMarkInd === -1) {
+      questionMarkInd = dataURL.length;
+    }
+    host = dataURL.substring(0, Math.min(slashInd, questionMarkInd));
+    if (slashInd < questionMarkInd) {
+      // For pathString, questionMarkInd will always come after slashInd
+      pathString = decodePath(dataURL.substring(slashInd, questionMarkInd));
+    }
+    let queryParams = decodeQuery(
+      dataURL.substring(Math.min(dataURL.length, questionMarkInd))
+    );
 
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
@@ -145,6 +175,10 @@ export const parseURL = function(
       domain = parts[0];
     } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
+    }
+    // Support `ns` query param if subdomain not already set
+    if (subdomain === '' && 'ns' in queryParams) {
+      subdomain = queryParams['ns'];
     }
   }
 

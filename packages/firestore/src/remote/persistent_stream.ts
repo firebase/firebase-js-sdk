@@ -21,7 +21,7 @@ import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData } from '../local/query_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import { assert } from '../util/assert';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
@@ -163,13 +163,15 @@ export abstract class PersistentStream<
 
   constructor(
     private queue: AsyncQueue,
+    connectionTimerId: TimerId,
+    private idleTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider,
-    // Used for faster retries in testing
-    initialBackoffDelay?: number
+    private credentialsProvider: CredentialsProvider
   ) {
     this.backoff = new ExponentialBackoff(
-      initialBackoffDelay ? initialBackoffDelay : BACKOFF_INITIAL_DELAY_MS,
+      queue,
+      connectionTimerId,
+      BACKOFF_INITIAL_DELAY_MS,
       BACKOFF_FACTOR,
       BACKOFF_MAX_DELAY_MS
     );
@@ -258,9 +260,10 @@ export abstract class PersistentStream<
     // Starts the idle time if we are in state 'Open' and are not yet already
     // running a timer (in which case the previous idle timeout still applies).
     if (this.isOpen() && this.inactivityTimerPromise === null) {
-      this.inactivityTimerPromise = this.queue.scheduleWithDelay(
-        () => this.handleIdleCloseTimer(),
-        IDLE_TIMEOUT_MS
+      this.inactivityTimerPromise = this.queue.enqueueAfterDelay(
+        this.idleTimerId,
+        IDLE_TIMEOUT_MS,
+        () => this.handleIdleCloseTimer()
       );
 
       this.inactivityTimerPromise.catch((err: FirestoreError) => {
@@ -397,7 +400,7 @@ export abstract class PersistentStream<
         this.startStream(token);
       },
       (error: Error) => {
-        this.queue.schedule(async () => {
+        this.queue.enqueue(async () => {
           if (this.state !== PersistentStreamState.Stopped) {
             // Stream can be stopped while waiting for authorization.
             const rpcError = new FirestoreError(
@@ -428,7 +431,7 @@ export abstract class PersistentStream<
       stream: Stream<SendType, ReceiveType>,
       fn: () => Promise<void>
     ) => {
-      this.queue.schedule(async () => {
+      this.queue.enqueue(async () => {
         // Only raise events if the stream instance has not changed
         if (this.stream === stream) {
           return fn();
@@ -470,19 +473,15 @@ export abstract class PersistentStream<
     );
     this.state = PersistentStreamState.Backoff;
 
-    this.backoff.backoffAndWait().then(() => {
-      // Backoff does not run on the AsyncQueue, so we need to reschedule to
-      // make sure the queue blocks
-      this.queue.schedule(async () => {
-        if (this.state === PersistentStreamState.Stopped) {
-          // Stream can be stopped while waiting for backoff to complete.
-          return;
-        }
+    this.backoff.backoffAndRun(async () => {
+      if (this.state === PersistentStreamState.Stopped) {
+        // Stream can be stopped while waiting for backoff to complete.
+        return;
+      }
 
-        this.state = PersistentStreamState.Initial;
-        this.start(listener);
-        assert(this.isStarted(), 'PersistentStream should have started');
-      });
+      this.state = PersistentStreamState.Initial;
+      this.start(listener);
+      assert(this.isStarted(), 'PersistentStream should have started');
     });
   }
 
@@ -528,10 +527,15 @@ export class PersistentListenStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer,
-    initialBackoffDelay?: number
+    private serializer: JsonProtoSerializer
   ) {
-    super(queue, connection, credentials, initialBackoffDelay);
+    super(
+      queue,
+      TimerId.ListenStreamConnection,
+      TimerId.ListenStreamIdle,
+      connection,
+      credentials
+    );
   }
 
   protected startRpc(
@@ -631,10 +635,15 @@ export class PersistentWriteStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer,
-    initialBackoffDelay?: number
+    private serializer: JsonProtoSerializer
   ) {
-    super(queue, connection, credentials, initialBackoffDelay);
+    super(
+      queue,
+      TimerId.WriteStreamConnection,
+      TimerId.WriteStreamIdle,
+      connection,
+      credentials
+    );
   }
 
   /**

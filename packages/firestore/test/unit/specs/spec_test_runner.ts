@@ -70,7 +70,7 @@ import {
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
 import { assert, fail } from '../../../src/util/assert';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
@@ -232,7 +232,7 @@ class MockConnection implements Connection {
           this.resetAndCloseWriteStream();
         }
       });
-      this.queue.schedule(async () => {
+      this.queue.enqueue(async () => {
         if (this.writeStream === writeStream) {
           writeStream.callOnOpen();
         }
@@ -264,7 +264,7 @@ class MockConnection implements Connection {
         }
       });
       // Call on open immediately after returning
-      this.queue.schedule(async () => {
+      this.queue.enqueue(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
           this.watchOpen.resolve();
@@ -371,14 +371,11 @@ abstract class TestRunner {
 
     this.queue = new AsyncQueue();
     this.connection = new MockConnection(this.queue);
-    // Set backoff delay to 1ms so simulated disconnects don't delay the tests.
-    const initialBackoffDelay = 1;
     this.datastore = new Datastore(
       this.queue,
       this.connection,
       new EmptyCredentialsProvider(),
-      this.serializer,
-      initialBackoffDelay
+      this.serializer
     );
     const onlineStateChangedHandler = (onlineState: OnlineState) => {
       this.syncEngine.applyOnlineStateChange(onlineState);
@@ -430,7 +427,7 @@ abstract class TestRunner {
     console.log('Running spec: ' + this.name);
     return sequence(steps, async step => {
       await this.doStep(step);
-      await this.queue.drain(/* executeDelayedTasks */ false);
+      await this.queue.drain();
       this.validateStepExpectations(step.expect!);
       this.validateStateExpectations(step.stateExpect!);
       this.eventList = [];
@@ -494,7 +491,7 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.schedule(async () => {
+    await this.queue.enqueue(async () => {
       const targetId = await this.eventManager.listen(queryListener);
       expect(targetId).to.equal(
         expectedTargetId,
@@ -513,7 +510,7 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     assert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
-    await this.queue.schedule(() => this.eventManager.unlisten(eventEmitter!));
+    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -532,7 +529,7 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
-    return this.queue.schedule(() => {
+    return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, userCallback);
     });
   }
@@ -689,7 +686,7 @@ abstract class TestRunner {
     }
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
-    return this.queue.schedule(async () => {});
+    return this.queue.enqueue(async () => {});
   }
 
   private async doWatchStreamClose(spec: SpecWatchStreamClose): Promise<void> {
@@ -701,6 +698,9 @@ abstract class TestRunner {
     );
     // The watch stream should re-open if we have active listeners.
     if (!this.queryListeners.isEmpty()) {
+      await this.queue.runDelayedOperationsEarly(
+        TimerId.ListenStreamConnection
+      );
       await this.connection.waitForWatchOpen();
     }
   }
@@ -779,7 +779,7 @@ abstract class TestRunner {
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
-    await this.queue.schedule(async () => {
+    await this.queue.enqueue(async () => {
       await this.localStore.start();
       await this.remoteStore.start();
     });
@@ -787,7 +787,7 @@ abstract class TestRunner {
 
   private doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.schedule(() =>
+    return this.queue.enqueue(() =>
       this.syncEngine.handleUserChange(this.user)
     );
   }
