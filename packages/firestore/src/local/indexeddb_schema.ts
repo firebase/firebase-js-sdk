@@ -27,7 +27,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Schema Version for the Web client (containing the Mutation Queue, the Query
- * and the Remote Document Cache) and Multi-Tab Support.
+ * and the Remote Document Cache) and target count added to the target global.
  */
 export const SCHEMA_VERSION = 2;
 
@@ -61,8 +61,8 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobal(p, txn);
-    p = addTargetCount(p, txn);
+    p = p.next(() => ensureTargetGlobal(txn))
+      .next(() => addTargetCount(txn));
   }
   return p;
 }
@@ -475,7 +475,7 @@ export class DbTargetGlobal {
      */
     public lastRemoteSnapshotVersion: DbTimestamp,
     /**
-     * A cache of the number of targets persisted.
+     * The number of targets persisted.
      */
     public targetCount: number
   ) {}
@@ -507,50 +507,37 @@ function createQueryCache(db: IDBDatabase): void {
 /**
  * Counts the number of targets persisted and adds that value to the target
  * global singleton.
- * @param {PersistencePromise<void>} p The promise used to keep the transaction
- *                                     open
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  * @return {PersistencePromise<void>} A promise of the operations to add the
  *                                    count to the metadata row.
  */
 function addTargetCount(
-  p: PersistencePromise<void>,
   txn: IDBTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return p
-    .next(() => wrapRequest<number>(txn.objectStore(DbTarget.store).count()))
+  return wrapRequest<number>(txn.objectStore(DbTarget.store).count())
     .next((count: number) =>
-      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key)).next(
-        (metadata: DbTargetGlobal) => {
+      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key))
+        .next((metadata: DbTargetGlobal) => {
           metadata.targetCount = count;
-          return metadata;
+          return wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key));
         }
       )
-    )
-    .next((metadata: DbTargetGlobal) =>
-      wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key))
     );
 }
 
 /**
  * Ensures that the target global singleton row exists by adding it if it's
  * missing.
- * @param {PersistencePromise<void>} p The promise used to keep the transaction
- *                                     open
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  * @return {PersistencePromise<void>} A promise of operations to ensure that the
  *                                    metadata row exists
  */
 function ensureTargetGlobal(
-  p: PersistencePromise<void>,
   txn: IDBTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return p
-    .next(() =>
-      wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
-    )
+  return wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
     .next((metadata: DbTargetGlobal | null) => {
       if (metadata != null) {
         return PersistencePromise.resolve();
