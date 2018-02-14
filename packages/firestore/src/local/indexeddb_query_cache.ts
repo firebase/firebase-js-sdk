@@ -104,7 +104,9 @@ export class IndexedDbQueryCache implements QueryCache {
     return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
   }
 
-  private updateMetadataForQueryData(queryData: QueryData): boolean {
+  // Updates the in-memory version of the metadata. Saving is done separately.
+  // Returns true if there were any changes to the metadata.
+  private updateMetadata(queryData: QueryData): boolean {
     let needsUpdate = false;
     if (queryData.targetId > this.metadata.highestTargetId) {
       this.metadata.highestTargetId = queryData.targetId;
@@ -130,7 +132,7 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     return this.saveQueryData(transaction, queryData).next(() => {
       this.metadata.targetCount += 1;
-      this.updateMetadataForQueryData(queryData);
+      this.updateMetadata(queryData);
       return this.saveMetadata(transaction);
     });
   }
@@ -140,7 +142,7 @@ export class IndexedDbQueryCache implements QueryCache {
     queryData: QueryData
   ): PersistencePromise<void> {
     return this.saveQueryData(transaction, queryData).next(() => {
-      if (this.updateMetadataForQueryData(queryData)) {
+      if (this.updateMetadata(queryData)) {
         return this.saveMetadata(transaction);
       } else {
         return PersistencePromise.resolve();
