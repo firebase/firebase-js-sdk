@@ -44,7 +44,7 @@ export class MemoryQueryCache implements QueryCache {
    */
   private references = new ReferenceSet();
 
-  private targetCount: number = 0;
+  private targetCount = 0;
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.

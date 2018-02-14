@@ -21,7 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SimpleDb, SimpleDbTransaction, wrapRequest } from './simple_db';
+import { wrapRequest } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
