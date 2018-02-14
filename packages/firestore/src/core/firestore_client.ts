@@ -143,14 +143,14 @@ export class FirestoreClient {
           .then(() => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.schedule(() => {
+        this.asyncQueue.enqueue(() => {
           return this.handleUserChange(user);
         });
       }
     });
 
     // Block the async queue until initialization is done
-    this.asyncQueue.schedule(() => {
+    this.asyncQueue.enqueue(() => {
       return initializationDone.promise;
     });
 
@@ -162,7 +162,7 @@ export class FirestoreClient {
 
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
-    return this.asyncQueue.schedule(() => {
+    return this.asyncQueue.enqueue(() => {
       return this.remoteStore.enableNetwork();
     });
   }
@@ -321,14 +321,14 @@ export class FirestoreClient {
 
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
-    return this.asyncQueue.schedule(() => {
+    return this.asyncQueue.enqueue(() => {
       return this.remoteStore.disableNetwork();
     });
   }
 
   shutdown(): Promise<void> {
     return this.asyncQueue
-      .schedule(() => {
+      .enqueue(() => {
         this.credentials.removeUserChangeListener();
         return this.remoteStore.shutdown();
       })
@@ -344,21 +344,21 @@ export class FirestoreClient {
     options: ListenOptions
   ): QueryListener {
     const listener = new QueryListener(query, observer, options);
-    this.asyncQueue.schedule(() => {
+    this.asyncQueue.enqueue(() => {
       return this.eventMgr.listen(listener);
     });
     return listener;
   }
 
   unlisten(listener: QueryListener): void {
-    this.asyncQueue.schedule(() => {
+    this.asyncQueue.enqueue(() => {
       return this.eventMgr.unlisten(listener);
     });
   }
 
   write(mutations: Mutation[]): Promise<void> {
     const deferred = new Deferred<void>();
-    this.asyncQueue.schedule(() => this.syncEngine.write(mutations, deferred));
+    this.asyncQueue.enqueue(() => this.syncEngine.write(mutations, deferred));
     return deferred.promise;
   }
 
@@ -371,7 +371,7 @@ export class FirestoreClient {
   ): Promise<T> {
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
-      .schedule(() => {
+      .enqueue(() => {
         return Promise.resolve();
       })
       .then(() => {

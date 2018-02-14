@@ -39,10 +39,10 @@ ValidateInput.prototype.fcmPushSet;
 
 export default class TokenDetailsModel extends DBInterface {
   constructor() {
-    super(TokenDetailsModel.dbName, DB_VERSION);
+    super(TokenDetailsModel.DB_NAME, DB_VERSION);
   }
 
-  static get dbName() {
+  static get DB_NAME() {
     return 'fcm_token_details_db';
   }
 
@@ -90,7 +90,10 @@ export default class TokenDetailsModel extends DBInterface {
     }
 
     if (input.vapidKey) {
-      if (typeof input.vapidKey !== 'string' || input.vapidKey.length === 0) {
+      if (
+        !(input.vapidKey instanceof Uint8Array) ||
+        input.vapidKey.length !== 65
+      ) {
         return Promise.reject(
           this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
         );
@@ -262,13 +265,14 @@ export default class TokenDetailsModel extends DBInterface {
          */
         const details = {
           swScope: swScope,
-          vapidKey: vapidKey,
+          vapidKey: arrayBufferToBase64(vapidKey),
           endpoint: subscription.endpoint,
           auth: arrayBufferToBase64(subscription['getKey']('auth')),
           p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
-          fcmPushSet: fcmPushSet
+          fcmPushSet: fcmPushSet,
+          createTime: Date.now()
         };
 
         return new Promise((resolve, reject) => {
@@ -292,11 +296,10 @@ export default class TokenDetailsModel extends DBInterface {
    * This method deletes details of the current FCM token.
    * It's returning a promise in case we need to move to an async
    * method for deleting at a later date.
-   * @param {string} token Token to be deleted
    * @return {Promise<Object>} Resolves once the FCM token details have been
    * deleted and returns the deleted details.
    */
-  deleteToken(token) {
+  deleteToken(token: string) {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
         this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN)

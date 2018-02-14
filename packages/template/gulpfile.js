@@ -23,7 +23,7 @@ const buildModule = gulp.parallel([
 ]);
 
 const setupWatcher = () => {
-  gulp.watch('src/**/*', buildModule);
+  gulp.watch(['index.ts', 'index.node.ts', 'src/**/*'], buildModule);
 };
 
 gulp.task('build', buildModule);
