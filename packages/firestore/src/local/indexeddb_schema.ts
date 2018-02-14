@@ -61,8 +61,7 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = p.next(() => ensureTargetGlobal(txn))
-      .next(() => addTargetCount(txn));
+    p = p.next(() => ensureTargetGlobal(txn)).next(() => addTargetCount(txn));
   }
   return p;
 }
@@ -511,19 +510,19 @@ function createQueryCache(db: IDBDatabase): void {
  * @return {PersistencePromise<void>} A promise of the operations to add the
  *                                    count to the metadata row.
  */
-function addTargetCount(
-  txn: IDBTransaction
-): PersistencePromise<void> {
+function addTargetCount(txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return wrapRequest<number>(txn.objectStore(DbTarget.store).count())
-    .next((count: number) =>
-      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key))
-        .next((metadata: DbTargetGlobal) => {
+  return wrapRequest<number>(txn.objectStore(DbTarget.store).count()).next(
+    (count: number) =>
+      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key)).next(
+        (metadata: DbTargetGlobal) => {
           metadata.targetCount = count;
-          return wrapRequest<void>(globalStore.put(metadata, DbTargetGlobal.key));
+          return wrapRequest<void>(
+            globalStore.put(metadata, DbTargetGlobal.key)
+          );
         }
       )
-    );
+  );
 }
 
 /**
@@ -533,28 +532,27 @@ function addTargetCount(
  * @return {PersistencePromise<void>} A promise of operations to ensure that the
  *                                    metadata row exists
  */
-function ensureTargetGlobal(
-  txn: IDBTransaction
-): PersistencePromise<void> {
+function ensureTargetGlobal(txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return wrapRequest<DbTargetGlobal | null>(globalStore.get(DbTargetGlobal.key))
-    .next((metadata: DbTargetGlobal | null) => {
-      if (metadata != null) {
-        return PersistencePromise.resolve();
-      } else {
-        return wrapRequest<void>(
-          globalStore.put(
-            new DbTargetGlobal(
-              /*highestTargetId=*/ 0,
-              /*lastListenSequenceNumber=*/ 0,
-              SnapshotVersion.MIN.toTimestamp(),
-              /*targetCount=*/ 0
-            ),
-            DbTargetGlobal.key
-          )
-        );
-      }
-    });
+  return wrapRequest<DbTargetGlobal | null>(
+    globalStore.get(DbTargetGlobal.key)
+  ).next((metadata: DbTargetGlobal | null) => {
+    if (metadata != null) {
+      return PersistencePromise.resolve();
+    } else {
+      return wrapRequest<void>(
+        globalStore.put(
+          new DbTargetGlobal(
+            /*highestTargetId=*/ 0,
+            /*lastListenSequenceNumber=*/ 0,
+            SnapshotVersion.MIN.toTimestamp(),
+            /*targetCount=*/ 0
+          ),
+          DbTargetGlobal.key
+        )
+      );
+    }
+  });
 }
 
 // Visible for testing
