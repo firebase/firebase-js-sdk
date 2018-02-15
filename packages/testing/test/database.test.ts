@@ -18,7 +18,6 @@ import { expect } from 'chai';
 import * as firebase from '../src/api';
 
 describe('Testing Module Tests', function() {
-
   it('assertSucceeds() iff success', async function() {
     const success = Promise.resolve('success');
     const failure = Promise.reject('failure');
@@ -80,16 +79,18 @@ describe('Testing Module Tests', function() {
     });
     expect(app.options).to.have.any.keys('databaseAuthVariableOverride');
     expect(app.options.databaseAuthVariableOverride).to.have.all.keys('uid');
-    expect(app.options.databaseAuthVariableOverride['uid']).to.be.equal('alice');
+    expect(app.options.databaseAuthVariableOverride['uid']).to.be.equal(
+      'alice'
+    );
   });
 
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
     expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
     );
-    expect(firebase.loadDatabaseRules.bind(null, { databaseName: 'foo' })).to.throw(
-      /rulesPath not specified/
-    );
+    expect(
+      firebase.loadDatabaseRules.bind(null, { databaseName: 'foo' })
+    ).to.throw(/rulesPath not specified/);
     expect(
       firebase.loadDatabaseRules.bind(null, {
         rulesPath: '/path/does/not/exist/file.json'
