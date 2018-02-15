@@ -15,23 +15,18 @@
  */
 
 import { expect } from 'chai';
-import { Database } from '../src/api/database';
+import * as firebase from '../src/api';
 
-describe('Database Tests', function() {
-  let firebase;
+describe('Testing Module Tests', function() {
 
-  beforeEach(function() {
-    firebase = new Database();
-  });
-
-  it('assertSuccess() iff success', async function() {
+  it('assertSucceeds() iff success', async function() {
     const success = Promise.resolve('success');
     const failure = Promise.reject('failure');
-    await firebase.assertSuccess(success).catch(() => {
+    await firebase.assertSucceeds(success).catch(() => {
       throw new Error('Expected success to succeed.');
     });
     await firebase
-      .assertSuccess(failure)
+      .assertSucceeds(failure)
       .then(() => {
         throw new Error('Expected failure to fail.');
       })
@@ -85,35 +80,35 @@ describe('Database Tests', function() {
     });
     expect(app.options).to.have.any.keys('databaseAuthVariableOverride');
     expect(app.options.databaseAuthVariableOverride).to.have.all.keys('uid');
-    expect(app.options.databaseAuthVariableOverride.uid).to.be.equal('alice');
+    expect(app.options.databaseAuthVariableOverride['uid']).to.be.equal('alice');
   });
 
-  it('loadRules() throws if no databaseName or rulesPath', async function() {
-    expect(firebase.loadRules.bind(null, {})).to.throw(
+  it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
+    expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
     );
-    expect(firebase.loadRules.bind(null, { databaseName: 'foo' })).to.throw(
+    expect(firebase.loadDatabaseRules.bind(null, { databaseName: 'foo' })).to.throw(
       /rulesPath not specified/
     );
     expect(
-      firebase.loadRules.bind(null, {
+      firebase.loadDatabaseRules.bind(null, {
         rulesPath: '/path/does/not/exist/file.json'
       })
     ).to.throw(/databaseName not specified/);
     expect(
-      firebase.loadRules.bind(null, {
+      firebase.loadDatabaseRules.bind(null, {
         databaseName: 'foo',
         rulesPath: '/path/does/not/exist/file.json'
       })
     ).to.throw(/Could not find file/);
   });
 
-  it('loadRules() throws on file not found', function() {
+  it('loadDatabaseRules() throws on file not found', function() {
     const options = {
       databaseName: 'foo',
       rulesPath: '/path/does/not/exist/file.json'
     };
-    expect(firebase.loadRules.bind(null, options)).to.throw(
+    expect(firebase.loadDatabaseRules.bind(null, options)).to.throw(
       /Could not find file/
     );
   });

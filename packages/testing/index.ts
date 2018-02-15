@@ -14,65 +14,17 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import {
-  FirebaseServiceFactory,
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
-import { isNodeSdk } from '@firebase/util';
-import * as types from '@firebase/testing-types';
+/*
+ * The testing module does not need to be registered since it should not ever
+ * come by default. The only way to use the testing module is by explicitly
+ * creating a dependency on @firebase/testing.
+ */
 
-import { Database } from './src/api/database';
-
-export class Testing implements types.FirebaseTesting {
-  private app_: FirebaseApp;
-
-  constructor(app: FirebaseApp) {
-    this.app_ = app;
-  }
-
-  get app(): FirebaseApp {
-    return this.app_;
-  }
-
-  database(): types.FirebaseDatabaseTesting {
-    return new Database();
-  }
-}
-
-export function registerTesting(instance: FirebaseNamespace) {
-  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
-    /* name */
-    'testing',
-    /* createService: FirebaseServiceFactory */
-    ((app: FirebaseApp, unused: any, opt_url?: string) =>
-      new Testing(app)) as FirebaseServiceFactory,
-    /* serviceProperties?: { [prop: string]: any } */
-    {
-      Database
-    },
-    /* appHook?: AppHook */
-    null,
-    /* allowMultipleInstances?: boolean */
-    true
-  );
-
-  if (isNodeSdk()) {
-    module.exports = namespace;
-  }
-}
-
-registerTesting(firebase);
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    testing?: {
-      (app?: FirebaseApp): types.FirebaseTesting;
-      database: typeof types.FirebaseDatabaseTesting;
-    };
-  }
-  interface FirebaseApp {
-    testing?(): types.FirebaseTesting;
-  }
-}
+export {
+  apps,
+  assertFails,
+  assertSucceeds,
+  initializeAdminApp,
+  initializeTestApp,
+  loadDatabaseRules
+} from './src/api';
