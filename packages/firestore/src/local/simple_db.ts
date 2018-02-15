@@ -251,11 +251,14 @@ export class SimpleDbTransaction {
    */
   readonly completionPromise: Promise<void>;
 
-  static open(db: IDBDatabase, mode: string, objectStoresNames: string[]): SimpleDbTransaction {
-    return new SimpleDbTransaction(db.transaction(
-      objectStoresNames,
-      mode as AnyDuringMigration
-    ));
+  static open(
+    db: IDBDatabase,
+    mode: string,
+    objectStoresNames: string[]
+  ): SimpleDbTransaction {
+    return new SimpleDbTransaction(
+      db.transaction(objectStoresNames, mode as AnyDuringMigration)
+    );
   }
 
   constructor(private transaction: IDBTransaction) {

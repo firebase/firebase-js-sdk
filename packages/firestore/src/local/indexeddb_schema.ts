@@ -511,14 +511,16 @@ function createQueryCache(db: IDBDatabase): void {
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
 function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
-  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
   const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
   return targetStore.count().next(count => {
     return globalStore.get(DbTargetGlobal.key).next(metadata => {
       metadata.targetCount = count;
       return globalStore.put(DbTargetGlobal.key, metadata);
     });
-  })
+  });
 }
 
 /**
@@ -527,13 +529,19 @@ function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
  *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function ensureTargetGlobal(txn: SimpleDbTransaction): PersistencePromise<void> {
-  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
+function ensureTargetGlobal(
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
     if (metadata != null) {
       return PersistencePromise.resolve();
     } else {
-      return globalStore.put(DbTargetGlobal.key, new DbTargetGlobal(
+      return globalStore.put(
+        DbTargetGlobal.key,
+        new DbTargetGlobal(
           /*highestTargetId=*/ 0,
           /*lastListenSequenceNumber=*/ 0,
           SnapshotVersion.MIN.toTimestamp(),
