@@ -26,8 +26,10 @@ import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
- * Schema Version for the Web client (containing the Mutation Queue, the Query
- * and the Remote Document Cache) and target count added to the target global.
+ * Schema Version for the Web client:
+ * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
+ *    Cache
+ * 2. Added targetCount to targetGlobal row.
  */
 export const SCHEMA_VERSION = 2;
 
@@ -35,8 +37,8 @@ export const SCHEMA_VERSION = 2;
  * Performs database creation and schema upgrades.
  *
  * Note that in production, this method is only ever used to upgrade the schema
- * to SCHEMA_VERSION. Different versions are only used for testing and
- * local feature development.
+ * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+ * and local feature development.
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
@@ -506,9 +508,8 @@ function createQueryCache(db: IDBDatabase): void {
 /**
  * Counts the number of targets persisted and adds that value to the target
  * global singleton.
+ *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- * @return {PersistencePromise<void>} A promise of the operations to add the
- *                                    count to the metadata row.
  */
 function saveTargetCount(txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
@@ -528,9 +529,8 @@ function saveTargetCount(txn: IDBTransaction): PersistencePromise<void> {
 /**
  * Ensures that the target global singleton row exists by adding it if it's
  * missing.
+ *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- * @return {PersistencePromise<void>} A promise of operations to ensure that the
- *                                    metadata row exists
  */
 function ensureTargetGlobal(txn: IDBTransaction): PersistencePromise<void> {
   const globalStore = txn.objectStore(DbTargetGlobal.store);
