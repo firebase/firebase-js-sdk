@@ -21,7 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { wrapRequest } from './simple_db';
+import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
@@ -42,10 +42,10 @@ export const SCHEMA_VERSION = 2;
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
-  txn: IDBTransaction,
+  txn: SimpleDbTransaction,
   fromVersion: number,
   toVersion: number
-): PersistencePromise<void> {
+): Promise<void> {
   // This function currently supports migrating to schema version 1 (Mutation
   // Queue, Query and Remote Document Cache) and schema version 2 (Query
   // counting).
@@ -61,11 +61,10 @@ export function createOrUpgradeDb(
     createRemoteDocumentCache(db);
   }
 
-  let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = p.next(() => ensureTargetGlobal(txn)).next(() => saveTargetCount(txn));
+    ensureTargetGlobal(txn).next(() => saveTargetCount(txn));
   }
-  return p;
+  return txn.completionPromise;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -511,19 +510,15 @@ function createQueryCache(db: IDBDatabase): void {
  *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function saveTargetCount(txn: IDBTransaction): PersistencePromise<void> {
-  const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return wrapRequest<number>(txn.objectStore(DbTarget.store).count()).next(
-    (count: number) =>
-      wrapRequest<DbTargetGlobal>(globalStore.get(DbTargetGlobal.key)).next(
-        (metadata: DbTargetGlobal) => {
-          metadata.targetCount = count;
-          return wrapRequest<void>(
-            globalStore.put(metadata, DbTargetGlobal.key)
-          );
-        }
-      )
-  );
+function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
+  const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+  return targetStore.count().next(count => {
+    return globalStore.get(DbTargetGlobal.key).next(metadata => {
+      metadata.targetCount = count;
+      return globalStore.put(DbTargetGlobal.key, metadata);
+    });
+  })
 }
 
 /**
@@ -532,23 +527,17 @@ function saveTargetCount(txn: IDBTransaction): PersistencePromise<void> {
  *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function ensureTargetGlobal(txn: IDBTransaction): PersistencePromise<void> {
-  const globalStore = txn.objectStore(DbTargetGlobal.store);
-  return wrapRequest<DbTargetGlobal | null>(
-    globalStore.get(DbTargetGlobal.key)
-  ).next((metadata: DbTargetGlobal | null) => {
+function ensureTargetGlobal(txn: SimpleDbTransaction): PersistencePromise<void> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store);
+  return globalStore.get(DbTargetGlobal.key).next(metadata => {
     if (metadata != null) {
       return PersistencePromise.resolve();
     } else {
-      return wrapRequest<void>(
-        globalStore.put(
-          new DbTargetGlobal(
-            /*highestTargetId=*/ 0,
-            /*lastListenSequenceNumber=*/ 0,
-            SnapshotVersion.MIN.toTimestamp(),
-            /*targetCount=*/ 0
-          ),
-          DbTargetGlobal.key
+      return globalStore.put(DbTargetGlobal.key, new DbTargetGlobal(
+          /*highestTargetId=*/ 0,
+          /*lastListenSequenceNumber=*/ 0,
+          SnapshotVersion.MIN.toTimestamp(),
+          /*targetCount=*/ 0
         )
       );
     }

@@ -37,10 +37,10 @@ export class SimpleDb {
     version: number,
     runUpgrade: (
       db: IDBDatabase,
-      txn: IDBTransaction,
+      txn: SimpleDbTransaction,
       fromVersion: number,
       toVersion: number
-    ) => PersistencePromise<void>
+    ) => Promise<void>
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),
@@ -78,10 +78,10 @@ export class SimpleDb {
         const db = (event.target as IDBOpenDBRequest).result;
         runUpgrade(
           db,
-          request.transaction,
+          new SimpleDbTransaction(request.transaction),
           event.oldVersion,
           SCHEMA_VERSION
-        ).next(() => {
+        ).then(() => {
           debug(
             LOG_TAG,
             'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
@@ -140,7 +140,7 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const transaction = new SimpleDbTransaction(this.db, mode, objectStores);
+    const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
     const transactionFnResult = transactionFn(transaction)
       .catch(error => {
         // Abort the transaction if there was an
@@ -240,7 +240,7 @@ export interface IterateOptions {
  * specific object store.
  */
 export class SimpleDbTransaction {
-  private transaction: IDBTransaction;
+  //private transaction: IDBTransaction;
   private aborted = false;
 
   /**
@@ -251,11 +251,18 @@ export class SimpleDbTransaction {
    */
   readonly completionPromise: Promise<void>;
 
-  constructor(db: IDBDatabase, mode: string, objectStoresNames: string[]) {
-    this.transaction = db.transaction(
+  static open(db: IDBDatabase, mode: string, objectStoresNames: string[]): SimpleDbTransaction {
+    return new SimpleDbTransaction(db.transaction(
       objectStoresNames,
       mode as AnyDuringMigration
-    );
+    ));
+  }
+
+  constructor(private transaction: IDBTransaction) {
+    /*this.transaction = db.transaction(
+      objectStoresNames,
+      mode as AnyDuringMigration
+    );*/
 
     this.completionPromise = new Promise<void>((resolve, reject) => {
       // We consider aborting to be "normal" and just resolve the promise.
@@ -356,6 +363,14 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
     debug(LOG_TAG, 'DELETE', this.store.name, key);
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
+  }
+
+  // if we ever need more of the count variants, we can add overloads. For now,
+  // all we need is to count everything in a store.
+  count(): PersistencePromise<number> {
+    debug(LOG_TAG, 'COUNT', this.store.name);
+    const request = this.store.count();
+    return wrapRequest<number>(request);
   }
 
   loadAll(): PersistencePromise<ValueType[]>;
@@ -510,7 +525,7 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
  * Wraps an IDBRequest in a PersistencePromise, using the onsuccess / onerror
  * handlers to resolve / reject the PersistencePromise as appropriate.
  */
-export function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
+function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
   return new PersistencePromise<R>((resolve, reject) => {
     request.onsuccess = (event: Event) => {
       const result = (event.target as IDBRequest).result;

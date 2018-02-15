@@ -24,9 +24,7 @@ import {
   DbTargetGlobalKey,
   V1_STORES
 } from '../../../src/local/indexeddb_schema';
-import { Deferred } from '../../../src/util/promise';
-import { SimpleDb, wrapRequest } from '../../../src/local/simple_db';
-import { IndexedDbQueryCache } from '../../../src/local/indexeddb_query_cache';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
@@ -44,7 +42,7 @@ function withDb(
       const db = (event.target as IDBOpenDBRequest).result;
       createOrUpgradeDb(
         db,
-        request.transaction,
+        new SimpleDbTransaction(request.transaction),
         event.oldVersion,
         schemaVersion
       );
