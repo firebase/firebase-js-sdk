@@ -51,7 +51,8 @@ export class SimpleDb {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
       // suggests IE9 and older WebKit browsers handle upgrade
-      // differently.
+      // differently. They expect setVersion, as described here:
+      // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
       const request = window.indexedDB.open(name, version);
 
       request.onsuccess = (event: Event) => {
@@ -69,12 +70,9 @@ export class SimpleDb {
           'Database "' + name + '" requires upgrade from version:',
           event.oldVersion
         );
-        // TODO(mikelehen): If/when we need to do an actual data
-        // migration, we'll want to wrap db in a SimpleDb and have the
-        // runUpgrade function return a PersistencePromise, since we'll
-        // likely need to do async reads and writes. For now we're
-        // cheating and just passing the raw IndexedDB in, since
-        // createObjectStore(), etc. are synchronous.
+        // We are provided a version upgrade transaction from the request, so
+        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
+        // API for schema migration operations.
         const db = (event.target as IDBOpenDBRequest).result;
         runUpgrade(
           db,
