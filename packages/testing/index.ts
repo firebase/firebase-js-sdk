@@ -16,7 +16,10 @@
 
 import firebase from '@firebase/app';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import { isNodeSdk } from '@firebase/util';
 import * as types from '@firebase/testing-types';
 
@@ -43,7 +46,8 @@ export function registerTesting(instance: FirebaseNamespace) {
     /* name */
     'testing',
     /* createService: FirebaseServiceFactory */
-    ((app: FirebaseApp, unused: any, opt_url?: string) => new Testing(app)) as FirebaseServiceFactory,
+    ((app: FirebaseApp, unused: any, opt_url?: string) =>
+      new Testing(app)) as FirebaseServiceFactory,
     /* serviceProperties?: { [prop: string]: any } */
     {
       Database

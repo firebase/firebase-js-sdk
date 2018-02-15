@@ -24,7 +24,7 @@ export interface AdminAppOptions {
 export interface TestAppOptions {
   databaseName: string;
   auth: {
-    uid: string
+    uid: string;
   };
 }
 
@@ -34,7 +34,7 @@ export interface LoadRulesOptions {
 }
 
 export class FirebaseDatabaseTesting {
-  apps(): (admin.app.App|null)[];
+  apps(): (admin.app.App | null)[];
   initializeAdminApp(options: AdminAppOptions): admin.app.App;
   initializeTestApp(options: TestAppOptions): admin.app.App;
   loadRules(options: LoadRulesOptions): void;
