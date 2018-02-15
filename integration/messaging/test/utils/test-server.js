@@ -22,7 +22,8 @@ const PORT_NUMBER = 3000;
 class MessagingTestServer {
   constructor() {
     this._app = express();
-    this._app.use('/', express.static(__dirname));
+    // Expose static directory contents
+    this._app.use('/', express.static(path.join(__dirname, '..', 'static')));
     console.log('Firebase Path:', path.dirname(require.resolve('firebase')));
     this._app.use(
       '/firebase',
@@ -47,7 +48,7 @@ class MessagingTestServer {
     }
 
     return new Promise((resolve, reject) => {
-      this._server = this._app.listen(PORT_NUMBER, function() {
+      this._server = this._app.listen(PORT_NUMBER, () => {
         resolve();
       });
     });
@@ -61,6 +62,7 @@ class MessagingTestServer {
     }
 
     this._server.close();
+    this._server = null;
 
     return Promise.resolve();
   }

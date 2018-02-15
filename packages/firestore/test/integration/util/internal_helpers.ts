@@ -21,15 +21,13 @@ import { Datastore } from '../../../src/remote/datastore';
 
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
-import { AsyncQueue } from '../../../src/util/async_queue';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
 import { Firestore } from '../../../src/api/database';
 
-/** Drains the AsyncQueue. Delayed tasks are executed immediately. */
-export function drainAsyncQueue(
-  db: firestore.FirebaseFirestore
-): Promise<void> {
-  return (db as Firestore)._queue.drain(/* executeDelayedTasks= */ true);
+/** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
+export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
+  return (db as Firestore)._queue;
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {

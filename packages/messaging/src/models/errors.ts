@@ -33,6 +33,9 @@ const CODES = {
   TOKEN_SUBSCRIBE_FAILED: 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN: 'token-subscribe-no-token',
   TOKEN_SUBSCRIBE_NO_PUSH_SET: 'token-subscribe-no-push-set',
+  TOKEN_UNSUBSCRIBE_FAILED: 'token-unsubscribe-failed',
+  TOKEN_UPDATE_FAILED: 'token-update-failed',
+  TOKEN_UPDATE_NO_TOKEN: 'token-update-no-token',
   USE_SW_BEFORE_GET_TOKEN: 'use-sw-before-get-token',
   INVALID_DELETE_TOKEN: 'invalid-delete-token',
   DELETE_TOKEN_NOT_FOUND: 'delete-token-not-found',
@@ -48,7 +51,10 @@ const CODES = {
   BAD_SUBSCRIPTION: 'bad-subscription',
   BAD_TOKEN: 'bad-token',
   BAD_PUSH_SET: 'bad-push-set',
-  FAILED_DELETE_VAPID_KEY: 'failed-delete-vapid-key'
+  FAILED_DELETE_VAPID_KEY: 'failed-delete-vapid-key',
+  INVALID_PUBLIC_VAPID_KEY: 'invalid-public-vapid-key',
+  USE_PUBLIC_KEY_BEFORE_GET_TOKEN: 'use-public-key-before-get-token',
+  PUBLIC_KEY_DECRYPTION_FAILED: 'public-vapid-key-decryption-failed'
 };
 
 const ERROR_MAP = {
@@ -85,6 +91,12 @@ const ERROR_MAP = {
     'FCM returned no token when subscribing ' + 'the user to push.',
   [CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
     'FCM returned an invalid response ' + 'when getting an FCM token.',
+  [CODES.TOKEN_UNSUBSCRIBE_FAILED]:
+    'A problem occured while unsubscribing the ' + 'user from FCM: {$message}',
+  [CODES.TOKEN_UPDATE_FAILED]:
+    'A problem occured while updating the ' + 'user from FCM: {$message}',
+  [CODES.TOKEN_UPDATE_NO_TOKEN]:
+    'FCM returned no token when updating ' + 'the user to push.',
   [CODES.USE_SW_BEFORE_GET_TOKEN]:
     'You must call useServiceWorker() before ' +
     'calling getToken() to ensure your service worker is used.',
@@ -120,7 +132,7 @@ const ERROR_MAP = {
     'The service worker scope must be a string with at ' +
     'least one character.',
   [CODES.BAD_VAPID_KEY]:
-    'The public VAPID key must be a string with at ' + 'least one character.',
+    'The public VAPID key is not a Uint8Array with 65 bytes.',
   [CODES.BAD_SUBSCRIPTION]:
     'The subscription must be a valid ' + 'PushSubscription.',
   [CODES.BAD_TOKEN]:
@@ -129,7 +141,10 @@ const ERROR_MAP = {
   [CODES.BAD_PUSH_SET]:
     'The FCM push set used for storage / lookup was not ' +
     'not a valid push set string.',
-  [CODES.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.'
+  [CODES.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
+  [CODES.INVALID_PUBLIC_VAPID_KEY]: 'The public VAPID key must be a string.',
+  [CODES.PUBLIC_KEY_DECRYPTION_FAILED]:
+    'The public VAPID key did not equal ' + '65 bytes when decrypted.'
 };
 
 export default {

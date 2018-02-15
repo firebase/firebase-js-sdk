@@ -37,7 +37,7 @@ const buildModule = gulp.series(
 );
 
 const setupWatcher = () => {
-  gulp.watch('src/**/*', buildModule);
+  gulp.watch(['./index.ts', 'src/**/*'], buildModule);
 };
 
 gulp.task('build', buildModule);

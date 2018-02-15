@@ -50,8 +50,7 @@ export class Datastore {
     private queue: AsyncQueue,
     private connection: Connection,
     private credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer,
-    private initialBackoffDelay?: number
+    private serializer: JsonProtoSerializer
   ) {}
 
   newPersistentWriteStream(): PersistentWriteStream {
@@ -59,8 +58,7 @@ export class Datastore {
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer,
-      this.initialBackoffDelay
+      this.serializer
     );
   }
 
@@ -69,8 +67,7 @@ export class Datastore {
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer,
-      this.initialBackoffDelay
+      this.serializer
     );
   }
 
