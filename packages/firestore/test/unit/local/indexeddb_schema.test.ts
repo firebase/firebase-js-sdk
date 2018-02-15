@@ -78,7 +78,8 @@ function getTargetCount(db: IDBDatabase): Promise<number> {
       txn
         .store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store)
         .get(DbTargetGlobal.key)
-    ).then(metadata => metadata.targetCount);
+    )
+    .then(metadata => metadata.targetCount);
 }
 
 describe('IndexedDbSchema: createOrUpgradeDb', () => {
