@@ -71,6 +71,16 @@ function getAllObjectStores(db: IDBDatabase): String[] {
   return objectStores;
 }
 
+function getTargetCount(db: IDBDatabase): Promise<number> {
+  const sdb = new SimpleDb(db);
+  return sdb
+    .runTransaction('readonly', [DbTargetGlobal.store], txn =>
+      txn
+        .store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store)
+        .get(DbTargetGlobal.key)
+    ).then(metadata => metadata.targetCount);
+}
+
 describe('IndexedDbSchema: createOrUpgradeDb', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping createOrUpgradeDb() tests.');
@@ -81,7 +91,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   it('can install schema version 1', () => {
     return withDb(1, db => {
-      expect(db.version).to.be.equal(1);
+      expect(db.version).to.equal(1);
       expect(getAllObjectStores(db)).to.have.members(V1_STORES);
       return Promise.resolve();
     });
@@ -89,9 +99,12 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   it('can install schema version 2', () => {
     return withDb(2, db => {
-      expect(db.version).to.be.equal(2);
+      expect(db.version).to.equal(2);
       expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-      return Promise.resolve();
+      // Check the target count. We haven't added any targets, so we expect 0.
+      return getTargetCount(db).then(targetCount => {
+        expect(targetCount).to.equal(0);
+      });
     });
   });
 
@@ -109,18 +122,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       });
     }).then(() =>
       withDb(2, db => {
-        expect(db.version).to.be.equal(2);
+        expect(db.version).to.equal(2);
         expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-        const sdb = new SimpleDb(db);
-        return sdb
-          .runTransaction('readonly', [DbTargetGlobal.store], txn =>
-            txn
-              .store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store)
-              .get(DbTargetGlobal.key)
-          )
-          .then(metadata => {
-            expect(metadata.targetCount).to.equal(expectedTargetCount);
-          });
+        return getTargetCount(db).then(targetCount => {
+          expect(targetCount).to.equal(expectedTargetCount);
+        });
       })
     );
   });
