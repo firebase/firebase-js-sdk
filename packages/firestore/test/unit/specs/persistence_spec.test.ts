@@ -185,7 +185,7 @@ describeSpec('Persistence:', ['persistence'], () => {
 
   specTest('Single tab acquires primary lease', ['multi-client'], () => {
     // This test simulates primary state handoff between two background tabs.
-    // With all instances are in the background, the first active tab acquires
+    // With all instances in the background, the first active tab acquires
     // ownership.
     return client(0)
       .becomeHidden()
@@ -197,7 +197,7 @@ describeSpec('Persistence:', ['persistence'], () => {
       .shutdown()
       .expectPrimaryState(false)
       .client(1)
-      .restart()
+      .tryAcquirePrimaryLease()
       .expectPrimaryState(true);
   });
 
@@ -219,12 +219,12 @@ describeSpec('Persistence:', ['persistence'], () => {
         .shutdown()
         .expectPrimaryState(false)
         .client(1)
-        // Restart client 1. This client is in the background and doesn't grab
-        // the primary lease as client 2 is in the foreground.
-        .restart()
+        // Client 1 is in the background and doesn't grab the primary lease as
+        // client 2 is in the foreground.
+        .tryAcquirePrimaryLease()
         .expectPrimaryState(false)
         .client(2)
-        .restart()
+        .tryAcquirePrimaryLease()
         .expectPrimaryState(true)
     );
   });

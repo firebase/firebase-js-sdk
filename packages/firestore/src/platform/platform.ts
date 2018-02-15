@@ -27,6 +27,8 @@ import { AnyJs } from '../util/misc';
  *
  * An implementation of this must be provided at compile time for the platform.
  */
+// TODO: Consider only exposing the APIs of 'document' and 'window' that we
+// use in our client.
 export interface Platform {
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection>;
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer;

@@ -26,7 +26,7 @@ import { SpecStep } from './spec_test_runner';
 const EXCLUSIVE_TAG = 'exclusive';
 // Persistence-related tests.
 const PERSISTENCE_TAG = 'persistence';
-// Multi-client related tests. Requires persistence.
+// Multi-client related tests (which imply persistence).
 const MULTI_CLIENT_TAG = 'multi-client';
 // Explicit per-platform disable flags.
 const NO_WEB_TAG = 'no-web';
@@ -41,14 +41,12 @@ const KNOWN_TAGS = [
   NO_IOS_TAG
 ];
 
-// Filters out multi-client tests if persistence is not enabled.
-const MULTI_CLIENT_TEST_FILTER = (
-  tags: string[],
-  persistenceEnabled: boolean
-) => tags.indexOf(MULTI_CLIENT_TAG) !== -1 && persistenceEnabled;
-
-const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
-  tags.indexOf(NO_WEB_TAG) === -1;
+const WEB_SPEC_TEST_FILTER = (tags: string[], persistenceEnabled: boolean) => {
+  return (
+    tags.indexOf(NO_WEB_TAG) === -1 &&
+    (tags.indexOf(MULTI_CLIENT_TAG) === -1 || persistenceEnabled)
+  );
+};
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -80,10 +78,7 @@ export function setSpecJSONHandler(writer: (json: string) => void) {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
-  if (
-    !MULTI_CLIENT_TEST_FILTER(tags, persistenceEnabled) ||
-    !WEB_SPEC_TEST_FILTER(tags)
-  ) {
+  if (!WEB_SPEC_TEST_FILTER(tags, persistenceEnabled)) {
     return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
     return it.only;

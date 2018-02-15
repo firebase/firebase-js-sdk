@@ -252,6 +252,14 @@ export class SpecBuilder {
     return this;
   }
 
+  tryAcquirePrimaryLease(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      acquirePrimaryLease: true
+    };
+    return this;
+  }
+
   shutdown(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
@@ -779,6 +787,11 @@ export class MultiClientSpecBuilder extends SpecBuilder {
 
   restart(): MultiClientSpecBuilder {
     super.restart();
+    return this;
+  }
+
+  tryAcquirePrimaryLease(): MultiClientSpecBuilder {
+    super.tryAcquirePrimaryLease();
     return this;
   }
 

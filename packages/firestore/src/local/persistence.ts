@@ -32,24 +32,16 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export interface PersistenceTransaction {}
 
 /**
- * Interface that defines a callback for primary state notifications. This
- * callback can be registered with the persistence layer to get notified
- * when we transition from primary to secondary state and vice versa.
+ * Callback type for primary state notifications. This callback can be
+ * registered with the persistence layer to get notified when we transition from
+ * primary to secondary state and vice versa.
  *
  * Note: Instances can only toggle between Primary and Secondary state if
- * IndexedDB persistence is enabled and multiple instances are active. If this
+ * IndexedDB persistence is enabled and multiple clients are active. If this
  * listener is registered with MemoryPersistence, the callback will be called
  * exactly once marking the current instance as Primary.
  */
-export interface PrimaryStateListener {
-  /**
-   * Transitions this instance between Primary and Secondary state. This
-   * callback can be called after the fact (for example when an instance loses
-   * its primary lease unexpectedly) and all necessary state transitions should
-   * be applied synchronously.
-   */
-  applyPrimaryState(primaryClient: boolean): void;
-}
+export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -106,17 +98,6 @@ export interface Persistence {
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener);
 
   /**
-   * Execute the primary release check immediately (outside of its regular
-   * scheduled interval). Returns whether the instance is primary.
-   *
-   * TODO(multiab): Consider running this on the AsyncQueue and replacing with
-   * `runDelayedOperationsEarly`.
-   *
-   * Used for testing.
-   */
-  tryBecomePrimary(): Promise<boolean>;
-
-  /**
    * Returns a MutationQueue representing the persisted mutations for the
    * given user.
    *
@@ -160,7 +141,9 @@ export interface Persistence {
    * @param action A description of the action performed by this transaction,
    * used for logging.
    * @param requirePrimaryLease Whether this transaction can only be executed
-   * by the primary client only.
+   * by the primary client. If the primary lease cannot be acquired, the
+   * transactionOperation will not be run, and the returned promise will be
+   * rejected with a FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */

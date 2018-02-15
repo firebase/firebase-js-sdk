@@ -244,6 +244,7 @@ export class FirestoreClient {
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
       this.platform,
+      this.asyncQueue,
       serializer
     );
     return this.persistence.start();
@@ -256,7 +257,7 @@ export class FirestoreClient {
    */
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence();
+    this.persistence = new MemoryPersistence(this.asyncQueue);
     return this.persistence.start();
   }
 
@@ -303,7 +304,6 @@ export class FirestoreClient {
 
         // Setup wiring between sync engine and remote store
         this.remoteStore.syncEngine = this.syncEngine;
-        this.persistence.setPrimaryStateListener(this.syncEngine);
 
         this.eventMgr = new EventManager(this.syncEngine);
 
@@ -314,6 +314,11 @@ export class FirestoreClient {
       })
       .then(() => {
         return this.remoteStore.start();
+      })
+      .then(() => {
+        this.persistence.setPrimaryStateListener(isPrimary =>
+          this.syncEngine.applyPrimaryState(isPrimary)
+        );
       });
   }
 

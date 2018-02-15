@@ -320,10 +320,11 @@ interface OutstandingWrite {
 }
 
 abstract class TestRunner {
+  protected queue: AsyncQueue;
+
   private connection: MockConnection;
   private eventManager: EventManager;
   private syncEngine: SyncEngine;
-  private queue: AsyncQueue;
 
   private eventList: QueryEvent[] = [];
   private outstandingWrites: OutstandingWrite[] = [];
@@ -357,6 +358,7 @@ abstract class TestRunner {
       'host',
       false
     );
+    this.queue = new AsyncQueue();
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
@@ -379,7 +381,6 @@ abstract class TestRunner {
       garbageCollector
     );
 
-    this.queue = new AsyncQueue();
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -403,7 +404,6 @@ abstract class TestRunner {
       this.user
     );
 
-    this.persistence.setPrimaryStateListener(this.syncEngine);
     // Setup wiring between sync engine and remote store
     this.remoteStore.syncEngine = this.syncEngine;
 
@@ -425,6 +425,10 @@ abstract class TestRunner {
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
+
+    this.persistence.setPrimaryStateListener(isPrimary =>
+      this.syncEngine.applyPrimaryState(isPrimary)
+    );
   }
 
   async shutdown(): Promise<void> {
@@ -474,11 +478,11 @@ abstract class TestRunner {
       return step.enableNetwork!
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
+    } else if ('acquirePrimaryLease' in step) {
+      return this.doAcquirePrimaryLease();
     } else if ('restart' in step) {
-      assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
     } else if ('shutdown' in step) {
-      assert(step.shutdown!, 'Shutdown cannot be false');
       return this.doShutdown();
     } else if ('applyClientState' in step) {
       return this.doApplyClientState(step.applyClientState!);
@@ -788,6 +792,12 @@ abstract class TestRunner {
     await this.remoteStore.enableNetwork();
   }
 
+  private async doAcquirePrimaryLease(): Promise<void> {
+    expect(this.queue.containsDelayedOperation(TimerId.ClientStateRefresh)).to
+      .be.true;
+    return this.queue.runDelayedOperationsEarly(TimerId.ClientStateRefresh);
+  }
+
   private async doShutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
@@ -806,8 +816,6 @@ abstract class TestRunner {
       await this.localStore.start();
       await this.remoteStore.start();
     });
-
-    await this.persistence.tryBecomePrimary();
   }
 
   private doApplyClientState(state: SpecClientState): Promise<void> {
@@ -1023,7 +1031,7 @@ abstract class TestRunner {
 
 class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new MemoryPersistence();
+    return new MemoryPersistence(this.queue);
   }
 
   static destroyPersistence(): Promise<void> {
@@ -1125,6 +1133,7 @@ class IndexedDbTestRunner extends TestRunner {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
       this.platform,
+      this.queue,
       serializer
     );
   }
@@ -1236,16 +1245,18 @@ export interface SpecStep {
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
 
+  /** Attempt to acquire the primary lease. */
+  acquirePrimaryLease?: true;
+
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth
    * components. This allows you to queue writes, get documents into cache,
    * etc. and then simulate an app restart.
    */
-  restart?: boolean;
+  restart?: true;
 
   /** Shut down the client and close it network connection. */
-  shutdown?: boolean;
-
+  shutdown?: true;
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.

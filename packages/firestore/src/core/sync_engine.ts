@@ -51,7 +51,6 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { PrimaryStateListener } from '../local/persistence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -103,7 +102,7 @@ class QueryView {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export class SyncEngine implements RemoteSyncer, PrimaryStateListener {
+export class SyncEngine implements RemoteSyncer {
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
 
@@ -130,6 +129,7 @@ export class SyncEngine implements RemoteSyncer, PrimaryStateListener {
     private currentUser: User
   ) {}
 
+  // Only used for testing.
   get isPrimaryClient() {
     return this.isPrimary;
   }
@@ -623,8 +623,8 @@ export class SyncEngine implements RemoteSyncer, PrimaryStateListener {
       });
   }
 
-  applyPrimaryState(primaryClient: boolean): void {
-    // TODO(multitab): Apply the primary state internally on the AsyncQueue.
-    this.isPrimary = primaryClient;
+  applyPrimaryState(isPrimary: boolean): Promise<void> {
+    this.isPrimary = isPrimary;
+    return Promise.resolve();
   }
 }

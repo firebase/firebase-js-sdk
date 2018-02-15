@@ -26,6 +26,7 @@ import {
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
+import { AsyncQueue } from '../../../src/util/async_queue';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
@@ -50,14 +51,21 @@ export async function testIndexedDbPersistence(): Promise<
     useProto3Json: true
   });
   const platform = new BrowserPlatform();
-  const persistence = new IndexedDbPersistence(prefix, platform, serializer);
+  const queue = new AsyncQueue();
+  const persistence = new IndexedDbPersistence(
+    prefix,
+    platform,
+    queue,
+    serializer
+  );
   await persistence.start();
   return persistence;
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence();
+  const queue = new AsyncQueue();
+  const persistence = new MemoryPersistence(queue);
   await persistence.start();
   return persistence;
 }

@@ -30,6 +30,7 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -50,6 +51,8 @@ export class MemoryPersistence implements Persistence {
   private queryCache = new MemoryQueryCache();
 
   private started = false;
+
+  constructor(private readonly queue: AsyncQueue) {}
 
   start(): Promise<void> {
     assert(!this.started, 'MemoryPersistence double-started!');
@@ -72,7 +75,7 @@ export class MemoryPersistence implements Persistence {
 
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
     // All clients using memory persistence act as primary.
-    primaryStateListener.applyPrimaryState(true);
+    this.queue.enqueue(() => primaryStateListener(true));
   }
 
   getMutationQueue(user: User): MutationQueue {

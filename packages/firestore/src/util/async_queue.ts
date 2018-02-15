@@ -32,7 +32,8 @@ export enum TimerId {
   ListenStreamIdle,
   ListenStreamConnection,
   WriteStreamIdle,
-  WriteStreamConnection
+  WriteStreamConnection,
+  ClientStateRefresh
 }
 
 /**
