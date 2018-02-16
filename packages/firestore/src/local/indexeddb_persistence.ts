@@ -203,17 +203,17 @@ export class IndexedDbPersistence implements Persistence {
           let nextDelayMs;
 
           if (this.isLocalClient(currentPrimary)) {
-              nextDelayMs = PRIMARY_LEASE_MAX_REFRESH_INTERVAL_MS;
+            nextDelayMs = PRIMARY_LEASE_MAX_REFRESH_INTERVAL_MS;
           } else if (currentPrimary !== null) {
-              nextDelayMs = Math.max(
-                  PRIMARY_LEASE_MIN_REFRESH_INTERVAL_MS,
-                Date.now() -
-                  (currentPrimary.leaseTimestampMs + CLIENT_STATE_MAX_AGE_MS) +
-                  1
-              );
+            nextDelayMs = Math.max(
+              PRIMARY_LEASE_MIN_REFRESH_INTERVAL_MS,
+              Date.now() -
+                (currentPrimary.leaseTimestampMs + CLIENT_STATE_MAX_AGE_MS) +
+                1
+            );
           } else {
-          nextDelayMs = PRIMARY_LEASE_MIN_REFRESH_INTERVAL_MS;
-        }
+            nextDelayMs = PRIMARY_LEASE_MIN_REFRESH_INTERVAL_MS;
+          }
 
           this.schedulePrimaryLeaseRefreshes(nextDelayMs);
         });
@@ -234,12 +234,14 @@ export class IndexedDbPersistence implements Persistence {
         metadataStore.put(
           new DbClientMetadata(this.clientKey, Date.now(), this.inForeground)
         );
-        return this.tryElectPrimaryCandidate(txn).next(electedPrimaryCandidate => {
-          if (this.isLocalClient(electedPrimaryCandidate)) {
-            return this.acquirePrimaryLease(txn);
+        return this.tryElectPrimaryCandidate(txn).next(
+          electedPrimaryCandidate => {
+            if (this.isLocalClient(electedPrimaryCandidate)) {
+              return this.acquirePrimaryLease(txn);
+            }
+            return electedPrimaryCandidate;
           }
-          return electedPrimaryCandidate;
-        });
+        );
       })
       .then(suggestedPrimaryClient => {
         const isPrimary = this.isLocalClient(suggestedPrimaryClient);
@@ -252,7 +254,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /** Checks whether the `primary` is the local client. */
-  private isLocalClient(primary:DbOwner|null): boolean {
+  private isLocalClient(primary: DbOwner | null): boolean {
     return primary ? primary.ownerId === this.clientKey : false;
   }
 
@@ -287,10 +289,7 @@ export class IndexedDbPersistence implements Persistence {
 
       return this.canBecomePrimary(txn).next(canBecomePrimary => {
         if (canBecomePrimary) {
-          log.debug(
-              LOG_TAG,
-              'No valid primary. Acquiring primary lease.'
-          );
+          log.debug(LOG_TAG, 'No valid primary. Acquiring primary lease.');
           return new DbOwner(this.clientKey, Date.now());
         } else {
           return null;
