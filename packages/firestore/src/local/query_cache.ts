@@ -103,7 +103,7 @@ export interface QueryCache extends GarbageSource {
   /**
    * The number of targets currently in the cache.
    */
-  count(): number;
+  readonly count: number;
 
   /**
    * Looks up a QueryData entry in the cache.

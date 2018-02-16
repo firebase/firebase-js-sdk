@@ -49,7 +49,7 @@ export class TestQueryCache {
   }
 
   count(): number {
-    return this.cache.count();
+    return this.cache.count;
   }
 
   removeQueryData(queryData: QueryData): Promise<void> {

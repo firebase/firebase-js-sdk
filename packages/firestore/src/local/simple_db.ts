@@ -70,16 +70,12 @@ export class SimpleDb {
           'Database "' + name + '" requires upgrade from version:',
           event.oldVersion
         );
+        const db = (event.target as IDBOpenDBRequest).result;
         // We are provided a version upgrade transaction from the request, so
         // we wrap that in a SimpleDbTransaction to allow use of our friendlier
         // API for schema migration operations.
-        const db = (event.target as IDBOpenDBRequest).result;
-        runUpgrade(
-          db,
-          new SimpleDbTransaction(request.transaction),
-          event.oldVersion,
-          SCHEMA_VERSION
-        ).next(() => {
+        const txn = new SimpleDbTransaction(request.transaction);
+        runUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION).next(() => {
           debug(
             LOG_TAG,
             'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
@@ -360,8 +356,11 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
     return wrapRequest<void>(request);
   }
 
-  // if we ever need more of the count variants, we can add overloads. For now,
+  // If we ever need more of the count variants, we can add overloads. For now,
   // all we need is to count everything in a store.
+  //
+  // Returns the number of rows in the store. Execution time, off of the event
+  // loop, is O(# rows).
   count(): PersistencePromise<number> {
     debug(LOG_TAG, 'COUNT', this.store.name);
     const request = this.store.count();

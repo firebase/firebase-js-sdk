@@ -150,8 +150,11 @@ export class IndexedDbQueryCache implements QueryCache {
     return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
   }
 
-  // Updates the in-memory version of the metadata. Saving is done separately.
-  // Returns true if there were any changes to the metadata.
+  /**
+   * Updates the in-memory version of the metadata to account for values in the
+   * given QueryData. Saving is done separately. Returns true if there were any
+   * changes to the metadata.
+   */
   private updateMetadata(queryData: QueryData): boolean {
     let needsUpdate = false;
     if (queryData.targetId > this.metadata.highestTargetId) {
@@ -163,7 +166,7 @@ export class IndexedDbQueryCache implements QueryCache {
     return needsUpdate;
   }
 
-  count(): number {
+  get count(): number {
     return this.metadata.targetCount;
   }
 

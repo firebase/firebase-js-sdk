@@ -114,7 +114,7 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  count(): number {
+  get count(): number {
     return this.targetCount;
   }
 
