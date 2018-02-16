@@ -47,11 +47,14 @@ function decodeQuery(queryString: string): { [key: string]: string } {
     queryString = queryString.substring(1);
   }
   for (const segment of queryString.split('&')) {
+    if (segment.length === 0) {
+      continue;
+    }
     const kv = segment.split('=');
     if (kv.length === 2) {
       results[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
     } else {
-      warn('Invalid query string segment: ' + segment);
+      warn(`Invalid query segment '${segment}' in query '${queryString}'`);
     }
   }
   return results;
