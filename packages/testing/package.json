@@ -1,0 +1,38 @@
+{
+  "name": "@firebase/testing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/cjs/index.js",
+  "browser": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "scripts": {
+    "dev": "gulp dev",
+    "test": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register/type-check --retries 5 --timeout 5000 --exit",
+    "prepare": "gulp build"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "firebase-admin": "5.8.0",
+    "request-promise": "^4.2.2"
+  },
+  "devDependencies": {
+    "chai": "^4.1.1",
+    "gulp": "gulpjs/gulp#4.0",
+    "mocha": "^4.0.1",
+    "nyc": "^11.2.1"
+  },
+  "peerDependencies": {
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/testing"
+  },
+  "typings": "dist/esm/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}
