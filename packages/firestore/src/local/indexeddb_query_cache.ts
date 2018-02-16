@@ -97,26 +97,6 @@ export class IndexedDbQueryCache implements QueryCache {
     );
   }
 
-  private saveQueryData(
-    transaction: PersistenceTransaction,
-    queryData: QueryData
-  ): PersistencePromise<void> {
-    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
-  }
-
-  // Updates the in-memory version of the metadata. Saving is done separately.
-  // Returns true if there were any changes to the metadata.
-  private updateMetadata(queryData: QueryData): boolean {
-    let needsUpdate = false;
-    if (queryData.targetId > this.metadata.highestTargetId) {
-      this.metadata.highestTargetId = queryData.targetId;
-      needsUpdate = true;
-    }
-
-    // TODO(GC): add sequence number check
-    return needsUpdate;
-  }
-
   private saveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
@@ -161,6 +141,26 @@ export class IndexedDbQueryCache implements QueryCache {
         this.metadata.targetCount -= 1;
         return this.saveMetadata(transaction);
       });
+  }
+
+  private saveQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
+  }
+
+  // Updates the in-memory version of the metadata. Saving is done separately.
+  // Returns true if there were any changes to the metadata.
+  private updateMetadata(queryData: QueryData): boolean {
+    let needsUpdate = false;
+    if (queryData.targetId > this.metadata.highestTargetId) {
+      this.metadata.highestTargetId = queryData.targetId;
+      needsUpdate = true;
+    }
+
+    // TODO(GC): add sequence number check
+    return needsUpdate;
   }
 
   count(): number {
