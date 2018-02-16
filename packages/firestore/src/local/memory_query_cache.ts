@@ -27,7 +27,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert } from '../../../util/src/assert';
+import { assert } from '../util/assert';
 
 export class MemoryQueryCache implements QueryCache {
   /**
