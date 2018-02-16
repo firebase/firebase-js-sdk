@@ -63,7 +63,7 @@ const CLIENT_STATE_MAX_AGE_MS = 5000;
 const PRIMARY_LEASE_MAX_REFRESH_INTERVAL_MS = 4000;
 /**
  * Minimum interval for attemots to acquire the primary lease. Used when
- * synchronizing client lease refreshes across all clients.
+ * synchronizing client lease refreshes across clients.
  */
 const PRIMARY_LEASE_MIN_REFRESH_INTERVAL_MS = 4000;
 /** LocalStorage location to indicate a zombied primary key (see class comment). */
@@ -130,9 +130,9 @@ export class IndexedDbPersistence implements Persistence {
    * transactions will be failed with this error.
    */
   private persistenceError: Error | null;
-  /** The setInterval() handle tied to refreshing the owner lease. */
+  /** The setInterval() handle tied to refreshing the primary lease. */
   // tslint:disable-next-line:no-any setTimeout() type differs on browser / node
-  private clientStateRefreshHandle: any;
+  private primaryLeaseRefreshHandle: any;
   /** Our window.unload handler, if registered. */
   private windowUnloadHandler: (() => void) | null;
   private inForeground = false;
@@ -143,7 +143,7 @@ export class IndexedDbPersistence implements Persistence {
   private documentVisibilityHandler: ((e?: Event) => void) | null;
 
   /** Callback for primary state notifications. */
-  primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
+  private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   constructor(
     prefix: string,
@@ -192,7 +192,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Schedules a recurring timer to refresh or acquire the owner lease.
+   * Schedules a recurring timer to refresh or acquire the primary lease.
    */
   private schedulePrimaryLeaseRefreshes(initialDelayMs: number): Promise<void> {
     return this.queue.enqueueAfterDelay(
@@ -243,19 +243,19 @@ export class IndexedDbPersistence implements Persistence {
           }
         );
       })
-      .then(suggestedPrimaryClient => {
-        const isPrimary = this.isLocalClient(suggestedPrimaryClient);
+      .then(electedPrimaryCandidate => {
+        const isPrimary = this.isLocalClient(electedPrimaryCandidate);
         if (this.isPrimary !== isPrimary) {
           this.isPrimary = isPrimary;
           this.primaryStateListener(this.isPrimary);
         }
-        return suggestedPrimaryClient;
+        return electedPrimaryCandidate;
       });
   }
 
-  /** Checks whether the `primary` is the local client. */
-  private isLocalClient(primary: DbOwner | null): boolean {
-    return primary ? primary.ownerId === this.clientKey : false;
+  /** Checks whether `client` is the local client. */
+  private isLocalClient(client: DbOwner | null): boolean {
+    return client ? client.ownerId === this.clientKey : false;
   }
 
   /**
@@ -340,7 +340,8 @@ export class IndexedDbPersistence implements Persistence {
     // are the only reader/writer.
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       if (requirePrimaryLease) {
-        // While we merely verify that we can obtain the lease at first,
+        assert(this.isPrimary, 'Operation requires the primary lease');
+        // While we merely verify that we still retain the lease at first,
         // IndexedDb's transaction guarantees that we will be able to obtain
         // the lease before we commit. We do this to not immediately lose our
         // lease after long-running operations.
@@ -434,8 +435,8 @@ export class IndexedDbPersistence implements Persistence {
     return this.simpleDb
       .runTransaction('readwrite', [DbOwner.store], txn => {
         const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-        return store.get('owner').next(dbOwner => {
-          if (dbOwner !== null && dbOwner.ownerId === this.clientKey) {
+        return store.get('owner').next(primaryClient => {
+          if (this.isLocalClient(primaryClient)) {
             log.debug(LOG_TAG, 'Releasing primary lease.');
             return store.delete('owner');
           } else {
@@ -467,9 +468,9 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private stopClientStateRefreshes(): void {
-    if (this.clientStateRefreshHandle) {
-      clearInterval(this.clientStateRefreshHandle);
-      this.clientStateRefreshHandle = null;
+    if (this.primaryLeaseRefreshHandle) {
+      clearInterval(this.primaryLeaseRefreshHandle);
+      this.primaryLeaseRefreshHandle = null;
     }
   }
 
