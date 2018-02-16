@@ -48,7 +48,6 @@ describe('MemoryQueryCache', () => {
 
   genericQueryCacheTests();
 
-
   it('cannot remove nonexistent query', async () => {
     // We don't check on indexeddb query cache, but we do for memory.
     let gotError = false;
@@ -165,7 +164,7 @@ function genericQueryCacheTests() {
 
   it('can set query to new value', async () => {
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
-    const updated = testQueryData(QUERY_ROOMS, 1, 2)
+    const updated = testQueryData(QUERY_ROOMS, 1, 2);
     await cache.updateQueryData(updated);
     const retrieved = await cache.getQueryData(updated.query);
     expect(retrieved).to.deep.equal(updated);
