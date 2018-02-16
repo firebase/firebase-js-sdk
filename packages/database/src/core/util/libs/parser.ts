@@ -54,7 +54,13 @@ function decodeQuery(queryString: string): { [key: string]: string } {
     if (kv.length === 2) {
       results[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1]);
     } else {
-      warn('Invalid query string segment: "' + segment + '" in query string: "' + queryString + '"');
+      warn(
+        'Invalid query string segment: "' +
+          segment +
+          '" in query string: "' +
+          queryString +
+          '"'
+      );
     }
   }
   return results;
