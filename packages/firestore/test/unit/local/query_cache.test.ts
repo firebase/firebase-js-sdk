@@ -35,6 +35,7 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
+import { fail } from '../../../src/util/assert';
 
 let persistence: Persistence;
 let cache: TestQueryCache;
@@ -49,14 +50,14 @@ describe('MemoryQueryCache', () => {
   genericQueryCacheTests();
 
   it('cannot remove nonexistent query', async () => {
-    // We don't check on indexeddb query cache, but we do for memory.
-    let gotError = false;
+    // We don't check for existence in the indexeddb query cache, but we do for
+    // memory. So, this test is specific to the memory-backed query cache.
     try {
       await cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
+      fail('should not have been able to remove nonexistent query');
     } catch {
-      gotError = true;
+      // expected to throw
     }
-    expect(gotError).to.be.true;
   });
 });
 
