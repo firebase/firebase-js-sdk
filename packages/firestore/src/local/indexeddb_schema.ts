@@ -63,7 +63,7 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobal(txn).next(() => saveTargetCount(txn));
+    p = ensureTargetGlobalExists(txn).next(() => saveTargetCount(txn));
   }
   return p;
 }
@@ -530,7 +530,7 @@ function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
  *
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function ensureTargetGlobal(
+function ensureTargetGlobalExists(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
