@@ -92,8 +92,8 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<void>;
 
   /**
-   * Removes the cached entry for the given query data (no-op if no entry
-   * exists).
+   * Removes the cached entry for the given query data. It is an error to remove
+   * a query data that does not exist.
    */
   removeQueryData(
     transaction: PersistenceTransaction,

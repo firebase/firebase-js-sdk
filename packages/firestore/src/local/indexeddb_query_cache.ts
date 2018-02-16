@@ -113,7 +113,7 @@ export class IndexedDbQueryCache implements QueryCache {
       needsUpdate = true;
     }
 
-    // TODO(gsoltis): add sequence number check
+    // TODO(GC): add sequence number check
     return needsUpdate;
   }
 

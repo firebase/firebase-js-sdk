@@ -45,7 +45,7 @@ export function createOrUpgradeDb(
   txn: SimpleDbTransaction,
   fromVersion: number,
   toVersion: number
-): Promise<void> {
+): PersistencePromise<void> {
   // This function currently supports migrating to schema version 1 (Mutation
   // Queue, Query and Remote Document Cache) and schema version 2 (Query
   // counting).
@@ -61,10 +61,11 @@ export function createOrUpgradeDb(
     createRemoteDocumentCache(db);
   }
 
+  let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    ensureTargetGlobal(txn).next(() => saveTargetCount(txn));
+    p = ensureTargetGlobal(txn).next(() => saveTargetCount(txn));
   }
-  return txn.completionPromise;
+  return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.

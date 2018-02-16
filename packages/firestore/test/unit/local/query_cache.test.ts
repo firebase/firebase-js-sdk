@@ -47,6 +47,18 @@ describe('MemoryQueryCache', () => {
   });
 
   genericQueryCacheTests();
+
+
+  it('cannot remove nonexistent query', async () => {
+    // We don't check on indexeddb query cache, but we do for memory.
+    let gotError = false;
+    try {
+      await cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
+    } catch {
+      gotError = true;
+    }
+    expect(gotError).to.be.true;
+  });
 });
 
 describe('IndexedDbQueryCache', () => {
@@ -68,34 +80,34 @@ describe('IndexedDbQueryCache', () => {
   genericQueryCacheTests();
 });
 
+const QUERY_ROOMS = Query.atPath(path('rooms'));
+const QUERY_HALLS = Query.atPath(path('halls'));
+const QUERY_GARAGES = Query.atPath(path('garages'));
+
+/**
+ * Creates a new QueryData object from the the given parameters, synthesizing
+ * a resume token from the snapshot version.
+ */
+function testQueryData(query: Query, targetId: TargetId, version?: number) {
+  if (version === undefined) {
+    version = 0;
+  }
+  const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
+  const resumeToken = resumeTokenForSnapshot(snapshotVersion);
+  return new QueryData(
+    query,
+    targetId,
+    QueryPurpose.Listen,
+    snapshotVersion,
+    resumeToken
+  );
+}
+
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
 function genericQueryCacheTests() {
   addEqualityMatcher();
-
-  const QUERY_ROOMS = Query.atPath(path('rooms'));
-  const QUERY_HALLS = Query.atPath(path('halls'));
-  const QUERY_GARAGES = Query.atPath(path('garages'));
-
-  /**
-   * Creates a new QueryData object from the the given parameters, synthesizing
-   * a resume token from the snapshot version.
-   */
-  function testQueryData(query: Query, targetId: TargetId, version?: number) {
-    if (version === undefined) {
-      version = 0;
-    }
-    const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
-    const resumeToken = resumeTokenForSnapshot(snapshotVersion);
-    return new QueryData(
-      query,
-      targetId,
-      QueryPurpose.Listen,
-      snapshotVersion,
-      resumeToken
-    );
-  }
 
   async function setAndReadQuery(queryData: QueryData): Promise<void> {
     await cache.addQueryData(queryData);
@@ -153,7 +165,10 @@ function genericQueryCacheTests() {
 
   it('can set query to new value', async () => {
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
-    await setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 2));
+    const updated = testQueryData(QUERY_ROOMS, 1, 2)
+    await cache.updateQueryData(updated);
+    const retrieved = await cache.getQueryData(updated.query);
+    expect(retrieved).to.deep.equal(updated);
   });
 
   it('can remove a query', async () => {
@@ -162,11 +177,6 @@ function genericQueryCacheTests() {
     await cache.removeQueryData(queryData);
     const read = await cache.getQueryData(QUERY_ROOMS);
     expect(read).to.equal(null);
-  });
-
-  it('can remove nonexistent query', () => {
-    // no-op, but make sure it doesn't fail.
-    return cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
   });
 
   it('can remove matching keys when a query is removed', async () => {

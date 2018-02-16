@@ -27,6 +27,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
+import { assert } from '../../../util/src/assert';
 
 export class MemoryQueryCache implements QueryCache {
   /**
@@ -73,13 +74,17 @@ export class MemoryQueryCache implements QueryCache {
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
-    // TODO(gsoltis): track sequence number
+    // TODO(GC): track sequence number
   }
 
   addQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
+    assert(
+      !this.queries.has(queryData.query),
+      'Adding a query that already exists'
+    );
     this.saveQueryData(queryData);
     this.targetCount += 1;
     return PersistencePromise.resolve();
@@ -89,6 +94,7 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
+    assert(this.queries.has(queryData.query), 'Updating a non-existent query');
     this.saveQueryData(queryData);
     return PersistencePromise.resolve();
   }
@@ -97,6 +103,11 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
+    assert(this.targetCount > 0, 'Removing a target from an empty cache');
+    assert(
+      this.queries.has(queryData.query),
+      'Removing a non-existent target from the cache'
+    );
     this.queries.delete(queryData.query);
     this.references.removeReferencesForId(queryData.targetId);
     this.targetCount -= 1;

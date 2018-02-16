@@ -40,7 +40,7 @@ export class SimpleDb {
       txn: SimpleDbTransaction,
       fromVersion: number,
       toVersion: number
-    ) => Promise<void>
+    ) => PersistencePromise<void>
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),
@@ -79,7 +79,7 @@ export class SimpleDb {
           new SimpleDbTransaction(request.transaction),
           event.oldVersion,
           SCHEMA_VERSION
-        ).then(() => {
+        ).next(() => {
           debug(
             LOG_TAG,
             'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
@@ -238,7 +238,6 @@ export interface IterateOptions {
  * specific object store.
  */
 export class SimpleDbTransaction {
-  //private transaction: IDBTransaction;
   private aborted = false;
 
   /**
@@ -252,19 +251,14 @@ export class SimpleDbTransaction {
   static open(
     db: IDBDatabase,
     mode: string,
-    objectStoresNames: string[]
+    objectStoreNames: string[]
   ): SimpleDbTransaction {
     return new SimpleDbTransaction(
-      db.transaction(objectStoresNames, mode as AnyDuringMigration)
+      db.transaction(objectStoreNames, mode as AnyDuringMigration)
     );
   }
 
   constructor(private transaction: IDBTransaction) {
-    /*this.transaction = db.transaction(
-      objectStoresNames,
-      mode as AnyDuringMigration
-    );*/
-
     this.completionPromise = new Promise<void>((resolve, reject) => {
       // We consider aborting to be "normal" and just resolve the promise.
       // May need to revisit if/when we actually need to abort transactions.
