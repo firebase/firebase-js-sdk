@@ -154,6 +154,10 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
+    assert(
+      this.metadata.targetCount > 0,
+      'Removing from an empty query cache'
+    );
     return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
       .next(() => targetsStore(transaction).delete(queryData.targetId))
       .next(() => {
