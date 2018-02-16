@@ -21,8 +21,7 @@ import {
   createOrUpgradeDb,
   DbTarget,
   DbTargetGlobal,
-  DbTargetGlobalKey,
-  V1_STORES
+  DbTargetGlobalKey
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -91,7 +90,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can install schema version 1', () => {
     return withDb(1, db => {
       expect(db.version).to.equal(1);
-      expect(getAllObjectStores(db)).to.have.members(V1_STORES);
+      // Version 1 adds all of the stores so far.
+      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
       return Promise.resolve();
     });
   });
@@ -99,6 +99,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can install schema version 2', () => {
     return withDb(2, db => {
       expect(db.version).to.equal(2);
+      // We should have all of the stores, we should have the target global row
+      // and we should not have any targets counted, because there are none.
       expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
       // Check the target count. We haven't added any targets, so we expect 0.
       return getTargetCount(db).then(targetCount => {
@@ -111,6 +113,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const expectedTargetCount = 5;
     return withDb(1, db => {
       const sdb = new SimpleDb(db);
+      // Now that we have all of the stores, add some targets so the next
+      // migration can count them.
       return sdb.runTransaction('readwrite', [DbTarget.store], txn => {
         const store = txn.store(DbTarget.store);
         let p = PersistencePromise.resolve();

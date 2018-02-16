@@ -532,29 +532,31 @@ function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
  */
 function ensureTargetGlobalExists(
   txn: SimpleDbTransaction
-): PersistencePromise<void> {
+): PersistencePromise<DbTargetGlobal> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
     DbTargetGlobal.store
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
     if (metadata != null) {
-      return PersistencePromise.resolve();
+      return PersistencePromise.resolve(metadata);
     } else {
-      return globalStore.put(
-        DbTargetGlobal.key,
-        new DbTargetGlobal(
-          /*highestTargetId=*/ 0,
-          /*lastListenSequenceNumber=*/ 0,
-          SnapshotVersion.MIN.toTimestamp(),
-          /*targetCount=*/ 0
-        )
+      metadata = new DbTargetGlobal(
+        /*highestTargetId=*/ 0,
+        /*lastListenSequenceNumber=*/ 0,
+        SnapshotVersion.MIN.toTimestamp(),
+        /*targetCount=*/ 0
       );
+      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
     }
   });
 }
 
-// Visible for testing
-export const V1_STORES = [
+/**
+ * The list of all default IndexedDB stores used throughout the SDK. This is
+ * used when creating transactions so that access across all stores is done
+ * atomically.
+ */
+export const ALL_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,
@@ -564,10 +566,3 @@ export const V1_STORES = [
   DbTargetGlobal.store,
   DbTargetDocument.store
 ];
-
-/**
- * The list of all default IndexedDB stores used throughout the SDK. This is
- * used when creating transactions so that access across all stores is done
- * atomically.
- */
-export const ALL_STORES = [...V1_STORES];
