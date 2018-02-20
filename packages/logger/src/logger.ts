@@ -15,13 +15,6 @@
  */
 
 /**
- * This is the file that people using Node.js will actually import. You should
- * only include this file if you have something specific about your
- * implementation that mandates having a separate entrypoint. Otherwise you can
- * just use index.ts
- */
-
-/**
  * A container for all of the Logger instances
  */
 export const instances: Logger[] = [];
@@ -31,15 +24,15 @@ export const instances: Logger[] = [];
  * silence the logs altogether.
  *
  * The order is a follows:
- * DEBUG < VERBOSE < INFO < WARN < ERROR < SILENT
+ * DEBUG < LOG < INFO < WARN < ERROR < SILENT
  *
  * All of the log types above the current log level will be captured (i.e. if
  * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and
- * `VERBOSE` logs will not)
+ * `LOG` logs will not)
  */
 export enum LogLevel {
   DEBUG,
-  VERBOSE,
+  LOG,
   INFO,
   WARN,
   ERROR,
@@ -49,17 +42,7 @@ export enum LogLevel {
 /**
  * A container for the default log level
  */
-let defaultLogLevel: LogLevel = LogLevel.WARN;
-
-/**
- * A function to set the default log level externally
- */
-export function setDefaultLogLevel(val: LogLevel) {
-  if (!(val in LogLevel)) {
-    throw new TypeError('Attempted to Invalid value assigned to `logLevel`');
-  }
-  defaultLogLevel = val;
-}
+const defaultLogLevel: LogLevel = LogLevel.WARN;
 
 /**
  * We allow users the ability to pass their own log handler. We will pass the
@@ -67,44 +50,51 @@ export function setDefaultLogLevel(val: LogLevel) {
  * messages that the user wants to log) to this function.
  */
 export type LogHandler = (
+  loggerInstance: Logger,
   logType: LogLevel,
-  currentLogLevel: LogLevel,
   ...args: any[]
 ) => void;
 
 /**
- * The default log handler will forward DEBUG, VERBOSE, INFO, WARN, and ERROR
+ * The default log handler will forward DEBUG, LOG, INFO, WARN, and ERROR
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
 const defaultLogHandler: LogHandler = (
-  logType: LogLevel,
-  currentLevel: LogLevel,
-  ...args: any[]
+  instance,
+  logType,
+  ...args
 ) => {
-  if (logType < currentLevel) return;
+  if (logType < instance.logLevel) return;
+  const now = new Date();
   switch (logType) {
     case LogLevel.SILENT:
       return;
-    case LogLevel.VERBOSE:
-      console.log(...args);
+    case LogLevel.LOG:
+      console.log(`[${now}]  ${instance.name}:`, ...args);
       break;
     case LogLevel.INFO:
-      console.info(...args);
+      console.info(`[${now}]  ${instance.name}:`, ...args);
       break;
     case LogLevel.WARN:
-      console.warn(...args);
+      console.warn(`[${now}]  ${instance.name}:`, ...args);
       break;
     case LogLevel.ERROR:
-      console.error(...args);
+      console.error(`[${now}]  ${instance.name}:`, ...args);
       break;
     default:
-      console.debug(...args);
+      console.log(`[${now}]  ${instance.name}:`, ...args);
   }
 };
 
 export class Logger {
-  constructor() {
+  /**
+   * Gives you an instance of a Logger to capture messages according to
+   * Firebase's logging scheme.
+   * 
+   * @param name The name that the logs will be associated with
+   */
+  constructor(public name: string) {
     /**
      * Capture the current instance for later use
      */
@@ -112,8 +102,7 @@ export class Logger {
   }
 
   /**
-   * The log level of the given logger. Though all of the log levels can be
-   * centrally set, each logger can be set individually if it desires.
+   * The log level of the given Logger instance.
    */
   private _logLevel = defaultLogLevel;
   get logLevel() {
@@ -127,9 +116,7 @@ export class Logger {
   }
 
   /**
-   * The log handler for the current logger instance. This can be set to any
-   * function value, though this should not be needed the vast majority of the
-   * time
+   * The log handler for the Logger instance.
    */
   private _logHandler: LogHandler = defaultLogHandler;
   get logHandler() {
@@ -147,18 +134,18 @@ export class Logger {
    */
 
   debug(...args) {
-    this._logHandler(LogLevel.DEBUG, this._logLevel, ...args);
+    this._logHandler(this, LogLevel.DEBUG, ...args);
   }
   log(...args) {
-    this._logHandler(LogLevel.VERBOSE, this._logLevel, ...args);
+    this._logHandler(this, LogLevel.LOG, ...args);
   }
   info(...args) {
-    this._logHandler(LogLevel.INFO, this._logLevel, ...args);
+    this._logHandler(this, LogLevel.INFO, ...args);
   }
   warn(...args) {
-    this._logHandler(LogLevel.WARN, this._logLevel, ...args);
+    this._logHandler(this, LogLevel.WARN, ...args);
   }
   error(...args) {
-    this._logHandler(LogLevel.ERROR, this._logLevel, ...args);
+    this._logHandler(this, LogLevel.ERROR, ...args);
   }
 }

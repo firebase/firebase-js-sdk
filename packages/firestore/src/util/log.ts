@@ -19,9 +19,9 @@
 import { SDK_VERSION } from '../core/version';
 import { AnyJs } from './misc';
 import { PlatformSupport } from '../platform/platform';
-import { Logger, LogLevel as _LogLevel } from '@firebase/logger';
+import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 
-const client = new Logger();
+const logClient = new Logger('@firebase/firestore');
 
 export enum LogLevel {
   DEBUG,
@@ -31,30 +31,36 @@ export enum LogLevel {
 
 // Helper methods are needed because variables can't be exported as read/write
 export function getLogLevel(): LogLevel {
-  if (client.logLevel === _LogLevel.DEBUG) {
+  if (logClient.logLevel === FirebaseLogLevel.DEBUG) {
     return LogLevel.DEBUG;
-  }
-
-  if (client.logLevel === _LogLevel.SILENT) {
+  } else if (logClient.logLevel === FirebaseLogLevel.SILENT) {
     return LogLevel.SILENT;
+  } else {
+    return LogLevel.ERROR;
   }
-
-  return LogLevel.ERROR;
 }
 export function setLogLevel(newLevel: LogLevel): void {
-  client.logLevel = newLevel;
+  /**
+   * Since Firestore's LogLevel enum is a pure subset of Firebase's LogLevel, we
+   * can return it directly.
+   */
+  logClient.logLevel = newLevel;
 }
 
 export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
-  const time = new Date().toISOString();
-  const args = obj.map(argToString);
-  client.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
+  if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
+    const time = new Date().toISOString();
+    const args = obj.map(argToString);
+    logClient.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
+  }
 }
 
 export function error(msg: string, ...obj: AnyJs[]): void {
-  const time = new Date().toISOString();
-  const args = obj.map(argToString);
-  client.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
+  if (logClient.logLevel <= FirebaseLogLevel.ERROR) {
+    const time = new Date().toISOString();
+    const args = obj.map(argToString);
+    logClient.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
+  }
 }
 
 /**

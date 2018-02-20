@@ -653,7 +653,7 @@ export class Repo {
     forEach(stats, (stat: string, value: any) => {
       // pad stat names to be the same length (plus 2 extra spaces).
       for (let i = stat.length; i < longestName + 2; i++) stat += ' ';
-      log(stat + value);
+      console.log(stat + value);
     });
   }
 

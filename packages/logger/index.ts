@@ -21,13 +21,12 @@
  * just use index.ts
  */
 
-import { instances, setDefaultLogLevel, LogLevel } from './src/logger';
+import { instances, LogLevel } from './src/logger';
 
 export function setLogLevel(level: LogLevel) {
   instances.forEach(inst => {
     inst.logLevel = level;
   });
-  setDefaultLogLevel(level);
 }
 
 export { Logger, LogLevel, LogHandler } from './src/logger';

@@ -31,16 +31,12 @@ describe('@firebase/logger', () => {
     errorSpy: null
   };
   /**
-   * Before each test, instantiate a new instance of Logger and set the log
-   * level so that all
-   *
-   * Also spy on all of the console methods so we can assert against them as
-   * needed
+   * Before each test, instantiate a new instance of Logger and establish spies
+   * on all of the console methods so we can assert against them as needed
    */
   beforeEach(() => {
-    client = new Logger();
+    client = new Logger('@firebase/test-logger');
 
-    spies.debugSpy = Spy(console, 'debug');
     spies.logSpy = Spy(console, 'log');
     spies.infoSpy = Spy(console, 'info');
     spies.warnSpy = Spy(console, 'warn');
@@ -48,7 +44,6 @@ describe('@firebase/logger', () => {
   });
 
   afterEach(() => {
-    spies.debugSpy.restore();
     spies.logSpy.restore();
     spies.infoSpy.restore();
     spies.warnSpy.restore();
@@ -56,6 +51,11 @@ describe('@firebase/logger', () => {
   });
 
   function testLog(message, channel, shouldLog) {
+    /**
+     * `debug` logs also go through log channel
+     */
+    channel = channel === 'debug' ? 'log' : channel;
+
     it(`Should ${shouldLog ? '' : 'not'} call \`console.${channel}\` if \`.${
       channel
     }\` is called`, () => {
@@ -71,7 +71,7 @@ describe('@firebase/logger', () => {
     /**
      * Allow all logs to be exported for this block of tests
      */
-    before(() => {
+    beforeEach(() => {
       setLogLevel(LogLevel.DEBUG);
     });
     testLog(message, 'debug', true);
@@ -82,7 +82,7 @@ describe('@firebase/logger', () => {
   });
 
   describe('Defaults', () => {
-    before(() => {
+    beforeEach(() => {
       setLogLevel(LogLevel.WARN);
     });
     testLog(message, 'debug', false);

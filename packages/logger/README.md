@@ -1,13 +1,39 @@
-# @firebase/template
+# @firebase/logger
 
-This package can be used as a template for anyone creating new packages in the
-Firebase JS SDK. It will give you a couple things OOTB:
+This package serves as the base of all logging in the JS SDK. Any logging that
+is intended to be for firebase end developers, should go through this module.
 
-- **Typescript Support:** Your code should be written in TS to be consistent
-  with the rest of the SDK.
-- **Isomorphic Testing/Coverage:** Your tests will be run in both Node.js and
-  Browser environments and coverage from both, collected.
-- **Links to all of the other packages:** Should your new package need to take
-  a dependency on any of the other packages in this monorepo (e.g.
-  `@firebase/app`, `@firebase/util`, etc), all those dependencies are already
-  set up, you can just remove the ones you don't need.
+## Basic Usage
+
+Firebase components should import the `Logger` class and instantiate a new
+instance by passing a component name (e.g. `@firebase/<COMPONENT>`) to the
+constructor.
+
+_e.g._
+
+```typescript
+import { Logger } from '@firebase/logger';
+
+const logClient = new Logger(`@firebase/<COMPONENT>`);
+```
+
+Each `Logger` instance supports 5 log functions each to be used in a specific
+instance:
+
+- `debug`: Internal logs; use this to allow developers to send us their debug
+  logs for us to be able to diagnose an issue.
+- `log`: Use to inform your user about things they may need to know.
+- `info`: Use if you have to inform the user about something that they need to
+  take a concrete action on. Once they take that action, the log should go away.
+- `warn`: Use when a product feature may stop functioning correctly; unexpected
+  scenario. Majority of user-facing logs.
+- `error`: Only use when user App would stop functioning correctly - super rare!
+
+## Log Format
+
+Each log will be formatted in the following manner:
+
+```typescript
+`[${new Date()}]  ${this.name}: ${...args}`
+```
+
