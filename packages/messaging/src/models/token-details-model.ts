@@ -46,6 +46,7 @@ export default class TokenDetailsModel extends DBInterface {
 
   onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent) {
     if (evt.oldVersion < 1) {
+      // New IDB instance
       var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
         keyPath: 'swScope'
       });

@@ -33,12 +33,12 @@ const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
 
 function handleDb(db: IDBDatabase) {
   if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
-    // We found a database with the right name, but our expected object
+    // We found a database with the name 'undefined', but our expected object
     // store isn't defined.
     return;
   }
 
-  const transaction = db.transaction([OLD_OBJECT_STORE_NAME]);
+  const transaction = db.transaction(OLD_OBJECT_STORE_NAME);
   const objectStore = transaction.objectStore(OLD_OBJECT_STORE_NAME);
 
   const iidModel = new IIDModel();
@@ -46,6 +46,7 @@ function handleDb(db: IDBDatabase) {
   const openCursorRequest: IDBRequest = objectStore.openCursor();
   openCursorRequest.onerror = event => {
     // NOOP - Nothing we can do.
+    console.warn('Unable to cleanup old IDB.', event);
   };
 
   openCursorRequest.onsuccess = () => {
@@ -63,12 +64,8 @@ function handleDb(db: IDBDatabase) {
 
       cursor.continue();
     } else {
-      // No more results - delete database if we are the only
-      // SDK using it
-      if (db.objectStoreNames.length === 1) {
-        indexedDB.deleteDatabase(OLD_DB_NAME);
-      }
       db.close();
+      indexedDB.deleteDatabase(OLD_DB_NAME);
     }
   };
 }
