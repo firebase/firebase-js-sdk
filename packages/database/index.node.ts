@@ -15,7 +15,7 @@
  */
 
 import firebase from '@firebase/app';
-import { CONSTANTS, isNodeSdk } from "@firebase/util";
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
@@ -39,7 +39,6 @@ import * as types from '@firebase/database-types';
 const ServerValue = Database.ServerValue;
 
 export function initStandalone(app, url, version?: string) {
-
   /**
    * This should allow the firebase-admin package to provide a custom version
    * to the backend
