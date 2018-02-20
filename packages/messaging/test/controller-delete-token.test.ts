@@ -71,7 +71,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       deletePromises.push(globalMessagingService.delete());
     }
     return Promise.all(deletePromises)
-      .then(() => deleteDatabase(TokenDetailsModel.DB_NAME))
+      .then(() => deleteDatabase('fcm_token_details_db'))
       .then(() => (globalMessagingService = null));
   };
 

@@ -43,13 +43,13 @@ function handleDb(db: IDBDatabase) {
 
   const iidModel = new IIDModel();
 
-  const openCursorRequest = objectStore.openCursor();
+  const openCursorRequest: IDBRequest = objectStore.openCursor();
   openCursorRequest.onerror = event => {
     // NOOP - Nothing we can do.
   };
 
-  openCursorRequest.onsuccess = event => {
-    var cursor = event.target.result;
+  openCursorRequest.onsuccess = () => {
+    const cursor = openCursorRequest.result;
     if (cursor) {
       // cursor.value contains the current record being iterated through
       // this is where you'd do something with the result
