@@ -84,4 +84,4 @@ function cleanV1() {
   };
 }
 
-export {cleanV1};
+export { cleanV1 };

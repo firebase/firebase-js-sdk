@@ -18,7 +18,7 @@
 import DBInterface from './db-interface';
 import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
-import {cleanV1} from './clean-v1-undefined';
+import { cleanV1 } from './clean-v1-undefined';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
 const DB_NAME = 'fcm_token_details_db';
