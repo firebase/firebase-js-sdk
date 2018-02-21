@@ -77,7 +77,7 @@ export default class TokenDetailsModel extends DBInterface {
    * @return {!Promise} Returns promise that resolves if input is valid,
    * rejects otherwise.
    */
-  validateInputs_(input) {
+  async validateInputs_(input) {
     if (input.fcmToken) {
       if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
         return Promise.reject(
@@ -134,8 +134,6 @@ export default class TokenDetailsModel extends DBInterface {
         );
       }
     }
-
-    return Promise.resolve();
   }
 
   /**

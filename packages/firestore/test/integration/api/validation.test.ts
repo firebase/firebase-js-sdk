@@ -38,12 +38,10 @@ function validationIt(
   testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
 ) {
   it(message, () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const maybePromise = testFunction(db);
       if (maybePromise) {
         return maybePromise;
-      } else {
-        return Promise.resolve();
       }
     });
   });
@@ -363,11 +361,10 @@ apiDescribe('Validation:', persistence => {
             .commit();
         })
         .then(() => {
-          return ref.firestore.runTransaction(txn => {
+          return ref.firestore.runTransaction(async txn => {
             // Note ref2 does not exist at this point so set that and update ref.
             txn.update(ref, data);
             txn.set(ref2, data);
-            return Promise.resolve();
           });
         });
     });
@@ -465,7 +462,7 @@ apiDescribe('Validation:', persistence => {
     persistence,
     'Batch writes require correct Document References',
     db => {
-      return withAlternateTestDb(persistence, db2 => {
+      return withAlternateTestDb(persistence, async db2 => {
         const badRef = db2.doc('foo/bar');
         const reason =
           'Provided document reference is from a different Firestore instance.';
@@ -474,7 +471,6 @@ apiDescribe('Validation:', persistence => {
         expect(() => batch.set(badRef, data)).to.throw(reason);
         expect(() => batch.update(badRef, data)).to.throw(reason);
         expect(() => batch.delete(badRef)).to.throw(reason);
-        return Promise.resolve();
       });
     }
   );
@@ -488,12 +484,11 @@ apiDescribe('Validation:', persistence => {
         const reason =
           'Provided document reference is from a different Firestore instance.';
         const data = { foo: 1 };
-        return db.runTransaction(txn => {
+        return db.runTransaction(async txn => {
           expect(() => txn.get(badRef)).to.throw(reason);
           expect(() => txn.set(badRef, data)).to.throw(reason);
           expect(() => txn.update(badRef, data)).to.throw(reason);
           expect(() => txn.delete(badRef)).to.throw(reason);
-          return Promise.resolve();
         });
       });
     }
@@ -777,7 +772,7 @@ function expectWriteToFail(
     );
   }
 
-  return docRef.firestore.runTransaction(txn => {
+  return docRef.firestore.runTransaction(async txn => {
     if (includeSets) {
       expect(() => txn.set(docRef, data)).to.throw(error('Transaction.set'));
     }
@@ -787,7 +782,6 @@ function expectWriteToFail(
         error('Transaction.update')
       );
     }
-    return Promise.resolve();
   });
 }
 

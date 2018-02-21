@@ -42,9 +42,9 @@ class MessagingTestServer {
     return `http://localhost:${PORT_NUMBER}`;
   }
 
-  start() {
+  async start() {
     if (this._server) {
-      return Promise.resolve();
+      return;
     }
 
     return new Promise((resolve, reject) => {
@@ -56,15 +56,11 @@ class MessagingTestServer {
 
   // Sometimes the server doesn't trigger the callback due to
   // currently open sockets. So call `closethis._server
-  stop() {
-    if (!this._server) {
-      return Promise.resolve();
+  async stop() {
+    if (this._server) {
+      this._server.close();
+      this._server = null;
     }
-
-    this._server.close();
-    this._server = null;
-
-    return Promise.resolve();
   }
 }
 module.exports = new MessagingTestServer();

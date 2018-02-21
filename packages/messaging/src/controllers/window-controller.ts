@@ -133,7 +133,6 @@ export default class WindowController extends ControllerInterface
         .catch(() => {
           // If the download or parsing fails allow check.
           // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-          return Promise.resolve();
         })
         .then(manifestContent => {
           if (!manifestContent) {
@@ -161,9 +160,9 @@ export default class WindowController extends ControllerInterface
    * @returns {Promise} Resolves if the permission was granted, otherwise
    * rejects
    */
-  requestPermission() {
+  async requestPermission() {
     if ((Notification as any).permission === NOTIFICATION_PERMISSION.granted) {
-      return Promise.resolve();
+      return;
     }
 
     return new Promise((resolve, reject) => {
