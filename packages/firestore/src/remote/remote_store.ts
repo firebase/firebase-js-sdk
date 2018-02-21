@@ -761,10 +761,10 @@ export class RemoteStore {
       this.writeStream.lastStreamToken = emptyByteString();
 
       return this.localStore.setLastStreamToken(emptyByteString());
+    } else {
+      // Some other error, don't reset stream token. Our stream logic will
+      // just retry with exponential backoff.
     }
-
-    // Some other error, don't reset stream token. Our stream logic will
-    // just retry with exponential backoff.
   }
 
   private async handleWriteError(error: FirestoreError): Promise<void> {
@@ -785,9 +785,9 @@ export class RemoteStore {
           // another slot has freed up.
           return this.fillWritePipeline();
         });
+    } else {
+      // Transient error, just let the retry logic kick in.
     }
-
-    // Transient error, just let the retry logic kick in.
   }
 
   createTransaction(): Transaction {
