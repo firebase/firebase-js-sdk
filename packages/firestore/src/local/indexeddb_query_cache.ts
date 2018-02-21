@@ -66,13 +66,15 @@ export class IndexedDbQueryCache implements QueryCache {
     return globalTargetStore(transaction)
       .get(DbTargetGlobal.key)
       .next(metadata => {
-        if (metadata !== null) {
-          this.metadata = metadata;
-          const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
-          this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
-            new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanos)
-          );
-        }
+        assert(
+          metadata !== null, 
+          'Missing metadata row that should be added by schema migration.'
+        );
+        this.metadata = metadata;
+        const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
+        this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
+          new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanos)
+        );
         return PersistencePromise.resolve();
       });
   }
@@ -91,15 +93,6 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     this.lastRemoteSnapshotVersion = snapshotVersion;
     this.metadata.lastRemoteSnapshotVersion = snapshotVersion.toTimestamp();
-    return globalTargetStore(transaction).put(
-      DbTargetGlobal.key,
-      this.metadata
-    );
-  }
-
-  private saveMetadata(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void> {
     return globalTargetStore(transaction).put(
       DbTargetGlobal.key,
       this.metadata
@@ -141,6 +134,15 @@ export class IndexedDbQueryCache implements QueryCache {
         this.metadata.targetCount -= 1;
         return this.saveMetadata(transaction);
       });
+  }
+
+  private saveMetadata(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    return globalTargetStore(transaction).put(
+      DbTargetGlobal.key,
+      this.metadata
+    );
   }
 
   private saveQueryData(

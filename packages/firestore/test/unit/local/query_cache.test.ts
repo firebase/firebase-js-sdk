@@ -48,17 +48,6 @@ describe('MemoryQueryCache', () => {
   });
 
   genericQueryCacheTests();
-
-  it('cannot remove nonexistent query', async () => {
-    // We don't check for existence in the indexeddb query cache, but we do for
-    // memory. So, this test is specific to the memory-backed query cache.
-    try {
-      await cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
-      fail('should not have been able to remove nonexistent query');
-    } catch {
-      // expected to throw
-    }
-  });
 });
 
 describe('IndexedDbQueryCache', () => {
@@ -80,39 +69,33 @@ describe('IndexedDbQueryCache', () => {
   genericQueryCacheTests();
 });
 
-const QUERY_ROOMS = Query.atPath(path('rooms'));
-const QUERY_HALLS = Query.atPath(path('halls'));
-const QUERY_GARAGES = Query.atPath(path('garages'));
-
-/**
- * Creates a new QueryData object from the the given parameters, synthesizing
- * a resume token from the snapshot version.
- */
-function testQueryData(query: Query, targetId: TargetId, version?: number) {
-  if (version === undefined) {
-    version = 0;
-  }
-  const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
-  const resumeToken = resumeTokenForSnapshot(snapshotVersion);
-  return new QueryData(
-    query,
-    targetId,
-    QueryPurpose.Listen,
-    snapshotVersion,
-    resumeToken
-  );
-}
-
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
 function genericQueryCacheTests() {
   addEqualityMatcher();
 
-  async function setAndReadQuery(queryData: QueryData): Promise<void> {
-    await cache.addQueryData(queryData);
-    const read = await cache.getQueryData(queryData.query);
-    expect(read).to.deep.equal(queryData);
+  const QUERY_ROOMS = Query.atPath(path('rooms'));
+  const QUERY_HALLS = Query.atPath(path('halls'));
+  const QUERY_GARAGES = Query.atPath(path('garages'));
+
+  /**
+   * Creates a new QueryData object from the the given parameters, synthesizing
+   * a resume token from the snapshot version.
+   */
+  function testQueryData(query: Query, targetId: TargetId, version?: number) {
+    if (version === undefined) {
+      version = 0;
+    }
+    const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
+    const resumeToken = resumeTokenForSnapshot(snapshotVersion);
+    return new QueryData(
+      query,
+      targetId,
+      QueryPurpose.Listen,
+      snapshotVersion,
+      resumeToken
+    );
   }
 
   beforeEach(() => {
@@ -125,8 +108,11 @@ function genericQueryCacheTests() {
     });
   });
 
-  it('can set and read a query', () => {
-    return setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 1));
+  it('can set and read a query', async () => {
+    const queryData = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(queryData);
+    const read = await cache.getQueryData(queryData.query);
+    expect(read).to.deep.equal(queryData);
   });
 
   it('handles canonical ID collisions', async () => {

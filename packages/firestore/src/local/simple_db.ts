@@ -254,7 +254,7 @@ export class SimpleDbTransaction {
     );
   }
 
-  constructor(private transaction: IDBTransaction) {
+  constructor(private readonly transaction: IDBTransaction) {
     this.completionPromise = new Promise<void>((resolve, reject) => {
       // We consider aborting to be "normal" and just resolve the promise.
       // May need to revisit if/when we actually need to abort transactions.
@@ -356,11 +356,13 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
     return wrapRequest<void>(request);
   }
 
-  // If we ever need more of the count variants, we can add overloads. For now,
-  // all we need is to count everything in a store.
-  //
-  // Returns the number of rows in the store. Execution time, off of the event
-  // loop, is O(# rows).
+  /**
+   * If we ever need more of the count variants, we can add overloads. For now,
+   * all we need is to count everything in a store.
+   *
+   * Returns the number of rows in the store. Execution, which occurs off of the 
+   * event loop, is O(# rows).
+   */
   count(): PersistencePromise<number> {
     debug(LOG_TAG, 'COUNT', this.store.name);
     const request = this.store.count();

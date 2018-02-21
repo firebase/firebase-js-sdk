@@ -63,7 +63,7 @@ export function createOrUpgradeDb(
 
   let p = PersistencePromise.resolve();
   if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobalExists(txn).next(() => saveTargetCount(txn));
+    p = ensureTargetGlobalExists(txn).next((targetGlobal) => saveTargetCount(txn, targetGlobal));
   }
   return p;
 }
@@ -508,19 +508,15 @@ function createQueryCache(db: IDBDatabase): void {
 /**
  * Counts the number of targets persisted and adds that value to the target
  * global singleton.
- *
- * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function saveTargetCount(txn: SimpleDbTransaction): PersistencePromise<void> {
+function saveTargetCount(txn: SimpleDbTransaction, metadata: DbTargetGlobal): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
     DbTargetGlobal.store
   );
   const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
   return targetStore.count().next(count => {
-    return globalStore.get(DbTargetGlobal.key).next(metadata => {
-      metadata.targetCount = count;
-      return globalStore.put(DbTargetGlobal.key, metadata);
-    });
+    metadata.targetCount = count;
+    return globalStore.put(DbTargetGlobal.key, metadata);
   });
 }
 
