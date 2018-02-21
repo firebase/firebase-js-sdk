@@ -16,7 +16,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-types": "0.1.1",
-    "@firebase/util": "0.1.9"
+    "@firebase/util": "0.1.9",
+    "tslib": "^1.9.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",

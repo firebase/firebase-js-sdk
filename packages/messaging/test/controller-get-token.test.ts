@@ -307,11 +307,11 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       sandbox
         .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       const serviceInstance = new ServiceClass(app);
       return serviceInstance.getToken().then(token => {
@@ -350,7 +350,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
         sandbox
           .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
-          .callsFake(() => Promise.resolve());
+          .callsFake(async () => {});
 
         sandbox
           .stub(IIDModel.prototype, 'getToken')
@@ -362,7 +362,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
         sandbox
           .stub(TokenDetailsModel.prototype, 'saveTokenDetails')
-          .callsFake(() => Promise.resolve());
+          .callsFake(async () => {});
 
         const serviceInstance = new ServiceClass(app);
         return serviceInstance.getToken().then(token => {
@@ -430,7 +430,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
@@ -461,7 +461,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         TokenDetailsModel.prototype,
         'saveTokenDetails'
       );
-      saveTokenDetailsStub.callsFake(() => Promise.resolve());
+      saveTokenDetailsStub.callsFake(async () => {});
 
       const deleteTokenStub = sandbox.stub(
         TokenDetailsModel.prototype,
@@ -472,9 +472,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         return Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
       });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(() => Promise.resolve());
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       sandbox
         .stub(IIDModel.prototype, 'getToken')
@@ -521,7 +519,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       sandbox
         .stub(IIDModel.prototype, 'updateToken')
@@ -536,9 +534,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
       });
 
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(() => Promise.resolve());
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
 
       const serviceInstance = new ServiceClass(app);
       try {

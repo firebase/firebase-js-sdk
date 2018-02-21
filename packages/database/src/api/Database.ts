@@ -132,7 +132,7 @@ export class DatabaseInternals {
   constructor(public database: Database) {}
 
   /** @return {Promise<void>} */
-  delete(): Promise<void> {
+  async delete(): Promise<void> {
     (this.database as any).checkDeleted_('delete');
     RepoManager.getInstance().deleteRepo((this.database as any).repo_ as Repo);
 
@@ -140,6 +140,5 @@ export class DatabaseInternals {
     (this.database as any).root_ = null;
     this.database.INTERNAL = null;
     this.database = null;
-    return Promise.resolve();
   }
 }

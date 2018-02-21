@@ -232,11 +232,10 @@ class MockConnection implements Connection {
           this.resetAndCloseWriteStream();
         }
       });
-      this.queue.enqueue(() => {
+      this.queue.enqueue(async () => {
         if (this.writeStream === writeStream) {
           writeStream.callOnOpen();
         }
-        return Promise.resolve();
       });
       this.writeStream = writeStream;
       return writeStream;
@@ -265,12 +264,11 @@ class MockConnection implements Connection {
         }
       });
       // Call on open immediately after returning
-      this.queue.enqueue(() => {
+      this.queue.enqueue(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
           this.watchOpen.resolve();
         }
-        return Promise.resolve();
       });
       this.watchStream = watchStream;
       return this.watchStream;
@@ -688,9 +686,7 @@ abstract class TestRunner {
     }
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
-    return this.queue.enqueue(() => {
-      return Promise.resolve();
-    });
+    return this.queue.enqueue(async () => {});
   }
 
   private async doWatchStreamClose(spec: SpecWatchStreamClose): Promise<void> {
@@ -731,13 +727,11 @@ abstract class TestRunner {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         return nextWrite.userCallback.promise;
-      } else {
-        return Promise.resolve();
       }
     });
   }
 
-  private doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
+  private async doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
     const specError: SpecError = writeFailure.error;
     const error = new FirestoreError(
       mapCodeFromRpcCode(specError.code),
@@ -761,8 +755,6 @@ abstract class TestRunner {
             expect(err).not.to.be.null;
           }
         );
-      } else {
-        return Promise.resolve();
       }
     });
   }
@@ -999,9 +991,8 @@ class MemoryTestRunner extends TestRunner {
     return new MemoryPersistence();
   }
 
-  protected destroyPersistence(): Promise<void> {
+  protected async destroyPersistence(): Promise<void> {
     // Nothing to do.
-    return Promise.resolve();
   }
 }
 

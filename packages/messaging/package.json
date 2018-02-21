@@ -18,7 +18,8 @@
   "dependencies": {
     "@firebase/messaging-types": "0.1.1",
     "@firebase/util": "0.1.9",
-    "lcov-result-merger": "^1.2.0"
+    "lcov-result-merger": "^1.2.0",    
+    "tslib": "^1.9.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.4",
