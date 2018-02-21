@@ -60,11 +60,7 @@ export type LogHandler = (
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
-const defaultLogHandler: LogHandler = (
-  instance,
-  logType,
-  ...args
-) => {
+const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
   if (logType < instance.logLevel) return;
   const now = new Date();
   switch (logType) {
@@ -91,7 +87,7 @@ export class Logger {
   /**
    * Gives you an instance of a Logger to capture messages according to
    * Firebase's logging scheme.
-   * 
+   *
    * @param name The name that the logs will be associated with
    */
   constructor(public name: string) {

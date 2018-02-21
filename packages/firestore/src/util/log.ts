@@ -51,7 +51,10 @@ export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
     const time = new Date().toISOString();
     const args = obj.map(argToString);
-    logClient.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
+    logClient.log(
+      `Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`,
+      ...args
+    );
   }
 }
 
