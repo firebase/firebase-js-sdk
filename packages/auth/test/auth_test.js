@@ -1349,6 +1349,73 @@ function testFetchProvidersForEmail() {
 }
 
 
+function testFetchSignInMethodsForEmail() {
+  var email = 'foo@bar.com';
+  var expectedSignInMethods = ['password', 'google.com'];
+
+  asyncTestCase.waitForSignals(1);
+
+  // Simulate successful RpcHandler fetchSignInMethodsForIdentifier.
+  stubs.replace(
+      fireauth.RpcHandler.prototype, 'fetchSignInMethodsForIdentifier',
+      function(data) {
+        assertObjectEquals(email, data);
+        return goog.Promise.resolve(expectedSignInMethods);
+      });
+
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  auth1.fetchSignInMethodsForEmail(email).then(function(signInMethods) {
+    assertArrayEquals(expectedSignInMethods, signInMethods);
+    asyncTestCase.signal();
+  });
+  assertAuthTokenListenerCalledOnce(auth1);
+}
+
+
+function testFetchSignInMethodsForEmail_error() {
+  var email = 'foo@bar.com';
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
+
+  asyncTestCase.waitForSignals(1);
+
+  stubs.replace(
+      fireauth.RpcHandler.prototype, 'fetchSignInMethodsForIdentifier',
+      function(data) {
+        assertObjectEquals(email, data);
+        return goog.Promise.reject(expectedError);
+      });
+
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  auth1.fetchSignInMethodsForEmail(email)
+      .then(function(signInMethods) {
+        fail('fetchSignInMethodsForEmail should not resolve!');
+      }).thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+  assertAuthTokenListenerCalledOnce(auth1);
+}
+
+
+function testIsSignInWithEmailLink() {
+  var emailLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
+      'oobCode=oobCode';
+  var emailLink3 = 'https://www.example.com/action?mode=signIn';
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  var isSignInLink1 = auth1.isSignInWithEmailLink(emailLink1);
+  assertEquals(true, isSignInLink1);
+  var isSignInLink2 = auth1.isSignInWithEmailLink(emailLink2);
+  assertEquals(false, isSignInLink2);
+  var isSignInLink3 = auth1.isSignInWithEmailLink(emailLink3);
+  assertEquals(false, isSignInLink3);
+}
+
+
 function testAuth_pendingPromises() {
   asyncTestCase.waitForSignals(1);
   // Simulate available token.
@@ -1430,6 +1497,116 @@ function testAuth_delete() {
     assertNull(auth1.languageCode);
     asyncTestCase.signal();
   });
+}
+
+
+/**
+ * Tests sendSignInLinkToEmail successful operation with action code settings.
+ */
+function testSendSignInLinkToEmail_success() {
+  var expectedEmail = 'user@example.com';
+  // Simulate successful RpcHandler sendSignInLinkToEmail.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'sendSignInLinkToEmail',
+      function(email, actualActionCodeSettings) {
+        assertObjectEquals(
+            new fireauth.ActionCodeSettings(actionCodeSettings).buildRequest(),
+            actualActionCodeSettings);
+        assertEquals(expectedEmail, email);
+        return goog.Promise.resolve(expectedEmail);
+      });
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  assertAuthTokenListenerCalledOnce(auth1);
+  auth1.sendSignInLinkToEmail(expectedEmail, actionCodeSettings)
+      .then(function() {
+        asyncTestCase.signal();
+      });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+/**
+ * Tests sendSignInLinkToEmail failing operation due to backend error.
+ */
+function testSendSignInLinkToEmail_error() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
+  var expectedEmail = 'user@example.com';
+  // Simulate unsuccessful RpcHandler sendSignInLinkToEmail.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'sendSignInLinkToEmail',
+      function(email, actualActionCodeSettings) {
+        assertObjectEquals(
+            new fireauth.ActionCodeSettings(actionCodeSettings).buildRequest(),
+            actualActionCodeSettings);
+        return goog.Promise.reject(expectedError);
+      });
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  assertAuthTokenListenerCalledOnce(auth1);
+  auth1.sendSignInLinkToEmail(expectedEmail, actionCodeSettings)
+      .then(function() {
+        fail('sendSignInLinkToEmail should not resolve!');
+      }).thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests sendSignInLinkToEmail empty continue URL in action code settings.
+ */
+function testSendSignInLinkToEmail_emptyContinueUrl_error() {
+  var settings = {
+    'url': '',
+    'handleCodeInApp': true
+  };
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INVALID_CONTINUE_URI);
+
+  var expectedEmail = 'user@example.com';
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  assertAuthTokenListenerCalledOnce(auth1);
+  auth1.sendSignInLinkToEmail(expectedEmail, settings)
+      .then(function() {
+        fail('sendSignInLinkToEmail should not resolve!');
+      }).thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests sendSignInLinkToEmail invalid handleCodeInApp settings.
+ */
+function testSendSignInLinkToEmail_handleCodeInApp_error() {
+  var settings = {
+    'url': 'https://www.example.com/?state=abc',
+    'handleCodeInApp': false
+  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.ARGUMENT_ERROR,
+      'handleCodeInApp must be true when sending sign in link to email');
+  var expectedEmail = 'user@example.com';
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  assertAuthTokenListenerCalledOnce(auth1);
+  auth1.sendSignInLinkToEmail(expectedEmail, settings)
+      .then(function() {
+        fail('sendSignInLinkToEmail should not resolve!');
+      }).thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
 }
 
 
@@ -3728,6 +3905,135 @@ function testAuth_signInAndRetrieveDataWithCustomToken_error() {
   auth1.signInAndRetrieveDataWithCustomToken(expectedCustomToken)
       .thenCatch(function(err) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_success() {
+  // Tests successful signInWithEmailLink.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and link.
+  var expectedEmail = 'user@example.com';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedOobCode = 'code';
+  var expectedIdToken = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ2' +
+      '9vZ2xlLmNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5nb29' +
+      'nbGUuY29tL2FiY2RlZmdoaWprbG1ub3BxcnN0dSIsDQogICJhdWQiOiAiMTIzNDU2Nzgi' +
+      'LA0KICAiYXV0aF90aW1lIjogMTUxMDM1NzYyMiwNCiAgInVzZXJfaWQiOiAiYWJjZGVmZ' +
+      '2hpamtsbW5vcHFyc3R1IiwNCiAgInN1YiI6ICJhYmNkZWZnaGlqa2xtbm9wcXJzdHUiLA' +
+      '0KICAiaWF0IjogMTUxMDM1NzYyMiwNCiAgImV4cCI6IDE1MTAzNjEyMjIsDQogICJlbWF' +
+      'pbCI6ICJ1c2VyQGV4YW1wbGUuY29tIiwNCiAgImVtYWlsX3ZlcmlmaWVkIjogdHJ1ZSwN' +
+      'CiAgImZpcmViYXNlIjogew0KICAgICJpZGVudGl0aWVzIjogew0KICAgICAgImVtYWlsI' +
+      'jogWw0KICAgICAgICAidXNlckBleGFtcGxlLmNvbSINCiAgICAgIF0NCiAgICB9LA0KIC' +
+      'AgICJzaWduX2luX3Byb3ZpZGVyIjogInBhc3N3b3JkIg0KICB9DQp9.SIGNATURE';
+  expectedTokenResponse['idToken'] = expectedIdToken;
+
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should initialize a user using the expected
+  // token response generated by RPC response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        // Token response should match rpcHandler response.
+        assertObjectEquals(expectedTokenResponse, tokenResponse);
+        // Simulate user sign in completed and returned.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return goog.Promise.resolve();
+      });
+  // emailLinkSignIn should be called with expected parameters and resolved
+  // with expected token response.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'emailLinkSignIn',
+      function(email, oobCode) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedOobCode, oobCode);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponse);
+      });
+  asyncTestCase.waitForSignals(3);
+  // Initialize expected user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  var expectedResult = {
+    'user': user1,
+    'credential': null,
+    'additionalUserInfo': {'providerId': 'password', 'isNewUser': false},
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Sign in with email and password.
+  auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .then(function(result) {
+        assertObjectEquals(expectedResult, result);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_error() {
+  // Tests successful signInWithEmailLink.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and link.
+  var expectedEmail = 'user@example.com';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedOobCode = 'code';
+  // Expected RPC error.
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // signInWithIdTokenResponse should initialize a user using the expected
+  // token response generated by RPC response.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'signInWithIdTokenResponse',
+      function(tokenResponse) {
+        fail('signInWithIdTokenResponse should not be called!');
+      });
+  // emailLinkSignIn should be called with expected parameters and resolved
+  // with expected error.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'emailLinkSignIn',
+      function(email, oobCode) {
+        assertEquals(expectedEmail, email);
+        assertEquals(expectedOobCode, oobCode);
+        asyncTestCase.signal();
+        return goog.Promise.reject(expectedError);
+      });
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Sign in with email and password should throw expected error.
+  auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_invalidLink_error() {
+  // Tests signInWithEmailLink when an invalid link is provided.
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected email and link.
+  var expectedEmail = 'user@example.com';
+  var expectedLink = 'https://www.example.com?mode=signIn';
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Sign in with email and password should throw expected error.
+  auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
 }

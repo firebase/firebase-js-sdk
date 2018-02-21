@@ -31,6 +31,7 @@ goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.ConfirmationResult');
+goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.UserEventType');
 goog.require('fireauth.authenum.Error');
@@ -1824,6 +1825,60 @@ fireauth.Auth.prototype.fetchProvidersForEmail = function(email) {
 
 
 /**
+ * Gets the list of possible sign in methods for the given email address.
+ * @param {string} email The email address.
+ * @return {!goog.Promise<!Array<string>>}
+ */
+fireauth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {
+  return /** @type {!goog.Promise<!Array<string>>} */ (
+      this.registerPendingPromise_(
+          this.getRpcHandler().fetchSignInMethodsForIdentifier(email)));
+};
+
+
+/**
+ * @param {string} emailLink The email link.
+ * @return {boolean} Whether the link is a sign in with email link.
+ */
+fireauth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {
+  return  !!fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink);
+};
+
+
+/**
+ * Sends the sign-in with email link for the email account provided.
+ * @param {string} email The email account to sign in with.
+ * @param {!Object} actionCodeSettings The action code settings object.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.Auth.prototype.sendSignInLinkToEmail = function(
+    email, actionCodeSettings) {
+  var self = this;
+  return this.registerPendingPromise_(
+      // Wrap in promise as ActionCodeSettings constructor could throw a
+      // synchronous error if invalid arguments are specified.
+      goog.Promise.resolve()
+          .then(function() {
+            var actionCodeSettingsBuilder =
+                new fireauth.ActionCodeSettings(actionCodeSettings);
+            if (!actionCodeSettingsBuilder.canHandleCodeInApp()) {
+              throw new fireauth.AuthError(
+                  fireauth.authenum.Error.ARGUMENT_ERROR,
+                  fireauth.ActionCodeSettings.RawField.HANDLE_CODE_IN_APP +
+                  ' must be true when sending sign in link to email');
+            }
+            return actionCodeSettingsBuilder.buildRequest();
+          }).then(function(additionalRequestData) {
+            return self.getRpcHandler().sendSignInLinkToEmail(
+                email, additionalRequestData);
+          }).then(function(email) {
+            // Do not return the email.
+          }));
+};
+
+
+/**
  * Verifies an email action code for password reset and returns a promise
  * that resolves with the associated email if verified.
  * @param {string} code The email action code to verify for password reset.
@@ -1929,4 +1984,24 @@ fireauth.Auth.prototype.signInWithPhoneNumber =
           appVerifier,
           // This will wait for redirectStateIsReady to resolve first.
           goog.bind(this.signInAndRetrieveDataWithCredential, this))));
+};
+
+
+/**
+ * Signs in a Firebase User with the provided email and the passwordless
+ * sign-in email link.
+ * @param {string} email The email account to sign in with.
+ * @param {?string=} opt_link The optional link which contains the OTP needed
+ *     to complete the sign in with email link. If not specified, the current
+ *     URL is used instead.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInWithEmailLink = function(email, opt_link) {
+  var self = this;
+  return this.registerPendingPromise_(
+      goog.Promise.resolve().then(function() {
+        var credential = fireauth.EmailAuthProvider.credentialWithLink(
+            email, opt_link || fireauth.util.getCurrentUrl());
+        return self.signInAndRetrieveDataWithCredential(credential);
+      }));
 };

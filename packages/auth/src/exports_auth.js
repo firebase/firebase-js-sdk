@@ -66,9 +66,17 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'fetchProvidersForEmail',
         args: [fireauth.args.string('email')]
       },
+      fetchSignInMethodsForEmail: {
+        name: 'fetchSignInMethodsForEmail',
+        args: [fireauth.args.string('email')]
+      },
       getRedirectResult: {
         name: 'getRedirectResult',
         args: []
+      },
+      isSignInWithEmailLink: {
+        name: 'isSignInWithEmailLink',
+        args: [fireauth.args.string('emailLink')]
       },
       onAuthStateChanged: {
         name: 'onAuthStateChanged',
@@ -103,6 +111,13 @@ fireauth.exportlib.exportPrototypeMethods(
               true)
         ]
       },
+      sendSignInLinkToEmail: {
+        name: 'sendSignInLinkToEmail',
+        args: [
+          fireauth.args.string('email'),
+          fireauth.args.object('actionCodeSettings')
+        ]
+      },
       setPersistence: {
         name: 'setPersistence',
         args:  [fireauth.args.string('persistence')]
@@ -134,6 +149,12 @@ fireauth.exportlib.exportPrototypeMethods(
       signInWithEmailAndPassword: {
         name: 'signInWithEmailAndPassword',
         args: [fireauth.args.string('email'), fireauth.args.string('password')]
+      },
+      signInWithEmailLink: {
+        name: 'signInWithEmailLink',
+        args: [
+          fireauth.args.string('email'), fireauth.args.string('emailLink', true)
+        ]
       },
       signInAndRetrieveDataWithEmailAndPassword: {
         name: 'signInAndRetrieveDataWithEmailAndPassword',
@@ -340,6 +361,12 @@ fireauth.exportlib.exportFunction(
     fireauth.FacebookAuthProvider.credential, [
       fireauth.args.or(fireauth.args.string(), fireauth.args.object(),
           'token')
+    ]);
+fireauth.exportlib.exportFunction(
+    fireauth.EmailAuthProvider, 'credentialWithLink',
+    fireauth.EmailAuthProvider.credentialWithLink, [
+      fireauth.args.string('email'),
+      fireauth.args.string('emailLink')
     ]);
 
 fireauth.exportlib.exportPrototypeMethods(
