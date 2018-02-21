@@ -360,7 +360,7 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
    * If we ever need more of the count variants, we can add overloads. For now,
    * all we need is to count everything in a store.
    *
-   * Returns the number of rows in the store. Execution, which occurs off of the 
+   * Returns the number of rows in the store. Execution, which occurs off of the
    * event loop, is O(# rows).
    */
   count(): PersistencePromise<number> {

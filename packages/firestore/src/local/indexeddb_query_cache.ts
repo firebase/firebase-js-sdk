@@ -67,7 +67,7 @@ export class IndexedDbQueryCache implements QueryCache {
       .get(DbTargetGlobal.key)
       .next(metadata => {
         assert(
-          metadata !== null, 
+          metadata !== null,
           'Missing metadata row that should be added by schema migration.'
         );
         this.metadata = metadata;
