@@ -612,7 +612,7 @@ describe('Firebase Messaging > *SWController', function() {
         .callsFake(() => Promise.resolve(null));
       sandbox
         .stub(swController, 'attemptToMessageClient_')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       swController.onNotificationClick_(event);
 
@@ -671,7 +671,7 @@ describe('Firebase Messaging > *SWController', function() {
         .callsFake(() => Promise.resolve(fakeWindowClient));
       sandbox
         .stub(swController, 'attemptToMessageClient_')
-        .callsFake(() => Promise.resolve());
+        .callsFake(async () => {});
 
       swController.onNotificationClick_(event);
 
@@ -758,9 +758,9 @@ describe('Firebase Messaging > *SWController', function() {
       };
 
       const swController = new SWController(app);
-      sandbox.stub(swController, 'attemptToMessageClient_').callsFake(() => {
-        return Promise.resolve();
-      });
+      sandbox
+        .stub(swController, 'attemptToMessageClient_')
+        .callsFake(async () => {});
 
       const payload = {
         example: 'test'

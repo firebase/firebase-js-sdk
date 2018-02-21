@@ -288,13 +288,12 @@ export abstract class PersistentStream<
   }
 
   /** Called by the idle timer when the stream should close due to inactivity. */
-  private handleIdleCloseTimer(): Promise<void> {
+  private async handleIdleCloseTimer(): Promise<void> {
     if (this.isOpen()) {
       // When timing out an idle stream there's no reason to force the stream into backoff when
       // it restarts so set the stream state to Initial instead of Error.
       return this.close(PersistentStreamState.Initial);
     }
-    return Promise.resolve();
   }
 
   /** Marks the stream as active again. */
@@ -319,7 +318,7 @@ export abstract class PersistentStream<
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
    */
-  private close(
+  private async close(
     finalState: PersistentStreamState,
     error?: FirestoreError
   ): Promise<void> {
@@ -361,8 +360,6 @@ export abstract class PersistentStream<
     // could trigger undesirable recovery logic, etc.).
     if (finalState !== PersistentStreamState.Stopped) {
       return listener.onClose(error);
-    } else {
-      return Promise.resolve();
     }
   }
 
@@ -403,7 +400,7 @@ export abstract class PersistentStream<
         this.startStream(token);
       },
       (error: Error) => {
-        this.queue.enqueue(() => {
+        this.queue.enqueue(async () => {
           if (this.state !== PersistentStreamState.Stopped) {
             // Stream can be stopped while waiting for authorization.
             const rpcError = new FirestoreError(
@@ -411,8 +408,6 @@ export abstract class PersistentStream<
               'Fetching auth token failed: ' + error.message
             );
             return this.handleStreamClose(rpcError);
-          } else {
-            return Promise.resolve();
           }
         });
       }
@@ -436,12 +431,10 @@ export abstract class PersistentStream<
       stream: Stream<SendType, ReceiveType>,
       fn: () => Promise<void>
     ) => {
-      this.queue.enqueue(() => {
+      this.queue.enqueue(async () => {
         // Only raise events if the stream instance has not changed
         if (this.stream === stream) {
           return fn();
-        } else {
-          return Promise.resolve();
         }
       });
     };
@@ -480,16 +473,15 @@ export abstract class PersistentStream<
     );
     this.state = PersistentStreamState.Backoff;
 
-    this.backoff.backoffAndRun(() => {
+    this.backoff.backoffAndRun(async () => {
       if (this.state === PersistentStreamState.Stopped) {
         // Stream can be stopped while waiting for backoff to complete.
-        return Promise.resolve();
+        return;
       }
 
       this.state = PersistentStreamState.Initial;
       this.start(listener);
       assert(this.isStarted(), 'PersistentStream should have started');
-      return Promise.resolve();
     });
   }
 
