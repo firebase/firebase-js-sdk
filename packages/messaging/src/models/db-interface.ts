@@ -59,7 +59,7 @@ export default class DBInterface {
       request.onupgradeneeded = event => {
         try {
           var db = (<IDBRequest>event.target).result;
-          this.onDBUpgrade(db);
+          this.onDBUpgrade(db, event);
         } catch (err) {
           // close the database as it can't be used.
           db.close();
@@ -90,7 +90,7 @@ export default class DBInterface {
    * @protected
    * @param {!IDBDatabase} db
    */
-  onDBUpgrade(db) {
+  onDBUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent) {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 }

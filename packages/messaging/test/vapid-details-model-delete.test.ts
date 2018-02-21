@@ -35,7 +35,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
     }
 
     return promiseChain
-      .then(() => deleteDatabase(VapidDetailsModel.DB_NAME))
+      .then(() => deleteDatabase('fcm_vapid_details_db'))
       .then(() => (vapidModel = null));
   };
 

@@ -18,9 +18,11 @@
 import DBInterface from './db-interface';
 import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
+import { cleanV1 } from './clean-v1-undefined';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
-const DB_VERSION = 1;
+const DB_NAME = 'fcm_token_details_db';
+const DB_VERSION = 2;
 
 /** @record */
 function ValidateInput() {}
@@ -39,29 +41,32 @@ ValidateInput.prototype.fcmPushSet;
 
 export default class TokenDetailsModel extends DBInterface {
   constructor() {
-    super(TokenDetailsModel.DB_NAME, DB_VERSION);
+    super(DB_NAME, DB_VERSION);
   }
 
-  static get DB_NAME() {
-    return 'fcm_token_details_db';
-  }
+  onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent) {
+    if (evt.oldVersion < 1) {
+      // New IDB instance
+      var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+        keyPath: 'swScope'
+      });
 
-  /**
-   * @override
-   */
-  onDBUpgrade(db) {
-    var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
-      keyPath: 'swScope'
-    });
+      // Make sure the sender ID can be searched
+      objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
+        unique: false
+      });
 
-    // Make sure the sender ID can be searched
-    objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
-      unique: false
-    });
+      objectStore.createIndex('fcmToken', 'fcmToken', {
+        unique: true
+      });
+    }
 
-    objectStore.createIndex('fcmToken', 'fcmToken', {
-      unique: true
-    });
+    if (evt.oldVersion < 2) {
+      // Prior to version 2, we were using either 'fcm_token_details_db'
+      // or 'undefined' as the database name due to bug in the SDK
+      // So remove the old tokens and databases.
+      cleanV1();
+    }
   }
 
   /**
