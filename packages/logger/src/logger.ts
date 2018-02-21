@@ -106,7 +106,7 @@ export class Logger {
   }
   set logLevel(val) {
     if (!(val in LogLevel)) {
-      throw new TypeError('Attempted to Invalid value assigned to `logLevel`');
+      throw new TypeError('Invalid value assigned to `logLevel`');
     }
     this._logLevel = val;
   }
