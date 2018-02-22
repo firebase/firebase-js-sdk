@@ -37,9 +37,9 @@ const LOG_TAG = 'Connection';
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we
 // should use the Firebase version instead.
-const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${
-  SDK_VERSION
-} grpc/${grpcVersion}`;
+const X_GOOG_API_CLIENT_VALUE = `gl-node/${
+  process.versions.node
+} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
 type DuplexRpc<Req, Resp> = () => grpc.ClientDuplexStream<Req, Resp>;
 type ReadableRpc<Req, Resp> = (req: Req) => grpc.ClientReadableStream<Resp>;
