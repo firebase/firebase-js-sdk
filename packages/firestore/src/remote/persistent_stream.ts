@@ -273,7 +273,9 @@ export abstract class PersistentStream<
         // rejections are not considered unhandled.
         assert(
           err.code === Code.CANCELLED,
-          `Received unexpected error in idle timeout closure. Expected CANCELLED, but was: ${err}`
+          `Received unexpected error in idle timeout closure. Expected CANCELLED, but was: ${
+            err
+          }`
         );
       });
     }
