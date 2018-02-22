@@ -52,12 +52,7 @@ export class IndexedDbQueryCache implements QueryCache {
   /**
    * A cached copy of the metadata for the query cache.
    */
-  private metadata = new DbTargetGlobal(
-    /*highestTargetId=*/ 0,
-    /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp(),
-    /*targetCount=*/ 0
-  );
+  private metadata = null;
 
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
