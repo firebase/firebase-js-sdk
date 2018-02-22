@@ -12,7 +12,7 @@
     "private.d.ts"
   ],
   "devDependencies": {
-    "typescript": "^2.4.2"
+    "typescript": "^2.7.2"
   },
   "repository": {
     "type": "git",

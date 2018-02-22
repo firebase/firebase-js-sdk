@@ -14,7 +14,7 @@
     "@firebase/app-types": "^0.1.0"
   },
   "devDependencies": {
-    "typescript": "^2.4.2"
+    "typescript": "^2.7.2"
   },
   "repository": {
     "type": "git",

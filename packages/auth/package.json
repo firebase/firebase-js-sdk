@@ -25,14 +25,14 @@
   },
   "devDependencies": {
     "closure-builder": "^2.0.17",
-    "del": "^2.2.2",
+    "del": "^3.0.0",
     "express": "^4.16.2",
-    "firebase-tools": "^3.10.1",
-    "google-closure-compiler": "^20170910.0.0",
-    "google-closure-library": "^20170910.0.0",
+    "firebase-tools": "^3.17.4",
+    "google-closure-compiler": "^20180204.0.0",
+    "google-closure-library": "^20180204.0.0",
     "gulp": "^3.9.1",
     "gulp-closure-compiler": "^0.4.0",
-    "protractor": "^5.1.2"
+    "protractor": "^5.3.0"
   },
   "repository": {
     "type": "git",
