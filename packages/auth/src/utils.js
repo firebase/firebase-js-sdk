@@ -1335,3 +1335,21 @@ fireauth.util.utcTimestampToDateString = function(utcTimestamp) {
   }
   return null;
 };
+
+
+/** @return {boolean} Whether indexedDB is available. */
+fireauth.util.isIndexedDBAvailable = function() {
+  return !!goog.global['indexedDB'];
+};
+
+
+/** @return {boolean} Whether indexedDB is used to persist storage. */
+fireauth.util.persistsStorageWithIndexedDB = function() {
+  // This will cover:
+  // IE11, Edge when indexedDB is available (this is unavailable in InPrivate
+  // mode).
+  // In a browser environment, when an iframe and a popup web storage are not
+  // synchronized, use the indexedDB fireauth.storage.Storage implementation.
+  return fireauth.util.isLocalStorageNotSynchronized() &&
+         fireauth.util.isIndexedDBAvailable();
+};

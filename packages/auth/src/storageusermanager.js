@@ -66,6 +66,7 @@ goog.provide('fireauth.storage.UserManager');
 
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
+goog.require('goog.Promise');
 
 
 /**
@@ -127,7 +128,7 @@ fireauth.storage.UserManager.prototype.switchToLocalOnExternalEvent_ =
   // local.
   this.waitForReady_(function() {
     return goog.Promise.resolve().then(function() {
-      // In current persistence is not already local.
+      // If current persistence is not already local.
       if (self.currentAuthUserKey_ &&
           self.currentAuthUserKey_.persistent !=
           fireauth.authStorage.Persistence.LOCAL) {

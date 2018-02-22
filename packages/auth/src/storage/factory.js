@@ -103,9 +103,8 @@ fireauth.storage.Factory.getEnvConfig = function() {
  * @return {!fireauth.storage.Storage} The persistent storage instance.
  */
 fireauth.storage.Factory.prototype.makePersistentStorage = function() {
-  if (fireauth.util.isLocalStorageNotSynchronized()) {
-    // In a browser environment, when an iframe and a popup web storage are not
-    // synchronized, use the indexedDB fireauth.storage.Storage implementation.
+  if (fireauth.util.persistsStorageWithIndexedDB()) {
+    // If persistent storage is implemented using indexedDB, use indexedDB.
     return fireauth.storage.IndexedDB.getFireauthManager();
   }
   return new this.env_.persistent();

@@ -1610,3 +1610,36 @@ function testUtcTimestampToDateString() {
       new Date(1506046529000).toUTCString(),
       fireauth.util.utcTimestampToDateString(1506046529000));
 }
+
+
+function testPersistsStorageWithIndexedDB() {
+  // localStorage not synchronized and indexedDB available.
+  stubs.replace(
+      fireauth.util,
+      'isLocalStorageNotSynchronized',
+      function() {return true;});
+  stubs.replace(
+      fireauth.util,
+      'isIndexedDBAvailable',
+      function() {return true;});
+  assertTrue(fireauth.util.persistsStorageWithIndexedDB());
+
+  // localStorage synchronized and indexedDB available.
+  stubs.replace(
+      fireauth.util,
+      'isLocalStorageNotSynchronized',
+      function() {return false;});
+  stubs.replace(
+      fireauth.util,
+      'isIndexedDBAvailable',
+      function() {return true;});
+  assertFalse(fireauth.util.persistsStorageWithIndexedDB());
+
+  // indexedDB not available.
+  stubs.reset();
+  stubs.replace(
+      fireauth.util,
+      'isIndexedDBAvailable',
+      function() {return false;});
+  assertFalse(fireauth.util.persistsStorageWithIndexedDB());
+}

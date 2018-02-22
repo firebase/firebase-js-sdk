@@ -235,6 +235,12 @@ fireauth.authStorage.Manager.getInstance = function() {
 };
 
 
+/** Clears storage manager instances. This is used for testing. */
+fireauth.authStorage.Manager.clear = function() {
+  fireauth.authStorage.Manager.instance_ = null;
+};
+
+
 /**
  * Returns the storage corresponding to the specified persistence.
  * @param {!fireauth.authStorage.Persistence} persistent The type of storage
@@ -404,9 +410,9 @@ fireauth.authStorage.Manager.prototype.startListeners_ = function() {
   // TODO: refactor this implementation to be handled by the underlying
   // storage mechanism.
   if (!this.runsInBackground_ &&
-      // Add an exception for IE11 and Edge browsers, we should stick to
-      // indexedDB in that case.
-      !fireauth.util.isLocalStorageNotSynchronized() &&
+      // Add an exception for browsers that persist storage with indexedDB, we
+      // should stick with indexedDB listener implementation in that case.
+      !fireauth.util.persistsStorageWithIndexedDB() &&
       // Confirm browser web storage is supported as polling relies on it.
       this.webStorageSupported_) {
     this.startManualListeners_();

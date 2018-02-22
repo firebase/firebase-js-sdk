@@ -28,6 +28,7 @@ goog.require('fireauth.common.testHelper');
 goog.require('fireauth.exports');
 goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.LocalStorage');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.SessionStorage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -50,16 +51,17 @@ var config = {
 var stubs = new goog.testing.PropertyReplacer();
 var appId = 'appId1';
 var clock;
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
-  // Simulate browser that synchronizes between and iframe and a popup.
-  stubs.replace(
-     fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {
-        return false;
-      });
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   clock = new goog.testing.MockClock(true);
   window.localStorage.clear();
   window.sessionStorage.clear();
@@ -209,6 +211,13 @@ function testValidatePersistenceArgument_browser() {
 function testWebStorageNotSupported() {
   // Test when web storage not supported. In memory storage should be used
   // instead.
+  stubs.reset();
+  stubs.replace(
+     fireauth.storage.IndexedDB,
+      'isAvailable',
+      function() {
+        return false;
+      });
   stubs.replace(
      fireauth.storage.LocalStorage,
       'isAvailable',
@@ -271,7 +280,6 @@ function testWebStorageNotSupported() {
       .then(function(value) {
         assertUndefined(value);
       });
-
 }
 
 
@@ -288,10 +296,14 @@ function testGetSet_temporaryStorage() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertNull(window.localStorage.getItem(storageKey));
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            JSON.stringify(expectedValue));
+        assertObjectEquals(expectedValue, value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
         assertObjectEquals(expectedValue, value);
       })
       .then(function() {
@@ -301,8 +313,14 @@ function testGetSet_temporaryStorage() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertNull(window.sessionStorage.getItem(storageKey));
-        assertNull(window.localStorage.getItem(storageKey));
+        assertUndefined(value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
         assertUndefined(value);
       });
 }
@@ -321,19 +339,29 @@ function testGetSet_inMemoryStorage() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertNull(window.sessionStorage.getItem(storageKey));
-        assertNull(window.localStorage.getItem(storageKey));
         assertObjectEquals(expectedValue, value);
+        return mockLocalStorage.get(storageKey);
       })
-      .then(function() {
+      .then(function(value) {
+        assertUndefined(value);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
         return manager.remove(key, appId);
       })
       .then(function() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertNull(window.sessionStorage.getItem(storageKey));
-        assertNull(window.localStorage.getItem(storageKey));
+        assertUndefined(value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
         assertUndefined(value);
       });
 }
@@ -352,21 +380,29 @@ function testGetSet_persistentStorage() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertEquals(
-            window.localStorage.getItem(storageKey),
-            JSON.stringify(expectedValue));
-        assertNull(window.sessionStorage.getItem(storageKey));
         assertObjectEquals(expectedValue, value);
+        return mockSessionStorage.get(storageKey);
       })
-      .then(function() {
+      .then(function(value) {
+        assertUndefined(value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertObjectEquals(expectedValue, value);
         return manager.remove(key, appId);
       })
       .then(function() {
         return manager.get(key, appId);
       })
       .then(function(value) {
-        assertNull(window.localStorage.getItem(storageKey));
-        assertNull(window.sessionStorage.getItem(storageKey));
+        assertUndefined(value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
         assertUndefined(value);
       });
 }
@@ -385,25 +421,103 @@ function testGetSet_persistentStorage_noId() {
         return manager.get(key);
       })
       .then(function(value) {
-        assertEquals(
-            window.localStorage.getItem(storageKey),
-            JSON.stringify(expectedValue));
         assertObjectEquals(expectedValue, value);
+        return mockLocalStorage.get(storageKey);
       })
-      .then(function() {
+      .then(function(value) {
+        assertObjectEquals(expectedValue, value);
         return manager.remove(key);
       })
       .then(function() {
         return manager.get(key);
       })
       .then(function(value) {
-        assertNull(window.localStorage.getItem(storageKey));
+        assertUndefined(value);
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
         assertUndefined(value);
       });
 }
 
 
+function testAddRemoveListeners_persistentStorage() {
+  var manager =
+      new fireauth.authStorage.Manager('name', ':', false, true, true);
+  var listener1 = goog.testing.recordFunction();
+  var listener2 = goog.testing.recordFunction();
+  var listener3 = goog.testing.recordFunction();
+  var key1 = {'name': 'authUser', 'persistent': true};
+  var key2 = {'name': 'authEvent', 'persistent': true};
+  return goog.Promise.resolve()
+      .then(function() {
+        return mockLocalStorage.set('name:authUser:appId1', {'foo': 'bar'});
+      })
+      .then(function() {
+        return mockLocalStorage.set('name:authEvent:appId1', {'foo': 'bar'});
+      })
+      .then(function() {
+        // Add listeners for 2 events.
+        manager.addListener(key1, 'appId1', listener1);
+        manager.addListener(key2, 'appId1', listener2);
+        manager.addListener(key1, 'appId1', listener3);
+        var storageEvent = new goog.testing.events.Event(
+            goog.events.EventType.STORAGE, window);
+        // Trigger user event.
+        storageEvent.key = 'name:authUser:appId1';
+        storageEvent.newValue = null;
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        // Listener 1 and 3 should trigger.
+        assertEquals(1, listener1.getCallCount());
+        assertEquals(1, listener3.getCallCount());
+        assertEquals(0, listener2.getCallCount());
+        storageEvent = new goog.testing.events.Event(
+            goog.events.EventType.STORAGE, window);
+        // Trigger second event.
+        storageEvent.key = 'name:authEvent:appId1';
+        storageEvent.newValue = null;
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        // Only second listener should trigger.
+        assertEquals(1, listener1.getCallCount());
+        assertEquals(1, listener3.getCallCount());
+        assertEquals(1, listener2.getCallCount());
+        storageEvent = new goog.testing.events.Event(
+            goog.events.EventType.STORAGE, window);
+        // Some unknown event.
+        storageEvent.key = 'key3';
+        storageEvent.newValue = null;
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        // No listeners should trigger.
+        assertEquals(1, listener1.getCallCount());
+        assertEquals(1, listener3.getCallCount());
+        assertEquals(1, listener2.getCallCount());
+        // Remove all listeners.
+        manager.removeListener(key1, 'appId1', listener1);
+        manager.removeListener(key2, 'appId1', listener2);
+        manager.removeListener(key1, 'appId1', listener3);
+        // Trigger first event.
+        storageEvent = new goog.testing.events.Event(
+            goog.events.EventType.STORAGE, window);
+        storageEvent.key = 'name:authUser:appId1';
+        storageEvent.newValue = JSON.stringify({'foo': 'bar'});
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        // No change.
+        assertEquals(1, listener1.getCallCount());
+        assertEquals(1, listener3.getCallCount());
+        assertEquals(1, listener2.getCallCount());
+      });
+}
+
+
 function testAddRemoveListeners_localStorage() {
+  stubs.reset();
+  // localStorage is used when service workers are not supported.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {
+        return false;
+      });
   var manager =
       new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
@@ -471,6 +585,12 @@ function testAddRemoveListeners_localStorage() {
 
 
 function testAddRemoveListeners_localStorage_nullKey() {
+  stubs.reset();
+  // Simulate localStorage is used for persistent storage.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   var manager =
       new fireauth.authStorage.Manager('name', ':', false, true, true);
   var listener1 = goog.testing.recordFunction();
@@ -515,6 +635,14 @@ function testAddRemoveListeners_localStorage_nullKey() {
 
 
 function testAddRemoveListeners_localStorage_ie10() {
+  stubs.reset();
+  // Simulate localStorage is used for persistent storage.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {
+        return false;
+      });
   // Simulate IE 10 with localStorage events not synchronized.
   // event.newValue will not be immediately equal to
   // localStorage.getItem(event.key).
@@ -609,6 +737,7 @@ function testAddRemoveListeners_localStorage_ie10() {
 
 
 function testAddRemoveListeners_indexeddb() {
+  stubs.reset();
   // Mock indexedDB local storage manager.
   var mockIndexeddb = {
     handlers: [],
@@ -626,10 +755,10 @@ function testAddRemoveListeners_indexeddb() {
       }
     }
   };
-  // Simulate browser that does not synchronize between and iframe and a popup.
+  // Simulate indexedDB is used for persistent storage.
   stubs.replace(
-     fireauth.util,
-      'isLocalStorageNotSynchronized',
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
       function() {
         return true;
       });
@@ -687,6 +816,7 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
   // between iframe and popup, polling web storage function should not be used.
   // indexedDB should be used.
   // Mock indexedDB local storage manager.
+  stubs.reset();
   var mockIndexeddb = {
     handlers: [],
     addStorageListener: function(indexeddbHandler) {
@@ -703,10 +833,10 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
       }
     }
   };
-  // Simulate browser that does not synchronize between and iframe and a popup.
+  // Simulate indexedDB is used for persistent storage.
   stubs.replace(
-     fireauth.util,
-      'isLocalStorageNotSynchronized',
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
       function() {
         return true;
       });
@@ -761,6 +891,12 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
 
 
 function testSafariLocalStorageSync_newEvent() {
+  stubs.reset();
+  // Simulate persistent state implemented through localStorage for Safari.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   var manager =
       new fireauth.authStorage.Manager('firebase', ':', true, true, true);
   // Simulate Safari bug.
@@ -798,6 +934,12 @@ function testSafariLocalStorageSync_newEvent() {
 
 
 function testSafariLocalStorageSync_cannotRunInBackground() {
+  stubs.reset();
+  // Simulate persistent state implemented through localStorage for Safari.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   // This simulates iframe embedded in a cross origin domain.
   // Realistically only storage event should trigger here.
   // Test when new data is added to storage.
@@ -838,6 +980,12 @@ function testSafariLocalStorageSync_cannotRunInBackground() {
 
 
 function testSafariLocalStorageSync_deletedEvent() {
+  stubs.reset();
+  // Simulate persistent state implemented through localStorage for Safari.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   // This simulates iframe embedded in a cross origin domain.
   // Realistically only storage event should trigger here.
   // Test when old data is deleted from storage.
@@ -881,6 +1029,12 @@ function testRunsInBackground_storageEventMode() {
   // foreground.
   // Test when storage event is first detected. Polling should be disabled to
   // prevent duplicate storage detection.
+  stubs.reset();
+  // Simulate localStorage is used for persistent storage.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   var key = {name: 'authEvent', persistent: 'local'};
   var storageKey = 'firebase:authEvent:appId1';
   var manager = new fireauth.authStorage.Manager(
@@ -972,6 +1126,12 @@ function testRunsInBackground_webStorageNotSupported() {
 
 
 function testRunsInBackground_pollingMode() {
+  stubs.reset();
+  // Simulate localStorage is used for persistent storage.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   // Test when browser does not run in the background while another tab is in
   // foreground.
   // Test when storage polling first detects a storage notification.
@@ -1025,6 +1185,12 @@ function testRunsInBackground_pollingMode() {
 
 
 function testRunsInBackground_currentTabChangesIgnored() {
+  stubs.reset();
+  // Simulate localStorage is used for persistent storage.
+  stubs.replace(
+      fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {return false;});
   // Test when browser does not run in the background while another tab is in
   // foreground.
   // This tests that only other tab changes are detected and current tab changes
