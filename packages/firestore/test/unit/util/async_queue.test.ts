@@ -161,7 +161,7 @@ describe('AsyncQueue', () => {
       err => expect(err.code === Code.CANCELLED)
     );
 
-    await queue.runDelayedOperationsEarly();
+    await queue.runDelayedOperationsEarly(TimerId.All);
     expect(completedSteps).to.deep.equal([1]);
   });
 
@@ -174,7 +174,7 @@ describe('AsyncQueue', () => {
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueue(() => doStep(2));
 
-    await queue.runDelayedOperationsEarly();
+    await queue.runDelayedOperationsEarly(TimerId.All);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
   });
 

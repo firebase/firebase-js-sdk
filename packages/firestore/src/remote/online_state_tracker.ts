@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 import { OnlineState } from '../core/types';
 import * as log from '../util/log';
 import { assert } from '../util/assert';
+import { AsyncQueue, TimerId } from '../util/async_queue';
+import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
 
@@ -56,8 +58,7 @@ export class OnlineStateTracker {
    * revert to OnlineState.Offline without waiting for the stream to actually
    * fail (MAX_WATCH_STREAM_FAILURES times).
    */
-  // tslint:disable-next-line:no-any setTimeout() type differs on browser / node
-  private watchStreamTimer: any = null;
+  private watchStreamTimerPromise: CancelablePromise<void> | null = null;
 
   /**
    * Whether the client should log a warning message if it fails to connect to
@@ -66,7 +67,10 @@ export class OnlineStateTracker {
    */
   private shouldWarnClientIsOffline = true;
 
-  constructor(private onlineStateHandler: (onlineState: OnlineState) => void) {}
+  constructor(
+    private asyncQueue: AsyncQueue,
+    private onlineStateHandler: (onlineState: OnlineState) => void
+  ) {}
 
   /**
    * Called by RemoteStore when a watch stream is started.
@@ -77,22 +81,26 @@ export class OnlineStateTracker {
   handleWatchStreamStart(): void {
     this.setAndBroadcast(OnlineState.Unknown);
 
-    if (this.watchStreamTimer === null) {
-      this.watchStreamTimer = setTimeout(() => {
-        // TODO(mikelehen): DO NOT SUBMIT: Need to dispatch onto async queue.
-        this.watchStreamTimer = null;
-        assert(
-          this.state === OnlineState.Unknown,
-          'Timer should be canceled if we transitioned to a different state.'
-        );
-        log.debug(
-          LOG_TAG,
-          `Watch stream didn't reach online or offline within ` +
-            `${MAX_WATCH_STREAM_TIMEOUT_MS}ms. Considering client offline.`
-        );
-        this.logClientOfflineWarningIfNecessary();
-        this.setAndBroadcast(OnlineState.Offline);
-      }, MAX_WATCH_STREAM_TIMEOUT_MS);
+    if (this.watchStreamTimerPromise === null) {
+      this.watchStreamTimerPromise = this.asyncQueue.enqueueAfterDelay(
+        TimerId.OnlineStateTimeout,
+        MAX_WATCH_STREAM_TIMEOUT_MS,
+        () => {
+          this.watchStreamTimerPromise = null;
+          assert(
+            this.state === OnlineState.Unknown,
+            'Timer should be canceled if we transitioned to a different state.'
+          );
+          log.debug(
+            LOG_TAG,
+            `Watch stream didn't reach online or offline within ` +
+              `${MAX_WATCH_STREAM_TIMEOUT_MS}ms. Considering client offline.`
+          );
+          this.logClientOfflineWarningIfNecessary();
+          this.setAndBroadcast(OnlineState.Offline);
+          return Promise.resolve();
+        }
+      );
     }
   }
 
@@ -150,9 +158,9 @@ export class OnlineStateTracker {
   }
 
   private clearWatchStreamTimer(): void {
-    if (this.watchStreamTimer !== null) {
-      clearTimeout(this.watchStreamTimer);
-      this.watchStreamTimer = null;
+    if (this.watchStreamTimerPromise !== null) {
+      this.watchStreamTimerPromise.cancel();
+      this.watchStreamTimerPromise = null;
     }
   }
 }

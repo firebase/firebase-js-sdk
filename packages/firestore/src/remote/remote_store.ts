@@ -49,8 +49,8 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { clearTimeout } from 'timers';
 import { OnlineStateTracker } from './online_state_tracker';
+import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -122,9 +122,13 @@ export class RemoteStore {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
+    asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void
   ) {
-    this.onlineStateTracker = new OnlineStateTracker(onlineStateHandler);
+    this.onlineStateTracker = new OnlineStateTracker(
+      asyncQueue,
+      onlineStateHandler
+    );
   }
 
   /** SyncEngine to notify of watch and write events. */
@@ -176,7 +180,7 @@ export class RemoteStore {
    */
   async disableNetwork(): Promise<void> {
     this.disableNetworkInternal();
-    // Set the OnlineState to Offline so get()'s return from cache, etc.
+    // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
   }
 
@@ -283,19 +287,15 @@ export class RemoteStore {
   }
 
   /**
-   * Returns whether a watch stream is currently necessary (network is enabled
-   * and we have active watch targets).
-   */
-  private isWatchStreamNecessary(): boolean {
-    return this.isNetworkEnabled() && !objUtils.isEmpty(this.listenTargets);
-  }
-
-  /**
    * Returns whether the watch stream should be started because it's necessary
    * and has not yet been started.
    */
   private shouldStartWatchStream(): boolean {
-    return this.isWatchStreamNecessary() && !this.watchStream.isStarted();
+    return (
+      this.isNetworkEnabled() &&
+      !this.watchStream.isStarted() &&
+      !objUtils.isEmpty(this.listenTargets)
+    );
   }
 
   private cleanUpWatchStreamState(): void {
