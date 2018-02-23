@@ -17,11 +17,10 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import { Deferred } from '../../../src/util/promise';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  drainAsyncQueue,
   withTestCollection,
   withTestDb,
   withTestDoc
@@ -41,11 +40,10 @@ apiDescribe('Database', persistence => {
   });
 
   it('doc() will auto generate an ID', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const ref = db.collection('foo').doc();
       // Auto IDs are 20 characters long
       expect(ref.id.length).to.equal(20);
-      return Promise.resolve();
     });
   });
 
@@ -214,7 +212,9 @@ apiDescribe('Database', persistence => {
           () => Promise.reject('update should have failed.'),
           (err: firestore.FirestoreError) => {
             expect(err.message).to.exist;
-            expect(err.message).to.contain('no entity to update');
+            // TODO: Change this to just match "no document to update" once the
+            // backend response is consistent.
+            expect(err.message).to.match(/no (document|entity) to update/i);
             expect(err.code).to.equal('not-found');
           }
         )
@@ -280,12 +280,11 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
-        return withTestDoc(persistence, doc => {
+        return withTestDoc(persistence, async doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.update(val as any)).to.throw();
-          return Promise.resolve();
         });
       });
     }
@@ -306,33 +305,30 @@ apiDescribe('Database', persistence => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('x', '<=', 'cat')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
 
     it('inequality and equality on different fields works', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('y', '==', 'cat')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
 
     it('inequality same as orderBy works.', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
         expect(() => coll.orderBy('x').where('x', '>', 32)).not.to.throw();
-        return Promise.resolve();
       });
     });
 
     it('inequality same as first orderBy works.', () => {
-      return withTestCollection(persistence, {}, coll => {
+      return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll
             .where('x', '>', 32)
@@ -345,7 +341,6 @@ apiDescribe('Database', persistence => {
             .where('x', '>', 32)
             .orderBy('y')
         ).not.to.throw();
-        return Promise.resolve();
       });
     });
   });
@@ -495,22 +490,20 @@ apiDescribe('Database', persistence => {
   });
 
   it('exposes "firestore" on document references.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       expect(db.doc('foo/bar').firestore).to.equal(db);
-      return Promise.resolve();
     });
   });
 
   it('exposes "firestore" on query references.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       expect(db.collection('foo').limit(5).firestore).to.equal(db);
-      return Promise.resolve();
     });
   });
 
   it('can compare DocumentReference instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
-      return withTestDb(persistence, otherFirestore => {
+      return withTestDb(persistence, async otherFirestore => {
         const docRef = firestore.doc('foo/bar');
         expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
         expect(docRef.collection('baz').parent.isEqual(docRef)).to.be.true;
@@ -518,15 +511,13 @@ apiDescribe('Database', persistence => {
         expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
 
         expect(otherFirestore.doc('foo/bar').isEqual(docRef)).to.be.false;
-
-        return Promise.resolve();
       });
     });
   });
 
   it('can compare Query instances with isEqual().', () => {
     return withTestDb(persistence, firestore => {
-      return withTestDb(persistence, otherFirestore => {
+      return withTestDb(persistence, async otherFirestore => {
         const query = firestore
           .collection('foo')
           .orderBy('bar')
@@ -548,14 +539,12 @@ apiDescribe('Database', persistence => {
           .orderBy('bar')
           .where('baz', '==', 42);
         expect(query4.isEqual(query)).to.be.false;
-
-        return Promise.resolve();
       });
     });
   });
 
   it('can traverse collections and documents.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       const expected = 'a/b/c/d';
       // doc path from root Firestore.
       expect(db.doc('a/b/c/d').path).to.deep.equal(expected);
@@ -567,12 +556,11 @@ apiDescribe('Database', persistence => {
       expect(db.doc('a/b').collection('c/d/e').path).to.deep.equal(
         expected + '/e'
       );
-      return Promise.resolve();
     });
   });
 
   it('can traverse collection and document parents.', () => {
-    return withTestDb(persistence, db => {
+    return withTestDb(persistence, async db => {
       let collection = db.collection('a/b/c');
       expect(collection.path).to.deep.equal('a/b/c');
 
@@ -584,7 +572,6 @@ apiDescribe('Database', persistence => {
 
       const nullDoc = collection.parent;
       expect(nullDoc).to.equal(null);
-      return Promise.resolve();
     });
   });
 
@@ -630,42 +617,6 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can write document after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const docRef = db.collection('test-collection').doc();
-      return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => docRef.set({ foo: 'bar' }));
-    });
-  });
-
-  it('can watch documents after idle timeout', () => {
-    return withTestDb(persistence, db => {
-      const awaitOnlineSnapshot = () => {
-        const docRef = db.collection('test-collection').doc();
-        const deferred = new Deferred<void>();
-        const unregister = docRef.onSnapshot(
-          { includeMetadataChanges: true },
-          snapshot => {
-            if (!snapshot.metadata.fromCache) {
-              deferred.resolve();
-            }
-          }
-        );
-        return deferred.promise.then(unregister);
-      };
-
-      return awaitOnlineSnapshot()
-        .then(() => {
-          return drainAsyncQueue(db);
-        })
-        .then(() => awaitOnlineSnapshot());
-    });
-  });
-
   it('can enable and disable networking', () => {
     return withTestDb(persistence, async db => {
       // There's not currently a way to check if networking is in fact disabled,
@@ -675,7 +626,6 @@ apiDescribe('Database', persistence => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
-      return Promise.resolve();
     });
   });
 });

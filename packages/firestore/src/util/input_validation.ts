@@ -181,7 +181,7 @@ export function validateNamedPropertyEquals<T>(
 ): void {
   const expectedDescription: string[] = [];
 
-  for (let val of expected) {
+  for (const val of expected) {
     if (val === input) {
       return;
     }
@@ -191,9 +191,7 @@ export function validateNamedPropertyEquals<T>(
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `Invalid value ${actualDescription} provided to function ${
-      functionName
-    }() for option "serverTimestamps". Acceptable values: ${expectedDescription.join(
+    `Invalid value ${actualDescription} provided to function ${functionName}() for option "${optionName}". Acceptable values: ${expectedDescription.join(
       ', '
     )}`
   );

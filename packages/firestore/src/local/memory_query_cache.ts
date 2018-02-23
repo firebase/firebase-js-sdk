@@ -20,7 +20,6 @@ import { TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
-import { SortedSet } from '../util/sorted_set';
 
 import { GarbageCollector } from './garbage_collector';
 import { PersistenceTransaction } from './persistence';

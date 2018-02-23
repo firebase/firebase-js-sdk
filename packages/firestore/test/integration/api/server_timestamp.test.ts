@@ -17,9 +17,9 @@
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
-import * as testHelpers from '../../util/helpers';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
+import { EventsAccumulator } from '../util/events_accumulator';
 
 apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
@@ -40,7 +40,7 @@ apiDescribe('Server Timestamps', persistence => {
   let docRef: firestore.DocumentReference;
 
   // Accumulator used to capture events during the test.
-  let accumulator: testHelpers.EventsAccumulator<firestore.DocumentSnapshot>;
+  let accumulator: EventsAccumulator<firestore.DocumentSnapshot>;
 
   // Listener registration for a listener maintained during the course of the
   // test.
@@ -63,7 +63,13 @@ apiDescribe('Server Timestamps', persistence => {
 
   /** Waits for a latency compensated local snapshot. */
   function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    return waitForLocalEvents(1).then(([snapshot]) => snapshot);
+    return accumulator.awaitEvent().then(remoteSnap => {
+      if (remoteSnap.metadata.hasPendingWrites) {
+        return remoteSnap;
+      } else {
+        return waitForLocalEvent();
+      }
+    });
   }
 
   /** Waits for `count` latency compensated local snapshots. */
@@ -74,8 +80,7 @@ apiDescribe('Server Timestamps', persistence => {
     let promise = Promise.resolve(snapshots);
 
     while (count--) {
-      promise = promise.then(() => accumulator.awaitEvent()).then(localSnap => {
-        expect(localSnap.metadata.hasPendingWrites).to.equal(true);
+      promise = promise.then(() => waitForLocalEvent()).then(localSnap => {
         snapshots.push(localSnap);
         return snapshots;
       });
@@ -87,8 +92,11 @@ apiDescribe('Server Timestamps', persistence => {
   /** Waits for a snapshot that has no pending writes */
   function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
     return accumulator.awaitEvent().then(remoteSnap => {
-      expect(remoteSnap.metadata.hasPendingWrites).to.equal(false);
-      return remoteSnap;
+      if (!remoteSnap.metadata.hasPendingWrites) {
+        return remoteSnap;
+      } else {
+        return waitForRemoteEvent();
+      }
     });
   }
 
@@ -153,9 +161,7 @@ apiDescribe('Server Timestamps', persistence => {
       // Set variables for use during test.
       docRef = doc;
 
-      accumulator = new testHelpers.EventsAccumulator<
-        firestore.DocumentSnapshot
-      >();
+      accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
       listenerRegistration = docRef.onSnapshot(accumulator.storeEvent);
 
       // wait for initial null snapshot to avoid potential races.
@@ -196,9 +202,8 @@ apiDescribe('Server Timestamps', persistence => {
   it('work via transaction set()', () => {
     return withTestSetup(() => {
       return docRef.firestore
-        .runTransaction(txn => {
+        .runTransaction(async txn => {
           txn.set(docRef, setData);
-          return Promise.resolve();
         })
         .then(waitForRemoteEvent)
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
@@ -209,9 +214,8 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() =>
-          docRef.firestore.runTransaction(txn => {
+          docRef.firestore.runTransaction(async txn => {
             txn.update(docRef, updateData);
-            return Promise.resolve();
           })
         )
         .then(waitForRemoteEvent)
@@ -327,9 +331,8 @@ apiDescribe('Server Timestamps', persistence => {
   it('fail via transaction update() on nonexistent document.', () => {
     return withTestSetup(() => {
       return docRef.firestore
-        .runTransaction(txn => {
+        .runTransaction(async txn => {
           txn.update(docRef, updateData);
-          return Promise.resolve();
         })
         .then(
           () => {

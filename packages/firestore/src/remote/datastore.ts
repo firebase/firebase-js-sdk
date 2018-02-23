@@ -16,7 +16,6 @@
 
 import * as api from '../protos/firestore_proto_api';
 import { CredentialsProvider } from '../api/credentials';
-import { DatabaseInfo } from '../core/database_info';
 import { maybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -27,9 +26,7 @@ import { AsyncQueue } from '../util/async_queue';
 import { Connection } from './connection';
 import {
   PersistentListenStream,
-  PersistentWriteStream,
-  WatchStreamListener,
-  WriteStreamListener
+  PersistentWriteStream
 } from './persistent_stream';
 import { JsonProtoSerializer } from './serializer';
 
@@ -50,33 +47,27 @@ interface CommitRequest extends api.CommitRequest {
  */
 export class Datastore {
   constructor(
-    private databaseInfo: DatabaseInfo,
     private queue: AsyncQueue,
     private connection: Connection,
     private credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer,
-    private initialBackoffDelay?: number
+    private serializer: JsonProtoSerializer
   ) {}
 
-  public newPersistentWriteStream(): PersistentWriteStream {
+  newPersistentWriteStream(): PersistentWriteStream {
     return new PersistentWriteStream(
-      this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer,
-      this.initialBackoffDelay
+      this.serializer
     );
   }
 
-  public newPersistentWatchStream(): PersistentListenStream {
+  newPersistentWatchStream(): PersistentListenStream {
     return new PersistentListenStream(
-      this.databaseInfo,
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer,
-      this.initialBackoffDelay
+      this.serializer
     );
   }
 
@@ -85,11 +76,12 @@ export class Datastore {
       database: this.serializer.encodedDatabaseId,
       writes: mutations.map(m => this.serializer.toMutation(m))
     };
-    return this.invokeRPC('Commit', params).then(
-      (response: api.CommitResponse) => {
-        return this.serializer.fromWriteResults(response.writeResults);
-      }
-    );
+    return this.invokeRPC<CommitRequest, api.CommitResponse>(
+      'Commit',
+      params
+    ).then(response => {
+      return this.serializer.fromWriteResults(response.writeResults);
+    });
   }
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
@@ -97,37 +89,45 @@ export class Datastore {
       database: this.serializer.encodedDatabaseId,
       documents: keys.map(k => this.serializer.toName(k))
     };
-    return this.invokeStreamingRPC('BatchGetDocuments', params).then(
-      (response: api.BatchGetDocumentsResponse[]) => {
-        let docs = maybeDocumentMap();
-        response.forEach(proto => {
-          const doc = this.serializer.fromMaybeDocument(proto);
-          docs = docs.insert(doc.key, doc);
-        });
-        const result: MaybeDocument[] = [];
-        keys.forEach(key => {
-          const doc = docs.get(key);
-          assert(!!doc, 'Missing entity in write response for ' + key);
-          result.push(doc!);
-        });
-        return result;
-      }
-    );
+    return this.invokeStreamingRPC<
+      BatchGetDocumentsRequest,
+      api.BatchGetDocumentsResponse
+    >('BatchGetDocuments', params).then(response => {
+      let docs = maybeDocumentMap();
+      response.forEach(proto => {
+        const doc = this.serializer.fromMaybeDocument(proto);
+        docs = docs.insert(doc.key, doc);
+      });
+      const result: MaybeDocument[] = [];
+      keys.forEach(key => {
+        const doc = docs.get(key);
+        assert(!!doc, 'Missing entity in write response for ' + key);
+        result.push(doc!);
+      });
+      return result;
+    });
   }
 
   /** Gets an auth token and invokes the provided RPC. */
-  private invokeRPC(rpcName: string, request: any): Promise<any> {
+  private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
     // TODO(mikelehen): Retry (with backoff) on token failures?
     return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
-      return this.connection.invokeRPC(rpcName, request, token);
+      return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
     });
   }
 
   /** Gets an auth token and invokes the provided RPC with streamed results. */
-  private invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
+  private invokeStreamingRPC<Req, Resp>(
+    rpcName: string,
+    request: Req
+  ): Promise<Resp[]> {
     // TODO(mikelehen): Retry (with backoff) on token failures?
     return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
-      return this.connection.invokeStreamingRPC(rpcName, request, token);
+      return this.connection.invokeStreamingRPC<Req, Resp>(
+        rpcName,
+        request,
+        token
+      );
     });
   }
 }

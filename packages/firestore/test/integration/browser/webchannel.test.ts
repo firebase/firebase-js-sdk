@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+import * as api from '../../../src/protos/firestore_proto_api';
 import { expect } from 'chai';
 import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import * as utilHelpers from '../util/helpers';
+import { DEFAULT_PROJECT_ID } from '../util/helpers';
+import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 
 const describeFn = typeof window !== 'undefined' ? describe : xdescribe;
 describeFn('WebChannel', () => {
@@ -41,10 +43,13 @@ describeFn('WebChannel', () => {
   });
 
   it('receives error messages', done => {
-    const projectId = utilHelpers.DEFAULT_PROJECT_ID;
-    const info = utilHelpers.getDefaultDatabaseInfo();
+    const projectId = DEFAULT_PROJECT_ID;
+    const info = getDefaultDatabaseInfo();
     const conn = new WebChannelConnection(info);
-    const stream = conn.openStream('Listen', null);
+    const stream = conn.openStream<api.ListenRequest, api.ListenResponse>(
+      'Listen',
+      null
+    );
 
     // Test data
     let didSendBadPayload = false;

@@ -18,11 +18,15 @@ import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { EventsAccumulator, toDataArray } from '../../util/helpers';
+import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
-import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
-import { Firestore } from '../../../src/api/database';
-import { Deferred } from '../../../src/util/promise';
+import {
+  apiDescribe,
+  toDataArray,
+  withTestCollection,
+  withTestDbs
+} from '../util/helpers';
+import { Deferred } from '../../util/promise';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();

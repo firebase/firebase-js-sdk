@@ -159,7 +159,7 @@ class FirestoreSettings {
     this.credentials = settings.credentials;
   }
 
-  equals(other: FirestoreSettings): boolean {
+  isEqual(other: FirestoreSettings): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
@@ -182,7 +182,7 @@ class FirestoreConfig {
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private readonly _config: FirestoreConfig;
-  public readonly _databaseId: DatabaseId;
+  readonly _databaseId: DatabaseId;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -191,8 +191,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // Operations on the _firestoreClient don't block on _firestoreReady. Those
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
-  private _queue = new AsyncQueue();
-  public _dataConverter: UserDataConverter;
+
+  // Public for use in tests.
+  // TODO(mikelehen): Use modularized initialization instead.
+  readonly _queue = new AsyncQueue();
+
+  _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();
@@ -239,7 +243,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
-    if (this._firestoreClient && !this._config.settings.equals(newSettings)) {
+    if (this._firestoreClient && !this._config.settings.isEqual(newSettings)) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -305,7 +309,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
-        if (!otherDb.equals(thisDb)) {
+        if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Document reference is for database ' +
@@ -379,16 +383,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   INTERNAL = {
-    delete: (): Promise<void> => {
+    delete: async (): Promise<void> => {
       if (this._firestoreClient) {
         return this._firestoreClient.shutdown();
-      } else {
-        return Promise.resolve();
       }
-    },
-    // Exposed via INTERNAL for use in tests.
-    drainAsyncQueue: (executeDelayedTasks: boolean) =>
-      this._queue.drain(executeDelayedTasks)
+    }
   };
 
   collection(pathString: string): firestore.CollectionReference {
@@ -684,13 +683,11 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  commit(): Promise<void> {
+  async commit(): Promise<void> {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
       return this._firestore.ensureClientConfigured().write(this._mutations);
-    } else {
-      return Promise.resolve();
     }
   }
 
@@ -756,7 +753,7 @@ export class DocumentReference implements firestore.DocumentReference {
     if (!(other instanceof DocumentReference)) {
       throw invalidClassError('isEqual', 'DocumentReference', 1, other);
     }
-    return this.firestore === other.firestore && this._key.equals(other._key);
+    return this.firestore === other.firestore && this._key.isEqual(other._key);
   }
 
   set(
@@ -993,6 +990,20 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 }
 
+class SnapshotMetadata implements firestore.SnapshotMetadata {
+  constructor(
+    readonly hasPendingWrites: boolean,
+    readonly fromCache: boolean
+  ) {}
+
+  isEqual(other: firestore.SnapshotMetadata): boolean {
+    return (
+      this.hasPendingWrites === other.hasPendingWrites &&
+      this.fromCache === other.fromCache
+    );
+  }
+}
+
 /** Options interface that can be provided to configure the deserialization of DocumentSnapshots. */
 export interface SnapshotOptions extends firestore.SnapshotOptions {}
 
@@ -1050,11 +1061,24 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return {
-      hasPendingWrites:
-        this._document !== null && this._document.hasLocalMutations,
-      fromCache: this._fromCache
-    };
+    return new SnapshotMetadata(
+      this._document !== null && this._document.hasLocalMutations,
+      this._fromCache
+    );
+  }
+
+  isEqual(other: firestore.DocumentSnapshot): boolean {
+    if (!(other instanceof DocumentSnapshot)) {
+      throw invalidClassError('isEqual', 'DocumentSnapshot', 1, other);
+    }
+    return (
+      this._firestore === other._firestore &&
+      this._fromCache === other._fromCache &&
+      this._key.isEqual(other._key) &&
+      (this._document === null
+        ? other._document === null
+        : this._document.isEqual(other._document))
+    );
   }
 
   private convertObject(
@@ -1076,7 +1100,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     } else if (value instanceof RefValue) {
       const key = value.value(options);
       const database = this._firestore.ensureClientConfigured().databaseId();
-      if (!value.databaseId.equals(database)) {
+      if (!value.databaseId.isEqual(database)) {
         // TODO(b/64130202): Somehow support foreign references.
         log.error(
           `Document ${this._key.path} contains a document ` +
@@ -1300,7 +1324,7 @@ export class Query implements firestore.Query {
       throw invalidClassError('isEqual', 'Query', 1, other);
     }
     return (
-      this.firestore === other.firestore && this._query.equals(other._query)
+      this.firestore === other.firestore && this._query.isEqual(other._query)
     );
   }
 
@@ -1562,7 +1586,7 @@ export class Query implements firestore.Query {
   private validateNewFilter(filter: Filter): void {
     if (filter instanceof RelationFilter && filter.isInequality()) {
       const existingField = this._query.getInequalityFilterField();
-      if (existingField !== null && !existingField.equals(filter.field)) {
+      if (existingField !== null && !existingField.isEqual(filter.field)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. All where filters with an inequality' +
@@ -1593,7 +1617,7 @@ export class Query implements firestore.Query {
     inequality: FieldPath,
     orderBy: FieldPath
   ): void {
-    if (!orderBy.equals(inequality)) {
+    if (!orderBy.isEqual(inequality)) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. You have a where filter with an inequality ` +
@@ -1616,10 +1640,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     private _originalQuery: InternalQuery,
     private _snapshot: ViewSnapshot
   ) {
-    this.metadata = {
-      fromCache: _snapshot.fromCache,
-      hasPendingWrites: _snapshot.hasPendingWrites
-    };
+    this.metadata = new SnapshotMetadata(
+      _snapshot.hasPendingWrites,
+      _snapshot.fromCache
+    );
   }
 
   get docs(): firestore.QueryDocumentSnapshot[] {
@@ -1659,6 +1683,19 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       );
     }
     return this._cachedChanges;
+  }
+
+  /** Check the equality. The call can be very expensive. */
+  isEqual(other: firestore.QuerySnapshot): boolean {
+    if (!(other instanceof QuerySnapshot)) {
+      throw invalidClassError('isEqual', 'QuerySnapshot', 1, other);
+    }
+
+    return (
+      this._firestore === other._firestore &&
+      this._originalQuery.isEqual(other._originalQuery) &&
+      this._snapshot.isEqual(other._snapshot)
+    );
   }
 
   private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {

@@ -90,7 +90,6 @@ import {
 import { assert, fail } from '../../src/util/assert';
 import { AnyJs, primitiveComparator } from '../../src/util/misc';
 import { forEach } from '../../src/util/obj';
-import { Deferred } from '../../src/util/promise';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 
@@ -233,7 +232,7 @@ export function bound(
 ): Bound {
   const components: FieldValue[] = [];
   for (const value of values) {
-    const [field, dataValue] = value;
+    const [_, dataValue] = value;
     components.push(wrap(dataValue));
   }
   return new Bound(components, before);
@@ -275,7 +274,7 @@ export function addTargetMapping(
     mapping.addedDocuments = mapping.addedDocuments.add(k);
   }
   return {
-    mapping: mapping,
+    mapping,
     snapshotVersion: SnapshotVersion.MIN,
     resumeToken: emptyByteString(),
     currentStatusUpdate: CurrentStatusUpdate.None
@@ -343,7 +342,7 @@ export function updateMapping(
 export function resumeTokenForSnapshot(
   snapshotVersion: SnapshotVersion
 ): ProtoByteString {
-  if (snapshotVersion.equals(SnapshotVersion.MIN)) {
+  if (snapshotVersion.isEqual(SnapshotVersion.MIN)) {
     return emptyByteString();
   } else {
     return snapshotVersion.toString();
@@ -445,13 +444,6 @@ export function keySet(...keys: DocumentKey[]): DocumentKeySet {
   return keySet;
 }
 
-/** Converts a DocumentSet to an array with the data of each document */
-export function toDataArray(
-  docSet: firestore.QuerySnapshot
-): firestore.DocumentData[] {
-  return docSet.docs.map(d => d.data());
-}
-
 /** Converts a DocumentSet to an array. */
 export function documentSetAsArray(docs: DocumentSet): Document[] {
   const result: Document[] = [];
@@ -467,35 +459,31 @@ export class DocComparator {
     return Document.compareByField.bind(this, path);
   }
 }
-type MochaTestRunner = (
-  expectation: string,
-  callback?: (this: Mocha.ITestCallbackContext, done: MochaDone) => AnyJs
-) => Mocha.ITest;
 
 /**
- * Two helper functions to simplify testing equals() method.
+ * Two helper functions to simplify testing isEqual() method.
  */
-// tslint:disable-next-line:no-any so we can dynamically call .equals().
-export function expectEqual<T>(left: any, right: any, message?: string): void {
+// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
+export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
-  if (typeof left.equals !== 'function') {
+  if (typeof left.isEqual !== 'function') {
     return fail(
-      JSON.stringify(left) + ' does not support equals (left) ' + message
+      JSON.stringify(left) + ' does not support isEqual (left) ' + message
     );
   }
-  if (typeof right.equals !== 'function') {
+  if (typeof right.isEqual !== 'function') {
     return fail(
-      JSON.stringify(right) + ' does not support equals (right) ' + message
+      JSON.stringify(right) + ' does not support isEqual (right) ' + message
     );
   }
-  expect(left.equals(right)).to.equal(true, message);
-  expect(right.equals(left)).to.equal(true, message);
+  expect(left.isEqual(right)).to.equal(true, message);
+  expect(right.isEqual(left)).to.equal(true, message);
 }
 
-// tslint:disable-next-line:no-any so we can dynamically call .equals().
+// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
 export function expectNotEqual(left: any, right: any, message?: string): void {
-  expect(left.equals(right)).to.equal(false, message || '');
-  expect(right.equals(left)).to.equal(false, message || '');
+  expect(left.isEqual(right)).to.equal(false, message || '');
+  expect(right.isEqual(left)).to.equal(false, message || '');
 }
 
 export function expectEqualArrays(
@@ -618,7 +606,7 @@ export function expectEqualitySets<T>(
             expectedComparison,
             'Expected (' +
               elem +
-              ').equals(' +
+              ').isEqual(' +
               otherElem +
               ').to.equal(' +
               expectedComparison +
@@ -635,57 +623,4 @@ export function size(obj: JsonObject<AnyJs>): number {
   let c = 0;
   forEach(obj, () => c++);
   return c;
-}
-
-/**
- * A helper object that can accumulate an arbitrary amount of events and resolve
- * a promise when expected number has been emitted.
- */
-export class EventsAccumulator<T> {
-  private events: T[] = [];
-  private waitingFor: number;
-  private deferred: Deferred<T[]> | null = null;
-
-  storeEvent: (evt: T) => void = (evt: T) => {
-    this.events.push(evt);
-    this.checkFulfilled();
-  };
-
-  awaitEvents(length: number): Promise<T[]> {
-    assert(this.deferred === null, 'Already waiting for events.');
-    this.waitingFor = length;
-    this.deferred = new Deferred<T[]>();
-    const promise = this.deferred.promise;
-    this.checkFulfilled();
-    return promise;
-  }
-
-  awaitEvent(): Promise<T> {
-    return this.awaitEvents(1).then(events => events[0]);
-  }
-
-  assertNoAdditionalEvents(): Promise<void> {
-    return new Promise((resolve: (val: void) => void, reject) => {
-      setTimeout(() => {
-        if (this.events.length > 0) {
-          reject(
-            'Received ' +
-              this.events.length +
-              ' events: ' +
-              JSON.stringify(this.events)
-          );
-        } else {
-          resolve(undefined);
-        }
-      }, 0);
-    });
-  }
-
-  private checkFulfilled() {
-    if (this.deferred !== null && this.events.length >= this.waitingFor) {
-      const events = this.events.splice(0, this.waitingFor);
-      this.deferred.resolve(events);
-      this.deferred = null;
-    }
-  }
 }
