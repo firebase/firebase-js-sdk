@@ -98,8 +98,9 @@ function genericQueryCacheTests() {
     );
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
+    await cache.start();
   });
 
   it('returns null for query not in cache', () => {
