@@ -94,7 +94,9 @@ const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
       console.error(`[${now}]  ${instance.name}:`, ...args);
       break;
     default:
-      throw new Error(`Attempted to log a message with an invalid logType (value: ${logType})`);
+      throw new Error(
+        `Attempted to log a message with an invalid logType (value: ${logType})`
+      );
   }
 };
 

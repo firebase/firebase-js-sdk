@@ -54,17 +54,16 @@ export function setLogLevel(newLevel: LogLevel): void {
       logClient.logLevel = FirebaseLogLevel.SILENT;
       break;
     default:
-      logClient.error(`Firestore (${SDK_VERSION}): Invalid value passed to \`setLogLevel\``);
+      logClient.error(
+        `Firestore (${SDK_VERSION}): Invalid value passed to \`setLogLevel\``
+      );
   }
 }
 
 export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
     const args = obj.map(argToString);
-    logClient.log(
-      `Firestore (${SDK_VERSION}) [${tag}]: ${msg}`,
-      ...args
-    );
+    logClient.log(`Firestore (${SDK_VERSION}) [${tag}]: ${msg}`, ...args);
   }
 }
 
