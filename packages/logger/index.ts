@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * This is the file that people using Node.js will actually import. You should
- * only include this file if you have something specific about your
- * implementation that mandates having a separate entrypoint. Otherwise you can
- * just use index.ts
- */
-
 import { instances, LogLevel } from './src/logger';
 
 export function setLogLevel(level: LogLevel) {

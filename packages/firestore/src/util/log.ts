@@ -41,18 +41,28 @@ export function getLogLevel(): LogLevel {
 }
 export function setLogLevel(newLevel: LogLevel): void {
   /**
-   * Since Firestore's LogLevel enum is a pure subset of Firebase's LogLevel, we
-   * can return it directly.
+   * Map the new log level to the associated Firebase Log Level
    */
-  logClient.logLevel = newLevel;
+  switch (newLevel) {
+    case LogLevel.DEBUG:
+      logClient.logLevel = FirebaseLogLevel.DEBUG;
+      break;
+    case LogLevel.ERROR:
+      logClient.logLevel = FirebaseLogLevel.ERROR;
+      break;
+    case LogLevel.SILENT:
+      logClient.logLevel = FirebaseLogLevel.SILENT;
+      break;
+    default:
+      logClient.error(`Firestore (${SDK_VERSION}): Invalid value passed to \`setLogLevel\``);
+  }
 }
 
 export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
-    const time = new Date().toISOString();
     const args = obj.map(argToString);
     logClient.log(
-      `Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`,
+      `Firestore (${SDK_VERSION}) [${tag}]: ${msg}`,
       ...args
     );
   }
@@ -60,9 +70,8 @@ export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
 
 export function error(msg: string, ...obj: AnyJs[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.ERROR) {
-    const time = new Date().toISOString();
     const args = obj.map(argToString);
-    logClient.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
+    logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
   }
 }
 

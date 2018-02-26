@@ -40,7 +40,7 @@ export enum LogLevel {
 }
 
 /**
- * A container for the default log level
+ * The sefault log level
  */
 const defaultLogLevel: LogLevel = LogLevel.WARN;
 
@@ -62,10 +62,25 @@ export type LogHandler = (
  */
 const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
   if (logType < instance.logLevel) return;
-  const now = new Date();
+  const now = new Date().toISOString();
   switch (logType) {
+    /**
+     * The default log handler doesn't do anything with LogLevel silent, so we
+     * are early returning here. To allow custom log handlers to handle this
+     * behavior differently, we are still going to pass through logging calls
+     * to their handlers when the log level is set to `SILENT`.
+     */
     case LogLevel.SILENT:
       return;
+    /**
+     * By default, `console.debug` is not displayed in the developer console (in
+     * chrome). To avoid forcing users to have to opt-in to these logs twice
+     * (i.e. once for firebase, and once in the console), we are sending `DEBUG`
+     * logs to the `console.log` function.
+     */
+    case LogLevel.DEBUG:
+      console.log(`[${now}]  ${instance.name}:`, ...args);
+      break;
     case LogLevel.LOG:
       console.log(`[${now}]  ${instance.name}:`, ...args);
       break;
@@ -79,7 +94,7 @@ const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
       console.error(`[${now}]  ${instance.name}:`, ...args);
       break;
     default:
-      console.log(`[${now}]  ${instance.name}:`, ...args);
+      throw new Error(`Attempted to log a message with an invalid logType (value: ${logType})`);
   }
 };
 

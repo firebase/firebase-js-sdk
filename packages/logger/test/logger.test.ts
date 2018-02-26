@@ -24,7 +24,6 @@ describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
   const spies = {
-    debugSpy: null,
     logSpy: null,
     infoSpy: null,
     warnSpy: null,
@@ -52,7 +51,8 @@ describe('@firebase/logger', () => {
 
   function testLog(message, channel, shouldLog) {
     /**
-     * `debug` logs also go through log channel
+     * Ensure that `debug` logs assert against the `console.log` function. The
+     * rationale here is explained in `logger.ts`.
      */
     channel = channel === 'debug' ? 'log' : channel;
 
@@ -81,10 +81,7 @@ describe('@firebase/logger', () => {
     testLog(message, 'error', true);
   });
 
-  describe('Defaults', () => {
-    beforeEach(() => {
-      setLogLevel(LogLevel.WARN);
-    });
+  describe('Defaults to LogLevel.WARN', () => {
     testLog(message, 'debug', false);
     testLog(message, 'log', false);
     testLog(message, 'info', false);

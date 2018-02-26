@@ -34,6 +34,6 @@ instance:
 Each log will be formatted in the following manner:
 
 ```typescript
-`[${new Date()}]  ${this.name}: ${...args}`
+`[${new Date()}]  ${COMPONENT_NAME}: ${...args}`
 ```
 
