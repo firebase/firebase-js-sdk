@@ -15,6 +15,7 @@
  */
 
 import firebase from '@firebase/app';
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
@@ -24,7 +25,6 @@ import { enableLogging } from './src/core/util/util';
 import { RepoManager } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
-import { isNodeSdk } from '@firebase/util';
 import './src/nodePatches';
 import * as types from '@firebase/database-types';
 
@@ -38,7 +38,16 @@ import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
-export function initStandalone(app, url) {
+export function initStandalone(app, url, version?: string) {
+  /**
+   * This should allow the firebase-admin package to provide a custom version
+   * to the backend
+   */
+  CONSTANTS.NODE_ADMIN = true;
+  if (version) {
+    firebase.SDK_VERSION = version;
+  }
+
   return {
     instance: RepoManager.getInstance().databaseFromApp(app, url),
     namespace: {

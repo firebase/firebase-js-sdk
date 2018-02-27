@@ -232,11 +232,10 @@ export class RemoteStore {
    * Temporarily disables the network. The network can be re-enabled using
    * enableNetwork().
    */
-  disableNetwork(): Promise<void> {
+  async disableNetwork(): Promise<void> {
     this.disableNetworkInternal();
     // Set the OnlineState to failed so get()'s return from cache, etc.
     this.updateOnlineState(OnlineState.Failed);
-    return Promise.resolve();
   }
 
   /**
@@ -360,16 +359,17 @@ export class RemoteStore {
     this.pendingTargetResponses = {};
   }
 
-  private onWatchStreamOpen(): Promise<void> {
+  private async onWatchStreamOpen(): Promise<void> {
     // TODO(b/35852690): close the stream again (with some timeout?) if no watch
     // targets are active
     objUtils.forEachNumber(this.listenTargets, (targetId, queryData) => {
       this.sendWatchRequest(queryData);
     });
-    return Promise.resolve();
   }
 
-  private onWatchStreamClose(error: FirestoreError | null): Promise<void> {
+  private async onWatchStreamClose(
+    error: FirestoreError | null
+  ): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWatchStreamClose() should only be called when the network is enabled'
@@ -387,10 +387,9 @@ export class RemoteStore {
       // at establishing a connection
       this.updateOnlineState(OnlineState.Unknown);
     }
-    return Promise.resolve();
   }
 
-  private onWatchStreamChange(
+  private async onWatchStreamChange(
     watchChange: WatchChange,
     snapshotVersion: SnapshotVersion
   ): Promise<void> {
@@ -419,8 +418,6 @@ export class RemoteStore {
       const changes = this.accumulatedWatchChanges;
       this.accumulatedWatchChanges = [];
       return this.handleWatchChangeBatch(snapshotVersion, changes);
-    } else {
-      return Promise.resolve();
     }
   }
 
@@ -558,13 +555,11 @@ export class RemoteStore {
     const error = watchChange.cause!;
     let promiseChain = Promise.resolve();
     watchChange.targetIds.forEach(targetId => {
-      promiseChain = promiseChain.then(() => {
+      promiseChain = promiseChain.then(async () => {
+        // A watched target might have been removed already.
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
           return this.syncEngine.rejectListen(targetId, error);
-        } else {
-          // A watched target might have been removed already.
-          return Promise.resolve();
         }
       });
     });
@@ -586,10 +581,8 @@ export class RemoteStore {
    * Notifies that there are new mutations to process in the queue. This is
    * typically called by SyncEngine after it has sent mutations to LocalStore.
    */
-  fillWritePipeline(): Promise<void> {
-    if (!this.canWriteMutations()) {
-      return Promise.resolve();
-    } else {
+  async fillWritePipeline(): Promise<void> {
+    if (this.canWriteMutations()) {
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
@@ -597,7 +590,6 @@ export class RemoteStore {
             if (this.pendingWrites.length === 0) {
               this.writeStream.markIdle();
             }
-            return Promise.resolve();
           } else {
             this.commit(batch);
             return this.fillWritePipeline();
@@ -669,10 +661,8 @@ export class RemoteStore {
     });
   }
 
-  private onWriteStreamOpen(): Promise<void> {
+  private async onWriteStreamOpen(): Promise<void> {
     this.writeStream.writeHandshake();
-
-    return Promise.resolve();
   }
 
   private onWriteHandshakeComplete(): Promise<void> {
@@ -723,7 +713,7 @@ export class RemoteStore {
     });
   }
 
-  private onWriteStreamClose(error?: FirestoreError): Promise<void> {
+  private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWriteStreamClose() should only be called when the network is enabled'
@@ -755,13 +745,11 @@ export class RemoteStore {
           this.startWriteStream();
         }
       });
-    } else {
-      // No pending writes, nothing to do
-      return Promise.resolve();
     }
+    // No pending writes, nothing to do
   }
 
-  private handleHandshakeError(error: FirestoreError): Promise<void> {
+  private async handleHandshakeError(error: FirestoreError): Promise<void> {
     // Reset the token if it's a permanent error or the error code is
     // ABORTED, signaling the write stream is no longer valid.
     if (isPermanentError(error.code) || error.code === Code.ABORTED) {
@@ -776,11 +764,10 @@ export class RemoteStore {
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
-      return Promise.resolve();
     }
   }
 
-  private handleWriteError(error: FirestoreError): Promise<void> {
+  private async handleWriteError(error: FirestoreError): Promise<void> {
     if (isPermanentError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
@@ -800,7 +787,6 @@ export class RemoteStore {
         });
     } else {
       // Transient error, just let the retry logic kick in.
-      return Promise.resolve();
     }
   }
 

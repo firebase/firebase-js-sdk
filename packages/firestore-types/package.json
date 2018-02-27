@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-types",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "@firebase/firestore Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -14,7 +14,7 @@
     "@firebase/app-types": "^0.1.0"
   },
   "devDependencies": {
-    "typescript": "^2.4.2"
+    "typescript": "^2.7.2"
   },
   "repository": {
     "type": "git",

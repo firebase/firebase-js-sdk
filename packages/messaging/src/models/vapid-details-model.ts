@@ -19,16 +19,13 @@ import DBInterface from './db-interface';
 import Errors from './errors';
 
 const FCM_VAPID_OBJ_STORE = 'fcm_vapid_object_Store';
+const DB_NAME = 'fcm_vapid_details_db';
 const DB_VERSION = 1;
 const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;
 
 export default class VapidDetailsModel extends DBInterface {
   constructor() {
-    super(VapidDetailsModel.DB_NAME, DB_VERSION);
-  }
-
-  static get DB_NAME() {
-    return 'fcm_vapid_details_db';
+    super(DB_NAME, DB_VERSION);
   }
 
   /**
