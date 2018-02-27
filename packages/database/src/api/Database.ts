@@ -73,7 +73,7 @@ export class Database implements FirebaseService {
    **/
   ref(path?: string): Reference;
   ref(path?: Reference): Reference;
-  ref(path?: string|Reference): Reference {
+  ref(path?: string | Reference): Reference {
     this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 
