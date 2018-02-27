@@ -363,7 +363,9 @@ describe('.orderBy tests', function() {
     expect(addedPrevNames).to.deep.equal(expectedPrevNames);
   });
 
-  it('Removing default listener removes non-default listener that loads all data', function(done) {
+  it('Removing default listener removes non-default listener that loads all data', function(
+    done
+  ) {
     const ref = getRandomNode() as Reference;
 
     const initial = { key: 'value' };
