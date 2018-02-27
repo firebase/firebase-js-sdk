@@ -67,10 +67,10 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<void>;
 
   /**
-   * Adds or replaces an entry in the cache.
+   * Adds an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. If there is already a
-   * cache entry for the key, it will be replaced.
+   * The cache key is extracted from `queryData.query`. The key must not already
+   * exist in the cache.
    *
    * @param queryData A QueryData instance to put in the cache.
    */
@@ -80,13 +80,30 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<void>;
 
   /**
-   * Removes the cached entry for the given query data (no-op if no entry
-   * exists).
+   * Updates an entry in the cache.
+   *
+   * The cache key is extracted from `queryData.query`. The entry must already
+   * exist in the cache, and it will be replaced.
+   * @param {QueryData} queryData The QueryData to be replaced into the cache.
+   */
+  updateQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void>;
+
+  /**
+   * Removes the cached entry for the given query data. It is an error to remove
+   * a query data that does not exist.
    */
   removeQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void>;
+
+  /**
+   * The number of targets currently in the cache.
+   */
+  readonly count: number;
 
   /**
    * Looks up a QueryData entry in the cache.

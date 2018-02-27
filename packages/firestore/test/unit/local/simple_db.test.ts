@@ -84,6 +84,7 @@ describe('SimpleDb', () => {
 
           // A store that uses arrays as keys.
           db.createObjectStore('docs');
+          return PersistencePromise.resolve();
         });
       })
       .then(simpleDb => {
