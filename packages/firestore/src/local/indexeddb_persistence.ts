@@ -229,26 +229,23 @@ export class IndexedDbPersistence implements Persistence {
               );
             }
 
-            if (currentPrimary != null) {
-              if (this.isPrimary) {
-                // If we are the primary lease holder, we refresh the client
-                // metadata and the primary lease after the default interval.
-                return this.acquireOrExtendPrimaryLease(txn).next(
-                  () => CLIENT_METADATA_REFRESH_INTERVAL_MS
-                );
-              } else {
-                // If another client currently holds the lease, we use a custom
-                // refresh interval and schedule a lease refresh immediately after
-                // the current lease is expected to expire.
-                const remainingLifetimeMs =
-                  Date.now() -
-                  (currentPrimary.leaseTimestampMs +
-                    CLIENT_METADATA_MAX_AGE_MS);
-                return Math.min(
-                  MINIMUM_REFRESH_INTERVAL_MS,
-                  remainingLifetimeMs + 1
-                );
-              }
+            if (this.isPrimary) {
+              // If we are the primary lease holder, we refresh the client
+              // metadata and the primary lease after the default interval.
+              return this.acquireOrExtendPrimaryLease(txn).next(
+                () => CLIENT_METADATA_REFRESH_INTERVAL_MS
+              );
+            } else if (currentPrimary != null) {
+              // If another client currently holds the lease, we use a custom
+              // refresh interval and schedule a lease refresh immediately after
+              // the current lease is expected to expire.
+              const remainingLifetimeMs =
+                Date.now() -
+                (currentPrimary.leaseTimestampMs + CLIENT_METADATA_MAX_AGE_MS);
+              return Math.min(
+                MINIMUM_REFRESH_INTERVAL_MS,
+                remainingLifetimeMs + 1
+              );
             } else {
               // If there is no current leaseholder, but we are not ourselves
               // eligible to directly obtain the lease (based on our foreground
@@ -316,20 +313,17 @@ export class IndexedDbPersistence implements Persistence {
       return PersistencePromise.resolve(this.isLocalClient(currentPrimary));
     }
 
+    let canActAsPrimary = this.inForeground;
+
     // Check if this client is eligible for a primary lease based on its
     // visibility state and the visibility state of all active clients. A
     // client can obtain the primary lease if it is either in the foreground
     // or if this client and all other clients are in the background.
-    return PersistencePromise.resolve(true)
+    return PersistencePromise.resolve()
       .next(() => {
-        if (this.inForeground) {
-          return true;
-        }
-
-        let canActAsPrimary = true;
-
-        return clientMetadataStore(txn)
-          .iterate((key, value, control) => {
+        if (!canActAsPrimary) {
+          canActAsPrimary = true;
+          return clientMetadataStore(txn).iterate((key, value, control) => {
             if (this.clientKey !== value.clientId) {
               if (
                 this.isWithinMaxAge(value.updateTimeMs) &&
@@ -339,12 +333,10 @@ export class IndexedDbPersistence implements Persistence {
                 control.done();
               }
             }
-          })
-          .next(() => {
-            return canActAsPrimary;
           });
+        }
       })
-      .next(canActAsPrimary => {
+      .next(() => {
         log.debug(
           LOG_TAG,
           `Client ${

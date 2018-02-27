@@ -1169,11 +1169,19 @@ export async function runSpec(
     }
     await runners[i].start();
   }
+  let lastStep = null;
+  let count = 0;
   try {
-    let stepcnt = 0;
     await sequence(steps, async step => {
+      ++count;
+      lastStep = step;
       return runners[step.clientIndex || 0].run(step);
     });
+  } catch (err) {
+    console.warn(
+      `Spec test failed at step ${count}: ${JSON.stringify(lastStep)}`
+    );
+    throw err;
   } finally {
     for (const runner of runners) {
       await runner.shutdown();
