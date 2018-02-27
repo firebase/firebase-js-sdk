@@ -68,11 +68,6 @@ export class MemoryPersistence implements Persistence {
     return Promise.resolve();
   }
 
-  tryBecomePrimary(): Promise<boolean> {
-    // All clients using memory persistence act as primary.
-    return Promise.resolve(true);
-  }
-
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
     // All clients using memory persistence act as primary.
     this.queue.enqueue(() => primaryStateListener(true));

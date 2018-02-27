@@ -793,9 +793,11 @@ abstract class TestRunner {
   }
 
   private async doAcquirePrimaryLease(): Promise<void> {
-    expect(this.queue.containsDelayedOperation(TimerId.ClientStateRefresh)).to
-      .be.true;
-    return this.queue.runDelayedOperationsEarly(TimerId.ClientStateRefresh);
+    // We drain the queue after running the client metadata refresh task as teh
+    // refresh might schedule the primary state callback on the queue as well.
+    return this.queue
+      .runDelayedOperationsEarly(TimerId.ClientMetadataRefresh)
+      .then(() => this.queue.drain());
   }
 
   private async doShutdown(): Promise<void> {

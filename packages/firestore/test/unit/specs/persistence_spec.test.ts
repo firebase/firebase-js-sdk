@@ -195,7 +195,6 @@ describeSpec('Persistence:', ['persistence'], () => {
       .expectPrimaryState(false)
       .client(0)
       .shutdown()
-      .expectPrimaryState(false)
       .client(1)
       .tryAcquirePrimaryLease()
       .expectPrimaryState(true);
@@ -217,7 +216,6 @@ describeSpec('Persistence:', ['persistence'], () => {
         .client(0)
         // Shutdown the client that is currently holding the primary lease.
         .shutdown()
-        .expectPrimaryState(false)
         .client(1)
         // Client 1 is in the background and doesn't grab the primary lease as
         // client 2 is in the foreground.
