@@ -793,8 +793,8 @@ abstract class TestRunner {
   }
 
   private async doAcquirePrimaryLease(): Promise<void> {
-    // We drain the queue after running the client metadata refresh task as teh
-    // refresh might schedule the primary state callback on the queue as well.
+    // We drain the queue after running the client metadata refresh task as the
+    // refresh might schedule a primary state callback on the queue as well.
     return this.queue
       .runDelayedOperationsEarly(TimerId.ClientMetadataRefresh)
       .then(() => this.queue.drain());

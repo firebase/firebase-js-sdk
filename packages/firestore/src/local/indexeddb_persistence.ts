@@ -59,7 +59,7 @@ const LOG_TAG = 'IndexedDbPersistence';
 const CLIENT_METADATA_MAX_AGE_MS = 5000;
 /**
  * The maximum interval after which clients will update their metadata,
- * including refreshing the primary lease if held or potentially trying to
+ * including refreshing their primary lease if held or potentially trying to
  * acquire it if not held.
  *
  * Primary clients may opportunistically refresh their metadata earlier
@@ -302,8 +302,8 @@ export class IndexedDbPersistence implements Persistence {
    * Evaluate the state of all active instances and determine whether the local
    * client is or can act as the holder of the primary lease. Returns whether
    * the client is eligible for the lease, but does not actually acquire it.
-   * May return 'false' even if there is no active leaseholder when a foreground
-   * client should become leaseholder instead.
+   * May return 'false' even if there is no active leaseholder if another
+   * (foreground) client should become leaseholder instead.
    */
   private canActAsPrimary(
     currentPrimary: DbOwner | null,
@@ -313,18 +313,18 @@ export class IndexedDbPersistence implements Persistence {
       return PersistencePromise.resolve(this.isLocalClient(currentPrimary));
     }
 
-    let canActAsPrimary = this.inForeground;
-
     // Check if this client is eligible for a primary lease based on its
     // visibility state and the visibility state of all active clients. A
     // client can obtain the primary lease if it is either in the foreground
     // or if this client and all other clients are in the background.
+    let canActAsPrimary = this.inForeground;
+
     return PersistencePromise.resolve()
       .next(() => {
         if (!canActAsPrimary) {
           canActAsPrimary = true;
           return clientMetadataStore(txn).iterate((key, value, control) => {
-            if (this.clientKey !== value.clientId) {
+            if (this.clientKey !== value.clientKey) {
               if (
                 this.isWithinMaxAge(value.updateTimeMs) &&
                 value.inForeground
