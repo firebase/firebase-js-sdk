@@ -24,8 +24,6 @@ import { SpecStep } from './spec_test_runner';
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
-// Persistence-related tests.
-const PERSISTENCE_TAG = 'persistence';
 // Multi-client related tests (which imply persistence).
 const MULTI_CLIENT_TAG = 'multi-client';
 // Explicit per-platform disable flags.
@@ -34,7 +32,6 @@ const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 const KNOWN_TAGS = [
   EXCLUSIVE_TAG,
-  PERSISTENCE_TAG,
   MULTI_CLIENT_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,

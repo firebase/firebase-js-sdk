@@ -21,7 +21,7 @@ import { doc, path } from '../../util/helpers';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 
-describeSpec('Persistence:', ['persistence'], () => {
+describeSpec('Persistence:', [], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
     return spec()
       .userSets('collection/key1', { foo: 'bar' })
