@@ -252,6 +252,8 @@ export class SpecBuilder {
     return this;
   }
 
+  // TODO: Replace with .runTimer(TimerId.ClientStateRefresh) once #412 is
+  // merged.
   tryAcquirePrimaryLease(): SpecBuilder {
     this.nextStep();
     this.currentStep = {

@@ -302,7 +302,7 @@ export class IndexedDbPersistence implements Persistence {
    * Evaluate the state of all active instances and determine whether the local
    * client is or can act as the holder of the primary lease. Returns whether
    * the client is eligible for the lease, but does not actually acquire it.
-   * May return 'false' even if there is no active leaseholder if another
+   * May return 'false' even if there is no active leaseholder and another
    * (foreground) client should become leaseholder instead.
    */
   private canActAsPrimary(
