@@ -24,15 +24,15 @@ export const instances: Logger[] = [];
  * silence the logs altogether.
  *
  * The order is a follows:
- * DEBUG < LOG < INFO < WARN < ERROR < SILENT
+ * DEBUG < VERBOSE < INFO < WARN < ERROR
  *
  * All of the log types above the current log level will be captured (i.e. if
  * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and
- * `LOG` logs will not)
+ * `VERBOSE` logs will not)
  */
 export enum LogLevel {
   DEBUG,
-  LOG,
+  VERBOSE,
   INFO,
   WARN,
   ERROR,
@@ -40,9 +40,9 @@ export enum LogLevel {
 }
 
 /**
- * The sefault log level
+ * The default log level
  */
-const defaultLogLevel: LogLevel = LogLevel.WARN;
+const defaultLogLevel: LogLevel = LogLevel.INFO;
 
 /**
  * We allow users the ability to pass their own log handler. We will pass the
@@ -65,14 +65,6 @@ const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
   const now = new Date().toISOString();
   switch (logType) {
     /**
-     * The default log handler doesn't do anything with LogLevel silent, so we
-     * are early returning here. To allow custom log handlers to handle this
-     * behavior differently, we are still going to pass through logging calls
-     * to their handlers when the log level is set to `SILENT`.
-     */
-    case LogLevel.SILENT:
-      return;
-    /**
      * By default, `console.debug` is not displayed in the developer console (in
      * chrome). To avoid forcing users to have to opt-in to these logs twice
      * (i.e. once for firebase, and once in the console), we are sending `DEBUG`
@@ -81,7 +73,7 @@ const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
     case LogLevel.DEBUG:
       console.log(`[${now}]  ${instance.name}:`, ...args);
       break;
-    case LogLevel.LOG:
+    case LogLevel.VERBOSE:
       console.log(`[${now}]  ${instance.name}:`, ...args);
       break;
     case LogLevel.INFO:
@@ -150,7 +142,7 @@ export class Logger {
     this._logHandler(this, LogLevel.DEBUG, ...args);
   }
   log(...args) {
-    this._logHandler(this, LogLevel.LOG, ...args);
+    this._logHandler(this, LogLevel.VERBOSE, ...args);
   }
   info(...args) {
     this._logHandler(this, LogLevel.INFO, ...args);

@@ -68,9 +68,6 @@ describe('@firebase/logger', () => {
   }
 
   describe('Class instance methods', () => {
-    /**
-     * Allow all logs to be exported for this block of tests
-     */
     beforeEach(() => {
       setLogLevel(LogLevel.DEBUG);
     });
@@ -81,11 +78,22 @@ describe('@firebase/logger', () => {
     testLog(message, 'error', true);
   });
 
-  describe('Defaults to LogLevel.WARN', () => {
+  describe('Defaults to LogLevel.NOTICE', () => {
+    testLog(message, 'debug', false);
+    testLog(message, 'log', false);
+    testLog(message, 'info', true);
+    testLog(message, 'warn', true);
+    testLog(message, 'error', true);
+  });
+
+  describe(`Doesn't log if LogLevel.SILENT is set`, () => {
+    beforeEach(() => {
+      setLogLevel(LogLevel.SILENT);
+    });
     testLog(message, 'debug', false);
     testLog(message, 'log', false);
     testLog(message, 'info', false);
-    testLog(message, 'warn', true);
-    testLog(message, 'error', true);
+    testLog(message, 'warn', false);
+    testLog(message, 'error', false);
   });
 });
