@@ -56,7 +56,7 @@ export type LogHandler = (
 ) => void;
 
 /**
- * The default log handler will forward DEBUG, LOG, INFO, WARN, and ERROR
+ * The default log handler will forward DEBUG, VERBOSE, INFO, WARN, and ERROR
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
