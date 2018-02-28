@@ -39,7 +39,7 @@ async function publishPackage(pkg, releaseType) {
      * Default publish args
      */
 
-    let args = ['publish'];
+    let args = ['publish', '--access', 'public'];
 
     /**
      * Ensure prereleases are tagged with the `next` tag
