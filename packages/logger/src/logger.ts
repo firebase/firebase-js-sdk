@@ -27,7 +27,7 @@ export const instances: Logger[] = [];
  * DEBUG < VERBOSE < INFO < WARN < ERROR
  *
  * All of the log types above the current log level will be captured (i.e. if
- * I set the log level to `INFO`, errors will still be logged, but `DEBUG` and
+ * you set the log level to `INFO`, errors will still be logged, but `DEBUG` and
  * `VERBOSE` logs will not)
  */
 export enum LogLevel {
@@ -110,10 +110,10 @@ export class Logger {
    * The log level of the given Logger instance.
    */
   private _logLevel = defaultLogLevel;
-  get logLevel() {
+  get logLevel(): LogLevel {
     return this._logLevel;
   }
-  set logLevel(val) {
+  set logLevel(val: LogLevel) {
     if (!(val in LogLevel)) {
       throw new TypeError('Invalid value assigned to `logLevel`');
     }
@@ -124,10 +124,10 @@ export class Logger {
    * The log handler for the Logger instance.
    */
   private _logHandler: LogHandler = defaultLogHandler;
-  get logHandler() {
+  get logHandler(): LogHandler {
     return this._logHandler;
   }
-  set logHandler(val) {
+  set logHandler(val: LogHandler) {
     if (typeof val !== 'function') {
       throw new TypeError('Value assigned to `logHandler` must be a function');
     }
