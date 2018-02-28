@@ -14,6 +14,18 @@
  * limitations under the License.
  */
 
-import { testFxn } from './src';
+const gulp = require('gulp');
+const tools = require('../../tools/build');
 
-testFxn();
+const buildModule = gulp.parallel([
+  tools.buildCjs(__dirname),
+  tools.buildEsm(__dirname)
+]);
+
+const setupWatcher = () => {
+  gulp.watch(['index.ts', 'src/**/*'], buildModule);
+};
+
+gulp.task('build', buildModule);
+
+gulp.task('dev', gulp.parallel([setupWatcher]));

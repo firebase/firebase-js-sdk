@@ -1,34 +1,23 @@
 {
-  "name": "@firebase/database",
-  "version": "0.1.11",
-  "description": "",
+  "name": "@firebase/logger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A logger package for use in the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/cjs/index.node.js",
-  "browser": "dist/cjs/index.js",
+  "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
     "dev": "gulp dev",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
-    "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --compilers ts:ts-node/register/type-check -r src/nodePatches.ts --retries 5 --timeout 5000 --exit",
+    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
     "prepare": "gulp build"
   },
   "license": "Apache-2.0",
-  "peerDependencies": {
-    "@firebase/app": "^0.1.0",
-    "@firebase/app-types": "^0.1.0"
-  },
-  "dependencies": {
-    "@firebase/database-types": "0.1.2",
-    "@firebase/logger": "0.1.0",    
-    "@firebase/util": "0.1.10",
-    "faye-websocket": "0.11.1",
-    "tslib": "^1.9.0"
-  },
   "devDependencies": {
     "@types/chai": "^4.1.2",
     "@types/mocha": "^2.2.48",
-    "@types/node": "^9.4.6",
     "@types/sinon": "^4.1.3",
     "chai": "^4.1.1",
     "gulp": "^4.0.0",
@@ -37,14 +26,11 @@
     "karma-cli": "^1.0.1",
     "karma-mocha": "^1.3.0",
     "karma-sauce-launcher": "^1.2.0",
-    "karma-sourcemap-loader": "^0.3.7",
     "karma-spec-reporter": "^0.0.32",
     "karma-webpack": "^2.0.9",
     "mocha": "^5.0.1",
     "npm-run-all": "^4.1.1",
     "nyc": "^11.4.1",
-    "sinon": "^4.3.0",
-    "source-map-loader": "^0.2.3",
     "ts-loader": "^3.5.0",
     "ts-node": "^5.0.0",
     "typescript": "^2.7.2",
@@ -52,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/database"
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/logger"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
@@ -63,5 +49,6 @@
       ".ts"
     ],
     "reportDir": "./coverage/node"
-  }
+  },
+  "dependencies": {}
 }
