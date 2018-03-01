@@ -218,6 +218,9 @@ export class AsyncQueue {
   ): CancelablePromise<T> {
     this.verifyNotFailed();
 
+    assert(delayMs >= 0,
+        `Attempted to schedule an operation with a negative delay of ${delayMs}`);
+
     // While not necessarily harmful, we currently don't expect to have multiple
     // ops with the same timer id in the queue, so defensively reject them.
     assert(
