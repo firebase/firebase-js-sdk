@@ -1204,7 +1204,7 @@ export interface SpecConfig {
  */
 export interface SpecStep {
   /** The index of the current client for multi-client spec tests. */
-  clientIndex?: number;  // PORTING NOTE: Only used by web multi-tab tests
+  clientIndex?: number; // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
@@ -1245,13 +1245,13 @@ export interface SpecStep {
   enableNetwork?: boolean;
 
   /** Changes the metadata state of a client instance. */
-  applyClientState?: SpecClientState;  // PORTING NOTE: Only used by web multi-tab tests
+  applyClientState?: SpecClientState; // PORTING NOTE: Only used by web multi-tab tests
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
 
   /** Attempt to acquire the primary lease. */
-  acquirePrimaryLease?: true;  // PORTING NOTE: Only used by web multi-tab tests
+  acquirePrimaryLease?: true; // PORTING NOTE: Only used by web multi-tab tests
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth

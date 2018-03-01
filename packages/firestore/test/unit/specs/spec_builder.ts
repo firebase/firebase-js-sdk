@@ -709,7 +709,7 @@ export class SpecBuilder {
  */
 // PORTING NOTE: Only used by web multi-tab tests.
 export class MultiClientSpecBuilder extends SpecBuilder {
-// TODO(multitab): Consider merging this with SpecBuilder.
+  // TODO(multitab): Consider merging this with SpecBuilder.
   private activeClientIndex = -1;
 
   client(clientIndex: number): MultiClientSpecBuilder {
