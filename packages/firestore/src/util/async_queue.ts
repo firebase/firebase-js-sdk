@@ -31,12 +31,25 @@ type TimerHandle = any;
  * The string values are used when encoding these timer IDs in JSON spec tests.
  */
 export enum TimerId {
-  // All can be used with runDelayedOperationsEarly() to run all timers.
+  /** All can be used with runDelayedOperationsEarly() to run all timers. */
   All = 'all',
+
+  /**
+   * The following 4 timers are used in persistent_stream.ts for the listen and
+   * write streams. The "Idle" timer is used to close the stream due to
+   * inactivity. The "Connection" timer is used to restart a stream once the
+   * appropriate backoff delay has elapsed.
+   */
   ListenStreamIdle = 'listen_stream_idle',
   ListenStreamConnection = 'listen_stream_connection',
   WriteStreamIdle = 'write_stream_idle',
   WriteStreamConnection = 'write_stream_connection',
+
+  /**
+   * A timer used in online_state_tracker.ts to transition from
+   * OnlineState.Unknown to Offline after a set timeout, rather than waiting
+   * indefinitely for success or failure.
+   */
   OnlineStateTimeout = 'online_state_timeout'
 }
 
