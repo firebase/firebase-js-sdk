@@ -195,9 +195,6 @@ export class IndexedDbPersistence implements Persistence {
    * extend the primary lease for the local client. Asynchronously notifies the
    * primary state listener if the client either newly obtained or released its
    * primary lease.
-   *
-   * @return {Promise<number>} A Promise that resolves with the interval in ms
-   * after which the metadata and primary lease needs to be refreshed.
    */
   private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
@@ -241,7 +238,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Evaluate the state of all active instances and determine whether the local
+   * Evaluate the state of all active clients and determine whether the local
    * client is or can act as the holder of the primary lease. Returns whether
    * the client is eligible for the lease, but does not actually acquire it.
    * May return 'false' even if there is no active leaseholder and another

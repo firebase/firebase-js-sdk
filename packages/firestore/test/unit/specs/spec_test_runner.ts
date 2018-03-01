@@ -479,12 +479,14 @@ abstract class TestRunner {
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
     } else if ('acquirePrimaryLease' in step) {
+      // PORTING NOTE: Only used by web multi-tab tests.
       return this.doAcquirePrimaryLease();
     } else if ('restart' in step) {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
     } else if ('applyClientState' in step) {
+      // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
@@ -1035,11 +1037,6 @@ class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new MemoryPersistence(this.queue);
   }
-
-  static destroyPersistence(): Promise<void> {
-    // Nothing to do.
-    return Promise.resolve();
-  }
 }
 
 /**
@@ -1188,8 +1185,6 @@ export async function runSpec(
     }
     if (usePersistence) {
       await IndexedDbTestRunner.destroyPersistence();
-    } else {
-      await MemoryTestRunner.destroyPersistence();
     }
   }
 }
@@ -1209,7 +1204,7 @@ export interface SpecConfig {
  */
 export interface SpecStep {
   /** The index of the current client for multi-client spec tests. */
-  clientIndex?: number;
+  clientIndex?: number;  // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
@@ -1250,13 +1245,13 @@ export interface SpecStep {
   enableNetwork?: boolean;
 
   /** Changes the metadata state of a client instance. */
-  applyClientState?: SpecClientState;
+  applyClientState?: SpecClientState;  // PORTING NOTE: Only used by web multi-tab tests
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
 
   /** Attempt to acquire the primary lease. */
-  acquirePrimaryLease?: true;
+  acquirePrimaryLease?: true;  // PORTING NOTE: Only used by web multi-tab tests
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth
@@ -1346,6 +1341,7 @@ export interface SpecWatchEntity {
   removedTargets?: TargetId[];
 }
 
+// PORTING NOTE: Only used by web multi-tab tests.
 export type SpecClientState = {
   /** The visibility state of the browser tab running the client. */
   visibility?: VisibilityState;

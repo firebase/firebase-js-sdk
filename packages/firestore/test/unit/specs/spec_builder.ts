@@ -195,6 +195,7 @@ export class SpecBuilder {
     return this;
   }
 
+  // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
@@ -203,6 +204,7 @@ export class SpecBuilder {
     return this;
   }
 
+  // PORTING NOTE: Only used by web multi-tab tests.
   becomeVisible(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
@@ -254,6 +256,7 @@ export class SpecBuilder {
 
   // TODO: Replace with .runTimer(TimerId.ClientStateRefresh) once #412 is
   // merged.
+  // PORTING NOTE: Only used by web multi-tab tests.
   tryAcquirePrimaryLease(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
@@ -704,7 +707,9 @@ export class SpecBuilder {
  *
  * Use `client(clientIndex)` to switch between clients.
  */
+// PORTING NOTE: Only used by web multi-tab tests.
 export class MultiClientSpecBuilder extends SpecBuilder {
+// TODO(multitab): Consider merging this with SpecBuilder.
   private activeClientIndex = -1;
 
   client(clientIndex: number): MultiClientSpecBuilder {
@@ -941,6 +946,7 @@ export function spec(): SpecBuilder {
 }
 
 /** Starts a new multi-client SpecTest. */
+// PORTING NOTE: Only used by web multi-tab tests.
 export function client(num: number): MultiClientSpecBuilder {
   return new MultiClientSpecBuilder().client(num);
 }
