@@ -19,6 +19,7 @@ import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
+import { SCHEMA_VERSION } from './indexeddb_schema';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -34,7 +35,12 @@ export class SimpleDb {
   static openOrCreate(
     name: string,
     version: number,
-    runUpgrade: (db: IDBDatabase, oldVersion: number) => void
+    runUpgrade: (
+      db: IDBDatabase,
+      txn: SimpleDbTransaction,
+      fromVersion: number,
+      toVersion: number
+    ) => PersistencePromise<void>
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),
@@ -45,7 +51,8 @@ export class SimpleDb {
       // TODO(mikelehen): Investigate browser compatibility.
       // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
       // suggests IE9 and older WebKit browsers handle upgrade
-      // differently.
+      // differently. They expect setVersion, as described here:
+      // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
       const request = window.indexedDB.open(name, version);
 
       request.onsuccess = (event: Event) => {
@@ -63,14 +70,17 @@ export class SimpleDb {
           'Database "' + name + '" requires upgrade from version:',
           event.oldVersion
         );
-        // TODO(mikelehen): If/when we need to do an actual data
-        // migration, we'll want to wrap db in a SimpleDb and have the
-        // runUpgrade function return a PersistencePromise, since we'll
-        // likely need to do async reads and writes. For now we're
-        // cheating and just passing the raw IndexedDB in, since
-        // createObjectStore(), etc. are synchronous.
         const db = (event.target as IDBOpenDBRequest).result;
-        runUpgrade(db, event.oldVersion);
+        // We are provided a version upgrade transaction from the request, so
+        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
+        // API for schema migration operations.
+        const txn = new SimpleDbTransaction(request.transaction);
+        runUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION).next(() => {
+          debug(
+            LOG_TAG,
+            'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+          );
+        });
       };
     }).toPromise();
   }
@@ -124,7 +134,7 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const transaction = new SimpleDbTransaction(this.db, mode, objectStores);
+    const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
     const transactionFnResult = transactionFn(transaction)
       .catch(error => {
         // Abort the transaction if there was an
@@ -224,7 +234,6 @@ export interface IterateOptions {
  * specific object store.
  */
 export class SimpleDbTransaction {
-  private transaction: IDBTransaction;
   private aborted = false;
 
   /**
@@ -235,12 +244,17 @@ export class SimpleDbTransaction {
    */
   readonly completionPromise: Promise<void>;
 
-  constructor(db: IDBDatabase, mode: string, objectStoresNames: string[]) {
-    this.transaction = db.transaction(
-      objectStoresNames,
-      mode as AnyDuringMigration
+  static open(
+    db: IDBDatabase,
+    mode: string,
+    objectStoreNames: string[]
+  ): SimpleDbTransaction {
+    return new SimpleDbTransaction(
+      db.transaction(objectStoreNames, mode as AnyDuringMigration)
     );
+  }
 
+  constructor(private readonly transaction: IDBTransaction) {
     this.completionPromise = new Promise<void>((resolve, reject) => {
       // We consider aborting to be "normal" and just resolve the promise.
       // May need to revisit if/when we actually need to abort transactions.
@@ -340,6 +354,18 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
     debug(LOG_TAG, 'DELETE', this.store.name, key);
     const request = this.store.delete(key);
     return wrapRequest<void>(request);
+  }
+
+  /**
+   * If we ever need more of the count variants, we can add overloads. For now,
+   * all we need is to count everything in a store.
+   *
+   * Returns the number of rows in the store.
+   */
+  count(): PersistencePromise<number> {
+    debug(LOG_TAG, 'COUNT', this.store.name);
+    const request = this.store.count();
+    return wrapRequest<number>(request);
   }
 
   loadAll(): PersistencePromise<ValueType[]>;

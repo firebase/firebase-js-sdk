@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
-import { testFxn } from './src';
+import { instances, LogLevel } from './src/logger';
 
-testFxn();
+export function setLogLevel(level: LogLevel) {
+  instances.forEach(inst => {
+    inst.logLevel = level;
+  });
+}
+
+export { Logger, LogLevel, LogHandler } from './src/logger';

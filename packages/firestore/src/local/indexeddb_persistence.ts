@@ -25,8 +25,13 @@ import { AutoId } from '../util/misc';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbQueryCache } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
-import { ALL_STORES, DbOwner, DbOwnerKey } from './indexeddb_schema';
-import { createOrUpgradeDb, SCHEMA_VERSION } from './indexeddb_schema';
+import {
+  ALL_STORES,
+  createOrUpgradeDb,
+  DbOwner,
+  DbOwnerKey,
+  SCHEMA_VERSION
+} from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { Persistence } from './persistence';
