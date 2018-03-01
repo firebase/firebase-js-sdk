@@ -50,11 +50,12 @@ import {
  * duplicate tests in every client.
  */
 export class SpecBuilder {
-  private config: SpecConfig = { useGarbageCollection: true };
-  private steps: SpecStep[] = [];
+  protected config: SpecConfig = { useGarbageCollection: true, numClients: 1 };
   // currentStep is built up (in particular, expectations can be added to it)
   // until nextStep() is called to append it to steps.
-  private currentStep: SpecStep | null = null;
+  protected currentStep: SpecStep | null = null;
+
+  private steps: SpecStep[] = [];
   private queryMapping: { [query: string]: TargetId } = {};
   private limboMapping: { [key: string]: TargetId } = {};
 
@@ -194,6 +195,24 @@ export class SpecBuilder {
     return this;
   }
 
+  // PORTING NOTE: Only used by web multi-tab tests.
+  becomeHidden(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      applyClientState: { visibility: 'hidden' }
+    };
+    return this;
+  }
+
+  // PORTING NOTE: Only used by web multi-tab tests.
+  becomeVisible(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      applyClientState: { visibility: 'visible' }
+    };
+    return this;
+  }
+
   changeUser(uid: string | null): SpecBuilder {
     this.nextStep();
     this.currentStep = { changeUser: uid };
@@ -229,15 +248,44 @@ export class SpecBuilder {
         limboDocs: []
       }
     };
-
     // Reset our mappings / target ids since all existing listens will be
-    // forgotten
+    // forgotten.
+    this.resetInMemoryState();
+    return this;
+  }
+
+  // TODO: Replace with .runTimer(TimerId.ClientStateRefresh) once #412 is
+  // merged.
+  // PORTING NOTE: Only used by web multi-tab tests.
+  tryAcquirePrimaryLease(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      acquirePrimaryLease: true
+    };
+    return this;
+  }
+
+  shutdown(): SpecBuilder {
+    this.nextStep();
+    this.currentStep = {
+      shutdown: true,
+      stateExpect: {
+        activeTargets: {},
+        limboDocs: []
+      }
+    };
+    // Reset our mappings / target ids since all existing listens will be
+    // forgotten.
+    this.resetInMemoryState();
+    return this;
+  }
+
+  private resetInMemoryState(): void {
     this.queryMapping = {};
     this.limboMapping = {};
     this.activeTargets = {};
     this.queryIdGenerator = TargetIdGenerator.forLocalStore();
     this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
-    return this;
   }
 
   /** Overrides the currently expected set of active targets. */
@@ -569,6 +617,14 @@ export class SpecBuilder {
     return this;
   }
 
+  expectPrimaryState(isPrimary: boolean): SpecBuilder {
+    this.assertStep('Expectations requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.isPrimary = isPrimary;
+    return this;
+  }
+
   private static queryToSpec(query: Query): SpecQuery {
     // TODO(dimond): full query support
     const spec: SpecQuery = { path: query.path.canonicalString() };
@@ -616,7 +672,7 @@ export class SpecBuilder {
     return key.path.canonicalString();
   }
 
-  private nextStep(): void {
+  protected nextStep(): void {
     if (this.currentStep !== null) {
       this.steps.push(this.currentStep);
       this.currentStep = null;
@@ -646,6 +702,251 @@ export class SpecBuilder {
   }
 }
 
-export function spec() {
+/**
+ * SpecBuilder that supports serialized interactions between different clients.
+ *
+ * Use `client(clientIndex)` to switch between clients.
+ */
+// PORTING NOTE: Only used by web multi-tab tests.
+export class MultiClientSpecBuilder extends SpecBuilder {
+  // TODO(multitab): Consider merging this with SpecBuilder.
+  private activeClientIndex = -1;
+
+  client(clientIndex: number): MultiClientSpecBuilder {
+    // Since `currentStep` is fully self-contained and does not rely on previous
+    // state, we don't need to use a different SpecBuilder instance for each
+    // client.
+    this.nextStep();
+    this.activeClientIndex = clientIndex;
+    this.config.numClients = Math.max(
+      this.config.numClients,
+      this.activeClientIndex + 1
+    );
+    return this;
+  }
+
+  protected nextStep() {
+    if (this.currentStep !== null) {
+      this.currentStep.clientIndex = this.activeClientIndex;
+    }
+    super.nextStep();
+  }
+
+  withGCEnabled(gcEnabled: boolean): MultiClientSpecBuilder {
+    super.withGCEnabled(gcEnabled);
+    return this;
+  }
+
+  userListens(query: Query, resumeToken?: string): MultiClientSpecBuilder {
+    super.userListens(query, resumeToken);
+    return this;
+  }
+
+  restoreListen(query: Query, resumeToken: string): MultiClientSpecBuilder {
+    super.restoreListen(query, resumeToken);
+    return this;
+  }
+
+  userUnlistens(query: Query): MultiClientSpecBuilder {
+    super.userUnlistens(query);
+    return this;
+  }
+
+  userSets(key: string, value: JsonObject<AnyJs>): MultiClientSpecBuilder {
+    super.userSets(key, value);
+    return this;
+  }
+
+  userPatches(key: string, value: JsonObject<AnyJs>): MultiClientSpecBuilder {
+    super.userPatches(key, value);
+    return this;
+  }
+
+  userDeletes(key: string): MultiClientSpecBuilder {
+    super.userDeletes(key);
+    return this;
+  }
+
+  becomeHidden(): MultiClientSpecBuilder {
+    super.becomeHidden();
+    return this;
+  }
+
+  becomeVisible(): MultiClientSpecBuilder {
+    super.becomeVisible();
+    return this;
+  }
+
+  changeUser(uid: string | null): MultiClientSpecBuilder {
+    super.changeUser(uid);
+    return this;
+  }
+
+  disableNetwork(): MultiClientSpecBuilder {
+    super.disableNetwork();
+    return this;
+  }
+
+  enableNetwork(): MultiClientSpecBuilder {
+    super.enableNetwork();
+    return this;
+  }
+
+  restart(): MultiClientSpecBuilder {
+    super.restart();
+    return this;
+  }
+
+  tryAcquirePrimaryLease(): MultiClientSpecBuilder {
+    super.tryAcquirePrimaryLease();
+    return this;
+  }
+
+  expectActiveTargets(...targets): MultiClientSpecBuilder {
+    super.expectActiveTargets(...targets);
+    return this;
+  }
+
+  expectLimboDocs(...keys): MultiClientSpecBuilder {
+    super.expectLimboDocs(...keys);
+    return this;
+  }
+
+  ackLimbo(
+    version: TestSnapshotVersion,
+    doc: Document | NoDocument
+  ): MultiClientSpecBuilder {
+    super.ackLimbo(version, doc);
+    return this;
+  }
+
+  watchRemovesLimboTarget(doc: Document | NoDocument): MultiClientSpecBuilder {
+    super.watchRemovesLimboTarget(doc);
+    return this;
+  }
+
+  writeAcks(
+    version: TestSnapshotVersion,
+    options?: { expectUserCallback: boolean }
+  ): MultiClientSpecBuilder {
+    super.writeAcks(version, options);
+    return this;
+  }
+
+  failWrite(
+    err: RpcError,
+    options?: { expectUserCallback: boolean }
+  ): MultiClientSpecBuilder {
+    super.failWrite(err, options);
+    return this;
+  }
+
+  watchAcks(query: Query): MultiClientSpecBuilder {
+    super.watchAcks(query);
+    return this;
+  }
+
+  watchCurrents(query: Query, resumeToken: string): MultiClientSpecBuilder {
+    super.watchCurrents(query, resumeToken);
+    return this;
+  }
+
+  watchRemoves(query: Query, cause?: RpcError): MultiClientSpecBuilder {
+    super.watchRemoves(query, cause);
+    return this;
+  }
+
+  watchSends(
+    targets: { affects?: Query[]; removed?: Query[] },
+    ...docs
+  ): MultiClientSpecBuilder {
+    super.watchSends(targets, ...docs);
+    return this;
+  }
+
+  watchRemovesDoc(key: DocumentKey, ...targets): MultiClientSpecBuilder {
+    super.watchRemovesDoc(key, ...targets);
+    return this;
+  }
+
+  watchFilters(queries: Query[], ...docs): MultiClientSpecBuilder {
+    super.watchFilters(queries, ...docs);
+    return this;
+  }
+
+  watchResets(...queries): MultiClientSpecBuilder {
+    super.watchResets(...queries);
+    return this;
+  }
+
+  watchSnapshots(version: TestSnapshotVersion): MultiClientSpecBuilder {
+    super.watchSnapshots(version);
+    return this;
+  }
+
+  watchAcksFull(
+    query: Query,
+    version: TestSnapshotVersion,
+    ...docs
+  ): MultiClientSpecBuilder {
+    super.watchAcksFull(query, version, ...docs);
+    return this;
+  }
+
+  watchStreamCloses(error: Code): MultiClientSpecBuilder {
+    super.watchStreamCloses(error);
+    return this;
+  }
+
+  expectEvents(
+    query: Query,
+    events: {
+      fromCache?: boolean;
+      hasPendingWrites?: boolean;
+      added?: Document[];
+      modified?: Document[];
+      removed?: Document[];
+      metadata?: Document[];
+      errorCode?: Code;
+    }
+  ): MultiClientSpecBuilder {
+    super.expectEvents(query, events);
+    return this;
+  }
+
+  expectWatchStreamRequestCount(num: number): MultiClientSpecBuilder {
+    super.expectWatchStreamRequestCount(num);
+    return this;
+  }
+
+  expectNumOutstandingWrites(num: number): MultiClientSpecBuilder {
+    super.expectNumOutstandingWrites(num);
+    return this;
+  }
+
+  expectPrimaryState(isPrimary: boolean): MultiClientSpecBuilder {
+    super.expectPrimaryState(isPrimary);
+    return this;
+  }
+
+  expectWriteStreamRequestCount(num: number): MultiClientSpecBuilder {
+    super.expectWriteStreamRequestCount(num);
+    return this;
+  }
+
+  shutdown(): MultiClientSpecBuilder {
+    super.shutdown();
+    return this;
+  }
+}
+
+/** Starts a new single-client SpecTest. */
+export function spec(): SpecBuilder {
   return new SpecBuilder();
+}
+
+/** Starts a new multi-client SpecTest. */
+// PORTING NOTE: Only used by web multi-tab tests.
+export function client(num: number): MultiClientSpecBuilder {
+  return new MultiClientSpecBuilder().client(num);
 }

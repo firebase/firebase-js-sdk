@@ -32,26 +32,30 @@ export class TestRemoteDocumentCache {
   ) {}
 
   addEntry(maybeDocument: MaybeDocument): Promise<void> {
-    return this.persistence.runTransaction('addEntry', txn => {
+    return this.persistence.runTransaction('addEntry', true, txn => {
       return this.cache.addEntry(txn, maybeDocument);
     });
   }
 
   removeEntry(documentKey: DocumentKey): Promise<void> {
-    return this.persistence.runTransaction('removeEntry', txn => {
+    return this.persistence.runTransaction('removeEntry', true, txn => {
       return this.cache.removeEntry(txn, documentKey);
     });
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', txn => {
+    return this.persistence.runTransaction('getEntry', true, txn => {
       return this.cache.getEntry(txn, documentKey);
     });
   }
 
   getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
-    return this.persistence.runTransaction('getDocumentsMatchingQuery', txn => {
-      return this.cache.getDocumentsMatchingQuery(txn, query);
-    });
+    return this.persistence.runTransaction(
+      'getDocumentsMatchingQuery',
+      true,
+      txn => {
+        return this.cache.getDocumentsMatchingQuery(txn, query);
+      }
+    );
   }
 }

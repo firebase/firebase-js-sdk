@@ -82,6 +82,8 @@ export type DbOwnerKey = 'owner';
  * should regularly write an updated timestamp to prevent other tabs from
  * "stealing" ownership of the db.
  */
+// TODO(multitab): Rename this class to reflect the primary/secondary naming
+// in the rest of the client.
 export class DbOwner {
   /** Name of the IndexedDb object store. */
   static store = 'owner';
@@ -544,18 +546,21 @@ export class DbClientMetadata {
   /** Name of the IndexedDb object store. */
   static store = 'clientMetadata';
 
-  /** Keys are automatically assigned via the clientKey properties. */
+  /** Keys are automatically assigned via the clientId properties. */
   static keyPath = ['clientKey'];
 
   constructor(
-    /** The auto-generated client key assigned at client startup. */
+    /** The auto-generated client id assigned at client startup. */
     public clientKey: string,
     /** The last time this state was updated. */
-    public updateTimeMs: DbTimestamp,
+    public updateTimeMs: number,
     /** Whether this client is running in a foreground tab. */
     public inForeground: boolean
   ) {}
 }
+
+/** Object keys in the 'clientMetadata' store are clientId strings. */
+export type DbClientMetadataKey = string;
 
 function createClientMetadataStore(db: IDBDatabase): void {
   db.createObjectStore(DbClientMetadata.store, {

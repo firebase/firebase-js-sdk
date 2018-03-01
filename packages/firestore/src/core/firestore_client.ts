@@ -241,7 +241,12 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new IndexedDbPersistence(storagePrefix, serializer);
+    this.persistence = new IndexedDbPersistence(
+      storagePrefix,
+      this.platform,
+      this.asyncQueue,
+      serializer
+    );
     return this.persistence.start();
   }
 
@@ -252,7 +257,7 @@ export class FirestoreClient {
    */
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence();
+    this.persistence = new MemoryPersistence(this.asyncQueue);
     return this.persistence.start();
   }
 
@@ -309,6 +314,13 @@ export class FirestoreClient {
       })
       .then(() => {
         return this.remoteStore.start();
+      })
+      .then(() => {
+        // NOTE: This will immediately call the listener, so we make sure to
+        // set it after localStore / remoteStore are started.
+        this.persistence.setPrimaryStateListener(isPrimary =>
+          this.syncEngine.applyPrimaryState(isPrimary)
+        );
       });
   }
 

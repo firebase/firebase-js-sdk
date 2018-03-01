@@ -19,9 +19,9 @@ import { Query } from '../../../src/core/query';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 
-describeSpec('Persistence:', ['persistence'], () => {
+describeSpec('Persistence:', [], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
     return spec()
       .userSets('collection/key1', { foo: 'bar' })
@@ -180,6 +180,50 @@ describeSpec('Persistence:', ['persistence'], () => {
           added: [anonDoc],
           hasPendingWrites: true
         })
+    );
+  });
+
+  specTest('Single tab acquires primary lease', ['multi-client'], () => {
+    // This test simulates primary state handoff between two background tabs.
+    // With all instances in the background, the first active tab acquires
+    // ownership.
+    return client(0)
+      .becomeHidden()
+      .expectPrimaryState(true)
+      .client(1)
+      .becomeHidden()
+      .expectPrimaryState(false)
+      .client(0)
+      .shutdown()
+      .client(1)
+      .tryAcquirePrimaryLease()
+      .expectPrimaryState(true);
+  });
+
+  specTest('Foreground tab acquires primary lease', ['multi-client'], () => {
+    // This test verifies that in a multi-client scenario, a foreground tab
+    // takes precedence when a new primary client is elected.
+    return (
+      client(0)
+        .becomeHidden()
+        .expectPrimaryState(true)
+        .client(1)
+        .becomeHidden()
+        .expectPrimaryState(false)
+        .client(2)
+        .becomeVisible()
+        .expectPrimaryState(false)
+        .client(0)
+        // Shutdown the client that is currently holding the primary lease.
+        .shutdown()
+        .client(1)
+        // Client 1 is in the background and doesn't grab the primary lease as
+        // client 2 is in the foreground.
+        .tryAcquirePrimaryLease()
+        .expectPrimaryState(false)
+        .client(2)
+        .tryAcquirePrimaryLease()
+        .expectPrimaryState(true)
     );
   });
 });

@@ -27,6 +27,8 @@ import { AnyJs } from '../util/misc';
  *
  * An implementation of this must be provided at compile time for the platform.
  */
+// TODO: Consider only exposing the APIs of 'document' and 'window' that we
+// use in our client.
 export interface Platform {
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection>;
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer;
@@ -39,6 +41,12 @@ export interface Platform {
 
   /** Converts a binary string to a Base64 encoded string. */
   btoa(raw: string): string;
+
+  /** The Platform's 'window' implementation or null if not available. */
+  readonly window: Window | null;
+
+  /** The Platform's 'document' implementation or null if not available. */
+  readonly document: Document | null;
 
   /** True if and only if the Base64 conversion functions are available. */
   readonly base64Available: boolean;

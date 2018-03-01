@@ -25,6 +25,8 @@ import * as objUtils from '../util/obj';
 
 const LOG_TAG = 'SharedClientState';
 
+// TODO(multitab): Change prefix of keys to "firestore_" to match IndexedDb.
+
 // The format of the LocalStorage key that stores the client state is:
 //     fs_clients_<persistence_prefix>_<instance_key>
 const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
@@ -32,6 +34,7 @@ const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
  */
+// TODO(multitab): Rename to ClientId.
 export type ClientKey = string;
 
 /**
@@ -241,7 +244,7 @@ export class LocalClientState implements ClientState {
 
   /**
    * Converts this entry into a JSON-encoded format we can use for LocalStorage.
-   * Does not encode `clientKey` as it is part of the key in LocalStorage.
+   * Does not encode `clientId` as it is part of the key in LocalStorage.
    */
   toLocalStorageJSON(): string {
     const data: ClientStateSchema = {

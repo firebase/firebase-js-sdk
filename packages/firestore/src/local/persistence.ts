@@ -32,6 +32,18 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export interface PersistenceTransaction {}
 
 /**
+ * Callback type for primary state notifications. This callback can be
+ * registered with the persistence layer to get notified when we transition from
+ * primary to secondary state and vice versa.
+ *
+ * Note: Instances can only toggle between Primary and Secondary state if
+ * IndexedDB persistence is enabled and multiple clients are active. If this
+ * listener is registered with MemoryPersistence, the callback will be called
+ * exactly once marking the current instance as Primary.
+ */
+export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
+
+/**
  * Persistence is the lowest-level shared interface to persistent storage in
  * Firestore.
  *
@@ -79,6 +91,13 @@ export interface Persistence {
   shutdown(): Promise<void>;
 
   /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   */
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener);
+
+  /**
    * Returns a MutationQueue representing the persisted mutations for the
    * given user.
    *
@@ -121,11 +140,16 @@ export interface Persistence {
    *
    * @param action A description of the action performed by this transaction,
    * used for logging.
+   * @param requirePrimaryLease Whether this transaction can only be executed
+   * by the primary client. If the primary lease cannot be acquired, the
+   * transactionOperation will not be run, and the returned promise will be
+   * rejected with a FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,
+    requirePrimaryLease: boolean,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

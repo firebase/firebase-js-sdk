@@ -121,12 +121,18 @@ export class SyncEngine implements RemoteSyncer {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
   private targetIdGenerator = TargetIdGenerator.forSyncEngine();
+  private isPrimary = false;
 
   constructor(
     private localStore: LocalStore,
     private remoteStore: RemoteStore,
     private currentUser: User
   ) {}
+
+  // Only used for testing.
+  get isPrimaryClient() {
+    return this.isPrimary;
+  }
 
   /** Subscribes view and error handler. Can be called only once. */
   subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
@@ -615,5 +621,10 @@ export class SyncEngine implements RemoteSyncer {
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  applyPrimaryState(isPrimary: boolean): Promise<void> {
+    this.isPrimary = isPrimary;
+    return Promise.resolve();
   }
 }

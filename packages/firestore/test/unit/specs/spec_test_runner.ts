@@ -50,7 +50,11 @@ import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
-import { emptyByteString } from '../../../src/platform/platform';
+import {
+  emptyByteString,
+  Platform,
+  PlatformSupport
+} from '../../../src/platform/platform';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -316,10 +320,11 @@ interface OutstandingWrite {
 }
 
 abstract class TestRunner {
+  protected queue: AsyncQueue;
+
   private connection: MockConnection;
   private eventManager: EventManager;
   private syncEngine: SyncEngine;
-  private queue: AsyncQueue;
 
   private eventList: QueryEvent[] = [];
   private outstandingWrites: OutstandingWrite[] = [];
@@ -342,13 +347,18 @@ abstract class TestRunner {
 
   private serializer: JsonProtoSerializer;
 
-  constructor(private readonly name: string, config: SpecConfig) {
+  constructor(
+    private readonly name: string,
+    protected readonly platform: TestPlatform,
+    config: SpecConfig
+  ) {
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
       'persistenceKey',
       'host',
       false
     );
+    this.queue = new AsyncQueue();
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
@@ -371,7 +381,6 @@ abstract class TestRunner {
       garbageCollector
     );
 
-    this.queue = new AsyncQueue();
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -410,30 +419,30 @@ abstract class TestRunner {
   protected abstract getPersistence(
     serializer: JsonProtoSerializer
   ): Persistence;
-  protected abstract destroyPersistence(): Promise<void>;
 
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
+
+    this.persistence.setPrimaryStateListener(isPrimary =>
+      this.syncEngine.applyPrimaryState(isPrimary)
+    );
   }
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
-    await this.destroyPersistence();
   }
 
-  run(steps: SpecStep[]): Promise<void> {
-    console.log('Running spec: ' + this.name);
-    return sequence(steps, async step => {
-      await this.doStep(step);
-      await this.queue.drain();
-      this.validateStepExpectations(step.expect!);
-      this.validateStateExpectations(step.stateExpect!);
-      this.eventList = [];
-    });
+  /** Runs a single SpecStep on this runner. */
+  async run(step: SpecStep): Promise<void> {
+    await this.doStep(step);
+    await this.queue.drain();
+    this.validateStepExpectations(step.expect!);
+    this.validateStateExpectations(step.stateExpect!);
+    this.eventList = [];
   }
 
   private doStep(step: SpecStep): Promise<void> {
@@ -469,9 +478,16 @@ abstract class TestRunner {
       return step.enableNetwork!
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
+    } else if ('acquirePrimaryLease' in step) {
+      // PORTING NOTE: Only used by web multi-tab tests.
+      return this.doAcquirePrimaryLease();
     } else if ('restart' in step) {
-      assert(step.restart!, 'Restart cannot be false');
       return this.doRestart();
+    } else if ('shutdown' in step) {
+      return this.doShutdown();
+    } else if ('applyClientState' in step) {
+      // PORTING NOTE: Only used by web multi-tab tests.
+      return this.doApplyClientState(step.applyClientState!);
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
     } else {
@@ -778,6 +794,19 @@ abstract class TestRunner {
     await this.remoteStore.enableNetwork();
   }
 
+  private async doAcquirePrimaryLease(): Promise<void> {
+    // We drain the queue after running the client metadata refresh task as the
+    // refresh might schedule a primary state callback on the queue as well.
+    return this.queue
+      .runDelayedOperationsEarly(TimerId.ClientMetadataRefresh)
+      .then(() => this.queue.drain());
+  }
+
+  private async doShutdown(): Promise<void> {
+    await this.remoteStore.shutdown();
+    await this.persistence.shutdown();
+  }
+
   private async doRestart(): Promise<void> {
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
@@ -791,6 +820,13 @@ abstract class TestRunner {
       await this.localStore.start();
       await this.remoteStore.start();
     });
+  }
+
+  private doApplyClientState(state: SpecClientState): Promise<void> {
+    if (state.visibility) {
+      this.platform.raiseVisibilityEvent(state.visibility!);
+    }
+    return Promise.resolve();
   }
 
   private doChangeUser(user: string | null): Promise<void> {
@@ -841,6 +877,9 @@ abstract class TestRunner {
       }
       if ('activeTargets' in expectation) {
         this.expectedActiveTargets = expectation.activeTargets!;
+      }
+      if ('isPrimary' in expectation) {
+        expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
       }
     }
 
@@ -996,15 +1035,92 @@ abstract class TestRunner {
 
 class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new MemoryPersistence();
-  }
-
-  protected destroyPersistence(): Promise<void> {
-    // Nothing to do.
-    return Promise.resolve();
+    return new MemoryPersistence(this.queue);
   }
 }
 
+/**
+ * `Document` mock that implements the `visibilitychange` API used by Firestore.
+ */
+class MockDocument {
+  private _visibilityState: VisibilityState = 'unloaded';
+  private visibilityListener: EventListener | null;
+
+  get visibilityState(): VisibilityState {
+    return this._visibilityState;
+  }
+
+  addEventListener(type: string, listener: EventListener) {
+    assert(
+      type === 'visibilitychange',
+      "MockDocument only supports events of type 'visibilitychange'"
+    );
+    this.visibilityListener = listener;
+  }
+
+  removeEventListener(type: string, listener: EventListener) {
+    if (listener === this.visibilityListener) {
+      this.visibilityListener = null;
+    }
+  }
+
+  raiseVisibilityEvent(visibility: VisibilityState) {
+    this._visibilityState = visibility;
+    if (this.visibilityListener) {
+      this.visibilityListener(new Event('visibilitychange'));
+    }
+  }
+}
+
+/**
+ * Implementation of `Platform` that allows mocking of `document` and `window`.
+ */
+class TestPlatform implements Platform {
+  private mockDocument = new MockDocument();
+
+  constructor(private readonly basePlatform: Platform) {}
+
+  get window(): Window | null {
+    return this.basePlatform.window;
+  }
+
+  get document(): Document {
+    // tslint:disable-next-line:no-any MockDocument doesn't support full Document interface.
+    return (this.mockDocument as any) as Document;
+  }
+
+  get base64Available(): boolean {
+    return this.basePlatform.base64Available;
+  }
+
+  get emptyByteString(): ProtoByteString {
+    return this.basePlatform.emptyByteString;
+  }
+
+  raiseVisibilityEvent(visibility: VisibilityState) {
+    this.mockDocument.raiseVisibilityEvent(visibility);
+  }
+
+  loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
+    return this.basePlatform.loadConnection(databaseInfo);
+  }
+
+  newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
+    return this.basePlatform.newSerializer(databaseId);
+  }
+
+  formatJSON(value: AnyJs): string {
+    return this.basePlatform.formatJSON(value);
+  }
+
+  atob(encoded: string): string {
+    return this.basePlatform.atob(encoded);
+  }
+
+  btoa(raw: string): string {
+    return this.basePlatform.btoa(raw);
+  }
+}
 /**
  * Runs the specs using IndexedDbPersistence, the creator must ensure that it is
  * enabled for the platform.
@@ -1015,11 +1131,13 @@ class IndexedDbTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
+      this.platform,
+      this.queue,
       serializer
     );
   }
 
-  protected destroyPersistence(): Promise<void> {
+  static destroyPersistence(): Promise<void> {
     return SimpleDb.delete(
       IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE
     );
@@ -1037,17 +1155,37 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  let runner: TestRunner;
-  if (usePersistence) {
-    runner = new IndexedDbTestRunner(name, config);
-  } else {
-    runner = new MemoryTestRunner(name, config);
+  console.log('Running spec: ' + name);
+  const platform = new TestPlatform(PlatformSupport.getPlatform());
+  let runners: TestRunner[] = [];
+  for (let i = 0; i < config.numClients; ++i) {
+    if (usePersistence) {
+      runners.push(new IndexedDbTestRunner(name, platform, config));
+    } else {
+      runners.push(new MemoryTestRunner(name, platform, config));
+    }
+    await runners[i].start();
   }
-  await runner.start();
+  let lastStep = null;
+  let count = 0;
   try {
-    await runner.run(steps);
+    await sequence(steps, async step => {
+      ++count;
+      lastStep = step;
+      return runners[step.clientIndex || 0].run(step);
+    });
+  } catch (err) {
+    console.warn(
+      `Spec test failed at step ${count}: ${JSON.stringify(lastStep)}`
+    );
+    throw err;
   } finally {
-    await runner.shutdown();
+    for (const runner of runners) {
+      await runner.shutdown();
+    }
+    if (usePersistence) {
+      await IndexedDbTestRunner.destroyPersistence();
+    }
   }
 }
 
@@ -1055,6 +1193,9 @@ export async function runSpec(
 export interface SpecConfig {
   /** A boolean to enable / disable GC. */
   useGarbageCollection: boolean;
+
+  /** The number of active clients for this test run. */
+  numClients: number;
 }
 
 /**
@@ -1062,6 +1203,8 @@ export interface SpecConfig {
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
+  /** The index of the current client for multi-client spec tests. */
+  clientIndex?: number; // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
   /** Unlisten from a query (must be listened to) */
@@ -1101,16 +1244,24 @@ export interface SpecStep {
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
 
+  /** Changes the metadata state of a client instance. */
+  applyClientState?: SpecClientState; // PORTING NOTE: Only used by web multi-tab tests
+
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
+
+  /** Attempt to acquire the primary lease. */
+  acquirePrimaryLease?: true; // PORTING NOTE: Only used by web multi-tab tests
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth
    * components. This allows you to queue writes, get documents into cache,
    * etc. and then simulate an app restart.
    */
-  restart?: boolean;
+  restart?: true;
 
+  /** Shut down the client and close it network connection. */
+  shutdown?: true;
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
@@ -1190,6 +1341,12 @@ export interface SpecWatchEntity {
   removedTargets?: TargetId[];
 }
 
+// PORTING NOTE: Only used by web multi-tab tests.
+export type SpecClientState = {
+  /** The visibility state of the browser tab running the client. */
+  visibility?: VisibilityState;
+};
+
 /**
  * [[<target-id>, ...], <key>, ...]
  * Note that the last parameter is really of type ...string (spread operator)
@@ -1251,6 +1408,10 @@ export interface StateExpectation {
   watchStreamRequestCount?: number;
   /** Current documents in limbo. Verified in each step until overwritten. */
   limboDocs?: string[];
+  /**
+   * Whether the instance holds the primary lease. Used in multi-client tests.
+   */
+  isPrimary?: boolean;
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */
