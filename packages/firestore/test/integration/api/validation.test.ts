@@ -170,9 +170,7 @@ apiDescribe('Validation:', persistence => {
       const collection = db.collection('test-collection');
       const doc = collection.doc('test-document');
       for (const path of badPaths) {
-        const reason = `Invalid path (${
-          path
-        }). Paths must not contain // in them.`;
+        const reason = `Invalid path (${path}). Paths must not contain // in them.`;
         expect(() => db.collection(path)).to.throw(reason);
         expect(() => db.doc(path)).to.throw(reason);
         expect(() => collection.doc(path)).to.throw(reason);
