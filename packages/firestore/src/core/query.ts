@@ -41,7 +41,8 @@ export class Query {
     readonly filters: Filter[] = [],
     readonly limit: number | null = null,
     readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null
+    readonly endAt: Bound | null = null,
+    readonly offset: number | null = null
   ) {
     if (this.startAt) {
       this.assertValidBound(this.startAt);
@@ -120,7 +121,8 @@ export class Query {
       newFilters,
       this.limit,
       this.startAt,
-      this.endAt
+      this.endAt,
+      this.offset
     );
   }
 
@@ -138,7 +140,8 @@ export class Query {
       this.filters.slice(),
       this.limit,
       this.startAt,
-      this.endAt
+      this.endAt,
+      this.offset
     );
   }
 
@@ -149,7 +152,8 @@ export class Query {
       this.filters.slice(),
       limit,
       this.startAt,
-      this.endAt
+      this.endAt,
+      this.offset
     );
   }
 
@@ -160,7 +164,8 @@ export class Query {
       this.filters.slice(),
       this.limit,
       bound,
-      this.endAt
+      this.endAt,
+      this.offset
     );
   }
 
@@ -171,7 +176,20 @@ export class Query {
       this.filters.slice(),
       this.limit,
       this.startAt,
-      bound
+      bound,
+      this.offset
+    );
+  }
+
+  withOffset(offset: number | null): Query {
+    return new Query(
+      this.path,
+      this.explicitOrderBy.slice(),
+      this.filters.slice(),
+      this.limit,
+      this.startAt,
+      this.endAt,
+      offset
     );
   }
 
@@ -191,6 +209,10 @@ export class Query {
       for (const orderBy of this.orderBy) {
         canonicalId += orderBy.canonicalId();
         canonicalId += ',';
+      }
+      if (!isNullOrUndefined(this.offset)) {
+        canonicalId += '|o:';
+        canonicalId += this.offset!;
       }
       if (!isNullOrUndefined(this.limit)) {
         canonicalId += '|l:';
@@ -214,6 +236,9 @@ export class Query {
     if (this.filters.length > 0) {
       str += `, filters: [${this.filters.join(', ')}]`;
     }
+    if (!isNullOrUndefined(this.offset)) {
+      str += ', offset: ' + this.offset;
+    }
     if (!isNullOrUndefined(this.limit)) {
       str += ', limit: ' + this.limit;
     }
@@ -231,6 +256,10 @@ export class Query {
   }
 
   isEqual(other: Query): boolean {
+    if (this.offset !== other.offset) {
+      return false;
+    }
+
     if (this.limit !== other.limit) {
       return false;
     }
@@ -298,6 +327,10 @@ export class Query {
 
   hasLimit(): boolean {
     return !isNullOrUndefined(this.limit);
+  }
+
+  hasOffset(): boolean {
+    return !isNullOrUndefined(this.offset);
   }
 
   getFirstOrderByField(): FieldPath | null {
