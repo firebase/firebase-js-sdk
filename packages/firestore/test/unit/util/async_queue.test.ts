@@ -23,9 +23,9 @@ import { Code } from '../../../src/util/error';
 
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.
-  const timerId1 = TimerId.ListenStreamConnection;
+  const timerId1 = TimerId.ListenStreamConnectionBackoff;
   const timerId2 = TimerId.ListenStreamIdle;
-  const timerId3 = TimerId.WriteStreamConnection;
+  const timerId3 = TimerId.WriteStreamConnectionBackoff;
 
   it('schedules ops in right order', () => {
     const queue = new AsyncQueue();

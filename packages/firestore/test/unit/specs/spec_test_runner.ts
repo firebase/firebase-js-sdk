@@ -702,7 +702,7 @@ abstract class TestRunner {
     // The watch stream should re-open if we have active listeners.
     if (!this.queryListeners.isEmpty()) {
       await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnection
+        TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
     }

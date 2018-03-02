@@ -41,9 +41,9 @@ export enum TimerId {
    * appropriate backoff delay has elapsed.
    */
   ListenStreamIdle = 'listen_stream_idle',
-  ListenStreamConnection = 'listen_stream_connection',
+  ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
   WriteStreamIdle = 'write_stream_idle',
-  WriteStreamConnection = 'write_stream_connection',
+  WriteStreamConnectionBackoff = 'write_stream_connection_backoff',
 
   /**
    * A timer used in online_state_tracker.ts to transition from

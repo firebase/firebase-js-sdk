@@ -518,7 +518,7 @@ export class PersistentListenStream extends PersistentStream<
   ) {
     super(
       queue,
-      TimerId.ListenStreamConnection,
+      TimerId.ListenStreamConnectionBackoff,
       TimerId.ListenStreamIdle,
       connection,
       credentials
@@ -626,7 +626,7 @@ export class PersistentWriteStream extends PersistentStream<
   ) {
     super(
       queue,
-      TimerId.WriteStreamConnection,
+      TimerId.WriteStreamConnectionBackoff,
       TimerId.WriteStreamIdle,
       connection,
       credentials
