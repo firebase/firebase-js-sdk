@@ -37,7 +37,7 @@ export class FirebaseDatabase {
   app: FirebaseApp;
   goOffline(): void;
   goOnline(): void;
-  ref(path?: string): Reference;
+  ref(path?: string | Reference): Reference;
   refFromURL(url: string): Reference;
 }
 
