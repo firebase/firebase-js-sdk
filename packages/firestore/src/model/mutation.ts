@@ -15,7 +15,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
+import { Timestamp } from '../api/timestamp';
 import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 

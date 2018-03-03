@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
+import { Timestamp } from '../api/timestamp';
 import { TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -68,7 +68,7 @@ export class IndexedDbQueryCache implements QueryCache {
         this.metadata = metadata;
         const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
         this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
-          new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanos)
+          new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanoseconds)
         );
         return PersistencePromise.resolve();
       });

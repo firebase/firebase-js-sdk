@@ -18,7 +18,7 @@ import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
 import { SnapshotOptions } from '../api/database';
 import { DatabaseId } from '../core/database_info';
-import { Timestamp } from '../core/timestamp';
+import { Timestamp } from '../api/timestamp';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';

@@ -20,14 +20,18 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
  * Document data (for use with `DocumentReference.set()`) consists of fields
  * mapped to values.
  */
-export type DocumentData = { [field: string]: any };
+export type DocumentData = {
+  [field: string]: any;
+};
 
 /**
  * Update data (for use with `DocumentReference.update()`) consists of field
  * paths (e.g. 'foo' or 'foo.baz') mapped to values. Fields that contain dots
  * reference nested fields within the document.
  */
-export type UpdateData = { [fieldPath: string]: any };
+export type UpdateData = {
+  [fieldPath: string]: any;
+};
 
 /** Settings used to configure a `Firestore` instance. */
 export interface Settings {
@@ -170,6 +174,66 @@ export class GeoPoint {
    * @return true if this `GeoPoint` is equal to the provided one.
    */
   isEqual(other: GeoPoint): boolean;
+}
+
+/**
+ * A Timestamp represents a point in time independent of any time zone or
+ * calendar, represented as seconds and fractions of seconds at nanosecond
+ * resolution in UTC Epoch time. It is encoded using the Proleptic Gregorian
+ * Calendar which extends the Gregorian calendar backwards to year one. It is
+ * encoded assuming all minutes are 60 seconds long, i.e. leap seconds are
+ * "smeared" so that no leap second table is needed for interpretation. Range is
+ * from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
+ *
+ * @see https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+ */
+export class Timestamp {
+  /**
+   * Creates a new timestamp with the current date, with millisecond precision.
+   */
+  static now(): Timestamp;
+
+  /** Creates a new timestamp from the given date. */
+  static fromDate(date: Date): Timestamp;
+
+  /**
+   * Creates a new timestamp from the given number of milliseconds since Unix
+   * epoch 1970-01-01T00:00:00Z.
+   */
+  static fromMillis(milliseconds: number): Timestamp;
+
+  /**
+   * Creates a new timestamp.
+   *
+   * @param seconds represents seconds of UTC time since Unix epoch
+   *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+   *     9999-12-31T23:59:59Z inclusive.
+   * @param nanoseconds represents non-negative fractions of a second at
+   *     nanosecond resolution. Negative second values with fractions must still
+   *     have non-negative nanoseconds values that count forward in time. Must
+   *     be from 0 to 999,999,999 inclusive.
+   */
+  constructor(seconds: number, nanoseconds: number);
+
+  readonly seconds: number;
+  readonly nanoseconds: number;
+
+  /**
+   * Returns a new Date corresponding to this timestamp. This may lose
+   * precision.
+   */
+  toDate(): Date;
+
+  /**
+   * Returns the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+   */
+  toMillis(): number;
+
+  compareTo(other: Timestamp): number;
+
+  isEqual(other: Timestamp): boolean;
+
+  toString(): string;
 }
 
 /**
@@ -652,8 +716,8 @@ export class DocumentSnapshot {
    *
    * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
    * @param options An options object to configure how the field is retrieved
-   * from the snapshot (e.g. the desired behavior for server timestamps that have
-   * not yet been set to their final value).
+   * from the snapshot (e.g. the desired behavior for server timestamps that
+   * have not yet been set to their final value).
    * @return The data at the specified field location or undefined if no such
    * field exists in the document.
    */

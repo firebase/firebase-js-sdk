@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { Timestamp } from '../../../src/core/timestamp';
+import { Timestamp } from '../../../src/api/timestamp';
 import { BatchId, ProtoByteString } from '../../../src/core/types';
 import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';

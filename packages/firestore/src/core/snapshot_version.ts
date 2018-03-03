@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Timestamp } from './timestamp';
+import { Timestamp } from '../api/timestamp';
 
 /**
  * A version of a document in Firestore. This corresponds to the version
@@ -52,7 +52,7 @@ export class SnapshotVersion {
   /** Returns a number representation of the version for use in spec tests. */
   toMicroseconds(): number {
     // Convert to microseconds.
-    return this.timestamp.seconds * 1e6 + this.timestamp.nanos / 1000;
+    return this.timestamp.seconds * 1e6 + this.timestamp.nanoseconds / 1000;
   }
 
   toString(): string {

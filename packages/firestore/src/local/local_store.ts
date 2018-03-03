@@ -18,7 +18,7 @@ import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetIdGenerator } from '../core/target_id_generator';
-import { Timestamp } from '../core/timestamp';
+import { Timestamp } from '../api/timestamp';
 import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import {
   DocumentKeySet,

@@ -15,7 +15,7 @@
  */
 
 import { DatabaseId } from '../core/database_info';
-import { Timestamp } from '../core/timestamp';
+import { Timestamp } from '../api/timestamp';
 import { DocumentKey } from '../model/document_key';
 import { FieldValue, ObjectValue } from '../model/field_value';
 import {
