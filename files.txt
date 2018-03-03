@@ -1,0 +1,4 @@
+packages/firestore-types/index.d.ts
+packages/firestore/src/api/database.ts
+packages/firestore/src/model/field_value.ts
+packages/firestore/test/integration/api/fields.test.ts
