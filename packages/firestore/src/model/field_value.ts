@@ -15,10 +15,10 @@
  */
 
 import { Blob } from '../api/blob';
-import { GeoPoint } from '../api/geo_point';
 import { SnapshotOptions } from '../api/database';
-import { DatabaseId } from '../core/database_info';
+import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
+import { DatabaseId } from '../core/database_info';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
@@ -69,21 +69,32 @@ export enum ServerTimestampBehavior {
 
 /** Holds properties that define field value deserialization options. */
 export class FieldValueOptions {
-  static readonly defaultOptions = new FieldValueOptions(
-    ServerTimestampBehavior.Default
-  );
+  constructor(
+    readonly serverTimestampBehavior: ServerTimestampBehavior,
+    readonly timestampsInSnapshotsEnabled: boolean
+  ) {}
 
-  constructor(readonly serverTimestampBehavior: ServerTimestampBehavior) {}
-
-  static fromSnapshotOptions(options: SnapshotOptions) {
+  static fromSnapshotOptions(
+    options: SnapshotOptions,
+    timestampsInSnapshotsEnabled: boolean
+  ) {
     switch (options.serverTimestamps) {
       case 'estimate':
-        return new FieldValueOptions(ServerTimestampBehavior.Estimate);
+        return new FieldValueOptions(
+          ServerTimestampBehavior.Estimate,
+          timestampsInSnapshotsEnabled
+        );
       case 'previous':
-        return new FieldValueOptions(ServerTimestampBehavior.Previous);
+        return new FieldValueOptions(
+          ServerTimestampBehavior.Previous,
+          timestampsInSnapshotsEnabled
+        );
       case 'none': // Fall-through intended.
       case undefined:
-        return FieldValueOptions.defaultOptions;
+        return new FieldValueOptions(
+          ServerTimestampBehavior.Default,
+          timestampsInSnapshotsEnabled
+        );
       default:
         return fail('fromSnapshotOptions() called with invalid options.');
     }
@@ -317,8 +328,12 @@ export class TimestampValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): Date {
-    return this.internalValue.toDate();
+  value(options?: FieldValueOptions): Date | Timestamp {
+    if (options && options.timestampsInSnapshotsEnabled) {
+      return this.internalValue;
+    } else {
+      return this.internalValue.toDate();
+    }
   }
 
   isEqual(other: FieldValue): boolean {
@@ -369,7 +384,7 @@ export class ServerTimestampValue extends FieldValue {
       options &&
       options.serverTimestampBehavior === ServerTimestampBehavior.Estimate
     ) {
-      return this.localWriteTime.toDate();
+      return new TimestampValue(this.localWriteTime).value(options);
     } else if (
       options &&
       options.serverTimestampBehavior === ServerTimestampBehavior.Previous

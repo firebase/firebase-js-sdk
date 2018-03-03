@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-import * as firestore from '@firebase/firestore-types';
-
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { FieldPath as ExternalFieldPath } from './field_path';
+import * as firestore from '@firebase/firestore-types';
+
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import { FirestoreClient } from '../core/firestore_client';
@@ -58,8 +57,8 @@ import {
   validateBetweenNumberOfArgs,
   validateDefined,
   validateExactNumberOfArgs,
-  validateNamedOptionalType,
   validateNamedOptionalPropertyEquals,
+  validateNamedOptionalType,
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
@@ -78,6 +77,7 @@ import {
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from './credentials';
+import { FieldPath as ExternalFieldPath } from './field_path';
 import {
   CompleteFn,
   ErrorFn,
@@ -99,6 +99,7 @@ import {
 
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
+const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -127,6 +128,8 @@ class FirestoreSettings {
   /** Whether to use SSL when connecting. */
   ssl: boolean;
 
+  timestampsInSnapshotsEnabled: boolean;
+
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
   credentials?: any;
@@ -148,7 +151,12 @@ class FirestoreSettings {
       validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
       this.ssl = objUtils.defaulted(settings.ssl, DEFAULT_SSL);
     }
-    validateOptionNames('settings', settings, ['host', 'ssl', 'credentials']);
+    validateOptionNames('settings', settings, [
+      'host',
+      'ssl',
+      'credentials',
+      'timestampsInSnapshotsEnabled'
+    ]);
 
     validateNamedOptionalType(
       'settings',
@@ -157,12 +165,29 @@ class FirestoreSettings {
       settings.credentials
     );
     this.credentials = settings.credentials;
+
+    if (settings.timestampsInSnapshotsEnabled === undefined) {
+      this.timestampsInSnapshotsEnabled = DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED;
+    } else {
+      validateNamedOptionalType(
+        'settings',
+        'boolean',
+        'timestampsInSnapshotsEnabled',
+        settings.timestampsInSnapshotsEnabled
+      );
+      this.timestampsInSnapshotsEnabled = objUtils.defaulted(
+        settings.timestampsInSnapshotsEnabled,
+        DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED
+      );
+      this.timestampsInSnapshotsEnabled = settings.timestampsInSnapshotsEnabled;
+    }
   }
 
   isEqual(other: FirestoreSettings): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
+      this.timestampsInSnapshotsEnabled == other.timestampsInSnapshotsEnabled &&
       this.credentials === other.credentials
     );
   }
@@ -296,6 +321,32 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       'FirestoreSettings.host cannot be falsey'
     );
 
+    if (!this._config.settings.timestampsInSnapshotsEnabled) {
+      log.error(`
+The default behavior for Date objects stored in Firestore is going to change
+AND YOUR APP MAY BREAK.
+To hide this warning and ensure your app does not break, you need to add the
+following code to your app before calling any other Cloud Firestore methods:
+
+  const firestore = firebase.firestore(app);
+  const settings = {/* your settings... */ timestampsInSnapshotsEnabled: true};
+  firestore.settings(settings);
+
+With this change, timestamps stored in Cloud Firestore will be read back as
+Firebase Timestamp objects instead of as system Date objects. So you will also
+need to update code expecting a Date to instead expect a Timestamp. For example:
+
+  // Old:
+  const date: Date = snapshot.get('created_at');
+  // New:
+  const timestamp: Timestamp = snapshot.get('created_at');
+  const date: Date = timestamp.toDate();
+
+Please audit all existing usages of Date when you enable the new behavior. This
+new behavior will become the default in a future release and so if you do not
+follow these steps, YOUR APP MAY BREAK.`);
+    }
+
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
     const databaseInfo = new DatabaseInfo(
@@ -387,7 +438,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (this._firestoreClient) {
         return this._firestoreClient.shutdown();
       }
-    }
+    },
+    areTimestampsInSnapshotsEnabled: () =>
+      this._config.settings.timestampsInSnapshotsEnabled
   };
 
   collection(pathString: string): firestore.CollectionReference {
@@ -1004,7 +1057,10 @@ class SnapshotMetadata implements firestore.SnapshotMetadata {
   }
 }
 
-/** Options interface that can be provided to configure the deserialization of DocumentSnapshots. */
+/**
+ * Options interface that can be provided to configure the deserialization of
+ * DocumentSnapshots.
+ */
 export interface SnapshotOptions extends firestore.SnapshotOptions {}
 
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
@@ -1024,7 +1080,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       ? undefined
       : this.convertObject(
           this._document.data,
-          FieldValueOptions.fromSnapshotOptions(options)
+          FieldValueOptions.fromSnapshotOptions(
+            options,
+            this._firestore.INTERNAL.areTimestampsInSnapshotsEnabled()
+          )
         );
   }
 
@@ -1041,7 +1100,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       if (value !== undefined) {
         return this.convertValue(
           value,
-          FieldValueOptions.fromSnapshotOptions(options)
+          FieldValueOptions.fromSnapshotOptions(
+            options,
+            this._firestore.INTERNAL.areTimestampsInSnapshotsEnabled()
+          )
         );
       }
     }
@@ -1773,9 +1835,7 @@ function validateSetOptions(
   options: firestore.SetOptions | undefined
 ): firestore.SetOptions {
   if (options === undefined) {
-    return {
-      merge: false
-    };
+    return { merge: false };
   }
 
   validateOptionNames(methodName, options, ['merge']);
