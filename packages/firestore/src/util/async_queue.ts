@@ -37,8 +37,8 @@ export enum TimerId {
   /**
    * The following 4 timers are used in persistent_stream.ts for the listen and
    * write streams. The "Idle" timer is used to close the stream due to
-   * inactivity. The "Connection" timer is used to restart a stream once the
-   * appropriate backoff delay has elapsed.
+   * inactivity. The "ConnectionBackoff" timer is used to restart a stream once
+   * the appropriate backoff delay has elapsed.
    */
   ListenStreamIdle = 'listen_stream_idle',
   ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
