@@ -21,6 +21,7 @@ import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Offline:', [], () => {
   specTest('Empty queries are resolved if client goes offline', [], () => {
@@ -144,6 +145,40 @@ describeSpec('Offline:', [], () => {
         // Limbo document is resolved. No longer from cache.
         .expectEvents(query, { removed: [docA], fromCache: false })
         .expectLimboDocs()
+    );
+  });
+
+  specTest('OnlineState timeout triggers offline behavior', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    return (
+      spec()
+        .userListens(query)
+
+        // OnlineState timer should trigger offline behavior (fromCache=true).
+        .runTimer(TimerId.OnlineStateTimeout)
+        .expectEvents(query, {
+          fromCache: true
+        })
+
+        // We should get no further events for failed connection attempts.
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+
+        // We should get events after a successful connection.
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA], fromCache: false })
+
+        // Running timers should have no effect now.
+        .runTimer(TimerId.All)
+
+        // After a disconnect, the timer should become active again.
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .restoreListen(query, 'resume-token-1000')
+        .runTimer(TimerId.OnlineStateTimeout)
+        .expectEvents(query, {
+          fromCache: true
+        })
     );
   });
 });

@@ -248,9 +248,9 @@ export class QueryListener {
       return true;
     }
 
-    // NOTE: We consider OnlineState.Unknown as online (it should become Failed
+    // NOTE: We consider OnlineState.Unknown as online (it should become Offline
     // or Online if we wait long enough).
-    const maybeOnline = onlineState !== OnlineState.Failed;
+    const maybeOnline = onlineState !== OnlineState.Offline;
     // Don't raise the event if we're online, aren't synced yet (checked
     // above) and are waiting for a sync.
     if (this.options.waitForSyncWhenOnline && maybeOnline) {
@@ -262,7 +262,7 @@ export class QueryListener {
     }
 
     // Raise data from cache if we have any documents or we are offline
-    return !snap.docs.isEmpty() || onlineState === OnlineState.Failed;
+    return !snap.docs.isEmpty() || onlineState === OnlineState.Offline;
   }
 
   private shouldRaiseEvent(snap: ViewSnapshot): boolean {
