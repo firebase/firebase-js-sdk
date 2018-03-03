@@ -41,6 +41,7 @@ import {
   SpecStep,
   SpecWatchFilter
 } from './spec_test_runner';
+import { TimerId } from '../../../src/util/async_queue';
 
 /**
  * Provides a high-level language to construct spec tests that can be exported
@@ -191,6 +192,12 @@ export class SpecBuilder {
     this.currentStep = {
       userDelete: key
     };
+    return this;
+  }
+
+  runTimer(timerId: TimerId) {
+    this.nextStep();
+    this.currentStep = { runTimer: timerId };
     return this;
   }
 
