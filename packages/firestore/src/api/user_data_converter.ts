@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../core/database_info';
 import { Timestamp } from '../api/timestamp';
+import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
 import { FieldValue, ObjectValue } from '../model/field_value';
 import {
@@ -523,6 +523,16 @@ export class UserDataConverter {
       return new StringValue(value);
     } else if (value instanceof Date) {
       return new TimestampValue(Timestamp.fromDate(value));
+    } else if (value instanceof Timestamp) {
+      // Firestore backend truncates precision down to microseconds. To ensure
+      // offline mode works the same with regards to truncation, perform the
+      // truncation immediately without waiting for the backend to do that.
+      return new TimestampValue(
+        new Timestamp(
+          value.seconds,
+          Math.floor(value.nanoseconds / 1000) * 1000
+        )
+      );
     } else if (value instanceof GeoPoint) {
       return new GeoPointValue(value);
     } else if (value instanceof Blob) {
@@ -544,7 +554,8 @@ export class UserDataConverter {
               'of your update data'
           );
         } else {
-          // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+          // We shouldn't encounter delete sentinels for queries or non-merge
+          // set() calls.
           throw context.createError(
             'FieldValue.delete() can only be used with update() and set() with {merge:true}'
           );
@@ -592,6 +603,7 @@ function looksLikeJsonObject(input: AnyJs): boolean {
     input !== null &&
     !(input instanceof Array) &&
     !(input instanceof Date) &&
+    !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
     !(input instanceof DocumentKeyReference) &&

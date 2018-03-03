@@ -86,6 +86,11 @@ export function toDataArray(
   return docSet.docs.map(d => d.data());
 }
 
+/** Converts a DocumentSet to an array with the id of each document */
+export function toIds(docSet: firestore.QuerySnapshot): String[] {
+  return docSet.docs.map(d => d.id);
+}
+
 export function withTestDb(
   persistence: boolean,
   fn: (db: firestore.FirebaseFirestore) => Promise<void>
