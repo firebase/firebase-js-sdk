@@ -951,6 +951,11 @@ export class JsonProtoSerializer {
       result.structuredQuery!.endAt = this.toCursor(query.endAt);
     }
 
+    const offset: number | null | undefined = query.offset;
+    if (!typeUtils.isNullOrUndefined(offset)) {
+      result.structuredQuery!.offset = offset;
+    }
+
     return result;
   }
 
@@ -993,7 +998,12 @@ export class JsonProtoSerializer {
       endAt = this.fromCursor(query.endAt);
     }
 
-    return new Query(path, orderBy, filterBy, limit, startAt, endAt);
+    let offset: number | null = null;
+    if (query.offset) {
+      offset = this.fromInt32Value(query.offset);
+    }
+
+    return new Query(path, orderBy, filterBy, limit, startAt, endAt, offset);
   }
 
   toListenRequestLabels(

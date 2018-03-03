@@ -1319,6 +1319,19 @@ export class Query implements firestore.Query {
     return new Query(this._query.withEndAt(bound), this.firestore);
   }
 
+  offset(n: number): firestore.Query {
+    validateExactNumberOfArgs('Query.offset', arguments, 1);
+    validateArgType('Query.offset', 'number', 1, n);
+    if (n < 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. Query offset (${n}) is invalid. Offset must be ` +
+          'positive.'
+      );
+    }
+    return new Query(this._query.withOffset(n), this.firestore);
+  }
+
   isEqual(other: firestore.Query): boolean {
     if (!(other instanceof Query)) {
       throw invalidClassError('isEqual', 'Query', 1, other);

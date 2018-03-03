@@ -338,6 +338,8 @@ describe('Query', () => {
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'exclusive');
 
+    const q16a = Query.atPath(path('foo')).withOffset(10);
+
     const queries = [
       [q1a, q1b],
       [q2a, q2b],
@@ -351,9 +353,10 @@ describe('Query', () => {
       [q10a],
       [q11a],
       [q12a],
-      [q13a]
+      [q13a],
       //[q14a],
       //[q15a],
+      [q16a]
     ];
 
     expectEqualitySets(queries, (q1, q2) => {

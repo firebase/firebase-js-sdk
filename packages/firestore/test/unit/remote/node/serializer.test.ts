@@ -1111,6 +1111,29 @@ describe('Serializer', () => {
       expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
     });
 
+    it('converts offsets', () => {
+      const q = Query.atPath(path('docs')).withOffset(26);
+      const result = s.toTarget(wrapQueryData(q));
+      const expected = {
+        query: {
+          parent: 'projects/p/databases/d',
+          structuredQuery: {
+            from: [{ collectionId: 'docs' }],
+            orderBy: [
+              {
+                field: { fieldPath: DOCUMENT_KEY_NAME },
+                direction: 'ASCENDING'
+              }
+            ],
+            offset: 26
+          }
+        },
+        targetId: 1
+      };
+      expect(result).to.deep.equal(expected);
+      expect(s.fromQueryTarget(s.toQueryTarget(q))).to.deep.equal(q);
+    });
+
     it('converts resume tokens', () => {
       const q = Query.atPath(path('docs'));
       const result = s.toTarget(
