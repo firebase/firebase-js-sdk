@@ -15,5 +15,5 @@
  */
 
 import './src/polyfills/promise';
-import './src/shims/find';
-import './src/shims/findIndex';
+import './src/shims/Array';
+import './src/shims/String';
