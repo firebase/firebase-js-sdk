@@ -33,16 +33,12 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Check and see if we are trying to publish a prerelease
    */
-  let isPublished = await (async (isStaging) => {
+  let isPublished = await (async isStaging => {
     if (isStaging) {
-      let { stdout } = await exec(
-        `npm info ${package}@next version`
-      );
+      let { stdout } = await exec(`npm info ${package}@next version`);
       return !!stdout.trim();
     } else {
-      let { stdout } = await exec(
-        `npm info ${package} version`
-      );
+      let { stdout } = await exec(`npm info ${package} version`);
       return !stdout.includes('canary');
     }
   })(releaseType === 'Staging');
