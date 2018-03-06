@@ -70,7 +70,7 @@ exports.packageVersionUpdate = async (package, releaseType) => {
       ? prereleaseVersions
       : ['patch', 'minor', 'major'];
 
-  let choices; 
+  let choices;
 
   if (hasNextTag) {
     /**
@@ -88,10 +88,12 @@ exports.packageVersionUpdate = async (package, releaseType) => {
     /**
      * Will hit this codepath if this is the first prerelease of the component
      */
-    choices = [{
-      name: chalk`Initial Release {gray ${version}}`,
-      value: version
-    }];
+    choices = [
+      {
+        name: chalk`Initial Release {gray ${version}}`,
+        value: version
+      }
+    ];
   }
 
   /**
