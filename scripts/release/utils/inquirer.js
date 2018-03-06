@@ -93,6 +93,7 @@ exports.packageVersionUpdate = async (package, releaseType) => {
       };
     });
   } else {
+    version = releaseType === 'Staging' ? inc(version, 'pre') : version;
     /**
      * Will hit this codepath if this is the first prerelease of the component
      */
