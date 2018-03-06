@@ -33,6 +33,16 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   /**
    * Check and see if we are trying to publish a prerelease
    */
+  let isPublished = await (async isStaging => {
+    if (isStaging) {
+      let { stdout } = await exec(`npm info ${package}@next version`);
+      return !!stdout.trim();
+    } else {
+      let { stdout } = await exec(`npm info ${package} version`);
+      return !stdout.includes('canary');
+    }
+  })(releaseType === 'Staging');
+
   if (releaseType === 'Staging' && !private) {
     let { stdout: nextVersion } = await exec(
       `npm info ${package}@next version`
@@ -42,12 +52,11 @@ exports.packageVersionUpdate = async (package, releaseType) => {
      * will break the `semver` module parsing
      */
     nextVersion = nextVersion.trim();
-
     /**
      * If we are currently in a prerelease cycle, fast-forward the version
      * to the prereleased version instead of the current version
      */
-    if (gt(nextVersion, version)) {
+    if (isPublished && gt(nextVersion, version)) {
       version = nextVersion;
     }
   }
@@ -69,6 +78,32 @@ exports.packageVersionUpdate = async (package, releaseType) => {
       ? prereleaseVersions
       : ['patch', 'minor', 'major'];
 
+  let choices;
+
+  if (isPublished) {
+    /**
+     * Will hit this codepath if we are publishing a module that has already been
+     * published once
+     */
+    choices = increments.map(increment => {
+      const newVersion = inc(version, increment);
+      return {
+        name: chalk`${capitalize(increment)} {gray ${newVersion}}`,
+        value: newVersion
+      };
+    });
+  } else {
+    /**
+     * Will hit this codepath if this is the first prerelease of the component
+     */
+    choices = [
+      {
+        name: chalk`Initial Release {gray ${version}}`,
+        value: version
+      }
+    ];
+  }
+
   /**
    * Create prompts
    */
@@ -76,13 +111,7 @@ exports.packageVersionUpdate = async (package, releaseType) => {
     type: 'list',
     name: `${package}`,
     message: `Select semver increment for ${package}`,
-    choices: increments.map(increment => {
-      const newVersion = inc(version, increment);
-      return {
-        name: chalk`${capitalize(increment)} {gray ${newVersion}}`,
-        value: newVersion
-      };
-    })
+    choices
   };
 };
 
