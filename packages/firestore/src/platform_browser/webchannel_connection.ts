@@ -80,11 +80,6 @@ export class WebChannelConnection implements Connection {
       }
     }
     headers['X-Goog-Api-Client'] = X_GOOG_API_CLIENT_VALUE;
-    // This header is used to improve routing and project isolation by the
-    // backend.
-    headers['google-cloud-resource-prefix'] =
-      `projects/${this.databaseId.projectId}/` +
-      `databases/${this.databaseId.database}`;
   }
 
   invokeRPC<Req, Resp>(
@@ -207,6 +202,13 @@ export class WebChannelConnection implements Connection {
       // preflight round-trip. This is formally defined here:
       // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L40
       httpHeadersOverwriteParam: '$httpHeaders',
+      messageUrlParams: {
+        // This param is used to improve routing and project isolation by the
+        // backend and must be included in every request.
+        database: `projects/${this.databaseId.projectId}/databases/${
+          this.databaseId.database
+        }`
+      },
       sendRawJson: true,
       supportsCrossDomainXhr: true
     };
