@@ -36,7 +36,8 @@ function getDefaultSettings(): firestore.Settings {
   } else {
     return {
       host: 'firestore.googleapis.com',
-      ssl: true
+      ssl: true,
+      timestampsInSnapshots: true
     };
   }
 }

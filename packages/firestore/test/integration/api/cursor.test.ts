@@ -241,7 +241,7 @@ apiDescribe('Cursors', persistence => {
   const makeTimestamp = (seconds, micros) =>
     new Timestamp(seconds, micros * 1000);
 
-  it('can accept Timestamps as limits', () => {
+  it('can accept Timestamps as bounds', () => {
     const testDocs = {
       a: { timestamp: makeTimestamp(100, 2) },
       b: { timestamp: makeTimestamp(100, 5) },

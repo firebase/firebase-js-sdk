@@ -349,9 +349,9 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     });
   });
 
-  it('are returned as Timestamps if timestampsInSnapshotsEnabled is set', () => {
+  it('are returned as Timestamps if timestampsInSnapshots is set', () => {
     const settings = { ...DEFAULT_SETTINGS };
-    settings['timestampsInSnapshotsEnabled'] = true;
+    settings['timestampsInSnapshots'] = true;
 
     const timestamp = new Timestamp(100, 123456000);
     const testDocs = { a: testDataWithTimestamps(timestamp) };
@@ -384,9 +384,9 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     });
   });
 
-  it('timestampsInSnapshotsEnabled affects server timestamps', () => {
+  it('timestampsInSnapshots affects server timestamps', () => {
     const settings = { ...DEFAULT_SETTINGS };
-    settings['timestampsInSnapshotsEnabled'] = true;
+    settings['timestampsInSnapshots'] = true;
     const testDocs = {
       a: { timestamp: firebase.firestore.FieldValue.serverTimestamp() }
     };

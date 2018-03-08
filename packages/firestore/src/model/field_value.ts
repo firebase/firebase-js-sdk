@@ -71,29 +71,29 @@ export enum ServerTimestampBehavior {
 export class FieldValueOptions {
   constructor(
     readonly serverTimestampBehavior: ServerTimestampBehavior,
-    readonly timestampsInSnapshotsEnabled: boolean
+    readonly timestampsInSnapshots: boolean
   ) {}
 
   static fromSnapshotOptions(
     options: SnapshotOptions,
-    timestampsInSnapshotsEnabled: boolean
+    timestampsInSnapshots: boolean
   ) {
     switch (options.serverTimestamps) {
       case 'estimate':
         return new FieldValueOptions(
           ServerTimestampBehavior.Estimate,
-          timestampsInSnapshotsEnabled
+          timestampsInSnapshots
         );
       case 'previous':
         return new FieldValueOptions(
           ServerTimestampBehavior.Previous,
-          timestampsInSnapshotsEnabled
+          timestampsInSnapshots
         );
       case 'none': // Fall-through intended.
       case undefined:
         return new FieldValueOptions(
           ServerTimestampBehavior.Default,
-          timestampsInSnapshotsEnabled
+          timestampsInSnapshots
         );
       default:
         return fail('fromSnapshotOptions() called with invalid options.');
@@ -329,7 +329,7 @@ export class TimestampValue extends FieldValue {
   }
 
   value(options?: FieldValueOptions): Date | Timestamp {
-    if (options && options.timestampsInSnapshotsEnabled) {
+    if (options && options.timestampsInSnapshots) {
       return this.internalValue;
     } else {
       return this.internalValue.toDate();
@@ -345,7 +345,7 @@ export class TimestampValue extends FieldValue {
 
   compareTo(other: FieldValue): number {
     if (other instanceof TimestampValue) {
-      return this.internalValue.compareTo(other.internalValue);
+      return this.internalValue._compareTo(other.internalValue);
     } else if (other instanceof ServerTimestampValue) {
       // Concrete timestamps come before server timestamps.
       return -1;
@@ -404,7 +404,7 @@ export class ServerTimestampValue extends FieldValue {
 
   compareTo(other: FieldValue): number {
     if (other instanceof ServerTimestampValue) {
-      return this.localWriteTime.compareTo(other.localWriteTime);
+      return this.localWriteTime._compareTo(other.localWriteTime);
     } else if (other instanceof TimestampValue) {
       // Server timestamps come after all concrete timestamps.
       return 1;

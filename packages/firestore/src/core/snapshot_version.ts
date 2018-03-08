@@ -42,7 +42,7 @@ export class SnapshotVersion {
   private constructor(private timestamp: Timestamp) {}
 
   compareTo(other: SnapshotVersion): number {
-    return this.timestamp.compareTo(other.timestamp);
+    return this.timestamp._compareTo(other.timestamp);
   }
 
   isEqual(other: SnapshotVersion): boolean {

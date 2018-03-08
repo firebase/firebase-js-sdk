@@ -69,7 +69,7 @@ export class Timestamp {
     return this.seconds * 1000 + this.nanoseconds / 1e6;
   }
 
-  compareTo(other: Timestamp): number {
+  _compareTo(other: Timestamp): number {
     if (this.seconds === other.seconds) {
       return primitiveComparator(this.nanoseconds, other.nanoseconds);
     }

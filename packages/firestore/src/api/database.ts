@@ -99,7 +99,7 @@ import {
 
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED = false;
+const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -128,7 +128,7 @@ class FirestoreSettings {
   /** Whether to use SSL when connecting. */
   ssl: boolean;
 
-  timestampsInSnapshotsEnabled: boolean;
+  timestampsInSnapshots: boolean;
 
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
@@ -155,7 +155,7 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshotsEnabled'
+      'timestampsInSnapshots'
     ]);
 
     validateNamedOptionalType(
@@ -166,28 +166,23 @@ class FirestoreSettings {
     );
     this.credentials = settings.credentials;
 
-    if (settings.timestampsInSnapshotsEnabled === undefined) {
-      this.timestampsInSnapshotsEnabled = DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED;
-    } else {
-      validateNamedOptionalType(
-        'settings',
-        'boolean',
-        'timestampsInSnapshotsEnabled',
-        settings.timestampsInSnapshotsEnabled
-      );
-      this.timestampsInSnapshotsEnabled = objUtils.defaulted(
-        settings.timestampsInSnapshotsEnabled,
-        DEFAULT_TIMESTAMPS_IN_SNAPSHOTS_ENABLED
-      );
-      this.timestampsInSnapshotsEnabled = settings.timestampsInSnapshotsEnabled;
-    }
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'timestampsInSnapshots',
+      settings.timestampsInSnapshots
+    );
+    this.timestampsInSnapshots = objUtils.defaulted(
+      settings.timestampsInSnapshots,
+      DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
+    );
   }
 
   isEqual(other: FirestoreSettings): boolean {
     return (
       this.host === other.host &&
       this.ssl === other.ssl &&
-      this.timestampsInSnapshotsEnabled == other.timestampsInSnapshotsEnabled &&
+      this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials
     );
   }
@@ -321,7 +316,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       'FirestoreSettings.host cannot be falsey'
     );
 
-    if (!this._config.settings.timestampsInSnapshotsEnabled) {
+    if (!this._config.settings.timestampsInSnapshots) {
       log.error(`
 The default behavior for Date objects stored in Firestore is going to change
 AND YOUR APP MAY BREAK.
@@ -329,7 +324,7 @@ To hide this warning and ensure your app does not break, you need to add the
 following code to your app before calling any other Cloud Firestore methods:
 
   const firestore = firebase.firestore(app);
-  const settings = {/* your settings... */ timestampsInSnapshotsEnabled: true};
+  const settings = {/* your settings... */ timestampsInSnapshots: true};
   firestore.settings(settings);
 
 With this change, timestamps stored in Cloud Firestore will be read back as
@@ -438,9 +433,7 @@ follow these steps, YOUR APP MAY BREAK.`);
       if (this._firestoreClient) {
         return this._firestoreClient.shutdown();
       }
-    },
-    areTimestampsInSnapshotsEnabled: () =>
-      this._config.settings.timestampsInSnapshotsEnabled
+    }
   };
 
   collection(pathString: string): firestore.CollectionReference {
@@ -520,6 +513,10 @@ follow these steps, YOUR APP MAY BREAK.`);
           'Invalid log level: ' + level
         );
     }
+  }
+
+  get _areTimestampsInSnapshotsEnabled(): boolean {
+    return this._config.settings.timestampsInSnapshots;
   }
 }
 
@@ -1082,7 +1079,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           this._document.data,
           FieldValueOptions.fromSnapshotOptions(
             options,
-            this._firestore.INTERNAL.areTimestampsInSnapshotsEnabled()
+            this._firestore._areTimestampsInSnapshotsEnabled
           )
         );
   }
@@ -1102,7 +1099,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           value,
           FieldValueOptions.fromSnapshotOptions(
             options,
-            this._firestore.INTERNAL.areTimestampsInSnapshotsEnabled()
+            this._firestore._areTimestampsInSnapshotsEnabled
           )
         );
       }
