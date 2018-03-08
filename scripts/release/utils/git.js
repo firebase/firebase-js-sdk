@@ -37,7 +37,7 @@ exports.cleanTree = async () => {
  * Returns the tagged commits
  */
 exports.commitAndTag = async updatedVersions => {
-  await exec('git add */package.json');
+  await exec('git add */package.json yarn.lock');
 
   let result = await exec(
     `git commit -m "Publish firebase@${updatedVersions.firebase}"`
@@ -63,7 +63,7 @@ exports.pushUpdatesToGithub = async tags => {
   currentBranch = currentBranch.trim();
 
   await exec(`git push origin ${currentBranch} --no-verify -u`, { cwd: root });
-  await exec(`git push origin ${tags.join(' ')}`);
+  await exec(`git push origin ${tags.join(' ')} --no-verify`, { cwd: root });
 };
 
 exports.resetWorkingTree = async () => {
