@@ -8,6 +8,19 @@
   dependencies:
     acorn "^5.2.1"
 
+"@firebase/database-types@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/@firebase/database-types/-/database-types-0.1.2.tgz#c6a23b8aa721ca16951c752430167ee764659916"
+
+"@firebase/database@^0.1.3":
+  version "0.1.11"
+  resolved "https://registry.npmjs.org/@firebase/database/-/database-0.1.11.tgz#652731bfd844bb858ab616e3dc8a3d5b8181101c"
+  dependencies:
+    "@firebase/database-types" "0.1.2"
+    "@firebase/util" "0.1.10"
+    faye-websocket "0.11.1"
+    tslib "^1.9.0"
+
 "@google-cloud/common-grpc@^0.5.3":
   version "0.5.5"
   resolved "https://registry.npmjs.org/@google-cloud/common-grpc/-/common-grpc-0.5.5.tgz#ca805d7bbbcf47bbd82cf603e0386e963d6f5804"
