@@ -325,12 +325,16 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     return { timestamp: ts, nested: { timestamp2: ts } };
   };
 
-  it('are returned as native dates by default', () => {
+  it('are returned as native dates if timestampsInSnapshots is not set', () => {
+    const settings = { ...DEFAULT_SETTINGS };
+    settings['timestampsInSnapshots'] = false;
+
     const timestamp = new Timestamp(100, 123456789);
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set(testDataWithTimestamps(timestamp))
-        .then(() => doc.get())
+    const testDocs = { a: testDataWithTimestamps(timestamp) };
+    return withTestCollectionSettings(persistence, settings, testDocs, coll => {
+      return coll
+        .doc('a')
+        .get()
         .then(docSnap => {
           expect(docSnap.get('timestamp'))
             .to.be.a('date')
@@ -349,23 +353,22 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     });
   });
 
-  it('are returned as Timestamps if timestampsInSnapshots is set', () => {
-    const settings = { ...DEFAULT_SETTINGS };
-    settings['timestampsInSnapshots'] = true;
+  it('are returned as Timestamps', () => {
+    expect(DEFAULT_SETTINGS['timestampsInSnapshots']).to.equal(true);
 
     const timestamp = new Timestamp(100, 123456000);
-    const testDocs = { a: testDataWithTimestamps(timestamp) };
     // Timestamps are currently truncated to microseconds after being written to
-    // the database.
+    // the database, so a truncated version of the timestamp is needed for
+    // comparisons.
     const truncatedTimestamp = new Timestamp(
       timestamp.seconds,
       Math.floor(timestamp.nanoseconds / 1000) * 1000
     );
 
-    return withTestCollectionSettings(persistence, settings, testDocs, coll => {
-      return coll
-        .doc('a')
-        .get()
+    return withTestDoc(persistence, doc => {
+      return doc
+        .set(testDataWithTimestamps(timestamp))
+        .then(() => doc.get())
         .then(docSnap => {
           expect(docSnap.get('timestamp'))
             .to.be.an.instanceof(Timestamp)
@@ -386,7 +389,7 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
 
   it('timestampsInSnapshots affects server timestamps', () => {
     const settings = { ...DEFAULT_SETTINGS };
-    settings['timestampsInSnapshots'] = true;
+    settings['timestampsInSnapshots'] = false;
     const testDocs = {
       a: { timestamp: firebase.firestore.FieldValue.serverTimestamp() }
     };
@@ -400,7 +403,7 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
             docSnap.get('timestamp', {
               serverTimestamps: 'estimate'
             })
-          ).to.be.an.instanceof(Timestamp);
+          ).to.be.an.instanceof(Date);
         });
     });
   });
