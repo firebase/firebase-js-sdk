@@ -110,7 +110,9 @@ apiDescribe('Server Timestamps', persistence => {
     // Tolerate up to 60 seconds of clock skew between client and server
     // since web tests may run in a Windows VM with a sloppy clock.
     const delta = 60;
-    expect(Math.abs(when.toDate().getTime() - Date.now())).to.be.lessThan(delta * 1000);
+    expect(Math.abs(when.toDate().getTime() - Date.now())).to.be.lessThan(
+      delta * 1000
+    );
 
     // Validate the rest of the document.
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));

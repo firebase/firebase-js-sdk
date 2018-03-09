@@ -307,7 +307,9 @@ apiDescribe('Queries', persistence => {
           { id: '2', date: Timestamp.fromDate(date2) },
           { id: '3', date: Timestamp.fromDate(date3) }
         ]);
-        expect(toDataArray(docs2)).to.deep.equal([{ id: '3', date: Timestamp.fromDate(date3) }]);
+        expect(toDataArray(docs2)).to.deep.equal([
+          { id: '3', date: Timestamp.fromDate(date3) }
+        ]);
       });
     });
   });
