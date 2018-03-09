@@ -384,6 +384,7 @@ abstract class TestRunner {
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
+      this.queue,
       onlineStateChangedHandler
     );
 
@@ -463,6 +464,8 @@ abstract class TestRunner {
       return this.doWriteAck(step.writeAck!);
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
+    } else if ('runTimer' in step) {
+      return this.doRunTimer(step.runTimer!);
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
@@ -699,7 +702,7 @@ abstract class TestRunner {
     // The watch stream should re-open if we have active listeners.
     if (!this.queryListeners.isEmpty()) {
       await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnection
+        TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
     }
@@ -757,6 +760,14 @@ abstract class TestRunner {
         );
       }
     });
+  }
+
+  private async doRunTimer(timer: string): Promise<void> {
+    // We assume the timer string is a valid TimerID enum value, but if it's
+    // not, then there won't be a matching item on the queue and
+    // runDelayedOperationsEarly() will throw.
+    const timerId = timer as TimerId;
+    await this.queue.runDelayedOperationsEarly(timerId);
   }
 
   private async doDisableNetwork(): Promise<void> {
@@ -888,11 +899,9 @@ abstract class TestRunner {
         )
       );
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
-      expect(actualTarget.targetId).to.deep.equal(expectedTarget.targetId);
-      expect(actualTarget.readTime).to.deep.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.deep.equal(
-        expectedTarget.resumeToken
-      );
+      expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
+      expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
+      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
@@ -1088,6 +1097,12 @@ export interface SpecStep {
   writeAck?: SpecWriteAck;
   /** Fail a write */
   failWrite?: SpecWriteFailure;
+
+  /**
+   * Run a queued timer task (without waiting for the delay to expire). See
+   * TimerId enum definition for possible values).
+   */
+  runTimer?: string;
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;

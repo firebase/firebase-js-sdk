@@ -21,8 +21,5 @@ const readFile = promisify(_readFile);
 
 exports.bannerText = async () => {
   let BANNER_TEXT = await readFile(resolve(__dirname, 'banner.txt'), 'utf8');
-  if (process.platform === 'darwin') {
-    BANNER_TEXT = BANNER_TEXT.replace(/#/g, '🔥');
-  }
   console.log(BANNER_TEXT);
 };
