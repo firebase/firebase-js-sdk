@@ -3,6 +3,9 @@
   neither succeeds nor fails within 10 seconds, the SDK will consider itself
   "offline", causing get() calls to resolve with cached results, rather than
   continuing to wait.
+- [fixed] Fixed a potential race condition after calling `enableNetwork()` that
+  could result in a "Mutation batchIDs must be acknowledged in order" assertion
+  crash.
 
 # 0.3.2
 - [fixed] Fixed a regression in Firebase JS release 4.9.0 that could in certain
