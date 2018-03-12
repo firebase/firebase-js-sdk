@@ -420,6 +420,9 @@ describeSpec('Writes:', [], () => {
           // ack write but without a watch event.
           .writeAcks(1000)
 
+          // handshake + write = 2 requests
+          .expectWriteStreamRequestCount(2)
+
           .disableNetwork()
           .expectEvents(query, {
             hasPendingWrites: true,
