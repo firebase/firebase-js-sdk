@@ -35,6 +35,7 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
+import { fail } from '../../../src/util/assert';
 
 let persistence: Persistence;
 let cache: TestQueryCache;
@@ -97,14 +98,9 @@ function genericQueryCacheTests() {
     );
   }
 
-  async function setAndReadQuery(queryData: QueryData): Promise<void> {
-    await cache.addQueryData(queryData);
-    const read = await cache.getQueryData(queryData.query);
-    expect(read).to.deep.equal(queryData);
-  }
-
-  beforeEach(() => {
+  beforeEach(async () => {
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
+    await cache.start();
   });
 
   it('returns null for query not in cache', () => {
@@ -113,8 +109,11 @@ function genericQueryCacheTests() {
     });
   });
 
-  it('can set and read a query', () => {
-    return setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 1));
+  it('can set and read a query', async () => {
+    const queryData = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(queryData);
+    const read = await cache.getQueryData(queryData.query);
+    expect(read).to.deep.equal(queryData);
   });
 
   it('handles canonical ID collisions', async () => {
@@ -131,9 +130,11 @@ function genericQueryCacheTests() {
     // equal canonicalIDs.
     expect(await cache.getQueryData(q2)).to.equal(null);
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
+    expect(cache.count()).to.equal(1);
 
     const data2 = testQueryData(q2, 2, 1);
     await cache.addQueryData(data2);
+    expect(cache.count()).to.equal(2);
 
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
@@ -141,15 +142,20 @@ function genericQueryCacheTests() {
     await cache.removeQueryData(data1);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
+    expect(cache.count()).to.equal(1);
 
     await cache.removeQueryData(data2);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.equal(null);
+    expect(cache.count()).to.equal(0);
   });
 
   it('can set query to new value', async () => {
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
-    await setAndReadQuery(testQueryData(QUERY_ROOMS, 1, 2));
+    const updated = testQueryData(QUERY_ROOMS, 1, 2);
+    await cache.updateQueryData(updated);
+    const retrieved = await cache.getQueryData(updated.query);
+    expect(retrieved).to.deep.equal(updated);
   });
 
   it('can remove a query', async () => {
@@ -158,11 +164,6 @@ function genericQueryCacheTests() {
     await cache.removeQueryData(queryData);
     const read = await cache.getQueryData(QUERY_ROOMS);
     expect(read).to.equal(null);
-  });
-
-  it('can remove nonexistent query', () => {
-    // no-op, but make sure it doesn't fail.
-    return cache.removeQueryData(testQueryData(QUERY_ROOMS, 1, 1));
   });
 
   it('can remove matching keys when a query is removed', async () => {

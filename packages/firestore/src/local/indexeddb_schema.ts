@@ -21,53 +21,58 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { SimpleDbTransaction } from './simple_db';
+import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
-export const SCHEMA_VERSION = 1;
+/**
+ * Schema Version for the Web client:
+ * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
+ *    Cache
+ * 2. Added targetCount to targetGlobal row.
+ */
+export const SCHEMA_VERSION = 2;
 
-/** Performs database creation and (in the future) upgrades between versions. */
-export function createOrUpgradeDb(db: IDBDatabase, oldVersion: number): void {
-  assert(oldVersion === 0, 'Unexpected upgrade from version ' + oldVersion);
-
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
-
-  // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their
-  // types. https://github.com/Microsoft/TypeScript/issues/14322
-  db.createObjectStore(
-    DbMutationBatch.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbMutationBatch.keyPath as any }
+/**
+ * Performs database creation and schema upgrades.
+ *
+ * Note that in production, this method is only ever used to upgrade the schema
+ * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+ * and local feature development.
+ */
+export function createOrUpgradeDb(
+  db: IDBDatabase,
+  txn: SimpleDbTransaction,
+  fromVersion: number,
+  toVersion: number
+): PersistencePromise<void> {
+  // This function currently supports migrating to schema version 1 (Mutation
+  // Queue, Query and Remote Document Cache) and schema version 2 (Query
+  // counting).
+  assert(
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
 
-  const targetDocumentsStore = db.createObjectStore(
-    DbTargetDocument.store,
-    // tslint:disable-next-line:no-any
-    { keyPath: DbTargetDocument.keyPath as any }
-  );
-  targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
-    { unique: true }
-  );
+  if (fromVersion < 1 && toVersion >= 1) {
+    createOwnerStore(db);
+    createMutationQueue(db);
+    createQueryCache(db);
+    createRemoteDocumentCache(db);
+  }
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
-  });
-  // NOTE: This is unique only because the TargetId is the suffix.
-  targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
-    { unique: true }
-  );
-
-  // NOTE: keys for these stores are specified explicitly rather than using a
-  // keyPath.
-  db.createObjectStore(DbDocumentMutation.store);
-  db.createObjectStore(DbRemoteDocument.store);
-  db.createObjectStore(DbOwner.store);
-  db.createObjectStore(DbTargetGlobal.store);
+  let p = PersistencePromise.resolve();
+  if (fromVersion < 2 && toVersion >= 2) {
+    p = ensureTargetGlobalExists(txn).next(targetGlobal =>
+      saveTargetCount(txn, targetGlobal)
+    );
+  }
+  return p;
 }
+
+// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
+// https://github.com/Microsoft/TypeScript/issues/14322
+type KeyPath = any; // tslint:disable-line:no-any
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -92,6 +97,10 @@ export class DbOwner {
   static store = 'owner';
 
   constructor(public ownerId: string, public leaseTimestampMs: number) {}
+}
+
+function createOwnerStore(db: IDBDatabase): void {
+  db.createObjectStore(DbOwner.store);
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -183,6 +192,18 @@ export class DbMutationBatch {
  */
 export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
 
+function createMutationQueue(db: IDBDatabase): void {
+  db.createObjectStore(DbMutationQueue.store, {
+    keyPath: DbMutationQueue.keyPath
+  });
+
+  db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath as KeyPath
+  });
+
+  db.createObjectStore(DbDocumentMutation.store);
+}
+
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
  *
@@ -240,6 +261,10 @@ export class DbDocumentMutation {
  * segments that make up the path.
  */
 export type DbRemoteDocumentKey = string[];
+
+function createRemoteDocumentCache(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocument.store);
+}
 
 /**
  * Represents the known absence of a document at a particular version.
@@ -451,13 +476,86 @@ export class DbTargetGlobal {
      * until the backend has caught up to this snapshot version again. This
      * prevents our cache from ever going backwards in time.
      */
-    public lastRemoteSnapshotVersion: DbTimestamp
+    public lastRemoteSnapshotVersion: DbTimestamp,
+    /**
+     * The number of targets persisted.
+     */
+    public targetCount: number
   ) {}
 }
 
+function createQueryCache(db: IDBDatabase): void {
+  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
+    keyPath: DbTargetDocument.keyPath as KeyPath
+  });
+  targetDocumentsStore.createIndex(
+    DbTargetDocument.documentTargetsIndex,
+    DbTargetDocument.documentTargetsKeyPath,
+    { unique: true }
+  );
+
+  const targetStore = db.createObjectStore(DbTarget.store, {
+    keyPath: DbTarget.keyPath
+  });
+
+  // NOTE: This is unique only because the TargetId is the suffix.
+  targetStore.createIndex(
+    DbTarget.queryTargetsIndexName,
+    DbTarget.queryTargetsKeyPath,
+    { unique: true }
+  );
+  db.createObjectStore(DbTargetGlobal.store);
+}
+
 /**
- * The list of all IndexedDB stored used by the SDK. This is used when creating
- * transactions so that access across all stores is done atomically.
+ * Counts the number of targets persisted and adds that value to the target
+ * global singleton.
+ */
+function saveTargetCount(
+  txn: SimpleDbTransaction,
+  metadata: DbTargetGlobal
+): PersistencePromise<void> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
+  const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+  return targetStore.count().next(count => {
+    metadata.targetCount = count;
+    return globalStore.put(DbTargetGlobal.key, metadata);
+  });
+}
+
+/**
+ * Ensures that the target global singleton row exists by adding it if it's
+ * missing.
+ *
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+ */
+function ensureTargetGlobalExists(
+  txn: SimpleDbTransaction
+): PersistencePromise<DbTargetGlobal> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
+  return globalStore.get(DbTargetGlobal.key).next(metadata => {
+    if (metadata != null) {
+      return PersistencePromise.resolve(metadata);
+    } else {
+      metadata = new DbTargetGlobal(
+        /*highestTargetId=*/ 0,
+        /*lastListenSequenceNumber=*/ 0,
+        SnapshotVersion.MIN.toTimestamp(),
+        /*targetCount=*/ 0
+      );
+      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
+    }
+  });
+}
+
+/**
+ * The list of all default IndexedDB stores used throughout the SDK. This is
+ * used when creating transactions so that access across all stores is done
+ * atomically.
  */
 export const ALL_STORES = [
   DbMutationQueue.store,

@@ -42,6 +42,16 @@ export class TestQueryCache {
     });
   }
 
+  updateQueryData(queryData: QueryData): Promise<void> {
+    return this.persistence.runTransaction('updateQueryData', txn => {
+      return this.cache.updateQueryData(txn, queryData);
+    });
+  }
+
+  count(): number {
+    return this.cache.count;
+  }
+
   removeQueryData(queryData: QueryData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', txn => {
       return this.cache.removeQueryData(txn, queryData);
