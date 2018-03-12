@@ -40,6 +40,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
@@ -120,6 +121,8 @@ describe('IndexedDbMutationQueue', () => {
  * implementations.
  */
 function genericMutationQueueTests() {
+  addEqualityMatcher();
+
   beforeEach(() => {
     mutationQueue = new TestMutationQueue(
       persistence,
@@ -322,6 +325,24 @@ function genericMutationQueueTests() {
       last.batchId
     );
     expect(notFound).to.be.null;
+  });
+
+  it('getNextMutationBatchAfterBatchId() skips acknowledged batches', async () => {
+    const batches = await createBatches(3);
+    expect(
+      await mutationQueue.getNextMutationBatchAfterBatchId(BATCHID_UNKNOWN)
+    ).to.deep.equal(batches[0]);
+
+    await mutationQueue.acknowledgeBatch(batches[0], emptyByteString());
+    expect(
+      await mutationQueue.getNextMutationBatchAfterBatchId(BATCHID_UNKNOWN)
+    ).to.deep.equal(batches[1]);
+    expect(
+      await mutationQueue.getNextMutationBatchAfterBatchId(batches[0].batchId)
+    ).to.deep.equal(batches[1]);
+    expect(
+      await mutationQueue.getNextMutationBatchAfterBatchId(batches[1].batchId)
+    ).to.deep.equal(batches[2]);
   });
 
   it('can getAllMutationBatchesThroughBatchId()', async () => {

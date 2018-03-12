@@ -825,17 +825,17 @@ abstract class TestRunner {
   private validateStateExpectations(expectation: StateExpectation): void {
     if (expectation) {
       if ('numOutstandingWrites' in expectation) {
-        expect(this.remoteStore.outstandingWrites()).to.deep.equal(
+        expect(this.remoteStore.outstandingWrites()).to.equal(
           expectation.numOutstandingWrites
         );
       }
       if ('writeStreamRequestCount' in expectation) {
-        expect(this.connection.writeStreamRequestCount).to.deep.equal(
+        expect(this.connection.writeStreamRequestCount).to.equal(
           expectation.writeStreamRequestCount
         );
       }
       if ('watchStreamRequestCount' in expectation) {
-        expect(this.connection.watchStreamRequestCount).to.deep.equal(
+        expect(this.connection.watchStreamRequestCount).to.equal(
           expectation.watchStreamRequestCount
         );
       }
