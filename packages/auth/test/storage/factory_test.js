@@ -140,6 +140,39 @@ function testGetStorage_reactnative_persistent() {
 }
 
 
+function testGetStorage_worker_persistent() {
+  var mock = {
+    type: 'indexedDB'
+  };
+  // persistsStorageWithIndexedDB is true in a worker environment.
+  stubs.replace(
+     fireauth.util,
+      'persistsStorageWithIndexedDB',
+      function() {
+        return true;
+      });
+  // Return a mock indexeDB instance to assert the expected result of the test
+  // below.
+  stubs.replace(
+      fireauth.storage.IndexedDB,
+      'getFireauthManager',
+      function() {
+        return mock;
+      });
+  var factory = new fireauth.storage.Factory(
+      fireauth.storage.Factory.EnvConfig.WORKER);
+  assertEquals('indexedDB', factory.makePersistentStorage().type);
+}
+
+
+function testGetStorage_worker_temporary() {
+  var factory = new fireauth.storage.Factory(
+      fireauth.storage.Factory.EnvConfig.WORKER);
+  assertTrue(factory.makeTemporaryStorage() instanceof
+      fireauth.storage.NullStorage);
+}
+
+
 function testGetStorage_inMemory() {
   var factory = new fireauth.storage.Factory(
       fireauth.storage.Factory.EnvConfig.BROWSER);
