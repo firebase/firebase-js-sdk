@@ -255,14 +255,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    const range = IDBKeyRange.lowerBound(this.keyForBatchId(batchId + 1));
+    // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
+    // been acknowledged so the first unacknowledged batch after batchID will
+    // have a batchID larger than both of these values.
+    const nextBatchId =
+      Math.max(batchId, this.metadata.lastAcknowledgedBatchId) + 1;
+
+    const range = IDBKeyRange.lowerBound(this.keyForBatchId(nextBatchId));
     let foundBatch: MutationBatch | null = null;
     return mutationsStore(transaction)
       .iterate({ range }, (key, dbBatch, control) => {
         if (dbBatch.userId === this.userId) {
           assert(
-            dbBatch.batchId > batchId,
-            'Should have found mutation after ' + batchId
+            dbBatch.batchId >= nextBatchId,
+            'Should have found mutation after ' + nextBatchId
           );
           foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
         }
