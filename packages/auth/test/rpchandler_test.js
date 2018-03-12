@@ -31,6 +31,8 @@ goog.require('fireauth.common.testHelper');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.json');
+goog.require('goog.net.CorsXmlHttpFactory');
+goog.require('goog.net.FetchXmlHttpFactory');
 goog.require('goog.net.XhrIo');
 goog.require('goog.net.XhrLike');
 goog.require('goog.object');
@@ -169,6 +171,7 @@ function tearDown() {
   } finally {
     mockControl.$tearDown();
   }
+  delete goog.global['self'];
 }
 
 
@@ -179,7 +182,7 @@ function testGetApiKey() {
 
 function testRpcHandler_XMLHttpRequest_notSupported() {
   stubs.replace(
-      fireauth.util,
+      fireauth.RpcHandler,
       'getXMLHttpRequest',
       function() {return undefined;});
   var expectedError = new fireauth.AuthError(
@@ -187,6 +190,136 @@ function testRpcHandler_XMLHttpRequest_notSupported() {
       'The XMLHttpRequest compatibility library was not found.');
   var error = assertThrows(function() { new fireauth.RpcHandler('apiKey'); });
   fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+}
+
+
+function testRpcHandler_XMLHttpRequest_worker() {
+  // Test worker environment that FetchXmlHttpFactory is used in initialization
+  // of goog.net.XhrIo.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  // Simulates global self in a worker environment.
+  goog.global['self']  = {};
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var createInstance = mockControl.createMethodMock(
+      goog.net.FetchXmlHttpFactory.prototype, 'createInstance');
+  stubs.reset();
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return true;});
+  // No XMLHttpRequest available.
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return undefined;});
+  // Confirm RPC handler calls XHR instance from FetchXmlHttpFactory XHR.
+  createInstance().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
+}
+
+
+function testRpcHandler_XMLHttpRequest_corsBrowser() {
+  // Test CORS browser environment that CorsXmlHttpFactory is used in
+  // initialization of goog.net.XhrIo.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var createInstance = mockControl.createMethodMock(
+      goog.net.CorsXmlHttpFactory.prototype, 'createInstance');
+  stubs.reset();
+  // Non-worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return false;});
+  // CORS supporting browser.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Non-native environment.
+  stubs.replace(
+      fireauth.util,
+      'isNativeEnvironment',
+      function() {return false;});
+  // Confirm RPC handler calls XHR instance from CorsXmlHttpFactory XHR.
+  createInstance().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
+}
+
+
+function testRpcHandler_XMLHttpRequest_reactNative() {
+  // Test react-native environment that built-in XMLHttpRequest is used in
+  // xhrFactory.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var xhrConstructor = mockControl.createConstructorMock(
+      goog.net, 'XhrLike');
+  stubs.reset();
+  // CORS supporting environment.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Return native XMLHttpRequest..
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return xhrConstructor;});
+  // React-native environment.
+  stubs.replace(
+      fireauth.util,
+      'isNativeEnvironment',
+      function() {return true;});
+  stubs.replace(
+      fireauth.util,
+      'getEnvironment',
+      function() {return fireauth.util.Env.REACT_NATIVE;});
+  // Confirm RPC handler calls XHR instance from factory XHR.
+  xhrConstructor().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
 }
 
 
@@ -205,7 +338,7 @@ function testRpcHandler_XMLHttpRequest_node() {
   // Return mock XHR constructor. In a Node.js environment the polyfill library
   // would be used.
   stubs.replace(
-      fireauth.util,
+      fireauth.RpcHandler,
       'getXMLHttpRequest',
       function() {return xhrConstructor;});
   // Node.js environment.
