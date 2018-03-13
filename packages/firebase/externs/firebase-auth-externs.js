@@ -1330,8 +1330,10 @@ firebase.auth.Auth.prototype.onIdTokenChanged = function(
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.auth.Auth.prototype.sendSignInLinkToEmail =
-    function(email, actionCodeSettings) {};
+firebase.auth.Auth.prototype.sendSignInLinkToEmail = function(
+  email,
+  actionCodeSettings
+) {};
 
 /**
  * Sends a password reset email to the given email address.
@@ -1768,8 +1770,10 @@ firebase.auth.Auth.prototype.signInWithEmailAndPassword = function(
  *     URL is used instead.
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
-firebase.auth.Auth.prototype.signInWithEmailLink =
-    function(email, emailLink) {};
+firebase.auth.Auth.prototype.signInWithEmailLink = function(
+  email,
+  emailLink
+) {};
 
 /**
  * Asynchronously signs in using a phone number. This method sends a code via
@@ -2554,8 +2558,10 @@ firebase.auth.EmailAuthProvider.credential = function(email, password) {};
  * @param {string} emailLink Sign-in email link.
  * @return {!firebase.auth.AuthCredential} The auth provider credential.
  */
-firebase.auth.EmailAuthProvider.credentialWithLink =
-    function(email, emailLink) {};
+firebase.auth.EmailAuthProvider.credentialWithLink = function(
+  email,
+  emailLink
+) {};
 
 /** @type {string} */
 firebase.auth.EmailAuthProvider.prototype.providerId;
