@@ -153,7 +153,15 @@ function refreshUserData() {
     $('input.profile-name').val(user.displayName);
     $('input.photo-url').val(user.photoURL);
     if (user.photoURL != null) {
-      $('img.profile-image').attr('src', user.photoURL).show();
+      var photoURL = user.photoURL;
+      // Append size to the photo URL for Google hosted images to avoid requesting
+      // the image with its original resolution (using more bandwidth than needed)
+      // when it is going to be presented in smaller size.
+      if ((photoURL.indexOf('googleusercontent.com') != -1) ||
+          (photoURL.indexOf('ggpht.com') != -1)) {
+        photoURL = photoURL + '?sz=' + $('img.profile-image').height();
+      }
+      $('img.profile-image').attr('src', photoURL).show();
     } else {
       $('img.profile-image').hide();
     }
