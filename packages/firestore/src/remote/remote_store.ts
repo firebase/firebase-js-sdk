@@ -49,18 +49,13 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
+import { OnlineStateTracker } from './online_state_tracker';
+import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'RemoteStore';
 
 // TODO(b/35853402): Negotiate this with the stream.
 const MAX_PENDING_WRITES = 10;
-
-// The RemoteStore notifies an onlineStateHandler with OnlineState.Failed if we
-// fail to connect to the backend. This subsequently triggers get() requests to
-// fail or use cached data, etc. Unfortunately, our connections have
-// historically been subject to various transient failures. So we wait for
-// multiple failures before notifying the onlineStateHandler.
-const ONLINE_ATTEMPTS_BEFORE_FAILURE = 2;
 
 /**
  * RemoteStore - An interface to remotely stored data, basically providing a
@@ -117,17 +112,7 @@ export class RemoteStore {
   private watchStream: PersistentListenStream = null;
   private writeStream: PersistentWriteStream = null;
 
-  /**
-   * The online state of the watch stream. The state is set to healthy if and
-   * only if there are messages received by the backend.
-   */
-  private watchStreamOnlineState = OnlineState.Unknown;
-
-  /** A count of consecutive failures to open the stream. */
-  private watchStreamFailures = 0;
-
-  /** Whether the client should fire offline warning. */
-  private shouldWarnOffline = true;
+  private onlineStateTracker: OnlineStateTracker;
 
   constructor(
     /**
@@ -137,8 +122,14 @@ export class RemoteStore {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
-    private onlineStateHandler: (onlineState: OnlineState) => void
-  ) {}
+    asyncQueue: AsyncQueue,
+    onlineStateHandler: (onlineState: OnlineState) => void
+  ) {
+    this.onlineStateTracker = new OnlineStateTracker(
+      asyncQueue,
+      onlineStateHandler
+    );
+  }
 
   /** SyncEngine to notify of watch and write events. */
   syncEngine: RemoteSyncer;
@@ -149,51 +140,6 @@ export class RemoteStore {
    */
   start(): Promise<void> {
     return this.enableNetwork();
-  }
-
-  /**
-   * Updates our OnlineState to the new state, updating local state
-   * and notifying the onlineStateHandler as appropriate. Idempotent.
-   */
-  private updateOnlineState(newState: OnlineState): void {
-    if (newState !== this.watchStreamOnlineState) {
-      if (newState === OnlineState.Healthy) {
-        // We've connected to watch at least once. Don't warn the developer about
-        // being offline going forward.
-        this.shouldWarnOffline = false;
-      } else if (newState === OnlineState.Unknown) {
-        // The state is set to unknown when a healthy stream is closed (e.g. due to
-        // a token timeout) or when we have no active listens and therefore there's
-        // no need to start the stream. Assuming there is (possibly in the future)
-        // an active listen, then we will eventually move to state Online or Failed,
-        // but we always want to make at least ONLINE_ATTEMPTS_BEFORE_FAILURE
-        // attempts before failing, so we reset the count here.
-        this.watchStreamFailures = 0;
-      }
-      this.watchStreamOnlineState = newState;
-      this.onlineStateHandler(newState);
-    }
-  }
-
-  /**
-   * Updates our OnlineState as appropriate after the watch stream reports a
-   * failure. The first failure moves us to the 'Unknown' state. We then may
-   * allow multiple failures (based on ONLINE_ATTEMPTS_BEFORE_FAILURE) before we
-   * actually transition to OnlineState.Failed.
-   */
-  private updateOnlineStateAfterFailure(): void {
-    if (this.watchStreamOnlineState === OnlineState.Healthy) {
-      this.updateOnlineState(OnlineState.Unknown);
-    } else {
-      this.watchStreamFailures++;
-      if (this.watchStreamFailures >= ONLINE_ATTEMPTS_BEFORE_FAILURE) {
-        if (this.shouldWarnOffline) {
-          log.error('Could not reach Firestore backend.');
-          this.shouldWarnOffline = false;
-        }
-        this.updateOnlineState(OnlineState.Failed);
-      }
-    }
   }
 
   private isNetworkEnabled(): boolean {
@@ -220,9 +166,9 @@ export class RemoteStore {
 
       if (this.shouldStartWatchStream()) {
         this.startWatchStream();
+      } else {
+        this.onlineStateTracker.set(OnlineState.Unknown);
       }
-
-      this.updateOnlineState(OnlineState.Unknown);
 
       return this.fillWritePipeline(); // This may start the writeStream.
     });
@@ -234,8 +180,8 @@ export class RemoteStore {
    */
   async disableNetwork(): Promise<void> {
     this.disableNetworkInternal();
-    // Set the OnlineState to failed so get()'s return from cache, etc.
-    this.updateOnlineState(OnlineState.Failed);
+    // Set the OnlineState to Offline so get()s return from cache, etc.
+    this.onlineStateTracker.set(OnlineState.Offline);
   }
 
   /**
@@ -259,9 +205,9 @@ export class RemoteStore {
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
     this.disableNetworkInternal();
-    // Set the OnlineState to Unknown (rather than Failed) to avoid potentially
+    // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
-    this.updateOnlineState(OnlineState.Unknown);
+    this.onlineStateTracker.set(OnlineState.Unknown);
     return Promise.resolve();
   }
 
@@ -336,11 +282,13 @@ export class RemoteStore {
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
+
+    this.onlineStateTracker.handleWatchStreamStart();
   }
 
   /**
-   * Returns whether the watch stream should be started because there are
-   * active targets trying to be listened too
+   * Returns whether the watch stream should be started because it's necessary
+   * and has not yet been started.
    */
   private shouldStartWatchStream(): boolean {
     return (
@@ -376,16 +324,16 @@ export class RemoteStore {
     );
 
     this.cleanUpWatchStreamState();
+    this.onlineStateTracker.handleWatchStreamFailure();
 
     // If there was an error, retry the connection.
     if (this.shouldStartWatchStream()) {
-      this.updateOnlineStateAfterFailure();
       this.startWatchStream();
     } else {
       // No need to restart watch stream because there are no active targets.
       // The online state is set to unknown because there is no active attempt
       // at establishing a connection
-      this.updateOnlineState(OnlineState.Unknown);
+      this.onlineStateTracker.set(OnlineState.Unknown);
     }
   }
 
@@ -393,8 +341,8 @@ export class RemoteStore {
     watchChange: WatchChange,
     snapshotVersion: SnapshotVersion
   ): Promise<void> {
-    // Mark the connection as healthy because we got a message from the server
-    this.updateOnlineState(OnlineState.Healthy);
+    // Mark the client as online since we got a message from the server
+    this.onlineStateTracker.set(OnlineState.Online);
 
     if (
       watchChange instanceof WatchTargetChange &&
@@ -804,7 +752,7 @@ export class RemoteStore {
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
       this.disableNetworkInternal();
-      this.updateOnlineState(OnlineState.Unknown);
+      this.onlineStateTracker.set(OnlineState.Unknown);
       return this.enableNetwork();
     }
   }

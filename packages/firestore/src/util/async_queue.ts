@@ -27,12 +27,30 @@ type TimerHandle = any;
  * Wellknown "timer" IDs used when scheduling delayed operations on the
  * AsyncQueue. These IDs can then be used from tests to check for the presence
  * of operations or to run them early.
+ *
+ * The string values are used when encoding these timer IDs in JSON spec tests.
  */
 export enum TimerId {
-  ListenStreamIdle,
-  ListenStreamConnection,
-  WriteStreamIdle,
-  WriteStreamConnection
+  /** All can be used with runDelayedOperationsEarly() to run all timers. */
+  All = 'all',
+
+  /**
+   * The following 4 timers are used in persistent_stream.ts for the listen and
+   * write streams. The "Idle" timer is used to close the stream due to
+   * inactivity. The "ConnectionBackoff" timer is used to restart a stream once
+   * the appropriate backoff delay has elapsed.
+   */
+  ListenStreamIdle = 'listen_stream_idle',
+  ListenStreamConnectionBackoff = 'listen_stream_connection_backoff',
+  WriteStreamIdle = 'write_stream_idle',
+  WriteStreamConnectionBackoff = 'write_stream_connection_backoff',
+
+  /**
+   * A timer used in online_state_tracker.ts to transition from
+   * OnlineState.Unknown to Offline after a set timeout, rather than waiting
+   * indefinitely for success or failure.
+   */
+  OnlineStateTimeout = 'online_state_timeout'
 }
 
 /**
@@ -55,7 +73,12 @@ class DelayedOperation<T> implements CancelablePromise<T> {
     readonly targetTimeMs: number,
     private readonly op: () => Promise<T>,
     private readonly removalCallback: (op: DelayedOperation<T>) => void
-  ) {}
+  ) {
+    // It's normal for the deferred promise to be canceled (due to cancellation)
+    // and so we attach a dummy catch callback to avoid
+    // 'UnhandledPromiseRejectionWarning' log spam.
+    this.deferred.promise.catch(err => {});
+  }
 
   /**
    * Creates and returns a DelayedOperation that has been scheduled to be
@@ -221,9 +244,7 @@ export class AsyncQueue {
     // ops with the same timer id in the queue, so defensively reject them.
     assert(
       !this.containsDelayedOperation(timerId),
-      `Attempted to schedule multiple operations with timer id ${
-        TimerId[timerId]
-      }.`
+      `Attempted to schedule multiple operations with timer id ${timerId}.`
     );
 
     const delayedOp = DelayedOperation.createAndSchedule(
@@ -279,16 +300,17 @@ export class AsyncQueue {
   /**
    * For Tests: Runs some or all delayed operations early.
    *
-   * @param lastTimerId If specified, only delayed operations up to and
-   *   including this TimerId will be drained. Throws if no such operation
-   *   exists.
+   * @param lastTimerId Delayed operations up to and including this TimerId will
+   *  be drained. Throws if no such operation exists. Pass TimerId.All to run
+   *  all delayed operations.
    * @returns a Promise that resolves once all operations have been run.
    */
-  runDelayedOperationsEarly(lastTimerId?: TimerId): Promise<void> {
+  runDelayedOperationsEarly(lastTimerId: TimerId): Promise<void> {
     // Note that draining may generate more delayed ops, so we do that first.
     return this.drain().then(() => {
       assert(
-        lastTimerId === undefined || this.containsDelayedOperation(lastTimerId),
+        lastTimerId === TimerId.All ||
+          this.containsDelayedOperation(lastTimerId),
         `Attempted to drain to missing operation ${lastTimerId}`
       );
 
@@ -297,7 +319,7 @@ export class AsyncQueue {
 
       for (const op of this.delayedOperations) {
         op.skipDelay();
-        if (lastTimerId !== undefined && op.timerId === lastTimerId) {
+        if (lastTimerId !== TimerId.All && op.timerId === lastTimerId) {
           break;
         }
       }

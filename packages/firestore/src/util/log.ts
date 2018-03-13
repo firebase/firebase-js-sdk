@@ -19,6 +19,9 @@
 import { SDK_VERSION } from '../core/version';
 import { AnyJs } from './misc';
 import { PlatformSupport } from '../platform/platform';
+import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
+
+const logClient = new Logger('@firebase/firestore');
 
 export enum LogLevel {
   DEBUG,
@@ -26,29 +29,48 @@ export enum LogLevel {
   SILENT
 }
 
-let logLevel = LogLevel.ERROR;
-
 // Helper methods are needed because variables can't be exported as read/write
 export function getLogLevel(): LogLevel {
-  return logLevel;
+  if (logClient.logLevel === FirebaseLogLevel.DEBUG) {
+    return LogLevel.DEBUG;
+  } else if (logClient.logLevel === FirebaseLogLevel.SILENT) {
+    return LogLevel.SILENT;
+  } else {
+    return LogLevel.ERROR;
+  }
 }
 export function setLogLevel(newLevel: LogLevel): void {
-  logLevel = newLevel;
+  /**
+   * Map the new log level to the associated Firebase Log Level
+   */
+  switch (newLevel) {
+    case LogLevel.DEBUG:
+      logClient.logLevel = FirebaseLogLevel.DEBUG;
+      break;
+    case LogLevel.ERROR:
+      logClient.logLevel = FirebaseLogLevel.ERROR;
+      break;
+    case LogLevel.SILENT:
+      logClient.logLevel = FirebaseLogLevel.SILENT;
+      break;
+    default:
+      logClient.error(
+        `Firestore (${SDK_VERSION}): Invalid value passed to \`setLogLevel\``
+      );
+  }
 }
 
 export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
-  if (logLevel <= LogLevel.DEBUG) {
-    const time = new Date().toISOString();
+  if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
     const args = obj.map(argToString);
-    console.log(`Firestore (${SDK_VERSION}) ${time} [${tag}]: ${msg}`, ...args);
+    logClient.debug(`Firestore (${SDK_VERSION}) [${tag}]: ${msg}`, ...args);
   }
 }
 
 export function error(msg: string, ...obj: AnyJs[]): void {
-  if (logLevel <= LogLevel.ERROR) {
-    const time = new Date().toISOString();
+  if (logClient.logLevel <= FirebaseLogLevel.ERROR) {
     const args = obj.map(argToString);
-    console.error(`Firestore (${SDK_VERSION}) ${time}: ${msg}`, ...args);
+    logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
   }
 }
 

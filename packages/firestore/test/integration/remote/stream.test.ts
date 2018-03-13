@@ -259,7 +259,7 @@ describe('Write Stream', () => {
           writeStream.writeMutations(SINGLE_MUTATION);
           return streamListener.awaitCallback('mutationResult');
         })
-        .then(() => queue.runDelayedOperationsEarly())
+        .then(() => queue.runDelayedOperationsEarly(TimerId.All))
         .then(() => {
           expect(writeStream.isOpen()).to.be.true;
         });
