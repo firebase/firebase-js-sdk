@@ -515,7 +515,7 @@ follow these steps, YOUR APP MAY BREAK.`);
     }
   }
 
-  get _areTimestampsInSnapshotsEnabled(): boolean {
+  _areTimestampsInSnapshotsEnabled(): boolean {
     return this._config.settings.timestampsInSnapshots;
   }
 }
@@ -1079,7 +1079,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           this._document.data,
           FieldValueOptions.fromSnapshotOptions(
             options,
-            this._firestore._areTimestampsInSnapshotsEnabled
+            this._firestore._areTimestampsInSnapshotsEnabled()
           )
         );
   }
@@ -1099,7 +1099,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
           value,
           FieldValueOptions.fromSnapshotOptions(
             options,
-            this._firestore._areTimestampsInSnapshotsEnabled
+            this._firestore._areTimestampsInSnapshotsEnabled()
           )
         );
       }
