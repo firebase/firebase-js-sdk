@@ -314,9 +314,11 @@ export abstract class PersistentStream<
       "Can't provide an error when not in an error state."
     );
 
+    // The stream will be closed so we don't need our idle close timer anymore.
     this.cancelIdleCheck();
 
-    // Ensure we don't leave a pending backoff operation queued.
+    // Ensure we don't leave a pending backoff operation queued (in case close()
+    // was called while we were waiting to reconnect).
     this.backoff.cancel();
 
     if (finalState !== PersistentStreamState.Error) {
@@ -464,6 +466,12 @@ export abstract class PersistentStream<
     this.state = PersistentStreamState.Backoff;
 
     this.backoff.backoffAndRun(async () => {
+      if (this.state === PersistentStreamState.Stopped) {
+        // We should have canceled the backoff timer when the stream was
+        // closed, but just in case we make this a no-op.
+        return;
+      }
+
       assert(
         this.state === PersistentStreamState.Backoff,
         'Backoff should have been canceled if we left the Backoff state.'
