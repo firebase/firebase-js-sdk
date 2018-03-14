@@ -496,14 +496,22 @@ export class SpecBuilder {
     return this;
   }
 
-  watchStreamCloses(error: Code): SpecBuilder {
+  watchStreamCloses(
+    error: Code,
+    opts?: { runBackoffTimer: boolean }
+  ): SpecBuilder {
+    if (!opts) {
+      opts = { runBackoffTimer: true };
+    }
+
     this.nextStep();
     this.currentStep = {
       watchStreamClose: {
         error: {
           code: mapRpcCodeFromCode(error),
           message: 'Simulated Backend Error'
-        }
+        },
+        runBackoffTimer: opts.runBackoffTimer
       }
     };
     return this;
