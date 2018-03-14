@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { SnapshotVersion } from '../core/snapshot_version';
 import { Timestamp } from '../api/timestamp';
+import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 

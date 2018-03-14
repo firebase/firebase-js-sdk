@@ -15,9 +15,9 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
+import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../api/timestamp';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';

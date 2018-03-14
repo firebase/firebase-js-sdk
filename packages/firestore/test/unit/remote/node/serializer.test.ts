@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
+import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
 import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
@@ -39,8 +40,6 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
-import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -71,6 +70,7 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
@@ -214,7 +214,12 @@ describe('Serializer', () => {
     it('converts GeoPointValue', () => {
       const example = new GeoPoint(1.23, 4.56);
 
-      const expected = { geoPointValue: { latitude: 1.23, longitude: 4.56 } };
+      const expected = {
+        geoPointValue: {
+          latitude: 1.23,
+          longitude: 4.56
+        }
+      };
 
       const obj = s.toValue(new fieldValue.GeoPointValue(example));
       expect(obj).to.deep.equal(expected);
@@ -227,7 +232,9 @@ describe('Serializer', () => {
       const bytes = [0, 1, 2, 3, 4, 5];
       const example = Blob.fromUint8Array(new Uint8Array(bytes));
 
-      const expected = { bytesValue: new Uint8Array(bytes) };
+      const expected = {
+        bytesValue: new Uint8Array(bytes)
+      };
 
       const obj = s.toValue(new fieldValue.BlobValue(example));
       expect(obj).to.deep.equal(expected);
@@ -496,7 +503,12 @@ describe('Serializer', () => {
     });
 
     it('converts GeoPointValue', () => {
-      const proto = { geoPointValue: { latitude: 1.23, longitude: 4.56 } };
+      const proto = {
+        geoPointValue: {
+          latitude: 1.23,
+          longitude: 4.56
+        }
+      };
 
       expect(s.fromValue(proto)).to.deep.equal(
         new fieldValue.GeoPointValue(new GeoPoint(1.23, 4.56))
@@ -696,7 +708,9 @@ describe('Serializer', () => {
       );
       const proto = {
         update: s.toMutationDocument(mutation.key, mutation.value),
-        currentDocument: { updateTime: { seconds: 0, nanos: 4000 } }
+        currentDocument: {
+          updateTime: { seconds: 0, nanos: 4000 }
+        }
       };
       verifyMutation(mutation, proto);
     });
@@ -791,7 +805,10 @@ describe('Serializer', () => {
       const input = filter('field', '==', null);
       const actual = s.toUnaryFilter(input);
       expect(actual).to.deep.equal({
-        unaryFilter: { field: { fieldPath: 'field' }, op: 'IS_NULL' }
+        unaryFilter: {
+          field: { fieldPath: 'field' },
+          op: 'IS_NULL'
+        }
       });
       expect(s.fromUnaryFilter(actual)).to.deep.equal(input);
     });
@@ -800,7 +817,10 @@ describe('Serializer', () => {
       const input = filter('field', '==', NaN);
       const actual = s.toUnaryFilter(input);
       expect(actual).to.deep.equal({
-        unaryFilter: { field: { fieldPath: 'field' }, op: 'IS_NAN' }
+        unaryFilter: {
+          field: { fieldPath: 'field' },
+          op: 'IS_NAN'
+        }
       });
       expect(s.fromUnaryFilter(actual)).to.deep.equal(input);
     });
@@ -896,7 +916,10 @@ describe('Serializer', () => {
               }
             },
             orderBy: [
-              { field: { fieldPath: 'prop' }, direction: 'ASCENDING' },
+              {
+                field: { fieldPath: 'prop' },
+                direction: 'ASCENDING'
+              },
               {
                 field: { fieldPath: DOCUMENT_KEY_NAME },
                 direction: 'ASCENDING'
@@ -941,16 +964,25 @@ describe('Serializer', () => {
                     }
                   },
                   {
-                    unaryFilter: { field: { fieldPath: 'nan' }, op: 'IS_NAN' }
+                    unaryFilter: {
+                      field: { fieldPath: 'nan' },
+                      op: 'IS_NAN'
+                    }
                   },
                   {
-                    unaryFilter: { field: { fieldPath: 'null' }, op: 'IS_NULL' }
+                    unaryFilter: {
+                      field: { fieldPath: 'null' },
+                      op: 'IS_NULL'
+                    }
                   }
                 ]
               }
             },
             orderBy: [
-              { field: { fieldPath: 'prop' }, direction: 'ASCENDING' },
+              {
+                field: { fieldPath: 'prop' },
+                direction: 'ASCENDING'
+              },
               {
                 field: { fieldPath: DOCUMENT_KEY_NAME },
                 direction: 'ASCENDING'
@@ -982,7 +1014,10 @@ describe('Serializer', () => {
               }
             },
             orderBy: [
-              { field: { fieldPath: 'prop' }, direction: 'ASCENDING' },
+              {
+                field: { fieldPath: 'prop' },
+                direction: 'ASCENDING'
+              },
               {
                 field: { fieldPath: DOCUMENT_KEY_NAME },
                 direction: 'ASCENDING'
@@ -1005,7 +1040,10 @@ describe('Serializer', () => {
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
-              { field: { fieldPath: 'prop' }, direction: 'ASCENDING' },
+              {
+                field: { fieldPath: 'prop' },
+                direction: 'ASCENDING'
+              },
               {
                 field: { fieldPath: DOCUMENT_KEY_NAME },
                 direction: 'ASCENDING'
@@ -1151,7 +1189,10 @@ describe('Serializer', () => {
     it('renders ascending', () => {
       const orderBy = new OrderBy(field('a.b'), Direction.ASCENDING);
       const actual = s.toPropertyOrder(orderBy);
-      const expected = { field: { fieldPath: 'a.b' }, direction: 'ASCENDING' };
+      const expected = {
+        field: { fieldPath: 'a.b' },
+        direction: 'ASCENDING'
+      };
       expect(actual).to.deep.equal(expected);
       expect(s.fromPropertyOrder(actual)).to.deep.equal(orderBy);
     });
@@ -1209,7 +1250,10 @@ describe('Serializer', () => {
         4
       ]);
       const actual = s.fromWatchChange({
-        targetChange: { targetChangeType: 'NO_CHANGE', targetIds: [1, 4] }
+        targetChange: {
+          targetChangeType: 'NO_CHANGE',
+          targetIds: [1, 4]
+        }
       });
       expect(actual).to.deep.equal(expected);
     });
@@ -1219,7 +1263,11 @@ describe('Serializer', () => {
         1,
         4
       ]);
-      const actual = s.fromWatchChange({ targetChange: { targetIds: [1, 4] } });
+      const actual = s.fromWatchChange({
+        targetChange: {
+          targetIds: [1, 4]
+        }
+      });
       expect(actual).to.deep.equal(expected);
     });
 

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
 import * as firestore from '@firebase/firestore-types';
 
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
+import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import { FirestoreClient } from '../core/firestore_client';
@@ -57,8 +58,8 @@ import {
   validateBetweenNumberOfArgs,
   validateDefined,
   validateExactNumberOfArgs,
-  validateNamedOptionalPropertyEquals,
   validateNamedOptionalType,
+  validateNamedOptionalPropertyEquals,
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
@@ -77,7 +78,6 @@ import {
   FirebaseCredentialsProvider,
   makeCredentialsProvider
 } from './credentials';
-import { FieldPath as ExternalFieldPath } from './field_path';
 import {
   CompleteFn,
   ErrorFn,
@@ -323,7 +323,7 @@ AND YOUR APP MAY BREAK.
 To hide this warning and ensure your app does not break, you need to add the
 following code to your app before calling any other Cloud Firestore methods:
 
-  const firestore = firebase.firestore(app);
+  const firestore = firebase.firestore(firebase.app());
   const settings = {/* your settings... */ timestampsInSnapshots: true};
   firestore.settings(settings);
 
@@ -332,10 +332,10 @@ Firebase Timestamp objects instead of as system Date objects. So you will also
 need to update code expecting a Date to instead expect a Timestamp. For example:
 
   // Old:
-  const date: Date = snapshot.get('created_at');
+  const date = snapshot.get('created_at');
   // New:
-  const timestamp: Timestamp = snapshot.get('created_at');
-  const date: Date = timestamp.toDate();
+  const timestamp = snapshot.get('created_at');
+  const date = timestamp.toDate();
 
 Please audit all existing usages of Date when you enable the new behavior. This
 new behavior will become the default in a future release and so if you do not
@@ -515,6 +515,8 @@ follow these steps, YOUR APP MAY BREAK.`);
     }
   }
 
+  // Note: this is not a property because the minifier can't work correctly with
+  // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
     return this._config.settings.timestampsInSnapshots;
   }
@@ -1832,7 +1834,9 @@ function validateSetOptions(
   options: firestore.SetOptions | undefined
 ): firestore.SetOptions {
   if (options === undefined) {
-    return { merge: false };
+    return {
+      merge: false
+    };
   }
 
   validateOptionNames(methodName, options, ['merge']);

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../api/timestamp';
 import { TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';

@@ -17,6 +17,7 @@
 import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
+import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   Bound,
@@ -30,7 +31,6 @@ import {
   RelationOp
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../api/timestamp';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

@@ -84,7 +84,11 @@ export class Timestamp {
 
   toString(): string {
     return (
-      'Timestamp(seconds=' + this.seconds + ', nanoseconds=' + this.nanoseconds + ')'
+      'Timestamp(seconds=' +
+      this.seconds +
+      ', nanoseconds=' +
+      this.nanoseconds +
+      ')'
     );
   }
 }

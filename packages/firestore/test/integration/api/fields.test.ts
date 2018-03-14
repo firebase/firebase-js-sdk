@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -35,7 +34,12 @@ apiDescribe('Nested Fields', persistence => {
     n = n || 1;
     return {
       name: 'room ' + n,
-      metadata: { createdAt: n, deep: { field: 'deep-field-' + n } }
+      metadata: {
+        createdAt: n,
+        deep: {
+          field: 'deep-field-' + n
+        }
+      }
     };
   };
 
@@ -106,7 +110,13 @@ apiDescribe('Nested Fields', persistence => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({
             name: 'room 1',
-            metadata: { createdAt: 1, deep: { field: 100 }, added: 200 }
+            metadata: {
+              createdAt: 1,
+              deep: {
+                field: 100
+              },
+              added: 200
+            }
           });
         });
     });
@@ -128,7 +138,13 @@ apiDescribe('Nested Fields', persistence => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({
             name: 'room 1',
-            metadata: { createdAt: 1, deep: { field: 100 }, added: 200 }
+            metadata: {
+              createdAt: 1,
+              deep: {
+                field: 100
+              },
+              added: 200
+            }
           });
         });
     });
@@ -221,7 +237,11 @@ apiDescribe('Nested Fields', persistence => {
 apiDescribe('Fields with special characters', persistence => {
   const testData = (n?: number): any => {
     n = n || 1;
-    return { field: 'field ' + n, 'field.dot': n, 'field\\slash': n };
+    return {
+      field: 'field ' + n,
+      'field.dot': n,
+      'field\\slash': n
+    };
   };
 
   it('can be written with set()', () => {

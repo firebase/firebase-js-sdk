@@ -238,6 +238,8 @@ apiDescribe('Cursors', persistence => {
     });
   });
 
+  // Currently, timestamps are truncated to microseconds on the backend, so
+  // don't create timestamps with more precision than that.
   const makeTimestamp = (seconds, micros) =>
     new Timestamp(seconds, micros * 1000);
 
