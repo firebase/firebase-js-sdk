@@ -313,6 +313,49 @@ function onSignInWithEmailAndPassword() {
 
 
 /**
+ * Signs in a user with an email link.
+ */
+function onSignInWithEmailLink() {
+  var email = $('#sign-in-with-email-link-email').val();
+  var link = $('#sign-in-with-email-link-link').val() || undefined;
+  if (auth.isSignInWithEmailLink(link)) {
+    auth.signInWithEmailLink(email, link).then(onAuthSuccess, onAuthError);
+  } else {
+    alertError('Sign in link is invalid');
+  }
+}
+
+/**
+ * Links a user with an email link.
+ */
+function onLinkWithEmailLink() {
+  var email = $('#link-with-email-link-email').val();
+  var link = $('#link-with-email-link-link').val() || undefined;
+  var credential = firebase.auth.EmailAuthProvider
+      .credentialWithLink(email, link);
+  activeUser().linkAndRetrieveDataWithCredential(credential)
+      .then(onAuthUserCredentialSuccess, onAuthError);
+}
+
+
+/**
+ * Re-authenticate a user with email link credential.
+ */
+function onReauthenticateWithEmailLink() {
+  var email = $('#link-with-email-link-email').val();
+  var link = $('#link-with-email-link-link').val() || undefined;
+  var credential = firebase.auth.EmailAuthProvider
+      .credentialWithLink(email, link);
+  activeUser().reauthenticateAndRetrieveDataWithCredential(credential)
+      .then(function(result) {
+        logAdditionalUserInfo(result);
+        refreshUserData();
+        alertSuccess('User reauthenticated!');
+      }, onAuthError);
+}
+
+
+/**
  * Signs in with a custom token.
  * @param {DOMEvent} event HTML DOM event returned by the listener.
  */
@@ -582,6 +625,46 @@ function onUpdateProfile() {
 
 
 /**
+ * Sends sign in with email link to the user.
+ */
+function onSendSignInLinkToEmail() {
+  var email = $('#sign-in-with-email-link-email').val();
+  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
+    alertSuccess('Email sent!');
+  }, onAuthError);
+}
+
+/**
+ * Sends sign in with email link to the user and pass in current url.
+ */
+function onSendSignInLinkToEmailCurrentUrl() {
+  var email = $('#sign-in-with-email-link-email').val();
+  var actionCodeSettings = {
+    'url': window.location.href,
+    'handleCodeInApp': true
+  };
+
+  auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function() {
+    if ('localStorage' in window && window['localStorage'] !== null) {
+      window.localStorage.setItem('emailForSignIn', email);
+    }
+    alertSuccess('Email sent!');
+  }, onAuthError);
+}
+
+
+/**
+ * Sends email link to link the user.
+ */
+function onSendLinkEmailLink() {
+  var email = $('#link-with-email-link-email').val();
+  auth.sendSignInLinkToEmail(email, getActionCodeSettings()).then(function() {
+    alertSuccess('Email sent!');
+  }, onAuthError);
+}
+
+
+/**
  * Sends password reset email to the user.
  */
 function onSendPasswordResetEmail() {
@@ -611,6 +694,41 @@ function onConfirmPasswordReset() {
   var password = $('#password-reset-password').val();
   auth.confirmPasswordReset(code, password).then(function() {
     alertSuccess('Password has been changed!');
+  }, onAuthError);
+}
+
+
+/**
+ * Gets the list of IDPs that can be used to log in for the given email address.
+ */
+function onFetchProvidersForEmail() {
+  var email = $('#fetch-providers-email').val();
+  auth.fetchProvidersForEmail(email).then(function(providers) {
+    log('Providers for ' + email + ' :');
+    log(providers);
+    if (providers.length == 0) {
+      alertSuccess('Providers for ' + email + ': N/A');
+    } else {
+      alertSuccess('Providers for ' + email +': ' + providers.join(', '));
+    }
+  }, onAuthError);
+}
+
+
+/**
+ * Gets the list of possible sign in methods for the given email address.
+ */
+function onFetchSignInMethodsForEmail() {
+  var email = $('#fetch-providers-email').val();
+  auth.fetchSignInMethodsForEmail(email).then(function(signInMethods) {
+    log('Sign in methods for ' + email + ' :');
+    log(signInMethods);
+    if (signInMethods.length == 0) {
+      alertSuccess('Sign In Methods for ' + email + ': N/A');
+    } else {
+      alertSuccess(
+          'Sign In Methods for ' + email +': ' + signInMethods.join(', '));
+    }
   }, onAuthError);
 }
 
@@ -973,6 +1091,16 @@ function populateActionCodes() {
       $('#email-verification-code').val(actionCode);
     } else if (mode == 'resetPassword') {
       $('#password-reset-code').val(actionCode);
+    } else if (mode == 'signIn') {
+      var emailForSignIn = null;
+      if ('localStorage' in window && window['localStorage'] !== null) {
+        emailForSignIn = window.localStorage.getItem('emailForSignIn');
+      }
+      if (emailForSignIn) {
+        $('#sign-in-with-email-link-email').val(emailForSignIn);
+        $('#sign-in-with-email-link-link').val(window.location.href);
+        onSignInWithEmailLink();
+      }
     } else {
       $('#email-verification-code').val(actionCode);
       $('#password-reset-code').val(actionCode);
@@ -1153,10 +1281,18 @@ function initApp(){
       e.preventDefault();
     }
   });
+  $('#sign-in-with-email-link').click(onSignInWithEmailLink);
+  $('#link-with-email-link').click(onLinkWithEmailLink);
+  $('#reauth-with-email-link').click(onReauthenticateWithEmailLink);
 
   $('#change-email').click(onChangeEmail);
   $('#change-password').click(onChangePassword);
   $('#update-profile').click(onUpdateProfile);
+
+  $('#send-sign-in-link-to-email').click(onSendSignInLinkToEmail);
+  $('#send-sign-in-link-to-email-current-url')
+      .click(onSendSignInLinkToEmailCurrentUrl);
+  $('#send-link-email-link').click(onSendLinkEmailLink);
 
   $('#send-password-reset-email').click(onSendPasswordResetEmail);
   $('#verify-password-reset-code').click(onVerifyPasswordResetCode);
@@ -1202,6 +1338,9 @@ function initApp(){
 
   $('#set-language-code').click(onSetLanguageCode);
   $('#use-device-language').click(onUseDeviceLanguage);
+
+  $('#fetch-providers-for-email').click(onFetchProvidersForEmail);
+  $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
 }
 
 $(initApp);

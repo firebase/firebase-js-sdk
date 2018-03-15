@@ -281,7 +281,7 @@ export class FirebaseAuth {
     email: string,
     password: string
   ): Promise<any>;
-  signInWithEmailLink(email: string, emailLink: string): Promise<any>;
+  signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
