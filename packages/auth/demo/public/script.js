@@ -646,7 +646,13 @@ function onSendSignInLinkToEmailCurrentUrl() {
 
   auth.sendSignInLinkToEmail(email, actionCodeSettings).then(function() {
     if ('localStorage' in window && window['localStorage'] !== null) {
-      window.localStorage.setItem('emailForSignIn', email);
+      window.localStorage.setItem(
+          'emailForSignIn',
+          // Save the email and the timestamp.
+          JSON.stringify({
+            email: email,
+            timestamp: new Date().getTime()
+          }));
     }
     alertSuccess('Email sent!');
   }, onAuthError);
@@ -1084,6 +1090,28 @@ function getParameterByName(name) {
  * the input field for the confirm email verification process.
  */
 function populateActionCodes() {
+  var emailForSignIn = null;
+  var signInTime = 0;
+  if ('localStorage' in window && window['localStorage'] !== null) {
+    try {
+      // Try to parse as JSON first using new storage format.
+      var emailForSignInData =
+          JSON.parse(window.localStorage.getItem('emailForSignIn'));
+      emailForSignIn = emailForSignInData['email'] || null;
+      signInTime = emailForSignInData['timestamp'] || 0;
+    } catch (e) {
+      // JSON parsing failed. This means the email is stored in the old string
+      // format.
+      emailForSignIn = window.localStorage.getItem('emailForSignIn');
+    }
+    if (emailForSignIn) {
+      // Clear old codes. Old format codes should be cleared immediately.
+      if (new Date().getTime() - signInTime >= 1 * 24 * 3600 * 1000) {
+        // Remove email from storage.
+        window.localStorage.removeItem('emailForSignIn');
+      }
+    }
+  }
   var actionCode = getParameterByName('oobCode');
   if (actionCode != null) {
     var mode = getParameterByName('mode');
@@ -1092,14 +1120,12 @@ function populateActionCodes() {
     } else if (mode == 'resetPassword') {
       $('#password-reset-code').val(actionCode);
     } else if (mode == 'signIn') {
-      var emailForSignIn = null;
-      if ('localStorage' in window && window['localStorage'] !== null) {
-        emailForSignIn = window.localStorage.getItem('emailForSignIn');
-      }
       if (emailForSignIn) {
         $('#sign-in-with-email-link-email').val(emailForSignIn);
         $('#sign-in-with-email-link-link').val(window.location.href);
         onSignInWithEmailLink();
+        // Remove email from storage as the code is only usable once.
+        window.localStorage.removeItem('emailForSignIn');
       }
     } else {
       $('#email-verification-code').val(actionCode);
