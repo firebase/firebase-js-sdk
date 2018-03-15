@@ -1,7 +1,7 @@
 # Unreleased
-- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could 
-  cause a crash if a user signs out while the client is offline, resulting in 
-  an error of "Attempted to schedule multiple operations with timer id 
+- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
+  cause a crash if a user signs out while the client is offline, resulting in
+  an error of "Attempted to schedule multiple operations with timer id
   listen_stream_connection_backoff".
 
 # 0.3.5
