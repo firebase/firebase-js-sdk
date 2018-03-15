@@ -39,6 +39,7 @@ goog.require('fireauth.authenum.Error');
 goog.require('fireauth.common.testHelper');
 goog.require('fireauth.deprecation');
 goog.require('fireauth.idp.ProviderId');
+goog.require('fireauth.idp.SignInMethod');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.testing.MockControl');
@@ -80,6 +81,16 @@ function setUp() {
   stubs.replace(
       fireauth.RpcHandler.prototype,
       'verifyPassword',
+      goog.testing.recordFunction(function(request) {
+        return goog.Promise.resolve(responseForIdToken);
+      }));
+  stubs.replace(
+      fireauth.RpcHandler.prototype, 'emailLinkSignIn',
+      goog.testing.recordFunction(function(request) {
+        return goog.Promise.resolve(responseForIdToken);
+      }));
+  stubs.replace(
+      fireauth.RpcHandler.prototype, 'emailLinkSignInForLinking',
       goog.testing.recordFunction(function(request) {
         return goog.Promise.resolve(responseForIdToken);
       }));
@@ -157,9 +168,9 @@ function assertRpcHandlerVerifyAssertion(request) {
 
 
 /**
- * Assert that the correct request is sent to RPC handler verifyPassword.
- * @param {!string} email The email in verifyPassword request.
- * @param {!string} password The password in verifyPassword request.
+ * Asserts that the correct request is sent to RPC handler verifyPassword.
+ * @param {string} email The email in verifyPassword request.
+ * @param {string} password The password in verifyPassword request.
  */
 function assertRpcHandlerVerifyPassword(email, password) {
   assertEquals(
@@ -175,6 +186,46 @@ function assertRpcHandlerVerifyPassword(email, password) {
       fireauth.RpcHandler.prototype.verifyPassword
       .getLastCall()
       .getArgument(1));
+}
+
+
+/**
+ * Asserts that the correct request is sent to RPC handler emailLinkSignIn.
+ * @param {string} email The email in emailLinkSignIn request.
+ * @param {string} oobCode The oobCode in emailLinkSignIn request.
+ */
+function assertRpcHandlerEmailLinkSignIn(email, oobCode) {
+  assertEquals(1, fireauth.RpcHandler.prototype.emailLinkSignIn.getCallCount());
+  assertObjectEquals(
+      email,
+      fireauth.RpcHandler.prototype.emailLinkSignIn.getLastCall().getArgument(
+          0));
+  assertObjectEquals(
+      oobCode,
+      fireauth.RpcHandler.prototype.emailLinkSignIn.getLastCall().getArgument(
+          1));
+}
+
+
+/**
+ * Asserts that the correct request is sent to RPC handler
+ * emailLinkSignInForLinking.
+ * @param {string} idToken The idToken in emailLinkSignInForLinking request.
+ * @param {string} email The email in emailLinkSignInForLinking request.
+ * @param {string} oobCode The oobCode in emailLinkSignInForLinking request.
+ */
+function assertRpcHandlerEmailLinkSignInForLinking(idToken, email, oobCode) {
+  assertEquals(1, fireauth.RpcHandler.prototype.emailLinkSignInForLinking
+      .getCallCount());
+  assertObjectEquals(
+      idToken, fireauth.RpcHandler.prototype.emailLinkSignInForLinking
+      .getLastCall().getArgument(0));
+  assertObjectEquals(
+      email, fireauth.RpcHandler.prototype.emailLinkSignInForLinking
+      .getLastCall().getArgument(1));
+  assertObjectEquals(
+      oobCode, fireauth.RpcHandler.prototype.emailLinkSignInForLinking
+      .getLastCall().getArgument(2));
 }
 
 
@@ -306,12 +357,14 @@ function testOAuthCredential() {
   assertEquals('exampleIdToken', authCredential['idToken']);
   assertEquals('exampleAccessToken', authCredential['accessToken']);
   assertEquals('example.com', authCredential['providerId']);
+  assertEquals('example.com', authCredential['signInMethod']);
   authCredential.getIdTokenProvider(rpcHandler);
   assertObjectEquals(
       {
         'oauthAccessToken': 'exampleAccessToken',
         'oauthIdToken': 'exampleIdToken',
-        'providerId': 'example.com'
+        'providerId': 'example.com',
+        'signInMethod': 'example.com'
       },
       authCredential.toPlainObject());
   assertRpcHandlerVerifyAssertion({
@@ -419,7 +472,8 @@ function testOAuthProvider_getCredentialFromResponse() {
       fireauth.AuthProvider.getCredentialFromResponse({
         'oauthAccessToken': 'exampleAccessToken',
         'oauthIdToken': 'exampleIdToken',
-        'providerId': 'example.com'
+        'providerId': 'example.com',
+        'signInMethod': 'example.com'
       }).toPlainObject());
 }
 
@@ -433,7 +487,8 @@ function testOAuthProvider_getCredentialFromResponse_accessTokenOnly() {
       authCredential.toPlainObject(),
       fireauth.AuthProvider.getCredentialFromResponse({
         'oauthAccessToken': 'exampleAccessToken',
-        'providerId': 'example.com'
+        'providerId': 'example.com',
+        'signInMethod': 'example.com'
       }).toPlainObject());
 }
 
@@ -446,7 +501,8 @@ function testOAuthProvider_getCredentialFromResponse_idTokenOnly() {
       authCredential.toPlainObject(),
       fireauth.AuthProvider.getCredentialFromResponse({
         'oauthIdToken': 'exampleIdToken',
-        'providerId': 'example.com'
+        'providerId': 'example.com',
+        'signInMethod': 'example.com'
       }).toPlainObject());
 }
 
@@ -491,15 +547,21 @@ function testFacebookAuthCredential() {
   assertEquals(
       fireauth.idp.ProviderId.FACEBOOK,
       fireauth.FacebookAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.FACEBOOK,
+      fireauth.FacebookAuthProvider['FACEBOOK_SIGN_IN_METHOD']);
   var authCredential = fireauth.FacebookAuthProvider.credential(
       'facebookAccessToken');
   assertEquals('facebookAccessToken', authCredential['accessToken']);
   assertEquals(fireauth.idp.ProviderId.FACEBOOK, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.FACEBOOK, authCredential['signInMethod']);
   authCredential.getIdTokenProvider(rpcHandler);
   assertObjectEquals(
       {
         'oauthAccessToken': 'facebookAccessToken',
-        'providerId': fireauth.idp.ProviderId.FACEBOOK
+        'providerId': fireauth.idp.ProviderId.FACEBOOK,
+        'signInMethod': fireauth.idp.SignInMethod.FACEBOOK
       },
       authCredential.toPlainObject());
   assertRpcHandlerVerifyAssertion({
@@ -614,10 +676,13 @@ function testFacebookAuthCredential_alternateConstructor() {
       {'accessToken': 'facebookAccessToken'});
   assertEquals('facebookAccessToken', authCredential['accessToken']);
   assertEquals(fireauth.idp.ProviderId.FACEBOOK, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.FACEBOOK, authCredential['signInMethod']);
   assertObjectEquals(
       {
         'oauthAccessToken': 'facebookAccessToken',
-        'providerId': fireauth.idp.ProviderId.FACEBOOK
+        'providerId': fireauth.idp.ProviderId.FACEBOOK,
+        'signInMethod': fireauth.idp.SignInMethod.FACEBOOK
       },
       authCredential.toPlainObject());
 
@@ -667,11 +732,14 @@ function testFacebookAuthCredential_nonHttp() {
       'facebookAccessToken');
   assertEquals('facebookAccessToken', authCredential['accessToken']);
   assertEquals(fireauth.idp.ProviderId.FACEBOOK, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.FACEBOOK, authCredential['signInMethod']);
   authCredential.getIdTokenProvider(rpcHandler);
   assertObjectEquals(
       {
         'oauthAccessToken': 'facebookAccessToken',
-        'providerId': fireauth.idp.ProviderId.FACEBOOK
+        'providerId': fireauth.idp.ProviderId.FACEBOOK,
+        'signInMethod': fireauth.idp.SignInMethod.FACEBOOK
       },
       authCredential.toPlainObject());
   // http://localhost should be used instead of the real current URL.
@@ -691,15 +759,21 @@ function testGithubAuthCredential() {
   assertEquals(
       fireauth.idp.ProviderId.GITHUB,
       fireauth.GithubAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.GITHUB,
+      fireauth.GithubAuthProvider['GITHUB_SIGN_IN_METHOD']);
   var authCredential = fireauth.GithubAuthProvider.credential(
       'githubAccessToken');
   assertEquals('githubAccessToken', authCredential['accessToken']);
   assertEquals(fireauth.idp.ProviderId.GITHUB, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.GITHUB, authCredential['signInMethod']);
   authCredential.getIdTokenProvider(rpcHandler);
   assertObjectEquals(
       {
         'oauthAccessToken': 'githubAccessToken',
-        'providerId': fireauth.idp.ProviderId.GITHUB
+        'providerId': fireauth.idp.ProviderId.GITHUB,
+        'signInMethod':fireauth.idp.SignInMethod.GITHUB
       },
       authCredential.toPlainObject());
   assertRpcHandlerVerifyAssertion({
@@ -805,7 +879,8 @@ function testGithubAuthCredential_alternateConstructor() {
   assertObjectEquals(
       {
         'oauthAccessToken': 'githubAccessToken',
-        'providerId': fireauth.idp.ProviderId.GITHUB
+        'providerId': fireauth.idp.ProviderId.GITHUB,
+        'signInMethod':fireauth.idp.SignInMethod.GITHUB
       },
       authCredential.toPlainObject());
 
@@ -873,17 +948,23 @@ function testGoogleAuthCredential() {
   assertEquals(
       fireauth.idp.ProviderId.GOOGLE,
       fireauth.GoogleAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.GOOGLE,
+      fireauth.GoogleAuthProvider['GOOGLE_SIGN_IN_METHOD']);
   var authCredential = fireauth.GoogleAuthProvider.credential(
       'googleIdToken', 'googleAccessToken');
   assertEquals('googleIdToken', authCredential['idToken']);
   assertEquals('googleAccessToken', authCredential['accessToken']);
   assertEquals(fireauth.idp.ProviderId.GOOGLE, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.GOOGLE, authCredential['signInMethod']);
   authCredential.getIdTokenProvider(rpcHandler);
   assertObjectEquals(
       {
         'oauthAccessToken': 'googleAccessToken',
         'oauthIdToken': 'googleIdToken',
-        'providerId': fireauth.idp.ProviderId.GOOGLE
+        'providerId': fireauth.idp.ProviderId.GOOGLE,
+        'signInMethod': fireauth.idp.SignInMethod.GOOGLE
       },
       authCredential.toPlainObject());
   assertRpcHandlerVerifyAssertion({
@@ -1059,31 +1140,39 @@ function testGoogleAuthCredential_alternateConstructor() {
       {'idToken': 'googleIdToken'});
   assertEquals('googleIdToken', authCredentialIdToken['idToken']);
   assertUndefined(authCredentialIdToken['accessToken']);
-  assertObjectEquals({
-    'oauthIdToken': 'googleIdToken',
-    'providerId': fireauth.idp.ProviderId.GOOGLE
-  }, authCredentialIdToken.toPlainObject());
+  assertObjectEquals(
+      {
+        'oauthIdToken': 'googleIdToken',
+        'providerId': fireauth.idp.ProviderId.GOOGLE,
+        'signInMethod': fireauth.idp.SignInMethod.GOOGLE
+      },
+      authCredentialIdToken.toPlainObject());
 
   // Only access token.
   var authCredentialAccessToken = fireauth.GoogleAuthProvider.credential(
       {'accessToken': 'googleAccessToken'});
   assertEquals('googleAccessToken', authCredentialAccessToken['accessToken']);
   assertUndefined(authCredentialAccessToken['idToken']);
-  assertObjectEquals({
-    'oauthAccessToken': 'googleAccessToken',
-    'providerId': fireauth.idp.ProviderId.GOOGLE
-  }, authCredentialAccessToken.toPlainObject());
+  assertObjectEquals(
+      {
+        'oauthIdToken': 'googleIdToken',
+        'providerId': fireauth.idp.ProviderId.GOOGLE,
+        'signInMethod': fireauth.idp.SignInMethod.GOOGLE
+      },
+      authCredentialIdToken.toPlainObject());
 
   // Both tokens.
   var authCredentialBoth = fireauth.GoogleAuthProvider.credential(
       {'idToken': 'googleIdToken', 'accessToken': 'googleAccessToken'});
   assertEquals('googleAccessToken', authCredentialBoth['accessToken']);
   assertEquals('googleIdToken', authCredentialBoth['idToken']);
-  assertObjectEquals({
-    'oauthAccessToken': 'googleAccessToken',
-    'oauthIdToken': 'googleIdToken',
-    'providerId': fireauth.idp.ProviderId.GOOGLE
-  }, authCredentialBoth.toPlainObject());
+  assertObjectEquals(
+      {
+        'oauthIdToken': 'googleIdToken',
+        'providerId': fireauth.idp.ProviderId.GOOGLE,
+        'signInMethod': fireauth.idp.SignInMethod.GOOGLE
+      },
+      authCredentialIdToken.toPlainObject());
 
   // Neither token.
   var expectedError = new fireauth.AuthError(
@@ -1133,16 +1222,22 @@ function testTwitterAuthCredential() {
   assertEquals(
       fireauth.idp.ProviderId.TWITTER,
       fireauth.TwitterAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.TWITTER,
+      fireauth.TwitterAuthProvider['TWITTER_SIGN_IN_METHOD']);
   var authCredential = fireauth.TwitterAuthProvider.credential(
       'twitterOauthToken', 'twitterOauthTokenSecret');
   assertEquals('twitterOauthToken', authCredential['accessToken']);
   assertEquals('twitterOauthTokenSecret', authCredential['secret']);
   assertEquals(fireauth.idp.ProviderId.TWITTER, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.TWITTER, authCredential['signInMethod']);
   assertObjectEquals(
       {
         'oauthAccessToken': 'twitterOauthToken',
         'oauthTokenSecret': 'twitterOauthTokenSecret',
-        'providerId': fireauth.idp.ProviderId.TWITTER
+        'providerId': fireauth.idp.ProviderId.TWITTER,
+        'signInMethod': fireauth.idp.SignInMethod.TWITTER
       },
       authCredential.toPlainObject());
   authCredential.getIdTokenProvider(rpcHandler);
@@ -1275,12 +1370,14 @@ function testTwitterAuthCredential_alternateConstructor() {
   assertEquals('twitterOauthToken', authCredential['accessToken']);
   assertEquals('twitterOauthTokenSecret', authCredential['secret']);
   assertEquals(fireauth.idp.ProviderId.TWITTER, authCredential['providerId']);
-  assertObjectEquals({
-    'oauthAccessToken': 'twitterOauthToken',
-    'oauthTokenSecret': 'twitterOauthTokenSecret',
-    'providerId': fireauth.idp.ProviderId.TWITTER
-  },
-  authCredential.toPlainObject());
+  assertObjectEquals(
+      {
+        'oauthAccessToken': 'twitterOauthToken',
+        'oauthTokenSecret': 'twitterOauthTokenSecret',
+        'providerId': fireauth.idp.ProviderId.TWITTER,
+        'signInMethod':fireauth.idp.SignInMethod.TWITTER
+      },
+      authCredential.toPlainObject());
 
   // Missing token or secret should be an error.
   var expectedError = new fireauth.AuthError(
@@ -1308,12 +1405,16 @@ function testEmailAuthCredential() {
   assertEquals(
       fireauth.idp.ProviderId.PASSWORD,
       fireauth.EmailAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.EMAIL_PASSWORD,
+      fireauth.EmailAuthProvider['EMAIL_PASSWORD_SIGN_IN_METHOD']);
   var authCredential = fireauth.EmailAuthProvider.credential(
       'user@example.com', 'password');
   assertObjectEquals(
       {
         'email': 'user@example.com',
-        'password': 'password'
+        'password': 'password',
+        'signInMethod': 'password'
       },
       authCredential.toPlainObject());
   assertEquals(fireauth.idp.ProviderId.PASSWORD, authCredential['providerId']);
@@ -1341,6 +1442,15 @@ function testEmailAuthCredential_linkToIdToken() {
 }
 
 
+function testEmailAuthCredentialWithEmailLink_linkToIdToken() {
+  var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
+      'user@example.com', 'https://www.example.com?mode=signIn&oobCode=code');
+  authCredential.linkToIdToken(rpcHandler, 'myIdToken');
+  assertRpcHandlerEmailLinkSignInForLinking(
+      'myIdToken', 'user@example.com', 'code');
+}
+
+
 function testEmailAuthCredential_matchIdTokenWithUid() {
   // Mock idToken parsing.
   initializeIdTokenMocks('ID_TOKEN', '1234');
@@ -1349,6 +1459,82 @@ function testEmailAuthCredential_matchIdTokenWithUid() {
   var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
   assertRpcHandlerVerifyPassword('user@example.com', 'password');
   return p;
+}
+
+
+function testEmailAuthCredentialWithEmailLink_matchIdTokenWithUid() {
+  // Mock idToken parsing.
+  initializeIdTokenMocks('ID_TOKEN', '1234');
+  var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
+      'user@example.com', 'https://www.example.com?mode=signIn&oobCode=code');
+  var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
+  assertRpcHandlerEmailLinkSignIn('user@example.com', 'code');
+  return p;
+}
+
+
+/**
+ * Test Email Link Auth credential.
+ */
+function testEmailAuthCredentialWithLink() {
+  assertEquals(
+      fireauth.idp.ProviderId.PASSWORD,
+      fireauth.EmailAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.EMAIL_LINK,
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
+  var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
+      'user@example.com', 'https://www.example.com?mode=signIn&oobCode=code');
+  assertObjectEquals(
+      {
+        'email': 'user@example.com',
+        'password': 'code',
+        'signInMethod': 'emailLink'
+      },
+      authCredential.toPlainObject());
+  assertEquals(fireauth.idp.ProviderId.PASSWORD, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.EMAIL_LINK, authCredential['signInMethod']);
+  authCredential.getIdTokenProvider(rpcHandler);
+  assertRpcHandlerEmailLinkSignIn('user@example.com', 'code');
+  var provider = new fireauth.EmailAuthProvider();
+  // Should throw an invalid OAuth provider error.
+  var error = assertThrows(function() {
+    fireauth.AuthProvider.checkIfOAuthSupported(provider);
+  });
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INVALID_OAUTH_PROVIDER);
+  fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+  assertEquals(fireauth.idp.ProviderId.PASSWORD, provider['providerId']);
+  assertFalse(provider['isOAuthProvider']);
+}
+
+
+function testEmailAuthCredentialWithLink_invalidLink_error() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
+  var error = assertThrows(function() {
+    fireauth.EmailAuthProvider.credentialWithLink(
+        'user@example.com', 'invalidLink');
+  });
+  fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+}
+
+
+function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
+  var emailLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
+                   'oobCode=oobCode';
+  var emailLink3 = 'https://www.example.com/action?mode=signIn';
+  var oobCode1 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink1);
+  assertEquals('oobCode', oobCode1);
+  var oobCode2 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink2);
+  assertNull(oobCode2);
+  var oobCode3 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink3);
+  assertNull(oobCode3);
 }
 
 
@@ -1632,6 +1818,10 @@ function testPhoneAuthCredential() {
   var credential = fireauth.PhoneAuthProvider.credential(
       verificationId, verificationCode);
   assertEquals(fireauth.idp.ProviderId.PHONE, credential['providerId']);
+  assertEquals(fireauth.idp.SignInMethod.PHONE, credential['signInMethod']);
+  assertEquals(
+      fireauth.idp.SignInMethod.PHONE,
+      fireauth.PhoneAuthProvider['PHONE_SIGN_IN_METHOD']);
   assertObjectEquals({
     'providerId': fireauth.idp.ProviderId.PHONE,
     'verificationId': verificationId,
@@ -1819,6 +2009,10 @@ function testPhoneAuthCredential_temporaryProof() {
   });
 
   assertEquals(fireauth.idp.ProviderId.PHONE, credential['providerId']);
+  assertEquals(fireauth.idp.SignInMethod.PHONE, credential['signInMethod']);
+  assertEquals(
+      fireauth.idp.SignInMethod.PHONE,
+      fireauth.PhoneAuthProvider['PHONE_SIGN_IN_METHOD']);
   assertObjectEquals({
     'providerId': fireauth.idp.ProviderId.PHONE,
     'temporaryProof': temporaryProof,

@@ -92,13 +92,16 @@ function testAuthErrorWithCredential() {
   assertEquals(
       'Account already exists, please confirm and link.', error['message']);
   // Test toJSON().
-  assertObjectEquals({
-    code: error['code'],
-    message: error['message'],
-    email: 'user@example.com',
-    providerId: 'facebook.com',
-    oauthAccessToken: 'ACCESS_TOKEN'
-  }, error.toJSON());
+  assertObjectEquals(
+      {
+        code: error['code'],
+        message: error['message'],
+        email: 'user@example.com',
+        providerId: 'facebook.com',
+        oauthAccessToken: 'ACCESS_TOKEN',
+        signInMethod: fireauth.FacebookAuthProvider['FACEBOOK_SIGN_IN_METHOD']
+      },
+      error.toJSON());
   assertEquals(JSON.stringify(error), JSON.stringify(error.toJSON()));
 }
 
@@ -202,7 +205,8 @@ function testAuthErrorWithCredential_toPlainObject() {
     'email': 'user@example.com',
     'message': 'Account already exists, please confirm and link.',
     'providerId': 'facebook.com',
-    'oauthAccessToken': 'ACCESS_TOKEN'
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'signInMethod': fireauth.FacebookAuthProvider['FACEBOOK_SIGN_IN_METHOD']
   };
   assertObjectEquals(
       errorObject,
@@ -240,7 +244,8 @@ function testAuthErrorWithCredential_toPlainObject() {
     'email': 'user@example.com',
     'message': 'The email address is already in use by another account.',
     'providerId': 'google.com',
-    'oauthIdToken': 'ID_TOKEN'
+    'oauthIdToken': 'ID_TOKEN',
+    'signInMethod': fireauth.GoogleAuthProvider['GOOGLE_SIGN_IN_METHOD']
   };
   assertObjectEquals(
       errorObject3,

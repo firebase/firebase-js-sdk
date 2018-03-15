@@ -231,6 +231,7 @@ fireauth.RpcHandler.AuthServerField = {
   REFRESH_TOKEN: 'refreshToken',
   SESSION_ID: 'sessionId',
   SESSION_INFO: 'sessionInfo',
+  SIGNIN_METHODS: 'signinMethods',
   TEMPORARY_PROOF: 'temporaryProof'
 };
 
@@ -240,6 +241,7 @@ fireauth.RpcHandler.AuthServerField = {
  * @enum {string}
  */
 fireauth.RpcHandler.GetOobCodeRequestType = {
+  EMAIL_SIGNIN: 'EMAIL_SIGNIN',
   NEW_EMAIL_ACCEPT: 'NEW_EMAIL_ACCEPT',
   PASSWORD_RESET: 'PASSWORD_RESET',
   VERIFY_EMAIL: 'VERIFY_EMAIL'
@@ -884,6 +886,31 @@ fireauth.RpcHandler.prototype.fetchProvidersForIdentifier =
 
 
 /**
+ * Returns the list of sign in methods for the given identifier.
+ * @param {string} identifier The identifier, such as an email address.
+ * @return {!goog.Promise<!Array<string>>}
+ */
+fireauth.RpcHandler.prototype.fetchSignInMethodsForIdentifier = function(
+    identifier) {
+  // createAuthUri returns an error if continue URI is not http or https.
+  // For environments like Cordova, Chrome extensions, native frameworks, file
+  // systems, etc, use http://localhost as continue URL.
+  var continueUri = fireauth.util.isHttpOrHttps() ?
+      fireauth.util.getCurrentUrl() :
+      'http://localhost';
+  var request = {
+    'identifier': identifier,
+    'continueUri': continueUri
+  };
+  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.CREATE_AUTH_URI, request)
+      .then(function(response) {
+        return response[fireauth.RpcHandler.AuthServerField.SIGNIN_METHODS] ||
+            [];
+      });
+};
+
+
+/**
  * Gets the list of authorized domains for the specified project.
  * @return {!goog.Promise<!Array<string>>}
  */
@@ -1052,6 +1079,44 @@ fireauth.RpcHandler.prototype.verifyPassword = function(email, password) {
     'password': password
   };
   return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.VERIFY_PASSWORD,
+      request);
+};
+
+
+/**
+ * Verifies an email link OTP for sign-in and returns a Promise that resolves
+ * with the ID token.
+ * @param {string} email The email address.
+ * @param {string} oobCode The email action OTP.
+ * @return {!goog.Promise<!Object>}
+ */
+fireauth.RpcHandler.prototype.emailLinkSignIn = function(email, oobCode) {
+  var request = {
+    'email': email,
+    'oobCode': oobCode
+  };
+  return this.invokeRpc_(
+      fireauth.RpcHandler.ApiMethod.EMAIL_LINK_SIGNIN, request);
+};
+
+
+/**
+ * Verifies an email link OTP for linking and returns a Promise that resolves
+ * with the ID token.
+ * @param {string} idToken The ID token.
+ * @param {string} email The email address.
+ * @param {string} oobCode The email action OTP.
+ * @return {!goog.Promise<!Object>}
+ */
+fireauth.RpcHandler.prototype.emailLinkSignInForLinking =
+    function(idToken, email, oobCode) {
+  var request = {
+    'idToken': idToken,
+    'email': email,
+    'oobCode': oobCode
+  };
+  return this.invokeRpc_(
+      fireauth.RpcHandler.ApiMethod.EMAIL_LINK_SIGNIN_FOR_LINKING,
       request);
 };
 
@@ -1304,8 +1369,22 @@ fireauth.RpcHandler.validateOobCodeRequest_ = function(request) {
 
 
 /**
- * Validates a request for an email action code for password reset.
- * @param {!Object} request The getOobCode request data for password reset.
+ * Validates a request for an email action for passwordless email sign-in.
+ * @param {!Object} request The getOobCode request data for email sign-in.
+ * @private
+ */
+fireauth.RpcHandler.validateEmailSignInCodeRequest_ = function(request) {
+  if (request['requestType'] !=
+      fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+  fireauth.RpcHandler.validateRequestHasEmail_(request);
+};
+
+
+/**
+ * Validates a request for an email action for email verification.
+ * @param {!Object} request The getOobCode request data for email verification.
  * @private
  */
 fireauth.RpcHandler.validateEmailVerificationCodeRequest_ = function(request) {
@@ -1332,6 +1411,26 @@ fireauth.RpcHandler.prototype.sendPasswordResetEmail =
   // Extend the original request with the additional data.
   goog.object.extend(request, additionalRequestData);
   return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_OOB_CODE, request);
+};
+
+
+/**
+ * Requests getOobCode endpoint for passwordless email sign-in, returns promise
+ * that resolves with user's email.
+ * @param {string} email The email account to sign in with.
+ * @param {!Object} additionalRequestData Additional data to add to the request.
+ * @return {!goog.Promise<string>}
+ */
+fireauth.RpcHandler.prototype.sendSignInLinkToEmail = function(
+    email, additionalRequestData) {
+  var request = {
+    'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+    'email': email
+  };
+  // Extend the original request with the additional data.
+  goog.object.extend(request, additionalRequestData);
+  return this.invokeRpc_(
+      fireauth.RpcHandler.ApiMethod.GET_EMAIL_SIGNIN_CODE, request);
 };
 
 
@@ -1800,6 +1899,20 @@ fireauth.RpcHandler.ApiMethod = {
     requestRequiredFields: ['idToken', 'deleteProvider'],
     requestValidator: fireauth.RpcHandler.validateDeleteLinkedAccountsRequest_
   },
+  EMAIL_LINK_SIGNIN: {
+    endpoint: 'emailLinkSignin',
+    requestRequiredFields: ['email', 'oobCode'],
+    requestValidator: fireauth.RpcHandler.validateRequestHasEmail_,
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    returnSecureToken: true
+  },
+  EMAIL_LINK_SIGNIN_FOR_LINKING: {
+    endpoint: 'emailLinkSignin',
+    requestRequiredFields: ['idToken', 'email', 'oobCode'],
+    requestValidator: fireauth.RpcHandler.validateRequestHasEmail_,
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    returnSecureToken: true
+  },
   GET_ACCOUNT_INFO: {
     endpoint: 'getAccountInfo'
   },
@@ -1807,6 +1920,12 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'createAuthUri',
     requestRequiredFields: ['continueUri', 'providerId'],
     responseValidator: fireauth.RpcHandler.validateGetAuthResponse_
+  },
+  GET_EMAIL_SIGNIN_CODE: {
+    endpoint: 'getOobConfirmationCode',
+    requestRequiredFields: ['requestType'],
+    requestValidator: fireauth.RpcHandler.validateEmailSignInCodeRequest_,
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
   },
   GET_EMAIL_VERIFICATION_CODE: {
     endpoint: 'getOobConfirmationCode',
