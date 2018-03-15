@@ -43,6 +43,7 @@ goog.require('fireauth.exports');
 goog.require('fireauth.idp');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.object');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.PendingRedirectManager');
 goog.require('fireauth.storage.RedirectUserManager');
 goog.require('fireauth.storage.UserManager');
@@ -147,9 +148,15 @@ var actionCodeSettings = {
   },
   'handleCodeInApp': true
 };
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
   // Disable Auth event manager for testing unless needed.
   fireauth.AuthEventManager.ENABLED = false;
   // Assume origin is a valid one.
@@ -185,8 +192,7 @@ function setUp() {
       fireauth.util,
       'getCurrentUrl',
       function() {return 'http://localhost';});
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Initialize App and Auth instances.
   config1 = {
     apiKey: 'apiKey1'
@@ -323,7 +329,7 @@ function tearDown() {
   } finally {
     mockControl.$tearDown();
   }
-  delete fireauth.authStorage.Manager.instance_;
+  fireauth.authStorage.Manager.clear();
   currentUserStorageManager = null;
   redirectUserStorageManager = null;
 }
@@ -361,16 +367,8 @@ function assertAuthTokenListenerCalledOnce(auth) {
 }
 
 
-/** Simulates that local storage synchronizes across tabs. */
-function simulateLocalStorageSynchronized() {
-  stubs.replace(
-      fireauth.util,
-      'isIe11',
-      function() {return false;});
-  stubs.replace(
-      fireauth.util,
-      'isEdge',
-      function() {return false;});
+/** Initializes mock storages. */
+function initializeMockStorage() {
   // Simulate tab can run in background.
   stubs.replace(
       fireauth.util,
@@ -378,6 +376,8 @@ function simulateLocalStorageSynchronized() {
       function() {
         return true;
       });
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
 }
 
 
@@ -452,8 +452,7 @@ function testToJson_withUser() {
   // Test toJSON with a user signed in.
   stubs.reset();
   fireauth.AuthEventManager.ENABLED = false;
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate available token.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -755,8 +754,7 @@ function testAddAuthTokenListener_initialNullState() {
       function() {
         return goog.Promise.resolve(null);
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Suppress addStateChangeListener.
   stubs.replace(
       fireauth.storage.UserManager.prototype,
@@ -829,8 +827,7 @@ function testAddAuthTokenListener_initialValidState() {
       function() {
         return goog.Promise.resolve(user);
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Suppress addStateChangeListener.
   stubs.replace(
       fireauth.storage.UserManager.prototype,
@@ -1126,8 +1123,7 @@ function testNotifyAuthStateObservers() {
       function() {
         return goog.Promise.resolve(user);
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Suppress addStateChangeListener.
   stubs.replace(
       fireauth.storage.UserManager.prototype,
@@ -1219,8 +1215,7 @@ function testAuth_onAuthStateChanged() {
       function() {
         return goog.Promise.resolve(user);
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Suppress addStateChangeListener.
   stubs.replace(
       fireauth.storage.UserManager.prototype,
@@ -1939,8 +1934,7 @@ function testAuth_authEventManager() {
   // Test Auth event manager.
   fireauth.AuthEventManager.ENABLED = true;
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   var expectedManager = {
     'subscribe': goog.testing.recordFunction(),
     'unsubscribe': goog.testing.recordFunction()
@@ -2077,8 +2071,7 @@ function testAuth_initState_signedInStatus() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // New loaded user should be reloaded before being set as current user.
@@ -2176,8 +2169,7 @@ function testAuth_initState_signedInStatus() {
 function testAuth_initState_reloadUpdate_previousSignedInUser() {
   asyncTestCase.waitForSignals(2);
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate reload introduced external changes to user.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -2240,8 +2232,7 @@ function testAuth_initState_signedInStatus_differentAuthDomain() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // New loaded user should be reloaded before being set as current user.
@@ -2305,8 +2296,7 @@ function testAuth_initState_signedInStatus_withRedirectUser() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Return new token on each request.
@@ -2437,8 +2427,7 @@ function testAuth_initState_signedInStatus_withRedirectUser_sameEventId() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Return new token on each request.
@@ -2569,8 +2558,7 @@ function testAuth_initState_signedInStatus_deletedUser() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // New loaded user should be reloaded. In this case throw an error.
@@ -2642,8 +2630,7 @@ function testAuth_initState_signedInStatus_offline() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // New loaded user should be reloaded. In this case throw an error.
@@ -2734,8 +2721,7 @@ function testAuth_initState_signedOutStatus() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Current user change listener should be added.
@@ -2796,8 +2782,7 @@ function testAuth_syncAuthChanges_sameUser() {
       function() {
         return goog.Promise.resolve();
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Save sync listener.
@@ -2933,8 +2918,7 @@ function testAuth_syncAuthChanges_newSignIn() {
       function() {
         return goog.Promise.resolve();
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Save sync listener.
@@ -3054,8 +3038,7 @@ function testAuth_syncAuthChanges_newSignIn_differentAuthDomain() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   asyncTestCase.waitForSignals(1);
@@ -3105,7 +3088,7 @@ function testAuth_syncAuthChanges_newSignIn_differentAuthDomain() {
         asyncTestCase.signal();
       });
       // This should force localstorage sync.
-      goog.testing.events.fireBrowserEvent(storageEvent);
+      mockLocalStorage.fireBrowserEvent(storageEvent);
     });
   });
 }
@@ -3129,8 +3112,7 @@ function testAuth_syncAuthChanges_newSignOut() {
       function() {
         return goog.Promise.resolve();
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Save sync listener.
@@ -3238,8 +3220,7 @@ function testAuth_signInWithIdTokenResponse_newUser() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Initialize from ID token response should be called and resolved with the
@@ -3328,8 +3309,7 @@ function testAuth_signInWithIdTokenResponse_sameUser() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Initialize from ID token response should be called and resolved with the
@@ -3462,8 +3442,7 @@ function testAuth_signInWithIdTokenResponse_newUserDifferentFromCurrent() {
       function() {
         return now;
       });
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
   // Initialize from ID token response should be called and resolved with the
@@ -6871,8 +6850,7 @@ function testAuth_returnFromSignInWithRedirect_withExistingUser() {
       null,
       'http://www.example.com/#response',
       'SESSION_ID');
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate user loaded from storage.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -7185,8 +7163,7 @@ function testAuth_returnFromLinkWithRedirect_success() {
   var expectedCred = fireauth.GoogleAuthProvider.credential(null,
       'ACCESS_TOKEN');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Expected link via redirect successful Auth event.
   var expectedAuthEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.LINK_VIA_REDIRECT,
@@ -7293,8 +7270,7 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedOutUser_success() {
       'http://www.example.com/#response',
       'SESSION_ID');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate user loaded from storage.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -7429,8 +7405,7 @@ function testAuth_redirectedLoggedOutUser_differentAuthDomain() {
   stubs.reset();
   // Simulate current origin is whitelisted.
   simulateWhitelistedOrigin();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   stubs.replace(
       goog,
       'now',
@@ -7548,8 +7523,7 @@ function testAuth_returnFromLinkWithRedirect_noCurrentUser_redirectUser() {
       'http://www.example.com/#response',
       'SESSION_ID');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate redirect user loaded from storage.
   stubs.replace(
       fireauth.storage.RedirectUserManager.prototype,
@@ -7746,8 +7720,7 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedInUser_success() {
       'http://www.example.com/#response',
       'SESSION_ID');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate user loaded from storage.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -7874,8 +7847,7 @@ function testAuth_returnFromLinkWithRedirect_invalidUser() {
       'http://www.example.com/#response',
       'SESSION_ID');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate user loaded from storage.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -7969,8 +7941,7 @@ function testAuth_returnFromLinkWithRedirect_error() {
       null,
       expectedError);
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Simulate user loaded from storage.
   stubs.replace(
       fireauth.AuthUser.prototype,
@@ -8878,7 +8849,8 @@ function testAuth_setPersistence_noExistingAuthState() {
     // Confirm first user saved in session storage.
     assertUserEquals(user1, user);
     return fireauth.common.testHelper.assertUserStorage(
-        auth1.getStorageKey(), 'session', user1);
+        auth1.getStorageKey(), 'session', user1,
+        fireauth.authStorage.Manager.getInstance());
   }).then(function() {
     // Sign in with custom token.
     return auth1.signInWithCustomToken('CUSTOM_TOKEN');
@@ -8886,7 +8858,8 @@ function testAuth_setPersistence_noExistingAuthState() {
     // Confirm second user saved in session storage.
     clock.tick(1);
     return fireauth.common.testHelper.assertUserStorage(
-        auth1.getStorageKey(), 'session', user2);
+        auth1.getStorageKey(), 'session', user2,
+        fireauth.authStorage.Manager.getInstance());
   }).then(function() {
     asyncTestCase.signal();
   });
@@ -8928,13 +8901,15 @@ function testAuth_setPersistence_existingAuthState() {
       // When this is first triggered, the previously signed in user should be
       // switched to session storage.
       fireauth.common.testHelper.assertUserStorage(
-          config3['apiKey'] + ':' + appId1, 'session', user1).then(function() {
+          config3['apiKey'] + ':' + appId1, 'session', user1,
+          fireauth.authStorage.Manager.getInstance()).then(function() {
         // Sign in a new user.
         return auth1.signInAnonymously();
       }).then(function() {
         // Second user should be also persistence in session storage.
         return fireauth.common.testHelper.assertUserStorage(
-              config3['apiKey'] + ':' + appId1, 'session', user2);
+            config3['apiKey'] + ':' + appId1, 'session', user2,
+            fireauth.authStorage.Manager.getInstance());
       }).then(function() {
         asyncTestCase.signal();
       });
@@ -8982,8 +8957,7 @@ function testAuth_temporaryPersistence_externalChange() {
   var storageEvent = new goog.testing.events.Event(
       goog.events.EventType.STORAGE, window);
   // Simulate existing user stored in session storage.
-  window.sessionStorage.setItem(
-      storageKey, JSON.stringify(user1.toPlainObject()));
+  mockSessionStorage.set(storageKey, user1.toPlainObject());
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
   storageEvent.key = 'firebase:authUser:' + auth1.getStorageKey();
@@ -8997,18 +8971,20 @@ function testAuth_temporaryPersistence_externalChange() {
       // On first call, the first user should be stored in session storage.
       assertUserEquals(user1, user);
       fireauth.common.testHelper.assertUserStorage(
-          auth1.getStorageKey(), 'session', user1).then(function() {
+          auth1.getStorageKey(), 'session', user1,
+          fireauth.authStorage.Manager.getInstance()).then(function() {
         // Simulate external user signed in on another tab.
-        window.localStorage.setItem(
-            storageKey, JSON.stringify(user2.toPlainObject()));
-        goog.testing.events.fireBrowserEvent(storageEvent);
+        mockLocalStorage.set(
+            storageKey, user2.toPlainObject());
+        mockLocalStorage.fireBrowserEvent(storageEvent);
       });
     } else if (calls == 2) {
       // On second call, the second user detected from external event should
       // be detected and stored in local storage.
       assertUserEquals(user2, user);
       fireauth.common.testHelper.assertUserStorage(
-          auth1.getStorageKey(), 'local', user2).then(function() {
+          auth1.getStorageKey(), 'local', user2,
+          fireauth.authStorage.Manager.getInstance()).then(function() {
         // Sign in anonymously.
         auth1.signInAnonymously();
       });
@@ -9016,7 +8992,8 @@ function testAuth_temporaryPersistence_externalChange() {
       // Third anonymous user detected and should be stored in local storage.
       assertUserEquals(user3, user);
       fireauth.common.testHelper.assertUserStorage(
-          auth1.getStorageKey(), 'local', user3).then(function() {
+          auth1.getStorageKey(), 'local', user3,
+          fireauth.authStorage.Manager.getInstance()).then(function() {
         asyncTestCase.signal();
       });
     }
@@ -9098,7 +9075,8 @@ function testAuth_storedPersistence_returnFromRedirect() {
         // savePersistenceForRedirect was previously called with session
         // persistence.
         return fireauth.common.testHelper.assertUserStorage(
-            auth1.getStorageKey(), 'session', user1);
+            auth1.getStorageKey(), 'session', user1,
+            fireauth.authStorage.Manager.getInstance());
       }).then(function() {
         asyncTestCase.signal();
       });
@@ -9203,7 +9181,8 @@ function testAuth_changedPersistence_returnFromRedirect() {
         // was session, it will be overriddent by the local persistence
         // explicitly called after Auth instance is initialized.
         return fireauth.common.testHelper.assertUserStorage(
-            auth1.getStorageKey(), 'local', user1);
+            auth1.getStorageKey(), 'local', user1,
+            fireauth.authStorage.Manager.getInstance());
       }).then(function() {
         asyncTestCase.signal();
       });

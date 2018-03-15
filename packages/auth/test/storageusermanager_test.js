@@ -23,6 +23,7 @@ goog.provide('fireauth.storage.UserManagerTest');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
 goog.require('fireauth.common.testHelper');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.UserManager');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -48,9 +49,17 @@ var expectedUserWithAuthDomain;
 var stubs = new goog.testing.PropertyReplacer();
 var testUser;
 var testUser2;
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   // Simulate browser that synchronizes between and iframe and a popup.
   stubs.replace(
      fireauth.util,
@@ -154,10 +163,11 @@ function testGetSetRemoveCurrentUser() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertEquals(
-            window.localStorage.getItem(storageKey),
-            JSON.stringify(expectedUser.toPlainObject()));
-        assertObjectEquals(expectedUser, user);
+        assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(user) {
+        assertObjectEquals(expectedUser.toPlainObject(), user);
         // Get user with authDomain.
         return userManager.getCurrentUser('project.firebaseapp.com');
       })
@@ -166,7 +176,10 @@ function testGetSetRemoveCurrentUser() {
         return userManager.removeCurrentUser();
       })
       .then(function() {
-        assertNull(window.localStorage.getItem(storageKey));
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(user) {
+        assertUndefined(user);
         return userManager.getCurrentUser();
       })
       .then(function(user) {
@@ -186,51 +199,51 @@ function testAddRemoveCurrentUserChangeListener() {
     }
   };
   // Save existing Auth users for appId1 and appId2.
-  window.localStorage.setItem(
-      'firebase:authUser:appId1',
-      JSON.stringify(testUser.toPlainObject()));
-  window.localStorage.setItem(
-      'firebase:authUser:appId2',
-      JSON.stringify(testUser.toPlainObject()));
-  userManager.addCurrentUserChangeListener(listener);
-  // Simulate appId1 user deletion.
-  var storageEvent =
-      new goog.testing.events.Event(goog.events.EventType.STORAGE, window);
-  storageEvent.key = 'firebase:authUser:appId1';
-  storageEvent.oldValue = JSON.stringify(testUser.toPlainObject());
-  storageEvent.newValue = null;
-  window.localStorage.removeItem('firebase:authUser:appId1');
-  // This should trigger listener.
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, calls);
-  // Simulate appId2 user deletion.
-  storageEvent.key = 'firebase:authUser:appId2';
-  storageEvent.oldValue = JSON.stringify(testUser.toPlainObject());
-  storageEvent.newValue = null;
-  window.localStorage.removeItem('firebase:authUser:appId2');
-  // This should not trigger listener.
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, calls);
-  // Remove listener.
-  userManager.removeCurrentUserChangeListener(listener);
-  // Simulate new user saved for appId1.
-  // This should not trigger listener.
-  storageEvent.key = 'firebase:authUser:appId1';
-  storageEvent.newValue = JSON.stringify(testUser.toPlainObject());
-  storageEvent.oldValue = null;
-   window.localStorage.setItem(
-      'firebase:authUser:appId1',
-      JSON.stringify(testUser.toPlainObject()));
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, calls);
+  mockLocalStorage.set('firebase:authUser:appId1', testUser.toPlainObject());
+  mockLocalStorage.set('firebase:authUser:appId2', testUser.toPlainObject());
+  return goog.Promise.resolve().then(function() {
+    return mockLocalStorage.set(
+        'firebase:authUser:appId1', testUser.toPlainObject());
+  })
+  .then(function() {
+    return mockLocalStorage.set(
+        'firebase:authUser:appId2', testUser.toPlainObject());
+  })
+  .then(function() {
+    userManager.addCurrentUserChangeListener(listener);
+    // Simulate appId1 user deletion.
+    var storageEvent =
+        new goog.testing.events.Event(goog.events.EventType.STORAGE, window);
+    storageEvent.key = 'firebase:authUser:appId1';
+    storageEvent.oldValue = JSON.stringify(testUser.toPlainObject());
+    storageEvent.newValue = null;
+    // This should trigger listener.
+    mockLocalStorage.fireBrowserEvent(storageEvent);
+    assertEquals(1, calls);
+    // Simulate appId2 user deletion.
+    storageEvent.key = 'firebase:authUser:appId2';
+    storageEvent.oldValue = JSON.stringify(testUser.toPlainObject());
+    storageEvent.newValue = null;
+    // This should not trigger listener.
+    mockLocalStorage.fireBrowserEvent(storageEvent);
+    assertEquals(1, calls);
+    // Remove listener.
+    userManager.removeCurrentUserChangeListener(listener);
+    // Simulate new user saved for appId1.
+    // This should not trigger listener.
+    storageEvent.key = 'firebase:authUser:appId1';
+    storageEvent.newValue = JSON.stringify(testUser.toPlainObject());
+    storageEvent.oldValue = null;
+    mockLocalStorage.fireBrowserEvent(storageEvent);
+    assertEquals(1, calls);
+  });
 }
 
 
 function testUserManager_initializedWithSession() {
   // Save state in session storage.
   var storageKey = 'firebase:authUser:appId1';
-  window.sessionStorage.setItem(
-      storageKey, JSON.stringify(testUser.toPlainObject()));
+  mockSessionStorage.set(storageKey, testUser.toPlainObject());
   var storageManager = getDefaultStorageManagerInstance();
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
@@ -261,14 +274,12 @@ function testUserManager_initializedWithSession_duplicateStorage() {
   var userManager;
   // Save state in session storage.
   var storageKey = 'firebase:authUser:appId1';
-  window.sessionStorage.setItem(
-      storageKey, JSON.stringify(testUser.toPlainObject()));
+  mockSessionStorage.set(storageKey, testUser.toPlainObject());
   // Add state to other types of storage.
-  window.localStorage.setItem(
-      storageKey, JSON.stringify(testUser2.toPlainObject()));
+  mockLocalStorage.set(storageKey, testUser2.toPlainObject());
   // Set redirect persistence to none.
-  window.sessionStorage.setItem(
-      'firebase:persistence:appId1', JSON.stringify('none'));
+  mockSessionStorage.set(
+      'firebase:persistence:appId1', 'none');
   // Save state using in memory storage.
   return storageManager.set(
       {name: 'authUser', persistent: 'none'},
@@ -336,8 +347,7 @@ function testUserManager_initializedWithInMemory() {
 function testUserManager_initializedWithLocal() {
   // Save state in local storage.
   var storageKey = 'firebase:authUser:appId1';
-  window.localStorage.setItem(
-      storageKey, JSON.stringify(testUser.toPlainObject()));
+  mockLocalStorage.set(storageKey, testUser.toPlainObject());
   var storageManager = getDefaultStorageManagerInstance();
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
@@ -358,6 +368,72 @@ function testUserManager_initializedWithLocal() {
         assertObjectEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
+      });
+}
+
+
+function testUserManager_initializedWithLocal_migratedFromLocalStorage() {
+  var storageKey = 'firebase:authUser:appId1';
+  // Save Auth state to localStorage. This will be migrated to mockLocalStorage.
+  window.localStorage.setItem(
+      storageKey, JSON.stringify(testUser.toPlainObject()));
+  var storageManager = getDefaultStorageManagerInstance();
+  var userManager = new fireauth.storage.UserManager('appId1', storageManager);
+  return userManager.getCurrentUser()
+      .then(function(user) {
+        assertObjectEquals(testUser, user);
+        // User should be cleared from window.localStorage.
+        assertNull(window.localStorage.getItem(storageKey));
+        // User should be saved in mock local storage only with everything else
+        // cleared.
+        return fireauth.common.testHelper.assertUserStorage(
+            'appId1', 'local', testUser, storageManager);
+      })
+      .then(function() {
+        // Should be saved in local storage only.
+        return userManager.setCurrentUser(testUser2);
+      })
+      .then(function() {
+        return userManager.getCurrentUser();
+      })
+      .then(function(user) {
+        assertObjectEquals(testUser2, user);
+        return fireauth.common.testHelper.assertUserStorage(
+            'appId1', 'local', testUser2, storageManager);
+      });
+}
+
+
+function testUserManager_initializedWithLocal_multiplePersistentStorage() {
+  var storageKey = 'firebase:authUser:appId1';
+  // Save Auth state to window.localStorage. This will be cleared.
+  window.localStorage.setItem(
+      storageKey, JSON.stringify(testUser.toPlainObject()));
+  // Save another Auth state in mockLocalStorage. This will have precedence over
+  // window.localStorage.
+  mockLocalStorage.set(storageKey, testUser2.toPlainObject());
+  var storageManager = getDefaultStorageManagerInstance();
+  var userManager = new fireauth.storage.UserManager('appId1', storageManager);
+  return userManager.getCurrentUser()
+      .then(function(user) {
+        assertObjectEquals(testUser2, user);
+        // User should be ignored and cleared from window.localStorage.
+        assertNull(window.localStorage.getItem(storageKey));
+        // Existing user saved in mock local storage persisted with everything
+        // else cleared.
+        return fireauth.common.testHelper.assertUserStorage(
+            'appId1', 'local', testUser2, storageManager);
+      })
+      .then(function() {
+        return userManager.setCurrentUser(testUser);
+      })
+      .then(function() {
+        return userManager.getCurrentUser();
+      })
+      .then(function(user) {
+        assertObjectEquals(testUser, user);
+        return fireauth.common.testHelper.assertUserStorage(
+            'appId1', 'local', testUser, storageManager);
       });
 }
 
@@ -384,8 +460,7 @@ function testUserManager_initializedWithDefault() {
 
 function testUserManager_initializedWithSavedPersistence() {
   // Save redirect persistence.
-  window.sessionStorage.setItem(
-      'firebase:persistence:appId1', JSON.stringify('session'));
+  mockSessionStorage.set('firebase:persistence:appId1', 'session');
   var storageManager = getDefaultStorageManagerInstance();
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
@@ -414,10 +489,11 @@ function testUserManager_savePersistenceForRedirect_default() {
   return userManager.savePersistenceForRedirect()
       .then(function() {
         // Should store persistence value in session storage.
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            // Should apply the current default persistence.
-            JSON.stringify('local'));
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        // Should apply the current default persistence.
+        assertEquals('local', value);
       });
 }
 
@@ -431,10 +507,11 @@ function testUserManager_savePersistenceForRedirect_modifed() {
   return userManager.savePersistenceForRedirect()
       .then(function() {
         // Should store persistence value in session storage.
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            // The latest modified persistence value should be used.
-            JSON.stringify('session'));
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        // The latest modified persistence value should be used.
+        assertEquals('session', value);
       });
 }
 
@@ -498,8 +575,7 @@ function testUserManager_existingState_setPersistence() {
   // Test setPersistence behavior with some initial saved persistence state.
   var storageKey = 'firebase:authUser:appId1';
   // Save initial data in local storage.
-  window.localStorage.setItem(
-      storageKey, JSON.stringify(testUser2.toPlainObject()));
+  mockLocalStorage.set(storageKey, testUser2.toPlainObject());
   var storageManager = getDefaultStorageManagerInstance();
   // As no existing state, the default is local.
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
@@ -514,8 +590,7 @@ function testUserManager_existingState_setPersistence() {
       })
       .then(function() {
         // Simulate some state duplication due to some unexpected error.
-        window.localStorage.setItem(
-            storageKey, JSON.stringify(testUser.toPlainObject()));
+        mockLocalStorage.set(storageKey, testUser.toPlainObject());
         // Should switch state from session to none and clear everything else.
         userManager.setPersistence('none');
         return userManager.getCurrentUser();
@@ -546,12 +621,10 @@ function testUserManager_switchToLocalOnExternalEvents_noExistingUser() {
   return userManager.setPersistence('session')
       .then(function() {
         // Simulate user signed in in another tab.
-        window.localStorage.setItem(
-            storageKey, JSON.stringify(testUser2.toPlainObject()));
         storageEvent.newValue = JSON.stringify(testUser2.toPlainObject());
         // This should trigger listener and switch storage from session to
         // local.
-        goog.testing.events.fireBrowserEvent(storageEvent);
+        mockLocalStorage.fireBrowserEvent(storageEvent);
         // Listener should be called.
         assertEquals(1, listener.getCallCount());
         return userManager.getCurrentUser();
@@ -565,7 +638,7 @@ function testUserManager_switchToLocalOnExternalEvents_noExistingUser() {
       .then(function() {
         userManager.removeCurrentUserChangeListener(listener);
         // This should not trigger listener.
-        goog.testing.events.fireBrowserEvent(storageEvent);
+        mockLocalStorage.fireBrowserEvent(storageEvent);
         assertEquals(1, listener.getCallCount());
       });
 }
@@ -582,8 +655,7 @@ function testUserManager_switchToLocalOnExternalEvents_existingUser() {
   storageEvent.key = storageKey;
   storageEvent.newValue = null;
   // Existing user in session storage.
-  window.sessionStorage.setItem(
-      storageKey, JSON.stringify(testUser.toPlainObject()));
+  mockSessionStorage.set(storageKey, testUser.toPlainObject());
 
   var storageManager = getDefaultStorageManagerInstance();
   // Due to existing state in session storage, the initial state is session.
@@ -599,11 +671,9 @@ function testUserManager_switchToLocalOnExternalEvents_existingUser() {
       })
       .then(function(user) {
         // Simulate user signed in in another tab.
-        window.localStorage.setItem(
-            storageKey, JSON.stringify(testUser2.toPlainObject()));
         storageEvent.newValue = JSON.stringify(testUser2.toPlainObject());
         // This should trigger listener and switch storage to local.
-        goog.testing.events.fireBrowserEvent(storageEvent);
+        mockLocalStorage.fireBrowserEvent(storageEvent);
         assertEquals(1, listener.getCallCount());
         return userManager.getCurrentUser();
       })
@@ -616,7 +686,7 @@ function testUserManager_switchToLocalOnExternalEvents_existingUser() {
       .then(function() {
         userManager.removeCurrentUserChangeListener(listener);
         // This should not trigger listener.
-        goog.testing.events.fireBrowserEvent(storageEvent);
+        mockLocalStorage.fireBrowserEvent(storageEvent);
         assertEquals(1, listener.getCallCount());
       });
 }

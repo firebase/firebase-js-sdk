@@ -49,6 +49,8 @@ fireauth.storage.SessionStorage = function() {
   this.storage_ = /** @type {!Storage} */ (
       fireauth.storage.SessionStorage.getGlobalStorage() ||
       firebase.INTERNAL['node']['sessionStorage']);
+  /** @protected {string} The storage type identifier. */
+  this.type = fireauth.storage.Storage.Type.SESSION_STORAGE;
 };
 
 

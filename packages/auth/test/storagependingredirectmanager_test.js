@@ -21,8 +21,9 @@
 goog.provide('fireauth.storage.PendingRedirectManagerTest');
 
 goog.require('fireauth.authStorage');
+goog.require('fireauth.common.testHelper');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.PendingRedirectManager');
-goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
@@ -32,18 +33,19 @@ goog.setTestOnly('fireauth.storage.PendingRedirectManagerTest');
 
 var appId = 'appId1';
 var stubs = new goog.testing.PropertyReplacer();
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
-  // Simulate browser that synchronizes between and iframe and a popup.
-  stubs.replace(
-     fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {
-        return false;
-      });
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
   window.localStorage.clear();
   window.sessionStorage.clear();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
 }
 
 
@@ -69,14 +71,16 @@ function testGetSetPendingStatus() {
         return pendingRedirectManager.getPendingStatus();
       })
       .then(function(status) {
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            JSON.stringify('pending'));
         assertTrue(status);
+        return mockSessionStorage.get(storageKey);
+      }).then(function(value) {
+        assertEquals('pending', value);
         return pendingRedirectManager.removePendingStatus();
       })
       .then(function() {
-        assertNull(window.sessionStorage.getItem(storageKey));
+        return mockSessionStorage.get(storageKey);
+      }).then(function(value) {
+        assertUndefined(value);
         return pendingRedirectManager.getPendingStatus();
       })
       .then(function(status) {
