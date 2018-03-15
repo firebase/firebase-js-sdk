@@ -50,6 +50,8 @@ fireauth.storage.LocalStorage = function() {
   this.storage_ = /** @type {!Storage} */ (
       fireauth.storage.LocalStorage.getGlobalStorage() ||
       firebase.INTERNAL['node']['localStorage']);
+  /** @protected {string} The storage type identifier. */
+  this.type = fireauth.storage.Storage.Type.LOCAL_STORAGE;
 };
 
 

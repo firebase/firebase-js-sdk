@@ -65,3 +65,22 @@ fireauth.storage.Storage.prototype.addStorageListener = function(listener) {};
  */
 fireauth.storage.Storage.prototype.removeStorageListener = function(listener) {
 };
+
+
+/** @type {string} The storage type identifier. */
+fireauth.storage.Storage.prototype.type;
+
+
+/**
+ * Enum for the identifier of the type of underlying storage.
+ * @enum {string}
+ */
+fireauth.storage.Storage.Type = {
+  ASYNC_STORAGE: 'asyncStorage',
+  IN_MEMORY: 'inMemory',
+  INDEXEDDB: 'indexedDB',
+  LOCAL_STORAGE: 'localStorage',
+  MOCK_STORAGE: 'mockStorage',
+  NULL_STORAGE: 'nullStorage',
+  SESSION_STORAGE: 'sessionStorage'
+};

@@ -19,6 +19,7 @@ goog.provide('fireauth.storage.LocalStorageTest');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.LocalStorage');
+goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('fireauth.util');
@@ -64,6 +65,7 @@ function simulateNodeEnvironment() {
 
 
 function testBasicStorageOperations() {
+  assertEquals(fireauth.storage.Storage.Type.LOCAL_STORAGE, storage.type);
   return assertBasicStorageOperations(storage);
 }
 

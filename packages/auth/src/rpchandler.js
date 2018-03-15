@@ -35,6 +35,7 @@ goog.require('goog.html.TrustedResourceUrl');
 goog.require('goog.json');
 goog.require('goog.net.CorsXmlHttpFactory');
 goog.require('goog.net.EventType');
+goog.require('goog.net.FetchXmlHttpFactory');
 goog.require('goog.net.XhrIo');
 goog.require('goog.net.XmlHttpFactory');
 goog.require('goog.net.jsloader');
@@ -93,13 +94,6 @@ fireauth.XmlHttpFactory.prototype.internalGetOptions = function() {
  * @constructor
  */
 fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
-  // Get XMLHttpRequest reference.
-  var XMLHttpRequest = fireauth.util.getXMLHttpRequest();
-  if (!XMLHttpRequest) {
-    // In a Node.js environment, xmlhttprequest module needs to be required.
-    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
-        'The XMLHttpRequest compatibility library was not found.');
-  }
   this.apiKey_ = apiKey;
   var config = opt_config || {};
   this.secureTokenEndpoint_ = config['secureTokenEndpoint'] ||
@@ -131,10 +125,46 @@ fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
     // Log client version for securetoken server.
     this.secureTokenHeaders_['X-Client-Version'] = opt_firebaseClientVersion;
   }
-  /** @const @private {!goog.net.CorsXmlHttpFactory} The CORS XHR factory. */
-  this.corsXhrFactory_ = new goog.net.CorsXmlHttpFactory();
-  /** @const @private {!goog.net.XmlHttpFactory} The XHR factory. */
-  this.xhrFactory_ = new fireauth.XmlHttpFactory(XMLHttpRequest);
+  
+  // Get XMLHttpRequest reference.
+  var XMLHttpRequest = fireauth.RpcHandler.getXMLHttpRequest();
+  if (!XMLHttpRequest && !fireauth.util.isWorker()) {
+    // In a Node.js environment, xmlhttprequest module needs to be required.
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
+        'The XMLHttpRequest compatibility library was not found.');
+  }
+  /** @private {!goog.net.XmlHttpFactory|undefined} The XHR factory. */
+  this.rpcHandlerXhrFactory_ = undefined;
+  // Initialize XHR factory. CORS does not apply in native environments or
+  // workers so don't use CorsXmlHttpFactory in those cases.
+  if (fireauth.util.isWorker()) {
+    // For worker environment use FetchXmlHttpFactory.
+    this.rpcHandlerXhrFactory_ = new goog.net.FetchXmlHttpFactory(
+        /** @type {!WorkerGlobalScope} */ (self));
+  } else if (fireauth.util.isNativeEnvironment()) {
+    // For Node.js, this is the polyfill library. For other environments,
+    // this is the native global XMLHttpRequest.
+    this.rpcHandlerXhrFactory_ = new fireauth.XmlHttpFactory(
+        /** @type {function(new:XMLHttpRequest)} */ (XMLHttpRequest));
+  } else {
+    // CORS Browser environment.
+    this.rpcHandlerXhrFactory_ = new goog.net.CorsXmlHttpFactory();
+  }
+};
+
+
+/**
+ * @return {?function(new:XMLHttpRequest)|undefined} The current environment
+ *     XMLHttpRequest. This is undefined for worker environment.
+ */
+fireauth.RpcHandler.getXMLHttpRequest = function() {
+  // In Node.js XMLHttpRequest is polyfilled.
+  var isNode = fireauth.util.getEnvironment() == fireauth.util.Env.NODE;
+  var XMLHttpRequest = goog.global['XMLHttpRequest'] ||
+      (isNode &&
+       firebase.INTERNAL['node'] &&
+       firebase.INTERNAL['node']['XMLHttpRequest']);
+  return XMLHttpRequest;
 };
 
 
@@ -394,7 +424,7 @@ fireauth.RpcHandler.prototype.sendXhr_ = function(
     return;
   }
   var sendXhr;
-  if (fireauth.util.supportsCors()) {
+  if (fireauth.util.supportsCors() || fireauth.util.isWorker()) {
     // If supports CORS use goog.net.XhrIo.
     sendXhr = goog.bind(this.sendXhrUsingXhrIo_, this);
   } else {
@@ -432,13 +462,7 @@ fireauth.RpcHandler.prototype.sendXhrUsingXhrIo_ = function(
     opt_data,
     opt_headers,
     opt_timeout) {
-  // Send XHR request. CORS does not apply in native environments so don't use
-  // CorsXmlHttpFactory in those cases.
-  // For a Node.js environment use the fireauth.XmlHttpFactory instance.
-  var isNode = fireauth.util.getEnvironment() == fireauth.util.Env.NODE;
-  var xhrIo = fireauth.util.isNativeEnvironment() ?
-      (isNode ? new goog.net.XhrIo(this.xhrFactory_) : new goog.net.XhrIo()) :
-      new goog.net.XhrIo(this.corsXhrFactory_);
+  var xhrIo = new goog.net.XhrIo(this.rpcHandlerXhrFactory_);
 
   // xhrIo.setTimeoutInterval not working in IE10 and IE11, handle manually.
   var requestTimeout;
