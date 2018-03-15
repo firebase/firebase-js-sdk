@@ -472,11 +472,6 @@ export abstract class PersistentStream<
         return;
       }
 
-      assert(
-        this.state === PersistentStreamState.Backoff,
-        'Backoff should have been canceled if we left the Backoff state.'
-      );
-
       this.state = PersistentStreamState.Initial;
       this.start(listener);
       assert(this.isStarted(), 'PersistentStream should have started');
