@@ -142,13 +142,6 @@ fireauth.ActionCodeSettings.prototype.initialize_ = function(settingsObj) {
   }
   /** @private {boolean} Whether the code can be handled in app. */
   this.canHandleCodeInApp_ = !!canHandleCodeInApp;
-  // canHandleCodeInApp can't be true when no mobile application is provided.
-  if (this.canHandleCodeInApp_ && !this.ibi_ && !this.apn_) {
-    throw new fireauth.AuthError(
-        fireauth.authenum.Error.ARGUMENT_ERROR,
-        fireauth.ActionCodeSettings.RawField.HANDLE_CODE_IN_APP +
-        ' property can\'t be true when no mobile application is provided.');
-  }
 };
 
 
@@ -226,4 +219,13 @@ fireauth.ActionCodeSettings.prototype.buildRequest = function() {
     }
   }
   return request;
+};
+
+
+/**
+ * Returns the canHandleCodeInApp setting of ActionCodeSettings.
+ * @return {boolean} Whether the code can be handled in app.
+ */
+fireauth.ActionCodeSettings.prototype.canHandleCodeInApp = function() {
+  return this.canHandleCodeInApp_;
 };

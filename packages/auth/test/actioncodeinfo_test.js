@@ -43,6 +43,10 @@ var recoverEmailServerResponse = {
   'newEmail': 'newUser@example.com',
   'requestType': 'RECOVER_EMAIL'
 };
+var signInWithEmailLinkServerResponse = {
+  'kind': 'identitytoolkit#ResetPasswordResponse',
+  'requestType': 'EMAIL_SIGNIN'
+};
 
 
 function testActionCodeInfo_invalid_missingOperation() {
@@ -138,4 +142,25 @@ function testActionCodeInfo_recoverEmail() {
   assertObjectEquals(
       expectedData,
       actionCodeInfo['data']);
+}
+
+
+function testActionCodeInfo_signInWithEmailLink() {
+  var expectedData = {email: null, fromEmail: null};
+  var actionCodeInfo =
+      new fireauth.ActionCodeInfo(signInWithEmailLinkServerResponse);
+
+  // Check operation.
+  assertEquals('EMAIL_SIGNIN', actionCodeInfo['operation']);
+  // Property should be read-only.
+  actionCodeInfo['operation'] = 'BLA';
+  assertEquals('EMAIL_SIGNIN', actionCodeInfo['operation']);
+
+  // Check data.
+  assertObjectEquals(expectedData, actionCodeInfo['data']);
+  // Property should be read-only.
+  actionCodeInfo['data']['email'] = 'other@example.com';
+  assertObjectEquals(expectedData, actionCodeInfo['data']);
+  actionCodeInfo['data'] = 'BLA';
+  assertObjectEquals(expectedData, actionCodeInfo['data']);
 }

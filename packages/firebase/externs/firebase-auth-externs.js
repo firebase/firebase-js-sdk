@@ -76,6 +76,16 @@ firebase.auth.AuthCredential = function() {};
 firebase.auth.AuthCredential.prototype.providerId;
 
 /**
+ * The authentication sign in method for the credential.
+ * For example, 'password', or 'emailLink. This corresponds to the sign-in
+ * method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.AuthCredential.prototype.signInMethod;
+
+/**
  * Interface that represents the OAuth credentials returned by an OAuth
  * provider. Implementations specify the details about each auth provider's
  * credential requirements.
@@ -843,6 +853,8 @@ firebase.auth.ActionCodeInfo.prototype.data;
  *     {@link firebase.User#sendEmailVerification}.</li>
  * <li>`RECOVER_EMAIL`: email change revocation code generated via
  *     {@link firebase.User#updateEmail}.</li>
+ * <li>`EMAIL_SIGNIN`: email sign in code generated via
+ *     {@link firebase.auth.Auth#sendSignInLinkToEmail}.</li>
  * </ul>
  *
  * @type {string}
@@ -1166,6 +1178,31 @@ firebase.auth.Auth.prototype.createUserWithEmailAndPassword = function(
 firebase.auth.Auth.prototype.fetchProvidersForEmail = function(email) {};
 
 /**
+ * Gets the list of possible sign in methods for the given email address. This
+ * is useful to differentiate methods of sign-in for the same provider,
+ * eg. `EmailAuthProvider` which has 2 methods of sign-in, email/password and
+ * email/link.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/invalid-email</dt>
+ * <dd>Thrown if the email address is not valid.</dd>
+ * </dl>
+ *
+ * @param {string} email An email address.
+ * @return {!firebase.Promise<!Array<string>>}
+ */
+firebase.auth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {};
+
+/**
+ * Checks if an incoming link is a sign-in with email link.
+ *
+ * @param {string} emailLink Sign-in email link.
+ * @return {boolean} Whether the link is a sign-in with email link.
+ */
+firebase.auth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {};
+
+/**
  * Adds an observer for changes to the user's sign-in state.
  *
  * Prior to 4.0.0, this triggered the observer when users were signed in,
@@ -1220,6 +1257,82 @@ firebase.auth.Auth.prototype.onIdTokenChanged = function(
   nextOrObserver,
   error,
   completed
+) {};
+
+/**
+ * Sends a sign-in email link to the user with the specified email.
+ *
+ * The sign-in operation has to always be completed in the app unlike other out
+ * of band email actions (password reset and email verifications). This is
+ * because, at the end of the flow, the user is expected to be signed in and
+ * their Auth state persisted within the app.
+ *
+ * To complete sign in with the email link, call
+ * {@link firebase.auth.Auth#signInWithEmailLink} with the email address and
+ * the email link supplied in the email sent to the user.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/argument-error</dt>
+ * <dd>Thrown if handleCodeInApp is false.</dd>
+ * <dt>auth/invalid-email</dt>
+ * <dd>Thrown if the email address is not valid.</dd>
+ * <dt>auth/missing-android-pkg-name</dt>
+ * <dd>An Android package name must be provided if the Android app is required
+ *     to be installed.</dd>
+ * <dt>auth/missing-continue-uri</dt>
+ * <dd>A continue URL must be provided in the request.</dd>
+ * <dt>auth/missing-ios-bundle-id</dt>
+ * <dd>An iOS Bundle ID must be provided if an App Store ID is provided.</dd>
+ * <dt>auth/invalid-continue-uri</dt>
+ * <dd>The continue URL provided in the request is invalid.</dd>
+ * <dt>auth/unauthorized-continue-uri</dt>
+ * <dd>The domain of the continue URL is not whitelisted. Whitelist
+ *     the domain in the Firebase console.</dd>
+ * </dl>
+ *
+ * @example
+ * var actionCodeSettings = {
+ *   // The URL to redirect to for sign-in completion. This is also the deep
+ *   // link for mobile redirects. The domain (www.example.com) for this URL
+ *   // must be whitelisted in the Firebase Console.
+ *   url: 'https://www.example.com/finishSignUp?cartId=1234',
+ *   iOS: {
+ *     bundleId: 'com.example.ios'
+ *   },
+ *   android: {
+ *     packageName: 'com.example.android',
+ *     installApp: true,
+ *     minimumVersion: '12'
+ *   },
+ *   // This must be true.
+ *   handleCodeInApp: true
+ * };
+ * firebase.auth().sendSignInLinkToEmail('user@example.com', actionCodeSettings)
+ *     .then(function() {
+ *       // The link was successfully sent. Inform the user. Save the email
+ *       // locally so you don't need to ask the user for it again if they open
+ *       // the link on the same device.
+ *     })
+ *     .catch(function(error) {
+ *       // Some error occurred, you can inspect the code: error.code
+ *     });
+ *
+ * @param {string} email The email account to sign in with.
+ * @param {!firebase.auth.ActionCodeSettings} actionCodeSettings The action
+ *     code settings. The action code settings which provides Firebase with
+ *     instructions on how to construct the email link. This includes the
+ *     sign in completion URL or the deep link for mobile redirects, the mobile
+ *     apps to use when the sign-in link is opened on an Android or iOS device.
+ *     Mobile app redirects will only be applicable if the developer configures
+ *     and accepts the Firebase Dynamic Links terms of condition.
+ *     The Android package name and iOS bundle ID will be respected only if they
+ *     are configured in the same Firebase Auth project used.
+ * @return {!firebase.Promise<void>}
+ */
+firebase.auth.Auth.prototype.sendSignInLinkToEmail = function(
+  email,
+  actionCodeSettings
 ) {};
 
 /**
@@ -1621,6 +1734,45 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword = functio
 firebase.auth.Auth.prototype.signInWithEmailAndPassword = function(
   email,
   password
+) {};
+
+/**
+ * Asynchronously signs in using an email and sign-in email link. If no link
+ * is passed, the link is inferred from the current URL.
+ *
+ * Fails with an error if the email address is invalid or OTP in email link
+ * expires.
+ *
+ * Note: Confirm the link is a sign-in email link before calling this method
+ * {@link firebase.auth.Auth#isSignInWithEmailLink}.
+ *
+ * <h4>Error Codes</h4>
+ * <dl>
+ * <dt>auth/expired-action-code</dt>
+ * <dd>Thrown if OTP in email link expires.</dd>
+ * <dt>auth/invalid-email</dt>
+ * <dd>Thrown if the email address is not valid.</dd>
+ * <dt>auth/user-disabled</dt>
+ * <dd>Thrown if the user corresponding to the given email has been
+ *     disabled.</dd>
+ * </dl>
+ *
+ * @example
+ * firebase.auth().signInWithEmailLink(email, emailLink)
+ *     .catch(function(error) {
+ *       // Some error occurred, you can inspect the code: error.code
+ *       // Common errors could be invalid email and invalid or expired OTPs.
+ *     });
+ *
+ * @param {string} email The email account to sign in with.
+ * @param {?string=} emailLink The optional link which contains the OTP needed
+ *     to complete the sign in with email link. If not specified, the current
+ *     URL is used instead.
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+ */
+firebase.auth.Auth.prototype.signInWithEmailLink = function(
+  email,
+  emailLink
 ) {};
 
 /**
@@ -2026,6 +2178,14 @@ firebase.auth.FacebookAuthProvider = function() {};
 firebase.auth.FacebookAuthProvider.PROVIDER_ID;
 
 /**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.FacebookAuthProvider.FACEBOOK_SIGN_IN_METHOD;
+
+/**
  * @example
  * var cred = firebase.auth.FacebookAuthProvider.credential(
  *     // `event` from the Facebook auth.authResponseChange callback.
@@ -2134,6 +2294,14 @@ firebase.auth.GithubAuthProvider = function() {};
 firebase.auth.GithubAuthProvider.PROVIDER_ID;
 
 /**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.GithubAuthProvider.GITHUB_SIGN_IN_METHOD;
+
+/**
  * @example
  * var cred = firebase.auth.FacebookAuthProvider.credential(
  *     // `event` from the Facebook auth.authResponseChange callback.
@@ -2210,6 +2378,14 @@ firebase.auth.GoogleAuthProvider = function() {};
 
 /** @type {string} */
 firebase.auth.GoogleAuthProvider.PROVIDER_ID;
+
+/**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD;
 
 /**
  * Creates a credential for Google. At least one of ID token and access token
@@ -2294,6 +2470,14 @@ firebase.auth.TwitterAuthProvider = function() {};
 firebase.auth.TwitterAuthProvider.PROVIDER_ID;
 
 /**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.TwitterAuthProvider.TWITTER_SIGN_IN_METHOD;
+
+/**
  * @param {string} token Twitter access token.
  * @param {string} secret Twitter secret.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
@@ -2332,6 +2516,22 @@ firebase.auth.EmailAuthProvider = function() {};
 firebase.auth.EmailAuthProvider.PROVIDER_ID;
 
 /**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.EmailAuthProvider.EMAIL_PASSWORD_SIGN_IN_METHOD;
+
+/**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD;
+
+/**
  * @example
  * var cred = firebase.auth.EmailAuthProvider.credential(
  *     email,
@@ -2343,6 +2543,25 @@ firebase.auth.EmailAuthProvider.PROVIDER_ID;
  * @return {!firebase.auth.AuthCredential} The auth provider credential.
  */
 firebase.auth.EmailAuthProvider.credential = function(email, password) {};
+
+/**
+ * Initialize an `EmailAuthProvider` credential using an email and an email link
+ * after a sign in with email link operation.
+ *
+ * @example
+ * var cred = firebase.auth.EmailAuthProvider.credentialWithLink(
+ *     email,
+ *     emailLink
+ * );
+ *
+ * @param {string} email Email address.
+ * @param {string} emailLink Sign-in email link.
+ * @return {!firebase.auth.AuthCredential} The auth provider credential.
+ */
+firebase.auth.EmailAuthProvider.credentialWithLink = function(
+  email,
+  emailLink
+) {};
 
 /** @type {string} */
 firebase.auth.EmailAuthProvider.prototype.providerId;
@@ -2375,6 +2594,14 @@ firebase.auth.PhoneAuthProvider = function(auth) {};
 
 /** @type {string} */
 firebase.auth.PhoneAuthProvider.PROVIDER_ID;
+
+/**
+ * This corresponds to the sign-in method identifier as returned in
+ * {@link firebase.auth.Auth#fetchSignInMethodsForEmail}.
+ *
+ * @type {string}
+ */
+firebase.auth.PhoneAuthProvider.PHONE_SIGN_IN_METHOD;
 
 /**
  * Creates a phone auth credential, given the verification ID from
