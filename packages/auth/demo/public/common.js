@@ -49,3 +49,58 @@ if ('serviceWorker' in navigator) {
         console.log('Registration failed with ' + error.message);
       });
 }
+
+var webWorker = null;
+if (window.Worker) {
+  webWorker = new Worker('/web-worker.js');
+  /**
+   * Handles the incoming message from the web worker.
+   * @param {!Object} e The message event received.
+   */
+  webWorker.onmessage = function(e) {
+    console.log('User data passed through web worker: ',  e.data);
+    switch (e.data.type) {
+      case 'GET_USER_INFO':
+        alertSuccess(
+            'User data passed through web worker: ' + JSON.stringify(e.data));
+        break;
+      case 'RUN_TESTS':
+        if (e.data.status == 'success') {
+          alertSuccess('Web worker tests ran successfully!');
+        } else {
+          alertError('Error: ' + JSON.stringify(e.data.error));
+        }
+        break;
+      default:
+        return;
+    }
+  };
+}
+
+/**
+ * Asks the web worker, if supported in current browser, to return the user info
+ * corresponding to the currentUser as seen within the worker.
+ */
+function onGetCurrentUserDataFromWebWorker() {
+  if (webWorker) {
+    webWorker.postMessage({type: 'GET_USER_INFO'});
+  } else {
+    alertError('Error: Web workers are not supported in the current browser!');
+  }
+}
+
+/**
+ * Runs various Firebase Auth tests in a web worker environment and confirms the
+ * expected behavior. This is useful for manual testing in different browsers.
+ * @param {string} googleIdToken The Google ID token to sign in with.
+ */
+function runWebWorkerTests(googleIdToken) {
+  if (webWorker) {
+    webWorker.postMessage({
+      type: 'RUN_TESTS',
+      googleIdToken: googleIdToken
+    });
+  } else {
+    alertError('Error: Web workers are not supported in the current browser!');
+  }
+}

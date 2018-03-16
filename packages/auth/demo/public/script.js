@@ -1219,6 +1219,22 @@ function checkDatabaseAuthAccess() {
 }
 
 
+/** Runs all web worker tests if web workers are supported. */
+function onRunWebWorkTests() {
+  if (!webWorker) {
+    alertError('Error: Web workers are not supported in the current browser!');
+    return;
+  }
+  var onError = function(error) {
+    alertError('Error: ' + error.code);
+  };
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .then(function(result) {
+        runWebWorkerTests(result.credential.idToken);
+      }, onError);
+}
+
+
 /**
  * Initiates the application by setting event listeners on the various buttons.
  */
@@ -1236,7 +1252,7 @@ function initApp(){
   // The action code for email verification or password reset
   // can be passed in the url address as a parameter, and for convenience
   // this preloads the input field.
-  populateActionCodes(); 
+  populateActionCodes();
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
@@ -1356,6 +1372,7 @@ function initApp(){
   $('#confirm-email-verification').click(onApplyActionCode);
   $('#get-token').click(onGetIdToken);
   $('#refresh-token').click(onRefreshToken);
+  $('#get-token-worker').click(onGetCurrentUserDataFromWebWorker);
   $('#sign-out').click(onSignOut);
 
   $('.popup-redirect-provider').click(onPopupRedirectProviderClick);
@@ -1375,6 +1392,8 @@ function initApp(){
 
   $('#fetch-providers-for-email').click(onFetchProvidersForEmail);
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
+
+  $('#run-web-worker-tests').click(onRunWebWorkTests);
 }
 
 $(initApp);
