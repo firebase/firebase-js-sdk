@@ -62,13 +62,15 @@ export function createOrUpgradeDb(
 
   if (fromVersion < 2 && toVersion >= 2) {
     p = ensureTargetGlobalExists(txn).next(targetGlobal =>
-        saveTargetCount(txn, targetGlobal)
+      saveTargetCount(txn, targetGlobal)
     );
   }
 
   if (fromVersion < 3 && toVersion >= 3) {
-    createClientMetadataStore(db);
-    createTargetChangeStore(db);
+    p = p.next(() => {
+      createClientMetadataStore(db);
+      createTargetChangeStore(db);
+    });
   }
   return p;
 }
@@ -517,11 +519,11 @@ function createQueryCache(db: IDBDatabase): void {
  * global singleton.
  */
 function saveTargetCount(
-    txn: SimpleDbTransaction,
-    metadata: DbTargetGlobal
+  txn: SimpleDbTransaction,
+  metadata: DbTargetGlobal
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-      DbTargetGlobal.store
+    DbTargetGlobal.store
   );
   const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
   return targetStore.count().next(count => {
@@ -537,24 +539,24 @@ function saveTargetCount(
  * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
 function ensureTargetGlobalExists(
-    txn: SimpleDbTransaction
+  txn: SimpleDbTransaction
 ): PersistencePromise<DbTargetGlobal> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-      DbTargetGlobal.store
+    DbTargetGlobal.store
   );
   return globalStore.get(DbTargetGlobal.key).next(metadata => {
-        if (metadata != null) {
-          return PersistencePromise.resolve(metadata);
-        } else {
-          metadata = new DbTargetGlobal(
-              /*highestTargetId=*/ 0,
-              /*lastListenSequenceNumber=*/ 0,
-              SnapshotVersion.MIN.toTimestamp(),
-              /*targetCount=*/ 0
-          );
-          return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
-        }
-      });
+    if (metadata != null) {
+      return PersistencePromise.resolve(metadata);
+    } else {
+      metadata = new DbTargetGlobal(
+        /*highestTargetId=*/ 0,
+        /*lastListenSequenceNumber=*/ 0,
+        SnapshotVersion.MIN.toTimestamp(),
+        /*targetCount=*/ 0
+      );
+      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
+    }
+  });
 }
 
 /**
@@ -642,11 +644,19 @@ export const V1_STORES = [
   DbTargetDocument.store
 ];
 
-const V3_STORES = [DbClientMetadata.store, DbTargetChange.store];
+// Visible for testing
+export const V2_STORES = V1_STORES;
+
+// Visible for testing
+export const V3_STORES = [
+  ...V2_STORES,
+  DbClientMetadata.store,
+  DbTargetChange.store
+];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = [...V1_STORES, ...V3_STORES];
+export const ALL_STORES = V3_STORES;

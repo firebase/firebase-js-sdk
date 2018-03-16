@@ -43,7 +43,7 @@ export class TestQueryCache {
   }
 
   updateQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('updateQueryData', txn => {
+    return this.persistence.runTransaction('updateQueryData', true, txn => {
       return this.cache.updateQueryData(txn, queryData);
     });
   }

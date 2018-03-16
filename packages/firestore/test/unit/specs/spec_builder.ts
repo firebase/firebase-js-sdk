@@ -209,7 +209,7 @@ export class SpecBuilder {
   becomeVisible(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      applyClientState: {visibility: 'visible'}
+      applyClientState: { visibility: 'visible' }
     };
     return this;
   }

@@ -17,11 +17,13 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  ALL_STORES,
   createOrUpgradeDb,
   DbTarget,
   DbTargetGlobal,
-  DbTargetGlobalKey
+  DbTargetGlobalKey,
+  V1_STORES,
+  V2_STORES,
+  V3_STORES
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -88,11 +90,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
   it('can install schema version 1', () => {
-    return withDb(1, db => {
+    return withDb(1, async db => {
       expect(db.version).to.equal(1);
       // Version 1 adds all of the stores so far.
-      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
-      return Promise.resolve();
+      expect(getAllObjectStores(db)).to.have.members(V1_STORES);
     });
   });
 
@@ -101,11 +102,18 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       expect(db.version).to.equal(2);
       // We should have all of the stores, we should have the target global row
       // and we should not have any targets counted, because there are none.
-      expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+      expect(getAllObjectStores(db)).to.have.members(V2_STORES);
       // Check the target count. We haven't added any targets, so we expect 0.
       return getTargetCount(db).then(targetCount => {
         expect(targetCount).to.equal(0);
       });
+    });
+  });
+
+  it('can install schema version 3', () => {
+    return withDb(3, async db => {
+      expect(db.version).to.be.equal(3);
+      expect(getAllObjectStores(db)).to.have.members(V3_STORES);
     });
   });
 
@@ -126,10 +134,19 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     }).then(() =>
       withDb(2, db => {
         expect(db.version).to.equal(2);
-        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+        expect(getAllObjectStores(db)).to.have.members(V2_STORES);
         return getTargetCount(db).then(targetCount => {
           expect(targetCount).to.equal(expectedTargetCount);
         });
+      })
+    );
+  });
+
+  it('can upgrade from schema version 2 to 3', () => {
+    return withDb(2, async () => {}).then(() =>
+      withDb(3, async db => {
+        expect(db.version).to.be.equal(3);
+        expect(getAllObjectStores(db)).to.have.members(V3_STORES);
       })
     );
   });

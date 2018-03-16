@@ -52,14 +52,10 @@ export class MemoryPersistence implements Persistence {
 
   private started = false;
 
-<<<<<<< HEAD
   constructor(private readonly queue: AsyncQueue) {}
 
-  start(): Promise<void> {
-=======
   async start(): Promise<void> {
     // No durable state to read on startup.
->>>>>>> master
     assert(!this.started, 'MemoryPersistence double-started!');
     this.started = true;
   }

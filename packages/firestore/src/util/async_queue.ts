@@ -56,7 +56,7 @@ export enum TimerId {
    * A timer used to update the client metadata in IndexedDb, which is used
    * to determine the primary leaseholder.
    */
-  ClientMetadataRefresh = 'client_metadata_refresh',
+  ClientMetadataRefresh = 'client_metadata_refresh'
 }
 
 /**

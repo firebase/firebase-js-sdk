@@ -422,9 +422,7 @@ export class IndexedDbPersistence implements Persistence {
       return false;
     } else if (updateTimeMs > maxAcceptable) {
       log.error(
-        `Detected an update time that is in the future: ${updateTimeMs} > ${
-          maxAcceptable
-        }`
+        `Detected an update time that is in the future: ${updateTimeMs} > ${maxAcceptable}`
       );
       return false;
     }

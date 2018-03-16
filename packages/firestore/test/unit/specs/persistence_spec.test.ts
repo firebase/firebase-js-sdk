@@ -20,7 +20,7 @@ import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
-import {TimerId} from '../../../src/util/async_queue';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Persistence:', [], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
@@ -223,7 +223,7 @@ describeSpec('Persistence:', [], () => {
         .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
         .client(2)
-          .runTimer(TimerId.ClientMetadataRefresh)
+        .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(true)
     );
   });
