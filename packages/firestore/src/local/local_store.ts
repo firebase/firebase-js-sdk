@@ -491,7 +491,7 @@ export class LocalStore {
               snapshotVersion: change.snapshotVersion
             });
             this.targetIds[targetId] = queryData;
-            promises.push(this.queryCache.addQueryData(txn, queryData));
+            promises.push(this.queryCache.updateQueryData(txn, queryData));
           }
         }
       );

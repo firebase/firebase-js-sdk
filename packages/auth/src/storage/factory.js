@@ -78,6 +78,10 @@ fireauth.storage.Factory.EnvConfig = {
   REACT_NATIVE: {
     persistent: fireauth.storage.AsyncStorage,
     temporary: fireauth.storage.NullStorage
+  },
+  WORKER: {
+    persistent: fireauth.storage.LocalStorage,
+    temporary: fireauth.storage.NullStorage
   }
 };
 
@@ -95,6 +99,8 @@ fireauth.storage.Factory.getEnvConfig = function() {
       fireauth.storage.Factory.EnvConfig.NODE;
   envMap[fireauth.util.Env.REACT_NATIVE] =
       fireauth.storage.Factory.EnvConfig.REACT_NATIVE;
+  envMap[fireauth.util.Env.WORKER] =
+      fireauth.storage.Factory.EnvConfig.WORKER;    
   return envMap[fireauth.util.getEnvironment()];
 };
 
@@ -103,9 +109,8 @@ fireauth.storage.Factory.getEnvConfig = function() {
  * @return {!fireauth.storage.Storage} The persistent storage instance.
  */
 fireauth.storage.Factory.prototype.makePersistentStorage = function() {
-  if (fireauth.util.isLocalStorageNotSynchronized()) {
-    // In a browser environment, when an iframe and a popup web storage are not
-    // synchronized, use the indexedDB fireauth.storage.Storage implementation.
+  if (fireauth.util.persistsStorageWithIndexedDB()) {
+    // If persistent storage is implemented using indexedDB, use indexedDB.
     return fireauth.storage.IndexedDB.getFireauthManager();
   }
   return new this.env_.persistent();

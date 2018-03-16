@@ -174,10 +174,12 @@ fireauth.iframeclient.IframeWrapper.prototype.registerEvent =
   this.onIframeOpen_.then(function() {
     self.iframe_.register(
         eventName,
-        handler,
+        /** @type {function(this:gapi.iframes.Iframe,
+         *                  *, gapi.iframes.Iframe): *}
+         */ (handler),
         /** @type {!gapi.iframes.IframesFilter} */ (
-              fireauth.util.getObjectRef(
-                  'gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER')));
+            fireauth.util.getObjectRef(
+                'gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER')));
   });
 };
 
@@ -191,10 +193,13 @@ fireauth.iframeclient.IframeWrapper.prototype.unregisterEvent =
     function(eventName, handler) {
   var self = this;
   this.onIframeOpen_.then(function() {
-    self.iframe_.unregister(eventName, handler);
+    self.iframe_.unregister(
+        eventName,
+        /** @type {(function(this:gapi.iframes.Iframe,
+         *                   *, gapi.iframes.Iframe): *|undefined)}
+         */ (handler));
   });
 };
-
 
 
 /** @private @const {!goog.string.Const} The GApi loader URL. */

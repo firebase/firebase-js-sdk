@@ -31,8 +31,7 @@ import {
   DbTargetDocumentKey,
   DbTargetGlobal,
   DbTargetGlobalKey,
-  DbTargetKey,
-  DbTimestamp
+  DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
@@ -53,11 +52,7 @@ export class IndexedDbQueryCache implements QueryCache {
   /**
    * A cached copy of the metadata for the query cache.
    */
-  private metadata = new DbTargetGlobal(
-    /*highestTargetId=*/ 0,
-    /*lastListenSequenceNumber=*/ 0,
-    SnapshotVersion.MIN.toTimestamp()
-  );
+  private metadata = null;
 
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
@@ -66,13 +61,15 @@ export class IndexedDbQueryCache implements QueryCache {
     return globalTargetStore(transaction)
       .get(DbTargetGlobal.key)
       .next(metadata => {
-        if (metadata !== null) {
-          this.metadata = metadata;
-          const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
-          this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
-            new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanos)
-          );
-        }
+        assert(
+          metadata !== null,
+          'Missing metadata row that should be added by schema migration.'
+        );
+        this.metadata = metadata;
+        const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
+        this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
+          new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanos)
+        );
         return PersistencePromise.resolve();
       });
   }
@@ -101,30 +98,73 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const targetId = queryData.targetId;
-    const addedQueryPromise = targetsStore(transaction).put(
-      this.serializer.toDbTarget(queryData)
-    );
-    if (targetId > this.metadata.highestTargetId) {
-      this.metadata.highestTargetId = targetId;
-      return addedQueryPromise.next(() =>
-        globalTargetStore(transaction).put(DbTargetGlobal.key, this.metadata)
-      );
-    } else {
-      return addedQueryPromise;
-    }
+    return this.saveQueryData(transaction, queryData).next(() => {
+      this.metadata.targetCount += 1;
+      this.updateMetadataFromQueryData(queryData);
+      return this.saveMetadata(transaction);
+    });
+  }
+
+  updateQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    return this.saveQueryData(transaction, queryData).next(() => {
+      if (this.updateMetadataFromQueryData(queryData)) {
+        return this.saveMetadata(transaction);
+      } else {
+        return PersistencePromise.resolve();
+      }
+    });
   }
 
   removeQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    return this.removeMatchingKeysForTargetId(
-      transaction,
-      queryData.targetId
-    ).next(() => {
-      targetsStore(transaction).delete(queryData.targetId);
-    });
+    assert(this.metadata.targetCount > 0, 'Removing from an empty query cache');
+    return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+      .next(() => targetsStore(transaction).delete(queryData.targetId))
+      .next(() => {
+        this.metadata.targetCount -= 1;
+        return this.saveMetadata(transaction);
+      });
+  }
+
+  private saveMetadata(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void> {
+    return globalTargetStore(transaction).put(
+      DbTargetGlobal.key,
+      this.metadata
+    );
+  }
+
+  private saveQueryData(
+    transaction: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
+  }
+
+  /**
+   * Updates the in-memory version of the metadata to account for values in the
+   * given QueryData. Saving is done separately. Returns true if there were any
+   * changes to the metadata.
+   */
+  private updateMetadataFromQueryData(queryData: QueryData): boolean {
+    let needsUpdate = false;
+    if (queryData.targetId > this.metadata.highestTargetId) {
+      this.metadata.highestTargetId = queryData.targetId;
+      needsUpdate = true;
+    }
+
+    // TODO(GC): add sequence number check
+    return needsUpdate;
+  }
+
+  get count(): number {
+    return this.metadata.targetCount;
   }
 
   getQueryData(

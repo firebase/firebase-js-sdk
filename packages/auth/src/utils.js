@@ -23,6 +23,7 @@ goog.provide('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.Timer');
 goog.require('goog.Uri');
+goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.html.SafeUrl');
@@ -82,7 +83,8 @@ fireauth.util.isLocalStorageNotSynchronized = function(opt_userAgent) {
 /** @return {string} The current URL. */
 fireauth.util.getCurrentUrl = function() {
   return (goog.global['window'] && goog.global['window']['location']['href']) ||
-      '';
+      // Check for worker environments.
+      (self && self['location'] && self['location']['href']) || '';
 };
 
 
@@ -495,6 +497,12 @@ fireauth.util.onDomReady = function() {
 };
 
 
+/** @return {boolean} Whether environment supports DOM. */
+fireauth.util.isDOMSupported = function() {
+  return !!goog.global.document;
+};
+
+
 /**
  * The default ondeviceready Cordova timeout in ms.
  * @const {number}
@@ -611,13 +619,25 @@ fireauth.util.isOpenerAnIframe = function(opt_win) {
 
 
 /**
+ * @param {?Object=} opt_global The optional global scope.
+ * @return {boolean} Whether current environment is a worker.
+ */
+fireauth.util.isWorker = function(opt_global) {
+  var scope = opt_global || goog.global;
+  return typeof scope['window'] !== 'object' &&
+         typeof scope['importScripts'] === 'function';
+};
+
+
+/**
  * Enum for the runtime environment.
  * @enum {string}
  */
 fireauth.util.Env = {
   BROWSER: 'Browser',
   NODE: 'Node',
-  REACT_NATIVE: 'ReactNative'
+  REACT_NATIVE: 'ReactNative',
+  WORKER: 'Worker'
 };
 
 
@@ -632,6 +652,9 @@ fireauth.util.getEnvironment = function() {
     // the library is browser only. Use this check instead to reliably detect
     // a Node.js environment.
     return fireauth.util.Env.NODE;
+  } else if (fireauth.util.isWorker()) {
+    // Worker environment.
+    return fireauth.util.Env.WORKER;
   }
   // The default is a browser environment.
   return fireauth.util.Env.BROWSER;
@@ -815,6 +838,13 @@ fireauth.util.getClientVersion = function(clientImplementation, clientVersion,
     // In a browser environment, report the browser name.
     var userAgent = opt_userAgent || fireauth.util.getUserAgentString();
     reportedEnvironment = fireauth.util.getBrowserName(userAgent);
+  } else if (environment === fireauth.util.Env.WORKER) {
+    // Technically a worker runs from a browser but we need to differentiate a
+    // worker from a browser.
+    // For example: Chrome-Worker/JsCore/4.9.1/FirebaseCore-web.
+    var userAgent = opt_userAgent || fireauth.util.getUserAgentString();
+    reportedEnvironment = fireauth.util.getBrowserName(userAgent) + '-' +
+        environment;
   } else {
     // Otherwise, just report the environment name.
     reportedEnvironment = environment;
@@ -882,7 +912,11 @@ fireauth.util.isWebStorageSupported = function() {
       }
       return true;
     }
-  } catch (e) {}
+  } catch (e) {
+    // localStorage is not available from a worker. Test availability of
+    // indexedDB.
+    return fireauth.util.isWorker() && !!goog.global['indexedDB'];
+  }
   return false;
 };
 
@@ -913,7 +947,9 @@ fireauth.util.isPopupRedirectSupported = function() {
          !fireauth.util.isNativeEnvironment() &&
          // Local storage has to be supported for browser popup and redirect
          // operations to work.
-         fireauth.util.isWebStorageSupported();
+         fireauth.util.isWebStorageSupported() &&
+         // DOM, popups and redirects are not supported within a worker.
+         !fireauth.util.isWorker();
 };
 
 
@@ -1063,21 +1099,6 @@ fireauth.util.parseJSON = function(json) {
   // Use native parsing instead via JSON.parse. This is provided in our list
   // of supported browsers.
   return JSON.parse(json);
-};
-
-
-/**
- * @return {?function(new:XMLHttpRequest)|undefined} The current environment
- *     XMLHttpRequest.
- */
-fireauth.util.getXMLHttpRequest = function() {
-  // In Node.js XMLHttpRequest is polyfilled.
-  var isNode = fireauth.util.getEnvironment() == fireauth.util.Env.NODE;
-  var XMLHttpRequest = goog.global['XMLHttpRequest'] ||
-      (isNode &&
-       firebase.INTERNAL['node'] &&
-       firebase.INTERNAL['node']['XMLHttpRequest']);
-  return XMLHttpRequest;
 };
 
 
@@ -1334,4 +1355,53 @@ fireauth.util.utcTimestampToDateString = function(utcTimestamp) {
     // Do nothing. null will be returned.
   }
   return null;
+};
+
+
+/** @return {boolean} Whether indexedDB is available. */
+fireauth.util.isIndexedDBAvailable = function() {
+  return !!goog.global['indexedDB'];
+};
+
+
+/** @return {boolean} Whether current mode is Auth handler or iframe. */
+fireauth.util.isAuthHandlerOrIframe = function() {
+  return !!(fireauth.util.getObjectRef('fireauth.oauthhelper', goog.global) ||
+            fireauth.util.getObjectRef('fireauth.iframe', goog.global));
+};
+
+
+/** @return {boolean} Whether indexedDB is used to persist storage. */
+fireauth.util.persistsStorageWithIndexedDB = function() {
+  // This will cover:
+  // IE11, Edge when indexedDB is available (this is unavailable in InPrivate
+  // mode). (SDK, OAuth handler and iframe)
+  // Any environment where indexedDB is available (SDK only).
+  
+  // In a browser environment, when an iframe and a popup web storage are not
+  // synchronized, use the indexedDB fireauth.storage.Storage implementation.
+  return (fireauth.util.isLocalStorageNotSynchronized() ||
+          !fireauth.util.isAuthHandlerOrIframe()) &&
+         fireauth.util.isIndexedDBAvailable();
+};
+
+
+/** Sets the no-referrer meta tag in the document head if applicable. */
+fireauth.util.setNoReferrer = function() {
+  var doc = goog.global.document;
+  if (doc) {
+    try {
+      var meta = goog.dom.createDom(goog.dom.TagName.META, {
+        'name': 'referrer',
+        'content': 'no-referrer'
+      });
+      var headCollection = goog.dom.getElementsByTagName(goog.dom.TagName.HEAD);
+      // Append meta tag to head.
+      if (headCollection.length) {
+        headCollection[0].appendChild(meta);
+      }
+    } catch (e) {
+      // Best effort approach.
+    }
+  }
 };

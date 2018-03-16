@@ -62,15 +62,26 @@ export class Database implements FirebaseService {
   }
 
   /**
-   * Returns a reference to the root or the path specified in opt_pathString.
-   * @param {string=} pathString
+   * Returns a reference to the root or to the path specified in the provided
+   * argument.
+
+   * @param {string|Reference=} path The relative string path or an existing
+   * Reference to a database location.
+   * @throws If a Reference is provided, throws if it does not belong to the
+   * same project.
    * @return {!Reference} Firebase reference.
-   */
-  ref(pathString?: string): Reference {
+   **/
+  ref(path?: string): Reference;
+  ref(path?: Reference): Reference;
+  ref(path?: string | Reference): Reference {
     this.checkDeleted_('ref');
     validateArgCount('database.ref', 0, 1, arguments.length);
 
-    return pathString !== undefined ? this.root_.child(pathString) : this.root_;
+    if (path instanceof Reference) {
+      return this.refFromURL(path.toString());
+    }
+
+    return path !== undefined ? this.root_.child(path) : this.root_;
   }
 
   /**
@@ -132,7 +143,7 @@ export class DatabaseInternals {
   constructor(public database: Database) {}
 
   /** @return {Promise<void>} */
-  delete(): Promise<void> {
+  async delete(): Promise<void> {
     (this.database as any).checkDeleted_('delete');
     RepoManager.getInstance().deleteRepo((this.database as any).repo_ as Repo);
 
@@ -140,6 +151,5 @@ export class DatabaseInternals {
     (this.database as any).root_ = null;
     this.database.INTERNAL = null;
     this.database = null;
-    return Promise.resolve();
   }
 }

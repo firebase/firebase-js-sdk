@@ -395,6 +395,59 @@ describeSpec('Writes:', [], () => {
   });
 
   specTest(
+    'Held writes are not re-sent after disable/enable network.',
+    [],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docALocal = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+      );
+      const docA = doc('collection/a', 1000, { v: 1 });
+
+      return (
+        spec()
+          .userListens(query)
+          .watchAcksFull(query, 500)
+          .expectEvents(query, {})
+          .userSets('collection/a', { v: 1 })
+          .expectEvents(query, {
+            hasPendingWrites: true,
+            added: [docALocal]
+          })
+          // ack write but without a watch event.
+          .writeAcks(1000)
+
+          // handshake + write = 2 requests
+          .expectWriteStreamRequestCount(2)
+
+          .disableNetwork()
+          .expectEvents(query, {
+            hasPendingWrites: true,
+            fromCache: true
+          })
+
+          // handshake + write + close = 3 requests
+          .expectWriteStreamRequestCount(3)
+
+          .enableNetwork()
+          .expectActiveTargets({ query, resumeToken: 'resume-token-500' })
+
+          // acked write should /not/ have been resent, so count should still be 3
+          .expectWriteStreamRequestCount(3)
+
+          // Finally watch catches up.
+          .watchAcksFull(query, 2000, docA)
+          .expectEvents(query, {
+            metadata: [docA]
+          })
+      );
+    }
+  );
+
+  specTest(
     'Held writes are released when there are no queries left.',
     [],
     () => {

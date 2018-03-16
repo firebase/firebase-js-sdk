@@ -296,7 +296,7 @@ export default class SWController extends ControllerInterface {
    * message. This does not guarantee that the message was successfully
    * received.
    */
-  attemptToMessageClient_(client, message) {
+  async attemptToMessageClient_(client, message) {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
@@ -306,7 +306,6 @@ export default class SWController extends ControllerInterface {
     }
 
     client.postMessage(message);
-    return Promise.resolve();
   }
 
   /**

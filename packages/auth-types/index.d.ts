@@ -96,6 +96,7 @@ export interface ApplicationVerifier {
 
 export interface AuthCredential {
   providerId: string;
+  signInMethod: string;
 }
 
 export interface AuthProvider {
@@ -109,7 +110,10 @@ export interface ConfirmationResult {
 
 export class EmailAuthProvider extends EmailAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
+  static EMAIL_LINK_SIGN_IN_METHOD: string;
   static credential(email: string, password: string): AuthCredential;
+  static credentialWithLink(email: string, emailLink: string): AuthCredential;
 }
 export class EmailAuthProvider_Instance implements AuthProvider {
   providerId: string;
@@ -122,6 +126,7 @@ export interface Error {
 
 export class FacebookAuthProvider extends FacebookAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static FACEBOOK_SIGN_IN_METHOD: string;
   static credential(token: string): AuthCredential;
 }
 export class FacebookAuthProvider_Instance implements AuthProvider {
@@ -132,6 +137,7 @@ export class FacebookAuthProvider_Instance implements AuthProvider {
 
 export class GithubAuthProvider extends GithubAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static GITHUB_SIGN_IN_METHOD: string;
   static credential(token: string): AuthCredential;
 }
 export class GithubAuthProvider_Instance implements AuthProvider {
@@ -142,6 +148,7 @@ export class GithubAuthProvider_Instance implements AuthProvider {
 
 export class GoogleAuthProvider extends GoogleAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static GOOGLE_SIGN_IN_METHOD: string;
   static credential(
     idToken?: string | null,
     accessToken?: string | null
@@ -162,6 +169,7 @@ export class OAuthProvider implements AuthProvider {
 
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static PHONE_SIGN_IN_METHOD: string;
   static credential(
     verificationId: string,
     verificationCode: string
@@ -191,6 +199,7 @@ export class RecaptchaVerifier_Instance implements ApplicationVerifier {
 
 export class TwitterAuthProvider extends TwitterAuthProvider_Instance {
   static PROVIDER_ID: string;
+  static TWITTER_SIGN_IN_METHOD: string;
   static credential(token: string, secret: string): AuthCredential;
 }
 export class TwitterAuthProvider_Instance implements AuthProvider {
@@ -238,6 +247,8 @@ export class FirebaseAuth {
   ): Promise<any>;
   currentUser: User | null;
   fetchProvidersForEmail(email: string): Promise<any>;
+  fetchSignInMethodsForEmail(email: string): Promise<any>;
+  isSignInWithEmailLink(emailLink: string): boolean;
   getRedirectResult(): Promise<any>;
   languageCode: string | null;
   onAuthStateChanged(
@@ -250,6 +261,10 @@ export class FirebaseAuth {
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
+  sendSignInLinkToEmail(
+    email: string,
+    actionCodeSettings: ActionCodeSettings
+  ): Promise<any>;
   sendPasswordResetEmail(
     email: string,
     actionCodeSettings?: ActionCodeSettings | null
@@ -266,6 +281,7 @@ export class FirebaseAuth {
     email: string,
     password: string
   ): Promise<any>;
+  signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier

@@ -20,6 +20,7 @@ import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
+import {TimerId} from '../../../src/util/async_queue';
 
 describeSpec('Persistence:', [], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
@@ -196,7 +197,7 @@ describeSpec('Persistence:', [], () => {
       .client(0)
       .shutdown()
       .client(1)
-      .tryAcquirePrimaryLease()
+      .runTimer(TimerId.ClientMetadataRefresh)
       .expectPrimaryState(true);
   });
 
@@ -219,10 +220,10 @@ describeSpec('Persistence:', [], () => {
         .client(1)
         // Client 1 is in the background and doesn't grab the primary lease as
         // client 2 is in the foreground.
-        .tryAcquirePrimaryLease()
+        .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
         .client(2)
-        .tryAcquirePrimaryLease()
+          .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(true)
     );
   });

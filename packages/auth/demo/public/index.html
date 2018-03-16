@@ -254,6 +254,29 @@
                 </button>
               </form>
 
+              <!-- Sign in with email link -->
+              <div class="group">Sign In with Email Link</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="sign-in-with-email-link-email"
+                       class="form-control" placeholder="Email" />
+                <button class="btn btn-block btn-primary"
+                        id="send-sign-in-link-to-email">
+                  Send Sign In With Email Link
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="send-sign-in-link-to-email-current-url">
+                  Send Sign In With Email Link Current URL
+                </button>
+              </form>
+              <form class="form form-bordered no-submit">
+                <input type="text" name="emailLink" id="sign-in-with-email-link-link"
+                       class="form-control" placeholder="Link" />
+                <button class="btn btn-block btn-primary"
+                        id="sign-in-with-email-link">
+                  Sign In With Email Link
+                </button>
+              </form>
+
               <!-- Password Reset Process -->
               <div class="group">Password Reset</div>
               <form class="form form-bordered no-submit">
@@ -278,6 +301,20 @@
                 <button class="btn btn-block btn-primary"
                         id="confirm-password-reset">
                   Confirm Password Change
+                </button>
+              </form>
+              <!-- Fetch Sign In Methods/Providers -->
+              <div class="group">Fetch Sign In Methods/Providers</div>
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="fetch-providers-email"
+                       class="form-control" placeholder="Email" />
+                 <button class="btn btn-block btn-primary"
+                        id="fetch-sign-in-methods-for-email">
+                  Fetch Sign In Methods For Email
+                </button>
+                <button class="btn btn-block btn-primary"
+                        id="fetch-providers-for-email">
+                  Fetch Providers For Email
                 </button>
               </form>
             </div>
@@ -357,6 +394,21 @@
                 <button class="btn btn-block btn-primary" id="reauth-confirm-phone-verification">
                   Reauthenticate by Confirming Phone Verification
                 </button>
+              </form>
+
+              <form class="form form-bordered no-submit">
+                <input type="email" name="email" id="link-with-email-link-email"
+                       class="form-control" placeholder="Email" />
+                <button class="btn btn-block btn-primary"
+                        id="send-link-email-link">
+                  Send Email Link To Link Or Reauthenticate User
+                </button>
+                <input type="text" name="emailLink" id="link-with-email-link-link"
+                       class="form-control" placeholder="Link" />
+                <button class="btn btn-block btn-primary"
+                        id="link-with-email-link">Link With Email Link</button>
+                <button class="btn btn-block btn-primary"
+                        id="reauth-with-email-link">Reauthenticate With Email Link</button>
               </form>
 
               <form class="form form-bordered no-submit">

@@ -41,12 +41,15 @@ fireauth.ActionCodeInfo = function(response) {
   var newEmail = response[fireauth.ActionCodeInfo.ServerFieldName.NEW_EMAIL];
   var operation =
       response[fireauth.ActionCodeInfo.ServerFieldName.REQUEST_TYPE];
-  if (!email || !operation) {
+  // Email could be empty only if the request type is EMAIL_SIGNIN.
+  if (!operation ||
+      (operation != fireauth.ActionCodeInfo.RequestType.EMAIL_SIGNIN &&
+      !email)) {
     // This is internal only.
     throw new Error('Invalid provider user info!');
   }
   data[fireauth.ActionCodeInfo.DataField.FROM_EMAIL] = newEmail || null;
-  data[fireauth.ActionCodeInfo.DataField.EMAIL] = email;
+  data[fireauth.ActionCodeInfo.DataField.EMAIL] = email || null;
   fireauth.object.setReadonlyProperty(
       this,
       fireauth.ActionCodeInfo.PropertyName.OPERATION,
@@ -55,6 +58,18 @@ fireauth.ActionCodeInfo = function(response) {
       this,
       fireauth.ActionCodeInfo.PropertyName.DATA,
       fireauth.object.unsafeCreateReadOnlyCopy(data));
+};
+
+
+/**
+ * Firebase Auth Action Code Info requestType possible values.
+ * @enum {string}
+ */
+fireauth.ActionCodeInfo.RequestType = {
+  PASSWORD_RESET: 'PASSWORD_RESET',
+  RECOVER_EMAIL: 'RECOVER_EMAIL',
+  EMAIL_SIGNIN: 'EMAIL_SIGNIN',
+  VERIFY_EMAIL: 'VERIFY_EMAIL'
 };
 
 

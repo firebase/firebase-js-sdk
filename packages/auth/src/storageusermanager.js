@@ -66,6 +66,7 @@ goog.provide('fireauth.storage.UserManager');
 
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
+goog.require('goog.Promise');
 
 
 /**
@@ -127,7 +128,7 @@ fireauth.storage.UserManager.prototype.switchToLocalOnExternalEvent_ =
   // local.
   this.waitForReady_(function() {
     return goog.Promise.resolve().then(function() {
-      // In current persistence is not already local.
+      // If current persistence is not already local.
       if (self.currentAuthUserKey_ &&
           self.currentAuthUserKey_.persistent !=
           fireauth.authStorage.Persistence.LOCAL) {
@@ -205,8 +206,14 @@ fireauth.storage.UserManager.prototype.initialize_ = function() {
   // In memory key. This is unlikely to contain anything on load.
   var inMemoryKey = fireauth.storage.UserManager.getAuthUserKey_(
       fireauth.authStorage.Persistence.NONE);
-  // Check if state is stored in session storage.
-  return this.manager_.get(sessionKey, this.appId_).then(function(response) {
+  // Migrate any old currentUser from localStorage to indexedDB.
+  // This keeps any user signed in without the need for reauthentication and
+  // minimizes risks of dangling Auth states.
+  return this.manager_.migrateFromLocalStorage(
+      localKey, this.appId_).then(function() {
+    // Check if state is stored in session storage.
+    return self.manager_.get(sessionKey, self.appId_);
+  }).then(function(response) {
     if (response) {
       // Session storage is being used.
       return sessionKey;

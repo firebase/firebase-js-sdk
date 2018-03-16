@@ -41,6 +41,7 @@ import {
   SpecStep,
   SpecWatchFilter
 } from './spec_test_runner';
+import { TimerId } from '../../../src/util/async_queue';
 
 /**
  * Provides a high-level language to construct spec tests that can be exported
@@ -208,8 +209,14 @@ export class SpecBuilder {
   becomeVisible(): SpecBuilder {
     this.nextStep();
     this.currentStep = {
-      applyClientState: { visibility: 'visible' }
+      applyClientState: {visibility: 'visible'}
     };
+    return this;
+  }
+
+  runTimer(timerId: TimerId) {
+    this.nextStep();
+    this.currentStep = { runTimer: timerId };
     return this;
   }
 
@@ -251,17 +258,6 @@ export class SpecBuilder {
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
     this.resetInMemoryState();
-    return this;
-  }
-
-  // TODO: Replace with .runTimer(TimerId.ClientStateRefresh) once #412 is
-  // merged.
-  // PORTING NOTE: Only used by web multi-tab tests.
-  tryAcquirePrimaryLease(): SpecBuilder {
-    this.nextStep();
-    this.currentStep = {
-      acquirePrimaryLease: true
-    };
     return this;
   }
 
@@ -537,14 +533,22 @@ export class SpecBuilder {
     return this;
   }
 
-  watchStreamCloses(error: Code): SpecBuilder {
+  watchStreamCloses(
+    error: Code,
+    opts?: { runBackoffTimer: boolean }
+  ): SpecBuilder {
+    if (!opts) {
+      opts = { runBackoffTimer: true };
+    }
+
     this.nextStep();
     this.currentStep = {
       watchStreamClose: {
         error: {
           code: mapRpcCodeFromCode(error),
           message: 'Simulated Backend Error'
-        }
+        },
+        runBackoffTimer: opts.runBackoffTimer
       }
     };
     return this;
@@ -777,6 +781,11 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
+  runTimer(timerId: TimerId) {
+    super.runTimer(timerId);
+    return this;
+  }
+
   changeUser(uid: string | null): MultiClientSpecBuilder {
     super.changeUser(uid);
     return this;
@@ -794,11 +803,6 @@ export class MultiClientSpecBuilder extends SpecBuilder {
 
   restart(): MultiClientSpecBuilder {
     super.restart();
-    return this;
-  }
-
-  tryAcquirePrimaryLease(): MultiClientSpecBuilder {
-    super.tryAcquirePrimaryLease();
     return this;
   }
 

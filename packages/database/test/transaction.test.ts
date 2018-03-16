@@ -86,9 +86,7 @@ describe('Transaction Tests', function() {
       });
   });
 
-  it('Non-aborted transaction sets committed to true in callback.', function(
-    done
-  ) {
+  it('Non-aborted transaction sets committed to true in callback.', function(done) {
     const node = getRandomNode() as Reference;
 
     node.transaction(
@@ -104,9 +102,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('Aborted transaction sets committed to false in callback.', function(
-    done
-  ) {
+  it('Aborted transaction sets committed to false in callback.', function(done) {
     const node = getRandomNode() as Reference;
 
     node.transaction(
@@ -236,9 +232,7 @@ describe('Transaction Tests', function() {
     return ea.promise;
   });
 
-  it('Second transaction gets run immediately on previous output and only runs once.', function(
-    done
-  ) {
+  it('Second transaction gets run immediately on previous output and only runs once.', function(done) {
     const nodePair = getRandomNode(2) as Reference[];
     let firstRun = false,
       firstDone = false,
@@ -512,9 +506,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('Set should cancel already sent transactions that come back as datastale.', function(
-    done
-  ) {
+  it('Set should cancel already sent transactions that come back as datastale.', function(done) {
     const nodePair = getRandomNode(2) as Reference[];
     let transactionCalls = 0;
     nodePair[0].set(5, function() {
@@ -688,9 +680,7 @@ describe('Transaction Tests', function() {
     return Promise.all([tx1, tx2]);
   });
 
-  it('Doing set() in successful transaction callback works. Case 870.', function(
-    done
-  ) {
+  it('Doing set() in successful transaction callback works. Case 870.', function(done) {
     const node = getRandomNode() as Reference;
     let transactionCalled = false;
     let callbackCalled = false;
@@ -710,9 +700,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('Doing set() in aborted transaction callback works. Case 870.', function(
-    done
-  ) {
+  it('Doing set() in aborted transaction callback works. Case 870.', function(done) {
     const nodePair = getRandomNode(2) as Reference[],
       node1 = nodePair[0],
       node2 = nodePair[1];
@@ -1028,9 +1016,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('Transaction properly reverts data when you add a deeper listen.', function(
-    done
-  ) {
+  it('Transaction properly reverts data when you add a deeper listen.', function(done) {
     const refPair = getRandomNode(2) as Reference[],
       ref1 = refPair[0],
       ref2 = refPair[1];
@@ -1200,9 +1186,7 @@ describe('Transaction Tests', function() {
     });
   });
 
-  it("transaction() doesn't pick up cached data from previous once().", function(
-    done
-  ) {
+  it("transaction() doesn't pick up cached data from previous once().", function(done) {
     const refPair = getRandomNode(2) as Reference[];
     const me = refPair[0],
       other = refPair[1];
@@ -1229,9 +1213,7 @@ describe('Transaction Tests', function() {
     });
   });
 
-  it("transaction() doesn't pick up cached data from previous transaction.", function(
-    done
-  ) {
+  it("transaction() doesn't pick up cached data from previous transaction.", function(done) {
     const refPair = getRandomNode(2) as Reference[];
     const me = refPair[0],
       other = refPair[1];
@@ -1263,9 +1245,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('server values: local timestamp should eventually (but not immediately) match the server with txns', function(
-    done
-  ) {
+  it('server values: local timestamp should eventually (but not immediately) match the server with txns', function(done) {
     const refPair = getRandomNode(2) as Reference[],
       writer = refPair[0],
       reader = refPair[1],
@@ -1357,9 +1337,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it("transaction() on queried location doesn't run initially on null (firebase-worker-queue depends on this).", function(
-    done
-  ) {
+  it("transaction() on queried location doesn't run initially on null (firebase-worker-queue depends on this).", function(done) {
     const ref = getRandomNode() as Reference;
     ref.push({ a: 1, b: 2 }, function() {
       ref
@@ -1437,9 +1415,7 @@ describe('Transaction Tests', function() {
     );
   });
 
-  it('transactions works with merges without the transaction path', function(
-    done
-  ) {
+  it('transactions works with merges without the transaction path', function(done) {
     const ref = getRandomNode() as Reference;
 
     ref.update({ foo: 'bar' });

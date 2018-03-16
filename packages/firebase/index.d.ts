@@ -474,6 +474,7 @@ declare namespace firebase.messaging {
     requestPermission(): Promise<any> | null;
     setBackgroundMessageHandler(callback: (a: Object) => any): any;
     useServiceWorker(registration: any): any;
+    usePublicVapidKey(b64PublicKey: string): void;
   }
 }
 
