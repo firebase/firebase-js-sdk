@@ -161,6 +161,15 @@
 
           <div class="tab-content">
             <div class="tab-pane active" id="auth-section">
+              <!-- Worker tests -->
+              <div class="group">Web Worker Testing</div>
+              <form class="form form-bordered no-submit">
+                <button class="btn btn-block btn-primary"
+                        id="run-web-worker-tests">
+                  Run Tests
+                </button>
+              </form>
+
               <!-- Persistence-->
               <div class="group">Auth State Persistence</div>
               <form class="form form-bordered no-submit">
@@ -440,6 +449,9 @@
               </button>
               <button class="btn btn-block btn-default" id="refresh-token">
                 Refresh ID Token
+              </button>
+              <button class="btn btn-block btn-default" id="get-token-worker">
+                Get ID Token from Web Worker
               </button>
               <button class="btn btn-block btn-danger" id="sign-out">
                 Sign Out
