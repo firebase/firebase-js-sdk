@@ -19,6 +19,7 @@ goog.provide('fireauth.storage.IndexedDBTest');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.IndexedDB');
+goog.require('fireauth.storage.Storage');
 goog.require('goog.Promise');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.PropertyReplacer');
@@ -240,6 +241,7 @@ function testIndexedDb_notSupported() {
 
 function testIndexedDb_null() {
   manager = getDefaultFireauthManager();
+  assertEquals(fireauth.storage.Storage.Type.INDEXEDDB, manager.type);
   return manager.get('key1')
       .then(function(data) {
         assertNull(data);

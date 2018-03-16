@@ -27,9 +27,11 @@ goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.common.testHelper');
 goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.storage.AuthEventManager');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.OAuthHandlerManager');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -66,6 +68,8 @@ var iOS8iPhoneUA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) A' +
 var iOS9iPhoneUA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_2 like Mac OS X) A' +
     'ppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13C75 Safar' +
     'i/601.1';
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 /**
@@ -140,9 +144,12 @@ function initializePlugins(
 
 
 function setUp() {
-  // This would never run in IE environment anyway.
-  // Simulate localStorage synchronized.
-  simulateLocalStorageSynchronized();
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   // Initialize plugins.
   initializePlugins(
       function(eventName, cb) {
@@ -185,15 +192,6 @@ function tearDown() {
     delete goog.global['handleOpenURL'];
   }
   fireauth.UniversalLinkSubscriber.clear();
-}
-
-
-/** Simulates that local storage synchronizes across tabs. */
-function simulateLocalStorageSynchronized() {
-  stubs.replace(
-      fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {return false;});
 }
 
 

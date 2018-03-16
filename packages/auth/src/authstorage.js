@@ -26,6 +26,7 @@ goog.provide('fireauth.authStorage.Persistence');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.Factory');
+goog.require('fireauth.storage.Storage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.array');
@@ -235,6 +236,12 @@ fireauth.authStorage.Manager.getInstance = function() {
 };
 
 
+/** Clears storage manager instances. This is used for testing. */
+fireauth.authStorage.Manager.clear = function() {
+  fireauth.authStorage.Manager.instance_ = null;
+};
+
+
 /**
  * Returns the storage corresponding to the specified persistence.
  * @param {!fireauth.authStorage.Persistence} persistent The type of storage
@@ -267,6 +274,55 @@ fireauth.authStorage.Manager.prototype.getStorage_ = function(persistent) {
 fireauth.authStorage.Manager.prototype.getKeyName_ = function(dataKey, opt_id) {
   return this.namespace_ + this.separator_ + dataKey.name +
       (opt_id ? this.separator_ + opt_id : '');
+};
+
+
+/**
+ * Migrates window.localStorage to the provided persistent storage.
+ * @param {fireauth.authStorage.Key} dataKey The key under which the persistent
+ *     value is supposed to be stored.
+ * @param {?string=} opt_id When operating in multiple app mode, this ID
+ *     associates storage values with specific apps.
+ * @return {!goog.Promise<void>} A promise that resolves when the data stored
+ *     in window.localStorage is migrated to the provided persistent storage
+ *     identified by the provided data key.
+ */
+fireauth.authStorage.Manager.prototype.migrateFromLocalStorage =
+    function(dataKey, opt_id) {
+  var self = this;
+  var key = this.getKeyName_(dataKey, opt_id);
+  var storage = this.getStorage_(dataKey.persistent);
+  // Get data stored in the default persistent storage identified by dataKey.
+  return this.get(dataKey, opt_id).then(function(response) {
+    // Get the stored value in window.localStorage if available.
+    var oldStorageValue = null;
+    try {
+      oldStorageValue = fireauth.util.parseJSON(
+          goog.global['localStorage']['getItem'](key));
+    } catch (e) {
+      // Set value as null. This will resolve the promise immediately.
+    }
+    // If data is stored in window.localStorage but no data is available in
+    // default persistent storage, migrate data from window.localStorage to
+    // default persistent storage.
+    if (oldStorageValue && !response) {
+      // This condition may fail in situations where a user opens a tab with
+      // an old version while using a tab with a new version, or when a
+      // developer switches back and forth between and old and new version of
+      // the library.
+      goog.global['localStorage']['removeItem'](key);
+      // Migrate the value to new default persistent storage.
+      return self.set(dataKey, oldStorageValue, opt_id);
+    } else if (oldStorageValue &&
+               response &&
+               storage.type != fireauth.storage.Storage.Type.LOCAL_STORAGE) {
+      // Data stored in both localStorage and new persistent storage (eg.
+      // indexedDB) for some reason.
+      // This could happen if the developer is migrating back and forth.
+      // The new default persistent storage (eg. indexedDB) takes precedence.
+      goog.global['localStorage']['removeItem'](key);
+    }
+  });
 };
 
 
@@ -404,9 +460,9 @@ fireauth.authStorage.Manager.prototype.startListeners_ = function() {
   // TODO: refactor this implementation to be handled by the underlying
   // storage mechanism.
   if (!this.runsInBackground_ &&
-      // Add an exception for IE11 and Edge browsers, we should stick to
-      // indexedDB in that case.
-      !fireauth.util.isLocalStorageNotSynchronized() &&
+      // Add an exception for browsers that persist storage with indexedDB, we
+      // should stick with indexedDB listener implementation in that case.
+      !fireauth.util.persistsStorageWithIndexedDB() &&
       // Confirm browser web storage is supported as polling relies on it.
       this.webStorageSupported_) {
     this.startManualListeners_();

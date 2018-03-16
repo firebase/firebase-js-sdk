@@ -21,12 +21,18 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { SimpleDbTransaction } from './simple_db';
+import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
- * Schema Version for the Web client (containing the Mutation Queue, the Query
- * and the Remote Document Cache) and Multi-Tab Support.
+ * Schema Version for the Web client:
+ * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
+ *    Cache
+ * 2. Added targetCount to targetGlobal row.
+ * 3. Multi-Tab Support.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Performs database creation and schema upgrades.
@@ -37,15 +43,15 @@ export const SCHEMA_VERSION = 2;
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
+  txn: SimpleDbTransaction,
   fromVersion: number,
   toVersion: number
-): void {
-  // This function currently supports migrating to schema version 1 (Mutation
-  // Queue, Query and Remote Document Cache) and schema version 2 (Multi-Tab).
+): PersistencePromise<void> {
   assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 3,
     'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
+  let p = PersistencePromise.resolve();
 
   if (fromVersion < 1 && toVersion >= 1) {
     createOwnerStore(db);
@@ -55,9 +61,18 @@ export function createOrUpgradeDb(
   }
 
   if (fromVersion < 2 && toVersion >= 2) {
-    createClientMetadataStore(db);
-    createTargetChangeStore(db);
+    p = ensureTargetGlobalExists(txn).next(targetGlobal =>
+      saveTargetCount(txn, targetGlobal)
+    );
   }
+
+  if (fromVersion < 3 && toVersion >= 3) {
+    p = p.next(() => {
+      createClientMetadataStore(db);
+      createTargetChangeStore(db);
+    });
+  }
+  return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -468,7 +483,11 @@ export class DbTargetGlobal {
      * until the backend has caught up to this snapshot version again. This
      * prevents our cache from ever going backwards in time.
      */
-    public lastRemoteSnapshotVersion: DbTimestamp
+    public lastRemoteSnapshotVersion: DbTimestamp,
+    /**
+     * The number of targets persisted.
+     */
+    public targetCount: number
   ) {}
 }
 
@@ -493,6 +512,51 @@ function createQueryCache(db: IDBDatabase): void {
     { unique: true }
   );
   db.createObjectStore(DbTargetGlobal.store);
+}
+
+/**
+ * * Counts the number of targets persisted and adds that value to the target
+ * global singleton.
+ */
+function saveTargetCount(
+  txn: SimpleDbTransaction,
+  metadata: DbTargetGlobal
+): PersistencePromise<void> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
+  const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+  return targetStore.count().next(count => {
+    metadata.targetCount = count;
+    return globalStore.put(DbTargetGlobal.key, metadata);
+  });
+}
+
+/**
+ * Ensures that the target global singleton row exists by adding it if it's
+ * missing.
+ *
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
+ */
+function ensureTargetGlobalExists(
+  txn: SimpleDbTransaction
+): PersistencePromise<DbTargetGlobal> {
+  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+    DbTargetGlobal.store
+  );
+  return globalStore.get(DbTargetGlobal.key).next(metadata => {
+    if (metadata != null) {
+      return PersistencePromise.resolve(metadata);
+    } else {
+      metadata = new DbTargetGlobal(
+        /*highestTargetId=*/ 0,
+        /*lastListenSequenceNumber=*/ 0,
+        SnapshotVersion.MIN.toTimestamp(),
+        /*targetCount=*/ 0
+      );
+      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
+    }
+  });
 }
 
 /**
@@ -580,11 +644,19 @@ export const V1_STORES = [
   DbTargetDocument.store
 ];
 
-const V2_STORES = [DbClientMetadata.store, DbTargetChange.store];
+// Visible for testing
+export const V2_STORES = V1_STORES;
+
+// Visible for testing
+export const V3_STORES = [
+  ...V2_STORES,
+  DbClientMetadata.store,
+  DbTargetChange.store
+];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = [...V1_STORES, ...V2_STORES];
+export const ALL_STORES = V3_STORES;

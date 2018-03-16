@@ -51,12 +51,12 @@ export enum OnlineState {
    * reached after a successful connection and there has been at least one
    * successful message received from the backends.
    */
-  Healthy,
+  Online,
 
   /**
    * The client is either trying to establish a connection but failing, or it
    * has been explicitly marked offline via a call to disableNetwork().
    * Higher-level components should operate in offline mode.
    */
-  Failed
+  Offline
 }

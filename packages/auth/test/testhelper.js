@@ -21,6 +21,9 @@
 
 goog.provide('fireauth.common.testHelper');
 
+goog.require('fireauth.storage.Factory');
+goog.require('goog.Promise');
+
 goog.setTestOnly('fireauth.common.testHelper');
 
 
@@ -121,21 +124,19 @@ fireauth.common.testHelper.assertDeprecatedUserCredentialResponse = function(
  *     check for existence. If null is passed, the check will ensure no user is
  *     saved in storage.
  * @param {?fireauth.AuthUser} expectedUser The expected Auth user to test for.
- * @param {?fireauth.authStorage.Manager=} opt_manager The underlying storage
+ * @param {?fireauth.authStorage.Manager} manager The underlying storage
  *     manager to use. If none is provided, the default global instance is used.
  * @return {!goog.Promise} A promise that resolves when the check completes.
  */
 fireauth.common.testHelper.assertUserStorage =
-    function(appId, persistence, expectedUser, opt_manager) {
-  // Get storage manager.
-  var storage = opt_manager || fireauth.authStorage.Manager.getInstance();
+    function(appId, persistence, expectedUser, manager) {
   var promises = [];
   // All supported persistence types.
   var types = ['local', 'session', 'none'];
   // For each persistence type.
   for (var i = 0; i < types.length; i++) {
     // Get the current user if stored in current persistence.
-    var p = storage.get({name: 'authUser', persistent: types[i]}, appId);
+    var p = manager.get({name: 'authUser', persistent: types[i]}, appId);
     if (persistence === types[i]) {
       // If matching specified persistence, ensure value matches the specified
       // user.
@@ -153,4 +154,29 @@ fireauth.common.testHelper.assertUserStorage =
   }
   // Wait for all checks to complete before resolving.
   return goog.Promise.all(promises);
+};
+
+
+/**
+ * Installs different persistent/temporary storage using the provided mocks.
+ * @param {!goog.testing.PropertyReplacer} stub The property replacer.
+ * @param {!fireauth.storage.Storage} mockLocalStorage The mock storage
+ *     instance for persistent storage.
+ * @param {!fireauth.storage.Storage} mockSessionStorage The mock storage
+ *     instance for temporary storage.
+ */
+fireauth.common.testHelper.installMockStorages =
+    function(stub, mockLocalStorage, mockSessionStorage) {
+  stub.replace(
+      fireauth.storage.Factory.prototype,
+      'makePersistentStorage',
+      function() {
+        return mockLocalStorage;
+      });
+  stub.replace(
+      fireauth.storage.Factory.prototype,
+      'makeTemporaryStorage',
+      function() {
+        return mockSessionStorage;
+      });
 };

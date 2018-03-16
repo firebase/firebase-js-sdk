@@ -94,6 +94,8 @@ fireauth.storage.IndexedDB = function(
   /** @private {!IDBFactory} The indexedDB factory object. */
   this.indexedDB_ = /** @type {!IDBFactory} */ (
       opt_indexedDB || goog.global.indexedDB);
+  /** @protected {string} The storage type identifier. */
+  this.type = fireauth.storage.Storage.Type.INDEXEDDB;
 };
 
 

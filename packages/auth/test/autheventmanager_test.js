@@ -32,8 +32,10 @@ goog.require('fireauth.RedirectAuthEventProcessor');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.common.testHelper');
 goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.OAuthHandlerManager');
 goog.require('fireauth.storage.PendingRedirectManager');
 goog.require('fireauth.util');
@@ -76,8 +78,14 @@ var savePartialEventManager;
 var timeoutDelay = 30000;
 var mockControl;
 var ignoreArgument;
+var mockLocalStorage;
+var mockSessionStorage;
 
 function setUp() {
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
   mockControl = new goog.testing.MockControl();
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
   mockControl.$resetAll();
@@ -86,7 +94,8 @@ function setUp() {
     'resolvePendingPopupEvent': goog.testing.recordFunction(),
     'getAuthEventHandlerFinisher': goog.testing.recordFunction()
   };
-  simulateLocalStorageSynchronized();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   // Default OAuth sign in handler is IfcHandler.
   setOAuthSignInHandlerEnvironment(false);
 }
@@ -159,15 +168,6 @@ function initializePlugins(
       open:  open
     }
   };
-}
-
-
-/** Simulates that local storage synchronizes across tabs. */
-function simulateLocalStorageSynchronized() {
-  stubs.replace(
-      fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {return false;});
 }
 
 

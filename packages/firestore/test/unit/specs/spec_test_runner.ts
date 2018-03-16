@@ -236,11 +236,10 @@ class MockConnection implements Connection {
           this.resetAndCloseWriteStream();
         }
       });
-      this.queue.enqueue(() => {
+      this.queue.enqueue(async () => {
         if (this.writeStream === writeStream) {
           writeStream.callOnOpen();
         }
-        return Promise.resolve();
       });
       this.writeStream = writeStream;
       return writeStream;
@@ -269,12 +268,11 @@ class MockConnection implements Connection {
         }
       });
       // Call on open immediately after returning
-      this.queue.enqueue(() => {
+      this.queue.enqueue(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
           this.watchOpen.resolve();
         }
-        return Promise.resolve();
       });
       this.watchStream = watchStream;
       return this.watchStream;
@@ -395,6 +393,7 @@ abstract class TestRunner {
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
+      this.queue,
       onlineStateChangedHandler
     );
 
@@ -474,13 +473,12 @@ abstract class TestRunner {
       return this.doWriteAck(step.writeAck!);
     } else if ('failWrite' in step) {
       return this.doFailWrite(step.failWrite!);
+    } else if ('runTimer' in step) {
+      return this.doRunTimer(step.runTimer!);
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
-    } else if ('acquirePrimaryLease' in step) {
-      // PORTING NOTE: Only used by web multi-tab tests.
-      return this.doAcquirePrimaryLease();
     } else if ('restart' in step) {
       return this.doRestart();
     } else if ('shutdown' in step) {
@@ -704,9 +702,7 @@ abstract class TestRunner {
     }
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
-    return this.queue.enqueue(() => {
-      return Promise.resolve();
-    });
+    return this.queue.enqueue(async () => {});
   }
 
   private async doWatchStreamClose(spec: SpecWatchStreamClose): Promise<void> {
@@ -717,9 +713,9 @@ abstract class TestRunner {
       )
     );
     // The watch stream should re-open if we have active listeners.
-    if (!this.queryListeners.isEmpty()) {
+    if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
       await this.queue.runDelayedOperationsEarly(
-        TimerId.ListenStreamConnection
+        TimerId.ListenStreamConnectionBackoff
       );
       await this.connection.waitForWatchOpen();
     }
@@ -747,13 +743,11 @@ abstract class TestRunner {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         return nextWrite.userCallback.promise;
-      } else {
-        return Promise.resolve();
       }
     });
   }
 
-  private doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
+  private async doFailWrite(writeFailure: SpecWriteFailure): Promise<void> {
     const specError: SpecError = writeFailure.error;
     const error = new FirestoreError(
       mapCodeFromRpcCode(specError.code),
@@ -777,10 +771,16 @@ abstract class TestRunner {
             expect(err).not.to.be.null;
           }
         );
-      } else {
-        return Promise.resolve();
       }
     });
+  }
+
+  private async doRunTimer(timer: string): Promise<void> {
+    // We assume the timer string is a valid TimerID enum value, but if it's
+    // not, then there won't be a matching item on the queue and
+    // runDelayedOperationsEarly() will throw.
+    const timerId = timer as TimerId;
+    await this.queue.runDelayedOperationsEarly(timerId);
   }
 
   private async doDisableNetwork(): Promise<void> {
@@ -792,14 +792,6 @@ abstract class TestRunner {
 
   private async doEnableNetwork(): Promise<void> {
     await this.remoteStore.enableNetwork();
-  }
-
-  private async doAcquirePrimaryLease(): Promise<void> {
-    // We drain the queue after running the client metadata refresh task as the
-    // refresh might schedule a primary state callback on the queue as well.
-    return this.queue
-      .runDelayedOperationsEarly(TimerId.ClientMetadataRefresh)
-      .then(() => this.queue.drain());
   }
 
   private async doShutdown(): Promise<void> {
@@ -858,17 +850,17 @@ abstract class TestRunner {
   private validateStateExpectations(expectation: StateExpectation): void {
     if (expectation) {
       if ('numOutstandingWrites' in expectation) {
-        expect(this.remoteStore.outstandingWrites()).to.deep.equal(
+        expect(this.remoteStore.outstandingWrites()).to.equal(
           expectation.numOutstandingWrites
         );
       }
       if ('writeStreamRequestCount' in expectation) {
-        expect(this.connection.writeStreamRequestCount).to.deep.equal(
+        expect(this.connection.writeStreamRequestCount).to.equal(
           expectation.writeStreamRequestCount
         );
       }
       if ('watchStreamRequestCount' in expectation) {
-        expect(this.connection.watchStreamRequestCount).to.deep.equal(
+        expect(this.connection.watchStreamRequestCount).to.equal(
           expectation.watchStreamRequestCount
         );
       }
@@ -935,11 +927,9 @@ abstract class TestRunner {
         )
       );
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
-      expect(actualTarget.targetId).to.deep.equal(expectedTarget.targetId);
-      expect(actualTarget.readTime).to.deep.equal(expectedTarget.readTime);
-      expect(actualTarget.resumeToken).to.deep.equal(
-        expectedTarget.resumeToken
-      );
+      expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
+      expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
+      expect(actualTarget.resumeToken).to.equal(expectedTarget.resumeToken);
       delete actualTargets[targetId];
     });
     expect(obj.size(actualTargets)).to.equal(
@@ -1241,6 +1231,12 @@ export interface SpecStep {
   /** Fail a write */
   failWrite?: SpecWriteFailure;
 
+  /**
+   * Run a queued timer task (without waiting for the delay to expire). See
+   * TimerId enum definition for possible values).
+   */
+  runTimer?: string;
+
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
 
@@ -1249,9 +1245,6 @@ export interface SpecStep {
 
   /** Change to a new active user (specified by uid or null for anonymous). */
   changeUser?: string | null;
-
-  /** Attempt to acquire the primary lease. */
-  acquirePrimaryLease?: true; // PORTING NOTE: Only used by web multi-tab tests
 
   /**
    * Restarts the SyncEngine from scratch, except re-uses persistence and auth
@@ -1312,6 +1305,7 @@ export type SpecSnapshotVersion = TestSnapshotVersion;
 
 export type SpecWatchStreamClose = {
   error: SpecError;
+  runBackoffTimer: boolean;
 };
 
 export type SpecWriteAck = {

@@ -54,18 +54,16 @@ export class MemoryPersistence implements Persistence {
 
   constructor(private readonly queue: AsyncQueue) {}
 
-  start(): Promise<void> {
+  async start(): Promise<void> {
+    // No durable state to read on startup.
     assert(!this.started, 'MemoryPersistence double-started!');
     this.started = true;
-    // No durable state to read on startup.
-    return Promise.resolve();
   }
 
-  shutdown(): Promise<void> {
+  async shutdown(): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     assert(this.started, 'MemoryPersistence shutdown without start!');
     this.started = false;
-    return Promise.resolve();
   }
 
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {

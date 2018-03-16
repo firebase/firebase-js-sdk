@@ -293,6 +293,7 @@ export class FirestoreClient {
         this.remoteStore = new RemoteStore(
           this.localStore,
           datastore,
+          this.asyncQueue,
           onlineStateChangedHandler
         );
 
@@ -383,11 +384,7 @@ export class FirestoreClient {
   ): Promise<T> {
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
-      .enqueue(() => {
-        return Promise.resolve();
-      })
-      .then(() => {
-        return this.syncEngine.runTransaction(updateFunction);
-      });
+      .enqueue(async () => {})
+      .then(() => this.syncEngine.runTransaction(updateFunction));
   }
 }

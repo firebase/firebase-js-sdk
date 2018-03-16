@@ -19,6 +19,7 @@ goog.provide('fireauth.storage.SessionStorageTest');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.SessionStorage');
+goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('fireauth.util');
@@ -60,6 +61,7 @@ function simulateNodeEnvironment() {
 
 
 function testBasicStorageOperations() {
+  assertEquals(fireauth.storage.Storage.Type.SESSION_STORAGE, storage.type);
   return assertBasicStorageOperations(storage);
 }
 

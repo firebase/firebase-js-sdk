@@ -22,8 +22,9 @@ goog.provide('fireauth.storage.RedirectUserManagerTest');
 
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
+goog.require('fireauth.common.testHelper');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.RedirectUserManager');
-goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.PropertyReplacer');
@@ -40,19 +41,20 @@ var clock;
 var expectedUser;
 var expectedUserWithAuthDomain;
 var stubs = new goog.testing.PropertyReplacer();
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
-  // Simulate browser that synchronizes between and iframe and a popup.
-  stubs.replace(
-     fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {
-        return false;
-      });
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
   clock = new goog.testing.MockClock(true);
   window.localStorage.clear();
   window.sessionStorage.clear();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
 }
 
 
@@ -116,10 +118,11 @@ function testGetSetRemoveRedirectUser() {
         return redirectUserManager.getRedirectUser();
       })
       .then(function(user) {
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            JSON.stringify(expectedUser.toPlainObject()));
         assertObjectEquals(expectedUser, user);
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertObjectEquals(expectedUser.toPlainObject(), value);
         // Get user with authDomain.
         return redirectUserManager.getRedirectUser('project.firebaseapp.com');
       })
@@ -128,7 +131,10 @@ function testGetSetRemoveRedirectUser() {
         return redirectUserManager.removeRedirectUser();
       })
       .then(function() {
-        assertNull(window.sessionStorage.getItem(storageKey));
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
         return redirectUserManager.getRedirectUser();
       })
       .then(function(user) {

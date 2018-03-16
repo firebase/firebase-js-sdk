@@ -112,14 +112,13 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('close');
   }
 
-  private resolvePending(actualCallback: StreamEventType): Promise<void> {
+  private async resolvePending(actualCallback: StreamEventType): Promise<void> {
     if (this.pendingPromises.length > 0) {
       let pendingPromise = this.pendingPromises.shift();
       pendingPromise.resolve(actualCallback);
     } else {
       this.pendingCallbacks.push(actualCallback);
     }
-    return Promise.resolve();
   }
 }
 
@@ -260,7 +259,7 @@ describe('Write Stream', () => {
           writeStream.writeMutations(SINGLE_MUTATION);
           return streamListener.awaitCallback('mutationResult');
         })
-        .then(() => queue.runDelayedOperationsEarly())
+        .then(() => queue.runDelayedOperationsEarly(TimerId.All))
         .then(() => {
           expect(writeStream.isOpen()).to.be.true;
         });

@@ -386,7 +386,7 @@ describe('Firebase Messaging > *WindowController', function() {
       const exampleSubscription = {};
       const reg = makeFakeSWReg();
       sandbox.stub(reg, 'pushManager').value({
-        getSubscription: () => Promise.resolve(),
+        getSubscription: async () => {},
         subscribe: options => {
           expect(options).to.deep.equal({
             userVisibleOnly: true,

@@ -33,6 +33,7 @@ goog.provide('fireauth.PhoneAuthCredential');
 goog.provide('fireauth.PhoneAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
+goog.require('fireauth.ActionCodeUrl');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.IdToken');
 goog.require('fireauth.authenum.Error');
@@ -159,10 +160,11 @@ fireauth.OAuthResponse;
  * @param {!fireauth.idp.ProviderId} providerId The provider ID.
  * @param {!fireauth.OAuthResponse} oauthResponse The OAuth
  *     response object containing token information.
+ * @param {!fireauth.idp.SignInMethod} signInMethod The sign in method.
  * @constructor
  * @implements {fireauth.AuthCredential}
  */
-fireauth.OAuthCredential = function(providerId, oauthResponse) {
+fireauth.OAuthCredential = function(providerId, oauthResponse, signInMethod) {
   if (oauthResponse['idToken'] || oauthResponse['accessToken']) {
     // OAuth 2 and either ID token or access token.
     if (oauthResponse['idToken']) {
@@ -186,6 +188,7 @@ fireauth.OAuthCredential = function(providerId, oauthResponse) {
   }
 
   fireauth.object.setReadonlyProperty(this, 'providerId', providerId);
+  fireauth.object.setReadonlyProperty(this, 'signInMethod', signInMethod);
 };
 
 
@@ -272,7 +275,8 @@ fireauth.OAuthCredential.prototype.makeVerifyAssertionRequest_ = function() {
  */
 fireauth.OAuthCredential.prototype.toPlainObject = function() {
   var obj = {
-    'providerId': this['providerId']
+    'providerId': this['providerId'],
+    'signInMethod': this['signInMethod']
   };
   if (this['idToken']) {
     obj['oauthIdToken'] = this['idToken'];
@@ -422,7 +426,10 @@ fireauth.OAuthProvider.prototype.credential = function(opt_idToken,
     'idToken': opt_idToken || null,
     'accessToken': opt_accessToken || null
   };
-  return new fireauth.OAuthCredential(this['providerId'], oauthResponse);
+  // For OAuthCredential, sign in method is same as providerId.
+  return new fireauth.OAuthCredential(this['providerId'],
+                                      oauthResponse,
+                                      this['providerId']);
 };
 
 
@@ -440,6 +447,9 @@ goog.inherits(fireauth.FacebookAuthProvider, fireauth.OAuthProvider);
 
 fireauth.object.setReadonlyProperty(fireauth.FacebookAuthProvider,
     'PROVIDER_ID', fireauth.idp.ProviderId.FACEBOOK);
+
+fireauth.object.setReadonlyProperty(fireauth.FacebookAuthProvider,
+    'FACEBOOK_SIGN_IN_METHOD', fireauth.idp.SignInMethod.FACEBOOK);
 
 
 /**
@@ -477,6 +487,9 @@ goog.inherits(fireauth.GithubAuthProvider, fireauth.OAuthProvider);
 
 fireauth.object.setReadonlyProperty(fireauth.GithubAuthProvider,
     'PROVIDER_ID', fireauth.idp.ProviderId.GITHUB);
+
+fireauth.object.setReadonlyProperty(fireauth.GithubAuthProvider,
+    'GITHUB_SIGN_IN_METHOD', fireauth.idp.SignInMethod.GITHUB);
 
 
 /**
@@ -519,6 +532,9 @@ goog.inherits(fireauth.GoogleAuthProvider, fireauth.OAuthProvider);
 fireauth.object.setReadonlyProperty(fireauth.GoogleAuthProvider,
     'PROVIDER_ID', fireauth.idp.ProviderId.GOOGLE);
 
+fireauth.object.setReadonlyProperty(fireauth.GoogleAuthProvider,
+    'GOOGLE_SIGN_IN_METHOD', fireauth.idp.SignInMethod.GOOGLE);
+
 
 /**
  * Initializes a Google AuthCredential.
@@ -558,6 +574,9 @@ goog.inherits(fireauth.TwitterAuthProvider, fireauth.FederatedProvider);
 fireauth.object.setReadonlyProperty(fireauth.TwitterAuthProvider,
     'PROVIDER_ID', fireauth.idp.ProviderId.TWITTER);
 
+fireauth.object.setReadonlyProperty(fireauth.TwitterAuthProvider,
+    'TWITTER_SIGN_IN_METHOD', fireauth.idp.SignInMethod.TWITTER);
+
 
 /**
  * Initializes a Twitter AuthCredential.
@@ -583,7 +602,8 @@ fireauth.TwitterAuthProvider.credential = function(tokenOrObject, secret) {
   }
 
   return new fireauth.OAuthCredential(fireauth.idp.ProviderId.TWITTER,
-      /** @type {!fireauth.OAuthResponse} */ (tokenObject));
+      /** @type {!fireauth.OAuthResponse} */ (tokenObject),
+      fireauth.idp.SignInMethod.TWITTER);
 };
 
 
@@ -591,14 +611,21 @@ fireauth.TwitterAuthProvider.credential = function(tokenOrObject, secret) {
  * The email and password credential class.
  * @param {string} email The credential email.
  * @param {string} password The credential password.
+ * @param {string=} opt_signInMethod The credential sign in method can be either
+ *     'password' or 'emailLink'
  * @constructor
  * @implements {fireauth.AuthCredential}
  */
-fireauth.EmailAuthCredential = function(email, password) {
+fireauth.EmailAuthCredential = function(email, password, opt_signInMethod) {
   this.email_ = email;
   this.password_ = password;
   fireauth.object.setReadonlyProperty(this, 'providerId',
       fireauth.idp.ProviderId.PASSWORD);
+  var signInMethod = opt_signInMethod ===
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD'] ?
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD'] :
+      fireauth.EmailAuthProvider['EMAIL_PASSWORD_SIGN_IN_METHOD'];
+  fireauth.object.setReadonlyProperty(this, 'signInMethod', signInMethod);
 };
 
 
@@ -613,6 +640,10 @@ fireauth.EmailAuthCredential = function(email, password) {
  */
 fireauth.EmailAuthCredential.prototype.getIdTokenProvider =
     function(rpcHandler) {
+  if (this['signInMethod'] ==
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']) {
+    return rpcHandler.emailLinkSignIn(this.email_, this.password_);
+  }
   return rpcHandler.verifyPassword(this.email_, this.password_);
 };
 
@@ -628,6 +659,11 @@ fireauth.EmailAuthCredential.prototype.getIdTokenProvider =
  */
 fireauth.EmailAuthCredential.prototype.linkToIdToken =
     function(rpcHandler, idToken) {
+  if (this['signInMethod'] ==
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']) {
+    return rpcHandler.emailLinkSignInForLinking(
+        idToken, this.email_, this.password_);
+  }
   return rpcHandler.updateEmailAndPassword(
       idToken, this.email_, this.password_);
 };
@@ -658,7 +694,8 @@ fireauth.EmailAuthCredential.prototype.matchIdTokenWithUid =
 fireauth.EmailAuthCredential.prototype.toPlainObject = function() {
   return {
     'email': this.email_,
-    'password': this.password_
+    'password': this.password_,
+    'signInMethod': this['signInMethod']
   };
 };
 
@@ -690,9 +727,51 @@ fireauth.EmailAuthProvider.credential = function(email, password) {
 };
 
 
+/**
+ * @param {string} email The credential email.
+ * @param {string} emailLink The credential email link.
+ * @return {!fireauth.EmailAuthCredential} The Auth credential object.
+ */
+fireauth.EmailAuthProvider.credentialWithLink = function(email, emailLink) {
+  var code = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink);
+  if (!code) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
+  }
+  return new fireauth.EmailAuthCredential(email, code,
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
+};
+
+
+/**
+ * @param {string} emailLink The sign in email link to be validated.
+ * @return {?string} Action code if the email link is valid, otherwise null.
+ */
+fireauth.EmailAuthProvider.getActionCodeFromSignInEmailLink =
+    function(emailLink) {
+  var actionCodeUrl = new fireauth.ActionCodeUrl(emailLink);
+  var code = actionCodeUrl.getCode();
+  if (actionCodeUrl.getMode() === fireauth.ActionCodeUrl.Mode.SIGN_IN && code) {
+    return code;
+  }
+  return null;
+};
+
+
 // Set read only PROVIDER_ID property.
 fireauth.object.setReadonlyProperties(fireauth.EmailAuthProvider, {
   'PROVIDER_ID': fireauth.idp.ProviderId.PASSWORD
+});
+
+// Set read only EMAIL_LINK_SIGN_IN_METHOD property.
+fireauth.object.setReadonlyProperties(fireauth.EmailAuthProvider, {
+  'EMAIL_LINK_SIGN_IN_METHOD': fireauth.idp.SignInMethod.EMAIL_LINK
+});
+
+// Set read only EMAIL_PASSWORD_SIGN_IN_METHOD property.
+fireauth.object.setReadonlyProperties(fireauth.EmailAuthProvider, {
+  'EMAIL_PASSWORD_SIGN_IN_METHOD': fireauth.idp.SignInMethod.EMAIL_PASSWORD
 });
 
 
@@ -721,6 +800,9 @@ fireauth.PhoneAuthCredential = function(params) {
 
   fireauth.object.setReadonlyProperty(this, 'providerId',
       fireauth.idp.ProviderId.PHONE);
+
+  fireauth.object.setReadonlyProperty(
+      this, 'signInMethod', fireauth.idp.SignInMethod.PHONE);
 };
 
 
@@ -954,6 +1036,12 @@ fireauth.PhoneAuthProvider.credential =
 // Set read only PROVIDER_ID property.
 fireauth.object.setReadonlyProperties(fireauth.PhoneAuthProvider, {
   'PROVIDER_ID': fireauth.idp.ProviderId.PHONE
+});
+
+
+// Set read only PHONE_SIGN_IN_METHOD property.
+fireauth.object.setReadonlyProperties(fireauth.PhoneAuthProvider, {
+  'PHONE_SIGN_IN_METHOD': fireauth.idp.SignInMethod.PHONE
 });
 
 

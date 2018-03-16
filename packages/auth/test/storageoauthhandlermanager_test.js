@@ -23,6 +23,8 @@ goog.provide('fireauth.storage.OAuthHandlerManagerTest');
 goog.require('fireauth.AuthEvent');
 goog.require('fireauth.OAuthHelperState');
 goog.require('fireauth.authStorage');
+goog.require('fireauth.common.testHelper');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.OAuthHandlerManager');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -34,9 +36,17 @@ goog.setTestOnly('fireauth.storage.OAuthHandlerManagerTest');
 
 var appId = 'appId1';
 var stubs = new goog.testing.PropertyReplacer();
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   // Simulate browser that synchronizes between and iframe and a popup.
   stubs.replace(
      fireauth.util,
@@ -46,6 +56,11 @@ function setUp() {
       });
   window.localStorage.clear();
   window.sessionStorage.clear();
+}
+
+
+function tearDown() {
+  stubs.reset();
 }
 
 
@@ -72,16 +87,17 @@ function testGetSetRemoveSessionId() {
         return oauthHandlerManager.getSessionId(appId);
       })
       .then(function(sessionId) {
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            JSON.stringify(expectedSessionId));
         assertObjectEquals(expectedSessionId, sessionId);
+        return mockSessionStorage.get(storageKey);
       })
-      .then(function() {
+      .then(function(value) {
+        assertObjectEquals(expectedSessionId, value);
         return oauthHandlerManager.removeSessionId(appId);
       })
       .then(function() {
-        assertNull(window.sessionStorage.getItem(storageKey));
+        return mockSessionStorage.get(storageKey);
+      }).then(function(value) {
+        assertUndefined(value);
         return oauthHandlerManager.getSessionId(appId);
       })
       .then(function(sessionId) {
@@ -104,10 +120,12 @@ function testSetAuthEvent() {
         return oauthHandlerManager.setAuthEvent(appId, expectedAuthEvent);
       })
       .then(function() {
-        assertEquals(
-            JSON.stringify(expectedAuthEvent.toPlainObject()),
-            window.localStorage.getItem(
-                'firebase:authEvent:appId1'));
+        return mockLocalStorage.get('firebase:authEvent:appId1');
+      })
+      .then(function(value) {
+        assertObjectEquals(
+            expectedAuthEvent.toPlainObject(),
+            value);
       });
 }
 
@@ -126,10 +144,11 @@ function testSetRedirectEvent() {
         return oauthHandlerManager.setRedirectEvent(appId, expectedAuthEvent);
       })
       .then(function() {
-        assertEquals(
-            JSON.stringify(expectedAuthEvent.toPlainObject()),
-            window.sessionStorage.getItem(
-                'firebase:redirectEvent:appId1'));
+        return mockSessionStorage.get('firebase:redirectEvent:appId1');
+      }).then(function(value) {
+        assertObjectEquals(
+            expectedAuthEvent.toPlainObject(),
+            value);
       });
 }
 
@@ -152,16 +171,18 @@ function testGetSetRemoveOAuthHelperState() {
         return oauthHandlerManager.getOAuthHelperState();
       })
       .then(function(state) {
-        assertEquals(
-            window.sessionStorage.getItem(storageKey),
-            JSON.stringify(expectedState.toPlainObject()));
         assertObjectEquals(expectedState, state);
+        return mockSessionStorage.get(storageKey);
       })
-      .then(function() {
+      .then(function(value) {
+        assertObjectEquals(expectedState.toPlainObject(), value);
         return oauthHandlerManager.removeOAuthHelperState();
       })
       .then(function() {
-        assertNull(window.sessionStorage.getItem(storageKey));
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
         return oauthHandlerManager.getOAuthHelperState();
       })
       .then(function(state) {
