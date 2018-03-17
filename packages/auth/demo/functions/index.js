@@ -25,7 +25,7 @@ const admin = require('firebase-admin');
 
 admin.initializeApp(functions.config().firebase);
 
-exports.echoIdToken = functions.https.onRequest((req, res) => {
+exports.checkIfAuthenticated = functions.https.onRequest((req, res) => {
   const idToken = req.get('x-id-token');
   res.setHeader('Content-Type', 'application/json');
   if (idToken) {

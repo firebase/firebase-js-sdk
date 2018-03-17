@@ -6,8 +6,8 @@
     "public": "public",
     "rewrites": [
       {
-        "source": "/echoIdToken",
-        "function": "echoIdToken"
+        "source": "/checkIfAuthenticated",
+        "function": "checkIfAuthenticated"
       }
     ]
   }

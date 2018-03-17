@@ -1237,7 +1237,7 @@ function onRunWebWorkTests() {
 
 /** Runs service worker tests if supported. */
 function onRunServiceWorkTests() {
-  $.ajax('/echoIdToken').then(function(data, textStatus, jqXHR) {
+  $.ajax('/checkIfAuthenticated').then(function(data, textStatus, jqXHR) {
     alertSuccess('User authenticated: ' + data.uid);
   }, function(jqXHR, textStatus, errorThrown) {
     alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
