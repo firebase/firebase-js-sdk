@@ -1235,6 +1235,16 @@ function onRunWebWorkTests() {
 }
 
 
+/** Runs service worker tests if supported. */
+function onRunServiceWorkTests() {
+  $.ajax('/checkIfAuthenticated').then(function(data, textStatus, jqXHR) {
+    alertSuccess('User authenticated: ' + data.uid);
+  }, function(jqXHR, textStatus, errorThrown) {
+    alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
+  });
+}
+
+
 /**
  * Initiates the application by setting event listeners on the various buttons.
  */
@@ -1394,6 +1404,7 @@ function initApp(){
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
 
   $('#run-web-worker-tests').click(onRunWebWorkTests);
+  $('#run-service-worker-tests').click(onRunServiceWorkTests);
 }
 
 $(initApp);
