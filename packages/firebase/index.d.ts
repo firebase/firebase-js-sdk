@@ -154,6 +154,10 @@ declare namespace firebase.auth {
     applyActionCode(code: string): Promise<any>;
     checkActionCode(code: string): Promise<any>;
     confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    createUserAndRetrieveDataWithEmailAndPassword( 
+      email: string, 
+      password: string 
+    ): Promise<any>;      
     createUserWithEmailAndPassword(
       email: string,
       password: string
