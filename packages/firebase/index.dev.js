@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-import { global } from "./global";
+var firebase = require('./app');
+require('./auth');
+require('./database');
+require('./messaging');
+require('./storage');
+require('./functions');
+require('./firestore');
 
-// Polyfill Promise
-if (typeof Promise === 'undefined') {
-  // HACK: TS throws an error if I attempt to use 'dot-notation'
-  global['Promise'] = require('promise-polyfill') as PromiseConstructor;
-}
+module.exports = firebase;
