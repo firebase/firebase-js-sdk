@@ -2,7 +2,7 @@
   "name": "@firebase/functions",
   "version": "0.1.0",
   "description": "",
-  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",  
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
@@ -55,7 +55,7 @@
   "typings": "dist/esm/index.d.ts",
   "dependencies": {
     "@firebase/functions-types": "0.1.0",
-    "@firebase/messaging-types": "^0.1.1",    
+    "@firebase/messaging-types": "^0.1.1",
     "isomorphic-fetch": "^2.2.1"
   },
   "nyc": {
