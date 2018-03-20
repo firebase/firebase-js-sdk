@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {

@@ -10,8 +10,7 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
-  },
+  "peerDependencies": {},
   "devDependencies": {
     "typescript": "^2.4.2"
   },
