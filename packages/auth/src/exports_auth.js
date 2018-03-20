@@ -320,9 +320,6 @@ fireauth.exportlib.exportPrototypeMethods(
 
 fireauth.exportlib.exportPrototypeMethods(
     goog.Promise.prototype, {
-      thenAlways: {
-        name: 'finally'
-      },
       thenCatch: {
         name: 'catch'
       },

@@ -78,10 +78,6 @@ fireauth.storage.Factory.EnvConfig = {
   REACT_NATIVE: {
     persistent: fireauth.storage.AsyncStorage,
     temporary: fireauth.storage.NullStorage
-  },
-  WORKER: {
-    persistent: fireauth.storage.LocalStorage,
-    temporary: fireauth.storage.NullStorage
   }
 };
 
@@ -99,8 +95,6 @@ fireauth.storage.Factory.getEnvConfig = function() {
       fireauth.storage.Factory.EnvConfig.NODE;
   envMap[fireauth.util.Env.REACT_NATIVE] =
       fireauth.storage.Factory.EnvConfig.REACT_NATIVE;
-  envMap[fireauth.util.Env.WORKER] =
-      fireauth.storage.Factory.EnvConfig.WORKER;    
   return envMap[fireauth.util.getEnvironment()];
 };
 
