@@ -206,14 +206,8 @@ fireauth.storage.UserManager.prototype.initialize_ = function() {
   // In memory key. This is unlikely to contain anything on load.
   var inMemoryKey = fireauth.storage.UserManager.getAuthUserKey_(
       fireauth.authStorage.Persistence.NONE);
-  // Migrate any old currentUser from localStorage to indexedDB.
-  // This keeps any user signed in without the need for reauthentication and
-  // minimizes risks of dangling Auth states.
-  return this.manager_.migrateFromLocalStorage(
-      localKey, this.appId_).then(function() {
-    // Check if state is stored in session storage.
-    return self.manager_.get(sessionKey, self.appId_);
-  }).then(function(response) {
+  // Check if state is stored in session storage.
+  return this.manager_.get(sessionKey, this.appId_).then(function(response) {
     if (response) {
       // Session storage is being used.
       return sessionKey;

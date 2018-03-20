@@ -408,47 +408,6 @@ function testGetSet_persistentStorage() {
 }
 
 
-function testMigrateFromLocalStorage_previouslyPersistedWithLocalStorage() {
-  var manager = getDefaultManagerInstance();
-  var key = {name: 'persistent', persistent: 'local'};
-  var expectedValue = 'something';
-  var storageKey = 'firebase:persistent:appId1';
-  // Save expected value to window.localStorage initially.
-  window.localStorage.setItem(storageKey, JSON.stringify(expectedValue));
-  return manager.migrateFromLocalStorage(key, appId)
-      .then(function() {
-        return manager.get(key, appId);
-      })
-      .then(function(value) {
-        // Data should be migrated from window.localStorage to mockLocalStorage.
-        assertEquals(expectedValue, value);
-        assertNull(window.localStorage.getItem(storageKey));
-      });
-}
-
-
-function testMigrateFromLocalStorage_multiplePersistentStorage() {
-  var manager = getDefaultManagerInstance();
-  var key = {name: 'persistent', persistent: 'local'};
-  var expectedValue = 'something';
-  var expectedValue2 = 'somethingElse';
-  var storageKey = 'firebase:persistent:appId1';
-  // Save expected value to mockLocalStorage.
-  mockLocalStorage.set(storageKey, expectedValue);
-  // Save second expected value to window.localStorage.
-  window.localStorage.setItem(storageKey, JSON.stringify(expectedValue2));
-  return manager.migrateFromLocalStorage(key, appId)
-      .then(function() {
-        return manager.get(key, appId);
-      })
-      .then(function(value) {
-        // mockLocalStorage will take precedence over window.localStorage.
-        assertEquals(expectedValue, value);
-        assertNull(window.localStorage.getItem(storageKey));
-      });
-}
-
-
 function testGetSet_persistentStorage_noId() {
   var manager = getDefaultManagerInstance();
   var key = {name: 'persistent', persistent: 'local'};

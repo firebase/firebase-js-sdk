@@ -17,7 +17,6 @@
 goog.provide('fireauth.storage.InMemoryStorageTest');
 
 goog.require('fireauth.storage.InMemoryStorage');
-goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('goog.testing.jsunit');
@@ -39,7 +38,6 @@ function tearDown() {
 
 
 function testBasicStorageOperations() {
-  assertEquals(fireauth.storage.Storage.Type.IN_MEMORY, storage.type);
   return assertBasicStorageOperations(storage);
 }
 

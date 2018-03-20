@@ -17,7 +17,6 @@
 goog.provide('fireauth.storage.MockStorageTest');
 
 goog.require('fireauth.storage.MockStorage');
-goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('goog.events.EventType');
@@ -43,7 +42,6 @@ function tearDown() {
 
 
 function testBasicStorageOperations() {
-  assertEquals(fireauth.storage.Storage.Type.MOCK_STORAGE, storage.type);
   return assertBasicStorageOperations(storage);
 }
 

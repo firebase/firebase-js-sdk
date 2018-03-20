@@ -17,7 +17,6 @@
 goog.provide('fireauth.storage.NullStorageTest');
 
 goog.require('fireauth.storage.NullStorage');
-goog.require('fireauth.storage.Storage');
 goog.require('goog.Promise');
 goog.require('goog.testing.jsunit');
 
@@ -28,7 +27,6 @@ goog.setTestOnly('fireauth.storage.NullStorageTest');
 function testNullStorage() {
   var storage = new fireauth.storage.NullStorage();
   var listener = function() {};
-  assertEquals(fireauth.storage.Storage.Type.NULL_STORAGE, storage.type);
   storage.addStorageListener(listener);
   storage.removeStorageListener(listener);
   return goog.Promise.resolve()

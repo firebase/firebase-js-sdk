@@ -494,26 +494,6 @@ function testGetEnvironment_node() {
 }
 
 
-function testGetEnvironment_worker() {
-  // Simulate worker environment.
-  stubs.replace(
-      fireauth.util,
-      'isWorker',
-      function() {
-        return true;
-      });
-  assertEquals(fireauth.util.Env.WORKER, fireauth.util.getEnvironment());
-}
-
-
-function testIsWorker() {
-  assertFalse(fireauth.util.isWorker({'window': {}}));
-  assertTrue(fireauth.util.isWorker({
-    'importScripts': function() {}
-  }));
-}
-
-
 function testGetBrowserName_opera() {
   assertEquals('Opera', fireauth.util.getBrowserName(operaUA));
 }
@@ -618,25 +598,6 @@ function testGetClientVersion_node() {
       fireauth.util.ClientImplementation.JSCORE,
       firebaseSdkVersion);
   assertEquals('Node/JsCore/3.0.0/FirebaseCore-web', clientVersion);
-}
-
-
-function testGetClientVersion_worker() {
-  var ua = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like ' +
-      'Gecko) Chrome/50.0.2661.94 Safari/537.36';
-  var firebaseSdkVersion = '4.9.1';
-  // Simulate worker environment.
-  stubs.replace(
-      fireauth.util,
-      'isWorker',
-      function() {
-        return true;
-      });
-  assertEquals(
-      'Chrome-Worker/JsCore/4.9.1/FirebaseCore-web',
-      fireauth.util.getClientVersion(
-          fireauth.util.ClientImplementation.JSCORE, firebaseSdkVersion,
-          null, ua));
 }
 
 
@@ -941,35 +902,6 @@ function testIsPopupRedirectSupported_unsupportedNativeEnvironment() {
 }
 
 
-function testIsPopupRedirectSupported_workerEnvironment() {
-  fireauth.util.isCordovaEnabled = false;
-  // Web storage supported via indexedDB within worker.
-  stubs.replace(fireauth.util, 'isWebStorageSupported', function() {
-    return true;
-  });
-  // HTTPS scheme.
-  stubs.replace(fireauth.util, 'getCurrentScheme', function() {
-    return 'https:';
-  });
-  // Neither iOS, nor Android file environment.
-  stubs.replace(fireauth.util, 'isAndroidOrIosFileEnvironment', function() {
-    return false;
-  });
-  // Non-native environment environment.
-  stubs.replace(fireauth.util, 'isNativeEnvironment', function() {
-    return false;
-  });
-  // Popup/redirect should be supported with above conditions (minus worker).
-  assertTrue(fireauth.util.isPopupRedirectSupported());
-  // Simulate worker environment.
-  stubs.replace(fireauth.util, 'isWorker', function() {
-    return true;
-  });
-  // Popup/redirect no longer supported.
-  assertFalse(fireauth.util.isPopupRedirectSupported());
-}
-
-
 function testIsChromeExtension() {
   // Test https environment.
   stubs.replace(
@@ -1264,12 +1196,6 @@ function testIsMobileDevice() {
       fireauth.util.isMobileDevice(chromeUA, fireauth.util.Env.BROWSER));
   assertFalse(
       fireauth.util.isMobileDevice(null, fireauth.util.Env.NODE));
-  // For worker environments, the userAgent is still accessible and should be
-  // used to determine if the current device is a mobile device.
-  assertTrue(
-      fireauth.util.isMobileDevice(chriosUA, fireauth.util.Env.WORKER));
-  assertFalse(
-      fireauth.util.isMobileDevice(chromeUA, fireauth.util.Env.WORKER));
 }
 
 
@@ -1318,32 +1244,6 @@ function testIsMobileDevice_mobileEnv_default() {
     return fireauth.util.Env.REACT_NATIVE;
   });
   assertTrue(fireauth.util.isMobileDevice());
-}
-
-
-function testIsMobileDevice_mobileWorker_default() {
-  // Simulate mobile browser.
-  stubs.replace(fireauth.util, 'isMobileBrowser', function(ua) {
-    return true;
-  });
-  // Whether this is a worker or a non-worker shouldn't matter.
-  stubs.replace(fireauth.util, 'getEnvironment', function() {
-    return fireauth.util.Env.WORKER;
-  });
-  assertTrue(fireauth.util.isMobileDevice());
-}
-
-
-function testIsMobileDevice_desktopWorker_default() {
-  // Simulate desktop browser.
-  stubs.replace(fireauth.util, 'isMobileBrowser', function(ua) {
-    return false;
-  });
-  // Whether this is a worker or a non-worker shouldn't matter.
-  stubs.replace(fireauth.util, 'getEnvironment', function() {
-    return fireauth.util.Env.WORKER;
-  });
-  assertFalse(fireauth.util.isMobileDevice());
 }
 
 
@@ -1490,24 +1390,6 @@ function testDelay_desktopBrowser() {
 function testDelay_mobileBrowser() {
   var delay =
       new fireauth.util.Delay(10, 50, chriosUA, fireauth.util.Env.BROWSER);
-  assertEquals(50, delay.get());
-}
-
-
-function testDelay_desktopBrowser() {
-  // Whether this is a worker or a non-worker shouldn't matter.
-  // The userAgent is the authority on how the delay is determined.
-  var delay =
-      new fireauth.util.Delay(10, 50, chromeUA, fireauth.util.Env.WORKER);
-  assertEquals(10, delay.get());
-}
-
-
-function testDelay_mobileBrowser() {
-  // Whether this is a worker or a non-worker shouldn't matter.
-  // The userAgent is the authority on how the delay is determined.
-  var delay =
-      new fireauth.util.Delay(10, 50, chriosUA, fireauth.util.Env.WORKER);
   assertEquals(50, delay.get());
 }
 
@@ -1731,11 +1613,7 @@ function testUtcTimestampToDateString() {
 
 
 function testPersistsStorageWithIndexedDB() {
-  // SDK only: localStorage not synchronized and indexedDB available.
-  stubs.replace(
-      fireauth.util,
-      'isAuthHandlerOrIframe',
-      function() {return false;});
+  // localStorage not synchronized and indexedDB available.
   stubs.replace(
       fireauth.util,
       'isLocalStorageNotSynchronized',
@@ -1746,7 +1624,7 @@ function testPersistsStorageWithIndexedDB() {
       function() {return true;});
   assertTrue(fireauth.util.persistsStorageWithIndexedDB());
 
-  // SDK only: localStorage synchronized and indexedDB available.
+  // localStorage synchronized and indexedDB available.
   stubs.replace(
       fireauth.util,
       'isLocalStorageNotSynchronized',
@@ -1755,7 +1633,7 @@ function testPersistsStorageWithIndexedDB() {
       fireauth.util,
       'isIndexedDBAvailable',
       function() {return true;});
-  assertTrue(fireauth.util.persistsStorageWithIndexedDB());
+  assertFalse(fireauth.util.persistsStorageWithIndexedDB());
 
   // indexedDB not available.
   stubs.reset();
@@ -1763,35 +1641,5 @@ function testPersistsStorageWithIndexedDB() {
       fireauth.util,
       'isIndexedDBAvailable',
       function() {return false;});
-  assertFalse(fireauth.util.persistsStorageWithIndexedDB());
-
-  // Auth handler/iframe: localStorage not synchronized and indexedDB available.
-  stubs.replace(
-      fireauth.util,
-      'isAuthHandlerOrIframe',
-      function() {return true;});
-  stubs.replace(
-      fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {return true;});
-  stubs.replace(
-      fireauth.util,
-      'isIndexedDBAvailable',
-      function() {return true;});
-  assertTrue(fireauth.util.persistsStorageWithIndexedDB());
-
-  // Auth handler/iframe: localStorage synchronized and indexedDB available.
-  stubs.replace(
-      fireauth.util,
-      'isAuthHandlerOrIframe',
-      function() {return true;});
-  stubs.replace(
-      fireauth.util,
-      'isLocalStorageNotSynchronized',
-      function() {return false;});
-  stubs.replace(
-      fireauth.util,
-      'isIndexedDBAvailable',
-      function() {return true;});
   assertFalse(fireauth.util.persistsStorageWithIndexedDB());
 }

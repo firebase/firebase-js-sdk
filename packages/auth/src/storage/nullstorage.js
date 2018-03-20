@@ -16,7 +16,6 @@
 
 goog.provide('fireauth.storage.NullStorage');
 
-goog.require('fireauth.storage.Storage');
 goog.require('goog.Promise');
 
 
@@ -30,8 +29,6 @@ goog.require('goog.Promise');
 fireauth.storage.NullStorage = function() {
   /** @private {!Object} The object where we store values. */
   this.storage_ = {};
-  /** @protected {string} The storage type identifier. */
-  this.type = fireauth.storage.Storage.Type.NULL_STORAGE;
 };
 
 
