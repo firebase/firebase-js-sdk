@@ -23,6 +23,11 @@ importScripts('/dist/firebase-app.js');
 importScripts('/dist/firebase-auth.js');
 importScripts('config.js');
 
+// Polyfill Promise in case it is not supported.
+if (typeof Promise === 'undefined') {
+  var Promise = firebase.Promise;
+}
+
 // Initialize the Firebase app in the web worker.
 firebase.initializeApp(config);
 
@@ -179,7 +184,8 @@ self.onmessage = function(e) {
           self.postMessage(result);
         }).catch(function(error) {
           result.status = 'failure';
-          result.error = error;
+          // DataCloneError when postMessaging in IE11 and 10.
+          result.error = error.code ? error : error.message;
           self.postMessage(result);
         });
         break;

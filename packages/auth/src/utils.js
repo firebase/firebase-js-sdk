@@ -630,6 +630,20 @@ fireauth.util.isWorker = function(opt_global) {
 
 
 /**
+ * @param {?Object=} opt_global The optional global scope.
+ * @return {boolean} Whether current environment supports fetch API and other
+ *     APIs it depends on.
+ */
+fireauth.util.isFetchSupported = function(opt_global) {
+  // Required by fetch API calls.
+  var scope = opt_global || goog.global;
+  return typeof scope['fetch'] !== 'undefined' &&
+         typeof scope['Headers'] !== 'undefined' &&
+         typeof scope['Request'] !== 'undefined';
+};
+
+
+/**
  * Enum for the runtime environment.
  * @enum {string}
  */
