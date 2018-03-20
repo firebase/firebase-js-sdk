@@ -462,6 +462,13 @@ fireauth.RpcHandler.prototype.sendXhrUsingXhrIo_ = function(
     opt_data,
     opt_headers,
     opt_timeout) {
+  if (fireauth.util.isWorker() && !fireauth.util.isFetchSupported()) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+        'fetch, Headers and Request native APIs or equivalent Polyfills ' +
+        'must be available to support HTTP requests from a Worker ' +
+        'environment.');
+  }
   var xhrIo = new goog.net.XhrIo(this.rpcHandlerXhrFactory_);
 
   // xhrIo.setTimeoutInterval not working in IE10 and IE11, handle manually.
