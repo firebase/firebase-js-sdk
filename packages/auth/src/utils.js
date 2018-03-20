@@ -23,7 +23,6 @@ goog.provide('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.Timer');
 goog.require('goog.Uri');
-goog.require('goog.dom');
 goog.require('goog.events');
 goog.require('goog.events.EventType');
 goog.require('goog.html.SafeUrl');
@@ -83,8 +82,7 @@ fireauth.util.isLocalStorageNotSynchronized = function(opt_userAgent) {
 /** @return {string} The current URL. */
 fireauth.util.getCurrentUrl = function() {
   return (goog.global['window'] && goog.global['window']['location']['href']) ||
-      // Check for worker environments.
-      (self && self['location'] && self['location']['href']) || '';
+      '';
 };
 
 
@@ -494,12 +492,6 @@ fireauth.util.onDomReady = function() {
     goog.events.unlisten(window, goog.events.EventType.LOAD, resolver);
     throw error;
   });
-};
-
-
-/** @return {boolean} Whether environment supports DOM. */
-fireauth.util.isDOMSupported = function() {
-  return !!goog.global.document;
 };
 
 
@@ -1103,6 +1095,21 @@ fireauth.util.parseJSON = function(json) {
 
 
 /**
+ * @return {?function(new:XMLHttpRequest)|undefined} The current environment
+ *     XMLHttpRequest.
+ */
+fireauth.util.getXMLHttpRequest = function() {
+  // In Node.js XMLHttpRequest is polyfilled.
+  var isNode = fireauth.util.getEnvironment() == fireauth.util.Env.NODE;
+  var XMLHttpRequest = goog.global['XMLHttpRequest'] ||
+      (isNode &&
+       firebase.INTERNAL['node'] &&
+       firebase.INTERNAL['node']['XMLHttpRequest']);
+  return XMLHttpRequest;
+};
+
+
+/**
  * @param {?string=} opt_prefix An optional prefix string to prepend to ID.
  * @return {string} The generated event ID used to identify a generic event.
  */
@@ -1383,25 +1390,4 @@ fireauth.util.persistsStorageWithIndexedDB = function() {
   return (fireauth.util.isLocalStorageNotSynchronized() ||
           !fireauth.util.isAuthHandlerOrIframe()) &&
          fireauth.util.isIndexedDBAvailable();
-};
-
-
-/** Sets the no-referrer meta tag in the document head if applicable. */
-fireauth.util.setNoReferrer = function() {
-  var doc = goog.global.document;
-  if (doc) {
-    try {
-      var meta = goog.dom.createDom(goog.dom.TagName.META, {
-        'name': 'referrer',
-        'content': 'no-referrer'
-      });
-      var headCollection = goog.dom.getElementsByTagName(goog.dom.TagName.HEAD);
-      // Append meta tag to head.
-      if (headCollection.length) {
-        headCollection[0].appendChild(meta);
-      }
-    } catch (e) {
-      // Best effort approach.
-    }
-  }
 };

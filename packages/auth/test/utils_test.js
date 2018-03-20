@@ -22,7 +22,6 @@ goog.provide('fireauth.utilTest');
 
 goog.require('fireauth.util');
 goog.require('goog.Timer');
-goog.require('goog.dom');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.TestCase');
@@ -95,7 +94,6 @@ var parsedJSON = {
     'someOtherKeyName': false
   }
 };
-var lastMetaTag;
 
 
 function setUp() {
@@ -107,10 +105,6 @@ function tearDown() {
   mockControl.$tearDown();
   angular = undefined;
   stubs.reset();
-  if (lastMetaTag) {
-    goog.dom.removeNode(lastMetaTag);
-    lastMetaTag = null;
-  }
 }
 
 
@@ -1800,32 +1794,4 @@ function testPersistsStorageWithIndexedDB() {
       'isIndexedDBAvailable',
       function() {return true;});
   assertFalse(fireauth.util.persistsStorageWithIndexedDB());
-}
-
-
-/**
- * @return {?HTMLElement} The last meta element if available in the head
- *     element.
- */
-function getLastMetaTag() {
-  var collection = goog.dom.getElementsByTagName('head');
-  if (collection.length) {
-    var metaTags = goog.dom.getElementsByTagName('meta', collection[0]);
-    if (metaTags.length > 0) {
-      return metaTags[metaTags.length - 1];
-    }
-  }
-  return null;
-}
-
-
-function testSetNoReferrer() {
-  lastMetaTag = getLastMetaTag();
-  if (lastMetaTag) {
-    assertNotEquals('referrer', lastMetaTag.getAttribute('name'));
-  }
-  fireauth.util.setNoReferrer();
-  lastMetaTag = getLastMetaTag();
-  assertEquals('referrer', lastMetaTag.getAttribute('name'));
-  assertEquals('no-referrer', lastMetaTag.getAttribute('content'));
 }
