@@ -520,6 +520,31 @@ function testIsWorker() {
 }
 
 
+function testIsFetchSupported() {
+  // All fetch related APIs supported.
+  assertTrue(fireauth.util.isFetchSupported({
+    'fetch': function() {},
+    'Request': function() {},
+    'Headers': function() {}
+  }));
+  // Headers missing.
+  assertFalse(fireauth.util.isFetchSupported({
+    'fetch': function() {},
+    'Request': function() {},
+  }));
+  // Request missing.
+  assertFalse(fireauth.util.isFetchSupported({
+    'fetch': function() {},
+    'Headers': function() {}
+  }));
+  // fetch missing.
+  assertFalse(fireauth.util.isFetchSupported({
+    'Request': function() {},
+    'Headers': function() {}
+  }));
+}
+
+
 function testGetBrowserName_opera() {
   assertEquals('Opera', fireauth.util.getBrowserName(operaUA));
 }

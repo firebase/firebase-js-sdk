@@ -209,6 +209,11 @@ function testRpcHandler_XMLHttpRequest_worker() {
       fireauth.util,
       'isWorker',
       function() {return true;});
+  // Simulate fetch, Request and Headers API supported.
+  stubs.replace(
+      fireauth.util,
+      'isFetchSupported',
+      function() {return true;});
   // No XMLHttpRequest available.
   stubs.replace(
       fireauth.RpcHandler,
@@ -230,6 +235,42 @@ function testRpcHandler_XMLHttpRequest_worker() {
       });
   // Timeout XHR request.
   clock.tick(delay * 2);
+}
+
+
+function testRpcHandler_XMLHttpRequest_worker_fetchNotSupported() {
+  // Test worker environment where fetch, Headers and Request are not supported.
+  // Simulates global self in a worker environment.
+  goog.global['self']  = {};
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+      'fetch, Headers and Request native APIs or equivalent Polyfills ' +
+      'must be available to support HTTP requests from a Worker environment.');
+  stubs.reset();
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return true;});
+  // Simulate fetch, Request and Headers API not supported.
+  stubs.replace(
+      fireauth.util,
+      'isFetchSupported',
+      function() {return false;});
+  // No XMLHttpRequest available.
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return undefined;});
+  asyncTestCase.waitForSignals(1);
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then expected error thrown.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(actualError) {
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError, actualError);
+        asyncTestCase.signal();
+      });
 }
 
 
