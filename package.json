@@ -11,6 +11,7 @@
     "database",
     "Firebase",
     "firebase",
+    "functions",
     "realtime",
     "storage"
   ],
