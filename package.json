@@ -18,7 +18,6 @@
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
-    "prepush": "node tools/gitHooks/prepush.js",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
@@ -41,13 +40,14 @@
     "chalk": "^2.3.1",
     "child-process-promise": "^2.2.1",
     "clone": "^2.1.1",
+    "common-tags": "^1.7.2",
     "coveralls": "^3.0.0",
     "dependency-graph": "^0.7.0",
     "firebase-tools": "^3.17.4",
     "glob": "^7.1.2",
     "gulp-sourcemaps": "^2.6.4",
     "gulp-typescript": "^4.0.1",
-    "husky": "^0.14.3",
+    "husky": "^0.15.0-rc.9",
     "inquirer": "^5.1.0",
     "istanbul-instrumenter-loader": "^3.0.0",
     "lcov-result-merger": "^2.0.0",
@@ -62,5 +62,10 @@
     "semver": "^5.5.0",
     "simple-git": "^1.91.0",
     "yargs": "^11.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "post-commit": "node tools/postCommit"
+    }
   }
 }
