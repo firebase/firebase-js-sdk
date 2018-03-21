@@ -18,11 +18,15 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import {
   WebStorageSharedClientState,
   SharedClientState,
-  LocalClientState
+  LocalClientState,
+  RemoteMutationBatch
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
+import { User } from '../../../src/auth/user';
+import { FirestoreError } from '../../../src/util/error';
+import { SharedClientDelegate } from '../../../src/local/shared_client_delegate';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -30,6 +34,38 @@ import { expect } from 'chai';
  * and locking time in LocalStorage.
  */
 const GRACE_INTERVAL_MS = 100;
+
+const TEST_USER = User.UNAUTHENTICATED;
+
+function mutationKey(batchId: BatchId) {
+  return `fs_mutations_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${
+    TEST_USER.uid
+  }_${batchId}`;
+}
+
+/**
+ * Implementation of `SharedClientDelegate` that aggregates its callback data.
+ */
+class TestClientDelegate implements SharedClientDelegate {
+  readonly pendingBatches: BatchId[] = [];
+  readonly acknowledgedBatches: BatchId[] = [];
+  readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
+
+  async loadPendingBatch(batchId: BatchId): Promise<void> {
+    this.pendingBatches.push(batchId);
+  }
+
+  async applySuccessfulWrite(batchId: BatchId): Promise<void> {
+    this.acknowledgedBatches.push(batchId);
+  }
+
+  async rejectFailedWrite(
+    batchId: BatchId,
+    err: FirestoreError
+  ): Promise<void> {
+    this.rejectedBatches[batchId] = err;
+  }
+}
 
 describe('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable()) {
@@ -42,10 +78,25 @@ describe('WebStorageSharedClientState', () => {
   const localStorage = window.localStorage;
 
   let sharedClientState: SharedClientState;
+  let storageCallback: (StorageEvent) => void;
+  let previousAddEventListener;
   let ownerId;
 
   beforeEach(() => {
     ownerId = AutoId.newId();
+    previousAddEventListener = window.addEventListener;
+
+    // We capture the listener here so that we can invoke it from the local
+    // client. If we directly relied on LocalStorage listeners, we would not
+    // receive events for local writes.
+    window.addEventListener = (type, callback) => {
+      expect(type).to.equal('storage');
+      storageCallback = callback;
+    };
+  });
+
+  afterEach(() => {
+    window.addEventListener = previousAddEventListener;
   });
 
   function assertClientState(
@@ -76,10 +127,37 @@ describe('WebStorageSharedClientState', () => {
     expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
+  function assertBatchState(
+    batchId: BatchId,
+    mutationBatchState: string,
+    err?: FirestoreError
+  ): void {
+    const actual = JSON.parse(localStorage.getItem(mutationKey(batchId)));
+
+    expect(actual.lastUpdateTime)
+      .to.be.a('number')
+      .greaterThan(Date.now() - GRACE_INTERVAL_MS)
+      .and.at.most(Date.now());
+
+    expect(actual.state).to.equal(mutationBatchState);
+
+    const expectedMembers = ['lastUpdateTime', 'state'];
+
+    if (mutationBatchState === 'error') {
+      expectedMembers.push('error');
+      expect(actual.error.code).to.equal(err.code);
+      expect(actual.error.message).to.equal(err.message);
+    }
+
+    expect(Object.keys(actual)).to.have.members(expectedMembers);
+  }
+
+  // TODO(multitab): Add tests for acknowledged and failed batches once
+  // SharedClientState can handle these updates.
   describe('persists mutation batches', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId, [], [])
+        .testWebStorageSharedClientState(ownerId)
         .then(nc => {
           sharedClientState = nc;
         });
@@ -93,19 +171,24 @@ describe('WebStorageSharedClientState', () => {
       assertClientState([], null, null);
     });
 
-    it('with one batch', () => {
+    it('with one pending batch', () => {
       sharedClientState.addLocalPendingMutation(0);
       assertClientState([], 0, 0);
+      assertBatchState(0, 'pending');
     });
 
-    it('with multiple batches', () => {
+    it('with multiple pending batches', () => {
       sharedClientState.addLocalPendingMutation(0);
       sharedClientState.addLocalPendingMutation(1);
       assertClientState([], 0, 1);
+      assertBatchState(0, 'pending');
+      assertBatchState(1, 'pending');
 
       sharedClientState.addLocalPendingMutation(2);
       sharedClientState.addLocalPendingMutation(3);
       assertClientState([], 0, 3);
+      assertBatchState(2, 'pending');
+      assertBatchState(3, 'pending');
 
       // Note: The Firestore client only ever removes mutations in order.
       sharedClientState.removeLocalPendingMutation(0);
@@ -117,7 +200,7 @@ describe('WebStorageSharedClientState', () => {
   describe('persists query targets', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId, [], [])
+        .testWebStorageSharedClientState(ownerId)
         .then(nc => {
           sharedClientState = nc;
         });
@@ -144,23 +227,10 @@ describe('WebStorageSharedClientState', () => {
     });
   });
 
-  describe('combines data', () => {
-    let previousAddEventListener;
-    let storageCallback: (StorageEvent) => void;
-
+  describe('combines client state', () => {
     beforeEach(() => {
-      previousAddEventListener = window.addEventListener;
-
-      // We capture the listener here so that we can invoke it from the local
-      // client. If we directly relied on LocalStorage listeners, we would not
-      // receive events for local writes.
-      window.addEventListener = (type, callback) => {
-        expect(type).to.equal('storage');
-        storageCallback = callback;
-      };
-
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId, [1, 2], [3, 4])
+        .testWebStorageSharedClientState(ownerId, undefined, [1, 2], [3, 4])
         .then(nc => {
           sharedClientState = nc;
           expect(storageCallback).to.not.be.undefined;
@@ -169,7 +239,6 @@ describe('WebStorageSharedClientState', () => {
 
     afterEach(() => {
       sharedClientState.shutdown();
-      window.addEventListener = previousAddEventListener;
     });
 
     function verifyState(minBatchId: BatchId, expectedTargets: TargetId[]) {
@@ -206,22 +275,23 @@ describe('WebStorageSharedClientState', () => {
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
-      const oldState = new LocalClientState();
-      oldState.addQueryTarget(5);
-
-      const updatedState = new LocalClientState();
-      updatedState.addQueryTarget(5);
-      updatedState.addQueryTarget(6);
-
       // The prior client has one pending mutation and two active query targets
       verifyState(1, [3, 4]);
+
+      const oldState = new LocalClientState();
+      oldState.addQueryTarget(5);
 
       storageCallback({
         key: secondaryClientKey,
         storageArea: window.localStorage,
         newValue: oldState.toLocalStorageJSON()
       });
-      verifyState(0, [3, 4, 5]);
+      verifyState(1, [3, 4, 5]);
+
+      const updatedState = new LocalClientState();
+      updatedState.addQueryTarget(5);
+      updatedState.addQueryTarget(6);
+      updatedState.addPendingMutation(0);
 
       storageCallback({
         key: secondaryClientKey,
@@ -259,6 +329,91 @@ describe('WebStorageSharedClientState', () => {
         newValue: JSON.stringify(invalidState)
       });
       verifyState(1, [3, 4]);
+    });
+  });
+
+  describe('processes mutation updates', () => {
+    let clientDelegate;
+
+    beforeEach(() => {
+      clientDelegate = new TestClientDelegate();
+
+      return persistenceHelpers
+        .testWebStorageSharedClientState(ownerId, clientDelegate)
+        .then(nc => {
+          sharedClientState = nc;
+          expect(storageCallback).to.not.be.undefined;
+        });
+    });
+
+    afterEach(() => {
+      sharedClientState.shutdown();
+    });
+
+    it('for pending mutation', () => {
+      storageCallback({
+        key: mutationKey(1),
+        storageArea: window.localStorage,
+        newValue: new RemoteMutationBatch(
+          TEST_USER,
+          1,
+          'pending'
+        ).toLocalStorageJSON()
+      });
+
+      expect(clientDelegate.pendingBatches).to.have.members([1]);
+      expect(clientDelegate.acknowledgedBatches).to.be.empty;
+      expect(clientDelegate.rejectedBatches).to.be.empty;
+    });
+
+    it('for acknowledged mutation', () => {
+      storageCallback({
+        key: mutationKey(1),
+        storageArea: window.localStorage,
+        newValue: new RemoteMutationBatch(
+          TEST_USER,
+          1,
+          'acknowledged'
+        ).toLocalStorageJSON()
+      });
+
+      expect(clientDelegate.pendingBatches).to.be.empty;
+      expect(clientDelegate.acknowledgedBatches).to.have.members([1]);
+      expect(clientDelegate.rejectedBatches).to.be.empty;
+    });
+
+    it('for rejected mutation', () => {
+      storageCallback({
+        key: mutationKey(1),
+        storageArea: window.localStorage,
+        newValue: new RemoteMutationBatch(
+          TEST_USER,
+          1,
+          'rejected',
+          new FirestoreError('internal', 'Test Error')
+        ).toLocalStorageJSON()
+      });
+
+      expect(clientDelegate.pendingBatches).to.be.empty;
+      expect(clientDelegate.acknowledgedBatches).to.be.empty;
+      expect(clientDelegate.rejectedBatches[1].code).to.equal('internal');
+      expect(clientDelegate.rejectedBatches[1].message).to.equal('Test Error');
+    });
+
+    it('ignores invalid data', () => {
+      storageCallback({
+        key: mutationKey(1),
+        storageArea: window.localStorage,
+        newValue: new RemoteMutationBatch(
+          TEST_USER,
+          1,
+          'invalid' as any
+        ).toLocalStorageJSON()
+      });
+
+      expect(clientDelegate.pendingBatches).to.be.empty;
+      expect(clientDelegate.acknowledgedBatches).to.be.empty;
+      expect(clientDelegate.rejectedBatches).to.be.empty;
     });
   });
 });
