@@ -17,6 +17,7 @@
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
+    "precommit": "lint-staged",
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
     "prepush": "node tools/gitHooks/prepush.js",
     "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
@@ -52,6 +53,7 @@
     "istanbul-instrumenter-loader": "^3.0.0",
     "lcov-result-merger": "^2.0.0",
     "lerna": "^2.9.0",
+    "lint-staged": "^7.0.0",
     "listr": "^0.13.0",
     "merge2": "^1.2.1",
     "mkdirp": "^0.5.1",
@@ -62,5 +64,15 @@
     "semver": "^5.5.0",
     "simple-git": "^1.91.0",
     "yargs": "^11.0.0"
+  },
+  "lint-staged": {
+  	"*.ts": [
+      "prettier --write",
+      "git add"
+  	],
+  	"*.js": [
+      "prettier --write",
+      "git add"
+  	]
   }
 }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-const { doPrettierCommit } = require('./prettier');
 const { doLicenseCommit } = require('./license');
 const { resolve } = require('path');
 const simpleGit = require('simple-git/promise');
@@ -42,9 +41,6 @@ $ git stash pop
       console.error(notCleanTreeString);
       return process.exit(1);
     }
-
-    // Style the code
-    await doPrettierCommit();
 
     // Validate License headers exist
     await doLicenseCommit();
