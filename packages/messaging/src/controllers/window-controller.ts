@@ -371,7 +371,10 @@ export default class WindowController extends ControllerInterface
   /**
    * Gets a PushSubscription for the current user.
    */
-  getPushSubscription(swRegistration: ServiceWorkerRegistration, publicVapidKey: Uint8Array): Promise<PushSubscription> {
+  getPushSubscription(
+    swRegistration: ServiceWorkerRegistration,
+    publicVapidKey: Uint8Array
+  ): Promise<PushSubscription> {
     // Check for existing subscription first
     let subscription;
     let fcmTokenDetails;

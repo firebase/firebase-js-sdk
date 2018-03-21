@@ -378,7 +378,10 @@ export default class SWController extends ControllerInterface {
       });
   }
 
-  getPushSubscription(swRegistration: ServiceWorkerRegistration, publicVapidKey: Uint8Array): Promise<PushSubscription> {
+  getPushSubscription(
+    swRegistration: ServiceWorkerRegistration,
+    publicVapidKey: Uint8Array
+  ): Promise<PushSubscription> {
     return Promise.resolve(null);
   }
 }
