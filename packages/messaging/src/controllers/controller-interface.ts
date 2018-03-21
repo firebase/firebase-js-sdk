@@ -273,11 +273,8 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
-  getPushSubscription_(
-    registration,
-    publicVapidKey
-  ): Promise<PushSubscription> {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  private getPushSubscription(swRegistration: ServiceWorkerRegistration, publicVapidKey: Uint8Array): Promise<PushSubscription> {
+    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
   /**
