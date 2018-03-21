@@ -145,7 +145,7 @@ export default class ControllerInterface {
     return this.getPublicVapidKey_()
       .then(publicKey => {
         publicVapidKey = publicKey;
-        return this.getPushSubscription_(swReg, publicVapidKey);
+        return this.getPushSubscription(swReg, publicVapidKey);
       })
       .then(pushSubscription => {
         subscription = pushSubscription;
@@ -192,7 +192,7 @@ export default class ControllerInterface {
     return this.getPublicVapidKey_()
       .then(publicKey => {
         publicVapidKey = publicKey;
-        return this.getPushSubscription_(swReg, publicVapidKey);
+        return this.getPushSubscription(swReg, publicVapidKey);
       })
       .then(pushSubscription => {
         subscription = pushSubscription;
