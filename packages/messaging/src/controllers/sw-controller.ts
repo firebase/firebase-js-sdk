@@ -377,11 +377,4 @@ export default class SWController extends ControllerInterface {
         return vapidKeyFromDatabase;
       });
   }
-
-  getPushSubscription(
-    swRegistration: ServiceWorkerRegistration,
-    publicVapidKey: Uint8Array
-  ): Promise<PushSubscription> {
-    return Promise.resolve(null);
-  }
 }

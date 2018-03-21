@@ -273,11 +273,23 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
-  private getPushSubscription(
+  /**
+   * Gets a PushSubscription for the current user.
+   */
+  getPushSubscription(
     swRegistration: ServiceWorkerRegistration,
     publicVapidKey: Uint8Array
   ): Promise<PushSubscription> {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+    return swRegistration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        return subscription;
+      }
+
+      return swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicVapidKey
+      });
+    });
   }
 
   /**
