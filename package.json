@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "description": "Monorepo for the Firebase JavaScript SDK",
   "private": true,
-  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "author":
+    "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "homepage": "https://github.com/firebase/firebase-js-sdk",
   "keywords": [
@@ -18,7 +19,8 @@
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
     "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
-    "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
+    "link:packages":
+      "lerna exec --scope @firebase/* --scope firebase -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
     "release": "node scripts/release/cli.js",
@@ -32,10 +34,7 @@
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
-  "workspaces": [
-    "packages/*",
-    "integration/*"
-  ],
+  "workspaces": ["packages/*", "integration/*"],
   "devDependencies": {
     "chalk": "^2.3.1",
     "child-process-promise": "^2.2.1",
