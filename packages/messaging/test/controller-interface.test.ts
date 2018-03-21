@@ -99,7 +99,9 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('getPushSubscription()', function() {
     controllersToTest.forEach(ControllerInTest => {
-      it(`should return rejection error in ${ControllerInTest.name}`, function() {
+      it(`should return rejection error in ${
+        ControllerInTest.name
+      }`, function() {
         const injectedError = new Error('Inject error.');
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
