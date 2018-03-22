@@ -1175,7 +1175,9 @@ export async function runSpec(
     await sequence(steps, async step => {
       ++count;
       lastStep = step;
-      return ensureRunner(step.clientIndex || 0).then(runner => runner.run(step));
+      return ensureRunner(step.clientIndex || 0).then(runner =>
+        runner.run(step)
+      );
     });
   } catch (err) {
     console.warn(
