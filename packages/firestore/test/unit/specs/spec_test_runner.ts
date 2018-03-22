@@ -320,8 +320,6 @@ interface OutstandingWrite {
 abstract class TestRunner {
   protected queue: AsyncQueue;
 
-  private started = false;
-
   private connection: MockConnection;
   private eventManager: EventManager;
   private syncEngine: SyncEngine;
@@ -421,19 +419,15 @@ abstract class TestRunner {
     serializer: JsonProtoSerializer
   ): Persistence;
 
-  async startIfNeeded(): Promise<void> {
-    if (!this.started) {
-      this.connection.reset();
-      await this.persistence.start();
-      await this.localStore.start();
-      await this.remoteStore.start();
+  async start(): Promise<void> {
+    this.connection.reset();
+    await this.persistence.start();
+    await this.localStore.start();
+    await this.remoteStore.start();
 
-      this.persistence.setPrimaryStateListener(isPrimary =>
-        this.syncEngine.applyPrimaryState(isPrimary)
-      );
-
-      this.started = true;
-    }
+    this.persistence.setPrimaryStateListener(isPrimary =>
+      this.syncEngine.applyPrimaryState(isPrimary)
+    );
   }
 
   async shutdown(): Promise<void> {
@@ -1159,23 +1153,29 @@ export async function runSpec(
 ): Promise<void> {
   console.log('Running spec: ' + name);
   const platform = new TestPlatform(PlatformSupport.getPlatform());
+
+  // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   let runners: TestRunner[] = [];
-  for (let i = 0; i < config.numClients; ++i) {
-    if (usePersistence) {
-      runners.push(new IndexedDbTestRunner(name, platform, config));
-    } else {
-      runners.push(new MemoryTestRunner(name, platform, config));
+
+  const ensureRunner = async clientIndex => {
+    if (!runners[clientIndex]) {
+      if (usePersistence) {
+        runners[clientIndex] = new IndexedDbTestRunner(name, platform, config);
+      } else {
+        runners[clientIndex] = new MemoryTestRunner(name, platform, config);
+      }
+      await runners[clientIndex].start();
     }
-  }
+    return runners[clientIndex];
+  };
+
   let lastStep = null;
   let count = 0;
   try {
     await sequence(steps, async step => {
       ++count;
       lastStep = step;
-      const clientIndex = step.clientIndex || 0;
-      await runners[clientIndex].startIfNeeded();
-      return runners[clientIndex].run(step);
+      return ensureRunner(step.clientIndex || 0).then(runner => runner.run(step));
     });
   } catch (err) {
     console.warn(
