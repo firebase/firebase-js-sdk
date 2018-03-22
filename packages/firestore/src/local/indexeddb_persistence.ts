@@ -308,6 +308,19 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
+  getActiveClients(): Promise<ClientKey[]> {
+    const clientKeys: ClientKey[] = [];
+    return this.simpleDb
+      .runTransaction('readonly', [DbClientMetadata.store], txn => {
+        return clientMetadataStore(txn).iterate((key, value) => {
+          if (this.isWithinMaxAge(value.updateTimeMs)) {
+            clientKeys.push(value.clientKey);
+          }
+        });
+      })
+      .then(() => clientKeys);
+  }
+
   getMutationQueue(user: User): MutationQueue {
     return IndexedDbMutationQueue.forUser(user, this.serializer);
   }

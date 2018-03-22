@@ -621,6 +621,14 @@ export class SpecBuilder {
     return this;
   }
 
+  expectNumActiveClients(num: number): SpecBuilder {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.numActiveClients = num;
+    return this;
+  }
+
   expectPrimaryState(isPrimary: boolean): SpecBuilder {
     this.assertStep('Expectations requires previous step');
     const currentStep = this.currentStep!;
@@ -925,6 +933,11 @@ export class MultiClientSpecBuilder extends SpecBuilder {
 
   expectNumOutstandingWrites(num: number): MultiClientSpecBuilder {
     super.expectNumOutstandingWrites(num);
+    return this;
+  }
+
+  expectNumActiveClients(num: number): MultiClientSpecBuilder {
+    super.expectNumActiveClients(num);
     return this;
   }
 
