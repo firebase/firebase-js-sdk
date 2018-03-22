@@ -1,7 +1,7 @@
 {
-  "name": "@firebase/auth-types",
-  "version": "0.2.0",
-  "description": "@firebase/auth Types",
+  "name": "@firebase/functions-types",
+  "version": "0.1.0",
+  "description": "@firebase/functions Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
@@ -10,15 +10,13 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
-    "@firebase/app-types": "^0.1.0"
-  },
+  "peerDependencies": {},
   "devDependencies": {
-    "typescript": "^2.7.2"
+    "typescript": "^2.4.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth-types"
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/functions-types"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

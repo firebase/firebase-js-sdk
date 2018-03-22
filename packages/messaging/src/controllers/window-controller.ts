@@ -369,28 +369,6 @@ export default class WindowController extends ControllerInterface
   }
 
   /**
-   * Gets a PushSubscription for the current user.
-   * @private
-   * @param {ServiceWorkerRegistration} registration
-   * @return {Promise<PushSubscription>}
-   */
-  getPushSubscription_(swRegistration, publicVapidKey) {
-    // Check for existing subscription first
-    let subscription;
-    let fcmTokenDetails;
-    return swRegistration.pushManager.getSubscription().then(subscription => {
-      if (subscription) {
-        return subscription;
-      }
-
-      return swRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: publicVapidKey
-      });
-    });
-  }
-
-  /**
    * This method will set up a message listener to handle
    * events from the service worker that should trigger
    * events in the page.

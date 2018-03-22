@@ -222,7 +222,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         mockGetReg(Promise.resolve(registration));
 
         sandbox
-          .stub(ServiceClass.prototype, 'getPushSubscription_')
+          .stub(ServiceClass.prototype, 'getPushSubscription')
           .callsFake(() => Promise.resolve(subscription));
 
         let vapidKeyToUse = FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
@@ -256,7 +256,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       mockGetReg(Promise.resolve(registration));
 
       sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .stub(ServiceClass.prototype, 'getPushSubscription')
         .callsFake(() => Promise.resolve(subscription));
       sandbox
         .stub(ServiceClass.prototype, 'getPublicVapidKey_')
@@ -298,7 +298,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
 
       sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .stub(ServiceClass.prototype, 'getPushSubscription')
         .callsFake(() => Promise.resolve(subscription));
 
       sandbox
@@ -337,7 +337,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
           .callsFake(() => NotificationPermission.granted);
 
         sandbox
-          .stub(ServiceClass.prototype, 'getPushSubscription_')
+          .stub(ServiceClass.prototype, 'getPushSubscription')
           .callsFake(() => Promise.resolve(subscription));
 
         let vapidKeyToUse = FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
@@ -437,7 +437,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID));
 
       sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .stub(ServiceClass.prototype, 'getPushSubscription')
         .callsFake(() => Promise.resolve(subscription));
 
       const serviceInstance = new ServiceClass(app);
@@ -506,7 +506,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         .callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
 
       sandbox
-        .stub(ServiceClass.prototype, 'getPushSubscription_')
+        .stub(ServiceClass.prototype, 'getPushSubscription')
         .callsFake(() => Promise.resolve(subscription));
 
       sandbox

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/polyfill",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/cjs/index.js",
@@ -13,7 +13,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "promise-polyfill": "^7.1.0",
-    "tslib": "^1.9.0"
+    "tslib": "^1.9.0",
+    "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
     "@types/node": "^9.4.6",

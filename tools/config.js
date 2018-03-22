@@ -15,6 +15,7 @@
  */
 
 const { argv } = require('yargs');
+const { exec } = require('child-process-promise');
 const { homedir } = require('os');
 const firebaseTools = require('firebase-tools');
 const inquirer = require('inquirer');
@@ -68,7 +69,7 @@ Promise.resolve(userToken || cachedToken)
     })();
 
     // Write config to top-level config directory
-    const writeConfig = firebaseTools.setup
+    await firebaseTools.setup
       .web({ project, token })
       .then(config =>
         fs.writeFile(
@@ -77,14 +78,17 @@ Promise.resolve(userToken || cachedToken)
         )
       );
 
+    // npm install the dependencies for functions
+    await exec('npm install', {
+      cwd: path.resolve(__dirname, '../config/functions')
+    });
+
     // Deploy database rules
-    const deployRules = firebaseTools.deploy({
+    await firebaseTools.deploy({
       project,
       token,
       cwd: path.resolve(__dirname, '../config')
     });
-
-    return Promise.all([writeConfig, deployRules]);
   })
   .then(() => {
     console.log('Success! Exiting...');
