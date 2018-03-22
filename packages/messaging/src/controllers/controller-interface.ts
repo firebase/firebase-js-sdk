@@ -129,8 +129,8 @@ export default class ControllerInterface {
       }
     }
 
-    // If the VAPID details are updated, delete the existing token,
-    // and create a new one.
+    // If the token is no longer valid (for example if the VAPID details
+    // have changed), delete the existing token, and create a new one.
     await this.deleteToken(tokenDetails['fcmToken']);
     return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
