@@ -21,6 +21,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientKey } from './shared_client_state';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -94,8 +95,19 @@ export interface Persistence {
    * Registers a listener that gets called when the primary state of the
    * instance changes. Upon registering, this listener is invoked immediately
    * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
    */
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener);
+
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  getActiveClients(): Promise<ClientKey[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the

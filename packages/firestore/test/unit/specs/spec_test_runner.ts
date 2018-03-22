@@ -320,6 +320,8 @@ interface OutstandingWrite {
 abstract class TestRunner {
   protected queue: AsyncQueue;
 
+  private started = false;
+
   private connection: MockConnection;
   private eventManager: EventManager;
   private syncEngine: SyncEngine;
@@ -419,15 +421,19 @@ abstract class TestRunner {
     serializer: JsonProtoSerializer
   ): Persistence;
 
-  async start(): Promise<void> {
-    this.connection.reset();
-    await this.persistence.start();
-    await this.localStore.start();
-    await this.remoteStore.start();
+  async startIfNeeded(): Promise<void> {
+    if (!this.started) {
+      this.connection.reset();
+      await this.persistence.start();
+      await this.localStore.start();
+      await this.remoteStore.start();
 
-    this.persistence.setPrimaryStateListener(isPrimary =>
-      this.syncEngine.applyPrimaryState(isPrimary)
-    );
+      this.persistence.setPrimaryStateListener(isPrimary =>
+        this.syncEngine.applyPrimaryState(isPrimary)
+      );
+
+      this.started = true;
+    }
   }
 
   async shutdown(): Promise<void> {
@@ -440,7 +446,7 @@ abstract class TestRunner {
     await this.doStep(step);
     await this.queue.drain();
     this.validateStepExpectations(step.expect!);
-    this.validateStateExpectations(step.stateExpect!);
+    await this.validateStateExpectations(step.stateExpect!);
     this.eventList = [];
   }
 
@@ -847,12 +853,18 @@ abstract class TestRunner {
     }
   }
 
-  private validateStateExpectations(expectation: StateExpectation): void {
+  private async validateStateExpectations(
+    expectation: StateExpectation
+  ): Promise<void> {
     if (expectation) {
       if ('numOutstandingWrites' in expectation) {
         expect(this.remoteStore.outstandingWrites()).to.equal(
           expectation.numOutstandingWrites
         );
+      }
+      if ('numActiveClients' in expectation) {
+        const activeClients = await this.persistence.getActiveClients();
+        expect(activeClients.length).to.equal(expectation.numActiveClients);
       }
       if ('writeStreamRequestCount' in expectation) {
         expect(this.connection.writeStreamRequestCount).to.equal(
@@ -1154,7 +1166,6 @@ export async function runSpec(
     } else {
       runners.push(new MemoryTestRunner(name, platform, config));
     }
-    await runners[i].start();
   }
   let lastStep = null;
   let count = 0;
@@ -1162,7 +1173,9 @@ export async function runSpec(
     await sequence(steps, async step => {
       ++count;
       lastStep = step;
-      return runners[step.clientIndex || 0].run(step);
+      const clientIndex = step.clientIndex || 0;
+      await runners[clientIndex].startIfNeeded();
+      return runners[clientIndex].run(step);
     });
   } catch (err) {
     console.warn(
@@ -1396,6 +1409,8 @@ export interface SpecExpectation {
 export interface StateExpectation {
   /** Number of outstanding writes in the datastore queue. */
   numOutstandingWrites?: number;
+  /** Number of clients currently marked active. Used in multi-client tests. */
+  numActiveClients?: number;
   /** Number of requests sent to the write stream. */
   writeStreamRequestCount?: number;
   /** Number of requests sent to the watch stream. */
