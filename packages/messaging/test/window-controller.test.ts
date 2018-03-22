@@ -346,66 +346,6 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('getPushSubscription_()', function() {
-    it(`should return rejection error`, function() {
-      const injectedError = new Error('Inject error.');
-      const reg = makeFakeSWReg();
-      sandbox.stub(reg, 'pushManager').value({
-        getSubscription: () => Promise.reject(injectedError)
-      });
-
-      const controller = new WindowController(app);
-      return controller
-        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-        .then(
-          () => {
-            throw new Error('Expected an error.');
-          },
-          err => {
-            expect(err).to.equal(injectedError);
-          }
-        );
-    });
-
-    it(`should return PushSubscription if returned`, function() {
-      const exampleSubscription = {};
-      const reg = makeFakeSWReg();
-      sandbox.stub(reg, 'pushManager').value({
-        getSubscription: () => Promise.resolve(exampleSubscription)
-      });
-
-      const controller = new WindowController(app);
-      return controller
-        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-        .then(subscription => {
-          expect(subscription).to.equal(exampleSubscription);
-        });
-    });
-
-    it('should call subscribe() if no subscription', function() {
-      const exampleSubscription = {};
-      const reg = makeFakeSWReg();
-      sandbox.stub(reg, 'pushManager').value({
-        getSubscription: async () => {},
-        subscribe: options => {
-          expect(options).to.deep.equal({
-            userVisibleOnly: true,
-            applicationServerKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
-          });
-
-          return Promise.resolve(exampleSubscription);
-        }
-      });
-
-      const controller = new WindowController(app);
-      return controller
-        .getPushSubscription_(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
-        .then(subscription => {
-          expect(subscription).to.equal(exampleSubscription);
-        });
-    });
-  });
-
   describe('setupSWMessageListener_()', function() {
     it('should not do anything is no service worker support', function() {
       sandbox.stub(window, 'navigator').value({});
