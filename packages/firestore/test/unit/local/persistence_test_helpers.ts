@@ -74,12 +74,16 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 class NoOpSharedClientDelegate implements SharedClientDelegate {
+  constructor(private readonly existingClients:ClientKey[]) {}
   async loadPendingBatch(batchId: BatchId): Promise<void> {}
   async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
     batchId: BatchId,
     err: FirestoreError
   ): Promise<void> {}
+  async getActiveClients(): Promise<ClientKey[]> {
+    return this.existingClients;
+  }
 }
 /**
  * Creates and starts a WebStorageSharedClientState instance for testing,
@@ -116,10 +120,8 @@ export async function testWebStorageSharedClientState(
 
     knownInstances.push(SECONDARY_INSTANCE_KEY);
 
-    secondaryClientState.subscribe(new NoOpSharedClientDelegate());
-    await secondaryClientState.start(User.UNAUTHENTICATED, [
-      SECONDARY_INSTANCE_KEY
-    ]);
+    secondaryClientState.subscribe(new NoOpSharedClientDelegate([]));
+    await secondaryClientState.start(User.UNAUTHENTICATED);
 
     for (const batchId of existingMutationBatchIds) {
       secondaryClientState.addLocalPendingMutation(batchId);
@@ -130,13 +132,13 @@ export async function testWebStorageSharedClientState(
     }
   }
 
-  sharedClientDelegate = sharedClientDelegate || new NoOpSharedClientDelegate();
+  sharedClientDelegate = sharedClientDelegate || new NoOpSharedClientDelegate(knownInstances);
 
   const sharedClientState = new WebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );
   sharedClientState.subscribe(sharedClientDelegate);
-  await sharedClientState.start(User.UNAUTHENTICATED, knownInstances);
+  await sharedClientState.start(User.UNAUTHENTICATED);
   return sharedClientState;
 }

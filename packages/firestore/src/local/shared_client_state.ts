@@ -90,11 +90,10 @@ export interface SharedClientState {
   getAllActiveQueryTargets(): SortedSet<TargetId>;
 
   /**
-   * Starts the SharedClientState, reads existing client data for all
-   * `knownClients` and registers listeners for updates to new and existing
-   * clients.
+   * Starts the SharedClientState, reads existing client data and registers
+   * listeners for updates to new and existing clients.
    */
-  start(initialUser: User, knownClients: ClientKey[]): void;
+  start(initialUser: User): Promise<void>;
 
   /** Shuts down the `SharedClientState` and its listeners. */
   shutdown(): void;
@@ -412,15 +411,28 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.sharedClientDelegate = sharedClientDelegate;
   }
 
-  start(initialUser: User, knownClients: ClientKey[]): void {
+  async start(initialUser: User): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
       this.sharedClientDelegate !== null,
       'Start() called before subscribing to events'
     );
+
+    // We add the storage observer before we retrieve the list of existing
+    // clients to allow us to see LocalStorage notifications for clients
+    // that were added before getActiveClients() returns.
     window.addEventListener('storage', this.storageListener);
 
-    for (const clientKey of knownClients) {
+    this.activeClients[this.localClientKey] = new LocalClientState();
+    this.user = initialUser;
+    this.persistClientState();
+    this.started = true;
+
+    // Retrieve the list of existing clients and backfill the data in
+    // SharedClientState.
+    let existingClients = await this.sharedClientDelegate.getActiveClients();
+
+    for (const clientKey of existingClients) {
       const storageKey = this.toLocalStorageClientStateKey(clientKey);
       const clientState = RemoteClientState.fromLocalStorageEntry(
         clientKey,
@@ -430,11 +442,6 @@ export class WebStorageSharedClientState implements SharedClientState {
         this.activeClients[clientState.clientId] = clientState;
       }
     }
-
-    this.activeClients[this.localClientKey] = new LocalClientState();
-    this.user = initialUser;
-    this.started = true;
-    this.persistClientState();
   }
 
   getMinimumGlobalPendingMutation(): BatchId | null {

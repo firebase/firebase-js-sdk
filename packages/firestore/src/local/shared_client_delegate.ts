@@ -16,6 +16,7 @@
 
 import { BatchId } from '../core/types';
 import { FirestoreError } from '../util/error';
+import {ClientKey} from './shared_client_state';
 
 /**
  * Callback methods invoked by SharedClientState for notifications received
@@ -38,4 +39,6 @@ export interface SharedClientDelegate {
    * subscribers.
    */
   rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
+
+  getActiveClients(): Promise<ClientKey[]>;
 }
