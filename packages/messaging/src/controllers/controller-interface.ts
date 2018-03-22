@@ -80,11 +80,21 @@ export default class ControllerInterface {
 
     const swReg = await this.getSWRegistration_();
     const publicVapidKey = await this.getPublicVapidKey_();
-    const pushSubscription =  await this.getPushSubscription(swReg, publicVapidKey);
-    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
+    const pushSubscription = await this.getPushSubscription(
+      swReg,
+      publicVapidKey
+    );
+    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+      swReg.scope
+    );
 
     if (tokenDetails) {
-      return this.manageExistingToken(swReg, pushSubscription, publicVapidKey, tokenDetails);
+      return this.manageExistingToken(
+        swReg,
+        pushSubscription,
+        publicVapidKey,
+        tokenDetails
+      );
     }
     return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
@@ -102,7 +112,7 @@ export default class ControllerInterface {
     swReg: ServiceWorkerRegistration,
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array,
-    tokenDetails: Object,
+    tokenDetails: Object
   ): Promise<string> {
     const isTokenValid = await this.isTokenStillValid(tokenDetails);
     if (isTokenValid) {
@@ -110,7 +120,12 @@ export default class ControllerInterface {
       if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
         return tokenDetails['fcmToken'];
       } else {
-        return this.updateToken(swReg, pushSubscription, publicVapidKey, tokenDetails);
+        return this.updateToken(
+          swReg,
+          pushSubscription,
+          publicVapidKey,
+          tokenDetails
+        );
       }
     }
 
@@ -137,7 +152,7 @@ export default class ControllerInterface {
     swReg: ServiceWorkerRegistration,
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array,
-    tokenDetails: Object,
+    tokenDetails: Object
   ): Promise<string> {
     try {
       const updatedToken = await this.iidModel_.updateToken(
@@ -169,9 +184,11 @@ export default class ControllerInterface {
     }
   }
 
-  private async getNewToken(swReg: ServiceWorkerRegistration,
+  private async getNewToken(
+    swReg: ServiceWorkerRegistration,
     pushSubscription: PushSubscription,
-    publicVapidKey: Uint8Array): Promise<string> {
+    publicVapidKey: Uint8Array
+  ): Promise<string> {
     const tokenDetails = await this.iidModel_.getToken(
       this.messagingSenderId_,
       pushSubscription,
@@ -186,10 +203,7 @@ export default class ControllerInterface {
       fcmPushSet: tokenDetails['pushSet']
     };
     await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-    await this.vapidDetailsModel_.saveVapidDetails(
-      swReg.scope,
-      publicVapidKey
-    );
+    await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
     return tokenDetails['token'];
   }
 
