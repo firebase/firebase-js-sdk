@@ -16,7 +16,7 @@
 
 import { BatchId } from '../core/types';
 import { FirestoreError } from '../util/error';
-import {ClientKey} from './shared_client_state';
+import { ClientKey } from './shared_client_state';
 
 /**
  * A interface that describes the actions the SharedClientState class needs to

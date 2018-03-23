@@ -19,7 +19,8 @@ import {
   WebStorageSharedClientState,
   SharedClientState,
   LocalClientState,
-  MutationMetadata, ClientKey
+  MutationMetadata,
+  ClientKey
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
@@ -47,7 +48,7 @@ function mutationKey(batchId: BatchId) {
  * Implementation of `SharedClientStateSyncer` that aggregates its callback data.
  */
 class TestSharedClientSyncer implements SharedClientStateSyncer {
-  constructor(private readonly activeClients:ClientKey[]) {}
+  constructor(private readonly activeClients: ClientKey[]) {}
   readonly pendingBatches: BatchId[] = [];
   readonly acknowledgedBatches: BatchId[] = [];
   readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
@@ -121,7 +122,9 @@ describe.only('WebStorageSharedClientState', () => {
   ): void {
     const actual = JSON.parse(
       localStorage.getItem(
-        `fs_clients_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${primaryClientId}`
+        `fs_clients_${
+          persistenceHelpers.TEST_PERSISTENCE_PREFIX
+        }_${primaryClientId}`
       )
     );
 
@@ -344,7 +347,11 @@ describe.only('WebStorageSharedClientState', () => {
       clientDelegate = new TestSharedClientSyncer(primaryClientId);
 
       return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, primaryClientId, clientDelegate)
+        .testWebStorageSharedClientState(
+          TEST_USER,
+          primaryClientId,
+          clientDelegate
+        )
         .then(clientState => {
           sharedClientState = clientState;
           expect(writeToLocalStorage).to.exist;

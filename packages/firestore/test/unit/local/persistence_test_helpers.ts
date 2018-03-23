@@ -74,7 +74,7 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
-  constructor(private readonly activeClients:ClientKey[]) {}
+  constructor(private readonly activeClients: ClientKey[]) {}
   async applyPendingBatch(batchId: BatchId): Promise<void> {}
   async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
@@ -122,7 +122,9 @@ export async function testWebStorageSharedClientState(
 
     knownInstances.push(SECONDARY_INSTANCE_KEY);
 
-    secondaryClientState.subscribe(new NoOpSharedClientStateSyncer([SECONDARY_INSTANCE_KEY]));
+    secondaryClientState.subscribe(
+      new NoOpSharedClientStateSyncer([SECONDARY_INSTANCE_KEY])
+    );
     await secondaryClientState.start(user);
 
     for (const batchId of existingMutationBatchIds) {
