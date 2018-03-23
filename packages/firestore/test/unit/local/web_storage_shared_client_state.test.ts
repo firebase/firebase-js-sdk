@@ -19,14 +19,14 @@ import {
   WebStorageSharedClientState,
   SharedClientState,
   LocalClientState,
-  RemoteMutationBatch
+  MutationMetadata
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { FirestoreError } from '../../../src/util/error';
-import { SharedClientDelegate } from '../../../src/local/shared_client_delegate';
+import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -35,23 +35,23 @@ import { SharedClientDelegate } from '../../../src/local/shared_client_delegate'
  */
 const GRACE_INTERVAL_MS = 100;
 
-const TEST_USER = User.UNAUTHENTICATED;
+const TEST_USER = new User('test');
 
 function mutationKey(batchId: BatchId) {
-  return `fs_mutations_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${
-    TEST_USER.uid
-  }_${batchId}`;
+  return `fs_mutations_${
+    persistenceHelpers.TEST_PERSISTENCE_PREFIX
+  }_${batchId}_${TEST_USER.uid}`;
 }
 
 /**
- * Implementation of `SharedClientDelegate` that aggregates its callback data.
+ * Implementation of `SharedClientStateSyncer` that aggregates its callback data.
  */
-class TestClientDelegate implements SharedClientDelegate {
+class TestClientDelegate implements SharedClientStateSyncer {
   readonly pendingBatches: BatchId[] = [];
   readonly acknowledgedBatches: BatchId[] = [];
   readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
 
-  async loadPendingBatch(batchId: BatchId): Promise<void> {
+  async applyPendingBatch(batchId: BatchId): Promise<void> {
     this.pendingBatches.push(batchId);
   }
 
@@ -78,9 +78,13 @@ describe('WebStorageSharedClientState', () => {
   const localStorage = window.localStorage;
 
   let sharedClientState: SharedClientState;
-  let storageCallback: (StorageEvent) => void;
   let previousAddEventListener;
   let ownerId;
+
+  let writeToLocalStorage: (
+    key: string,
+    value: string | null
+  ) => void = () => {};
 
   beforeEach(() => {
     ownerId = AutoId.newId();
@@ -91,7 +95,13 @@ describe('WebStorageSharedClientState', () => {
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
       expect(type).to.equal('storage');
-      storageCallback = callback;
+      writeToLocalStorage = (key, value) => {
+        callback({
+          key: key,
+          storageArea: window.localStorage,
+          newValue: value
+        });
+      };
     };
   });
 
@@ -134,14 +144,9 @@ describe('WebStorageSharedClientState', () => {
   ): void {
     const actual = JSON.parse(localStorage.getItem(mutationKey(batchId)));
 
-    expect(actual.lastUpdateTime)
-      .to.be.a('number')
-      .greaterThan(Date.now() - GRACE_INTERVAL_MS)
-      .and.at.most(Date.now());
-
     expect(actual.state).to.equal(mutationBatchState);
 
-    const expectedMembers = ['lastUpdateTime', 'state'];
+    const expectedMembers = ['state'];
 
     if (mutationBatchState === 'error') {
       expectedMembers.push('error');
@@ -157,9 +162,9 @@ describe('WebStorageSharedClientState', () => {
   describe('persists mutation batches', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId)
-        .then(nc => {
-          sharedClientState = nc;
+        .testWebStorageSharedClientState(TEST_USER, ownerId)
+        .then(clientState => {
+          sharedClientState = clientState;
         });
     });
 
@@ -200,9 +205,9 @@ describe('WebStorageSharedClientState', () => {
   describe('persists query targets', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId)
-        .then(nc => {
-          sharedClientState = nc;
+        .testWebStorageSharedClientState(TEST_USER, ownerId)
+        .then(clientState => {
+          sharedClientState = clientState;
         });
     });
 
@@ -230,10 +235,16 @@ describe('WebStorageSharedClientState', () => {
   describe('combines client state', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId, undefined, [1, 2], [3, 4])
+        .testWebStorageSharedClientState(
+          TEST_USER,
+          ownerId,
+          undefined,
+          [1, 2],
+          [3, 4]
+        )
         .then(nc => {
           sharedClientState = nc;
-          expect(storageCallback).to.not.be.undefined;
+          expect(writeToLocalStorage).to.exist;
         });
     });
 
@@ -241,7 +252,10 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.shutdown();
     });
 
-    function verifyState(minBatchId: BatchId, expectedTargets: TargetId[]) {
+    function verifyState(
+      minBatchId: BatchId | null,
+      expectedTargets: TargetId[]
+    ) {
       const actualTargets = sharedClientState.getAllActiveQueryTargets();
 
       expect(actualTargets.toArray()).to.have.members(expectedTargets);
@@ -281,11 +295,7 @@ describe('WebStorageSharedClientState', () => {
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
 
-      storageCallback({
-        key: secondaryClientKey,
-        storageArea: window.localStorage,
-        newValue: oldState.toLocalStorageJSON()
-      });
+      writeToLocalStorage(secondaryClientKey, oldState.toLocalStorageJSON());
       verifyState(1, [3, 4, 5]);
 
       const updatedState = new LocalClientState();
@@ -293,19 +303,13 @@ describe('WebStorageSharedClientState', () => {
       updatedState.addQueryTarget(6);
       updatedState.addPendingMutation(0);
 
-      storageCallback({
-        key: secondaryClientKey,
-        storageArea: window.localStorage,
-        newValue: updatedState.toLocalStorageJSON(),
-        oldValue: oldState.toLocalStorageJSON()
-      });
+      writeToLocalStorage(
+        secondaryClientKey,
+        updatedState.toLocalStorageJSON()
+      );
       verifyState(0, [3, 4, 5, 6]);
 
-      storageCallback({
-        key: secondaryClientKey,
-        storageArea: window.localStorage,
-        oldValue: updatedState.toLocalStorageJSON()
-      });
+      writeToLocalStorage(secondaryClientKey, null);
       verifyState(1, [3, 4]);
     });
 
@@ -323,11 +327,7 @@ describe('WebStorageSharedClientState', () => {
       verifyState(1, [3, 4]);
 
       // We ignore the newly added target.
-      storageCallback({
-        key: secondaryClientKey,
-        storageArea: window.localStorage,
-        newValue: JSON.stringify(invalidState)
-      });
+      writeToLocalStorage(secondaryClientKey, JSON.stringify(invalidState));
       verifyState(1, [3, 4]);
     });
   });
@@ -339,10 +339,10 @@ describe('WebStorageSharedClientState', () => {
       clientDelegate = new TestClientDelegate();
 
       return persistenceHelpers
-        .testWebStorageSharedClientState(ownerId, clientDelegate)
-        .then(nc => {
-          sharedClientState = nc;
-          expect(storageCallback).to.not.be.undefined;
+        .testWebStorageSharedClientState(TEST_USER, ownerId, clientDelegate)
+        .then(clientState => {
+          sharedClientState = clientState;
+          expect(writeToLocalStorage).to.exist;
         });
     });
 
@@ -351,15 +351,10 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('for pending mutation', () => {
-      storageCallback({
-        key: mutationKey(1),
-        storageArea: window.localStorage,
-        newValue: new RemoteMutationBatch(
-          TEST_USER,
-          1,
-          'pending'
-        ).toLocalStorageJSON()
-      });
+      writeToLocalStorage(
+        mutationKey(1),
+        new MutationMetadata(TEST_USER, 1, 'pending').toLocalStorageJSON()
+      );
 
       expect(clientDelegate.pendingBatches).to.have.members([1]);
       expect(clientDelegate.acknowledgedBatches).to.be.empty;
@@ -367,15 +362,10 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('for acknowledged mutation', () => {
-      storageCallback({
-        key: mutationKey(1),
-        storageArea: window.localStorage,
-        newValue: new RemoteMutationBatch(
-          TEST_USER,
-          1,
-          'acknowledged'
-        ).toLocalStorageJSON()
-      });
+      writeToLocalStorage(
+        mutationKey(1),
+        new MutationMetadata(TEST_USER, 1, 'acknowledged').toLocalStorageJSON()
+      );
 
       expect(clientDelegate.pendingBatches).to.be.empty;
       expect(clientDelegate.acknowledgedBatches).to.have.members([1]);
@@ -383,16 +373,15 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('for rejected mutation', () => {
-      storageCallback({
-        key: mutationKey(1),
-        storageArea: window.localStorage,
-        newValue: new RemoteMutationBatch(
+      writeToLocalStorage(
+        mutationKey(1),
+        new MutationMetadata(
           TEST_USER,
           1,
           'rejected',
           new FirestoreError('internal', 'Test Error')
         ).toLocalStorageJSON()
-      });
+      );
 
       expect(clientDelegate.pendingBatches).to.be.empty;
       expect(clientDelegate.acknowledgedBatches).to.be.empty;
@@ -401,15 +390,14 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('ignores invalid data', () => {
-      storageCallback({
-        key: mutationKey(1),
-        storageArea: window.localStorage,
-        newValue: new RemoteMutationBatch(
+      writeToLocalStorage(
+        mutationKey(1),
+        new MutationMetadata(
           TEST_USER,
           1,
           'invalid' as any
         ).toLocalStorageJSON()
-      });
+      );
 
       expect(clientDelegate.pendingBatches).to.be.empty;
       expect(clientDelegate.acknowledgedBatches).to.be.empty;
