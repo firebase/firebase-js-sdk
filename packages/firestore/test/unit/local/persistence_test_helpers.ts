@@ -130,8 +130,7 @@ export async function testWebStorageSharedClientState(
     }
   }
 
-  sharedClientSyncer =
-    sharedClientSyncer || new NoOpSharedClientStateSyncer();
+  sharedClientSyncer = sharedClientSyncer || new NoOpSharedClientStateSyncer();
 
   const sharedClientState = new WebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
