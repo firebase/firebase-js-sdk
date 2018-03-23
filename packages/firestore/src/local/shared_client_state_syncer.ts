@@ -19,24 +19,22 @@ import { FirestoreError } from '../util/error';
 import {ClientKey} from './shared_client_state';
 
 /**
- * Callback methods invoked by SharedClientState for notifications received
- * from Local Storage.
+ * A interface that describes the actions the SharedClientState class needs to
+ * perform on a cooperating synchronization engine.
  */
-export interface SharedClientDelegate {
+export interface SharedClientStateSyncer {
   /**
-   * Loads a pending batch from the persistence layer and updates all views.
+   * Registers a new pending mutation batch.
    */
-  loadPendingBatch(batchId: BatchId): Promise<void>;
+  applyPendingBatch(batchId: BatchId): Promise<void>;
 
   /**
-   * Applies the result of a successful write of a mutation batch, updating all
-   * views and notifying all subscribers.
+   * Applies the result of a successful write of a mutation batch.
    */
   applySuccessfulWrite(batchId: BatchId): Promise<void>;
 
   /**
-   * Rejects a failed mutation batch, updating all views and notifying all
-   * subscribers.
+   * Rejects a failed mutation batch.
    */
   rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
 

@@ -23,7 +23,7 @@ import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
-import { SharedClientDelegate } from './shared_client_delegate';
+import { SharedClientStateSyncer } from './shared_client_state_syncer';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -34,7 +34,8 @@ const LOG_TAG = 'SharedClientState';
 const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 
 // The format of the LocalStorage key that stores the mutation state is:
-//     fs_mutations_<persistence_prefix>_<instance_key>
+//     fs_mutations_<persistence_prefix>_<batch_id> (for unauthenticated users)
+// or: fs_mutations_<persistence_prefix>_<batch_id>_<user_uid>
 const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
 
 /**
@@ -107,79 +108,79 @@ export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
  * LocalStorage serialization. The UserId and BatchId is omitted as it is
  * encoded as part of the key.
  */
-interface MutationBatchSchema {
-  lastUpdateTime: number;
+interface MutationMetadataSchema {
   state: MutationBatchState;
-  error?: { code: string; message: string };
+  error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
 
+/**
+ * Holds the state of a mutation batch, including its user ID, batch ID annd
+ * whether the batch is 'pending', 'acknowledged' or 'rejected'.
+ */
 // Visible for testing
-export class RemoteMutationBatch {
-  private lastUpdateTime: Date;
-
+export class MutationMetadata {
   constructor(
     readonly user: User,
     readonly batchId: BatchId,
     readonly state: MutationBatchState,
     readonly error?: FirestoreError
   ) {
-    this.lastUpdateTime = new Date();
+    assert(
+      (error !== undefined) === (state === 'rejected'),
+      `MutationMetadata must contain an error iff state is 'rejected'`
+    );
   }
 
   /**
-   * Parses a RemoteMutationBatch from its JSON representation in LocalStorage.
+   * Parses a MutationMetadata from its JSON representation in LocalStorage.
    * Logs a warning and returns null if the format of the data is not valid.
    */
   static fromLocalStorageEntry(
     user: User,
     batchId: BatchId,
-    value: string | null
-  ): RemoteMutationBatch | null {
-    if (value !== null) {
-      const mutationBatch = JSON.parse(value) as MutationBatchSchema;
+    value: string
+  ): MutationMetadata | null {
+    const mutationBatch = JSON.parse(value) as MutationMetadataSchema;
 
-      let validData =
-        typeof mutationBatch === 'object' &&
-        ['pending', 'acknowledged', 'rejected'].indexOf(mutationBatch.state) !==
-          -1 &&
-        (mutationBatch.error === undefined ||
-          typeof mutationBatch.error === 'object');
+    let validData =
+      typeof mutationBatch === 'object' &&
+      ['pending', 'acknowledged', 'rejected'].indexOf(mutationBatch.state) !==
+        -1 &&
+      (mutationBatch.error === undefined ||
+        typeof mutationBatch.error === 'object');
 
-      let firestoreError = undefined;
+    let firestoreError = undefined;
 
-      if (validData && mutationBatch.error) {
-        validData =
-          typeof mutationBatch.error.message === 'string' &&
-          typeof mutationBatch.error.code === 'string';
-        if (validData) {
-          firestoreError = new FirestoreError(
-            mutationBatch.error.code as Code,
-            mutationBatch.error.message
-          );
-        }
-      }
-
+    if (validData && mutationBatch.error) {
+      validData =
+        typeof mutationBatch.error.message === 'string' &&
+        typeof mutationBatch.error.code === 'string';
       if (validData) {
-        return new RemoteMutationBatch(
-          user,
-          batchId,
-          mutationBatch.state,
-          firestoreError
+        firestoreError = new FirestoreError(
+          mutationBatch.error.code as Code,
+          mutationBatch.error.message
         );
-      } else {
-        error(
-          LOG_TAG,
-          `Failed to parse mutation state for ID '${batchId}': ${value}`
-        );
-        return null;
       }
     }
-    return null;
+
+    if (validData) {
+      return new MutationMetadata(
+        user,
+        batchId,
+        mutationBatch.state,
+        firestoreError
+      );
+    } else {
+      error(
+        LOG_TAG,
+        `Failed to parse mutation state for ID '${batchId}': ${value}`
+      );
+      return null;
+    }
   }
 
   toLocalStorageJSON(): string {
-    const batchState: MutationBatchSchema = {
-      lastUpdateTime: this.lastUpdateTime.getTime(),
+    const batchState: MutationMetadataSchema = {
       state: this.state
     };
 
@@ -236,49 +237,43 @@ class RemoteClientState implements ClientState {
    */
   static fromLocalStorageEntry(
     clientKey: string,
-    value: string | null
+    value: string
   ): RemoteClientState | null {
-    if (value !== null) {
-      const clientState = JSON.parse(value) as ClientStateSchema;
+    const clientState = JSON.parse(value) as ClientStateSchema;
 
-      let validData =
-        typeof clientState === 'object' &&
-        isSafeInteger(clientState.lastUpdateTime) &&
-        clientState.activeTargetIds instanceof Array &&
-        (clientState.minMutationBatchId === null ||
-          isSafeInteger(clientState.minMutationBatchId)) &&
-        (clientState.maxMutationBatchId === null ||
-          isSafeInteger(clientState.maxMutationBatchId));
+    let validData =
+      typeof clientState === 'object' &&
+      isSafeInteger(clientState.lastUpdateTime) &&
+      clientState.activeTargetIds instanceof Array &&
+      (clientState.minMutationBatchId === null ||
+        isSafeInteger(clientState.minMutationBatchId)) &&
+      (clientState.maxMutationBatchId === null ||
+        isSafeInteger(clientState.maxMutationBatchId));
 
-      let activeTargetIdsSet = new SortedSet<TargetId>(primitiveComparator);
+    let activeTargetIdsSet = new SortedSet<TargetId>(primitiveComparator);
 
-      for (
-        let i = 0;
-        validData && i < clientState.activeTargetIds.length;
-        ++i
-      ) {
-        validData = isSafeInteger(clientState.activeTargetIds[i]);
-        activeTargetIdsSet = activeTargetIdsSet.add(
-          clientState.activeTargetIds[i]
-        );
-      }
-
-      if (validData) {
-        return new RemoteClientState(
-          clientKey,
-          new Date(clientState.lastUpdateTime),
-          activeTargetIdsSet,
-          clientState.minMutationBatchId,
-          clientState.maxMutationBatchId
-        );
-      } else {
-        error(
-          LOG_TAG,
-          `Failed to parse client data for instance '${clientKey}': ${value}`
-        );
-      }
+    for (let i = 0; validData && i < clientState.activeTargetIds.length; ++i) {
+      validData = isSafeInteger(clientState.activeTargetIds[i]);
+      activeTargetIdsSet = activeTargetIdsSet.add(
+        clientState.activeTargetIds[i]
+      );
     }
-    return null;
+
+    if (validData) {
+      return new RemoteClientState(
+        clientKey,
+        new Date(clientState.lastUpdateTime),
+        activeTargetIdsSet,
+        clientState.minMutationBatchId,
+        clientState.maxMutationBatchId
+      );
+    } else {
+      error(
+        LOG_TAG,
+        `Failed to parse client data for instance '${clientKey}': ${value}`
+      );
+      return null;
+    }
   }
 }
 
@@ -368,6 +363,7 @@ export class LocalClientState implements ClientState {
  * backing store for the SharedClientState. It keeps track of all active
  * clients and supports modifications of the current client's data.
  */
+// TODO(multitab): Rename all usages of LocalStorage to WebStorage to better differentiate from LocalClient.
 export class WebStorageSharedClientState implements SharedClientState {
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
@@ -375,7 +371,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
-  private sharedClientDelegate: SharedClientDelegate | null;
+  private syncEngine: SharedClientStateSyncer | null;
   private user: User;
   private started = false;
 
@@ -398,7 +394,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_([^_]*)_(\\d*)$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d*)(?:_(.*))$`
     );
   }
 
@@ -407,14 +403,15 @@ export class WebStorageSharedClientState implements SharedClientState {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  subscribe(sharedClientDelegate: SharedClientDelegate) {
-    this.sharedClientDelegate = sharedClientDelegate;
+  subscribe(syncEngine: SharedClientStateSyncer) {
+    this.syncEngine = syncEngine;
   }
 
+  // TODO(multitab): Handle user changes.
   async start(initialUser: User): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
-      this.sharedClientDelegate !== null,
+      this.syncEngine !== null,
       'Start() called before subscribing to events'
     );
 
@@ -423,29 +420,37 @@ export class WebStorageSharedClientState implements SharedClientState {
     // that were added before getActiveClients() returns.
     window.addEventListener('storage', this.storageListener);
 
-    this.activeClients[this.localClientKey] = new LocalClientState();
     this.user = initialUser;
-    this.persistClientState();
     this.started = true;
+    this.persistClientState();
 
-    // Retrieve the list of existing clients and backfill the data in
+    // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
-    let existingClients = await this.sharedClientDelegate.getActiveClients();
+    let existingClients = await this.syncEngine.getActiveClients();
 
     for (const clientKey of existingClients) {
-      const storageKey = this.toLocalStorageClientStateKey(clientKey);
-      const clientState = RemoteClientState.fromLocalStorageEntry(
-        clientKey,
-        this.storage.getItem(storageKey)
+      if (clientKey === this.localClientKey) {
+        continue;
+      }
+
+      const storageItem = this.storage.getItem(
+        this.toLocalStorageClientStateKey(clientKey)
       );
-      if (clientState) {
-        this.activeClients[clientState.clientId] = clientState;
+      if (storageItem) {
+        const clientState = RemoteClientState.fromLocalStorageEntry(
+          clientKey,
+          storageItem
+        );
+        if (clientState) {
+          this.activeClients[clientState.clientId] = clientState;
+        }
       }
     }
   }
 
+  // TODO(multitab): Return BATCHID_UNKNOWN instead of null
   getMinimumGlobalPendingMutation(): BatchId | null {
-    let minMutationBatch = null;
+    let minMutationBatch: number | null = null;
     objUtils.forEach(this.activeClients, (key, value) => {
       minMutationBatch = min(minMutationBatch, value.minMutationBatchId);
     });
@@ -504,26 +509,27 @@ export class WebStorageSharedClientState implements SharedClientState {
       );
 
       if (event.newValue == null) {
-        const clientId = this.fromLocalStorageClientStateKey(event.key);
-        if (clientId != null) {
+        if (this.clientStateKeyRe.test(event.key)) {
+          const clientId = this.fromLocalStorageClientStateKey(event.key);
           delete this.activeClients[clientId];
         }
       } else {
-        const clientState = this.fromLocalStorageClientState(
-          event.key,
-          event.newValue
-        );
-        if (clientState) {
-          this.activeClients[clientState.clientId] = clientState;
-          return;
-        }
-        const mutationBatch = this.fromLocalStorageMutation(
-          event.key,
-          event.newValue
-        );
-        if (mutationBatch) {
-          this.handleMutationBatchEvent(mutationBatch);
-          return;
+        if (this.clientStateKeyRe.test(event.key)) {
+          const clientState = this.fromLocalStorageClientState(
+            event.key,
+            event.newValue
+          );
+          if (clientState) {
+            this.activeClients[clientState.clientId] = clientState;
+          }
+        } else if (this.mutationBatchKeyRe.test(event.key)) {
+          const mutationMetadata = this.fromLocalStorageMutationMetadata(
+            event.key,
+            event.newValue
+          );
+          if (mutationMetadata) {
+            this.handleMutationBatchEvent(mutationMetadata);
+          }
         }
       }
     }
@@ -550,16 +556,20 @@ export class WebStorageSharedClientState implements SharedClientState {
     state: MutationBatchState,
     error?: FirestoreError
   ) {
-    const mutationState = new RemoteMutationBatch(
+    const mutationState = new MutationMetadata(
       this.user,
       batchId,
       state,
       error
     );
 
-    const mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${this.persistenceKey}_${
-      this.user.uid
+    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
+      this.persistenceKey
     }_${batchId}`;
+
+    if (this.user.isAuthenticated()) {
+      mutationKey += `_${this.user.uid}`;
+    }
 
     this.storage.setItem(mutationKey, mutationState.toLocalStorageJSON());
   }
@@ -584,50 +594,40 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   /**
-   * Parses a client state in LocalStorage. Returns null if the key does not
-   * match the expected key format.
+   * Parses a client state in LocalStorage. Returns 'null' if the value could
+   * not be parsed.
    */
   private fromLocalStorageClientState(
     key: string,
     value: string
   ): RemoteClientState | null {
     const clientId = this.fromLocalStorageClientStateKey(key);
-    return clientId != null
-      ? RemoteClientState.fromLocalStorageEntry(clientId, value)
-      : null;
+    assert(clientId !== null, `Cannot parse client state key '${key}'`);
+    return RemoteClientState.fromLocalStorageEntry(clientId, value);
   }
 
   /**
-   * Parses a mutation batch state in LocalStorage. Returns null if the key does
-   * not match the expected key format.
+   * Parses a mutation batch state in LocalStorage. Returns 'null' if the value
+   * could not be parsed.
    */
-  private fromLocalStorageMutation(
+  private fromLocalStorageMutationMetadata(
     key: string,
-    value: string | null
-  ): RemoteMutationBatch | null {
+    value: string
+  ): MutationMetadata | null {
     const match = this.mutationBatchKeyRe.exec(key);
+    assert(match !== null, `Cannot parse mutation batch key '${key}'`);
 
-    if (match) {
-      const isCurrentUser =
-        match[1] === 'null'
-          ? this.user.uid === null
-          : match[1] === this.user.uid;
-
-      if (isCurrentUser) {
-        const batchId = Number(match[2]);
-        return RemoteMutationBatch.fromLocalStorageEntry(
-          this.user,
-          batchId,
-          value
-        );
-      }
-    }
-
-    return null;
+    const batchId = Number(match[1]);
+    const userId = match[2] !== undefined ? match[2] : null;
+    return MutationMetadata.fromLocalStorageEntry(
+      new User(userId),
+      batchId,
+      value
+    );
   }
 
   private async handleMutationBatchEvent(
-    mutationBatch: RemoteMutationBatch
+    mutationBatch: MutationMetadata
   ): Promise<void> {
     if (mutationBatch.user.uid !== this.user.uid) {
       debug(
@@ -639,15 +639,11 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     switch (mutationBatch.state) {
       case 'pending':
-        return this.sharedClientDelegate.loadPendingBatch(
-          mutationBatch.batchId
-        );
+        return this.syncEngine.applyPendingBatch(mutationBatch.batchId);
       case 'acknowledged':
-        return this.sharedClientDelegate.applySuccessfulWrite(
-          mutationBatch.batchId
-        );
+        return this.syncEngine.applySuccessfulWrite(mutationBatch.batchId);
       case 'rejected':
-        return this.sharedClientDelegate.rejectFailedWrite(
+        return this.syncEngine.rejectFailedWrite(
           mutationBatch.batchId,
           mutationBatch.error
         );
