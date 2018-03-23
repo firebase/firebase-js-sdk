@@ -184,6 +184,20 @@ describeSpec('Persistence:', [], () => {
     );
   });
 
+  specTest('Detects all active clients', ['multi-client'], () => {
+    return (
+      client(0)
+        // While we don't verify the client's visibility in this test, the spec
+        // test framework requires an explicit action before setting an
+        // expectation.
+        .becomeHidden()
+        .expectNumActiveClients(1)
+        .client(1)
+        .becomeVisible()
+        .expectNumActiveClients(2)
+    );
+  });
+
   specTest('Single tab acquires primary lease', ['multi-client'], () => {
     // This test simulates primary state handoff between two background tabs.
     // With all instances in the background, the first active tab acquires
