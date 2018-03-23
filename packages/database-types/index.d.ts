@@ -16,7 +16,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export interface DataSnapshot {
+export interface DataSnapshot<T = any> {
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
@@ -28,7 +28,7 @@ export interface DataSnapshot {
   numChildren(): number;
   ref: Reference;
   toJSON(): Object | null;
-  val(): any;
+  val(): T;
 }
 
 export class FirebaseDatabase {
