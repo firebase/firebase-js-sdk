@@ -136,7 +136,7 @@ export async function testWebStorageSharedClientState(
     }
   }
 
-    sharedClientSyncer =
+  sharedClientSyncer =
     sharedClientSyncer || new NoOpSharedClientStateSyncer(knownInstances);
 
   const sharedClientState = new WebStorageSharedClientState(

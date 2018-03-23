@@ -345,12 +345,15 @@ describe('WebStorageSharedClientState', () => {
     let clientSyncer;
 
     beforeEach(() => {
-    clientSyncer = new TestClientSyncer(primaryClientId);
+      clientSyncer = new TestClientSyncer(primaryClientId);
 
       return persistenceHelpers
         .testWebStorageSharedClientState(
-          TEST_USER, primaryClientId, clientSyncer
-        ).then(clientState => {
+          TEST_USER,
+          primaryClientId,
+          clientSyncer
+        )
+        .then(clientState => {
           sharedClientState = clientState;
           expect(writeToLocalStorage).to.exist;
         });
