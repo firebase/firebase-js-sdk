@@ -30,7 +30,9 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientKey } from './shared_client_state';
 import { AsyncQueue } from '../util/async_queue';
+import { AutoId } from '../util/misc';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -49,6 +51,7 @@ export class MemoryPersistence implements Persistence {
   private mutationQueues: { [user: string]: MutationQueue } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
+  private readonly clientId: ClientKey = AutoId.newId();
 
   private started = false;
 
@@ -64,6 +67,10 @@ export class MemoryPersistence implements Persistence {
     // No durable state to ensure is closed on shutdown.
     assert(this.started, 'MemoryPersistence shutdown without start!');
     this.started = false;
+  }
+
+  async getActiveClients(): Promise<ClientKey[]> {
+    return [this.clientId];
   }
 
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
