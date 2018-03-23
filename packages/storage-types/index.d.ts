@@ -38,7 +38,10 @@ export interface Reference {
   getMetadata(): Promise<FullMetadata>;
   name: string;
   parent: Reference | null;
-  put(data: Blob|Uint8Array|ArrayBuffer, metadata?: UploadMetadata): UploadTask;
+  put(
+    data: Blob | Uint8Array | ArrayBuffer,
+    metadata?: UploadMetadata
+  ): UploadTask;
   putString(
     data: string,
     format?: StringFormat,
