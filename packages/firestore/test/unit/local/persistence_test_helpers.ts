@@ -93,7 +93,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
 export async function testWebStorageSharedClientState(
   user: User,
   instanceKey: string,
-  sharedClientDelegate?: SharedClientStateSyncer,
+  sharedClientSyncer?: SharedClientStateSyncer,
   existingMutationBatchIds?: BatchId[],
   existingQueryTargetIds?: TargetId[]
 ): Promise<SharedClientState> {
@@ -136,14 +136,14 @@ export async function testWebStorageSharedClientState(
     }
   }
 
-  sharedClientDelegate =
-    sharedClientDelegate || new NoOpSharedClientStateSyncer(knownInstances);
+    sharedClientSyncer =
+    sharedClientSyncer || new NoOpSharedClientStateSyncer(knownInstances);
 
   const sharedClientState = new WebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );
-  sharedClientState.subscribe(sharedClientDelegate);
+  sharedClientState.subscribe(sharedClientSyncer);
   await sharedClientState.start(user);
   return sharedClientState;
 }

@@ -47,11 +47,12 @@ function mutationKey(batchId: BatchId) {
 /**
  * Implementation of `SharedClientStateSyncer` that aggregates its callback data.
  */
-class TestSharedClientSyncer implements SharedClientStateSyncer {
-  constructor(private readonly activeClients: ClientKey[]) {}
+class TestClientSyncer implements SharedClientStateSyncer {
   readonly pendingBatches: BatchId[] = [];
   readonly acknowledgedBatches: BatchId[] = [];
   readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
+
+  constructor(private readonly activeClients: ClientKey[]) {}
 
   async applyPendingBatch(batchId: BatchId): Promise<void> {
     this.pendingBatches.push(batchId);
@@ -341,18 +342,15 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
-    let clientDelegate;
+    let clientSyncer;
 
     beforeEach(() => {
-      clientDelegate = new TestSharedClientSyncer(primaryClientId);
+    clientSyncer = new TestClientSyncer(primaryClientId);
 
       return persistenceHelpers
         .testWebStorageSharedClientState(
-          TEST_USER,
-          primaryClientId,
-          clientDelegate
-        )
-        .then(clientState => {
+          TEST_USER, primaryClientId, clientSyncer
+        ).then(clientState => {
           sharedClientState = clientState;
           expect(writeToLocalStorage).to.exist;
         });
@@ -368,9 +366,9 @@ describe('WebStorageSharedClientState', () => {
         new MutationMetadata(TEST_USER, 1, 'pending').toLocalStorageJSON()
       );
 
-      expect(clientDelegate.pendingBatches).to.have.members([1]);
-      expect(clientDelegate.acknowledgedBatches).to.be.empty;
-      expect(clientDelegate.rejectedBatches).to.be.empty;
+      expect(clientSyncer.pendingBatches).to.have.members([1]);
+      expect(clientSyncer.acknowledgedBatches).to.be.empty;
+      expect(clientSyncer.rejectedBatches).to.be.empty;
     });
 
     it('for acknowledged mutation', () => {
@@ -379,9 +377,9 @@ describe('WebStorageSharedClientState', () => {
         new MutationMetadata(TEST_USER, 1, 'acknowledged').toLocalStorageJSON()
       );
 
-      expect(clientDelegate.pendingBatches).to.be.empty;
-      expect(clientDelegate.acknowledgedBatches).to.have.members([1]);
-      expect(clientDelegate.rejectedBatches).to.be.empty;
+      expect(clientSyncer.pendingBatches).to.be.empty;
+      expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
+      expect(clientSyncer.rejectedBatches).to.be.empty;
     });
 
     it('for rejected mutation', () => {
@@ -395,10 +393,10 @@ describe('WebStorageSharedClientState', () => {
         ).toLocalStorageJSON()
       );
 
-      expect(clientDelegate.pendingBatches).to.be.empty;
-      expect(clientDelegate.acknowledgedBatches).to.be.empty;
-      expect(clientDelegate.rejectedBatches[1].code).to.equal('internal');
-      expect(clientDelegate.rejectedBatches[1].message).to.equal('Test Error');
+      expect(clientSyncer.pendingBatches).to.be.empty;
+      expect(clientSyncer.acknowledgedBatches).to.be.empty;
+      expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
+      expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
     });
 
     it('ignores invalid data', () => {
@@ -411,9 +409,9 @@ describe('WebStorageSharedClientState', () => {
         ).toLocalStorageJSON()
       );
 
-      expect(clientDelegate.pendingBatches).to.be.empty;
-      expect(clientDelegate.acknowledgedBatches).to.be.empty;
-      expect(clientDelegate.rejectedBatches).to.be.empty;
+      expect(clientSyncer.pendingBatches).to.be.empty;
+      expect(clientSyncer.acknowledgedBatches).to.be.empty;
+      expect(clientSyncer.rejectedBatches).to.be.empty;
     });
   });
 });
