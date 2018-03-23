@@ -154,10 +154,10 @@ declare namespace firebase.auth {
     applyActionCode(code: string): Promise<any>;
     checkActionCode(code: string): Promise<any>;
     confirmPasswordReset(code: string, newPassword: string): Promise<any>;
-    createUserAndRetrieveDataWithEmailAndPassword( 
-      email: string, 
-      password: string 
-    ): Promise<any>; 
+    createUserAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
@@ -202,7 +202,10 @@ declare namespace firebase.auth {
     signInWithCustomToken(token: string): Promise<any>;
     signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
-    signInAndRetrieveDataWithEmailAndPassword(email: string, password: string): Promise<any>;
+    signInAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
