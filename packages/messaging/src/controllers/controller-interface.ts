@@ -114,7 +114,11 @@ export default class ControllerInterface {
     publicVapidKey: Uint8Array,
     tokenDetails: Object
   ): Promise<string> {
-    const isTokenValid = this.isTokenStillValid(pushSubscription, publicVapidKey, tokenDetails);
+    const isTokenValid = this.isTokenStillValid(
+      pushSubscription,
+      publicVapidKey,
+      tokenDetails
+    );
     if (isTokenValid) {
       const now = Date.now();
       if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
@@ -138,7 +142,11 @@ export default class ControllerInterface {
   /*
    * Checks if the tokenDetails match the details provided in the clients.
    */
-  private isTokenStillValid(pushSubscription: PushSubscription, publicVapidKey: Uint8Array, tokenDetails: Object): Boolean {
+  private isTokenStillValid(
+    pushSubscription: PushSubscription,
+    publicVapidKey: Uint8Array,
+    tokenDetails: Object
+  ): Boolean {
     if (arrayBufferToBase64(publicVapidKey) !== tokenDetails['vapidKey']) {
       return false;
     }

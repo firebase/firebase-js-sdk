@@ -443,16 +443,18 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         sandbox
           .stub(IIDModel.prototype, 'getToken')
           .callsFake(() => Promise.resolve(GET_TOKEN_RESPONSE));
-        sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
+        sandbox
+          .stub(IIDModel.prototype, 'deleteToken')
+          .callsFake(async () => {});
 
         const registration = generateFakeReg(Promise.resolve(null));
         mockGetReg(Promise.resolve(registration));
 
         const options = {
-          endpoint: "https://different-push-endpoint.com/",
-          auth: "another-auth-secret",
-          p256dh: "another-user-public-key"
-        }
+          endpoint: 'https://different-push-endpoint.com/',
+          auth: 'another-auth-secret',
+          p256dh: 'another-user-public-key'
+        };
         const newPS = makeFakeSubscription(options);
 
         deleteTokenStub.callsFake(token => {
