@@ -73,7 +73,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
   }
 }
 
-describe.only('WebStorageSharedClientState', () => {
+describe('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable()) {
     console.warn(
       'No LocalStorage. Skipping WebStorageSharedClientState tests.'
