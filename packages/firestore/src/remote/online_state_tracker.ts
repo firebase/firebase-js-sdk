@@ -77,7 +77,7 @@ export class OnlineStateTracker {
    * Called by RemoteStore when a watch stream is started (including on each
    * backoff attempt).
    *
-   * It this is the first attempt, it sets the OnlineState to Unknown and starts
+   * If this is the first attempt, it sets the OnlineState to Unknown and starts
    * the onlineStateTimer.
    */
   handleWatchStreamStart(): void {
