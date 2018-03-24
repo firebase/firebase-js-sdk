@@ -1,5 +1,10 @@
 # Unreleased
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
+  cause get() requests made while offline to be delayed by up to 10
+  seconds (rather than returning from cache immediately).
+
+# 0.3.6
+- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
   cause a crash if a user signs out while the client is offline, resulting in
   an error of "Attempted to schedule multiple operations with timer id
   listen_stream_connection_backoff".
