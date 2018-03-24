@@ -426,7 +426,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
-    let existingClients = await this.syncEngine.getActiveClients();
+    const existingClients = await this.syncEngine.getActiveClients();
 
     for (const clientKey of existingClients) {
       if (clientKey === this.localClientKey) {
