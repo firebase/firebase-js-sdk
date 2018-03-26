@@ -35,12 +35,19 @@ import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_
  */
 const GRACE_INTERVAL_MS = 100;
 
-const TEST_USER = new User('test');
+const AUTHENTICATED_USER = new User('test');
+const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 
-function mutationKey(batchId: BatchId) {
-  return `fs_mutations_${
-    persistenceHelpers.TEST_PERSISTENCE_PREFIX
-  }_${batchId}_${TEST_USER.uid}`;
+function mutationKey(user: User, batchId: BatchId) {
+  if (user.isAuthenticated()) {
+    return `fs_mutations_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${batchId}_${user.uid}`;
+  } else {
+    return `fs_mutations_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${batchId}`;
+  }
 }
 
 /**
@@ -77,7 +84,7 @@ describe('WebStorageSharedClientState', () => {
 
   const localStorage = window.localStorage;
 
-  let sharedClientState: SharedClientState;
+  let sharedClientState: SharedClientState | null;
   let previousAddEventListener;
   let ownerId;
 
@@ -106,6 +113,10 @@ describe('WebStorageSharedClientState', () => {
   });
 
   afterEach(() => {
+    if (sharedClientState) {
+      sharedClientState.shutdown();
+    }
+
     window.addEventListener = previousAddEventListener;
   });
 
@@ -137,39 +148,37 @@ describe('WebStorageSharedClientState', () => {
     expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
-  function assertBatchState(
-    batchId: BatchId,
-    mutationBatchState: string,
-    err?: FirestoreError
-  ): void {
-    const actual = JSON.parse(localStorage.getItem(mutationKey(batchId)));
-
-    expect(actual.state).to.equal(mutationBatchState);
-
-    const expectedMembers = ['state'];
-
-    if (mutationBatchState === 'error') {
-      expectedMembers.push('error');
-      expect(actual.error.code).to.equal(err.code);
-      expect(actual.error.message).to.equal(err.message);
-    }
-
-    expect(Object.keys(actual)).to.have.members(expectedMembers);
-  }
-
   // TODO(multitab): Add tests for acknowledged and failed batches once
   // SharedClientState can handle these updates.
   describe('persists mutation batches', () => {
+    function assertBatchState(
+      batchId: BatchId,
+      mutationBatchState: string,
+      err?: FirestoreError
+    ): void {
+      const actual = JSON.parse(
+        localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))
+      );
+
+      expect(actual.state).to.equal(mutationBatchState);
+
+      const expectedMembers = ['state'];
+
+      if (mutationBatchState === 'error') {
+        expectedMembers.push('error');
+        expect(actual.error.code).to.equal(err.code);
+        expect(actual.error.message).to.equal(err.message);
+      }
+
+      expect(Object.keys(actual)).to.have.members(expectedMembers);
+    }
+
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, ownerId)
+        .testWebStorageSharedClientState(AUTHENTICATED_USER, ownerId)
         .then(clientState => {
           sharedClientState = clientState;
         });
-    });
-
-    afterEach(() => {
-      sharedClientState.shutdown();
     });
 
     it('when empty', () => {
@@ -205,14 +214,10 @@ describe('WebStorageSharedClientState', () => {
   describe('persists query targets', () => {
     beforeEach(() => {
       return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, ownerId)
+        .testWebStorageSharedClientState(AUTHENTICATED_USER, ownerId)
         .then(clientState => {
           sharedClientState = clientState;
         });
-    });
-
-    afterEach(() => {
-      sharedClientState.shutdown();
     });
 
     it('when empty', () => {
@@ -236,7 +241,7 @@ describe('WebStorageSharedClientState', () => {
     beforeEach(() => {
       return persistenceHelpers
         .testWebStorageSharedClientState(
-          TEST_USER,
+          AUTHENTICATED_USER,
           ownerId,
           undefined,
           [1, 2],
@@ -246,10 +251,6 @@ describe('WebStorageSharedClientState', () => {
           sharedClientState = nc;
           expect(writeToLocalStorage).to.exist;
         });
-    });
-
-    afterEach(() => {
-      sharedClientState.shutdown();
     });
 
     function verifyState(
@@ -333,75 +334,124 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
-    let clientSyncer;
-
-    beforeEach(() => {
-      clientSyncer = new TestClientSyncer();
+    function withUser(
+      user: User,
+      fn: (clientSyncer: TestClientSyncer) => Promise<void>
+    ) {
+      const clientSyncer = new TestClientSyncer();
 
       return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, ownerId, clientSyncer)
+        .testWebStorageSharedClientState(user, ownerId, clientSyncer)
         .then(clientState => {
           sharedClientState = clientState;
           expect(writeToLocalStorage).to.exist;
-        });
-    });
-
-    afterEach(() => {
-      sharedClientState.shutdown();
-    });
+        })
+        .then(() => fn(clientSyncer));
+    }
 
     it('for pending mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(TEST_USER, 1, 'pending').toLocalStorageJSON()
-      );
+      return withUser(AUTHENTICATED_USER, async clientSyncer => {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'pending'
+          ).toLocalStorageJSON()
+        );
 
-      expect(clientSyncer.pendingBatches).to.have.members([1]);
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+        expect(clientSyncer.pendingBatches).to.have.members([1]);
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches).to.be.empty;
+      });
     });
 
     it('for acknowledged mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(TEST_USER, 1, 'acknowledged').toLocalStorageJSON()
-      );
+      return withUser(AUTHENTICATED_USER, async clientSyncer => {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'acknowledged'
+          ).toLocalStorageJSON()
+        );
 
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
+        expect(clientSyncer.rejectedBatches).to.be.empty;
+      });
     });
 
     it('for rejected mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(
-          TEST_USER,
-          1,
-          'rejected',
-          new FirestoreError('internal', 'Test Error')
-        ).toLocalStorageJSON()
-      );
+      return withUser(AUTHENTICATED_USER, async clientSyncer => {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'rejected',
+            new FirestoreError('internal', 'Test Error')
+          ).toLocalStorageJSON()
+        );
 
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
-      expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
+        expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
+      });
+    });
+
+    it('handles unauthenticated user', () => {
+      return withUser(UNAUTHENTICATED_USER, async clientSyncer => {
+        writeToLocalStorage(
+          mutationKey(UNAUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            UNAUTHENTICATED_USER,
+            1,
+            'pending'
+          ).toLocalStorageJSON()
+        );
+
+        expect(clientSyncer.pendingBatches).to.have.members([1]);
+      });
+    });
+
+    it('ignores different user', () => {
+      return withUser(AUTHENTICATED_USER, async clientSyncer => {
+        const otherUser = new User('foobar');
+
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'pending'
+          ).toLocalStorageJSON()
+        );
+        writeToLocalStorage(
+          mutationKey(otherUser, 1),
+          new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
+        );
+        expect(clientSyncer.pendingBatches).to.have.members([1]);
+      });
     });
 
     it('ignores invalid data', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(
-          TEST_USER,
-          1,
-          'invalid' as any
-        ).toLocalStorageJSON()
-      );
+      return withUser(AUTHENTICATED_USER, async clientSyncer => {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'invalid' as any
+          ).toLocalStorageJSON()
+        );
 
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches).to.be.empty;
+      });
     });
   });
 });

@@ -118,7 +118,7 @@ export async function testWebStorageSharedClientState(
 
     knownInstances.push(SECONDARY_INSTANCE_KEY);
 
-    secondaryClientState.subscribe(new NoOpSharedClientStateSyncer());
+    secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer();
     await secondaryClientState.start(user, [SECONDARY_INSTANCE_KEY]);
 
     for (const batchId of existingMutationBatchIds) {
@@ -136,7 +136,7 @@ export async function testWebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );
-  sharedClientState.subscribe(sharedClientSyncer);
+  sharedClientState.syncEngine = sharedClientSyncer;
   await sharedClientState.start(user, knownInstances);
   return sharedClientState;
 }

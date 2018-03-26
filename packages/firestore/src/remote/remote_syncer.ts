@@ -21,7 +21,7 @@ import { FirestoreError } from '../util/error';
 import { RemoteEvent } from './remote_event';
 
 /**
- * A interface that describes the actions the RemoteStore needs to perform on
+ * An interface that describes the actions the RemoteStore needs to perform on
  * a cooperating synchronization engine.
  */
 export interface RemoteSyncer {

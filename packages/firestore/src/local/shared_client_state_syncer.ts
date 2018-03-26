@@ -18,7 +18,7 @@ import { BatchId } from '../core/types';
 import { FirestoreError } from '../util/error';
 
 /**
- * A interface that describes the actions the SharedClientState class needs to
+ * An interface that describes the actions the SharedClientState class needs to
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
