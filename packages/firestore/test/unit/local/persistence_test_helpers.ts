@@ -27,6 +27,9 @@ import {
 import { BatchId, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { User } from '../../../src/auth/user';
+import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
+import { FirestoreError } from '../../../src/util/error';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
@@ -70,14 +73,25 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   return persistence;
 }
 
+class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
+  async applyPendingBatch(batchId: BatchId): Promise<void> {}
+  async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
+  async rejectFailedWrite(
+    batchId: BatchId,
+    err: FirestoreError
+  ): Promise<void> {}
+}
+
 /**
  * Creates and starts a WebStorageSharedClientState instance for testing,
  * destroying any previous contents in LocalStorage if they existed.
  */
 export async function testWebStorageSharedClientState(
+  user: User,
   instanceKey: string,
-  existingMutationBatchIds: BatchId[],
-  existingQueryTargetIds: TargetId[]
+  sharedClientSyncer?: SharedClientStateSyncer,
+  existingMutationBatchIds?: BatchId[],
+  existingQueryTargetIds?: TargetId[]
 ): Promise<SharedClientState> {
   let key;
   for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
@@ -87,6 +101,9 @@ export async function testWebStorageSharedClientState(
   }
 
   const knownInstances = [];
+
+  existingMutationBatchIds = existingMutationBatchIds || [];
+  existingQueryTargetIds = existingQueryTargetIds || [];
 
   if (
     existingMutationBatchIds.length > 0 ||
@@ -101,7 +118,8 @@ export async function testWebStorageSharedClientState(
 
     knownInstances.push(SECONDARY_INSTANCE_KEY);
 
-    await secondaryClientState.start([]);
+    secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer();
+    await secondaryClientState.start(user, [SECONDARY_INSTANCE_KEY]);
 
     for (const batchId of existingMutationBatchIds) {
       secondaryClientState.addLocalPendingMutation(batchId);
@@ -112,10 +130,13 @@ export async function testWebStorageSharedClientState(
     }
   }
 
+  sharedClientSyncer = sharedClientSyncer || new NoOpSharedClientStateSyncer();
+
   const sharedClientState = new WebStorageSharedClientState(
     TEST_PERSISTENCE_PREFIX,
     instanceKey
   );
-  await sharedClientState.start(knownInstances);
+  sharedClientState.syncEngine = sharedClientSyncer;
+  await sharedClientState.start(user, knownInstances);
   return sharedClientState;
 }
