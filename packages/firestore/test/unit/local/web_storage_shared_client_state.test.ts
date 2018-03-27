@@ -29,10 +29,10 @@ import { User } from '../../../src/auth/user';
 import { FirestoreError } from '../../../src/util/error';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { TEST_PERSISTENCE_PREFIX } from './persistence_test_helpers';
-
-/** The prefix used by the keys that Firestore writes to Local Storage. */
-const LOCAL_STORAGE_PREFIX = 'fs_';
+import {
+  clearWebStorage,
+  TEST_PERSISTENCE_PREFIX
+} from './persistence_test_helpers';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -64,7 +64,7 @@ class TestClientSyncer implements SharedClientStateSyncer {
   readonly acknowledgedBatches: BatchId[] = [];
   readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
 
-  constructor(private readonly activeClients: ClientKey[]) {}
+  constructor(public activeClients: ClientKey[]) {}
 
   async applyPendingBatch(batchId: BatchId): Promise<void> {
     this.pendingBatches.push(batchId);
@@ -86,19 +86,7 @@ class TestClientSyncer implements SharedClientStateSyncer {
   }
 }
 
-/**
- * Removes Firestore data (by prefix match) from Local Storage.
- */
-function clearWebStorage() {
-  let key;
-  for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
-    if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
-      window.localStorage.removeItem(key);
-    }
-  }
-}
-
-describe.only('WebStorageSharedClientState', () => {
+describe('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable()) {
     console.warn(
       'No LocalStorage. Skipping WebStorageSharedClientState tests.'
@@ -122,11 +110,13 @@ describe.only('WebStorageSharedClientState', () => {
 
   beforeEach(() => {
     clearWebStorage();
+    previousAddEventListener = window.addEventListener;
 
     // We capture the listener here so that we can invoke it from the local
     // client. If we directly relied on LocalStorage listeners, we would not
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
+      expect(type).to.equal('storage');
       writeToLocalStorage = (key, value) => {
         callback({
           key: key,
@@ -143,7 +133,6 @@ describe.only('WebStorageSharedClientState', () => {
       TEST_PERSISTENCE_PREFIX,
       primaryClientId
     );
-    previousAddEventListener = window.addEventListener;
     clientSyncer = new TestClientSyncer([primaryClientId]);
     sharedClientState.syncEngine = clientSyncer;
   });
@@ -266,21 +255,17 @@ describe.only('WebStorageSharedClientState', () => {
 
   describe('combines client state', () => {
     beforeEach(() => {
-      const secondaryClientId = AutoId.newId();
+      const existingClientId = AutoId.newId();
 
       return persistenceHelpers
         .populateWebStorage(
           AUTHENTICATED_USER,
-          secondaryClientId,
+          existingClientId,
           [1, 2],
           [3, 4]
         )
         .then(() => {
-          clientSyncer = new TestClientSyncer([
-            primaryClientId,
-            secondaryClientId
-          ]);
-          sharedClientState.syncEngine = clientSyncer;
+          clientSyncer.activeClients = [primaryClientId, existingClientId];
           return sharedClientState.start(AUTHENTICATED_USER);
         });
     });
@@ -372,12 +357,8 @@ describe.only('WebStorageSharedClientState', () => {
       return fn();
     }
 
-    beforeEach(() => {
-      return sharedClientState.start(AUTHENTICATED_USER);
-    });
-
-    it('for pending mutation', async () => {
-      withUser(AUTHENTICATED_USER, async () => {
+    it('for pending mutation', () => {
+      return withUser(AUTHENTICATED_USER, async () => {
         writeToLocalStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
@@ -395,8 +376,8 @@ describe.only('WebStorageSharedClientState', () => {
       });
     });
 
-    it('for acknowledged mutation', async () => {
-      withUser(AUTHENTICATED_USER, async () => {
+    it('for acknowledged mutation', () => {
+      return withUser(AUTHENTICATED_USER, async () => {
         writeToLocalStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
@@ -414,8 +395,8 @@ describe.only('WebStorageSharedClientState', () => {
       });
     });
 
-    it('for rejected mutation', async () => {
-      withUser(AUTHENTICATED_USER, async () => {
+    it('for rejected mutation', () => {
+      return withUser(AUTHENTICATED_USER, async () => {
         writeToLocalStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
@@ -435,8 +416,8 @@ describe.only('WebStorageSharedClientState', () => {
       });
     });
 
-    it('handles unauthenticated user', async () => {
-      withUser(UNAUTHENTICATED_USER, async () => {
+    it('handles unauthenticated user', () => {
+      return withUser(UNAUTHENTICATED_USER, async () => {
         writeToLocalStorage(
           mutationKey(UNAUTHENTICATED_USER, 1),
           new MutationMetadata(
@@ -447,12 +428,13 @@ describe.only('WebStorageSharedClientState', () => {
         );
 
         await queue.drain();
+
         expect(clientSyncer.pendingBatches).to.have.members([1]);
       });
     });
 
-    it('ignores different user', async () => {
-      withUser(AUTHENTICATED_USER, async () => {
+    it('ignores different user', () => {
+      return withUser(AUTHENTICATED_USER, async () => {
         const otherUser = new User('foobar');
 
         writeToLocalStorage(
@@ -469,12 +451,13 @@ describe.only('WebStorageSharedClientState', () => {
         );
 
         await queue.drain();
+
         expect(clientSyncer.pendingBatches).to.have.members([1]);
       });
     });
 
-    it('ignores invalid data', async () => {
-      withUser(AUTHENTICATED_USER, async () => {
+    it('ignores invalid data', () => {
+      return withUser(AUTHENTICATED_USER, async () => {
         writeToLocalStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
@@ -485,6 +468,7 @@ describe.only('WebStorageSharedClientState', () => {
         );
 
         await queue.drain();
+
         expect(clientSyncer.pendingBatches).to.be.empty;
         expect(clientSyncer.acknowledgedBatches).to.be.empty;
         expect(clientSyncer.rejectedBatches).to.be.empty;

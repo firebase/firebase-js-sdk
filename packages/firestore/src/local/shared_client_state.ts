@@ -380,11 +380,11 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly localClientStorageKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
-  private readonly earlyEvents: StorageEvent[] = [];
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
-  private user: User;
+  private earlyEvents: StorageEvent[] = [];
   private started = false;
+  private user: User;
 
   constructor(
     private readonly queue: AsyncQueue,
@@ -410,7 +410,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
 
     // We add the storage observer during initialization to allow us to process
-    // events that occur during client startup.
+    // events that occur during Firestore startup.
     window.addEventListener('storage', this.storageListener);
   }
 
@@ -453,6 +453,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.handleLocalStorageEvent(event);
     }
 
+    this.earlyEvents = [];
     this.started = true;
   }
 

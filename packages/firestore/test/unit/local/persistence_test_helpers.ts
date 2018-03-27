@@ -30,10 +30,12 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { FirestoreError } from '../../../src/util/error';
-import { query } from '../../util/api_helpers';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
+
+/** The prefix used by the keys that Firestore writes to Local Storage. */
+const LOCAL_STORAGE_PREFIX = 'fs_';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -82,12 +84,11 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
 }
 
 /**
- * Creates and starts a WebStorageSharedClientState instance for testing,
- * destroying any previous contents in LocalStorage if they existed.
+ * Populates Web Storage with instance data from a pre-existing client.
  */
 export async function populateWebStorage(
   user: User,
-  clientId: ClientKey,
+  existingClientId: ClientKey,
   existingMutationBatchIds: BatchId[],
   existingQueryTargetIds: TargetId[]
 ): Promise<void> {
@@ -96,10 +97,12 @@ export async function populateWebStorage(
   const secondaryClientState = new WebStorageSharedClientState(
     new AsyncQueue(),
     TEST_PERSISTENCE_PREFIX,
-    clientId
+    existingClientId
   );
 
-  secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([clientId]);
+  secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
+    existingClientId
+  ]);
   await secondaryClientState.start(user);
 
   for (const batchId of existingMutationBatchIds) {
@@ -108,5 +111,17 @@ export async function populateWebStorage(
 
   for (const targetId of existingQueryTargetIds) {
     secondaryClientState.addLocalQueryTarget(targetId);
+  }
+}
+
+/**
+ * Removes Firestore data (by prefix match) from Local Storage.
+ */
+export function clearWebStorage() {
+  let key;
+  for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
+    if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
   }
 }
