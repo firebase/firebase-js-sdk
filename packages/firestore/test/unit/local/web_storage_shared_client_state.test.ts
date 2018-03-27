@@ -17,10 +17,9 @@
 import * as persistenceHelpers from './persistence_test_helpers';
 import {
   WebStorageSharedClientState,
-  SharedClientState,
   LocalClientState,
   MutationMetadata,
-  ClientKey
+  ClientKey, SharedClientState
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
@@ -28,6 +27,11 @@ import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { FirestoreError } from '../../../src/util/error';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
+import {AsyncQueue} from '../../../src/util/async_queue';
+import {TEST_PERSISTENCE_PREFIX} from './persistence_test_helpers';
+
+/** The prefix used by the keys that Firestore writes to Local Storage. */
+const LOCAL_STORAGE_PREFIX = 'fs_';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -36,12 +40,19 @@ import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_
  */
 const GRACE_INTERVAL_MS = 100;
 
-const TEST_USER = new User('test');
+const AUTHENTICATED_USER = new User('test');
+const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 
-function mutationKey(batchId: BatchId) {
-  return `fs_mutations_${
-    persistenceHelpers.TEST_PERSISTENCE_PREFIX
-  }_${batchId}_${TEST_USER.uid}`;
+function mutationKey(user: User, batchId: BatchId) {
+  if (user.isAuthenticated()) {
+    return `fs_mutations_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${batchId}_${user.uid}`;
+  } else {
+    return `fs_mutations_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${batchId}`;
+  }
 }
 
 /**
@@ -74,6 +85,18 @@ class TestClientSyncer implements SharedClientStateSyncer {
   }
 }
 
+/**
+ * Removes Firestore data (by prefix match) from Local Storage.
+ */
+function clearWebStorage() {
+  let key;
+  for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
+    if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
+  }
+}
+
 describe.only('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable()) {
     console.warn(
@@ -84,9 +107,12 @@ describe.only('WebStorageSharedClientState', () => {
 
   const localStorage = window.localStorage;
 
-  let sharedClientState: SharedClientState;
-  let previousAddEventListener;
+  let queue: AsyncQueue;
   let primaryClientId;
+  let sharedClientState: SharedClientState;
+  let clientSyncer : TestClientSyncer;
+
+  let previousAddEventListener;
 
   let writeToLocalStorage: (
     key: string,
@@ -94,14 +120,12 @@ describe.only('WebStorageSharedClientState', () => {
   ) => void = () => {};
 
   beforeEach(() => {
-    primaryClientId = AutoId.newId();
-    previousAddEventListener = window.addEventListener;
+    clearWebStorage();
 
     // We capture the listener here so that we can invoke it from the local
     // client. If we directly relied on LocalStorage listeners, we would not
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
-      expect(type).to.equal('storage');
       writeToLocalStorage = (key, value) => {
         callback({
           key: key,
@@ -110,9 +134,17 @@ describe.only('WebStorageSharedClientState', () => {
         });
       };
     };
+
+    primaryClientId = AutoId.newId();
+    queue = new AsyncQueue();
+    sharedClientState = new WebStorageSharedClientState(queue, TEST_PERSISTENCE_PREFIX, primaryClientId);
+    previousAddEventListener = window.addEventListener;
+    clientSyncer = new TestClientSyncer([primaryClientId]);
+    sharedClientState.syncEngine = clientSyncer;
   });
 
   afterEach(() => {
+    sharedClientState.shutdown();
     window.addEventListener = previousAddEventListener;
   });
 
@@ -146,39 +178,33 @@ describe.only('WebStorageSharedClientState', () => {
     expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
-  function assertBatchState(
-    batchId: BatchId,
-    mutationBatchState: string,
-    err?: FirestoreError
-  ): void {
-    const actual = JSON.parse(localStorage.getItem(mutationKey(batchId)));
-
-    expect(actual.state).to.equal(mutationBatchState);
-
-    const expectedMembers = ['state'];
-
-    if (mutationBatchState === 'error') {
-      expectedMembers.push('error');
-      expect(actual.error.code).to.equal(err.code);
-      expect(actual.error.message).to.equal(err.message);
-    }
-
-    expect(Object.keys(actual)).to.have.members(expectedMembers);
-  }
-
   // TODO(multitab): Add tests for acknowledged and failed batches once
   // SharedClientState can handle these updates.
   describe('persists mutation batches', () => {
-    beforeEach(() => {
-      return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, primaryClientId)
-        .then(clientState => {
-          sharedClientState = clientState;
-        });
-    });
+    function assertBatchState(
+      batchId: BatchId,
+      mutationBatchState: string,
+      err?: FirestoreError
+    ): void {
+      const actual = JSON.parse(
+        localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))
+      );
 
-    afterEach(() => {
-      sharedClientState.shutdown();
+      expect(actual.state).to.equal(mutationBatchState);
+
+      const expectedMembers = ['state'];
+
+      if (mutationBatchState === 'error') {
+        expectedMembers.push('error');
+        expect(actual.error.code).to.equal(err.code);
+        expect(actual.error.message).to.equal(err.message);
+      }
+
+      expect(Object.keys(actual)).to.have.members(expectedMembers);
+    }
+
+    beforeEach(() => {
+      return sharedClientState.start(AUTHENTICATED_USER);
     });
 
     it('when empty', () => {
@@ -213,16 +239,8 @@ describe.only('WebStorageSharedClientState', () => {
 
   describe('persists query targets', () => {
     beforeEach(() => {
-      return persistenceHelpers
-        .testWebStorageSharedClientState(TEST_USER, primaryClientId)
-        .then(clientState => {
-          sharedClientState = clientState;
-        });
-    });
-
-    afterEach(() => {
-      sharedClientState.shutdown();
-    });
+    return sharedClientState.start(AUTHENTICATED_USER);
+  });
 
     it('when empty', () => {
       assertClientState([], null, null);
@@ -243,28 +261,26 @@ describe.only('WebStorageSharedClientState', () => {
 
   describe('combines client state', () => {
     beforeEach(() => {
+      const secondaryClientId = AutoId.newId();
+
       return persistenceHelpers
-        .testWebStorageSharedClientState(
-          TEST_USER,
-          primaryClientId,
-          undefined,
+        .populateWebStorage(
+            AUTHENTICATED_USER,
+            secondaryClientId,
           [1, 2],
           [3, 4]
-        )
-        .then(nc => {
-          sharedClientState = nc;
-          expect(writeToLocalStorage).to.exist;
-        });
+        ).then(() => {
+            clientSyncer = new TestClientSyncer([primaryClientId, secondaryClientId]);
+            sharedClientState.syncEngine = clientSyncer;
+            return sharedClientState.start(AUTHENTICATED_USER)
+          })
     });
 
-    afterEach(() => {
-      sharedClientState.shutdown();
-    });
-
-    function verifyState(
+    async function verifyState(
       minBatchId: BatchId | null,
       expectedTargets: TargetId[]
     ) {
+      await queue.drain();
       const actualTargets = sharedClientState.getAllActiveQueryTargets();
 
       expect(actualTargets.toArray()).to.have.members(expectedTargets);
@@ -342,79 +358,134 @@ describe.only('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
-    let clientSyncer;
+    async function withUser(
+        user: User,
+        fn: () => Promise<void>
+    ) {
+      await sharedClientState.start(user);
+      return fn();
+    }
 
     beforeEach(() => {
-      clientSyncer = new TestClientSyncer(primaryClientId);
-
-      return persistenceHelpers
-        .testWebStorageSharedClientState(
-          TEST_USER,
-          primaryClientId,
-          clientSyncer
-        )
-        .then(clientState => {
-          sharedClientState = clientState;
-          expect(writeToLocalStorage).to.exist;
-        });
+      return sharedClientState.start(AUTHENTICATED_USER);
     });
 
-    afterEach(() => {
-      sharedClientState.shutdown();
+    it('for pending mutation', async () => {
+      withUser(AUTHENTICATED_USER, async () =>  {
+        writeToLocalStorage(
+            mutationKey(AUTHENTICATED_USER, 1),
+            new MutationMetadata(
+                AUTHENTICATED_USER,
+                1,
+                'pending'
+            ).toLocalStorageJSON()
+        );
+
+        await queue.drain();
+
+        expect(clientSyncer.pendingBatches).to.have.members([1]);
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches).to.be.empty;
+    });
     });
 
-    it('for pending mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(TEST_USER, 1, 'pending').toLocalStorageJSON()
-      );
+    it('for acknowledged mutation',async () => {
+      withUser(AUTHENTICATED_USER, async () =>  {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'acknowledged'
+          ).toLocalStorageJSON()
+        );
 
+
+      await queue.drain();
+
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
+        expect(clientSyncer.rejectedBatches).to.be.empty;      });
+
+    });
+
+    it('for rejected mutation', async () => {
+      withUser(AUTHENTICATED_USER, async () =>  {
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'rejected',
+            new FirestoreError('internal', 'Test Error')
+          ).toLocalStorageJSON()
+        );
+
+
+      await queue.drain();
+
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
+        expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
+      });
+    });
+
+    it('handles unauthenticated user',async  () => {
+      withUser(UNAUTHENTICATED_USER, async () =>  {
+        writeToLocalStorage(
+          mutationKey(UNAUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            UNAUTHENTICATED_USER,
+            1,
+            'pending'
+          ).toLocalStorageJSON()
+        );
+
+      await queue.drain();
       expect(clientSyncer.pendingBatches).to.have.members([1]);
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+      });
     });
 
-    it('for acknowledged mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(TEST_USER, 1, 'acknowledged').toLocalStorageJSON()
-      );
+    it('ignores different user', async () => {
+      withUser(AUTHENTICATED_USER, async () =>  {
+        const otherUser = new User('foobar');
 
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+        writeToLocalStorage(
+          mutationKey(AUTHENTICATED_USER, 1),
+          new MutationMetadata(
+            AUTHENTICATED_USER,
+            1,
+            'pending'
+          ).toLocalStorageJSON()
+        );
+        writeToLocalStorage(
+          mutationKey(otherUser, 1),
+          new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
+        );
+
+
+      await queue.drain();
+        expect(clientSyncer.pendingBatches).to.have.members([1]);
+      });
     });
 
-    it('for rejected mutation', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(
-          TEST_USER,
-          1,
-          'rejected',
-          new FirestoreError('internal', 'Test Error')
-        ).toLocalStorageJSON()
-      );
+    it('ignores invalid data', async () => {
+      withUser(AUTHENTICATED_USER, async () => {
+        writeToLocalStorage(
+            mutationKey(AUTHENTICATED_USER, 1),
+            new MutationMetadata(
+                AUTHENTICATED_USER,
+                1,
+                'invalid' as any
+            ).toLocalStorageJSON()
+        );
 
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
-      expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
-    });
-
-    it('ignores invalid data', () => {
-      writeToLocalStorage(
-        mutationKey(1),
-        new MutationMetadata(
-          TEST_USER,
-          1,
-          'invalid' as any
-        ).toLocalStorageJSON()
-      );
-
-      expect(clientSyncer.pendingBatches).to.be.empty;
-      expect(clientSyncer.acknowledgedBatches).to.be.empty;
-      expect(clientSyncer.rejectedBatches).to.be.empty;
+        await queue.drain();
+        expect(clientSyncer.pendingBatches).to.be.empty;
+        expect(clientSyncer.acknowledgedBatches).to.be.empty;
+        expect(clientSyncer.rejectedBatches).to.be.empty;
+      });
     });
   });
 });

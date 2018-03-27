@@ -37,6 +37,9 @@ const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
 // The format of the LocalStorage key that stores the mutation state is:
 //     fs_mutations_<persistence_prefix>_<batch_id> (for unauthenticated users)
 // or: fs_mutations_<persistence_prefix>_<batch_id>_<user_uid>
+//
+// 'user_uid' is last to avoid needing to escape '_' characters that it might
+// contain.
 const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
 
 /**
@@ -54,15 +57,17 @@ export type ClientKey = string;
  * `SharedClientState` is primarily used for synchronization in Multi-Tab
  * environments. Each tab is responsible for registering its active query
  * targets and mutations. `SharedClientState` will then notify the listener
- * passed to `subscribe()` for updates to mutations and queries that originated
- * in other clients.
+ * assigned to `.syncEngine` for updates to mutations and queries that
+ * originated in other clients.
  *
- * To receive notifications, both `subscribe()` and `start()` have to be called
- * in order.
+ * To receive notifications, `.syncEngine` has to be assigned before calling
+ * `start()`.
  *
  * TODO(multitab): Add callbacks to SyncEngine
  */
 export interface SharedClientState {
+  syncEngine: SharedClientStateSyncer | null;
+
   /** Associates a new Mutation Batch ID with the current Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
 
@@ -115,7 +120,7 @@ interface MutationMetadataSchema {
 }
 
 /**
- * Holds the state of a mutation batch, including its user ID, batch ID annd
+ * Holds the state of a mutation batch, including its user ID, batch ID and
  * whether the batch is 'pending', 'acknowledged' or 'rejected'.
  */
 // Visible for testing
@@ -181,15 +186,18 @@ export class MutationMetadata {
   }
 
   toLocalStorageJSON(): string {
-    const batchState: MutationMetadataSchema = {
+    const batchMetadata: MutationMetadataSchema = {
       state: this.state
     };
 
     if (this.error) {
-      batchState.error = { code: this.error.code, message: this.error.message };
+      batchMetadata.error = {
+        code: this.error.code,
+        message: this.error.message
+      };
     }
 
-    return JSON.stringify(batchState);
+    return JSON.stringify(batchMetadata);
   }
 }
 
@@ -366,6 +374,8 @@ export class LocalClientState implements ClientState {
  */
 // TODO(multitab): Rename all usages of LocalStorage to WebStorage to better differentiate from LocalClient.
 export class WebStorageSharedClientState implements SharedClientState {
+  syncEngine: SharedClientStateSyncer | null;
+
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
@@ -373,7 +383,6 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly earlyEvents : StorageEvent[] = [];
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
-  private syncEngine: SharedClientStateSyncer | null;
   private user: User;
   private started = false;
 
@@ -396,7 +405,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d*)(?:_(.*))$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d+)(?:_(.*))?$`
     );
 
     // We add the storage observer during initialization to allow us to process
@@ -409,17 +418,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  subscribe(syncEngine: SharedClientStateSyncer) {
-    this.syncEngine = syncEngine;
-  }
-
   // TODO(multitab): Handle user changes.
   async start(initialUser: User): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
-    assert(
-      this.syncEngine !== null,
-      'Start() called before subscribing to events'
-    );
 
     // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
@@ -517,13 +518,8 @@ export class WebStorageSharedClientState implements SharedClientState {
           return;
         }
 
-        if (event.newValue == null) {
-          if (this.clientStateKeyRe.test(event.key)) {
-            const clientId = this.fromLocalStorageClientStateKey(event.key);
-            delete this.activeClients[clientId];
-          }
-        } else {
-          if (this.clientStateKeyRe.test(event.key)) {
+        if (this.clientStateKeyRe.test(event.key)) {
+          if (event.newValue != null) {
             const clientState = this.fromLocalStorageClientState(
                 event.key,
                 event.newValue
@@ -531,7 +527,12 @@ export class WebStorageSharedClientState implements SharedClientState {
             if (clientState) {
               this.activeClients[clientState.clientId] = clientState;
             }
-          } else if (this.mutationBatchKeyRe.test(event.key)) {
+          } else {
+            const clientId = this.fromLocalStorageClientStateKey(event.key);
+            delete this.activeClients[clientId];
+          }
+        } else if (this.mutationBatchKeyRe.test(event.key)) {
+          if (event.newValue !== null) {
             const mutationMetadata = this.fromLocalStorageMutationMetadata(
                 event.key,
                 event.newValue
@@ -540,7 +541,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               return this.handleMutationBatchEvent(mutationMetadata);
             }
           }
-      }
+        }
       });
     }
   }
@@ -638,6 +639,11 @@ export class WebStorageSharedClientState implements SharedClientState {
   private async handleMutationBatchEvent(
     mutationBatch: MutationMetadata
   ): Promise<void> {
+    assert(
+      this.syncEngine !== null,
+      'syncEngine property must be set in order to handle events'
+    );
+
     if (mutationBatch.user.uid !== this.user.uid) {
       debug(
         LOG_TAG,
