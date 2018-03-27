@@ -19,7 +19,7 @@ import {
   WebStorageSharedClientState,
   LocalClientState,
   MutationMetadata,
-  ClientKey,
+  ClientId,
   SharedClientState
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
@@ -64,7 +64,7 @@ class TestClientSyncer implements SharedClientStateSyncer {
   readonly acknowledgedBatches: BatchId[] = [];
   readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
 
-  constructor(public activeClients: ClientKey[]) {}
+  constructor(public activeClients: ClientId[]) {}
 
   async applyPendingBatch(batchId: BatchId): Promise<void> {
     this.pendingBatches.push(batchId);
@@ -81,7 +81,7 @@ class TestClientSyncer implements SharedClientStateSyncer {
     this.rejectedBatches[batchId] = err;
   }
 
-  async getActiveClients(): Promise<ClientKey[]> {
+  async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
   }
 }
@@ -304,7 +304,7 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('with data from new clients', () => {
-      const secondaryClientKey = `fs_clients_${
+      const secondaryClientStateKey = `fs_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
@@ -314,7 +314,7 @@ describe('WebStorageSharedClientState', () => {
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
 
-      writeToLocalStorage(secondaryClientKey, oldState.toLocalStorageJSON());
+      writeToLocalStorage(secondaryClientStateKey, oldState.toLocalStorageJSON());
       verifyState(1, [3, 4, 5]);
 
       const updatedState = new LocalClientState();
@@ -323,17 +323,17 @@ describe('WebStorageSharedClientState', () => {
       updatedState.addPendingMutation(0);
 
       writeToLocalStorage(
-        secondaryClientKey,
+        secondaryClientStateKey,
         updatedState.toLocalStorageJSON()
       );
       verifyState(0, [3, 4, 5, 6]);
 
-      writeToLocalStorage(secondaryClientKey, null);
+      writeToLocalStorage(secondaryClientStateKey, null);
       verifyState(1, [3, 4]);
     });
 
     it('ignores invalid data', () => {
-      const secondaryClientKey = `fs_clients_${
+      const secondaryClientStateKey = `fs_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
@@ -346,7 +346,7 @@ describe('WebStorageSharedClientState', () => {
       verifyState(1, [3, 4]);
 
       // We ignore the newly added target.
-      writeToLocalStorage(secondaryClientKey, JSON.stringify(invalidState));
+      writeToLocalStorage(secondaryClientStateKey, JSON.stringify(invalidState));
       verifyState(1, [3, 4]);
     });
   });

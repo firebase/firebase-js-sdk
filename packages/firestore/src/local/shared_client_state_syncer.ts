@@ -16,7 +16,7 @@
 
 import { BatchId } from '../core/types';
 import { FirestoreError } from '../util/error';
-import { ClientKey } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 
 /**
  * An interface that describes the actions the SharedClientState class needs to
@@ -33,5 +33,5 @@ export interface SharedClientStateSyncer {
   rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
 
   /** Returns the IDs of the clients that are currently active. */
-  getActiveClients(): Promise<ClientKey[]>;
+  getActiveClients(): Promise<ClientId[]>;
 }

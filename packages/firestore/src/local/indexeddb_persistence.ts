@@ -47,7 +47,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
-import { ClientKey } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -123,7 +123,7 @@ export class IndexedDbPersistence implements Persistence {
   private isPrimary = false;
   private dbName: string;
   private localStoragePrefix: string;
-  private readonly clientKey = this.generateClientKey();
+  private readonly clientId = this.generateClientId();
 
   /**
    * Set to an Error object if we encounter an unrecoverable error. All further
@@ -200,7 +200,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       const metadataStore = clientMetadataStore(txn);
       metadataStore.put(
-        new DbClientMetadata(this.clientKey, Date.now(), this.inForeground)
+        new DbClientMetadata(this.clientId, Date.now(), this.inForeground)
       );
 
       return this.canActAsPrimary(txn).next(canActAsPrimary => {
@@ -234,7 +234,7 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Checks whether `client` is the local client. */
   private isLocalClient(client: DbOwner | null): boolean {
-    return client ? client.ownerId === this.clientKey : false;
+    return client ? client.ownerId === this.clientId : false;
   }
 
   /**
@@ -271,7 +271,7 @@ export class IndexedDbPersistence implements Persistence {
         let canActAsPrimary = true;
         return clientMetadataStore(txn)
           .iterate((key, value, control) => {
-            if (this.clientKey !== value.clientKey) {
+            if (this.clientId !== value.clientId) {
               if (
                 this.isWithinMaxAge(value.updateTimeMs) &&
                 value.inForeground
@@ -308,17 +308,17 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
-  getActiveClients(): Promise<ClientKey[]> {
-    const clientKeys: ClientKey[] = [];
+  getActiveClients(): Promise<ClientId[]> {
+    const clientIds: ClientId[] = [];
     return this.simpleDb
       .runTransaction('readonly', [DbClientMetadata.store], txn => {
         return clientMetadataStore(txn).iterate((key, value) => {
           if (this.isWithinMaxAge(value.updateTimeMs)) {
-            clientKeys.push(value.clientKey);
+            clientIds.push(value.clientId);
           }
         });
       })
-      .then(() => clientKeys);
+      .then(() => clientIds);
   }
 
   getMutationQueue(user: User): MutationQueue {
@@ -381,7 +381,7 @@ export class IndexedDbPersistence implements Persistence {
    * method does not verify that the client is eligible for this lease.
    */
   private acquireOrExtendPrimaryLease(txn): PersistencePromise<void> {
-    const newPrimary = new DbOwner(this.clientKey, Date.now());
+    const newPrimary = new DbOwner(this.clientId, Date.now());
     return ownerStore(txn).put('owner', newPrimary);
   }
 
@@ -482,7 +482,7 @@ export class IndexedDbPersistence implements Persistence {
       // accesses internal state. We execute this code directly during shutdown
       // to make sure it gets a chance to run.
       if (this.isPrimary) {
-        this.setZombiedClientId(this.clientKey);
+        this.setZombiedClientId(this.clientId);
       }
       this.queue.enqueue(() => {
         // Attempt graceful shutdown (including releasing our owner lease), but
@@ -505,7 +505,7 @@ export class IndexedDbPersistence implements Persistence {
    * zombied due to their tab closing) from LocalStorage, or null if no such
    * record exists.
    */
-  private getZombiedClientId(): ClientKey | null {
+  private getZombiedClientId(): ClientId | null {
     try {
       const zombiedClientId = window.localStorage.getItem(
         this.zombiedClientLocalStorageKey()
@@ -527,7 +527,7 @@ export class IndexedDbPersistence implements Persistence {
    * Records a zombied primary client (a primary client that had its tab closed)
    * in LocalStorage or, if passed null, deletes any recorded zombied owner.
    */
-  private setZombiedClientId(zombiedClientId: ClientKey | null) {
+  private setZombiedClientId(zombiedClientId: ClientId | null) {
     try {
       if (zombiedClientId === null) {
         window.localStorage.removeItem(this.zombiedClientLocalStorageKey());
@@ -547,7 +547,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.localStoragePrefix + ZOMBIED_PRIMARY_LOCALSTORAGE_SUFFIX;
   }
 
-  private generateClientKey(): ClientKey {
+  private generateClientId(): ClientId {
     // For convenience, just use an AutoId.
     return AutoId.newId();
   }
