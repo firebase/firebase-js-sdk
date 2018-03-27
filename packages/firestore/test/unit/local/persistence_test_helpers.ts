@@ -30,7 +30,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { FirestoreError } from '../../../src/util/error';
-import {query} from '../../util/api_helpers';
+import { query } from '../../util/api_helpers';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
@@ -86,14 +86,15 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
  * destroying any previous contents in LocalStorage if they existed.
  */
 export async function populateWebStorage(
-    user: User,
-    clientId: ClientKey,
-    existingMutationBatchIds: BatchId[],
-    existingQueryTargetIds: TargetId[]
+  user: User,
+  clientId: ClientKey,
+  existingMutationBatchIds: BatchId[],
+  existingQueryTargetIds: TargetId[]
 ): Promise<void> {
   // HACK: Create a secondary client state to seed data into LocalStorage.
   // NOTE: We don't call shutdown() on it because that would delete the data.
-  const secondaryClientState = new WebStorageSharedClientState(new AsyncQueue(),
+  const secondaryClientState = new WebStorageSharedClientState(
+    new AsyncQueue(),
     TEST_PERSISTENCE_PREFIX,
     clientId
   );

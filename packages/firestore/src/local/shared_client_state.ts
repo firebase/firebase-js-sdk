@@ -24,7 +24,7 @@ import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
 import { SharedClientStateSyncer } from './shared_client_state_syncer';
-import {AsyncQueue} from '../util/async_queue';
+import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -380,13 +380,14 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly localClientStorageKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
-  private readonly earlyEvents : StorageEvent[] = [];
+  private readonly earlyEvents: StorageEvent[] = [];
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private user: User;
   private started = false;
 
-  constructor(private readonly queue: AsyncQueue,
+  constructor(
+    private readonly queue: AsyncQueue,
     private readonly persistenceKey: string,
     private readonly localClientKey: ClientKey
   ) {
@@ -512,7 +513,7 @@ export class WebStorageSharedClientState implements SharedClientState {
         'Received LocalStorage notification for local change.'
       );
 
-      this.queue.enqueue(async () =>  {
+      this.queue.enqueue(async () => {
         if (!this.started) {
           this.earlyEvents.push(event);
           return;
@@ -521,8 +522,8 @@ export class WebStorageSharedClientState implements SharedClientState {
         if (this.clientStateKeyRe.test(event.key)) {
           if (event.newValue != null) {
             const clientState = this.fromLocalStorageClientState(
-                event.key,
-                event.newValue
+              event.key,
+              event.newValue
             );
             if (clientState) {
               this.activeClients[clientState.clientId] = clientState;
@@ -534,8 +535,8 @@ export class WebStorageSharedClientState implements SharedClientState {
         } else if (this.mutationBatchKeyRe.test(event.key)) {
           if (event.newValue !== null) {
             const mutationMetadata = this.fromLocalStorageMutationMetadata(
-                event.key,
-                event.newValue
+              event.key,
+              event.newValue
             );
             if (mutationMetadata) {
               return this.handleMutationBatchEvent(mutationMetadata);
