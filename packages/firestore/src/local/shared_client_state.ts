@@ -588,7 +588,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   /** Assembles the key for a client state in LocalStorage */
   private toLocalStorageClientStateKey(clientId: ClientId): string {
     assert(
-        clientId.indexOf('_') === -1,
+      clientId.indexOf('_') === -1,
       `Client key cannot contain '_', but was '${clientId}'`
     );
 

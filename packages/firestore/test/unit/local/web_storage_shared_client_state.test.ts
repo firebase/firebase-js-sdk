@@ -314,7 +314,10 @@ describe('WebStorageSharedClientState', () => {
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
 
-      writeToLocalStorage(secondaryClientStateKey, oldState.toLocalStorageJSON());
+      writeToLocalStorage(
+        secondaryClientStateKey,
+        oldState.toLocalStorageJSON()
+      );
       verifyState(1, [3, 4, 5]);
 
       const updatedState = new LocalClientState();
@@ -346,7 +349,10 @@ describe('WebStorageSharedClientState', () => {
       verifyState(1, [3, 4]);
 
       // We ignore the newly added target.
-      writeToLocalStorage(secondaryClientStateKey, JSON.stringify(invalidState));
+      writeToLocalStorage(
+        secondaryClientStateKey,
+        JSON.stringify(invalidState)
+      );
       verifyState(1, [3, 4]);
     });
   });
