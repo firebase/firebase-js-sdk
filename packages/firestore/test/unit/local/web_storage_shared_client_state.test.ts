@@ -56,15 +56,30 @@ function mutationKey(user: User, batchId: BatchId) {
   }
 }
 
+interface TestSharedClientState {
+  pendingBatches: BatchId[];
+  acknowledgedBatches: BatchId[];
+  rejectedBatches: { [batchId: number]: FirestoreError };
+}
+
 /**
- * Implementation of `SharedClientStateSyncer` that aggregates its callback data.
+ * Implementation of `SharedClientStateSyncer` that aggregates its callback
+ * data and exposes it via `.sharedClientState`.
  */
-class TestClientSyncer implements SharedClientStateSyncer {
-  readonly pendingBatches: BatchId[] = [];
-  readonly acknowledgedBatches: BatchId[] = [];
-  readonly rejectedBatches: { [batchId: number]: FirestoreError } = {};
+class TestSharedClientSyncer implements SharedClientStateSyncer {
+  private pendingBatches: BatchId[] = [];
+  private acknowledgedBatches: BatchId[] = [];
+  private rejectedBatches: { [batchId: number]: FirestoreError } = {};
 
   constructor(public activeClients: ClientKey[]) {}
+
+  get sharedClientState(): TestSharedClientState {
+    return {
+      pendingBatches: this.pendingBatches,
+      acknowledgedBatches:  this.acknowledgedBatches,
+      rejectedBatches:  this.rejectedBatches
+    };
+  }
 
   async applyPendingBatch(batchId: BatchId): Promise<void> {
     this.pendingBatches.push(batchId);
@@ -84,6 +99,7 @@ class TestClientSyncer implements SharedClientStateSyncer {
   async getActiveClients(): Promise<ClientKey[]> {
     return this.activeClients;
   }
+
 }
 
 describe('WebStorageSharedClientState', () => {
@@ -99,7 +115,7 @@ describe('WebStorageSharedClientState', () => {
   let queue: AsyncQueue;
   let primaryClientId;
   let sharedClientState: SharedClientState;
-  let clientSyncer: TestClientSyncer;
+  let clientSyncer: TestSharedClientSyncer;
 
   let previousAddEventListener;
 
@@ -133,7 +149,7 @@ describe('WebStorageSharedClientState', () => {
       TEST_PERSISTENCE_PREFIX,
       primaryClientId
     );
-    clientSyncer = new TestClientSyncer([primaryClientId]);
+    clientSyncer = new TestSharedClientSyncer([primaryClientId]);
     sharedClientState.syncEngine = clientSyncer;
   });
 
@@ -352,10 +368,11 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
-    async function withUser(user: User, fn: () => Promise<void>) {
+    async function withUser(user: User, fn: () => Promise<void>) : Promise<TestSharedClientState> {
       await sharedClientState.start(user);
       await fn();
-      return queue.drain();
+      await queue.drain();
+      return clientSyncer.sharedClientState;
     }
 
     it('for pending mutation', () => {
@@ -368,10 +385,10 @@ describe('WebStorageSharedClientState', () => {
                 'pending'
             ).toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.have.members([1]);
-        expect(clientSyncer.acknowledgedBatches).to.be.empty;
-        expect(clientSyncer.rejectedBatches).to.be.empty;
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.have.members([1]);
+        expect(clientState.acknowledgedBatches).to.be.empty;
+        expect(clientState.rejectedBatches).to.be.empty;
       });
     });
 
@@ -385,10 +402,10 @@ describe('WebStorageSharedClientState', () => {
             'acknowledged'
           ).toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.be.empty;
-        expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
-        expect(clientSyncer.rejectedBatches).to.be.empty;
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.be.empty;
+        expect(clientState.acknowledgedBatches).to.have.members([1]);
+        expect(clientState.rejectedBatches).to.be.empty;
       });
     });
 
@@ -403,11 +420,11 @@ describe('WebStorageSharedClientState', () => {
             new FirestoreError('internal', 'Test Error')
           ).toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.be.empty;
-        expect(clientSyncer.acknowledgedBatches).to.be.empty;
-        expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
-        expect(clientSyncer.rejectedBatches[1].message).to.equal('Test Error');
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.be.empty;
+        expect(clientState.acknowledgedBatches).to.be.empty;
+        expect(clientState.rejectedBatches[1].code).to.equal('internal');
+        expect(clientState.rejectedBatches[1].message).to.equal('Test Error');
       });
     });
 
@@ -421,8 +438,8 @@ describe('WebStorageSharedClientState', () => {
             'pending'
           ).toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.have.members([1]);
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.have.members([1]);
       });
     });
 
@@ -442,8 +459,8 @@ describe('WebStorageSharedClientState', () => {
           mutationKey(otherUser, 1),
           new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.have.members([1]);
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.have.members([1]);
       });
     });
 
@@ -457,10 +474,10 @@ describe('WebStorageSharedClientState', () => {
             'invalid' as any
           ).toLocalStorageJSON()
         )
-      }).then(() => {
-        expect(clientSyncer.pendingBatches).to.be.empty;
-        expect(clientSyncer.acknowledgedBatches).to.be.empty;
-        expect(clientSyncer.rejectedBatches).to.be.empty;
+      }).then(clientState => {
+        expect(clientState.pendingBatches).to.be.empty;
+        expect(clientState.acknowledgedBatches).to.be.empty;
+        expect(clientState.rejectedBatches).to.be.empty;
       });
     });
   });
