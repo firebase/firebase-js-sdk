@@ -250,19 +250,22 @@ export class FirestoreClient {
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new IndexedDbPersistence(
-      storagePrefix,
-      this.clientId,
-      this.platform,
-      this.asyncQueue,
-      serializer
-    );
-    this.sharedClientState = new WebStorageSharedClientState(
-      this.asyncQueue,
-      storagePrefix,
-      this.clientId
-    );
-    return this.persistence.start();
+
+    return Promise.resolve().then(() => {
+      this.persistence = new IndexedDbPersistence(
+          storagePrefix,
+          this.clientId,
+          this.platform,
+          this.asyncQueue,
+          serializer
+      );
+      this.sharedClientState = new WebStorageSharedClientState(
+        this.asyncQueue,
+        storagePrefix,
+        this.clientId
+      );
+      return this.persistence.start();
+    });
   }
 
   /**
