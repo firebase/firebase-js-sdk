@@ -45,8 +45,7 @@ const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
  */
-// TODO(multitab): Rename to ClientId.
-export type ClientKey = string;
+export type ClientId = string;
 
 /**
  * A `SharedClientState` keeps track of the global state of the mutations
@@ -203,7 +202,7 @@ export class MutationMetadata {
 
 /**
  * The JSON representation of a clients's metadata as used during LocalStorage
- * serialization. The ClientKey is omitted here as it is encoded as part of the
+ * serialization. The ClientId is omitted here as it is encoded as part of the
  * key.
  */
 interface ClientStateSchema {
@@ -233,7 +232,7 @@ export interface ClientState {
  */
 class RemoteClientState implements ClientState {
   private constructor(
-    readonly clientId: ClientKey,
+    readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
     readonly activeTargetIds: SortedSet<TargetId>,
     readonly minMutationBatchId: BatchId | null,
@@ -245,7 +244,7 @@ class RemoteClientState implements ClientState {
    * Logs a warning and returns null if the format of the data is not valid.
    */
   static fromLocalStorageEntry(
-    clientKey: string,
+    clientId: ClientId,
     value: string
   ): RemoteClientState | null {
     const clientState = JSON.parse(value) as ClientStateSchema;
@@ -270,7 +269,7 @@ class RemoteClientState implements ClientState {
 
     if (validData) {
       return new RemoteClientState(
-        clientKey,
+        clientId,
         new Date(clientState.lastUpdateTime),
         activeTargetIdsSet,
         clientState.minMutationBatchId,
@@ -279,7 +278,7 @@ class RemoteClientState implements ClientState {
     } else {
       error(
         LOG_TAG,
-        `Failed to parse client data for instance '${clientKey}': ${value}`
+        `Failed to parse client data for instance '${clientId}': ${value}`
       );
       return null;
     }
@@ -394,7 +393,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   constructor(
     private readonly queue: AsyncQueue,
     private readonly persistenceKey: string,
-    private readonly localClientKey: ClientKey
+    private readonly localClientId: ClientId
   ) {
     if (!WebStorageSharedClientState.isAvailable()) {
       throw new FirestoreError(
@@ -404,9 +403,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
     this.storage = window.localStorage;
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
-      this.localClientKey
+      this.localClientId
     );
-    this.activeClients[this.localClientKey] = new LocalClientState();
+    this.activeClients[this.localClientId] = new LocalClientState();
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
     );
@@ -436,17 +435,17 @@ export class WebStorageSharedClientState implements SharedClientState {
     // SharedClientState.
     const existingClients = await this.syncEngine.getActiveClients();
 
-    for (const clientKey of existingClients) {
-      if (clientKey === this.localClientKey) {
+    for (const clientId of existingClients) {
+      if (clientId === this.localClientId) {
         continue;
       }
 
       const storageItem = this.storage.getItem(
-        this.toLocalStorageClientStateKey(clientKey)
+        this.toLocalStorageClientStateKey(clientId)
       );
       if (storageItem) {
         const clientState = RemoteClientState.fromLocalStorageEntry(
-          clientKey,
+          clientId,
           storageItem
         );
         if (clientState) {
@@ -558,7 +557,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private get localClientState(): LocalClientState {
-    return this.activeClients[this.localClientKey] as LocalClientState;
+    return this.activeClients[this.localClientId] as LocalClientState;
   }
 
   private persistClientState(): void {
@@ -596,20 +595,20 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   /** Assembles the key for a client state in LocalStorage */
-  private toLocalStorageClientStateKey(clientKey: string): string {
+  private toLocalStorageClientStateKey(clientId: ClientId): string {
     assert(
-      clientKey.indexOf('_') === -1,
-      `Client key cannot contain '_', but was '${clientKey}'`
+      clientId.indexOf('_') === -1,
+      `Client key cannot contain '_', but was '${clientId}'`
     );
 
-    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientKey}`;
+    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
   }
 
   /**
    * Parses a client state key in LocalStorage. Returns null if the key does not
    * match the expected key format.
    */
-  private fromLocalStorageClientStateKey(key: string): ClientKey | null {
+  private fromLocalStorageClientStateKey(key: string): ClientId | null {
     const match = this.clientStateKeyRe.exec(key);
     return match ? match[1] : null;
   }

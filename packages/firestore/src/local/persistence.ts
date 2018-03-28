@@ -21,7 +21,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientKey } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -107,7 +107,7 @@ export interface Persistence {
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
-  getActiveClients(): Promise<ClientKey[]>;
+  getActiveClients(): Promise<ClientId[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the

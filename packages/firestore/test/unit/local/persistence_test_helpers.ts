@@ -22,7 +22,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   WebStorageSharedClientState,
   SharedClientState,
-  ClientKey
+  ClientId
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
@@ -71,14 +71,14 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
-  constructor(private readonly activeClients: ClientKey[]) {}
+  constructor(private readonly activeClients: ClientId[]) {}
   async applyPendingBatch(batchId: BatchId): Promise<void> {}
   async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
     batchId: BatchId,
     err: FirestoreError
   ): Promise<void> {}
-  async getActiveClients(): Promise<ClientKey[]> {
+  async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
   }
 }
@@ -88,7 +88,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
  */
 export async function populateWebStorage(
   user: User,
-  existingClientId: ClientKey,
+  existingClientId: ClientId,
   existingMutationBatchIds: BatchId[],
   existingQueryTargetIds: TargetId[]
 ): Promise<void> {
