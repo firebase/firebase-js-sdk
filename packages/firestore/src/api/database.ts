@@ -318,7 +318,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     if (!this._config.settings.timestampsInSnapshots) {
       log.error(`
-The default behavior for Date objects stored in Firestore is going to change
+The behavior for Date objects stored in Firestore is going to change
 AND YOUR APP MAY BREAK.
 To hide this warning and ensure your app does not break, you need to add the
 following code to your app before calling any other Cloud Firestore methods:
@@ -337,8 +337,8 @@ need to update code expecting a Date to instead expect a Timestamp. For example:
   const timestamp = snapshot.get('created_at');
   const date = timestamp.toDate();
 
-Please audit all existing usages of Date when you enable the new behavior. This
-new behavior will become the default in a future release and so if you do not
+Please audit all existing usages of Date when you enable the new behavior. In a
+future release, the behavior will change to the new behavior, so if you do not
 follow these steps, YOUR APP MAY BREAK.`);
     }
 
