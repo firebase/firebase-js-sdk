@@ -39,6 +39,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   const sandbox = sinon.sandbox.create();
   const now = Date.now();
   const expiredDate = new Date(now - ONE_DAY);
+  const FAKE_SUBSCRIPTION = makeFakeSubscription();
 
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
@@ -52,7 +53,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   const EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID = {
     swScope: '/example-scope',
     vapidKey: DEFAULT_VAPID_KEY,
-    subscription: makeFakeSubscription(),
+    endpoint: FAKE_SUBSCRIPTION.endpoint,
+    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')),
+    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')),
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty1',
     fcmPushSet: '87654321',
@@ -61,7 +64,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   const EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID = {
     swScope: '/example-scope',
     vapidKey: CUSTOM_VAPID_KEY,
-    subscription: makeFakeSubscription(),
+    endpoint: FAKE_SUBSCRIPTION.endpoint,
+    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')),
+    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')),
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty2',
     fcmPushSet: '7654321',
@@ -70,7 +75,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   const EXAMPLE_EXPIRED_TOKEN_DETAILS = {
     swScope: '/example-scope',
     vapidKey: DEFAULT_VAPID_KEY,
-    subscription: makeFakeSubscription(),
+    endpoint: FAKE_SUBSCRIPTION.endpoint,
+    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')),
+    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')),
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty3',
     fcmPushSet: '654321',
@@ -397,6 +404,83 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
           assert.equal(tokenModelArgs.fcmSenderId, EXAMPLE_SENDER_ID);
           assert.equal(tokenModelArgs.fcmToken, TOKEN_DETAILS['token']);
           assert.equal(tokenModelArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
+        });
+      });
+
+      it('should get a new token in ${ServiceClass.name} if PushSubscription details have changed', function() {
+        // Stubs
+        const deleteTokenStub = sandbox.stub(
+          TokenDetailsModel.prototype,
+          'deleteToken'
+        );
+        const saveTokenDetailsStub = sandbox.stub(
+          TokenDetailsModel.prototype,
+          'saveTokenDetails'
+        );
+        saveTokenDetailsStub.callsFake(async () => {});
+
+        sandbox
+          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .callsFake(() => NotificationPermission.granted);
+
+        const existingTokenDetails = VapidSetup['details'];
+        let vapidKeyToUse = FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+        if (VapidSetup['name'] === 'custom') {
+          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
+        }
+        sandbox
+          .stub(ServiceClass.prototype, 'getPublicVapidKey_')
+          .callsFake(() => Promise.resolve(vapidKeyToUse));
+
+        sandbox
+          .stub(VapidDetailsModel.prototype, 'saveVapidDetails')
+          .callsFake(async () => {});
+
+        const GET_TOKEN_RESPONSE = {
+          token: 'new-token',
+          pushSet: 'new-pushSet'
+        };
+        sandbox
+          .stub(IIDModel.prototype, 'getToken')
+          .callsFake(() => Promise.resolve(GET_TOKEN_RESPONSE));
+        sandbox
+          .stub(IIDModel.prototype, 'deleteToken')
+          .callsFake(async () => {});
+
+        const registration = generateFakeReg(Promise.resolve(null));
+        mockGetReg(Promise.resolve(registration));
+
+        const options = {
+          endpoint: 'https://different-push-endpoint.com/',
+          auth: 'another-auth-secret',
+          p256dh: 'another-user-public-key'
+        };
+        const newPS = makeFakeSubscription(options);
+
+        deleteTokenStub.callsFake(token => {
+          assert.equal(token, existingTokenDetails.fcmToken);
+          return Promise.resolve(existingTokenDetails);
+        });
+        // The push subscription has changed since we saved the token.
+        sandbox
+          .stub(ServiceClass.prototype, 'getPushSubscription')
+          .callsFake(() => Promise.resolve(newPS));
+        sandbox
+          .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
+          .callsFake(() => Promise.resolve(existingTokenDetails));
+
+        const serviceInstance = new ServiceClass(app);
+        return serviceInstance.getToken().then(token => {
+          // make sure we call getToken and retrieve the new token.
+          assert.equal('new-token', token);
+          // make sure the existing token is deleted.
+          assert.equal(deleteTokenStub.callCount, 1);
+          // make sure the new details are saved.
+          assert.equal(saveTokenDetailsStub.callCount, 1);
+          assert.equal(
+            VapidDetailsModel.prototype.saveVapidDetails['callCount'],
+            1
+          );
         });
       });
     });
