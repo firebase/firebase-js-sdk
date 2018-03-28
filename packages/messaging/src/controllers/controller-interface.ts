@@ -114,7 +114,11 @@ export default class ControllerInterface {
     publicVapidKey: Uint8Array,
     tokenDetails: Object
   ): Promise<string> {
-    const isTokenValid = await this.isTokenStillValid(tokenDetails);
+    const isTokenValid = this.isTokenStillValid(
+      pushSubscription,
+      publicVapidKey,
+      tokenDetails
+    );
     if (isTokenValid) {
       const now = Date.now();
       if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
@@ -138,14 +142,24 @@ export default class ControllerInterface {
   /*
    * Checks if the tokenDetails match the details provided in the clients.
    */
-  private isTokenStillValid(tokenDetails: Object): Promise<Boolean> {
-    // TODO Validate rest of the details.
-    return this.getPublicVapidKey_().then(publicKey => {
-      if (arrayBufferToBase64(publicKey) !== tokenDetails['vapidKey']) {
-        return false;
-      }
-      return true;
-    });
+  private isTokenStillValid(
+    pushSubscription: PushSubscription,
+    publicVapidKey: Uint8Array,
+    tokenDetails: Object
+  ): Boolean {
+    if (arrayBufferToBase64(publicVapidKey) !== tokenDetails['vapidKey']) {
+      return false;
+    }
+
+    // getKey() isn't defined in the PushSubscription externs file, hence
+    // subscription['getKey']('<key name>').
+    return (
+      pushSubscription.endpoint === tokenDetails['endpoint'] &&
+      arrayBufferToBase64(pushSubscription['getKey']('auth')) ===
+        tokenDetails['auth'] &&
+      arrayBufferToBase64(pushSubscription['getKey']('p256dh')) ===
+        tokenDetails['p256dh']
+    );
   }
 
   private async updateToken(
