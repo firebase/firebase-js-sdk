@@ -55,6 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { ClientId, SharedClientState } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
@@ -160,6 +161,8 @@ export class LocalStore {
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
+    /** Manages state synchronization in multi-tab environments. */
+    private sharedClientState: SharedClientState,
     initialUser: User,
     /**
      * The garbage collector collects documents that should no longer be
@@ -195,6 +198,8 @@ export class LocalStore {
    * returns any resulting document changes.
    */
   handleUserChange(user: User): Promise<MaybeDocumentMap> {
+    this.sharedClientState.handleUserChange(user);
+
     return this.persistence.runTransaction('Handle user change', true, txn => {
       // Swap out the mutation queue, grabbing the pending mutation batches
       // before and after.
@@ -283,10 +288,8 @@ export class LocalStore {
 
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
-    return this.persistence.runTransaction(
-      'Locally write mutations',
-      true,
-      txn => {
+    return this.persistence
+      .runTransaction('Locally write mutations', true, txn => {
         let batch: MutationBatch;
         const localWriteTime = Timestamp.now();
         return this.mutationQueue
@@ -302,8 +305,11 @@ export class LocalStore {
           .next((changedDocuments: MaybeDocumentMap) => {
             return { batchId: batch.batchId, changes: changedDocuments };
           });
-      }
-    );
+      })
+      .then(writeResult => {
+        this.sharedClientState.addLocalPendingMutation(writeResult.batchId);
+        return writeResult;
+      });
   }
 
   /**
@@ -867,5 +873,9 @@ export class LocalStore {
         });
     });
     return promiseChain;
+  }
+
+  getActiveClients(): Promise<ClientId[]> {
+    return this.persistence.getActiveClients();
   }
 }

@@ -68,6 +68,9 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
+import { SharedClientState } from '../../../src/local/shared_client_state';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { AutoId } from '../../../src/util/misc';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -255,7 +258,15 @@ class LocalStoreTester {
 
 describe('LocalStore w/ Memory Persistence', () => {
   addEqualityMatcher();
-  genericLocalStoreTests(persistenceHelpers.testMemoryPersistence);
+  const queue = new AsyncQueue();
+  const clientId = AutoId.newId();
+  genericLocalStoreTests(
+    persistenceHelpers.testMemoryPersistence.bind(this, queue, clientId),
+    persistenceHelpers.testMemorySharedClientState.bind(
+      this,
+      User.UNAUTHENTICATED
+    )
+  );
 });
 
 describe('LocalStore w/ IndexedDB Persistence', () => {
@@ -267,27 +278,42 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
+  const queue = new AsyncQueue();
+  const clientId = AutoId.newId();
+  genericLocalStoreTests(
+    persistenceHelpers.testIndexedDbPersistence.bind(this, queue, clientId),
+    persistenceHelpers.testWebStorageSharedClientState.bind(
+      this,
+      queue,
+      clientId,
+      User.UNAUTHENTICATED
+    )
+  );
 });
 
-function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
+function genericLocalStoreTests(
+  getPersistence: () => Promise<Persistence>,
+  getSharedClientState: () => Promise<SharedClientState>
+) {
   let persistence: Persistence;
+  let sharedClientState: SharedClientState;
   let localStore: LocalStore;
 
-  beforeEach(() => {
-    return getPersistence().then(p => {
-      persistence = p;
-      localStore = new LocalStore(
-        persistence,
-        User.UNAUTHENTICATED,
-        new EagerGarbageCollector()
-      );
-      return localStore.start();
-    });
+  beforeEach(async () => {
+    persistence = await getPersistence();
+    sharedClientState = await getSharedClientState();
+    localStore = new LocalStore(
+      persistence,
+      sharedClientState,
+      User.UNAUTHENTICATED,
+      new EagerGarbageCollector()
+    );
+    return localStore.start();
   });
 
-  afterEach(() => {
-    return persistence.shutdown();
+  afterEach(async () => {
+    await sharedClientState.shutdown();
+    await persistence.shutdown();
   });
 
   /**
@@ -297,6 +323,7 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
   function restartWithNoOpGarbageCollector(): Promise<void> {
     localStore = new LocalStore(
       persistence,
+      sharedClientState,
       User.UNAUTHENTICATED,
       new NoOpGarbageCollector()
     );

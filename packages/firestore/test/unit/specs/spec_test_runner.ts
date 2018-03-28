@@ -76,7 +76,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
+import { AnyDuringMigration, AnyJs, AutoId } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -92,6 +92,12 @@ import {
   TestSnapshotVersion,
   version
 } from '../../util/helpers';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -339,9 +345,12 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
+  private sharedClientState: SharedClientState;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
+
+  protected clientId: ClientId;
 
   private serializer: JsonProtoSerializer;
 
@@ -350,6 +359,7 @@ abstract class TestRunner {
     protected readonly platform: TestPlatform,
     config: SpecConfig
   ) {
+    this.clientId = AutoId.newId();
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
       'persistenceKey',
@@ -361,6 +371,7 @@ abstract class TestRunner {
       useProto3Json: true
     });
     this.persistence = this.getPersistence(this.serializer);
+    this.sharedClientState = this.getSharedClientState();
 
     this.useGarbageCollection = config.useGarbageCollection;
 
@@ -375,6 +386,7 @@ abstract class TestRunner {
 
     this.localStore = new LocalStore(
       this.persistence,
+      this.sharedClientState,
       this.user,
       garbageCollector
     );
@@ -403,8 +415,9 @@ abstract class TestRunner {
       this.user
     );
 
-    // Setup wiring between sync engine and remote store
+    // Setup wiring between sync engine and remote store/shared client state
     this.remoteStore.syncEngine = this.syncEngine;
+    this.sharedClientState.syncEngine = this.syncEngine;
 
     this.eventManager = new EventManager(this.syncEngine);
   }
@@ -419,11 +432,14 @@ abstract class TestRunner {
     serializer: JsonProtoSerializer
   ): Persistence;
 
+  protected abstract getSharedClientState(): SharedClientState;
+
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
+    await this.sharedClientState.start(this.user);
 
     this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
@@ -431,6 +447,7 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
+    await this.sharedClientState.shutdown();
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
   }
@@ -1031,7 +1048,11 @@ abstract class TestRunner {
 
 class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new MemoryPersistence(this.queue);
+    return new MemoryPersistence(this.queue, this.clientId);
+  }
+
+  protected getSharedClientState(): SharedClientState {
+    return new MemorySharedClientState();
   }
 }
 
@@ -1127,9 +1148,18 @@ class IndexedDbTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
+      this.clientId,
       this.platform,
       this.queue,
       serializer
+    );
+  }
+
+  protected getSharedClientState(): SharedClientState {
+    return new WebStorageSharedClientState(
+      this.queue,
+      IndexedDbTestRunner.TEST_DB_NAME,
+      this.clientId
     );
   }
 

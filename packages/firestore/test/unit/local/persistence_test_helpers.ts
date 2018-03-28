@@ -21,8 +21,8 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   WebStorageSharedClientState,
-  SharedClientState,
-  ClientId
+  ClientId,
+  MemorySharedClientState
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
@@ -30,6 +30,7 @@ import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { FirestoreError } from '../../../src/util/error';
+import { AutoId } from '../../../src/util/misc';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
@@ -41,9 +42,13 @@ const LOCAL_STORAGE_PREFIX = 'fs_';
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
  * any previous contents if they existed.
  */
-export async function testIndexedDbPersistence(): Promise<
-  IndexedDbPersistence
-> {
+export async function testIndexedDbPersistence(
+  queue?: AsyncQueue,
+  clientId?: ClientId
+): Promise<IndexedDbPersistence> {
+  queue = queue || new AsyncQueue();
+  clientId = clientId || AutoId.newId();
+
   const prefix = '${TEST_PERSISTENCE_PREFIX}/';
   await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   const partition = new DatabaseId('project');
@@ -51,9 +56,9 @@ export async function testIndexedDbPersistence(): Promise<
     useProto3Json: true
   });
   const platform = new BrowserPlatform();
-  const queue = new AsyncQueue();
   const persistence = new IndexedDbPersistence(
     prefix,
+    clientId,
     platform,
     queue,
     serializer
@@ -63,9 +68,14 @@ export async function testIndexedDbPersistence(): Promise<
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
-export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const queue = new AsyncQueue();
-  const persistence = new MemoryPersistence(queue);
+export async function testMemoryPersistence(
+  queue?: AsyncQueue,
+  clientId?: ClientId
+): Promise<MemoryPersistence> {
+  queue = queue || new AsyncQueue();
+  clientId = clientId || AutoId.newId();
+
+  const persistence = new MemoryPersistence(queue, clientId);
   await persistence.start();
   return persistence;
 }
@@ -83,6 +93,32 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   }
 }
 
+/** Creates and starts a WebStorageSharedClientState instance for testing. */
+export async function testWebStorageSharedClientState(
+  queue: AsyncQueue,
+  clientId: ClientId,
+  user: User
+): Promise<WebStorageSharedClientState> {
+  const sharedClientState = new WebStorageSharedClientState(
+    queue,
+    TEST_PERSISTENCE_PREFIX,
+    clientId
+  );
+  sharedClientState.syncEngine = new NoOpSharedClientStateSyncer([clientId]);
+  await sharedClientState.start(user);
+  return sharedClientState;
+}
+
+/** Creates and starts a MemorySharedClientState instance for testing. */
+export async function testMemorySharedClientState(
+  clientId: ClientId,
+  user: User
+): Promise<MemorySharedClientState> {
+  const sharedClientState = new MemorySharedClientState();
+  sharedClientState.syncEngine = new NoOpSharedClientStateSyncer([clientId]);
+  await sharedClientState.start(user);
+  return sharedClientState;
+}
 /**
  * Populates Web Storage with instance data from a pre-existing client.
  */

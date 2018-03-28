@@ -29,7 +29,7 @@ import { CurrentStatusUpdate, RemoteEvent } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -51,6 +51,8 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { SharedClientStateSyncer } from '../local/shared_client_state_syncer';
+import { ClientId } from '../local/shared_client_state';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -102,7 +104,7 @@ class QueryView {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export class SyncEngine implements RemoteSyncer {
+export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
 
@@ -404,11 +406,32 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
+  // PORTING NOTE: Multi-tab only
+  applyPendingBatch(batchId: BatchId): Promise<void> {
+    // TODO(multitab): Implement applyPendingBatch
+    throw new FirestoreError(
+      Code.UNIMPLEMENTED,
+      'applyPendingBatch not implemented'
+    );
+  }
+
+  applySuccessfulWrite(mutationBatchResult: MutationBatchResult): Promise<void>;
+  // PORTING NOTE: Multi-tab only
+  applySuccessfulWrite(batchId: BatchId): Promise<void>;
   applySuccessfulWrite(
-    mutationBatchResult: MutationBatchResult
+    mutationBatchResultOrBatchId: MutationBatchResult | BatchId
   ): Promise<void> {
     this.assertSubscribed('applySuccessfulWrite()');
 
+    if (typeof mutationBatchResultOrBatchId === 'number') {
+      // TODO(multitab): Implement applySuccessfulWrite(batchId)
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'applySuccessfulWrite(batchId) not implemented'
+      );
+    }
+
+    const mutationBatchResult = mutationBatchResultOrBatchId;
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught
     // up), so we raise user callbacks first so that they consistently happen
@@ -626,5 +649,9 @@ export class SyncEngine implements RemoteSyncer {
   applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
     return Promise.resolve();
+  }
+
+  getActiveClients(): Promise<ClientId[]> {
+    return this.localStore.getActiveClients();
   }
 }

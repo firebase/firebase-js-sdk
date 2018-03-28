@@ -45,6 +45,12 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../local/shared_client_state';
+import { AutoId } from '../util/misc';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -66,6 +72,9 @@ export class FirestoreClient {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
+  private sharedClientState: SharedClientState;
+
+  private readonly clientId = AutoId.newId();
 
   constructor(
     private platform: Platform,
@@ -243,9 +252,15 @@ export class FirestoreClient {
     });
     this.persistence = new IndexedDbPersistence(
       storagePrefix,
+      this.clientId,
       this.platform,
       this.asyncQueue,
       serializer
+    );
+    this.sharedClientState = new WebStorageSharedClientState(
+      this.asyncQueue,
+      storagePrefix,
+      this.clientId
     );
     return this.persistence.start();
   }
@@ -257,7 +272,8 @@ export class FirestoreClient {
    */
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence(this.asyncQueue);
+    this.persistence = new MemoryPersistence(this.asyncQueue, this.clientId);
+    this.sharedClientState = new MemorySharedClientState();
     return this.persistence.start();
   }
 
@@ -269,9 +285,10 @@ export class FirestoreClient {
   private initializeRest(user: User): Promise<void> {
     return this.platform
       .loadConnection(this.databaseInfo)
-      .then(connection => {
+      .then(async connection => {
         this.localStore = new LocalStore(
           this.persistence,
+          this.sharedClientState,
           user,
           this.garbageCollector
         );
@@ -303,20 +320,20 @@ export class FirestoreClient {
           user
         );
 
-        // Setup wiring between sync engine and remote store
+        // Setup wiring between sync engine and remote store/shared client
+        // state (multi-tab only)
         this.remoteStore.syncEngine = this.syncEngine;
+        this.sharedClientState.syncEngine = this.syncEngine;
 
         this.eventMgr = new EventManager(this.syncEngine);
 
-        // NOTE: RemoteStore depends on LocalStore (for persisting stream
-        // tokens, refilling mutation queue, etc.) so must be started after
-        // LocalStore.
-        return this.localStore.start();
-      })
-      .then(() => {
-        return this.remoteStore.start();
-      })
-      .then(() => {
+        // NOTE: RemoteStore and SharedClientState depend on LocalStore (for
+        // persisting stream tokens, refilling mutation queue, etc.) so they must
+        // be started after LocalStore.
+        await this.localStore.start();
+        await this.remoteStore.start();
+        await this.sharedClientState.start(user);
+
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
         this.persistence.setPrimaryStateListener(isPrimary =>
@@ -340,15 +357,14 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    return this.asyncQueue
-      .enqueue(() => {
-        this.credentials.removeUserChangeListener();
-        return this.remoteStore.shutdown();
-      })
-      .then(() => {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        return this.persistence.shutdown();
-      });
+    return this.asyncQueue.enqueue(async () => {
+      this.credentials.removeUserChangeListener();
+
+      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+      await this.sharedClientState.shutdown();
+      await this.remoteStore.shutdown();
+      await this.persistence.shutdown();
+    });
   }
 
   listen(

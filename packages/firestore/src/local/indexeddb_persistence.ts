@@ -20,7 +20,6 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { AutoId } from '../util/misc';
 
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { IndexedDbQueryCache } from './indexeddb_query_cache';
@@ -48,6 +47,7 @@ import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
+import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -123,7 +123,6 @@ export class IndexedDbPersistence implements Persistence {
   private isPrimary = false;
   private dbName: string;
   private localStoragePrefix: string;
-  private readonly clientId = this.generateClientId();
 
   /**
    * Set to an Error object if we encounter an unrecoverable error. All further
@@ -139,11 +138,15 @@ export class IndexedDbPersistence implements Persistence {
   /** Our 'visibilitychange' listener if registered. */
   private documentVisibilityHandler: ((e?: Event) => void) | null;
 
+  /** The client metadata refresh task. */
+  private clientMetadataRefresher: CancelablePromise<void>;
+
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   constructor(
     prefix: string,
+    private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer
@@ -221,7 +224,7 @@ export class IndexedDbPersistence implements Persistence {
    * extend or acquire the primary lease if the client is eligible.
    */
   private scheduleClientMetadataAndPrimaryLeaseRefreshes(): void {
-    this.queue.enqueueAfterDelay(
+    this.clientMetadataRefresher = this.queue.enqueueAfterDelay(
       TimerId.ClientMetadataRefresh,
       CLIENT_METADATA_REFRESH_INTERVAL_MS,
       () => {
@@ -301,6 +304,7 @@ export class IndexedDbPersistence implements Persistence {
       return Promise.resolve();
     }
     this.started = false;
+    this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     return this.releasePrimaryLeaseIfHeld().then(() => {
@@ -545,11 +549,6 @@ export class IndexedDbPersistence implements Persistence {
 
   private zombiedClientLocalStorageKey(): string {
     return this.localStoragePrefix + ZOMBIED_PRIMARY_LOCALSTORAGE_SUFFIX;
-  }
-
-  private generateClientId(): ClientId {
-    // For convenience, just use an AutoId.
-    return AutoId.newId();
   }
 }
 
