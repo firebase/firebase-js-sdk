@@ -381,9 +381,14 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
-  private earlyEvents: StorageEvent[] = [];
   private started = false;
   private user: User;
+
+  /**
+   * Captures WebStorage events that occur before `start()` is called. These
+   * events are replayed once `WebStorageSharedClientState` is started.
+   */
+  private earlyEvents: StorageEvent[] = [];
 
   constructor(
     private readonly queue: AsyncQueue,
@@ -408,8 +413,12 @@ export class WebStorageSharedClientState implements SharedClientState {
       `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d+)(?:_(.*))?$`
     );
 
-    // We add the storage observer during initialization to allow us to process
-    // events that occur during Firestore startup.
+    // Rather than adding the storage observer during start(), we add the
+    // storage observer during initialization. This ensures that we collect
+    // events before other components populate their initial state (during their
+    // respective start() calls). Otherwise, we might for example miss a
+    // mutation that is added after LocalStore's start() processed the existing
+    // mutations but before we observe WebStorage events.
     window.addEventListener('storage', this.storageListener);
   }
 
