@@ -24,6 +24,7 @@ import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
 import { SharedClientStateSyncer } from './shared_client_state_syncer';
+import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -44,8 +45,7 @@ const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
  */
-// TODO(multitab): Rename to ClientId.
-export type ClientKey = string;
+export type ClientId = string;
 
 /**
  * A `SharedClientState` keeps track of the global state of the mutations
@@ -65,6 +65,8 @@ export type ClientKey = string;
  * TODO(multitab): Add callbacks to SyncEngine
  */
 export interface SharedClientState {
+  syncEngine: SharedClientStateSyncer | null;
+
   /** Associates a new Mutation Batch ID with the current Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
 
@@ -94,11 +96,10 @@ export interface SharedClientState {
   getAllActiveQueryTargets(): SortedSet<TargetId>;
 
   /**
-   * Starts the SharedClientState, reads existing client data for all
-   * `knownClients` and registers listeners for updates to new and existing
-   * clients.
+   * Starts the SharedClientState, reads existing client data and registers
+   * listeners for updates to new and existing clients.
    */
-  start(initialUser: User, knownClients: ClientKey[]): void;
+  start(initialUser: User): Promise<void>;
 
   /** Shuts down the `SharedClientState` and its listeners. */
   shutdown(): void;
@@ -201,7 +202,7 @@ export class MutationMetadata {
 
 /**
  * The JSON representation of a clients's metadata as used during LocalStorage
- * serialization. The ClientKey is omitted here as it is encoded as part of the
+ * serialization. The ClientId is omitted here as it is encoded as part of the
  * key.
  */
 interface ClientStateSchema {
@@ -231,7 +232,7 @@ export interface ClientState {
  */
 class RemoteClientState implements ClientState {
   private constructor(
-    readonly clientId: ClientKey,
+    readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
     readonly activeTargetIds: SortedSet<TargetId>,
     readonly minMutationBatchId: BatchId | null,
@@ -243,7 +244,7 @@ class RemoteClientState implements ClientState {
    * Logs a warning and returns null if the format of the data is not valid.
    */
   static fromLocalStorageEntry(
-    clientKey: string,
+    clientId: ClientId,
     value: string
   ): RemoteClientState | null {
     const clientState = JSON.parse(value) as ClientStateSchema;
@@ -268,7 +269,7 @@ class RemoteClientState implements ClientState {
 
     if (validData) {
       return new RemoteClientState(
-        clientKey,
+        clientId,
         new Date(clientState.lastUpdateTime),
         activeTargetIdsSet,
         clientState.minMutationBatchId,
@@ -277,7 +278,7 @@ class RemoteClientState implements ClientState {
     } else {
       error(
         LOG_TAG,
-        `Failed to parse client data for instance '${clientKey}': ${value}`
+        `Failed to parse client data for instance '${clientId}': ${value}`
       );
       return null;
     }
@@ -380,12 +381,19 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
-  private user: User;
   private started = false;
+  private user: User;
+
+  /**
+   * Captures WebStorage events that occur before `start()` is called. These
+   * events are replayed once `WebStorageSharedClientState` is started.
+   */
+  private earlyEvents: StorageEvent[] = [];
 
   constructor(
+    private readonly queue: AsyncQueue,
     private readonly persistenceKey: string,
-    private readonly localClientKey: ClientKey
+    private readonly localClientId: ClientId
   ) {
     if (!WebStorageSharedClientState.isAvailable()) {
       throw new FirestoreError(
@@ -395,15 +403,23 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
     this.storage = window.localStorage;
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
-      this.localClientKey
+      this.localClientId
     );
-    this.activeClients[this.localClientKey] = new LocalClientState();
+    this.activeClients[this.localClientId] = new LocalClientState();
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
       `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d+)(?:_(.*))?$`
     );
+
+    // Rather than adding the storage observer during start(), we add the
+    // storage observer during initialization. This ensures that we collect
+    // events before other components populate their initial state (during their
+    // respective start() calls). Otherwise, we might for example miss a
+    // mutation that is added after LocalStore's start() processed the existing
+    // mutations but before we observe WebStorage events.
+    window.addEventListener('storage', this.storageListener);
   }
 
   /** Returns 'true' if LocalStorage is available in the current environment. */
@@ -412,17 +428,24 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   // TODO(multitab): Handle user changes.
-  start(initialUser: User, knownClients: ClientKey[]): void {
+  async start(initialUser: User): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
-    window.addEventListener('storage', this.storageListener);
 
-    for (const clientKey of knownClients) {
+    // Retrieve the list of existing clients to backfill the data in
+    // SharedClientState.
+    const existingClients = await this.syncEngine.getActiveClients();
+
+    for (const clientId of existingClients) {
+      if (clientId === this.localClientId) {
+        continue;
+      }
+
       const storageItem = this.storage.getItem(
-        this.toLocalStorageClientStateKey(clientKey)
+        this.toLocalStorageClientStateKey(clientId)
       );
       if (storageItem) {
         const clientState = RemoteClientState.fromLocalStorageEntry(
-          clientKey,
+          clientId,
           storageItem
         );
         if (clientState) {
@@ -432,8 +455,14 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
 
     this.user = initialUser;
-    this.started = true;
     this.persistClientState();
+
+    for (const event of this.earlyEvents) {
+      this.handleLocalStorageEvent(event);
+    }
+
+    this.earlyEvents = [];
+    this.started = true;
   }
 
   // TODO(multitab): Return BATCHID_UNKNOWN instead of null
@@ -485,9 +514,6 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private handleLocalStorageEvent(event: StorageEvent): void {
-    if (!this.started) {
-      return;
-    }
     if (event.storageArea === this.storage) {
       // TODO(multitab): This assert will likely become invalid as we add garbage
       // collection.
@@ -496,41 +522,47 @@ export class WebStorageSharedClientState implements SharedClientState {
         'Received LocalStorage notification for local change.'
       );
 
-      if (this.clientStateKeyRe.test(event.key)) {
-        if (event.newValue != null) {
-          const clientState = this.fromLocalStorageClientState(
-            event.key,
-            event.newValue
-          );
-          if (clientState) {
-            this.activeClients[clientState.clientId] = clientState;
-          }
-        } else {
-          const clientId = this.fromLocalStorageClientStateKey(event.key);
-          delete this.activeClients[clientId];
+      this.queue.enqueue(async () => {
+        if (!this.started) {
+          this.earlyEvents.push(event);
+          return;
         }
-      } else if (this.mutationBatchKeyRe.test(event.key)) {
-        if (event.newValue !== null) {
-          const mutationMetadata = this.fromLocalStorageMutationMetadata(
-            event.key,
-            event.newValue
-          );
-          if (mutationMetadata) {
-            this.handleMutationBatchEvent(mutationMetadata);
+
+        if (this.clientStateKeyRe.test(event.key)) {
+          if (event.newValue != null) {
+            const clientState = this.fromLocalStorageClientState(
+              event.key,
+              event.newValue
+            );
+            if (clientState) {
+              this.activeClients[clientState.clientId] = clientState;
+            }
+          } else {
+            const clientId = this.fromLocalStorageClientStateKey(event.key);
+            delete this.activeClients[clientId];
+          }
+        } else if (this.mutationBatchKeyRe.test(event.key)) {
+          if (event.newValue !== null) {
+            const mutationMetadata = this.fromLocalStorageMutationMetadata(
+              event.key,
+              event.newValue
+            );
+            if (mutationMetadata) {
+              return this.handleMutationBatchEvent(mutationMetadata);
+            }
           }
         }
-      }
+      });
     }
   }
 
   private get localClientState(): LocalClientState {
-    return this.activeClients[this.localClientKey] as LocalClientState;
+    return this.activeClients[this.localClientId] as LocalClientState;
   }
 
   private persistClientState(): void {
     // TODO(multitab): Consider rate limiting/combining state updates for
     // clients that frequently update their client state.
-    assert(this.started, 'WebStorageSharedClientState used before started.');
     debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localClientState.refreshLastUpdateTime();
     this.storage.setItem(
@@ -563,20 +595,20 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   /** Assembles the key for a client state in LocalStorage */
-  private toLocalStorageClientStateKey(clientKey: string): string {
+  private toLocalStorageClientStateKey(clientId: ClientId): string {
     assert(
-      clientKey.indexOf('_') === -1,
-      `Client key cannot contain '_', but was '${clientKey}'`
+      clientId.indexOf('_') === -1,
+      `Client key cannot contain '_', but was '${clientId}'`
     );
 
-    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientKey}`;
+    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
   }
 
   /**
    * Parses a client state key in LocalStorage. Returns null if the key does not
    * match the expected key format.
    */
-  private fromLocalStorageClientStateKey(key: string): ClientKey | null {
+  private fromLocalStorageClientStateKey(key: string): ClientId | null {
     const match = this.clientStateKeyRe.exec(key);
     return match ? match[1] : null;
   }

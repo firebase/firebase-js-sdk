@@ -30,7 +30,7 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientKey } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 import { AsyncQueue } from '../util/async_queue';
 import { AutoId } from '../util/misc';
 
@@ -51,7 +51,7 @@ export class MemoryPersistence implements Persistence {
   private mutationQueues: { [user: string]: MutationQueue } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
-  private readonly clientId: ClientKey = AutoId.newId();
+  private readonly clientId: ClientId = AutoId.newId();
 
   private started = false;
 
@@ -69,7 +69,7 @@ export class MemoryPersistence implements Persistence {
     this.started = false;
   }
 
-  async getActiveClients(): Promise<ClientKey[]> {
+  async getActiveClients(): Promise<ClientId[]> {
     return [this.clientId];
   }
 

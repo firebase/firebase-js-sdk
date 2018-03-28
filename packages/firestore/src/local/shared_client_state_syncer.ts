@@ -16,24 +16,22 @@
 
 import { BatchId } from '../core/types';
 import { FirestoreError } from '../util/error';
+import { ClientId } from './shared_client_state';
 
 /**
  * An interface that describes the actions the SharedClientState class needs to
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
-  /**
-   * Registers a new pending mutation batch.
-   */
+  /** Registers a new pending mutation batch. */
   applyPendingBatch(batchId: BatchId): Promise<void>;
 
-  /**
-   * Applies the result of a successful write of a mutation batch.
-   */
+  /** Applies the result of a successful write of a mutation batch. */
   applySuccessfulWrite(batchId: BatchId): Promise<void>;
 
-  /**
-   * Rejects a failed mutation batch.
-   */
+  /** Rejects a failed mutation batch. */
   rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
+
+  /** Returns the IDs of the clients that are currently active. */
+  getActiveClients(): Promise<ClientId[]>;
 }

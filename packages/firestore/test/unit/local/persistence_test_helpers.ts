@@ -22,7 +22,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   WebStorageSharedClientState,
   SharedClientState,
-  ClientKey
+  ClientId
 } from '../../../src/local/shared_client_state';
 import { BatchId, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
@@ -33,9 +33,6 @@ import { FirestoreError } from '../../../src/util/error';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
-
-/** The instance key of the secondary instance in LocalStorage. */
-const SECONDARY_INSTANCE_KEY: ClientKey = 'AlternativePersistence';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'fs_';
@@ -74,69 +71,57 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
+  constructor(private readonly activeClients: ClientId[]) {}
   async applyPendingBatch(batchId: BatchId): Promise<void> {}
   async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
     batchId: BatchId,
     err: FirestoreError
   ): Promise<void> {}
+  async getActiveClients(): Promise<ClientId[]> {
+    return this.activeClients;
+  }
 }
 
 /**
- * Creates and starts a WebStorageSharedClientState instance for testing,
- * destroying any previous contents in LocalStorage if they existed.
+ * Populates Web Storage with instance data from a pre-existing client.
  */
-export async function testWebStorageSharedClientState(
+export async function populateWebStorage(
   user: User,
-  instanceKey: string,
-  sharedClientSyncer?: SharedClientStateSyncer,
-  existingMutationBatchIds?: BatchId[],
-  existingQueryTargetIds?: TargetId[]
-): Promise<SharedClientState> {
+  existingClientId: ClientId,
+  existingMutationBatchIds: BatchId[],
+  existingQueryTargetIds: TargetId[]
+): Promise<void> {
+  // HACK: Create a secondary client state to seed data into LocalStorage.
+  // NOTE: We don't call shutdown() on it because that would delete the data.
+  const secondaryClientState = new WebStorageSharedClientState(
+    new AsyncQueue(),
+    TEST_PERSISTENCE_PREFIX,
+    existingClientId
+  );
+
+  secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
+    existingClientId
+  ]);
+  await secondaryClientState.start(user);
+
+  for (const batchId of existingMutationBatchIds) {
+    secondaryClientState.addLocalPendingMutation(batchId);
+  }
+
+  for (const targetId of existingQueryTargetIds) {
+    secondaryClientState.addLocalQueryTarget(targetId);
+  }
+}
+
+/**
+ * Removes Firestore data (by prefix match) from Local Storage.
+ */
+export function clearWebStorage() {
   let key;
   for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
     if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
       window.localStorage.removeItem(key);
     }
   }
-
-  const knownInstances = [];
-
-  existingMutationBatchIds = existingMutationBatchIds || [];
-  existingQueryTargetIds = existingQueryTargetIds || [];
-
-  if (
-    existingMutationBatchIds.length > 0 ||
-    existingQueryTargetIds.length > 0
-  ) {
-    // HACK: Create a secondary client state to seed data into LocalStorage.
-    // NOTE: We don't call shutdown() on it because that would delete the data.
-    const secondaryClientState = new WebStorageSharedClientState(
-      TEST_PERSISTENCE_PREFIX,
-      SECONDARY_INSTANCE_KEY
-    );
-
-    knownInstances.push(SECONDARY_INSTANCE_KEY);
-
-    secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer();
-    await secondaryClientState.start(user, [SECONDARY_INSTANCE_KEY]);
-
-    for (const batchId of existingMutationBatchIds) {
-      secondaryClientState.addLocalPendingMutation(batchId);
-    }
-
-    for (const targetId of existingQueryTargetIds) {
-      secondaryClientState.addLocalQueryTarget(targetId);
-    }
-  }
-
-  sharedClientSyncer = sharedClientSyncer || new NoOpSharedClientStateSyncer();
-
-  const sharedClientState = new WebStorageSharedClientState(
-    TEST_PERSISTENCE_PREFIX,
-    instanceKey
-  );
-  sharedClientState.syncEngine = sharedClientSyncer;
-  await sharedClientState.start(user, knownInstances);
-  return sharedClientState;
 }

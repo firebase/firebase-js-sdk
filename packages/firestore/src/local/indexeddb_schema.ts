@@ -611,11 +611,11 @@ export class DbClientMetadata {
   static store = 'clientMetadata';
 
   /** Keys are automatically assigned via the clientId properties. */
-  static keyPath = ['clientKey'];
+  static keyPath = ['clientId'];
 
   constructor(
     /** The auto-generated client id assigned at client startup. */
-    public clientKey: string,
+    public clientId: string,
     /** The last time this state was updated. */
     public updateTimeMs: number,
     /** Whether this client is running in a foreground tab. */
