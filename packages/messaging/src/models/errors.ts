@@ -98,8 +98,8 @@ const ERROR_MAP = {
   [CODES.TOKEN_UPDATE_NO_TOKEN]:
     'FCM returned no token when updating ' + 'the user to push.',
   [CODES.USE_SW_BEFORE_GET_TOKEN]:
-    'You must call useServiceWorker() before ' +
-    'calling getToken() to ensure your service worker is used.',
+    'The useServiceWorker() method may only be called once and must be ' +
+    'called before calling getToken() to ensure your service worker is used.',
   [CODES.INVALID_DELETE_TOKEN]:
     'You must pass a valid token into ' +
     'deleteToken(), i.e. the token from getToken().',
