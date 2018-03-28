@@ -253,11 +253,11 @@ export class FirestoreClient {
 
     return Promise.resolve().then(() => {
       this.persistence = new IndexedDbPersistence(
-          storagePrefix,
-          this.clientId,
-          this.platform,
-          this.asyncQueue,
-          serializer
+        storagePrefix,
+        this.clientId,
+        this.platform,
+        this.asyncQueue,
+        serializer
       );
       this.sharedClientState = new WebStorageSharedClientState(
         this.asyncQueue,
