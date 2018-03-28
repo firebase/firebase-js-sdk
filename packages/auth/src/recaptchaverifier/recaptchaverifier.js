@@ -94,6 +94,13 @@ fireauth.BaseRecaptchaVerifier = function(apiKey, container, opt_parameters,
   this.isInvisible_ =
       this.parameters_[fireauth.BaseRecaptchaVerifier.ParamName.SIZE] ===
       'invisible';
+  // Check if DOM is supported.
+  if (!fireauth.util.isDOMSupported()) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+        'RecaptchaVerifier is only supported in a browser HTTP/HTTPS ' +
+        'environment with DOM support.');
+  }
   // reCAPTCHA container must be valid and if visible, not empty.
   // An invisible reCAPTCHA will not render in its container. That container
   // will execute the reCAPTCHA when it is clicked.
@@ -257,9 +264,8 @@ fireauth.BaseRecaptchaVerifier.prototype.isReady_ = function() {
   this.cachedReadyPromise_ = this.registerPendingPromise_(goog.Promise.resolve()
       .then(function() {
         // Verify environment first.
-        // This is actually not enough as this could be triggered from a worker
-        // environment, but DOM ready should theoretically not resolve.
-        if (fireauth.util.isHttpOrHttps()) {
+        // Fail quickly from a worker environment or non-HTTP/HTTPS environment.
+        if (fireauth.util.isHttpOrHttps() && !fireauth.util.isWorker()) {
           // Wait for DOM to be ready as this feature depends on that.
           return fireauth.util.onDomReady();
         } else {

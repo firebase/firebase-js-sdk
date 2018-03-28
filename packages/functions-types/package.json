@@ -1,0 +1,24 @@
+{
+  "name": "@firebase/functions-types",
+  "version": "0.1.0",
+  "description": "@firebase/functions Types",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "tsc"
+  },
+  "files": [
+    "index.d.ts"
+  ],
+  "peerDependencies": {},
+  "devDependencies": {
+    "typescript": "^2.4.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/functions-types"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  }
+}

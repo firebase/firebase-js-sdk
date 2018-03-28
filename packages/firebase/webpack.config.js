@@ -84,6 +84,7 @@ const multiExport = Object.assign({}, baseConfig, {
     'firebase-auth': resolve(__dirname, 'auth/index.js'),
     'firebase-database': resolve(__dirname, 'database/index.js'),
     'firebase-firestore': resolve(__dirname, 'firestore/index.js'),
+    'firebase-functions': resolve(__dirname, 'functions/index.js'),
     'firebase-messaging': resolve(__dirname, 'messaging/index.js'),
     'firebase-storage': resolve(__dirname, 'storage/index.js')
   },

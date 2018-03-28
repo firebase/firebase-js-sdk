@@ -1,0 +1,67 @@
+{
+  "name": "@firebase/functions",
+  "version": "0.1.0",
+  "description": "",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "scripts": {
+    "dev": "gulp dev",
+    "test": "run-p test:browser test:node",
+    "test:browser": "karma start --single-run",
+    "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
+    "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
+    "prepare": "gulp build"
+  },
+  "license": "Apache-2.0",
+  "peerDependencies": {
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.0.4",
+    "@types/chai-as-promised": "^7.1.0",
+    "@types/mocha": "^2.2.48",
+    "@types/sinon": "^2.3.3",
+    "chai": "^4.1.1",
+    "gulp": "^4.0.0",
+    "karma": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-cli": "^1.0.1",
+    "karma-mocha": "^1.3.0",
+    "karma-sauce-launcher": "^1.2.0",
+    "karma-sourcemap-loader": "^0.3.7",
+    "karma-spec-reporter": "^0.0.32",
+    "karma-webpack": "^2.0.9",
+    "mocha": "^5.0.1",
+    "npm-run-all": "^4.1.1",
+    "nyc": "^11.4.1",
+    "sinon": "^4.3.0",
+    "source-map-loader": "^0.2.3",
+    "ts-loader": "^3.5.0",
+    "ts-node": "^5.0.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.4.2",
+    "webpack": "^3.11.0",
+    "yargs": "^11.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/functions"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/esm/index.d.ts",
+  "dependencies": {
+    "@firebase/functions-types": "0.1.0",
+    "@firebase/messaging-types": "^0.1.1",
+    "isomorphic-fetch": "^2.2.1"
+  },
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

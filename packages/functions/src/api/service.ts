@@ -1,0 +1,181 @@
+/**
+ * Copyright 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { FirebaseApp } from '@firebase/app-types';
+import firebase from '@firebase/app';
+import {
+  FirebaseFunctions,
+  FunctionsErrorCode,
+  HttpsCallable,
+  HttpsCallableResult
+} from '@firebase/functions-types';
+import { _errorForResponse, HttpsErrorImpl } from './error';
+import { ContextProvider } from '../context';
+import { Serializer } from '../serializer';
+
+/**
+ * The response to an http request.
+ */
+interface HttpResponse {
+  status: number;
+  json: any;
+}
+
+/**
+ * The main class for the Firebase Functions SDK.
+ */
+export class Service implements FirebaseFunctions {
+  private readonly contextProvider: ContextProvider;
+  private readonly serializer = new Serializer();
+
+  /**
+   * Creates a new Functions service for the given app and (optional) region.
+   * @param app_ The FirebaseApp to use.
+   * @param region_ The region to call functions in.
+   */
+  constructor(
+    private app_: FirebaseApp,
+    private region_: string = 'us-central1'
+  ) {
+    this.contextProvider = new ContextProvider(app_);
+  }
+
+  get app(): FirebaseApp {
+    return this.app_;
+  }
+
+  /**
+   * Returns the URL for a callable with the given name.
+   * @param name The name of the callable.
+   */
+  _url(name: string): string {
+    const projectId = this.app_.options.projectId;
+    const region = this.region_;
+    return `https://${region}-${projectId}.cloudfunctions.net/${name}`;
+  }
+
+  /**
+   * Returns a reference to the callable https trigger with the given name.
+   * @param name The name of the trigger.
+   */
+  httpsCallable(name: string): HttpsCallable {
+    let callable = <HttpsCallable>(data?: any) => {
+      return this.call(name, data);
+    };
+    return callable;
+  }
+
+  /**
+   * Does an HTTP POST and returns the completed response.
+   * @param url The url to post to.
+   * @param body The JSON body of the post.
+   * @param headers The HTTP headers to include in the request.
+   * @return A Promise that will succeed when the request finishes.
+   */
+  private async postJSON(
+    url: string,
+    body: {},
+    headers: Headers
+  ): Promise<HttpResponse> {
+    headers.append('Content-Type', 'application/json');
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers
+      });
+    } catch (e) {
+      // This could be an unhandled error on the backend, or it could be a
+      // network error. There's no way to no, since an unhandled error on the
+      // backend will fail to set the proper CORS header, and thus will be
+      // treated as a network error by fetch.
+      return {
+        status: 0,
+        json: null
+      };
+    }
+    let json: any = null;
+    try {
+      json = await response.json();
+    } catch (e) {
+      // If we fail to parse JSON, it will fail the same as an empty body.
+    }
+    return {
+      status: response.status,
+      json: json
+    };
+  }
+
+  /**
+   * Calls a callable function asynchronously and returns the result.
+   * @param name The name of the callable trigger.
+   * @param data The data to pass as params to the function.s
+   */
+  private async call(name: string, data: any): Promise<HttpsCallableResult> {
+    const url = this._url(name);
+
+    // Encode any special types, such as dates, in the input data.
+    data = this.serializer.encode(data);
+    const body = { data };
+
+    // Add a header for the authToken.
+    const headers = new Headers();
+    const context = await this.contextProvider.getContext();
+    if (context.authToken) {
+      headers.append('Authorization', 'Bearer ' + context.authToken);
+    }
+    if (context.instanceIdToken) {
+      headers.append('Firebase-Instance-ID-Token', context.instanceIdToken);
+    }
+
+    const response = await this.postJSON(url, body, headers);
+
+    // Check for an error status, regardless of http status.
+    const error = _errorForResponse(
+      response.status,
+      response.json,
+      this.serializer
+    );
+    if (error) {
+      throw error;
+    }
+
+    if (!response.json) {
+      throw new HttpsErrorImpl(
+        'internal',
+        'Response is not valid JSON object.'
+      );
+    }
+
+    let responseData = response.json.data;
+    // TODO(klimt): For right now, allow "result" instead of "data", for
+    // backwards compatibility.
+    if (typeof responseData === 'undefined') {
+      responseData = response.json.result;
+    }
+    if (typeof responseData === 'undefined') {
+      // Consider the response malformed.
+      throw new HttpsErrorImpl('internal', 'Response is missing data field.');
+    }
+
+    // Decode any special types, such as dates, in the returned data.
+    const decodedData = this.serializer.decode(responseData);
+
+    return { data: decodedData };
+  }
+}

@@ -182,11 +182,11 @@ export class MemoryMutationQueue implements MutationQueue {
     // All batches with batchId <= this.highestAcknowledgedBatchId have been
     // acknowledged so the first unacknowledged batch after batchID will have a
     // batchID larger than both of these values.
-    batchId = Math.max(batchId + 1, this.highestAcknowledgedBatchId);
+    const nextBatchId = Math.max(batchId, this.highestAcknowledgedBatchId) + 1;
 
     // The requested batchId may still be out of range so normalize it to the
     // start of the queue.
-    const rawIndex = this.indexOfBatchId(batchId);
+    const rawIndex = this.indexOfBatchId(nextBatchId);
     let index = rawIndex < 0 ? 0 : rawIndex;
 
     // Finally return the first non-tombstone batch.

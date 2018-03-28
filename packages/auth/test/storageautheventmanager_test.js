@@ -22,7 +22,9 @@ goog.provide('fireauth.storage.AuthEventManagerTest');
 
 goog.require('fireauth.AuthEvent');
 goog.require('fireauth.authStorage');
+goog.require('fireauth.common.testHelper');
 goog.require('fireauth.storage.AuthEventManager');
+goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.events');
@@ -38,9 +40,17 @@ goog.setTestOnly('fireauth.storage.AuthEventManagerTest');
 
 var appId = 'appId1';
 var stubs = new goog.testing.PropertyReplacer();
+var mockLocalStorage;
+var mockSessionStorage;
 
 
 function setUp() {
+  // Create new mock storages for persistent and temporary storage before each
+  // test.
+  mockLocalStorage = new fireauth.storage.MockStorage();
+  mockSessionStorage = new fireauth.storage.MockStorage();
+  fireauth.common.testHelper.installMockStorages(
+      stubs, mockLocalStorage, mockSessionStorage);
   // Simulate browser that synchronizes between and iframe and a popup.
   stubs.replace(
      fireauth.util,
@@ -50,6 +60,11 @@ function setUp() {
       });
   window.localStorage.clear();
   window.sessionStorage.clear();
+}
+
+
+function tearDown() {
+  stubs.reset();
 }
 
 
@@ -71,12 +86,13 @@ function testGetSetRemoveAuthEvent() {
       '1234',
       'http://www.example.com/#oauthResponse',
       'SESSION_ID');
-  // Set expected Auth event in localStorage.
-  window.localStorage.setItem(
-      'firebase:authEvent:appId1',
-      JSON.stringify(expectedAuthEvent.toPlainObject()));
   var storageKey = 'firebase:authEvent:appId1';
   return goog.Promise.resolve()
+      .then(function() {
+        // Set expected Auth event in localStorage.
+        return mockLocalStorage.set(
+            storageKey, expectedAuthEvent.toPlainObject());
+      })
       .then(function() {
         return authEventManager.getAuthEvent();
       })
@@ -87,7 +103,10 @@ function testGetSetRemoveAuthEvent() {
         return authEventManager.removeAuthEvent();
       })
       .then(function() {
-        assertNull(window.localStorage.getItem(storageKey));
+        return mockLocalStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
         return authEventManager.getAuthEvent();
       })
       .then(function(authEvent) {
@@ -106,9 +125,9 @@ function testGetSetRemoveRedirectEvent() {
       'http://www.example.com/#oauthResponse',
       'SESSION_ID');
   // Set expected Auth event in sessionStorage.
-  window.sessionStorage.setItem(
+  mockSessionStorage.set(
       'firebase:redirectEvent:appId1',
-      JSON.stringify(expectedAuthEvent.toPlainObject()));
+      expectedAuthEvent.toPlainObject());
   var storageKey = 'firebase:redirectEvent:appId1';
   return goog.Promise.resolve()
       .then(function() {
@@ -121,7 +140,10 @@ function testGetSetRemoveRedirectEvent() {
         return authEventManager.removeRedirectEvent();
       })
       .then(function() {
-        assertNull(window.sessionStorage.getItem(storageKey));
+        return mockSessionStorage.get(storageKey);
+      })
+      .then(function(value) {
+        assertUndefined(value);
         return authEventManager.getRedirectEvent();
       })
       .then(function(authEvent) {
@@ -141,38 +163,40 @@ function testAddRemoveAuthEventListener() {
       new fireauth.storage.AuthEventManager('appId1', storageManager);
   var listener = goog.testing.recordFunction();
   // Save existing Auth events for appId1 and appId2.
-  window.localStorage.setItem(
-      'firebase:authEvent:appId1',
-      JSON.stringify(expectedAuthEvent.toPlainObject()));
-  window.localStorage.setItem(
-      'firebase:authEvent:appId2',
-      JSON.stringify(expectedAuthEvent.toPlainObject()));
-  authEventManager.addAuthEventListener(listener);
-  // Simulate appId1 event deletion.
-  storageEvent =
-      new goog.testing.events.Event(goog.events.EventType.STORAGE, window);
-  storageEvent.key = 'firebase:authEvent:appId1';
-  storageEvent.newValue = null;
-  window.localStorage.removeItem('firebase:authEvent:appId1');
-  // This should trigger listener.
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, listener.getCallCount());
-  // Simulate appId2 event deletion.
-  storageEvent.key = 'firebase:authEvent:appId2';
-  window.localStorage.removeItem('firebase:authEvent:appId2');
-  // This should not trigger listener.
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, listener.getCallCount());
-  // Remove listener.
-  authEventManager.removeAuthEventListener(listener);
-  // Simulate new event saved for appId1.
-  // This should not trigger listener anymore.
-  storageEvent.key = 'firebase:authEvent:appId1';
-  storageEvent.oldValue = null;
-  storageEvent.newValue = JSON.stringify(expectedAuthEvent.toPlainObject());
-  window.localStorage.setItem(
-      'firebase:authEvent:appId1',
-      JSON.stringify(expectedAuthEvent.toPlainObject()));
-  goog.testing.events.fireBrowserEvent(storageEvent);
-  assertEquals(1, listener.getCallCount());
+  return goog.Promise.resolve()
+      .then(function() {
+        return mockLocalStorage.set(
+            'firebase:authEvent:appId1', expectedAuthEvent.toPlainObject());
+      })
+      .then(function() {
+        // Set expected Auth event in localStorage.
+        return mockLocalStorage.set(
+            'firebase:authEvent:appId2', expectedAuthEvent.toPlainObject());
+      })
+      .then(function() {
+        authEventManager.addAuthEventListener(listener);
+        // Simulate appId1 event deletion.
+        storageEvent = new goog.testing.events.Event(
+            goog.events.EventType.STORAGE, window);
+        storageEvent.key = 'firebase:authEvent:appId1';
+        storageEvent.newValue = null;
+        // This should trigger listener.
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        assertEquals(1, listener.getCallCount());
+        // Simulate appId2 event deletion.
+        storageEvent.key = 'firebase:authEvent:appId2';
+        // This should not trigger listener.
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        assertEquals(1, listener.getCallCount());
+        // Remove listener.
+        authEventManager.removeAuthEventListener(listener);
+        // Simulate new event saved for appId1.
+        // This should not trigger listener anymore.
+        storageEvent.key = 'firebase:authEvent:appId1';
+        storageEvent.oldValue = null;
+        storageEvent.newValue =
+            JSON.stringify(expectedAuthEvent.toPlainObject());
+        mockLocalStorage.fireBrowserEvent(storageEvent);
+        assertEquals(1, listener.getCallCount());
+      });
 }

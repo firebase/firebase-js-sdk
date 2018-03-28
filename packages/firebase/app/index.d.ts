@@ -154,12 +154,18 @@ declare namespace firebase.auth {
     applyActionCode(code: string): Promise<any>;
     checkActionCode(code: string): Promise<any>;
     confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    createUserAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
     ): Promise<any>;
     currentUser: firebase.User | null;
     fetchProvidersForEmail(email: string): Promise<any>;
+    fetchSignInMethodsForEmail(email: string): Promise<any>;
+    isSignInWithEmailLink(emailLink: string): boolean;
     getRedirectResult(): Promise<any>;
     languageCode: string | null;
     onAuthStateChanged(
@@ -176,6 +182,10 @@ declare namespace firebase.auth {
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
+    sendSignInLinkToEmail(
+      email: string,
+      actionCodeSettings: firebase.auth.ActionCodeSettings
+    ): Promise<any>;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
@@ -185,15 +195,22 @@ declare namespace firebase.auth {
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInAnonymously(): Promise<any>;
+    signInAnonymouslyAndRetrieveData(): Promise<any>;
     signInWithCredential(
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInWithCustomToken(token: string): Promise<any>;
+    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    signInAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<any>;
+    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
     signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
     signOut(): Promise<any>;
@@ -203,6 +220,7 @@ declare namespace firebase.auth {
 
   interface AuthCredential {
     providerId: string;
+    signInMethod: string;
   }
 
   interface AuthProvider {
@@ -216,9 +234,15 @@ declare namespace firebase.auth {
 
   class EmailAuthProvider extends EmailAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
+    static EMAIL_LINK_SIGN_IN_METHOD: string;
     static credential(
       email: string,
       password: string
+    ): firebase.auth.AuthCredential;
+    static credentialWithLink(
+      email: string,
+      emailLink: string
     ): firebase.auth.AuthCredential;
   }
   class EmailAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -232,6 +256,7 @@ declare namespace firebase.auth {
 
   class FacebookAuthProvider extends FacebookAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static FACEBOOK_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class FacebookAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -244,6 +269,7 @@ declare namespace firebase.auth {
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GITHUB_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -256,6 +282,7 @@ declare namespace firebase.auth {
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GOOGLE_SIGN_IN_METHOD: string;
     static credential(
       idToken?: string | null,
       accessToken?: string | null
@@ -271,6 +298,7 @@ declare namespace firebase.auth {
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static PHONE_SIGN_IN_METHOD: string;
     static credential(
       verificationId: string,
       verificationCode: string
@@ -301,6 +329,7 @@ declare namespace firebase.auth {
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static TWITTER_SIGN_IN_METHOD: string;
     static credential(
       token: string,
       secret: string

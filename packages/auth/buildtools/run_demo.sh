@@ -34,4 +34,4 @@ cp ../firebase/firebase-auth.js demo/public/dist/firebase-auth.js
 cp ../firebase/firebase-database.js demo/public/dist/firebase-database.js
 # Serve demo app.
 cd demo
-`yarn bin`/firebase serve
+`yarn bin`/firebase serve --only hosting,functions

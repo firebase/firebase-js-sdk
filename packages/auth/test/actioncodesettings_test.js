@@ -147,14 +147,21 @@ function testActionCodeSettings_error_continueUrl() {
 }
 
 
+function testActionCodeSettings_success_urlOnly_canHandleCodeInApp() {
+  var settings = {
+    'url': 'https://www.example.com/?state=abc',
+    'handleCodeInApp': true
+  };
+  var expectedRequest = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'canHandleCodeInApp': true
+  };
+  var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
+  assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
+}
+
+
 function testActionCodeSettings_error_canHandleCodeInApp() {
-  // Can handle code in app but no app specified.
-  assertActionCodeSettingsErrorThrown(
-      {
-        'url': 'https://www.example.com/?state=abc',
-        'handleCodeInApp': true
-      },
-      'auth/argument-error');
   // Non-boolean can handle code in app.
   assertActionCodeSettingsErrorThrown(
       {

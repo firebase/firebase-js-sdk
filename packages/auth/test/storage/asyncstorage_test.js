@@ -17,6 +17,7 @@
 goog.provide('fireauth.storage.AsyncStorageTest');
 
 goog.require('fireauth.storage.AsyncStorage');
+goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('fireauth.storage.testHelper.FakeAsyncStorage');
@@ -43,6 +44,7 @@ function tearDown() {
 
 
 function testBasicStorageOperations() {
+  assertEquals(fireauth.storage.Storage.Type.ASYNC_STORAGE, storage.type);
   return assertBasicStorageOperations(storage);
 }
 

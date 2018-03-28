@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "main": "dist/auth.js",
   "description": "Javascript library for Firebase Auth SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -21,13 +21,14 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.1.2"
+    "@firebase/auth-types": "0.2.0"
   },
   "devDependencies": {
     "closure-builder": "^2.0.17",
     "del": "^3.0.0",
     "express": "^4.16.2",
     "firebase-tools": "^3.17.4",
+    "firebase-functions": "^0.9.0",
     "google-closure-compiler": "^20180204.0.0",
     "google-closure-library": "^20180204.0.0",
     "gulp": "^3.9.1",

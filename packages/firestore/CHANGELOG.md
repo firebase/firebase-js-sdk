@@ -1,8 +1,22 @@
 # Unreleased
+- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
+  cause get() requests made while offline to be delayed by up to 10
+  seconds (rather than returning from cache immediately).
+
+# 0.3.6
+- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
+  cause a crash if a user signs out while the client is offline, resulting in
+  an error of "Attempted to schedule multiple operations with timer id
+  listen_stream_connection_backoff".
+
+# 0.3.5
 - [changed] If the SDK's attempt to connect to the Cloud Firestore backend
   neither succeeds nor fails within 10 seconds, the SDK will consider itself
   "offline", causing get() calls to resolve with cached results, rather than
   continuing to wait.
+- [fixed] Fixed a potential race condition after calling `enableNetwork()` that
+  could result in a "Mutation batchIDs must be acknowledged in order" assertion
+  crash.
 
 # 0.3.2
 - [fixed] Fixed a regression in Firebase JS release 4.9.0 that could in certain
