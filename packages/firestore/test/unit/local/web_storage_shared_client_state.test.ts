@@ -354,22 +354,21 @@ describe('WebStorageSharedClientState', () => {
   describe('processes mutation updates', () => {
     async function withUser(user: User, fn: () => Promise<void>) {
       await sharedClientState.start(user);
-      return fn();
+      await fn();
+      return queue.drain();
     }
 
     it('for pending mutation', () => {
       return withUser(AUTHENTICATED_USER, async () => {
         writeToLocalStorage(
-          mutationKey(AUTHENTICATED_USER, 1),
-          new MutationMetadata(
-            AUTHENTICATED_USER,
-            1,
-            'pending'
-          ).toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+            mutationKey(AUTHENTICATED_USER, 1),
+            new MutationMetadata(
+                AUTHENTICATED_USER,
+                1,
+                'pending'
+            ).toLocalStorageJSON()
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.have.members([1]);
         expect(clientSyncer.acknowledgedBatches).to.be.empty;
         expect(clientSyncer.rejectedBatches).to.be.empty;
@@ -385,10 +384,8 @@ describe('WebStorageSharedClientState', () => {
             1,
             'acknowledged'
           ).toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.be.empty;
         expect(clientSyncer.acknowledgedBatches).to.have.members([1]);
         expect(clientSyncer.rejectedBatches).to.be.empty;
@@ -405,10 +402,8 @@ describe('WebStorageSharedClientState', () => {
             'rejected',
             new FirestoreError('internal', 'Test Error')
           ).toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.be.empty;
         expect(clientSyncer.acknowledgedBatches).to.be.empty;
         expect(clientSyncer.rejectedBatches[1].code).to.equal('internal');
@@ -425,10 +420,8 @@ describe('WebStorageSharedClientState', () => {
             1,
             'pending'
           ).toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.have.members([1]);
       });
     });
@@ -448,10 +441,8 @@ describe('WebStorageSharedClientState', () => {
         writeToLocalStorage(
           mutationKey(otherUser, 1),
           new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.have.members([1]);
       });
     });
@@ -465,10 +456,8 @@ describe('WebStorageSharedClientState', () => {
             1,
             'invalid' as any
           ).toLocalStorageJSON()
-        );
-
-        await queue.drain();
-
+        )
+      }).then(() => {
         expect(clientSyncer.pendingBatches).to.be.empty;
         expect(clientSyncer.acknowledgedBatches).to.be.empty;
         expect(clientSyncer.rejectedBatches).to.be.empty;
