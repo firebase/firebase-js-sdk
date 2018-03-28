@@ -1510,6 +1510,43 @@ function testEmailAuthCredentialWithLink() {
 }
 
 
+function testEmailAuthCredentialWithLink_deepLink() {
+  assertEquals(
+      fireauth.idp.ProviderId.PASSWORD,
+      fireauth.EmailAuthProvider['PROVIDER_ID']);
+  assertEquals(
+      fireauth.idp.SignInMethod.EMAIL_LINK,
+      fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
+  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var emailLink = 'https://example.app.goo.gl/?link=' +
+      encodeURIComponent(deepLink);
+  var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
+      'user@example.com', emailLink);
+  assertObjectEquals(
+      {
+        'email': 'user@example.com',
+        'password': 'code',
+        'signInMethod': 'emailLink'
+      },
+      authCredential.toPlainObject());
+  assertEquals(fireauth.idp.ProviderId.PASSWORD, authCredential['providerId']);
+  assertEquals(
+      fireauth.idp.SignInMethod.EMAIL_LINK, authCredential['signInMethod']);
+  authCredential.getIdTokenProvider(rpcHandler);
+  assertRpcHandlerEmailLinkSignIn('user@example.com', 'code');
+  var provider = new fireauth.EmailAuthProvider();
+  // Should throw an invalid OAuth provider error.
+  var error = assertThrows(function() {
+    fireauth.AuthProvider.checkIfOAuthSupported(provider);
+  });
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INVALID_OAUTH_PROVIDER);
+  fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+  assertEquals(fireauth.idp.ProviderId.PASSWORD, provider['providerId']);
+  assertFalse(provider['isOAuthProvider']);
+}
+
+
 function testEmailAuthCredentialWithLink_invalidLink_error() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
@@ -1535,6 +1572,36 @@ function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
   var oobCode3 = fireauth.EmailAuthProvider
       .getActionCodeFromSignInEmailLink(emailLink3);
   assertNull(oobCode3);
+}
+
+
+function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
+  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
+                   'oobCode=oobCode';
+  var deepLink3 = 'https://www.example.com/action?mode=signIn';
+
+  var emailLink1 = 'https://example.app.goo.gl/?link=' +
+      encodeURIComponent(deepLink1);
+  var emailLink2 = 'https://example.app.goo.gl/?link=' +
+      encodeURIComponent(deepLink2);
+  var emailLink3 = 'https://example.app.goo.gl/?link=' +
+      encodeURIComponent(deepLink3);
+  var emailLink4 = 'comexampleiosurl://google/link?deep_link_id=' +
+      encodeURIComponent(deepLink1);
+
+  var oobCode1 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink1);
+  assertEquals('oobCode', oobCode1);
+  var oobCode2 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink2);
+  assertNull(oobCode2);
+  var oobCode3 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink3);
+  assertNull(oobCode3);
+  var oobCode4 = fireauth.EmailAuthProvider
+      .getActionCodeFromSignInEmailLink(emailLink4);
+  assertEquals('oobCode', oobCode4);
 }
 
 
