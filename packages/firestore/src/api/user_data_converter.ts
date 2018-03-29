@@ -441,28 +441,31 @@ export class UserDataConverter {
    */
   private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
-    if (input instanceof Array) {
-      // TODO(b/34871131): Include the path containing the array in the error
-      // message.
-      if (context.arrayElement) {
-        throw context.createError('Nested arrays are not supported');
-      }
-      // If context.path is null we are already inside an array and we don't
-      // support field mask paths more granular than the top-level array.
-      if (context.path) {
-        context.fieldMask.push(context.path);
-      }
-      return this.parseArray(input as AnyJs[], context);
-    } else if (looksLikeJsonObject(input)) {
+    if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
       return this.parseObject(input as Dict<AnyJs>, context);
     } else {
-      // If context.path is null, we are inside an array and we should have
-      // already added the root of the array to the field mask.
+      // If context.path is null we are inside an array and we don't support
+      // field mask paths more granular than the top-level array.
       if (context.path) {
         context.fieldMask.push(context.path);
       }
-      return this.parseScalarValue(input, context);
+
+      if (input instanceof Array) {
+        // TODO(b/34871131): Include the path containing the array in the error
+        // message.
+        if (context.arrayElement) {
+          throw context.createError('Nested arrays are not supported');
+        }
+        return this.parseArray(input as AnyJs[], context);
+      } else if (input instanceof FieldValueImpl) {
+        // parseSentinelFieldValue() may add a FieldTransform, but we return
+        // null since nothing should be included in the actual parsed data.
+        this.parseSentinelFieldValue(input, context);
+        return null;
+      } else {
+        return this.parseScalarValue(input, context);
+      }
     }
   }
 
@@ -529,52 +532,59 @@ export class UserDataConverter {
       return new BlobValue(value);
     } else if (value instanceof DocumentKeyReference) {
       return new RefValue(value.databaseId, value.key);
-    } else if (value instanceof FieldValueImpl) {
-      if (value instanceof DeleteFieldValueImpl) {
-        if (context.dataSource === UserDataSource.MergeSet) {
-          return null;
-        } else if (context.dataSource === UserDataSource.Update) {
-          assert(
-            context.path == null || context.path.length > 0,
-            'FieldValue.delete() at the top level should have already' +
-              ' been handled.'
-          );
-          throw context.createError(
-            'FieldValue.delete() can only appear at the top level ' +
-              'of your update data'
-          );
-        } else {
-          // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
-          throw context.createError(
-            'FieldValue.delete() can only be used with update() and set() with {merge:true}'
-          );
-        }
-      } else if (value instanceof ServerTimestampFieldValueImpl) {
-        if (!isWrite(context.dataSource)) {
-          throw context.createError(
-            'FieldValue.serverTimestamp() can only be used with set()' +
-              ' and update()'
-          );
-        }
-        if (context.path === null) {
-          throw context.createError(
-            'FieldValue.serverTimestamp() is not currently' +
-              ' supported inside arrays'
-          );
-        }
-        context.fieldTransforms.push(
-          new FieldTransform(context.path, ServerTimestampTransform.instance)
-        );
-
-        // Return null so this value is omitted from the parsed result.
-        return null;
-      } else {
-        return fail('Unknown FieldValue type: ' + value);
-      }
     } else {
       throw context.createError(
         `Unsupported field value: ${valueDescription(value)}`
       );
+    }
+  }
+
+  /**
+   * "Parses" the provided FieldValueImpl, adding any necessary transforms to
+   * context.fieldTransforms.
+   */
+  private parseSentinelFieldValue(
+    value: FieldValueImpl,
+    context: ParseContext
+  ): void {
+    // Sentinels are only supported with writes, and not within arrays.
+    if (!isWrite(context.dataSource)) {
+      throw context.createError(
+        `${value.methodName} can only be used with update() and set()`
+      );
+    }
+    if (context.path === null) {
+      throw context.createError(
+        `${value.methodName} is not currently supported inside arrays`
+      );
+    }
+
+    if (value instanceof DeleteFieldValueImpl) {
+      if (context.dataSource === UserDataSource.MergeSet) {
+        // No transform to add for a delete, so we do nothing.
+      } else if (context.dataSource === UserDataSource.Update) {
+        assert(
+          context.path == null || context.path.length > 0,
+          'FieldValue.delete() at the top level should have already' +
+            ' been handled.'
+        );
+        throw context.createError(
+          'FieldValue.delete() can only appear at the top level ' +
+            'of your update data'
+        );
+      } else {
+        // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+        throw context.createError(
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
+            '{merge:true}'
+        );
+      }
+    } else if (value instanceof ServerTimestampFieldValueImpl) {
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, ServerTimestampTransform.instance)
+      );
+    } else {
+      fail('Unknown FieldValue type: ' + value);
     }
   }
 }
