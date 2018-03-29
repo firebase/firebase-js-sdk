@@ -441,28 +441,31 @@ export class UserDataConverter {
    */
   private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
-    if (input instanceof Array) {
-      // TODO(b/34871131): Include the path containing the array in the error
-      // message.
-      if (context.arrayElement) {
-        throw context.createError('Nested arrays are not supported');
-      }
-      // If context.path is null we are already inside an array and we don't
-      // support field mask paths more granular than the top-level array.
-      if (context.path) {
-        context.fieldMask.push(context.path);
-      }
-      return this.parseArray(input as AnyJs[], context);
-    } else if (looksLikeJsonObject(input)) {
+    if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
       return this.parseObject(input as Dict<AnyJs>, context);
     } else {
-      // If context.path is null, we are inside an array and we should have
-      // already added the root of the array to the field mask.
+      // If context.path is null we are inside an array and we don't support
+      // field mask paths more granular than the top-level array.
       if (context.path) {
         context.fieldMask.push(context.path);
       }
-      return this.parseScalarValue(input, context);
+
+      if (input instanceof Array) {
+        // TODO(b/34871131): Include the path containing the array in the error
+        // message.
+        if (context.arrayElement) {
+          throw context.createError('Nested arrays are not supported');
+        }
+        return this.parseArray(input as AnyJs[], context);
+      } else if (input instanceof FieldValueImpl) {
+        // parseSentinelFieldValue() may add a FieldTransform, but we return
+        // null since nothing should be included in the actual parsed data.
+        this.parseSentinelFieldValue(input, context);
+        return null;
+      } else {
+        return this.parseScalarValue(input, context);
+      }
     }
   }
 
@@ -529,8 +532,6 @@ export class UserDataConverter {
       return new BlobValue(value);
     } else if (value instanceof DocumentKeyReference) {
       return new RefValue(value.databaseId, value.key);
-    } else if (value instanceof FieldValueImpl) {
-      return this.parseSentinelFieldValue(value, context);
     } else {
       throw context.createError(
         `Unsupported field value: ${valueDescription(value)}`
@@ -538,14 +539,18 @@ export class UserDataConverter {
     }
   }
 
+  /**
+   * "Parses" the provided FieldValueImpl, adding any necessary transforms to
+   * context.fieldTransforms.
+   */
   private parseSentinelFieldValue(
     value: FieldValueImpl,
     context: ParseContext
-  ): FieldValue | null {
+  ): void {
     // Sentinels are only supported with writes, and not within arrays.
     if (!isWrite(context.dataSource)) {
       throw context.createError(
-        `${value.methodName} can only be used with update() and set().`
+        `${value.methodName} can only be used with update() and set()`
       );
     }
     if (context.path === null) {
@@ -556,8 +561,7 @@ export class UserDataConverter {
 
     if (value instanceof DeleteFieldValueImpl) {
       if (context.dataSource === UserDataSource.MergeSet) {
-        // Return null so this value is omitted from the parsed result.
-        return null;
+        // No transform to add for a delete, so we do nothing.
       } else if (context.dataSource === UserDataSource.Update) {
         assert(
           context.path == null || context.path.length > 0,
@@ -579,9 +583,6 @@ export class UserDataConverter {
       context.fieldTransforms.push(
         new FieldTransform(context.path, ServerTimestampTransform.instance)
       );
-
-      // Return null so this value is omitted from the parsed result.
-      return null;
     } else {
       return fail('Unknown FieldValue type: ' + value);
     }

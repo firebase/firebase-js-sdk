@@ -437,7 +437,8 @@ apiDescribe('Validation:', persistence => {
         return expectSetToFail(
           db,
           { foo: firebase.firestore.FieldValue.delete() },
-          'FieldValue.delete() cannot be used with set() unless you pass {merge:true}'
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
+            '{merge:true} (found in field foo)'
         );
       }
     );
