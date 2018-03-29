@@ -26,9 +26,11 @@ export interface SharedClientStateSyncer {
   /** Registers a new pending mutation batch. */
   applyPendingBatch(batchId: BatchId): Promise<void>;
 
+  // TODO(multitab): Rename this method to not clash with RemoteSyncer
   /** Applies the result of a successful write of a mutation batch. */
   applySuccessfulWrite(batchId: BatchId): Promise<void>;
 
+  // TODO(multitab): Rename this method to not clash with RemoteSyncer
   /** Rejects a failed mutation batch. */
   rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
 

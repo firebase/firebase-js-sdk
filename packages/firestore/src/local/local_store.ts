@@ -55,6 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
@@ -867,5 +868,9 @@ export class LocalStore {
         });
     });
     return promiseChain;
+  }
+
+  getActiveClients(): Promise<ClientId[]> {
+    return this.persistence.getActiveClients();
   }
 }

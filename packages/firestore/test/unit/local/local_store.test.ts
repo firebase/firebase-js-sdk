@@ -68,6 +68,9 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
+import { SharedClientState } from '../../../src/local/shared_client_state';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { AutoId } from '../../../src/util/misc';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -274,20 +277,18 @@ function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
   let persistence: Persistence;
   let localStore: LocalStore;
 
-  beforeEach(() => {
-    return getPersistence().then(p => {
-      persistence = p;
-      localStore = new LocalStore(
-        persistence,
-        User.UNAUTHENTICATED,
-        new EagerGarbageCollector()
-      );
-      return localStore.start();
-    });
+  beforeEach(async () => {
+    persistence = await getPersistence();
+    localStore = new LocalStore(
+      persistence,
+      User.UNAUTHENTICATED,
+      new EagerGarbageCollector()
+    );
+    return localStore.start();
   });
 
-  afterEach(() => {
-    return persistence.shutdown();
+  afterEach(async () => {
+    await persistence.shutdown();
   });
 
   /**
