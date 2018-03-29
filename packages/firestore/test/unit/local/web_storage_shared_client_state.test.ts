@@ -146,7 +146,8 @@ describe('WebStorageSharedClientState', () => {
     sharedClientState = new WebStorageSharedClientState(
       queue,
       TEST_PERSISTENCE_PREFIX,
-      primaryClientId
+      primaryClientId,
+      AUTHENTICATED_USER
     );
     clientSyncer = new TestSharedClientSyncer([primaryClientId]);
     sharedClientState.syncEngine = clientSyncer;
@@ -213,7 +214,7 @@ describe('WebStorageSharedClientState', () => {
     }
 
     beforeEach(() => {
-      return sharedClientState.start(AUTHENTICATED_USER);
+      return sharedClientState.start();
     });
 
     it('when empty', () => {
@@ -248,7 +249,7 @@ describe('WebStorageSharedClientState', () => {
 
   describe('persists query targets', () => {
     beforeEach(() => {
-      return sharedClientState.start(AUTHENTICATED_USER);
+      return sharedClientState.start();
     });
 
     it('when empty', () => {
@@ -281,7 +282,7 @@ describe('WebStorageSharedClientState', () => {
         )
         .then(() => {
           clientSyncer.activeClients = [primaryClientId, existingClientId];
-          return sharedClientState.start(AUTHENTICATED_USER);
+          return sharedClientState.start();
         });
     });
 
@@ -373,11 +374,15 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes mutation updates', () => {
+    beforeEach(() => {
+      return sharedClientState.start();
+    });
+
     async function withUser(
       user: User,
       fn: () => Promise<void>
     ): Promise<TestSharedClientState> {
-      await sharedClientState.start(user);
+      await sharedClientState.handleUserChange(user);
       await fn();
       await queue.drain();
       return clientSyncer.sharedClientState;

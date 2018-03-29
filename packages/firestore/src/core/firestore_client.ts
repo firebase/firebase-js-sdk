@@ -72,6 +72,8 @@ export class FirestoreClient {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
+
+  // PORTING NOTE: SharedClientState is only used in for multi-tab web.
   private sharedClientState: SharedClientState;
 
   private readonly clientId = AutoId.newId();
@@ -148,7 +150,7 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        this.initializePersistence(usePersistence, persistenceResult)
+        this.initializePersistence(usePersistence, persistenceResult, user)
           .then(() => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
@@ -195,10 +197,11 @@ export class FirestoreClient {
    */
   private initializePersistence(
     usePersistence: boolean,
-    persistenceResult: Deferred<void>
+    persistenceResult: Deferred<void>,
+    user: User
   ): Promise<void> {
     if (usePersistence) {
-      return this.startIndexedDbPersistence()
+      return this.startIndexedDbPersistence(user)
         .then(persistenceResult.resolve)
         .catch((error: FirestoreError) => {
           // Regardless of whether or not the retry succeeds, from an user
@@ -239,7 +242,7 @@ export class FirestoreClient {
    *
    * @returns A promise indicating success or failure.
    */
-  private startIndexedDbPersistence(): Promise<void> {
+  private startIndexedDbPersistence(user: User): Promise<void> {
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
@@ -262,7 +265,8 @@ export class FirestoreClient {
       this.sharedClientState = new WebStorageSharedClientState(
         this.asyncQueue,
         storagePrefix,
-        this.clientId
+        this.clientId,
+        user
       );
       return this.persistence.start();
     });
@@ -291,7 +295,6 @@ export class FirestoreClient {
       .then(async connection => {
         this.localStore = new LocalStore(
           this.persistence,
-          this.sharedClientState,
           user,
           this.garbageCollector
         );
@@ -320,11 +323,11 @@ export class FirestoreClient {
         this.syncEngine = new SyncEngine(
           this.localStore,
           this.remoteStore,
+          this.sharedClientState,
           user
         );
 
-        // Setup wiring between sync engine and remote store/shared client
-        // state (multi-tab only)
+        // Set up wiring between sync engine and other components
         this.remoteStore.syncEngine = this.syncEngine;
         this.sharedClientState.syncEngine = this.syncEngine;
 
@@ -335,7 +338,7 @@ export class FirestoreClient {
         // be started after LocalStore.
         await this.localStore.start();
         await this.remoteStore.start();
-        await this.sharedClientState.start(user);
+        await this.sharedClientState.start();
 
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.

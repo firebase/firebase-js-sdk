@@ -68,14 +68,8 @@ export async function testIndexedDbPersistence(
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
-export async function testMemoryPersistence(
-  queue?: AsyncQueue,
-  clientId?: ClientId
-): Promise<MemoryPersistence> {
-  queue = queue || new AsyncQueue();
-  clientId = clientId || AutoId.newId();
-
-  const persistence = new MemoryPersistence(queue, clientId);
+export async function testMemoryPersistence(): Promise<MemoryPersistence> {
+  const persistence = new MemoryPersistence(new AsyncQueue(), AutoId.newId());
   await persistence.start();
   return persistence;
 }
@@ -92,33 +86,6 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
     return this.activeClients;
   }
 }
-
-/** Creates and starts a WebStorageSharedClientState instance for testing. */
-export async function testWebStorageSharedClientState(
-  queue: AsyncQueue,
-  clientId: ClientId,
-  user: User
-): Promise<WebStorageSharedClientState> {
-  const sharedClientState = new WebStorageSharedClientState(
-    queue,
-    TEST_PERSISTENCE_PREFIX,
-    clientId
-  );
-  sharedClientState.syncEngine = new NoOpSharedClientStateSyncer([clientId]);
-  await sharedClientState.start(user);
-  return sharedClientState;
-}
-
-/** Creates and starts a MemorySharedClientState instance for testing. */
-export async function testMemorySharedClientState(
-  clientId: ClientId,
-  user: User
-): Promise<MemorySharedClientState> {
-  const sharedClientState = new MemorySharedClientState();
-  sharedClientState.syncEngine = new NoOpSharedClientStateSyncer([clientId]);
-  await sharedClientState.start(user);
-  return sharedClientState;
-}
 /**
  * Populates Web Storage with instance data from a pre-existing client.
  */
@@ -133,13 +100,14 @@ export async function populateWebStorage(
   const secondaryClientState = new WebStorageSharedClientState(
     new AsyncQueue(),
     TEST_PERSISTENCE_PREFIX,
-    existingClientId
+    existingClientId,
+    user
   );
 
   secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
     existingClientId
   ]);
-  await secondaryClientState.start(user);
+  await secondaryClientState.start();
 
   for (const batchId of existingMutationBatchIds) {
     secondaryClientState.addLocalPendingMutation(batchId);

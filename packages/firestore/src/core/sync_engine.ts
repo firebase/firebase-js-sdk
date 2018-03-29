@@ -52,7 +52,7 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { SharedClientStateSyncer } from '../local/shared_client_state_syncer';
-import { ClientId } from '../local/shared_client_state';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -128,6 +128,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   constructor(
     private localStore: LocalStore,
     private remoteStore: RemoteStore,
+    // PORTING NOTE: Manages state synchronization in multi-tab environments.
+    private sharedClientState: SharedClientState,
     private currentUser: User
   ) {}
 
@@ -230,6 +232,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .localWrite(batch)
       .then(result => {
+        this.sharedClientState.addLocalPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
@@ -636,6 +639,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   handleUserChange(user: User): Promise<void> {
     this.currentUser = user;
+    this.sharedClientState.handleUserChange(user);
     return this.localStore
       .handleUserChange(user)
       .then(changes => {
@@ -646,11 +650,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
   }
 
+  // PORTING NOTE: Multi-tab only
   applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
     return Promise.resolve();
   }
 
+  // PORTING NOTE: Multi-tab only
   getActiveClients(): Promise<ClientId[]> {
     return this.localStore.getActiveClients();
   }

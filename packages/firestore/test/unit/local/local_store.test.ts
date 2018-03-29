@@ -258,15 +258,7 @@ class LocalStoreTester {
 
 describe('LocalStore w/ Memory Persistence', () => {
   addEqualityMatcher();
-  const queue = new AsyncQueue();
-  const clientId = AutoId.newId();
-  genericLocalStoreTests(
-    persistenceHelpers.testMemoryPersistence.bind(this, queue, clientId),
-    persistenceHelpers.testMemorySharedClientState.bind(
-      this,
-      User.UNAUTHENTICATED
-    )
-  );
+  genericLocalStoreTests(persistenceHelpers.testMemoryPersistence);
 });
 
 describe('LocalStore w/ IndexedDB Persistence', () => {
@@ -278,33 +270,17 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  const queue = new AsyncQueue();
-  const clientId = AutoId.newId();
-  genericLocalStoreTests(
-    persistenceHelpers.testIndexedDbPersistence.bind(this, queue, clientId),
-    persistenceHelpers.testWebStorageSharedClientState.bind(
-      this,
-      queue,
-      clientId,
-      User.UNAUTHENTICATED
-    )
-  );
+  genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
-function genericLocalStoreTests(
-  getPersistence: () => Promise<Persistence>,
-  getSharedClientState: () => Promise<SharedClientState>
-) {
+function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
   let persistence: Persistence;
-  let sharedClientState: SharedClientState;
   let localStore: LocalStore;
 
   beforeEach(async () => {
     persistence = await getPersistence();
-    sharedClientState = await getSharedClientState();
     localStore = new LocalStore(
       persistence,
-      sharedClientState,
       User.UNAUTHENTICATED,
       new EagerGarbageCollector()
     );
@@ -312,7 +288,6 @@ function genericLocalStoreTests(
   });
 
   afterEach(async () => {
-    await sharedClientState.shutdown();
     await persistence.shutdown();
   });
 
@@ -323,7 +298,6 @@ function genericLocalStoreTests(
   function restartWithNoOpGarbageCollector(): Promise<void> {
     localStore = new LocalStore(
       persistence,
-      sharedClientState,
       User.UNAUTHENTICATED,
       new NoOpGarbageCollector()
     );

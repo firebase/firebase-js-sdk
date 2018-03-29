@@ -348,8 +348,8 @@ abstract class TestRunner {
   private sharedClientState: SharedClientState;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
-  private user = User.UNAUTHENTICATED;
 
+  protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
 
   private serializer: JsonProtoSerializer;
@@ -386,7 +386,6 @@ abstract class TestRunner {
 
     this.localStore = new LocalStore(
       this.persistence,
-      this.sharedClientState,
       this.user,
       garbageCollector
     );
@@ -412,10 +411,11 @@ abstract class TestRunner {
     this.syncEngine = new SyncEngine(
       this.localStore,
       this.remoteStore,
+      this.sharedClientState,
       this.user
     );
 
-    // Setup wiring between sync engine and remote store/shared client state
+    // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
 
@@ -439,7 +439,7 @@ abstract class TestRunner {
     await this.persistence.start();
     await this.localStore.start();
     await this.remoteStore.start();
-    await this.sharedClientState.start(this.user);
+    await this.sharedClientState.start();
 
     this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
@@ -1159,7 +1159,8 @@ class IndexedDbTestRunner extends TestRunner {
     return new WebStorageSharedClientState(
       this.queue,
       IndexedDbTestRunner.TEST_DB_NAME,
-      this.clientId
+      this.clientId,
+      this.user
     );
   }
 

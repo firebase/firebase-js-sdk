@@ -99,7 +99,7 @@ export interface SharedClientState {
    * Starts the SharedClientState, reads existing client data and registers
    * listeners for updates to new and existing clients.
    */
-  start(initialUser: User): Promise<void>;
+  start(): Promise<void>;
 
   /** Shuts down the `SharedClientState` and its listeners. */
   shutdown(): void;
@@ -372,7 +372,7 @@ export class LocalClientState implements ClientState {
     return JSON.stringify(data);
   }
 
-  handleUserChange() {
+  clearPendingMutations() {
     this.pendingBatchIds = new SortedSet<BatchId>(primitiveComparator);
   }
 }
@@ -393,7 +393,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private started = false;
-  private user: User;
+  private currentUser: User;
 
   /**
    * Captures WebStorage events that occur before `start()` is called. These
@@ -404,7 +404,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   constructor(
     private readonly queue: AsyncQueue,
     private readonly persistenceKey: string,
-    private readonly localClientId: ClientId
+    private readonly localClientId: ClientId,
+    initialUser: User
   ) {
     if (!WebStorageSharedClientState.isAvailable()) {
       throw new FirestoreError(
@@ -413,6 +414,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       );
     }
     this.storage = window.localStorage;
+    this.currentUser = initialUser;
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
       this.localClientId
     );
@@ -438,7 +440,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  async start(initialUser: User): Promise<void> {
+  async start(): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
       this.syncEngine !== null,
@@ -468,7 +470,6 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     }
 
-    this.user = initialUser;
     this.persistClientState();
 
     for (const event of this.earlyEvents) {
@@ -519,6 +520,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   handleUserChange(user: User): void {
     // TODO(multitab): Handle user changes.
+    this.currentUser = user;
   }
 
   shutdown(): void {
@@ -595,7 +597,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     error?: FirestoreError
   ) {
     const mutationState = new MutationMetadata(
-      this.user,
+      this.currentUser,
       batchId,
       state,
       error
@@ -605,8 +607,8 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.persistenceKey
     }_${batchId}`;
 
-    if (this.user.isAuthenticated()) {
-      mutationKey += `_${this.user.uid}`;
+    if (this.currentUser.isAuthenticated()) {
+      mutationKey += `_${this.currentUser.uid}`;
     }
 
     this.storage.setItem(mutationKey, mutationState.toLocalStorageJSON());
@@ -667,7 +669,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private async handleMutationBatchEvent(
     mutationBatch: MutationMetadata
   ): Promise<void> {
-    if (mutationBatch.user.uid !== this.user.uid) {
+    if (mutationBatch.user.uid !== this.currentUser.uid) {
       debug(
         LOG_TAG,
         `Ignoring mutation for non-active user ${mutationBatch.user.uid}`
@@ -725,13 +727,13 @@ export class MemorySharedClientState implements SharedClientState {
     return this.localState.activeTargetIds;
   }
 
-  start(initialUser: User): Promise<void> {
+  start(): Promise<void> {
     this.localState = new LocalClientState();
     return Promise.resolve();
   }
 
   handleUserChange(user: User): void {
-    this.localState.handleUserChange();
+    this.localState.clearPendingMutations();
   }
 
   shutdown(): void {}
