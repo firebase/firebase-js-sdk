@@ -584,7 +584,7 @@ export class UserDataConverter {
         new FieldTransform(context.path, ServerTimestampTransform.instance)
       );
     } else {
-      return fail('Unknown FieldValue type: ' + value);
+      fail('Unknown FieldValue type: ' + value);
     }
   }
 }
