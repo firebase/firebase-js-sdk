@@ -73,10 +73,10 @@ export class FirestoreClient {
   private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
 
+  private readonly clientId = AutoId.newId();
+
   // PORTING NOTE: SharedClientState is only used in for multi-tab web.
   private sharedClientState: SharedClientState;
-
-  private readonly clientId = AutoId.newId();
 
   constructor(
     private platform: Platform,

@@ -55,7 +55,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { ClientId, SharedClientState } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
