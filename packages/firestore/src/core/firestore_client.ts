@@ -75,7 +75,7 @@ export class FirestoreClient {
 
   private readonly clientId = AutoId.newId();
 
-  // PORTING NOTE: SharedClientState is only used in for multi-tab web.
+  // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState: SharedClientState;
 
   constructor(
