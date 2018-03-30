@@ -20,6 +20,7 @@ import * as Long from 'long';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
 import { GeoPoint } from '../../../../src/api/geo_point';
+import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
@@ -29,7 +30,6 @@ import {
   RelationOp
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
-import { Timestamp } from '../../../../src/core/timestamp';
 import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
@@ -477,14 +477,29 @@ describe('Serializer', () => {
     });
 
     it('converts TimestampValue from string', () => {
-      const examples = ['2016-01-02T10:20:50.850Z', '2016-06-17T10:50:15.000Z'];
-      for (const example of examples) {
-        const date = new Date(example);
-        const proto = { timestampValue: example };
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.TimestampValue(Timestamp.fromDate(date))
-        );
-      }
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+      );
     });
 
     it('converts GeoPointValue', () => {

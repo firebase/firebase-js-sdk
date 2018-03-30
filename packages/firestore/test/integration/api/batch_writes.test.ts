@@ -22,6 +22,7 @@ import * as integrationHelpers from '../util/helpers';
 import firebase from '../util/firebase_export';
 
 const apiDescribe = integrationHelpers.apiDescribe;
+const Timestamp = firebase.firestore.Timestamp;
 
 apiDescribe('Database batch writes', persistence => {
   it('support empty batches', () => {
@@ -263,7 +264,7 @@ apiDescribe('Database batch writes', persistence => {
             expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
             expect(serverSnap.docs.length).to.equal(2);
             const when = serverSnap.docs[0].data()['when'];
-            expect(when).to.be.an.instanceof(Date);
+            expect(when).to.be.an.instanceof(Timestamp);
             expect(serverSnap.docs[1].data()['when']).to.deep.equal(when);
             unsubscribe();
           });
@@ -304,7 +305,7 @@ apiDescribe('Database batch writes', persistence => {
         .then(serverSnap => {
           expect(serverSnap.metadata.hasPendingWrites).to.equal(false);
           const when = serverSnap.get('when');
-          expect(when).to.be.an.instanceof(Date);
+          expect(when).to.be.an.instanceof(Timestamp);
           expect(serverSnap.data()).to.deep.equal({ a: 1, b: 2, when });
           unsubscribe();
         });

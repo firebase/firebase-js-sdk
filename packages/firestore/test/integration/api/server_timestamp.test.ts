@@ -18,8 +18,10 @@ import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
 import firebase from '../util/firebase_export';
-import { apiDescribe, withTestDoc } from '../util/helpers';
+import { apiDescribe, DEFAULT_SETTINGS, withTestDoc } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+
+const Timestamp = firebase.firestore.Timestamp;
 
 apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
@@ -104,11 +106,13 @@ apiDescribe('Server Timestamps', persistence => {
   function verifyTimestampsAreResolved(snap: firestore.DocumentSnapshot): void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when');
-    expect(when).to.be.an.instanceof(Date);
+    expect(when).to.be.an.instanceof(Timestamp);
     // Tolerate up to 60 seconds of clock skew between client and server
     // since web tests may run in a Windows VM with a sloppy clock.
     const delta = 60;
-    expect(Math.abs(when.getTime() - Date.now())).to.be.lessThan(delta * 1000);
+    expect(Math.abs(when.toDate().getTime() - Date.now())).to.be.lessThan(
+      delta * 1000
+    );
 
     // Validate the rest of the document.
     expect(snap.data()).to.deep.equal(expectedDataWithTimestamp(when));
@@ -126,7 +130,7 @@ apiDescribe('Server Timestamps', persistence => {
   ): void {
     expect(snap.exists).to.equal(true);
     const when = snap.get('when', { serverTimestamps: 'estimate' });
-    expect(when).to.be.an.instanceof(Date);
+    expect(when).to.be.an.instanceof(Timestamp);
     // Validate the rest of the document.
     expect(snap.data({ serverTimestamps: 'estimate' })).to.deep.equal(
       expectedDataWithTimestamp(when)

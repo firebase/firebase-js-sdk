@@ -17,6 +17,7 @@
 import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
+import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   Bound,
@@ -30,7 +31,6 @@ import {
   RelationOp
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -82,6 +82,9 @@ const OPERATORS = (() => {
   ops[RelationOp.EQUAL.name] = 'EQUAL';
   return ops;
 })();
+
+// A RegExp matching ISO 8601 UTC timestamps with optional fraction.
+const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
 function assertPresent(value: AnyJs, description: string) {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
@@ -197,7 +200,7 @@ export class JsonProtoSerializer {
   private toTimestamp(timestamp: Timestamp): string {
     return {
       seconds: timestamp.seconds,
-      nanos: timestamp.nanos
+      nanos: timestamp.nanoseconds
       // tslint:disable-next-line:no-any
     } as any;
   }
@@ -210,7 +213,7 @@ export class JsonProtoSerializer {
       // TODO(b/37282237): Use strings for Proto3 timestamps
       // assert(this.options.useProto3Json,
       //   'The timestamp string format requires Proto3.');
-      return Timestamp.fromISOString(date);
+      return this.fromIso8601String(date);
     } else {
       assert(!!date, 'Cannot deserialize null or undefined timestamp.');
       // TODO(b/37282237): Use strings for Proto3 timestamps
@@ -220,6 +223,28 @@ export class JsonProtoSerializer {
       const nanos = date.nanos || 0;
       return new Timestamp(seconds, nanos);
     }
+  }
+
+  private fromIso8601String(utc: string): Timestamp {
+    // The date string can have higher precision (nanos) than the Date class
+    // (millis), so we do some custom parsing here.
+
+    // Parse the nanos right out of the string.
+    let nanos = 0;
+    const fraction = ISO_REG_EXP.exec(utc);
+    assert(!!fraction, 'invalid timestamp: ' + utc);
+    if (fraction![1]) {
+      // Pad the fraction out to 9 digits (nanos).
+      let nanoStr = fraction![1];
+      nanoStr = (nanoStr + '000000000').substr(0, 9);
+      nanos = Number(nanoStr);
+    }
+
+    // Parse the date to get the seconds.
+    const date = new Date(utc);
+    const seconds = Math.floor(date.getTime() / 1000);
+
+    return new Timestamp(seconds, nanos);
   }
 
   /**

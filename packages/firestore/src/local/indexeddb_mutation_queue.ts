@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
-import { Timestamp } from '../core/timestamp';
 import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
