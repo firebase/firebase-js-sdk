@@ -32,5 +32,5 @@ if (typeof Promise === 'undefined') {
   // HACK: TS throws an error if I attempt to use 'dot-notation'
   __global[
     'Promise'
-  ] = Promise = require('promise-polyfill') as PromiseConstructor;
+  ] = require('promise-polyfill') as PromiseConstructor;
 }
