@@ -29,10 +29,10 @@ import {
   PersistentWriteStream
 } from './persistent_stream';
 import { JsonProtoSerializer } from './serializer';
-import {RemoteStore} from './remote_store';
-import {LocalStore} from '../local/local_store';
-import {OnlineStateTracker} from './online_state_tracker';
-import {OnlineState} from '../core/types';
+import { RemoteStore } from './remote_store';
+import { LocalStore } from '../local/local_store';
+import { OnlineStateTracker } from './online_state_tracker';
+import { OnlineState } from '../core/types';
 
 // The generated proto interfaces for these class are missing the database
 // field. So we add it here.
@@ -75,7 +75,10 @@ export class Datastore {
     );
   }
 
-  newRemoteStore(localStore:LocalStore, onlineStateHandler: (onlineState: OnlineState) => void):RemoteStore {
+  newRemoteStore(
+    localStore: LocalStore,
+    onlineStateHandler: (onlineState: OnlineState) => void
+  ): RemoteStore {
     return new RemoteStore(localStore, this, this.queue, onlineStateHandler);
   }
 

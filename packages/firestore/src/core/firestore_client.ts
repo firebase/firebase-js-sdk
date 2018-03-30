@@ -260,7 +260,7 @@ export class FirestoreClient {
    * has been obtained from the credential provider and some persistence
    * implementation is available in this.persistence.
    */
-   private initializeRest(user: User): Promise<void> {
+  private initializeRest(user: User): Promise<void> {
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -279,11 +279,7 @@ export class FirestoreClient {
           serializer
         );
 
-        this.syncEngine = new SyncEngine(
-          this.localStore,
-          datastore,
-          user
-        );
+        this.syncEngine = new SyncEngine(this.localStore, datastore, user);
 
         this.eventMgr = new EventManager(this.syncEngine);
 
@@ -309,13 +305,12 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    return this.asyncQueue
-      .enqueue(async () => {
-        this.credentials.removeUserChangeListener();
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        await this.syncEngine.shutdown();
-        await this.persistence.shutdown();
-      });
+    return this.asyncQueue.enqueue(async () => {
+      this.credentials.removeUserChangeListener();
+      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+      await this.syncEngine.shutdown();
+      await this.persistence.shutdown();
+    });
   }
 
   listen(

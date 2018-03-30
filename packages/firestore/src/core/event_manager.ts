@@ -58,7 +58,7 @@ export class EventManager {
     this.syncEngine.subscribe(
       this.onChange.bind(this),
       this.onError.bind(this),
-        this.applyOnlineStateChange
+      this.applyOnlineStateChange
     );
   }
 

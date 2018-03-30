@@ -51,14 +51,14 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {Datastore} from '../remote/datastore';
-import {EventManager} from './event_manager';
+import { Datastore } from '../remote/datastore';
+import { EventManager } from './event_manager';
 
 const LOG_TAG = 'SyncEngine';
 
 export type ViewHandler = (viewSnaps: ViewSnapshot[]) => void;
 export type ErrorHandler = (query: Query, error: Error) => void;
-export type OnlineStateHandler = (onlineState:OnlineState) => void;
+export type OnlineStateHandler = (onlineState: OnlineState) => void;
 
 /**
  * QueryView contains all of the data that SyncEngine needs to keep track of for
@@ -73,22 +73,21 @@ class QueryView {
      * and applies the query filters and limits to determine the most correct
      * possible results.
      */
-    public readonly  view: View
+    public readonly view: View
   ) {}
 
   /**
    * The query itself.
    */
-  get query() : Query {
+  get query(): Query {
     return this.queryData.query;
   }
-
 
   /**
    * The target number created by the client that is used in the watch
    * stream to identify this query.
    */
-  get targetId() : TargetId {
+  get targetId(): TargetId {
     return this.queryData.targetId;
   }
 
@@ -97,7 +96,7 @@ class QueryView {
    * of the results that was received. This can be used to indicate where
    * to continue receiving new doc changes for the query.
    */
-  get resumeToken() : ProtoByteString {
+  get resumeToken(): ProtoByteString {
     return this.queryData.resumeToken;
   }
 }
@@ -147,7 +146,11 @@ export class SyncEngine implements RemoteSyncer {
   ) {}
 
   /** Subscribes view and error handler. Can be called only once. */
-  subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler, onlineStateHandler: OnlineStateHandler): void {
+  subscribe(
+    viewHandler: ViewHandler,
+    errorHandler: ErrorHandler,
+    onlineStateHandler: OnlineStateHandler
+  ): void {
     assert(
       viewHandler !== null && errorHandler !== null,
       'View and error handlers cannot be null'
@@ -193,10 +196,7 @@ export class SyncEngine implements RemoteSyncer {
                 'applyChanges for new view should always return a snapshot'
               );
 
-              const data = new QueryView(
-                queryData,
-                view
-              );
+              const data = new QueryView(queryData, view);
               this.queryViewsByQuery.set(query, data);
               this.queryViewsByTarget[queryData.targetId] = data;
               this.viewHandler!([viewChange.snapshot!]);
@@ -535,7 +535,7 @@ export class SyncEngine implements RemoteSyncer {
       this.limboKeysByTarget[limboTargetId] = key;
       if (this.remoteStore) {
         this.remoteStore.listen(
-            new QueryData(query, limboTargetId, QueryPurpose.Listen)
+          new QueryData(query, limboTargetId, QueryPurpose.Listen)
         );
       }
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
@@ -648,11 +648,14 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   private initRemoteStore() {
-    this.remoteStore = this.datastore.newRemoteStore(this.localStore, this.applyOnlineStateChange);
+    this.remoteStore = this.datastore.newRemoteStore(
+      this.localStore,
+      this.applyOnlineStateChange
+    );
     this.remoteStore.syncEngine = this;
     this.remoteStore.start(this.networkEnabled);
 
-    objUtils.forEach(this.queryViewsByTarget , (key, queryView) => {
+    objUtils.forEach(this.queryViewsByTarget, (key, queryView) => {
       this.remoteStore.listen(queryView.queryData);
     });
   }
@@ -667,20 +670,20 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  async enableNetwork() : Promise<void> {
+  async enableNetwork(): Promise<void> {
     if (this.remoteStore) {
       return this.remoteStore.enableNetwork();
     }
   }
 
-  async disableNetwork(): Promise<void>  {
+  async disableNetwork(): Promise<void> {
     if (this.remoteStore) {
       return this.remoteStore.disableNetwork();
     }
   }
 
   // TEST ONLY
-  numOutstandingWrites() :number {
+  numOutstandingWrites(): number {
     // TODO: UPDATE COMMENT
     //
     // Make sure to execute all writes that are currently queued. This allows us
