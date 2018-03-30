@@ -138,8 +138,10 @@ export class RemoteStore {
    * Starts up the remote store, creating streams, restoring state from
    * LocalStore, etc.
    */
-  start(): Promise<void> {
-    return this.enableNetwork();
+  async start(networkEnabled): Promise<void> {
+    if (networkEnabled) {
+      return this.enableNetwork();
+    }
   }
 
   private isNetworkEnabled(): boolean {
@@ -736,10 +738,6 @@ export class RemoteStore {
     } else {
       // Transient error, just let the retry logic kick in.
     }
-  }
-
-  createTransaction(): Transaction {
-    return new Transaction(this.datastore);
   }
 
   handleUserChange(user: User): Promise<void> {

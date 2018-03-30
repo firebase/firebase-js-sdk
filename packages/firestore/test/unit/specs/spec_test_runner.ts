@@ -332,7 +332,6 @@ abstract class TestRunner {
 
   private datastore: Datastore;
   private localStore: LocalStore;
-  private remoteStore: RemoteStore;
   private persistence: Persistence;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
@@ -377,25 +376,12 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const onlineStateChangedHandler = (onlineState: OnlineState) => {
-      this.syncEngine.applyOnlineStateChange(onlineState);
-      this.eventManager.applyOnlineStateChange(onlineState);
-    };
-    this.remoteStore = new RemoteStore(
-      this.localStore,
-      this.datastore,
-      this.queue,
-      onlineStateChangedHandler
-    );
 
     this.syncEngine = new SyncEngine(
       this.localStore,
-      this.remoteStore,
+      this.datastore,
       this.user
     );
-
-    // Setup wiring between sync engine and remote store
-    this.remoteStore.syncEngine = this.syncEngine;
 
     this.eventManager = new EventManager(this.syncEngine);
   }
@@ -415,11 +401,11 @@ abstract class TestRunner {
     this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
-    await this.remoteStore.start();
+    await this.syncEngine.start();
   }
 
   async shutdown(): Promise<void> {
-    await this.remoteStore.shutdown();
+    await this.syncEngine.shutdown();
     await this.persistence.shutdown();
     await this.destroyPersistence();
   }
@@ -771,20 +757,17 @@ abstract class TestRunner {
   }
 
   private async doDisableNetwork(): Promise<void> {
-    // Make sure to execute all writes that are currently queued. This allows us
-    // to assert on the total number of requests sent before shutdown.
-    await this.remoteStore.fillWritePipeline();
-    await this.remoteStore.disableNetwork();
+    await this.syncEngine.disableNetwork();
   }
 
   private async doEnableNetwork(): Promise<void> {
-    await this.remoteStore.enableNetwork();
+    await this.syncEngine.enableNetwork();
   }
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
-    await this.remoteStore.shutdown();
+    await this.syncEngine.shutdown();
 
     this.init();
 
@@ -792,7 +775,7 @@ abstract class TestRunner {
     // interleaved events.
     await this.queue.enqueue(async () => {
       await this.localStore.start();
-      await this.remoteStore.start();
+      await this.syncEngine.start();
     });
   }
 
@@ -825,7 +808,7 @@ abstract class TestRunner {
   private validateStateExpectations(expectation: StateExpectation): void {
     if (expectation) {
       if ('numOutstandingWrites' in expectation) {
-        expect(this.remoteStore.outstandingWrites()).to.equal(
+        expect(this.syncEngine.numOutstandingWrites()).to.equal(
           expectation.numOutstandingWrites
         );
       }

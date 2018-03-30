@@ -64,7 +64,6 @@ export class FirestoreClient {
   private garbageCollector: GarbageCollector;
   private persistence: Persistence;
   private localStore: LocalStore;
-  private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
 
   constructor(
@@ -163,7 +162,7 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
     return this.asyncQueue.enqueue(() => {
-      return this.remoteStore.enableNetwork();
+      return this.syncEngine.enableNetwork();
     });
   }
 
@@ -264,7 +263,7 @@ export class FirestoreClient {
   private initializeRest(user: User): Promise<void> {
     return this.platform
       .loadConnection(this.databaseInfo)
-      .then(connection => {
+      .then(async connection => {
         this.localStore = new LocalStore(
           this.persistence,
           user,
@@ -280,36 +279,14 @@ export class FirestoreClient {
           serializer
         );
 
-        const onlineStateChangedHandler = (onlineState: OnlineState) => {
-          this.syncEngine.applyOnlineStateChange(onlineState);
-          this.eventMgr.applyOnlineStateChange(onlineState);
-        };
-
-        this.remoteStore = new RemoteStore(
-          this.localStore,
-          datastore,
-          this.asyncQueue,
-          onlineStateChangedHandler
-        );
-
-        this.syncEngine = new SyncEngine(
-          this.localStore,
-          this.remoteStore,
-          user
-        );
-
-        // Setup wiring between sync engine and remote store
-        this.remoteStore.syncEngine = this.syncEngine;
+        this.syncEngine = new SyncEngine(this.localStore, datastore, user);
 
         this.eventMgr = new EventManager(this.syncEngine);
 
-        // NOTE: RemoteStore depends on LocalStore (for persisting stream
-        // tokens, refilling mutation queue, etc.) so must be started after
-        // LocalStore.
-        return this.localStore.start();
-      })
-      .then(() => {
-        return this.remoteStore.start();
+        // NOTE: SyncEngine depends on LocalStore (through its dependency on
+        // RemoteStore) so must be started after LocalStore.
+        await this.localStore.start();
+        await this.syncEngine.start();
       });
   }
 
@@ -323,20 +300,17 @@ export class FirestoreClient {
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     return this.asyncQueue.enqueue(() => {
-      return this.remoteStore.disableNetwork();
+      return this.syncEngine.disableNetwork();
     });
   }
 
   shutdown(): Promise<void> {
-    return this.asyncQueue
-      .enqueue(() => {
-        this.credentials.removeUserChangeListener();
-        return this.remoteStore.shutdown();
-      })
-      .then(() => {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        return this.persistence.shutdown();
-      });
+    return this.asyncQueue.enqueue(async () => {
+      this.credentials.removeUserChangeListener();
+      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+      await this.syncEngine.shutdown();
+      await this.persistence.shutdown();
+    });
   }
 
   listen(

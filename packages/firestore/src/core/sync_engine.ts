@@ -51,11 +51,14 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { Datastore } from '../remote/datastore';
+import { EventManager } from './event_manager';
 
 const LOG_TAG = 'SyncEngine';
 
 export type ViewHandler = (viewSnaps: ViewSnapshot[]) => void;
 export type ErrorHandler = (query: Query, error: Error) => void;
+export type OnlineStateHandler = (onlineState: OnlineState) => void;
 
 /**
  * QueryView contains all of the data that SyncEngine needs to keep track of for
@@ -63,29 +66,39 @@ export type ErrorHandler = (query: Query, error: Error) => void;
  */
 class QueryView {
   constructor(
-    /**
-     * The query itself.
-     */
-    public query: Query,
-    /**
-     * The target number created by the client that is used in the watch
-     * stream to identify this query.
-     */
-    public targetId: TargetId,
-    /**
-     * An identifier from the datastore backend that indicates the last state
-     * of the results that was received. This can be used to indicate where
-     * to continue receiving new doc changes for the query.
-     */
-    public resumeToken: ProtoByteString,
+    public readonly queryData: QueryData,
     /**
      * The view is responsible for computing the final merged truth of what
      * docs are in the query. It gets notified of local and remote changes,
      * and applies the query filters and limits to determine the most correct
      * possible results.
      */
-    public view: View
+    public readonly view: View
   ) {}
+
+  /**
+   * The query itself.
+   */
+  get query(): Query {
+    return this.queryData.query;
+  }
+
+  /**
+   * The target number created by the client that is used in the watch
+   * stream to identify this query.
+   */
+  get targetId(): TargetId {
+    return this.queryData.targetId;
+  }
+
+  /**
+   * An identifier from the datastore backend that indicates the last state
+   * of the results that was received. This can be used to indicate where
+   * to continue receiving new doc changes for the query.
+   */
+  get resumeToken(): ProtoByteString {
+    return this.queryData.resumeToken;
+  }
 }
 
 /**
@@ -103,8 +116,13 @@ class QueryView {
  * global async queue.
  */
 export class SyncEngine implements RemoteSyncer {
+  private remoteStore: RemoteStore | null = null;
+
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
+  private onlineStateHandler: OnlineStateHandler | null = null;
+
+  private networkEnabled = true;
 
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
@@ -124,12 +142,16 @@ export class SyncEngine implements RemoteSyncer {
 
   constructor(
     private localStore: LocalStore,
-    private remoteStore: RemoteStore,
+    private datastore: Datastore,
     private currentUser: User
   ) {}
 
   /** Subscribes view and error handler. Can be called only once. */
-  subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
+  subscribe(
+    viewHandler: ViewHandler,
+    errorHandler: ErrorHandler,
+    onlineStateHandler: OnlineStateHandler
+  ): void {
     assert(
       viewHandler !== null && errorHandler !== null,
       'View and error handlers cannot be null'
@@ -140,6 +162,7 @@ export class SyncEngine implements RemoteSyncer {
     );
     this.viewHandler = viewHandler;
     this.errorHandler = errorHandler;
+    this.onlineStateHandler = onlineStateHandler;
     this.limboCollector.addGarbageSource(this.limboDocumentRefs);
   }
 
@@ -174,16 +197,14 @@ export class SyncEngine implements RemoteSyncer {
                 'applyChanges for new view should always return a snapshot'
               );
 
-              const data = new QueryView(
-                query,
-                queryData.targetId,
-                queryData.resumeToken,
-                view
-              );
+              const data = new QueryView(queryData, view);
               this.queryViewsByQuery.set(query, data);
               this.queryViewsByTarget[queryData.targetId] = data;
               this.viewHandler!([viewChange.snapshot!]);
-              this.remoteStore.listen(queryData);
+
+              if (this.remoteStore) {
+                this.remoteStore.listen(queryData);
+              }
             });
         })
         .then(() => {
@@ -200,7 +221,9 @@ export class SyncEngine implements RemoteSyncer {
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
     return this.localStore.releaseQuery(query).then(() => {
-      this.remoteStore.unlisten(queryView.targetId);
+      if (this.remoteStore) {
+        this.remoteStore.unlisten(queryView.targetId);
+      }
       return this.removeAndCleanupQuery(queryView).then(() => {
         return this.localStore.collectGarbage();
       });
@@ -226,7 +249,9 @@ export class SyncEngine implements RemoteSyncer {
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
       .then(() => {
-        return this.remoteStore.fillWritePipeline();
+        if (this.remoteStore) {
+          return this.remoteStore.fillWritePipeline();
+        }
       });
   }
 
@@ -257,7 +282,7 @@ export class SyncEngine implements RemoteSyncer {
     retries = 5
   ): Promise<T> {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
-    const transaction = this.remoteStore.createTransaction();
+    const transaction = new Transaction(this.datastore);
     const wrappedUpdateFunction = () => {
       try {
         const userPromise = updateFunction(transaction);
@@ -348,6 +373,7 @@ export class SyncEngine implements RemoteSyncer {
    * the change.
    */
   applyOnlineStateChange(onlineState: OnlineState) {
+    this.assertSubscribed('applyOnlineStateChange()');
     const newViewSnapshots = [] as ViewSnapshot[];
     this.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
@@ -360,6 +386,7 @@ export class SyncEngine implements RemoteSyncer {
       }
     });
     this.viewHandler(newViewSnapshots);
+    this.onlineStateHandler!(onlineState);
   }
 
   rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
@@ -507,9 +534,11 @@ export class SyncEngine implements RemoteSyncer {
       const limboTargetId = this.targetIdGenerator.next();
       const query = Query.atPath(key.path);
       this.limboKeysByTarget[limboTargetId] = key;
-      this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.Listen)
-      );
+      if (this.remoteStore) {
+        this.remoteStore.listen(
+          new QueryData(query, limboTargetId, QueryPurpose.Listen)
+        );
+      }
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,
         limboTargetId
@@ -529,7 +558,9 @@ export class SyncEngine implements RemoteSyncer {
             // This target already got removed, because the query failed.
             return;
           }
-          this.remoteStore.unlisten(limboTargetId);
+          if (this.remoteStore) {
+            this.remoteStore.unlisten(limboTargetId);
+          }
           this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
           delete this.limboKeysByTarget[limboTargetId];
         });
@@ -615,5 +646,57 @@ export class SyncEngine implements RemoteSyncer {
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  private initRemoteStore() {
+    this.remoteStore = this.datastore.newRemoteStore(
+      this.localStore,
+      this.applyOnlineStateChange
+    );
+    this.remoteStore.syncEngine = this;
+    this.remoteStore.start(this.networkEnabled);
+
+    objUtils.forEach(this.queryViewsByTarget, (key, queryView) => {
+      this.remoteStore.listen(queryView.queryData);
+    });
+  }
+
+  start() {
+    this.initRemoteStore();
+  }
+
+  shutdown() {
+    if (this.remoteStore) {
+      this.remoteStore.shutdown();
+    }
+  }
+
+  async enableNetwork(): Promise<void> {
+    this.networkEnabled = true;
+    if (this.remoteStore) {
+      return this.remoteStore!.enableNetwork();
+    }
+  }
+
+  async disableNetwork(): Promise<void> {
+    this.networkEnabled = false;
+    if (this.remoteStore) {
+      return this.remoteStore!.disableNetwork();
+    }
+  }
+
+  // TEST ONLY
+  numOutstandingWrites(): number {
+    if (this.remoteStore) {
+      // TODO: UPDATE COMMENT
+      //
+      // Make sure to execute all writes that are currently queued. This allows us
+      // to assert on the total number of requests sent before shutdown.
+      this.remoteStore.fillWritePipeline();
+      return this.remoteStore.outstandingWrites();
+    } else {
+      // or throw?
+      return 0;
+    }
   }
 }
