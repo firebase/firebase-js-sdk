@@ -4151,6 +4151,34 @@ function testCheckActionCode_success() {
 }
 
 
+/**
+ * Tests successful checkActionCode RPC call for email sign-in.
+ */
+function testCheckActionCode_emailSignIn_success() {
+  var code = 'EMAIL_SIGNIN_CODE';
+  // Email field is empty for EMAIL_SIGNIN.
+  var expectedResponse = {
+    'requestType': 'EMAIL_SIGNIN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPass' +
+      'word?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.checkActionCode(code).then(
+      function(info) {
+        assertObjectEquals(expectedResponse, info);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testCheckActionCode_missingCode() {
   asyncTestCase.waitForSignals(1);
   rpcHandler.checkActionCode('')
