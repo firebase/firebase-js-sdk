@@ -323,7 +323,7 @@ AND YOUR APP MAY BREAK.
 To hide this warning and ensure your app does not break, you need to add the
 following code to your app before calling any other Cloud Firestore methods:
 
-  const firestore = firebase.firestore(firebase.app());
+  const firestore = firebase.firestore();
   const settings = {/* your settings... */ timestampsInSnapshots: true};
   firestore.settings(settings);
 
