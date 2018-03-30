@@ -117,11 +117,12 @@ class QueryView {
  */
 export class SyncEngine implements RemoteSyncer {
   private remoteStore: RemoteStore | null = null;
+
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
   private onlineStateHandler: OnlineStateHandler | null = null;
 
-  private networkEnabled = false;
+  private networkEnabled = true;
 
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
@@ -671,24 +672,31 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   async enableNetwork(): Promise<void> {
+    this.networkEnabled = true;
     if (this.remoteStore) {
-      return this.remoteStore.enableNetwork();
+      return this.remoteStore!.enableNetwork();
     }
   }
 
   async disableNetwork(): Promise<void> {
+    this.networkEnabled = false;
     if (this.remoteStore) {
-      return this.remoteStore.disableNetwork();
+      return this.remoteStore!.disableNetwork();
     }
   }
 
   // TEST ONLY
   numOutstandingWrites(): number {
-    // TODO: UPDATE COMMENT
-    //
-    // Make sure to execute all writes that are currently queued. This allows us
-    // to assert on the total number of requests sent before shutdown.
-    this.remoteStore.fillWritePipeline();
-    return this.remoteStore.outstandingWrites();
+    if (this.remoteStore) {
+      // TODO: UPDATE COMMENT
+      //
+      // Make sure to execute all writes that are currently queued. This allows us
+      // to assert on the total number of requests sent before shutdown.
+      this.remoteStore.fillWritePipeline();
+      return this.remoteStore.outstandingWrites();
+    } else {
+      // or throw?
+      return 0;
+    }
   }
 }
