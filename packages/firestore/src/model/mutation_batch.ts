@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
 import { BatchId, ProtoByteString } from '../core/types';
 import {
   documentKeySet,

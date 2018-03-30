@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import { Timestamp } from '../../../src/core/timestamp';
+import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import {
   ServerTimestampValue,

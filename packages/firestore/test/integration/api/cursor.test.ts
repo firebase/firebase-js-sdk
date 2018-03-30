@@ -15,14 +15,18 @@
  */
 
 import { expect } from 'chai';
+
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
+  toIds,
   withTestCollection,
   withTestDb,
   withTestDbs
 } from '../util/helpers';
+
+const Timestamp = firebase.firestore.Timestamp;
 
 apiDescribe('Cursors', persistence => {
   it('can page through items', () => {
@@ -230,6 +234,89 @@ apiDescribe('Cursors', persistence => {
         })
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 3 }]);
+        });
+    });
+  });
+
+  // Currently, timestamps are truncated to microseconds on the backend, so
+  // don't create timestamps with more precision than that.
+  const makeTimestamp = (seconds, micros) =>
+    new Timestamp(seconds, micros * 1000);
+
+  it('can accept Timestamps as bounds', () => {
+    const testDocs = {
+      a: { timestamp: makeTimestamp(100, 2) },
+      b: { timestamp: makeTimestamp(100, 5) },
+      c: { timestamp: makeTimestamp(100, 3) },
+      d: { timestamp: makeTimestamp(100, 1) },
+      // Number of microseconds deliberately repeated.
+      e: { timestamp: makeTimestamp(100, 5) },
+      f: { timestamp: makeTimestamp(100, 4) }
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return coll
+        .orderBy('timestamp')
+        .startAfter(makeTimestamp(100, 2))
+        .endAt(makeTimestamp(100, 5))
+        .get()
+        .then(docs => {
+          expect(toIds(docs)).to.deep.equal(['c', 'f', 'b', 'e']);
+        });
+    });
+  });
+
+  it('can accept Timestamps in where clause', () => {
+    const timestamp = Timestamp.now();
+    const seconds = timestamp.seconds;
+    // Timestamp is only truncated after being written to the database. Since
+    // it's not being written before use here, perform truncation manually.
+    const micros = timestamp.nanoseconds / 1000;
+    const testDocs = {
+      a: { timestamp: makeTimestamp(seconds, micros + 2) },
+      b: { timestamp: makeTimestamp(seconds, micros - 1) },
+      c: { timestamp: makeTimestamp(seconds, micros + 3) },
+      d: { timestamp: makeTimestamp(seconds, micros) },
+      e: { timestamp: makeTimestamp(seconds, micros + 1) }
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return coll
+        .where('timestamp', '>=', makeTimestamp(seconds, micros))
+        .where('timestamp', '<', makeTimestamp(seconds, micros + 3))
+        .get()
+        .then(docs => {
+          expect(toIds(docs)).to.deep.equal(['d', 'e', 'a']);
+        });
+    });
+  });
+
+  it('truncate Timestamps', () => {
+    const nanos = new Timestamp(0, 123456789);
+    const micros = new Timestamp(0, 123456000);
+    const millis = new Timestamp(0, 123000000);
+
+    const testDocs = {
+      a: { timestamp: nanos }
+    };
+    return withTestCollection(persistence, testDocs, coll => {
+      return coll
+        .where('timestamp', '==', nanos)
+        .get()
+        .then(docs => {
+          expect(toIds(docs)).to.deep.equal(['a']);
+          return coll.where('timestamp', '==', micros).get();
+        })
+        .then(docs => {
+          // Because Timestamp should have been truncated to microseconds, the
+          // microsecond timestamp should be considered equal to the
+          // nanosecond one.
+          expect(toIds(docs)).to.deep.equal(['a']);
+          return coll.where('timestamp', '==', millis).get();
+        })
+        .then(docs => {
+          // The truncation is just to the microseconds, however, so the
+          // millisecond timestamp should be treated as different and thus the
+          // query should return no results.
+          expect(toIds(docs)).to.be.empty;
         });
     });
   });

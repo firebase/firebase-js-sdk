@@ -2,6 +2,14 @@
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
   cause get() requests made while offline to be delayed by up to 10
   seconds (rather than returning from cache immediately).
+- [feature] Added a new `Timestamp` class to represent timestamp fields,
+  currently supporting up to microsecond precision. It can be passed to API
+  methods anywhere a JS Date object is currently accepted. To make
+  `DocumentSnapshot`s read timestamp fields back as `Timestamp`s instead of
+  Dates, you can set the newly added flag `timestampsInSnapshots` in
+  `FirestoreSettings` to `true`. Note that the current behavior
+  (`DocumentSnapshot`s returning JS Date objects) will be removed in a future
+  release. `Timestamp` supports higher precision than JS Date.
 
 # 0.3.6
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could

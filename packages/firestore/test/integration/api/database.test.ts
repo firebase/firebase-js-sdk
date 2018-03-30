@@ -26,6 +26,8 @@ import {
   withTestDoc
 } from '../util/helpers';
 
+const Timestamp = firebase.firestore.Timestamp;
+
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
@@ -143,7 +145,7 @@ apiDescribe('Database', persistence => {
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.get('updated')).to.be.false;
-          expect(docSnapshot.get('time')).to.be.a('Date');
+          expect(docSnapshot.get('time')).to.be.an.instanceof(Timestamp);
         });
     });
   });

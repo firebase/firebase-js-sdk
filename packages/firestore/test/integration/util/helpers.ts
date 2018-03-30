@@ -36,7 +36,8 @@ function getDefaultSettings(): firestore.Settings {
   } else {
     return {
       host: 'firestore.googleapis.com',
-      ssl: true
+      ssl: true,
+      timestampsInSnapshots: true
     };
   }
 }
@@ -84,6 +85,11 @@ export function toDataArray(
   docSet: firestore.QuerySnapshot
 ): firestore.DocumentData[] {
   return docSet.docs.map(d => d.data());
+}
+
+/** Converts a DocumentSet to an array with the id of each document */
+export function toIds(docSet: firestore.QuerySnapshot): String[] {
+  return docSet.docs.map(d => d.id);
 }
 
 export function withTestDb(
