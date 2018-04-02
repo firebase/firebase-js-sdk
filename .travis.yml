@@ -7,15 +7,19 @@ cache: yarn
 env:
   global:
     - CXX=g++-4.8
+  matrix:
+    - TEST_COMMAND='yarn test'
+    - TEST_COMMAND='yarn test:saucelabs'
+
 before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
   - npm install -g yarn
-  - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";' 
+  - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
 before_script:
   - cp config/ci.config.json config/project.json
 script:
-  - xvfb-run yarn test
+  - xvfb-run $TEST_COMMAND
 after_success:
   - yarn test:coverage
 
@@ -39,3 +43,4 @@ deploy:
   on:
     repo: firebase/firebase-js-sdk
     branch: master
+    condition: $TEST_COMMAND = 'yarn test'
