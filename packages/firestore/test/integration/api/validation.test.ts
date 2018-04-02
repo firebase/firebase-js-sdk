@@ -30,52 +30,65 @@ import {
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
-interface ValidationIt  {
-  (persistence: boolean, message: string, testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>) : void,
-  skip:  (persistence: boolean,
-          message: string,
-          testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>) => void,
-  only:  (persistence: boolean,
-          message: string,
-          testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>) => void
+interface ValidationIt {
+  (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ): void;
+  skip: (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => void;
+  only: (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => void;
 }
 
 // Since most of our tests are "synchronous" but require a Firestore instance,
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
 const validationIt: ValidationIt = Object.assign(
- (persistence: boolean,
+  (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => {
+    it(message, () => {
+      return withTestDb(persistence, async db => {
+        const maybePromise = testFunction(db);
+        if (maybePromise) {
+          return maybePromise;
+        }
+      });
+    });
+  },
+  {
+    skip: function(
+      persistence: boolean,
       message: string,
-      testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>) => {
-   it(message, () => {
-     return withTestDb(persistence, async db => {
-       const maybePromise = testFunction(db);
-       if (maybePromise) {
-         return maybePromise;
-       }
-     });
-   });
- },
-    {
-      skip: function (persistence: boolean,
-                      message: string,
-                      _: (db: firestore.FirebaseFirestore) => void | Promise<any>) {
-        it.skip(message, () => {
+      _: (db: firestore.FirebaseFirestore) => void | Promise<any>
+    ) {
+      it.skip(message, () => {});
+    },
+    only: function(
+      persistence: boolean,
+      message: string,
+      testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+    ) {
+      it.only(message, () => {
+        return withTestDb(persistence, async db => {
+          const maybePromise = testFunction(db);
+          if (maybePromise) {
+            return maybePromise;
+          }
         });
-      },
-      only: function (persistence: boolean,
-                      message: string,
-                      testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>) {
-        it.only(message, () => {
-          return withTestDb(persistence, async db => {
-            const maybePromise = testFunction(db);
-            if (maybePromise) {
-              return maybePromise;
-            }
-          });
-        });
-      }
+      });
     }
- );
+  }
+);
 
 // NOTE: The JS SDK does extensive validation of argument counts, types, etc.
 // since it is an untyped language. These tests are not exhaustive as that would
