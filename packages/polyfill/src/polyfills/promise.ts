@@ -30,7 +30,5 @@ const __global = (() => {
 // Polyfill Promise
 if (typeof Promise === 'undefined') {
   // HACK: TS throws an error if I attempt to use 'dot-notation'
-  __global[
-    'Promise'
-  ] = require('promise-polyfill') as PromiseConstructor;
+  __global['Promise'] = require('promise-polyfill') as PromiseConstructor;
 }
