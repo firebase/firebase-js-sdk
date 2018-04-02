@@ -32,7 +32,7 @@ import {
 
 // Since most of our tests are "synchronous" but require a Firestore instance,
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
-function validationIt(
+const validationIt : any = function(
   persistence: boolean,
   message: string,
   testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
@@ -45,7 +45,30 @@ function validationIt(
       }
     });
   });
-}
+};
+
+validationIt.skip = function(
+    persistence: boolean,
+    message: string,
+    _: (db: firestore.FirebaseFirestore) => void | Promise<any>
+) {
+  it.skip(message, () => {});
+};
+
+validationIt.only =  function(
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+) {
+  it.only(message, () => {
+    return withTestDb(persistence, async db => {
+      const maybePromise = testFunction(db);
+      if (maybePromise) {
+        return maybePromise;
+      }
+    });
+  });
+};
 
 // NOTE: The JS SDK does extensive validation of argument counts, types, etc.
 // since it is an untyped language. These tests are not exhaustive as that would
