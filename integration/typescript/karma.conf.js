@@ -18,10 +18,12 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
+const files = ['test/**/*.test.*'];
+
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: ['test/**/*.test.*'],
+    files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
@@ -29,3 +31,5 @@ module.exports = function(config) {
 
   config.set(karmaConfig);
 };
+
+module.exports.files = files;
