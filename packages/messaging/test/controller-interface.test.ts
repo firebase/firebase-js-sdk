@@ -16,11 +16,17 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 import makeFakeApp from './make-fake-app';
+import makeFakeSWReg from './make-fake-sw-reg';
 
+import FCMDetails from '../src/models/fcm-details';
+import WindowController from '../src/controllers/window-controller';
+import SWController from '../src/controllers/sw-controller';
 import ControllerInterface from '../src/controllers/controller-interface';
 import TokenDetailsModel from '../src/models/token-details-model';
 import VapidDetailsModel from '../src/models/vapid-details-model';
 import IIDModel from '../src/models/iid-model';
+
+const controllersToTest = [WindowController, SWController];
 
 describe('Firebase Messaging > *ControllerInterface', function() {
   const sandbox = sinon.sandbox.create();
@@ -91,17 +97,67 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('getPushSubscription_()', function() {
-    it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
-      let thrownError;
-      try {
-        controller.getPushSubscription_(null, null);
-      } catch (err) {
-        thrownError = err;
-      }
-      expect(thrownError).to.exist;
-      expect(thrownError.code).to.equal('messaging/only-available-in-window');
+  describe('getPushSubscription()', function() {
+    controllersToTest.forEach(ControllerInTest => {
+      it(`should return rejection error in ${
+        ControllerInTest.name
+      }`, function() {
+        const injectedError = new Error('Inject error.');
+        const reg = makeFakeSWReg();
+        sandbox.stub(reg, 'pushManager').value({
+          getSubscription: () => Promise.reject(injectedError)
+        });
+
+        const controller = new ControllerInTest(app);
+        return controller
+          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .then(
+            () => {
+              throw new Error('Expected an error.');
+            },
+            err => {
+              expect(err).to.equal(injectedError);
+            }
+          );
+      });
+
+      it(`should return PushSubscription if returned`, function() {
+        const exampleSubscription = {};
+        const reg = makeFakeSWReg();
+        sandbox.stub(reg, 'pushManager').value({
+          getSubscription: () => Promise.resolve(exampleSubscription)
+        });
+
+        const controller = new ControllerInTest(app);
+        return controller
+          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .then(subscription => {
+            expect(subscription).to.equal(exampleSubscription);
+          });
+      });
+
+      it('should call subscribe() if no subscription', function() {
+        const exampleSubscription = {};
+        const reg = makeFakeSWReg();
+        sandbox.stub(reg, 'pushManager').value({
+          getSubscription: async () => {},
+          subscribe: options => {
+            expect(options).to.deep.equal({
+              userVisibleOnly: true,
+              applicationServerKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
+            });
+
+            return Promise.resolve(exampleSubscription);
+          }
+        });
+
+        const controller = new ControllerInTest(app);
+        return controller
+          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .then(subscription => {
+            expect(subscription).to.equal(exampleSubscription);
+          });
+      });
     });
   });
 

@@ -15,9 +15,9 @@
  */
 
 import { expect } from 'chai';
+import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
-import { Timestamp } from '../../../src/core/timestamp';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';

@@ -85,10 +85,27 @@ apiDescribe('Firestore', persistence => {
     });
   });
 
-  it('can read and write timestamp fields', () => {
+  it('can read and write date fields', () => {
     return withTestDb(persistence, db => {
       const dateValue = new Date('2017-04-10T09:10:11.123Z');
-      return expectRoundtrip(db, { timestamp: dateValue });
+      // Dates are returned as Timestamps, so expectRoundtrip can't be used
+      // here.
+      const doc = db.collection('rooms').doc();
+      return doc
+        .set({ date: dateValue })
+        .then(() => doc.get())
+        .then(snapshot => {
+          expect(snapshot.data()).to.deep.equal({
+            date: firebase.firestore.Timestamp.fromDate(dateValue)
+          });
+        });
+    });
+  });
+
+  it('can read and write timestamp fields', () => {
+    return withTestDb(persistence, db => {
+      const timestampValue = firebase.firestore.Timestamp.now();
+      return expectRoundtrip(db, { timestamp: timestampValue });
     });
   });
 

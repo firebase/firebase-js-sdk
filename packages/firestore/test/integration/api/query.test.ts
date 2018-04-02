@@ -28,6 +28,8 @@ import {
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 
+const Timestamp = firebase.firestore.Timestamp;
+
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
@@ -302,10 +304,12 @@ apiDescribe('Queries', persistence => {
         const docs2 = results[1];
 
         expect(toDataArray(docs1)).to.deep.equal([
-          { id: '2', date: date2 },
-          { id: '3', date: date3 }
+          { id: '2', date: Timestamp.fromDate(date2) },
+          { id: '3', date: Timestamp.fromDate(date3) }
         ]);
-        expect(toDataArray(docs2)).to.deep.equal([{ id: '3', date: date3 }]);
+        expect(toDataArray(docs2)).to.deep.equal([
+          { id: '3', date: Timestamp.fromDate(date3) }
+        ]);
       });
     });
   });

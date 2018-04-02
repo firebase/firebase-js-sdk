@@ -24,12 +24,16 @@ import { makeConstructorPrivate } from '../util/api';
  */
 // tslint:disable-next-line:class-as-namespace  We use this as a base class.
 export abstract class FieldValueImpl implements firestore.FieldValue {
+  protected constructor(readonly methodName: string) {}
+
   static delete(): FieldValueImpl {
     return DeleteFieldValueImpl.instance;
   }
+
   static serverTimestamp(): FieldValueImpl {
     return ServerTimestampFieldValueImpl.instance;
   }
+
   isEqual(other: FieldValueImpl): boolean {
     return this === other;
   }
@@ -37,7 +41,7 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
 
 export class DeleteFieldValueImpl extends FieldValueImpl {
   private constructor() {
-    super();
+    super('FieldValue.delete()');
   }
   /** Singleton instance. */
   static instance = new DeleteFieldValueImpl();
@@ -45,7 +49,7 @@ export class DeleteFieldValueImpl extends FieldValueImpl {
 
 export class ServerTimestampFieldValueImpl extends FieldValueImpl {
   private constructor() {
-    super();
+    super('FieldValue.serverTimestamp()');
   }
   /** Singleton instance. */
   static instance = new ServerTimestampFieldValueImpl();

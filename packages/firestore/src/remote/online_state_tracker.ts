@@ -74,15 +74,20 @@ export class OnlineStateTracker {
   ) {}
 
   /**
-   * Called by RemoteStore when a watch stream is started.
+   * Called by RemoteStore when a watch stream is started (including on each
+   * backoff attempt).
    *
-   * It sets the OnlineState to Unknown and starts the onlineStateTimer
-   * if necessary.
+   * If this is the first attempt, it sets the OnlineState to Unknown and starts
+   * the onlineStateTimer.
    */
   handleWatchStreamStart(): void {
-    this.setAndBroadcast(OnlineState.Unknown);
+    if (this.watchStreamFailures === 0) {
+      this.setAndBroadcast(OnlineState.Unknown);
 
-    if (this.onlineStateTimer === null) {
+      assert(
+        this.onlineStateTimer === null,
+        `onlineStateTimer shouldn't be started yet`
+      );
       this.onlineStateTimer = this.asyncQueue.enqueueAfterDelay(
         TimerId.OnlineStateTimeout,
         ONLINE_STATE_TIMEOUT_MS,
@@ -119,6 +124,11 @@ export class OnlineStateTracker {
   handleWatchStreamFailure(): void {
     if (this.state === OnlineState.Online) {
       this.setAndBroadcast(OnlineState.Unknown);
+
+      // To get to OnlineState.Online, set() must have been called which would
+      // have reset our heuristics.
+      assert(this.watchStreamFailures === 0, 'watchStreamFailures must be 0');
+      assert(this.onlineStateTimer === null, 'onlineStateTimer must be null');
     } else {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {
