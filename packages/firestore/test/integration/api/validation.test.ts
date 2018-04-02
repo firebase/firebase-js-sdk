@@ -32,7 +32,7 @@ import {
 
 // Since most of our tests are "synchronous" but require a Firestore instance,
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
-const validationIt : any = function(
+const validationIt: any = function(
   persistence: boolean,
   message: string,
   testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
@@ -48,17 +48,17 @@ const validationIt : any = function(
 };
 
 validationIt.skip = function(
-    persistence: boolean,
-    message: string,
-    _: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  persistence: boolean,
+  message: string,
+  _: (db: firestore.FirebaseFirestore) => void | Promise<any>
 ) {
   it.skip(message, () => {});
 };
 
-validationIt.only =  function(
-    persistence: boolean,
-    message: string,
-    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+validationIt.only = function(
+  persistence: boolean,
+  message: string,
+  testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
 ) {
   it.only(message, () => {
     return withTestDb(persistence, async db => {
