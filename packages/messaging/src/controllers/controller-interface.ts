@@ -80,6 +80,8 @@ export default class ControllerInterface {
 
     const swReg = await this.getSWRegistration_();
     const publicVapidKey = await this.getPublicVapidKey_();
+    // If a PushSubscription exists it's returned, otherwise a new subscription
+    // is generated and returned.
     const pushSubscription = await this.getPushSubscription(
       swReg,
       publicVapidKey
@@ -134,8 +136,10 @@ export default class ControllerInterface {
     }
 
     // If the token is no longer valid (for example if the VAPID details
-    // have changed), delete the existing token, and create a new one.
-    await this.deleteToken(tokenDetails['fcmToken']);
+    // have changed), delete the existing token from the FCM client and server
+    // database. No need to unsubscribe from the Service Worker as we have a
+    // good push subscription that we'd like to use in getNewToken.
+    await this.deleteTokenFromDB(tokenDetails['fcmToken']);
     return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
 
@@ -228,29 +232,33 @@ export default class ControllerInterface {
    * whether or not the unsubscribe request was processed successfully.
    * @export
    */
-  deleteToken(token: string): Promise<Boolean> {
-    return this.tokenDetailsModel_
-      .deleteToken(token)
-      .then(details => {
-        return this.iidModel_.deleteToken(
-          details['fcmSenderId'],
-          details['fcmToken'],
-          details['fcmPushSet']
-        );
-      })
-      .then(() => {
-        return this.getSWRegistration_()
-          .then(registration => {
-            if (registration) {
-              return registration.pushManager.getSubscription();
-            }
-          })
-          .then(subscription => {
-            if (subscription) {
-              return subscription.unsubscribe();
-            }
-          });
-      });
+  async deleteToken(token: string): Promise<Boolean> {
+    // Delete the token details from the database.
+    await this.deleteTokenFromDB(token);
+    // Unsubscribe from the SW.
+    const registration = await this.getSWRegistration_();
+    if (registration) {
+      const pushSubscription = await registration.pushManager.getSubscription();
+      if (pushSubscription) {
+        return pushSubscription.unsubscribe();
+      }
+    }
+    // If there's no SW, consider it a success.
+    return true;
+  }
+
+  /**
+   * This method will delete the token from the client database, and make a
+   * call to FCM to remove it from the server DB. Does not temper with the
+   * push subscription.
+   */
+  private async deleteTokenFromDB(token: string): Promise<void> {
+    const details = await this.tokenDetailsModel_.deleteToken(token);
+    await this.iidModel_.deleteToken(
+      details['fcmSenderId'],
+      details['fcmToken'],
+      details['fcmPushSet']
+    );
   }
 
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {
@@ -259,14 +267,6 @@ export default class ControllerInterface {
 
   getPublicVapidKey_(): Promise<Uint8Array> {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
-  }
-
-  //
-  // The following methods should only be available in the window.
-  //
-
-  requestPermission() {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -286,6 +286,14 @@ export default class ControllerInterface {
         applicationServerKey: publicVapidKey
       });
     });
+  }
+
+  //
+  // The following methods should only be available in the window.
+  //
+
+  requestPermission() {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
   /**
