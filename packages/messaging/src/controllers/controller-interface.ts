@@ -80,8 +80,8 @@ export default class ControllerInterface {
 
     const swReg = await this.getSWRegistration_();
     const publicVapidKey = await this.getPublicVapidKey_();
-    // If there didn't exist one, this call will subscribe a new
-    // push subscription.
+    // If a PushSubscription exists it's returned, otherwise a new subscription
+    // is generated and returned.
     const pushSubscription = await this.getPushSubscription(
       swReg,
       publicVapidKey
@@ -269,14 +269,6 @@ export default class ControllerInterface {
     throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
   }
 
-  //
-  // The following methods should only be available in the window.
-  //
-
-  requestPermission() {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
-  }
-
   /**
    * Gets a PushSubscription for the current user.
    */
@@ -294,6 +286,14 @@ export default class ControllerInterface {
         applicationServerKey: publicVapidKey
       });
     });
+  }
+
+  //
+  // The following methods should only be available in the window.
+  //
+
+  requestPermission() {
+    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
   }
 
   /**
