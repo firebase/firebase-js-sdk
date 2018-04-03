@@ -262,13 +262,13 @@ export class SpecBuilder {
     return this;
   }
 
-  runTimer(timerId: TimerId): SpecBuilder  {
+  runTimer(timerId: TimerId): SpecBuilder {
     this.nextStep();
     this.currentStep = { runTimer: timerId };
     return this;
   }
 
-  drainQueue(): SpecBuilder  {
+  drainQueue(): SpecBuilder {
     this.nextStep();
     this.currentStep = { drainQueue: true };
     return this;
@@ -844,12 +844,12 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
-  runTimer(timerId: TimerId) : MultiClientSpecBuilder {
+  runTimer(timerId: TimerId): MultiClientSpecBuilder {
     super.runTimer(timerId);
     return this;
   }
 
-  drainQueue() : MultiClientSpecBuilder {
+  drainQueue(): MultiClientSpecBuilder {
     super.drainQueue();
     return this;
   }
