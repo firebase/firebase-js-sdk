@@ -362,6 +362,9 @@ export class IndexedDbPersistence implements Persistence {
         return this.canActAsPrimary(txn)
           .next(canActAsPrimary => {
             if (!canActAsPrimary) {
+              log.error(
+                `Failed to obtain primary lease for action '${action}'.`
+              );
               // TODO(multitab): Handle this gracefully and transition back to
               // secondary state.
               throw new FirestoreError(

@@ -434,12 +434,16 @@ abstract class TestRunner {
 
   protected abstract getSharedClientState(): SharedClientState;
 
+  get isPrimaryClient() {
+    return this.syncEngine.isPrimaryClient;
+  }
+
   async start(): Promise<void> {
     this.connection.reset();
     await this.persistence.start();
     await this.localStore.start();
-    await this.remoteStore.start();
     await this.sharedClientState.start();
+    await this.syncEngine.start();
 
     this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
@@ -492,6 +496,8 @@ abstract class TestRunner {
       return this.doFailWrite(step.failWrite!);
     } else if ('runTimer' in step) {
       return this.doRunTimer(step.runTimer!);
+    } else if ('drainQueue' in step) {
+      return this.doDrainQueue();
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
@@ -531,8 +537,11 @@ abstract class TestRunner {
         'targetId assigned to listen'
       );
     });
-    // Open should always have happened after a listen
-    await this.connection.waitForWatchOpen();
+
+    if (this.isPrimaryClient) {
+      // Open should always have happened after a listen
+      await this.connection.waitForWatchOpen();
+    }
   }
 
   private async doUnlisten(listenSpec: SpecUserUnlisten): Promise<void> {
@@ -804,19 +813,26 @@ abstract class TestRunner {
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
-    await this.remoteStore.disableNetwork();
+    await this.syncEngine.disableNetwork();
+  }
+
+  private async doDrainQueue(): Promise<void> {
+    await this.queue.drain();
   }
 
   private async doEnableNetwork(): Promise<void> {
-    await this.remoteStore.enableNetwork();
+    await this.syncEngine.enableNetwork();
   }
 
   private async doShutdown(): Promise<void> {
+    await this.syncEngine.shutdown();
     await this.remoteStore.shutdown();
     await this.persistence.shutdown();
   }
 
   private async doRestart(): Promise<void> {
+    const isPrimary = this.isPrimaryClient;
+
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
@@ -827,7 +843,8 @@ abstract class TestRunner {
     // interleaved events.
     await this.queue.enqueue(async () => {
       await this.localStore.start();
-      await this.remoteStore.start();
+      await this.syncEngine.start();
+      await this.syncEngine.applyPrimaryState(isPrimary);
     });
   }
 
@@ -929,6 +946,11 @@ abstract class TestRunner {
   }
 
   private validateActiveTargets() {
+    if (!this.isPrimaryClient) {
+      expect(obj.isEmpty(this.connection.activeTargets)).to.be.true;
+      return;
+    }
+
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);
     obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
       expect(obj.contains(actualTargets, targetId)).to.equal(
@@ -1090,20 +1112,121 @@ class MockDocument {
 }
 
 /**
+ * `WebStorage` mock that implements the WebStorage API used by Firestore.
+ */
+class MockStorage {
+  private static sharedData = new Map<string, string>();
+  private static activeInstances = new Map<EventListener, MockStorage>();
+
+  eventListener: EventListener | null = null;
+
+  getItem(key: string): string | null {
+    if (MockStorage.sharedData.has(key)) {
+      return MockStorage.sharedData.get(key);
+    }
+    return null;
+  }
+
+  removeItem(key: string): void {
+    const oldValue = MockStorage.sharedData.get(key);
+    MockStorage.sharedData.delete(key);
+    this.raiseStorageEvent(key, oldValue, null);
+  }
+
+  setItem(key: string, value: string): void {
+    const oldValue = MockStorage.sharedData.get(key);
+    MockStorage.sharedData.set(key, value);
+    this.raiseStorageEvent(key, oldValue, value);
+  }
+
+  raiseStorageEvent(
+    key: string,
+    oldValue: string | null,
+    newValue: string | null
+  ): void {
+    MockStorage.activeInstances.forEach((storage, listener) => {
+      // WebStorage doesn't raise events for writes from the originating client.
+      if (storage !== this) {
+        listener({
+          key: key,
+          oldValue: oldValue,
+          newValue: newValue,
+          storageArea: storage
+        } as any);
+      }
+    });
+  }
+
+  start(eventListener: EventListener): void {
+    MockStorage.activeInstances.set(eventListener, this);
+    this.eventListener = eventListener;
+  }
+
+  shutdown(): void {
+    MockStorage.activeInstances.delete(this.eventListener);
+    this.eventListener = null;
+  }
+}
+
+/**
+ * `Window` mock that implements the event and storage API that is used by
+ * Firestore.
+ */
+class MockWindow {
+  private webStorage = new MockStorage();
+
+  get localStorage(): Storage {
+    return this.webStorage as any;
+  }
+
+  addEventListener(type: string, listener: EventListener) {
+    switch (type) {
+      case 'storage':
+        this.webStorage.start(listener);
+        break;
+      case 'unload':
+        // The spec tests currently do not rely on 'unload' listeners.
+        break;
+      default:
+        fail(`MockWindow doesn't support events of type '${type}'`);
+    }
+  }
+
+  removeEventListener(type: string, listener: EventListener) {
+    if (type === 'storage') {
+      assert(
+        this.webStorage.eventListener === listener,
+        "Listener passed to 'removeEventListener' doesn't match the listener passed to 'addEventListener'."
+      );
+      this.webStorage.shutdown();
+      this.webStorage = null;
+    }
+  }
+}
+
+/**
  * Implementation of `Platform` that allows mocking of `document` and `window`.
  */
 class TestPlatform implements Platform {
-  private mockDocument = new MockDocument();
+  mockDocument: MockDocument | null = null;
+  mockWindow: MockWindow | null = null;
 
-  constructor(private readonly basePlatform: Platform) {}
-
-  get window(): Window | null {
-    return this.basePlatform.window;
+  constructor(private readonly basePlatform: Platform) {
+    if (this.basePlatform.document) {
+      this.mockDocument = new MockDocument();
+    }
+    if (this.basePlatform.window) {
+      this.mockWindow = new MockWindow();
+    }
   }
 
-  get document(): Document {
-    // tslint:disable-next-line:no-any MockDocument doesn't support full Document interface.
-    return (this.mockDocument as any) as Document;
+  get document(): Document | null {
+    // tslint:disable-next-line:no-any MockWindow doesn't support full Document interface.
+    return this.mockDocument as any;
+  }
+  get window(): Window | null {
+    // tslint:disable-next-line:no-any MockWindow doesn't support full Window interface.
+    return this.mockWindow as any;
   }
 
   get base64Available(): boolean {
@@ -1115,7 +1238,9 @@ class TestPlatform implements Platform {
   }
 
   raiseVisibilityEvent(visibility: VisibilityState) {
-    this.mockDocument.raiseVisibilityEvent(visibility);
+    if (this.mockDocument) {
+      this.mockDocument.raiseVisibilityEvent(visibility);
+    }
   }
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
@@ -1158,6 +1283,7 @@ class IndexedDbTestRunner extends TestRunner {
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
+      this.platform,
       IndexedDbTestRunner.TEST_DB_NAME,
       this.clientId,
       this.user
@@ -1183,13 +1309,13 @@ export async function runSpec(
   steps: SpecStep[]
 ): Promise<void> {
   console.log('Running spec: ' + name);
-  const platform = new TestPlatform(PlatformSupport.getPlatform());
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   let runners: TestRunner[] = [];
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
+      const platform = new TestPlatform(PlatformSupport.getPlatform());
       if (usePersistence) {
         runners[clientIndex] = new IndexedDbTestRunner(name, platform, config);
       } else {
@@ -1282,6 +1408,11 @@ export interface SpecStep {
    * TimerId enum definition for possible values).
    */
   runTimer?: string;
+
+  /**
+   * Process all events currently enqueued in the AsyncQueue.
+   */
+  drainQueue?: true;
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;

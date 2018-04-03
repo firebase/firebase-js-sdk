@@ -105,6 +105,8 @@ class QueryView {
  * global async queue.
  */
 export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
+  private networkEnabled = false;
+
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
 
@@ -410,12 +412,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only
-  applyPendingBatch(batchId: BatchId): Promise<void> {
-    // TODO(multitab): Implement applyPendingBatch
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'applyPendingBatch not implemented'
+  async applyPendingBatch(batchId: BatchId): Promise<void> {
+    this.assertSubscribed('applyPendingBatch()');
+    const mutationBatchResult = await this.localStore.lookupMutationBatch(
+      batchId
     );
+    if (mutationBatchResult) {
+      await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
+      return this.remoteStore.fillWritePipeline();
+    }
   }
 
   applySuccessfulWrite(mutationBatchResult: MutationBatchResult): Promise<void>;
@@ -625,8 +630,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.viewHandler!(newSnaps);
         return this.localStore.notifyLocalViewChanges(docChangesInAllViews);
       })
-      .then(() => {
-        return this.localStore.collectGarbage();
+      .then(async () => {
+        if (this.isPrimary) {
+          return this.localStore.collectGarbage();
+        }
       });
   }
 
@@ -653,11 +660,37 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
-    return Promise.resolve();
+    if (this.isPrimary && this.networkEnabled) {
+      return this.remoteStore.enableNetwork();
+    } else {
+      return this.remoteStore.disableNetwork();
+    }
   }
 
   // PORTING NOTE: Multi-tab only
   getActiveClients(): Promise<ClientId[]> {
     return this.localStore.getActiveClients();
+  }
+
+  async enableNetwork(): Promise<void> {
+    this.networkEnabled = true;
+    if (this.isPrimary) {
+      return this.remoteStore.enableNetwork();
+    }
+  }
+
+  async disableNetwork(): Promise<void> {
+    // TODO(multi-tab): Release primary lease
+    this.networkEnabled = false;
+    return this.remoteStore.disableNetwork();
+  }
+
+  start(): Promise<void> {
+    // TODO(multitab): Read list of active targets and forward to RemoteStore
+    return this.enableNetwork();
+  }
+
+  shutdown(): Promise<void> {
+    return this.disableNetwork();
   }
 }

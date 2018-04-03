@@ -286,7 +286,7 @@ export class LocalStore {
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     return this.persistence.runTransaction(
       'Locally write mutations',
-      true,
+      false,
       txn => {
         let batch: MutationBatch;
         const localWriteTime = Timestamp.now();
@@ -305,6 +305,28 @@ export class LocalStore {
           });
       }
     );
+  }
+
+  /** Reads a mutation batch from persistence and returns its changes. */
+  lookupMutationBatch(batchId: BatchId): Promise<LocalWriteResult | null> {
+    return this.persistence.runTransaction('Lookup batch', false, txn => {
+      let batch: MutationBatch;
+      return this.mutationQueue
+        .lookupMutationBatch(txn, batchId)
+        .next(promisedBatch => {
+          if (promisedBatch) {
+            batch = promisedBatch;
+            const keys = batch.keys();
+            return this.localDocuments
+              .getDocuments(txn, keys)
+              .next((changedDocuments: MaybeDocumentMap) => {
+                return { batchId: batch.batchId, changes: changedDocuments };
+              });
+          } else {
+            return PersistencePromise.resolve(null);
+          }
+        });
+    });
   }
 
   /**
@@ -572,7 +594,7 @@ export class LocalStore {
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
     return this.persistence.runTransaction(
       'Notify local view changes',
-      true,
+      false,
       txn => {
         const promises = [] as Array<PersistencePromise<void>>;
         for (const view of viewChanges) {
@@ -640,7 +662,7 @@ export class LocalStore {
    * the store can be used to manage its view.
    */
   allocateQuery(query: Query): Promise<QueryData> {
-    return this.persistence.runTransaction('Allocate query', true, txn => {
+    return this.persistence.runTransaction('Allocate query', false, txn => {
       let queryData: QueryData;
       return this.queryCache
         .getQueryData(txn, query)
@@ -652,6 +674,7 @@ export class LocalStore {
             queryData = cached;
             return PersistencePromise.resolve();
           } else {
+            // TODO(multi-tab): targetIdGenerator is not multi-tab safe
             const targetId = this.targetIdGenerator.next();
             queryData = new QueryData(query, targetId, QueryPurpose.Listen);
             return this.queryCache.addQueryData(txn, queryData);
@@ -710,7 +733,7 @@ export class LocalStore {
    * returns the results.
    */
   executeQuery(query: Query): Promise<DocumentMap> {
-    return this.persistence.runTransaction('Execute query', true, txn => {
+    return this.persistence.runTransaction('Execute query', false, txn => {
       return this.localDocuments.getDocumentsMatchingQuery(txn, query);
     });
   }
@@ -722,7 +745,7 @@ export class LocalStore {
   remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
     return this.persistence.runTransaction(
       'Remote document keys',
-      true,
+      false,
       txn => {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
       }

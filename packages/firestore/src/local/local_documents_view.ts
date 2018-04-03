@@ -89,7 +89,11 @@ export class LocalDocumentsView {
     return PersistencePromise.waitFor(promises).next(() => results);
   }
 
-  /** Performs a query against the local view of all documents. */
+  /**
+   * Performs a query against the local view of all documents.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query

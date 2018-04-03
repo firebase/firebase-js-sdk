@@ -21,7 +21,7 @@ import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 
 describeSpec('Writes:', [], () => {
@@ -637,4 +637,74 @@ describeSpec('Writes:', [], () => {
       .writeAcks(1, { expectUserCallback: false })
       .expectNumOutstandingWrites(0);
   });
+
+  specTest(
+    'Pending writes are shared between clients',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docV1 = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+      );
+      const docV2 = doc(
+        'collection/a',
+        0,
+        { v: 2 },
+        { hasLocalMutations: true }
+      );
+      const docV3 = doc(
+        'collection/a',
+        0,
+        { v: 3 },
+        { hasLocalMutations: true }
+      );
+
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [docV1]
+        })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          // TODO(multitab): `fromCache` should reflect the primary client's
+          // networking state (and be false).
+          fromCache: true,
+          added: [docV1]
+        })
+        .client(0)
+        .userSets('collection/a', { v: 2 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV2]
+        })
+        .client(1)
+        .drainQueue()
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          fromCache: true,
+          modified: [docV2]
+        })
+        .userSets('collection/a', { v: 3 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          fromCache: true,
+          modified: [docV3]
+        })
+        .client(0)
+        .drainQueue()
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV3]
+        });
+    }
+  );
 });

@@ -33,6 +33,7 @@ import {
   clearWebStorage,
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
+import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -145,6 +146,7 @@ describe('WebStorageSharedClientState', () => {
     queue = new AsyncQueue();
     sharedClientState = new WebStorageSharedClientState(
       queue,
+      new BrowserPlatform(),
       TEST_PERSISTENCE_PREFIX,
       primaryClientId,
       AUTHENTICATED_USER

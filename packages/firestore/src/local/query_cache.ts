@@ -108,6 +108,8 @@ export interface QueryCache extends GarbageSource {
   /**
    * Looks up a QueryData entry in the cache.
    *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   *
    * @param query The query corresponding to the entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
    * the query.
@@ -145,6 +147,11 @@ export interface QueryCache extends GarbageSource {
     targetId: TargetId
   ): PersistencePromise<void>;
 
+  /**
+   * Returns the document keys that match the provided target ID.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   */
   getMatchingKeysForTargetId(
     transaction: PersistenceTransaction,
     targetId: TargetId

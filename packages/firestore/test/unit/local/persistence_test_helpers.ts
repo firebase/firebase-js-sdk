@@ -99,6 +99,7 @@ export async function populateWebStorage(
   // NOTE: We don't call shutdown() on it because that would delete the data.
   const secondaryClientState = new WebStorageSharedClientState(
     new AsyncQueue(),
+    new BrowserPlatform(),
     TEST_PERSISTENCE_PREFIX,
     existingClientId,
     user
