@@ -57,6 +57,16 @@ export interface FirebaseNamespace {
    * Create (and initialize) a FirebaseApp.
    *
    * @param options Options to configure the services used in the App.
+   * @param config The optional config for your firebase app
+   */
+  initializeApp(
+    options: FirebaseOptions,
+    config?: FirebaseAppConfig
+  ): FirebaseApp;
+  /**
+   * Create (and initialize) a FirebaseApp.
+   *
+   * @param options Options to configure the services used in the App.
    * @param name The optional name of the app to initialize ('[DEFAULT]' if
    * omitted)
    */
