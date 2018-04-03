@@ -344,10 +344,7 @@ export class SpecBuilder {
    * with no document for NoDocument. This is translated into normal watch
    * messages.
    */
-  ackLimbo(
-    version: TestSnapshotVersion,
-    doc: Document | NoDocument
-  ): this {
+  ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
     const query = Query.atPath(doc.key.path);
     this.watchAcks(query);
     if (doc instanceof Document) {
@@ -399,10 +396,7 @@ export class SpecBuilder {
    *
    * expectUserCallback defaults to true if options are omitted.
    */
-  failWrite(
-    err: RpcError,
-    options?: { expectUserCallback: boolean }
-  ): this {
+  failWrite(err: RpcError, options?: { expectUserCallback: boolean }): this {
     this.nextStep();
     this.currentStep = {
       failWrite: {
@@ -533,10 +527,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchStreamCloses(
-    error: Code,
-    opts?: { runBackoffTimer: boolean }
-  ): this {
+  watchStreamCloses(error: Code, opts?: { runBackoffTimer: boolean }): this {
     if (!opts) {
       opts = { runBackoffTimer: true };
     }
