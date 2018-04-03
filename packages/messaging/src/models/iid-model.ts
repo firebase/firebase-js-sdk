@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-'use strict';
-
 import { ErrorFactory, base64 } from '@firebase/util';
 
 import { ERROR_CODES, ERROR_MAP } from './errors';

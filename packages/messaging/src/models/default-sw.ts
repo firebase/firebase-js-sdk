@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 export const DEFAULT_SW_PATH = '/firebase-messaging-sw.js';
 export const DEFAULT_SW_SCOPE = '/firebase-cloud-messaging-push-scope';
