@@ -16,18 +16,18 @@
 'use strict';
 
 import { ErrorFactory } from '@firebase/util';
-import Errors from '../models/errors';
-import TokenDetailsModel from '../models/token-details-model';
-import VapidDetailsModel from '../models/vapid-details-model';
-import NOTIFICATION_PERMISSION from '../models/notification-permission';
-import IIDModel from '../models/iid-model';
-import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
+import { ERROR_CODES, ERROR_MAP } from '../models/errors';
+import { TokenDetailsModel } from '../models/token-details-model';
+import { VapidDetailsModel } from '../models/vapid-details-model';
+import { NotificationPermission } from '../models/notification-permission';
+import { IIDModel } from '../models/iid-model';
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export default class ControllerInterface {
+export class ControllerInterface {
   public app;
   public INTERNAL;
   protected errorFactory_;
@@ -41,13 +41,13 @@ export default class ControllerInterface {
    * @param {!firebase.app.App} app
    */
   constructor(app) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
+    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
 
     if (
       !app.options[SENDER_ID_OPTION_NAME] ||
       typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
     ) {
-      throw this.errorFactory_.create(Errors.codes.BAD_SENDER_ID);
+      throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
@@ -67,10 +67,10 @@ export default class ControllerInterface {
   async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
-    if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
-      if (currentPermission === NOTIFICATION_PERMISSION.denied) {
+    if (currentPermission !== NotificationPermission.GRANTED) {
+      if (currentPermission === NotificationPermission.DENIED) {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.NOTIFICATIONS_BLOCKED)
+          this.errorFactory_.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
         );
       }
 
@@ -262,11 +262,11 @@ export default class ControllerInterface {
   }
 
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
   }
 
   getPublicVapidKey_(): Promise<Uint8Array> {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
   }
 
   /**
@@ -293,7 +293,7 @@ export default class ControllerInterface {
   //
 
   requestPermission() {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -301,7 +301,7 @@ export default class ControllerInterface {
    * @param {!ServiceWorkerRegistration} registration
    */
   useServiceWorker(registration) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -309,7 +309,7 @@ export default class ControllerInterface {
    * @param {!string} b64PublicKey
    */
   usePublicVapidKey(b64PublicKey) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -320,7 +320,7 @@ export default class ControllerInterface {
    * @return {!function()}
    */
   onMessage(nextOrObserver, optError, optCompleted) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   /**
@@ -334,7 +334,7 @@ export default class ControllerInterface {
    * @return {!function()} The unsubscribe function for the observer.
    */
   onTokenRefresh(nextOrObserver, optError, optCompleted) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   //
@@ -346,7 +346,7 @@ export default class ControllerInterface {
    * @param {function(Object)} callback
    */
   setBackgroundMessageHandler(callback) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_SW);
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
   //

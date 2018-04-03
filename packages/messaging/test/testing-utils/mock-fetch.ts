@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const fetchMock = {
+
+export const fetchMock = {
   jsonOk: function(body: string): Promise<Response> {
     var mockResponse = new (window as any).Response(body, {
       status: 200,
@@ -43,4 +44,3 @@ const fetchMock = {
     return Promise.resolve(mockResponse);
   }
 };
-export { fetchMock };

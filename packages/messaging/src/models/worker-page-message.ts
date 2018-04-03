@@ -17,7 +17,7 @@
 
 // These fields are strings to prevent closure from thinking goog.getMsg
 // should be used to initialise the values
-const PARAMS = {
+export const PARAMS = {
   TYPE_OF_MSG: 'firebase-messaging-msg-type',
   DATA: 'firebase-messaging-msg-data'
 };

@@ -15,7 +15,7 @@
  */
 
 import { expect } from 'chai';
-import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
+import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 
 describe('Firebase Messaging > array-buffer-to-base64', function() {
   it('should return expected value for p256dh example', function() {

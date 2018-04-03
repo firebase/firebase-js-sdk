@@ -15,12 +15,12 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeSubscription from './make-fake-subscription';
+import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import TokenDetailsModel from '../src/models/token-details-model';
-import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { compareDetails } from './testing-utils/detail-comparator';
 
 describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
@@ -65,10 +65,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
         throw new Error('Expected this to throw an error due to no token');
       },
       err => {
-        assert.equal(
-          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
-          err.code
-        );
+        assert.equal('messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN, err.code);
       }
     );
   });
@@ -80,10 +77,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
         throw new Error('Expected this to throw an error due to no token');
       },
       err => {
-        assert.equal(
-          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
-          err.code
-        );
+        assert.equal('messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN, err.code);
       }
     );
   });
@@ -117,7 +111,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
       },
       err => {
         assert.equal(
-          'messaging/' + Errors.codes.DELETE_TOKEN_NOT_FOUND,
+          'messaging/' + ERROR_CODES.DELETE_TOKEN_NOT_FOUND,
           err.code
         );
       }

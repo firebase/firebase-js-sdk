@@ -39,7 +39,7 @@ const stringToArrayBuffer = string => {
  * @param  {Object=} options Options to set on the object if desired.
  * @return {PushSubscription}              Returns a fake subscription.
  */
-export default function(options = {}) {
+export function makeFakeSubscription(options = {}) {
   const fakeSub = new FakeSubscription();
 
   // Set endpoint

@@ -15,13 +15,13 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 
-import FCMDetails from '../src/models/fcm-details';
-import VapidDetailsModel from '../src/models/vapid-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
-import SWController from '../src/controllers/sw-controller';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { VapidDetailsModel } from '../src/models/vapid-details-model';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { SWController } from '../src/controllers/sw-controller';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
@@ -894,7 +894,7 @@ describe('Firebase Messaging > *SWController', function() {
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
         .callsFake(() => Promise.resolve(null));
       return controller.getPublicVapidKey_().then(pubKey => {
-        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+        expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
     });
 
@@ -903,9 +903,9 @@ describe('Firebase Messaging > *SWController', function() {
       const controller = new SWController(app);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(() => Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY));
+        .callsFake(() => Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY));
       return controller.getPublicVapidKey_().then(pubKey => {
-        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+        expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
     });
 

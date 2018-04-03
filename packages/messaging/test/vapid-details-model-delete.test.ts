@@ -15,9 +15,9 @@
  */
 import { assert } from 'chai';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import VapidDetailsModel from '../src/models/vapid-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { VapidDetailsModel } from '../src/models/vapid-details-model';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
   const EXAMPLE_SCOPE = '/example-scope';
@@ -56,7 +56,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
         }
       );
     });
@@ -70,7 +70,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
       },
       err => {
         assert.equal(
-          'messaging/' + Errors.codes.DELETE_SCOPE_NOT_FOUND,
+          'messaging/' + ERROR_CODES.DELETE_SCOPE_NOT_FOUND,
           err.code
         );
       }

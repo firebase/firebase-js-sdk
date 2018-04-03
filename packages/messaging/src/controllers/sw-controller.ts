@@ -15,14 +15,14 @@
  */
 'use strict';
 
-import ControllerInterface from './controller-interface';
-import Errors from '../models/errors';
-import FCMDetails from '../models/fcm-details';
+import { ControllerInterface } from './controller-interface';
+import { ERROR_CODES } from '../models/errors';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import WorkerPageMessage from '../models/worker-page-message';
 
 const FCM_MSG = 'FCM_MSG';
 
-export default class SWController extends ControllerInterface {
+export class SWController extends ControllerInterface {
   private bgMessageHandler_: (input: Object) => Promise<any>;
 
   constructor(app) {
@@ -128,7 +128,7 @@ export default class SWController extends ControllerInterface {
           });
       })
       .catch(err => {
-        throw this.errorFactory_.create(Errors.codes.UNABLE_TO_RESUBSCRIBE, {
+        throw this.errorFactory_.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
           message: err
         });
       });
@@ -242,9 +242,7 @@ export default class SWController extends ControllerInterface {
    */
   setBackgroundMessageHandler(callback) {
     if (!callback || typeof callback !== 'function') {
-      throw this.errorFactory_.create(
-        Errors.codes.BG_HANDLER_FUNCTION_EXPECTED
-      );
+      throw this.errorFactory_.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
     this.bgMessageHandler_ = callback;
@@ -301,7 +299,7 @@ export default class SWController extends ControllerInterface {
     // do additional work
     if (!client) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.NO_WINDOW_CLIENT_TO_MSG)
+        this.errorFactory_.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG)
       );
     }
 
@@ -372,7 +370,7 @@ export default class SWController extends ControllerInterface {
       })
       .then(vapidKeyFromDatabase => {
         if (vapidKeyFromDatabase === null) {
-          return FCMDetails.DEFAULT_PUBLIC_VAPID_KEY;
+          return DEFAULT_PUBLIC_VAPID_KEY;
         }
         return vapidKeyFromDatabase;
       });

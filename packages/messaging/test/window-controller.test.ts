@@ -15,12 +15,12 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 
-import FCMDetails from '../src/models/fcm-details';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
-import WindowController from '../src/controllers/window-controller';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { WindowController } from '../src/controllers/window-controller';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
@@ -333,7 +333,7 @@ describe('Firebase Messaging > *WindowController', function() {
     it('should return the default key by default', function() {
       const controller = new WindowController(app);
       return controller.getPublicVapidKey_().then(pubKey => {
-        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+        expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
     });
 
