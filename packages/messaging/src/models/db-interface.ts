@@ -22,7 +22,7 @@ import { ERROR_CODES, ERROR_MAP } from './errors';
 export class DBInterface {
   private DB_NAME_: string;
   private dbVersion_: number;
-  private openDbPromise_: Promise<IDBDatabase>;
+  private openDbPromise_: Promise<IDBDatabase>|null;
   protected errorFactory_: ErrorFactory<string>;
   protected TRANSACTION_READ_WRITE: IDBTransactionMode;
 

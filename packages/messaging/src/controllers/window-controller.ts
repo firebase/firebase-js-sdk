@@ -32,11 +32,11 @@ export class WindowController extends ControllerInterface
   private registrationToUse_;
   private publicVapidKeyToUse_;
   private manifestCheckPromise_;
-  private messageObserver_ = null;
+  private messageObserver_: any = null;
   private onMessage_ = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
-  private tokenRefreshObserver_ = null;
+  private tokenRefreshObserver_: any = null;
   private onTokenRefresh_ = createSubscribe(observer => {
     this.tokenRefreshObserver_ = observer;
   });

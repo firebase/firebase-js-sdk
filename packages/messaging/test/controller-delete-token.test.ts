@@ -66,7 +66,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
   const cleanUp = () => {
     sandbox.restore();
 
-    const deletePromises = [];
+    const deletePromises: any[] = [];
     if (globalMessagingService) {
       deletePromises.push(globalMessagingService.delete());
     }

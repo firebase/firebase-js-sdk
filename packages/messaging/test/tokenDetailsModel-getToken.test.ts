@@ -39,7 +39,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
   let globalTokenModel;
 
   const cleanUp = () => {
-    let promises = [];
+    let promises: any[] = [];
     if (globalTokenModel) {
       promises.push(globalTokenModel.closeDatabase());
     }
