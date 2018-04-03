@@ -119,7 +119,10 @@ describe('Firebase App Class', () => {
   });
 
   it('automaticDataCollectionEnabled can be set via the config object', () => {
-    let app = firebase.initializeApp({}, { automaticDataCollectionEnabled: true });
+    let app = firebase.initializeApp(
+      {},
+      { automaticDataCollectionEnabled: true }
+    );
     assert.equal(app.automaticDataCollectionEnabled, true);
   });
 

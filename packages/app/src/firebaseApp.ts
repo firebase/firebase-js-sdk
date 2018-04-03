@@ -72,7 +72,8 @@ class FirebaseAppImpl implements FirebaseApp {
     private firebase_: FirebaseNamespace
   ) {
     this.name_ = config.name;
-    this._automaticDataCollectionEnabled = config.automaticDataCollectionEnabled || false;
+    this._automaticDataCollectionEnabled =
+      config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
     this.INTERNAL = {
       getUid: () => null,
@@ -298,7 +299,10 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   /**
    * Create a new App instance (name must be unique).
    */
-  function initializeApp(options: FirebaseOptions, config?: FirebaseAppConfig): FirebaseApp;
+  function initializeApp(
+    options: FirebaseOptions,
+    config?: FirebaseAppConfig
+  ): FirebaseApp;
   function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
   function initializeApp(options: FirebaseOptions, rawConfig = {}) {
     if (typeof rawConfig !== 'object' || rawConfig === null) {
