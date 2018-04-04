@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import { ControllerInterface } from './controller-interface';
@@ -32,11 +31,11 @@ export class WindowController extends ControllerInterface
   private registrationToUse_;
   private publicVapidKeyToUse_;
   private manifestCheckPromise_;
-  private messageObserver_ = null;
+  private messageObserver_: any = null;
   private onMessage_ = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
-  private tokenRefreshObserver_ = null;
+  private tokenRefreshObserver_: any = null;
   private onTokenRefresh_ = createSubscribe(observer => {
     this.tokenRefreshObserver_ = observer;
   });

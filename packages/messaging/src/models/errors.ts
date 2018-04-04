@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 export const ERROR_CODES = {
   AVAILABLE_IN_WINDOW: 'only-available-in-window',

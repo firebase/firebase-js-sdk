@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 import { DBInterface } from './db-interface';
 import { ERROR_CODES } from './errors';
@@ -58,7 +57,7 @@ export class VapidDetailsModel extends DBInterface {
 
         scopeRequest.onsuccess = () => {
           let result = scopeRequest.result;
-          let vapidKey = null;
+          let vapidKey: any = null;
           if (result) {
             vapidKey = result.vapidKey;
           }

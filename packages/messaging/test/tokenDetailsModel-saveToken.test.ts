@@ -36,7 +36,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
   let globalTokenModel;
 
   const cleanUp = () => {
-    const promises = [];
+    const promises: any = [];
     if (globalTokenModel) {
       promises.push(globalTokenModel.closeDatabase());
     }
