@@ -22,7 +22,7 @@ import WorkerPageMessage from '../models/worker-page-message';
 const FCM_MSG = 'FCM_MSG';
 
 export class SWController extends ControllerInterface {
-  private bgMessageHandler_: ((input: Object) => Promise<any>)|null = null;
+  private bgMessageHandler_: ((input: Object) => Promise<any>) | null = null;
 
   constructor(app) {
     super(app);
