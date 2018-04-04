@@ -17,7 +17,8 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseNamespace
+  FirebaseNamespace,
+  FirebaseAppConfig
 } from '@firebase/app-types';
 import {
   _FirebaseApp,
@@ -61,15 +62,18 @@ class FirebaseAppImpl implements FirebaseApp {
       [serviceName: string]: FirebaseService;
     };
   } = {};
+  private _automaticDataCollectionEnabled: boolean;
 
   public INTERNAL;
 
   constructor(
     options: FirebaseOptions,
-    name: string,
+    config: FirebaseAppConfig,
     private firebase_: FirebaseNamespace
   ) {
-    this.name_ = name;
+    this.name_ = config.name;
+    this._automaticDataCollectionEnabled =
+      config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
     this.INTERNAL = {
       getUid: () => null,
@@ -85,6 +89,16 @@ class FirebaseAppImpl implements FirebaseApp {
         );
       }
     };
+  }
+
+  get automaticDataCollectionEnabled(): boolean {
+    this.checkDestroyed_();
+    return this._automaticDataCollectionEnabled;
+  }
+
+  set automaticDataCollectionEnabled(val) {
+    this.checkDestroyed_();
+    this._automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
@@ -285,21 +299,36 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   /**
    * Create a new App instance (name must be unique).
    */
-  function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp {
-    if (name === undefined) {
-      name = DEFAULT_ENTRY_NAME;
-    } else {
-      if (typeof name !== 'string' || name === '') {
-        error('bad-app-name', { name: name + '' });
-      }
+  function initializeApp(
+    options: FirebaseOptions,
+    config?: FirebaseAppConfig
+  ): FirebaseApp;
+  function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
+  function initializeApp(options: FirebaseOptions, rawConfig = {}) {
+    if (typeof rawConfig !== 'object' || rawConfig === null) {
+      const name = rawConfig;
+      rawConfig = { name };
     }
+
+    const config = rawConfig as FirebaseAppConfig;
+
+    if (config.name === undefined) {
+      config.name = DEFAULT_ENTRY_NAME;
+    }
+
+    const { name } = config;
+
+    if (typeof name !== 'string' || !name) {
+      error('bad-app-name', { name: name + '' });
+    }
+
     if (contains(apps_, name)) {
       error('duplicate-app', { name: name });
     }
 
     let app = new FirebaseAppImpl(
       options,
-      name!,
+      config!,
       namespace as FirebaseNamespace
     );
 
