@@ -15,12 +15,12 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeSubscription from './make-fake-subscription';
+import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import TokenDetailsModel from '../src/models/token-details-model';
-import arrayBufferToBase64 from '../src/helpers/array-buffer-to-base64';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { compareDetails } from './testing-utils/detail-comparator';
 
 describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
@@ -67,7 +67,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
         }
       );
     });
@@ -81,7 +81,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_TOKEN, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_TOKEN, err.code);
         }
       );
     });

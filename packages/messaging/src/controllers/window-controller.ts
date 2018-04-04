@@ -16,18 +16,18 @@
 'use strict';
 
 import { FirebaseMessaging } from '@firebase/messaging-types';
-import ControllerInterface from './controller-interface';
-import Errors from '../models/errors';
+import { ControllerInterface } from './controller-interface';
+import { ERROR_CODES } from '../models/errors';
 import WorkerPageMessage from '../models/worker-page-message';
-import DefaultSW from '../models/default-sw';
-import NOTIFICATION_PERMISSION from '../models/notification-permission';
-import FCMDetails from '../models/fcm-details';
-import base64ToArrayBuffer from '../helpers/base64-to-array-buffer';
+import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
+import { NotificationPermission } from '../models/notification-permission';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
+import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { createSubscribe } from '@firebase/util';
 
 declare const firebase: any;
 
-export default class WindowController extends ControllerInterface
+export class WindowController extends ControllerInterface
   implements FirebaseMessaging {
   private registrationToUse_;
   private publicVapidKeyToUse_;
@@ -99,7 +99,7 @@ export default class WindowController extends ControllerInterface
     // Check that the required API's are available
     if (!this.isSupported_()) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.UNSUPPORTED_BROWSER)
+        this.errorFactory_.create(ERROR_CODES.UNSUPPORTED_BROWSER)
       );
     }
 
@@ -145,7 +145,7 @@ export default class WindowController extends ControllerInterface
 
           if (manifestContent['gcm_sender_id'] !== '103953800507') {
             throw this.errorFactory_.create(
-              Errors.codes.INCORRECT_GCM_SENDER_ID
+              ERROR_CODES.INCORRECT_GCM_SENDER_ID
             );
           }
         });
@@ -161,21 +161,21 @@ export default class WindowController extends ControllerInterface
    * rejects
    */
   async requestPermission() {
-    if ((Notification as any).permission === NOTIFICATION_PERMISSION.granted) {
+    if ((Notification as any).permission === NotificationPermission.GRANTED) {
       return;
     }
 
     return new Promise((resolve, reject) => {
       const managePermissionResult = result => {
-        if (result === NOTIFICATION_PERMISSION.granted) {
+        if (result === NotificationPermission.GRANTED) {
           return resolve();
-        } else if (result === NOTIFICATION_PERMISSION.denied) {
+        } else if (result === NotificationPermission.DENIED) {
           return reject(
-            this.errorFactory_.create(Errors.codes.PERMISSION_BLOCKED)
+            this.errorFactory_.create(ERROR_CODES.PERMISSION_BLOCKED)
           );
         } else {
           return reject(
-            this.errorFactory_.create(Errors.codes.PERMISSION_DEFAULT)
+            this.errorFactory_.create(ERROR_CODES.PERMISSION_DEFAULT)
           );
         }
       };
@@ -202,11 +202,11 @@ export default class WindowController extends ControllerInterface
    */
   useServiceWorker(registration) {
     if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw this.errorFactory_.create(Errors.codes.SW_REGISTRATION_EXPECTED);
+      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
     if (typeof this.registrationToUse_ !== 'undefined') {
-      throw this.errorFactory_.create(Errors.codes.USE_SW_BEFORE_GET_TOKEN);
+      throw this.errorFactory_.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
     }
 
     this.registrationToUse_ = registration;
@@ -220,21 +220,19 @@ export default class WindowController extends ControllerInterface
    */
   usePublicVapidKey(publicKey) {
     if (typeof publicKey !== 'string') {
-      throw this.errorFactory_.create(Errors.codes.INVALID_PUBLIC_VAPID_KEY);
+      throw this.errorFactory_.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
     }
 
     if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
       throw this.errorFactory_.create(
-        Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
+        ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
       );
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
     if (parsedKey.length !== 65) {
-      throw this.errorFactory_.create(
-        Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED
-      );
+      throw this.errorFactory_.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
     }
 
     this.publicVapidKeyToUse_ = parsedKey;
@@ -284,7 +282,7 @@ export default class WindowController extends ControllerInterface
     return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
         // This is a rare scenario but has occured in firefox
-        reject(this.errorFactory_.create(Errors.codes.NO_SW_IN_REG));
+        reject(this.errorFactory_.create(ERROR_CODES.NO_SW_IN_REG));
         return;
       }
       // Because the Promise function is called on next tick there is a
@@ -295,7 +293,7 @@ export default class WindowController extends ControllerInterface
       }
 
       if (serviceWorker.state === 'redundant') {
-        reject(this.errorFactory_.create(Errors.codes.SW_REG_REDUNDANT));
+        reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
         return;
       }
 
@@ -303,7 +301,7 @@ export default class WindowController extends ControllerInterface
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
-          reject(this.errorFactory_.create(Errors.codes.SW_REG_REDUNDANT));
+          reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
         } else {
           // Return early and wait to next state change
           return;
@@ -330,12 +328,12 @@ export default class WindowController extends ControllerInterface
     this.registrationToUse_ = null;
 
     return navigator.serviceWorker
-      .register(DefaultSW.path, {
-        scope: DefaultSW.scope
+      .register(DEFAULT_SW_PATH, {
+        scope: DEFAULT_SW_SCOPE
       })
       .catch(err => {
         throw this.errorFactory_.create(
-          Errors.codes.FAILED_DEFAULT_REGISTRATION,
+          ERROR_CODES.FAILED_DEFAULT_REGISTRATION,
           {
             browserErrorMessage: err.message
           }
@@ -365,7 +363,7 @@ export default class WindowController extends ControllerInterface
       return Promise.resolve(this.publicVapidKeyToUse_);
     }
 
-    return Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+    return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
   }
 
   /**

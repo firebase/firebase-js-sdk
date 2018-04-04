@@ -15,7 +15,5 @@
  */
 'use strict';
 
-export default {
-  path: '/firebase-messaging-sw.js',
-  scope: '/firebase-cloud-messaging-push-scope'
-};
+export const DEFAULT_SW_PATH = '/firebase-messaging-sw.js';
+export const DEFAULT_SW_SCOPE = '/firebase-cloud-messaging-push-scope';

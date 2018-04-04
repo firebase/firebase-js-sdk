@@ -17,9 +17,9 @@
 
 import { ErrorFactory } from '@firebase/util';
 
-import Errors from './errors';
+import { ERROR_CODES, ERROR_MAP } from './errors';
 
-export default class DBInterface {
+export class DBInterface {
   private DB_NAME_: string;
   private dbVersion_: number;
   private openDbPromise_: Promise<IDBDatabase>;
@@ -31,7 +31,7 @@ export default class DBInterface {
    * @param {number} dbVersion
    */
   constructor(dbName, dbVersion) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
+    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
     this.DB_NAME_ = dbName;
     this.dbVersion_ = dbVersion;
     this.openDbPromise_ = null;
@@ -91,6 +91,6 @@ export default class DBInterface {
    * @param {!IDBDatabase} db
    */
   onDBUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent) {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
   }
 }

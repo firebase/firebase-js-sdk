@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import arrayBufferToBase64 from '../../src/helpers/array-buffer-to-base64';
+
+import { arrayBufferToBase64 } from '../../src/helpers/array-buffer-to-base64';
 import { assert } from 'chai';
 
 /** Token details that are fed to the database */

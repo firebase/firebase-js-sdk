@@ -15,11 +15,11 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import IIDModel from '../src/models/iid-model';
-import Errors from '../src/models/errors';
+import { IIDModel } from '../src/models/iid-model';
+import { ERROR_CODES, ERROR_MAP } from '../src/models/errors';
 import { fetchMock } from './testing-utils/mock-fetch';
-import makeFakeSubscription from './make-fake-subscription';
-import FCMDetails from '../src/models/fcm-details';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
 describe('Firebase Messaging > IIDModel.getToken()', function() {
   const fcmSenderId = '1234567';
@@ -90,7 +90,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     await globalIIDModel.getToken(
       fcmSenderId,
       subscription,
-      FCMDetails.DEFAULT_PUBLIC_VAPID_KEY,
+      DEFAULT_PUBLIC_VAPID_KEY,
       fcmPushSet
     );
     stubbedFetch.restore();
@@ -128,7 +128,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.code).to.include(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
+      expect(e.code).to.include(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
     stubbedFetch.restore();
   });
@@ -150,7 +150,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.include(
-        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN]
+        ERROR_MAP[ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN]
       );
     }
     stubbedFetch.restore();
@@ -173,7 +173,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.include(
-        Errors.map[Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET]
+        ERROR_MAP[ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET]
       );
     }
     stubbedFetch.restore();

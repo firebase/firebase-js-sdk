@@ -15,8 +15,8 @@
  */
 'use strict';
 
-export default {
-  granted: 'granted',
-  default: 'default',
-  denied: 'denied'
-};
+export enum NotificationPermission {
+  DEFAULT = 'default',
+  GRANTED = 'granted',
+  DENIED = 'denied'
+}

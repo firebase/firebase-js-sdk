@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export default (options = {}) => {
+
+export function makeFakeApp(options = {}) {
   window['firebase'] = window['firebase'] || {};
   let app /** @type {!firebase.app.App} */ = {};
   (app as any).INTERNAL = window['firebase'].INTERNAL;
   (app as any).options = options;
   return app;
-};
+}

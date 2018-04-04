@@ -15,11 +15,11 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import IIDModel from '../src/models/iid-model';
-import Errors from '../src/models/errors';
+import { IIDModel } from '../src/models/iid-model';
+import { ERROR_CODES, ERROR_MAP } from '../src/models/errors';
 import { fetchMock } from './testing-utils/mock-fetch';
-import makeFakeSubscription from './make-fake-subscription';
-import FCMDetails from '../src/models/fcm-details';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
 describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   const fcmSenderId = '1234567';
@@ -71,7 +71,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       fcmToken,
       fcmPushSet,
       subscription,
-      FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
+      DEFAULT_PUBLIC_VAPID_KEY
     );
     stubbedFetch.restore();
     expect(res).to.equal(fcmToken);
@@ -111,7 +111,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       throw new Error('Expected error to be thrown.');
     } catch (e) {
       expect(e.message).to.include(
-        Errors.map[Errors.codes.TOKEN_UPDATE_NO_TOKEN]
+        ERROR_MAP[ERROR_CODES.TOKEN_UPDATE_NO_TOKEN]
       );
     }
     stubbedFetch.restore();
@@ -131,7 +131,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.code).to.include(Errors.codes.TOKEN_UPDATE_FAILED);
+      expect(e.code).to.include(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
     stubbedFetch.restore();
   });

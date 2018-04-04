@@ -15,8 +15,8 @@
  */
 'use strict';
 
-import WindowController from './src/controllers/window-controller';
-import SWController from './src/controllers/sw-controller';
+import { WindowController } from './src/controllers/window-controller';
+import { SWController } from './src/controllers/sw-controller';
 import { firebase } from '@firebase/app';
 import * as types from '@firebase/messaging-types';
 

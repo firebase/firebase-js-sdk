@@ -15,15 +15,15 @@
  */
 'use strict';
 
-import DBInterface from './db-interface';
-import Errors from './errors';
+import { DBInterface } from './db-interface';
+import { ERROR_CODES } from './errors';
 
 const FCM_VAPID_OBJ_STORE = 'fcm_vapid_object_Store';
 const DB_NAME = 'fcm_vapid_details_db';
 const DB_VERSION = 1;
 const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;
 
-export default class VapidDetailsModel extends DBInterface {
+export class VapidDetailsModel extends DBInterface {
   constructor() {
     super(DB_NAME, DB_VERSION);
   }
@@ -44,7 +44,7 @@ export default class VapidDetailsModel extends DBInterface {
    */
   getVapidFromSWScope(swScope: string): Promise<Uint8Array> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
 
     return this.openDatabase().then(db => {
@@ -73,12 +73,12 @@ export default class VapidDetailsModel extends DBInterface {
    */
   saveVapidDetails(swScope: string, vapidKey: Uint8Array): Promise<void> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
 
     if (vapidKey === null || vapidKey.length !== UNCOMPRESSED_PUBLIC_KEY_SIZE) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
+        this.errorFactory_.create(ERROR_CODES.BAD_VAPID_KEY)
       );
     }
 
@@ -113,7 +113,7 @@ export default class VapidDetailsModel extends DBInterface {
   deleteVapidDetails(swScope: string): Promise<Uint8Array> {
     return this.getVapidFromSWScope(swScope).then(vapidKey => {
       if (!vapidKey) {
-        throw this.errorFactory_.create(Errors.codes.DELETE_SCOPE_NOT_FOUND);
+        throw this.errorFactory_.create(ERROR_CODES.DELETE_SCOPE_NOT_FOUND);
       }
 
       return this.openDatabase().then(db => {
@@ -130,7 +130,7 @@ export default class VapidDetailsModel extends DBInterface {
           request.onsuccess = () => {
             if (request.result === 0) {
               reject(
-                this.errorFactory_.create(Errors.codes.FAILED_DELETE_VAPID_KEY)
+                this.errorFactory_.create(ERROR_CODES.FAILED_DELETE_VAPID_KEY)
               );
               return;
             }
