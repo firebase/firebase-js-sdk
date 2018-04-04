@@ -86,9 +86,7 @@ export class IIDModel {
     }
 
     if (!responseData['pushSet']) {
-      throw this.errorFactory_.create(
-        ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET
-      );
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
     }
 
     return {
