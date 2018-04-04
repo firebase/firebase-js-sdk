@@ -56,7 +56,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.code).to.include(Errors.codes.TOKEN_UNSUBSCRIBE_FAILED);
+      expect(e.code).to.include(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
     }
   });
 
