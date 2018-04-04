@@ -74,7 +74,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
   });
 
   ['', [], {}, true, null, 123].forEach(badInput => {
-    it('should throw on bad FCM Token input', function() {
+    it(`should throw on bad FCM Token input: '${badInput}'`, function() {
       globalTokenModel = new TokenDetailsModel();
       return globalTokenModel.getTokenDetailsFromToken(badInput).then(
         () => {

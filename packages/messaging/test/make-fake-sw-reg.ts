@@ -20,6 +20,7 @@ FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
 export function makeFakeSWReg(selectedState?, desiredValue?) {
   const fakeReg = new FakeRegistration();
+  // Save to stub this object as it should be a one time use per test.
   sinon.stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];
   states.forEach(state => {

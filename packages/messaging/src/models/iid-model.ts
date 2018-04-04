@@ -22,16 +22,12 @@ import { ERROR_CODES, ERROR_MAP } from './errors';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
-<<<<<<< HEAD
-export class IIDModel {
-=======
-interface IIDDetails {
+export interface IIDDetails {
   token: string;
   pushSet: string;
 }
 
-export default class IIDModel {
->>>>>>> af2f363... # This is a combination of 2 commits.
+export class IIDModel {
   private errorFactory_: ErrorFactory<string>;
 
   constructor() {
@@ -66,37 +62,39 @@ export default class IIDModel {
       body: fcmSubscribeBody
     };
 
+    let responseData = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
         subscribeOptions
       );
 
-      const responseData = await response.json();
-      if (responseData['error']) {
-        const message = responseData['error']['message'];
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
-          message: message
-        });
-      }
-
-      if (!responseData['token']) {
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
-      }
-
-      if (!responseData['pushSet']) {
-        throw this.errorFactory_.create(
-          ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET
-        );
-      }
-
-      return {
-        token: responseData['token'],
-        pushSet: responseData['pushSet']
-      };
+      responseData = await response.json();
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
+
+    if (responseData['error']) {
+      const message = responseData['error']['message'];
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
+        message: message
+      });
+    }
+
+    if (!responseData['token']) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
+    }
+
+    if (!responseData['pushSet']) {
+      throw this.errorFactory_.create(
+        ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET
+      );
+    }
+
+    return {
+      token: responseData['token'],
+      pushSet: responseData['pushSet']
+    };
   }
 
   /**
@@ -134,27 +132,29 @@ export default class IIDModel {
       body: fcmUpdateBody
     };
 
+    let responseData = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
         updateOptions
       );
-      const responseData = await response.json();
-      if (responseData['error']) {
-        const message = responseData['error']['message'];
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
-          message: message
-        });
-      }
+      responseData = await response.json();
+    } catch (err) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
+    }
+
+    if (responseData['error']) {
+      const message = responseData['error']['message'];
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
+        message: message
+      });
+    }
 
       if (!responseData['token']) {
         throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
       }
 
       return responseData['token'];
-    } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
-    }
   }
 
   /**
