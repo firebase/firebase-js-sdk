@@ -68,7 +68,9 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       token: fcmToken,
       pushSet: fcmPushSet
     };
-    sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
     await globalIIDModel.getToken(
       fcmSenderId,
       subscription,
@@ -83,7 +85,9 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
       token: fcmToken,
       pushSet: fcmPushSet
     };
-    sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
     await globalIIDModel.getToken(
       fcmSenderId,
       subscription,
@@ -111,7 +115,9 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
 
   it('should handle fetch errors, HTML response returned', async function() {
     globalIIDModel = new IIDModel();
-    sandbox.stub(window, 'fetch').returns(fetchMock.htmlError(400, 'html-response'));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.htmlError(400, 'html-response'));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
@@ -130,7 +136,9 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       pushSet: fcmPushSet
     };
-    sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,
@@ -151,7 +159,9 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     const mockInvalidResponse = {
       token: fcmToken
     };
-    sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
       await globalIIDModel.getToken(
         fcmSenderId,

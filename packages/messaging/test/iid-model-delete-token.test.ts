@@ -49,13 +49,8 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    const payload = JSON.stringify({
-      error: {
-        message: errorMsg
-      }
-    });
 
-    sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, payload));
+    sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
 
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);

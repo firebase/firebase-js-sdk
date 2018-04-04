@@ -325,7 +325,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
   servicesToTest.forEach(ServiceClass => {
     vapidSetupToTest.forEach(VapidSetup => {
-      it(`should get a new token in ${ServiceClass.name} for ${VapidSetup.name} VAPID setup`, async function() {
+      it(`should get a new token in ${ServiceClass.name} for ${
+        VapidSetup.name
+      } VAPID setup`, async function() {
         const regPromise = generateFakeReg(Promise.resolve(null));
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -404,7 +406,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
         assert.equal(tokenModelArgs[0].fcmPushSet, TOKEN_DETAILS['pushSet']);
       });
 
-      it(`should get a new token in ${ServiceClass.name} if PushSubscription details have changed`, function() {
+      it(`should get a new token in ${
+        ServiceClass.name
+      } if PushSubscription details have changed`, function() {
         // Stubs
         const deleteTokenStub = sandbox.stub(
           TokenDetailsModel.prototype,

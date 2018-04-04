@@ -150,11 +150,11 @@ export class IIDModel {
       });
     }
 
-      if (!responseData['token']) {
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
-      }
+    if (!responseData['token']) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
+    }
 
-      return responseData['token'];
+    return responseData['token'];
   }
 
   /**
