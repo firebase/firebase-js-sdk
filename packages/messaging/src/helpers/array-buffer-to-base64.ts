@@ -16,7 +16,7 @@
 
 function toBase64(arrayBuffer) {
   const uint8Version = new Uint8Array(arrayBuffer);
-  return window.btoa(String.fromCharCode.apply(null, uint8Version));
+  return btoa(String.fromCharCode.apply(null, uint8Version));
 }
 
 export function arrayBufferToBase64(arrayBuffer) {
