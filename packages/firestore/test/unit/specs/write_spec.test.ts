@@ -707,4 +707,53 @@ describeSpec('Writes:', [], () => {
         });
     }
   );
+
+  specTest('Write is acknowledged by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const localDoc = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const remoteDoc = doc('collection/a', 1000, { v: 1 });
+
+    // TODO(multitab): Once query specs are shared between clients,
+    // client 0 no longer needs to manually initialize the query
+    return client(0)
+      .userListens(query)
+      .watchAcksFull(query, 500)
+      .expectEvents(query, {})
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        fromCache: true
+      })
+      .userSets('collection/a', { v: 1 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        fromCache: true,
+        added: [localDoc]
+      })
+      .client(0)
+      .drainQueue()
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        added: [localDoc]
+      })
+      .writeAcks(1000, { expectUserCallback: false })
+      .watchSends({ affects: [query] }, remoteDoc)
+      .watchSnapshots(1000)
+      .expectEvents(query, {
+        metadata: [remoteDoc]
+      })
+      .client(1)
+      .drainQueue({ expectUserCallback: true });
+    // TODO(heldacks): This event doesn't fire since we are holding the write
+    // acknowledgment.
+    // .expectEvents(query, {
+    //   fromCache: true,
+    //   metadata: [remoteDoc]
+    // });
+  });
 });

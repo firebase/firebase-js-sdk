@@ -22,7 +22,7 @@ import {
   ClientId,
   SharedClientState
 } from '../../../src/local/shared_client_state';
-import { BatchId, TargetId } from '../../../src/core/types';
+import { BatchId, MutationBatchState, TargetId } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
@@ -34,6 +34,7 @@ import {
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
+import { fail } from '../../../src/util/assert';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -44,6 +45,7 @@ const GRACE_INTERVAL_MS = 100;
 
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
+const MUTATION_ERROR = new FirestoreError('internal', 'Test Error');
 
 function mutationKey(user: User, batchId: BatchId) {
   if (user.isAuthenticated()) {
@@ -82,19 +84,24 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     };
   }
 
-  async applyPendingBatch(batchId: BatchId): Promise<void> {
-    this.pendingBatches.push(batchId);
-  }
-
-  async applySuccessfulWrite(batchId: BatchId): Promise<void> {
-    this.acknowledgedBatches.push(batchId);
-  }
-
-  async rejectFailedWrite(
+  async applyBatchState(
     batchId: BatchId,
-    err: FirestoreError
+    state: MutationBatchState,
+    error: FirestoreError
   ): Promise<void> {
-    this.rejectedBatches[batchId] = err;
+    switch (state) {
+      case 'pending':
+        this.pendingBatches.push(batchId);
+        return;
+      case 'acknowledged':
+        this.acknowledgedBatches.push(batchId);
+        return;
+      case 'rejected':
+        this.rejectedBatches[batchId] = error;
+        return;
+      default:
+        fail('Unknown mutation batch state: ' + state);
+    }
   }
 
   async getActiveClients(): Promise<ClientId[]> {
@@ -190,8 +197,6 @@ describe('WebStorageSharedClientState', () => {
     expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
-  // TODO(multitab): Add tests for acknowledged and failed batches once
-  // SharedClientState can handle these updates.
   describe('persists mutation batches', () => {
     function assertBatchState(
       batchId: BatchId,
@@ -206,7 +211,7 @@ describe('WebStorageSharedClientState', () => {
 
       const expectedMembers = ['state'];
 
-      if (mutationBatchState === 'error') {
+      if (mutationBatchState === 'rejected') {
         expectedMembers.push('error');
         expect(actual.error.code).to.equal(err.code);
         expect(actual.error.message).to.equal(err.message);
@@ -224,9 +229,17 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('with one pending batch', () => {
+      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
+      assertClientState([], null, null);
+
       sharedClientState.addLocalPendingMutation(0);
+      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.true;
       assertClientState([], 0, 0);
       assertBatchState(0, 'pending');
+
+      sharedClientState.removeLocalPendingMutation(0);
+      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
+      assertClientState([], null, null);
     });
 
     it('with multiple pending batches', () => {
@@ -246,6 +259,22 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.removeLocalPendingMutation(0);
       sharedClientState.removeLocalPendingMutation(2);
       assertClientState([], 1, 3);
+    });
+
+    it('with an acknowledged batch', () => {
+      sharedClientState.addLocalPendingMutation(0);
+      assertClientState([], 0, 0);
+      assertBatchState(0, 'pending');
+      sharedClientState.applyMutationState(0, 'acknowledged');
+      assertBatchState(0, 'acknowledged');
+    });
+
+    it('with a rejected batch', () => {
+      sharedClientState.addLocalPendingMutation(0);
+      assertClientState([], 0, 0);
+      assertBatchState(0, 'pending');
+      sharedClientState.applyMutationState(0, 'rejected', MUTATION_ERROR);
+      assertBatchState(0, 'rejected', MUTATION_ERROR);
     });
   });
 
@@ -384,7 +413,7 @@ describe('WebStorageSharedClientState', () => {
       user: User,
       fn: () => Promise<void>
     ): Promise<TestSharedClientState> {
-      await sharedClientState.handleUserChange(user);
+      await sharedClientState.handleUserChange(user, [], []);
       await fn();
       await queue.drain();
       return clientSyncer.sharedClientState;
@@ -432,7 +461,7 @@ describe('WebStorageSharedClientState', () => {
             AUTHENTICATED_USER,
             1,
             'rejected',
-            new FirestoreError('internal', 'Test Error')
+            MUTATION_ERROR
           ).toLocalStorageJSON()
         );
       }).then(clientState => {

@@ -318,9 +318,28 @@ class EventAggregator implements Observer<ViewSnapshot> {
   }
 }
 
-interface OutstandingWrite {
-  mutations: Mutation[];
-  userCallback: Deferred<void>;
+/**
+ * FIFO queue that tracks all outstanding mutations for a single test run.
+ * As these mutations are shared among the set of active clients, any client can
+ * add or retrieve mutations.
+ */
+// PORTING NOTE: Multi-tab only.
+class TestMutationQueue {
+  private mutations: Mutation[][] = [];
+
+  push(mutation: Mutation[]) {
+    this.mutations.push(mutation);
+  }
+
+  peek(): Mutation[] {
+    assert(this.mutations.length > 0, 'No pending mutations');
+    return this.mutations[0];
+  }
+
+  poll(): Mutation[] {
+    assert(this.mutations.length > 0, 'No pending mutations');
+    return this.mutations.shift()!;
+  }
 }
 
 abstract class TestRunner {
@@ -331,7 +350,7 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
-  private outstandingWrites: OutstandingWrite[] = [];
+  private outstandingCallbacks: Deferred<void>[] = [];
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -357,6 +376,7 @@ abstract class TestRunner {
   constructor(
     private readonly name: string,
     protected readonly platform: TestPlatform,
+    private outstandingWrites: TestMutationQueue,
     config: SpecConfig
   ) {
     this.clientId = AutoId.newId();
@@ -497,7 +517,7 @@ abstract class TestRunner {
     } else if ('runTimer' in step) {
       return this.doRunTimer(step.runTimer!);
     } else if ('drainQueue' in step) {
-      return this.doDrainQueue();
+      return this.doDrainQueue(step.drainQueue);
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
@@ -570,7 +590,8 @@ abstract class TestRunner {
 
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
-    this.outstandingWrites.push({ mutations, userCallback });
+    this.outstandingWrites.push(mutations);
+    this.outstandingCallbacks.push(userCallback);
     return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, userCallback);
     });
@@ -764,11 +785,12 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
+    const nextWrite = this.outstandingWrites.poll();
+    return this.validateNextWriteRequest(nextWrite).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
-        return nextWrite.userCallback.promise;
+        const nextCallback = this.outstandingCallbacks.shift();
+        return nextCallback.promise;
       }
     });
   }
@@ -779,17 +801,18 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
-      // If this is not a permanent error, the write is expected to be sent
+    const nextWrite = this.outstandingWrites.peek();
+    return this.validateNextWriteRequest(nextWrite).then(() => {
+      // If this is a permanent error, the write is not expected to be sent
       // again.
-      if (!isPermanentError(error.code)) {
-        this.outstandingWrites.unshift(nextWrite);
+      if (isPermanentError(error.code)) {
+        this.outstandingWrites.poll();
       }
 
       this.connection.failWrite(error);
       if (writeFailure.expectUserCallback) {
-        return nextWrite.userCallback.promise.then(
+        const nextCallback = this.outstandingCallbacks.shift();
+        return nextCallback.promise.then(
           () => {
             fail('write should have failed');
           },
@@ -816,8 +839,12 @@ abstract class TestRunner {
     await this.syncEngine.disableNetwork();
   }
 
-  private async doDrainQueue(): Promise<void> {
+  private async doDrainQueue(drainQueue: SpecDrainQueue): Promise<void> {
     await this.queue.drain();
+    if (drainQueue.expectUserCallback) {
+      const nextCallback = this.outstandingCallbacks.shift();
+      return nextCallback.promise;
+    }
   }
 
   private async doEnableNetwork(): Promise<void> {
@@ -1312,14 +1339,25 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   let runners: TestRunner[] = [];
+  const mutationQueue = new TestMutationQueue();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(PlatformSupport.getPlatform());
       if (usePersistence) {
-        runners[clientIndex] = new IndexedDbTestRunner(name, platform, config);
+        runners[clientIndex] = new IndexedDbTestRunner(
+          name,
+          platform,
+          mutationQueue,
+          config
+        );
       } else {
-        runners[clientIndex] = new MemoryTestRunner(name, platform, config);
+        runners[clientIndex] = new MemoryTestRunner(
+          name,
+          platform,
+          mutationQueue,
+          config
+        );
       }
       await runners[clientIndex].start();
     }
@@ -1412,7 +1450,7 @@ export interface SpecStep {
   /**
    * Process all events currently enqueued in the AsyncQueue.
    */
-  drainQueue?: true;
+  drainQueue?: SpecDrainQueue;
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
@@ -1496,6 +1534,11 @@ export type SpecWriteFailure = {
   /** The error the backend uses to fail the write. */
   error: SpecError;
   /** Whether the failure is expected to generate a user callback. */
+  expectUserCallback: boolean;
+};
+
+export type SpecDrainQueue = {
+  /** Whether the drain is expected to generate a user callback. */
   expectUserCallback: boolean;
 };
 

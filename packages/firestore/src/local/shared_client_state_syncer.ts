@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { BatchId } from '../core/types';
+import { BatchId, MutationBatchState } from '../core/types';
 import { FirestoreError } from '../util/error';
 import { ClientId } from './shared_client_state';
 
@@ -23,16 +23,12 @@ import { ClientId } from './shared_client_state';
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
-  /** Registers a new pending mutation batch. */
-  applyPendingBatch(batchId: BatchId): Promise<void>;
-
-  // TODO(multitab): Rename this method to not clash with RemoteSyncer
-  /** Applies the result of a successful write of a mutation batch. */
-  applySuccessfulWrite(batchId: BatchId): Promise<void>;
-
-  // TODO(multitab): Rename this method to not clash with RemoteSyncer
-  /** Rejects a failed mutation batch. */
-  rejectFailedWrite(batchId: BatchId, err: FirestoreError): Promise<void>;
+  /** Applies a mutation state to an existing batch.  */
+  applyBatchState(
+    batchId: BatchId,
+    state: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void>;
 
   /** Returns the IDs of the clients that are currently active. */
   getActiveClients(): Promise<ClientId[]>;

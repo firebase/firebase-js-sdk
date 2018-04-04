@@ -15,7 +15,7 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import { BatchId, TargetId } from '../core/types';
+import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
 import { min, primitiveComparator } from '../util/misc';
@@ -71,8 +71,25 @@ export interface SharedClientState {
   /** Associates a new Mutation Batch ID with the current Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
 
-  /** Removes a Mutation Batch ID for the current Firestore client. */
+  /**
+   * Removes a Mutation Batch ID from the current Firestore client.
+   *
+   * This method can be called with Batch IDs that are not associated with this
+   * client, in which case no change takes place.
+   */
   removeLocalPendingMutation(batchId: BatchId): void;
+
+  /**
+   * Verifies whether a Mutation Batch ID is associated with the current client.
+   */
+  hasLocalPendingMutation(batchId: BatchId): boolean;
+
+  /** Transitions a pending mutation to its final state. */
+  applyMutationState(
+    batchId: BatchId,
+    state: 'acknowledged' | 'rejected',
+    error?: FirestoreError
+  ): void;
 
   /**
    * Gets the minimum mutation batch for all active clients.
@@ -110,11 +127,12 @@ export interface SharedClientState {
    * user change does not call back into SyncEngine (for example, no mutations
    * will be marked as removed).
    */
-  handleUserChange(user: User): void;
+  handleUserChange(
+    user: User,
+    removedBatchIds: BatchId[],
+    addedBatchIds: BatchId[]
+  ): void;
 }
-
-// Visible for testing
-export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
 
 /**
  * The JSON representation of a mutation batch's metadata as used during
@@ -331,11 +349,11 @@ export class LocalClientState implements ClientState {
   }
 
   removePendingMutation(batchId: BatchId): void {
-    assert(
-      this.pendingBatchIds.has(batchId),
-      `Pending Batch ID '${batchId}' not found.`
-    );
     this.pendingBatchIds = this.pendingBatchIds.delete(batchId);
+  }
+
+  hasLocalPendingMutation(batchId: BatchId): boolean {
+    return this.pendingBatchIds.has(batchId);
   }
 
   addQueryTarget(targetId: TargetId): void {
@@ -371,10 +389,6 @@ export class LocalClientState implements ClientState {
       maxMutationBatchId: this.maxMutationBatchId
     };
     return JSON.stringify(data);
-  }
-
-  clearPendingMutations() {
-    this.pendingBatchIds = new SortedSet<BatchId>(primitiveComparator);
   }
 }
 
@@ -442,6 +456,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
+  // TOOD(multitab): Persist the mutations that are already pending mutations at
+  // client startup.
   async start(): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
@@ -501,13 +517,29 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   addLocalPendingMutation(batchId: BatchId): void {
     this.localClientState.addPendingMutation(batchId);
-    this.persistMutationState(batchId, 'pending');
     this.persistClientState();
+    this.persistMutationState(batchId, 'pending');
   }
 
   removeLocalPendingMutation(batchId: BatchId): void {
     this.localClientState.removePendingMutation(batchId);
     this.persistClientState();
+  }
+
+  hasLocalPendingMutation(batchId: BatchId): boolean {
+    return this.localClientState.hasLocalPendingMutation(batchId);
+  }
+
+  applyMutationState(
+    batchId: BatchId,
+    state: 'acknowledged' | 'rejected',
+    error?: FirestoreError
+  ): void {
+    assert(
+      batchId >= this.getMinimumGlobalPendingMutation(),
+      `Cannot change mutation state for batch that is not pending: ${batchId}`
+    );
+    this.persistMutationState(batchId, state, error);
   }
 
   addLocalQueryTarget(targetId: TargetId): void {
@@ -520,8 +552,17 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistClientState();
   }
 
-  handleUserChange(user: User): void {
-    // TODO(multitab): Handle user changes.
+  handleUserChange(
+    user: User,
+    removedBatchIds: BatchId[],
+    addedBatchIds: BatchId[]
+  ): void {
+    removedBatchIds.forEach(batchId => {
+      this.removeLocalPendingMutation(batchId);
+    });
+    addedBatchIds.forEach(batchId => {
+      this.addLocalPendingMutation(batchId);
+    });
     this.currentUser = user;
   }
 
@@ -679,19 +720,11 @@ export class WebStorageSharedClientState implements SharedClientState {
       return;
     }
 
-    switch (mutationBatch.state) {
-      case 'pending':
-        return this.syncEngine.applyPendingBatch(mutationBatch.batchId);
-      case 'acknowledged':
-        return this.syncEngine.applySuccessfulWrite(mutationBatch.batchId);
-      case 'rejected':
-        return this.syncEngine.rejectFailedWrite(
-          mutationBatch.batchId,
-          mutationBatch.error
-        );
-      default:
-        throw new Error('Not implemented');
-    }
+    return this.syncEngine.applyBatchState(
+      mutationBatch.batchId,
+      mutationBatch.state,
+      mutationBatch.error
+    );
   }
 }
 
@@ -711,6 +744,18 @@ export class MemorySharedClientState implements SharedClientState {
 
   removeLocalPendingMutation(batchId: BatchId): void {
     this.localState.removePendingMutation(batchId);
+  }
+
+  hasLocalPendingMutation(batchId: BatchId): boolean {
+    return this.localState.hasLocalPendingMutation(batchId);
+  }
+
+  applyMutationState(
+    batchId: BatchId,
+    state: 'acknowledged' | 'rejected',
+    error?: FirestoreError
+  ): void {
+    // No op.
   }
 
   getMinimumGlobalPendingMutation(): BatchId | null {
@@ -734,8 +779,17 @@ export class MemorySharedClientState implements SharedClientState {
     return Promise.resolve();
   }
 
-  handleUserChange(user: User): void {
-    this.localState.clearPendingMutations();
+  handleUserChange(
+    user: User,
+    removedBatchIds: BatchId[],
+    addedBatchIds: BatchId[]
+  ): void {
+    removedBatchIds.forEach(batchId => {
+      this.localState.removePendingMutation(batchId);
+    });
+    addedBatchIds.forEach(batchId => {
+      this.localState.addPendingMutation(batchId);
+    });
   }
 
   shutdown(): void {}

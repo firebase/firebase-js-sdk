@@ -268,9 +268,13 @@ export class SpecBuilder {
     return this;
   }
 
-  drainQueue(): SpecBuilder {
+  drainQueue(options?: { expectUserCallback: boolean }): SpecBuilder {
     this.nextStep();
-    this.currentStep = { drainQueue: true };
+    this.currentStep = {
+      drainQueue: {
+        expectUserCallback: options ? options.expectUserCallback : false
+      }
+    };
     return this;
   }
 
@@ -849,8 +853,10 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
-  drainQueue(): MultiClientSpecBuilder {
-    super.drainQueue();
+  drainQueue(options?: {
+    expectUserCallback: boolean;
+  }): MultiClientSpecBuilder {
+    super.drainQueue(options);
     return this;
   }
 
