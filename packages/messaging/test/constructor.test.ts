@@ -17,12 +17,12 @@
 import { assert } from 'chai';
 import { makeFakeApp } from './make-fake-app';
 
-import { ERROR_CODES } from '../src/models/errors';
-import { WindowController } from '../src/controllers/window-controller';
 import { SWController } from '../src/controllers/sw-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { ERROR_CODES } from '../src/models/errors';
 
-describe('Firebase Messaging > new *Controller()', function() {
-  it('should handle bad input', function() {
+describe('Firebase Messaging > new *Controller()', () => {
+  it('should handle bad input', () => {
     const badInputs = [
       makeFakeApp(),
       makeFakeApp({
@@ -55,7 +55,7 @@ describe('Firebase Messaging > new *Controller()', function() {
     });
   });
 
-  it('should be able to handle good input', function() {
+  it('should be able to handle good input', () => {
     const app = makeFakeApp({
       messagingSenderId: '1234567890'
     });

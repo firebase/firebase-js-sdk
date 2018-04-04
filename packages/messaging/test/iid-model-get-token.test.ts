@@ -15,13 +15,13 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { IIDModel } from '../src/models/iid-model';
 import { ERROR_CODES, ERROR_MAP } from '../src/models/errors';
-import { fetchMock } from './testing-utils/mock-fetch';
-import { makeFakeSubscription } from './make-fake-subscription';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { IIDModel } from '../src/models/iid-model';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { fetchMock } from './testing-utils/mock-fetch';
 
-describe('Firebase Messaging > IIDModel.getToken()', function() {
+describe('Firebase Messaging > IIDModel.getToken()', () => {
   const fcmSenderId = '1234567';
   const fcmToken = 'qwerty';
   const fcmPushSet = '7654321';
@@ -46,7 +46,6 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
   ]).buffer;
 
   const sandbox = sinon.sandbox.create();
-  let stubedFetch;
   let globalIIDModel;
 
   const cleanUp = () => {
@@ -54,15 +53,15 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     globalIIDModel = null;
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should getToken on valid request with custom VAPID key', async function() {
+  it('should getToken on valid request with custom VAPID key', async () => {
     globalIIDModel = new IIDModel();
     const mockResponse = {
       token: fcmToken,
@@ -79,7 +78,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     );
   });
 
-  it('should getToken on valid request with default VAPID key', async function() {
+  it('should getToken on valid request with default VAPID key', async () => {
     globalIIDModel = new IIDModel();
     const mockResponse = {
       token: fcmToken,
@@ -96,7 +95,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     );
   });
 
-  it('should handle fetch errors', async function() {
+  it('should handle fetch errors', async () => {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
     sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
@@ -113,7 +112,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     }
   });
 
-  it('should handle fetch errors, HTML response returned', async function() {
+  it('should handle fetch errors, HTML response returned', async () => {
     globalIIDModel = new IIDModel();
     sandbox
       .stub(window, 'fetch')
@@ -131,7 +130,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     }
   });
 
-  it('should handle invalid fetch response, no FCM token returned', async function() {
+  it('should handle invalid fetch response, no FCM token returned', async () => {
     globalIIDModel = new IIDModel();
     const mockInvalidResponse = {
       pushSet: fcmPushSet
@@ -154,7 +153,7 @@ describe('Firebase Messaging > IIDModel.getToken()', function() {
     }
   });
 
-  it('should handle invalid fetch response, no push set token returned', async function() {
+  it('should handle invalid fetch response, no push set token returned', async () => {
     globalIIDModel = new IIDModel();
     const mockInvalidResponse = {
       token: fcmToken

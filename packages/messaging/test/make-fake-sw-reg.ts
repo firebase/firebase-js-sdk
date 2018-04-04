@@ -15,7 +15,7 @@
  */
 import * as sinon from 'sinon';
 
-const FakeRegistration = function() {};
+const FakeRegistration = () => {};
 FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
 export function makeFakeSWReg(selectedState?, desiredValue?) {

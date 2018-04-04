@@ -15,15 +15,15 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { makeFakeSubscription } from './make-fake-subscription';
-import { deleteDatabase } from './testing-utils/db-helper';
-import { ERROR_CODES } from '../src/models/errors';
-import { TokenDetailsModel } from '../src/models/token-details-model';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 
-describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
+describe('Firebase Messaging > TokenDetailsModel.deleteToken()', () => {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
     vapidKey: base64ToArrayBuffer(
@@ -39,7 +39,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
   let globalTokenModel;
 
   const cleanUp = () => {
-    let promises: any = [];
+    const promises: any = [];
 
     if (globalTokenModel) {
       promises.push(globalTokenModel.closeDatabase());
@@ -50,15 +50,15 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
       .then(() => (globalTokenModel = null));
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should handle no input', function() {
+  it('should handle no input', () => {
     globalTokenModel = new TokenDetailsModel();
     return globalTokenModel.deleteToken().then(
       () => {
@@ -70,7 +70,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     );
   });
 
-  it('should handle empty string', function() {
+  it('should handle empty string', () => {
     globalTokenModel = new TokenDetailsModel();
     return globalTokenModel.deleteToken('').then(
       () => {
@@ -82,10 +82,10 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
     );
   });
 
-  it('should delete current token', function() {
+  it('should delete current token', () => {
     globalTokenModel = new TokenDetailsModel();
     const now = Date.now();
-    let clock = sinon.useFakeTimers(now);
+    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .saveTokenDetails(EXAMPLE_INPUT)
       .then(() => {
@@ -103,7 +103,7 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', function() {
       });
   });
 
-  it('should handle deleting a non-existant token', function() {
+  it('should handle deleting a non-existant token', () => {
     globalTokenModel = new TokenDetailsModel();
     return globalTokenModel.deleteToken('bad-token').then(
       () => {

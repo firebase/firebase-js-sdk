@@ -72,10 +72,10 @@ function handleDb(db: IDBDatabase) {
 
 function cleanV1() {
   const request: IDBOpenDBRequest = indexedDB.open(OLD_DB_NAME);
-  request.onerror = function(event) {
+  request.onerror = event => {
     // NOOP - Nothing we can do.
   };
-  request.onsuccess = function(event) {
+  request.onsuccess = event => {
     const db = request.result;
     handleDb(db);
   };

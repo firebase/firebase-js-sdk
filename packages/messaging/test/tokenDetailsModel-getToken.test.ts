@@ -15,15 +15,15 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { makeFakeSubscription } from './make-fake-subscription';
-import { deleteDatabase } from './testing-utils/db-helper';
-import { ERROR_CODES } from '../src/models/errors';
-import { TokenDetailsModel } from '../src/models/token-details-model';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 
-describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', function() {
+describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', () => {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
     vapidKey: base64ToArrayBuffer(
@@ -39,7 +39,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
   let globalTokenModel;
 
   const cleanUp = () => {
-    let promises: any[] = [];
+    const promises: any[] = [];
     if (globalTokenModel) {
       promises.push(globalTokenModel.closeDatabase());
     }
@@ -49,18 +49,16 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
       .then(() => (globalTokenModel = null));
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
   ['', [], {}, true, null, 123].forEach(badInput => {
-    it(`should throw on bad scope input ${JSON.stringify(
-      badInput
-    )}`, function() {
+    it(`should throw on bad scope input ${JSON.stringify(badInput)}`, () => {
       globalTokenModel = new TokenDetailsModel();
       return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
         () => {
@@ -74,7 +72,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
   });
 
   ['', [], {}, true, null, 123].forEach(badInput => {
-    it(`should throw on bad FCM Token input: '${badInput}'`, function() {
+    it(`should throw on bad FCM Token input: '${badInput}'`, () => {
       globalTokenModel = new TokenDetailsModel();
       return globalTokenModel.getTokenDetailsFromToken(badInput).then(
         () => {
@@ -87,10 +85,10 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
     });
   });
 
-  it('should get from scope', function() {
+  it('should get from scope', () => {
     globalTokenModel = new TokenDetailsModel();
     const now = Date.now();
-    let clock = sinon.useFakeTimers(now);
+    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope)
       .then(details => {
@@ -108,10 +106,10 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', fu
       });
   });
 
-  it('should get from token', function() {
+  it('should get from token', () => {
     globalTokenModel = new TokenDetailsModel();
     const now = Date.now();
-    let clock = sinon.useFakeTimers(now);
+    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
       .getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken)
       .then(details => {

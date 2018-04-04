@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { deleteDatabase } from './testing-utils/db-helper';
 import { DBInterface } from '../src/models/db-interface';
+import { deleteDatabase } from './testing-utils/db-helper';
 
-describe(`Firebase Messaging > db-interface.onDBUpgrade()`, function() {
+describe(`Firebase Messaging > db-interface.onDBUpgrade()`, () => {
   const TEST_DB_NAME = 'test-db';
 
   const cleanup = () => {
     return deleteDatabase(TEST_DB_NAME);
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanup();
   });
 
-  after(function() {
+  after(() => {
     return cleanup();
   });
 
-  it(`should throw error when not inherited`, function() {
+  it(`should throw error when not inherited`, () => {
     return new DBInterface(TEST_DB_NAME, 1).openDatabase().then(
       () => {
         throw new Error(`An error was expected but method was successful.`);
