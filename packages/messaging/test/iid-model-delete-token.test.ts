@@ -42,30 +42,27 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
 
   it('should delete on valid request', async function() {
     globalIIDModel = new IIDModel();
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonOk(''));
+    sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
-    stubbedFetch.restore();
   });
 
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
+
+    sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
+
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      stubbedFetch.restore();
-      expect(e.message).to.equal(errorMsg);
+      expect(e.code).to.include(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
     }
-    stubbedFetch.restore();
   });
 
   it('should handle fetch errors, HTML response returned', async function() {
     globalIIDModel = new IIDModel();
-    let stubbedFetch = sinon.stub(window, 'fetch');
+    let stubbedFetch = sandbox.stub(window, 'fetch');
     stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
@@ -73,6 +70,5 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     } catch (e) {
       expect(e.code).to.include(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
     }
-    stubbedFetch.restore();
   });
 });

@@ -20,6 +20,11 @@ import { ERROR_CODES, ERROR_MAP } from './errors';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
+export interface IIDDetails {
+  token: string;
+  pushSet: string;
+}
+
 export class IIDModel {
   private errorFactory_: ErrorFactory<string>;
 
@@ -27,16 +32,11 @@ export class IIDModel {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
   }
 
-  /**
-   * Given a PushSubscription and messagingSenderId, get an FCM token.
-   * @public
-   * @param  {string} senderId The 'messagingSenderId' to tie the token to.
-   * @param  {PushSubscription} subscription The PushSusbcription to "federate".
-   * @param  {Uint8Array} publicVapidKey The public VAPID key.
-   * @return {Promise<!Object>} Returns the FCM token to be used in place
-   * of the PushSubscription.
-   */
-  getToken(senderId, subscription, publicVapidKey): Promise<Object> {
+  async getToken(
+    senderId: string,
+    subscription: PushSubscription,
+    publicVapidKey: Uint8Array
+  ): Promise<IIDDetails> {
     const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
     const auth = arrayBufferToBase64(subscription['getKey']('auth'));
 
@@ -60,41 +60,43 @@ export class IIDModel {
       body: fcmSubscribeBody
     };
 
-    return fetch(ENDPOINT + '/fcm/connect/subscribe', subscribeOptions)
-      .then(response => response.json())
-      .catch(() => {
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
-      })
-      .then(response => {
-        const fcmTokenResponse = response;
-        if (fcmTokenResponse['error']) {
-          const message = fcmTokenResponse['error']['message'];
-          throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
-            message: message
-          });
-        }
+    let responseData = null;
+    try {
+      const response = await fetch(
+        ENDPOINT + '/fcm/connect/subscribe',
+        subscribeOptions
+      );
 
-        if (!fcmTokenResponse['token']) {
-          throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
-        }
+      responseData = await response.json();
+    } catch (err) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
+    }
 
-        if (!fcmTokenResponse['pushSet']) {
-          throw this.errorFactory_.create(
-            ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET
-          );
-        }
-
-        return {
-          token: fcmTokenResponse['token'],
-          pushSet: fcmTokenResponse['pushSet']
-        };
+    if (responseData['error']) {
+      const message = responseData['error']['message'];
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
+        message: message
       });
+    }
+
+    if (!responseData['token']) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
+    }
+
+    if (!responseData['pushSet']) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
+    }
+
+    return {
+      token: responseData['token'],
+      pushSet: responseData['pushSet']
+    };
   }
 
   /**
    * Update the underlying token details for fcmToken.
    */
-  updateToken(
+  async updateToken(
     senderId: string,
     fcmToken: string,
     fcmPushSet: string,
@@ -126,33 +128,35 @@ export class IIDModel {
       body: fcmUpdateBody
     };
 
-    let updateFetchRes;
-    return fetch(ENDPOINT + '/fcm/connect/subscribe', updateOptions)
-      .then(fetchResponse => {
-        updateFetchRes = fetchResponse;
-        return fetchResponse.json();
-      })
-      .catch(() => {
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
-      })
-      .then(fcmTokenResponse => {
-        if (!updateFetchRes.ok) {
-          const message = fcmTokenResponse['error']['message'];
-          throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
-            message: message
-          });
-        }
-        if (!fcmTokenResponse['token']) {
-          throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
-        }
-        return fcmTokenResponse['token'];
+    let responseData = null;
+    try {
+      const response = await fetch(
+        ENDPOINT + '/fcm/connect/subscribe',
+        updateOptions
+      );
+      responseData = await response.json();
+    } catch (err) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
+    }
+
+    if (responseData['error']) {
+      const message = responseData['error']['message'];
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
+        message: message
       });
+    }
+
+    if (!responseData['token']) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
+    }
+
+    return responseData['token'];
   }
 
   /**
    * Given a fcmToken, pushSet and messagingSenderId, delete an FCM token.
    */
-  deleteToken(
+  async deleteToken(
     senderId: string,
     fcmToken: string,
     fcmPushSet: string
@@ -171,30 +175,20 @@ export class IIDModel {
       body: fcmUnsubscribeBody
     };
 
-    return fetch(
-      ENDPOINT + '/fcm/connect/unsubscribe',
-      unsubscribeOptions
-    ).then(fetchResponse => {
-      if (!fetchResponse.ok) {
-        return fetchResponse.json().then(
-          fcmTokenResponse => {
-            if (fcmTokenResponse['error']) {
-              const message = fcmTokenResponse['error']['message'];
-              throw this.errorFactory_.create(
-                ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED,
-                {
-                  message: message
-                }
-              );
-            }
-          },
-          err => {
-            throw this.errorFactory_.create(
-              ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED
-            );
-          }
-        );
+    try {
+      const response = await fetch(
+        ENDPOINT + '/fcm/connect/unsubscribe',
+        unsubscribeOptions
+      );
+      const responseData = await response.json();
+      if (responseData['error']) {
+        const message = responseData['error']['message'];
+        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED, {
+          message: message
+        });
       }
-    });
+    } catch (err) {
+      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
+    }
   }
 }

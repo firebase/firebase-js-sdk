@@ -21,7 +21,7 @@ import { fetchMock } from './testing-utils/mock-fetch';
 import { makeFakeSubscription } from './make-fake-subscription';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
-describe('Firebase Messaging > IIDModel.deleteToken()', function() {
+describe('Firebase Messaging > IIDModel.updateToken()', function() {
   const fcmSenderId = '1234567';
   const fcmToken = 'qwerty';
   const fcmPushSet = '7654321';
@@ -64,8 +64,9 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
   it('should update on valid request with custom VAPID key', async function() {
     globalIIDModel = new IIDModel();
     const mockResponse = { token: fcmToken };
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
     const res = await globalIIDModel.updateToken(
       fcmSenderId,
       fcmToken,
@@ -73,15 +74,15 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       subscription,
       DEFAULT_PUBLIC_VAPID_KEY
     );
-    stubbedFetch.restore();
     expect(res).to.equal(fcmToken);
   });
 
   it('should update on valid request with default VAPID key', async function() {
     globalIIDModel = new IIDModel();
     const mockResponse = { token: fcmToken };
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
     const res = await globalIIDModel.updateToken(
       fcmSenderId,
       fcmToken,
@@ -89,7 +90,6 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       subscription,
       appPubKey
     );
-    stubbedFetch.restore();
     expect(res).to.equal(fcmToken);
   });
 
@@ -98,8 +98,9 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     const mockInvalidResponse = {
       pushSet: fcmPushSet
     };
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
     try {
       await globalIIDModel.updateToken(
         fcmSenderId,
@@ -110,17 +111,15 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.message).to.include(
-        ERROR_MAP[ERROR_CODES.TOKEN_UPDATE_NO_TOKEN]
-      );
+      expect(e.code).to.include(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
     }
-    stubbedFetch.restore();
   });
 
   it('should handle invalid fetch response, HTML reponse returned', async function() {
     globalIIDModel = new IIDModel();
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
+    sandbox
+      .stub(window, 'fetch')
+      .returns(fetchMock.htmlError(404, 'html-response'));
     try {
       await globalIIDModel.updateToken(
         fcmSenderId,
@@ -133,14 +132,12 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     } catch (e) {
       expect(e.code).to.include(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
-    stubbedFetch.restore();
   });
 
   it('should handle fetch errors', async function() {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
-    let stubbedFetch = sinon.stub(window, 'fetch');
-    stubbedFetch.returns(fetchMock.jsonError(400, errorMsg));
+    sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
     try {
       await globalIIDModel.updateToken(
         fcmSenderId,
@@ -151,8 +148,7 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
       );
       throw new Error('Expected error to be thrown.');
     } catch (e) {
-      expect(e.message).to.equal(errorMsg);
+      expect(e.code).to.include(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
-    stubbedFetch.restore();
   });
 });
