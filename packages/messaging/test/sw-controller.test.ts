@@ -706,7 +706,7 @@ describe('Firebase Messaging > *SWController', function() {
   });
 
   describe('attemptToMessageClient_', function() {
-    it('should reject when not window client provided', function() {
+    it('should reject when no window client provided', function() {
       const swController = new SWController(app);
       return swController.attemptToMessageClient_(null, {}).then(
         () => {
@@ -719,7 +719,7 @@ describe('Firebase Messaging > *SWController', function() {
       );
     });
 
-    it('should reject when not window client provided', function() {
+    it('should message window client', function() {
       const msg = {};
       const client = {
         postMessage: sandbox.spy()

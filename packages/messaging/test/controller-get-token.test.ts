@@ -220,9 +220,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       it(`should get saved token in ${ServiceClass.name} for ${
         VapidSetup.name
       } VAPID setup`, function() {
-        const registration = generateFakeReg(Promise.resolve(null));
+        const regPromise = generateFakeReg(Promise.resolve(null));
         const subscription = makeFakeSubscription();
-        mockGetReg(Promise.resolve(registration));
+        mockGetReg(regPromise);
 
         sandbox
           .stub(ServiceClass.prototype, 'getPushSubscription')
@@ -325,10 +325,12 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
   servicesToTest.forEach(ServiceClass => {
     vapidSetupToTest.forEach(VapidSetup => {
-      it('should get a new token in ${ServiceClass.name} for ${VapidSetup.name} VAPID setup', function() {
-        const registration = generateFakeReg(Promise.resolve(null));
+      it(`should get a new token in ${ServiceClass.name} for ${
+        VapidSetup.name
+      } VAPID setup`, async function() {
+        const regPromise = generateFakeReg(Promise.resolve(null));
         const subscription = makeFakeSubscription();
-        mockGetReg(Promise.resolve(registration));
+        mockGetReg(regPromise);
 
         const TOKEN_DETAILS = {
           token: 'example-token',
@@ -368,42 +370,45 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
           .callsFake(async () => {});
 
         const serviceInstance = new ServiceClass(app);
-        return serviceInstance.getToken().then(token => {
-          assert.equal('example-token', token);
+        const token = await serviceInstance.getToken();
 
-          // Ensure save token is called in VAPID and Token model.
-          assert.equal(
-            VapidDetailsModel.prototype.saveVapidDetails['callCount'],
-            1
-          );
-          const vapidModelArgs = VapidDetailsModel.prototype.saveVapidDetails[
-            'getCall'
-          ](0)['args'][0];
+        assert.equal('example-token', token);
 
-          assert.equal(
-            TokenDetailsModel.prototype.saveTokenDetails['callCount'],
-            1
-          );
-          const tokenModelArgs = TokenDetailsModel.prototype.saveTokenDetails[
-            'getCall'
-          ](0)['args'][0];
+        // Ensure save token is called in VAPID and Token model.
+        assert.equal(
+          VapidDetailsModel.prototype.saveVapidDetails['callCount'],
+          1
+        );
+        const vapidModelArgs = VapidDetailsModel.prototype.saveVapidDetails[
+          'getCall'
+        ](0)['args'];
 
-          Promise.resolve(registration).then(reg => {
-            assert.equal(tokenModelArgs.swScope, reg.scope);
-            assert.equal(vapidModelArgs.swScope, reg.scope);
-          });
-          assert.equal(
-            arrayBufferToBase64(tokenModelArgs.vapidKey),
-            VapidSetup['details']['vapidKey']
-          );
-          assert.equal(tokenModelArgs.subscription, subscription);
-          assert.equal(tokenModelArgs.fcmSenderId, EXAMPLE_SENDER_ID);
-          assert.equal(tokenModelArgs.fcmToken, TOKEN_DETAILS['token']);
-          assert.equal(tokenModelArgs.fcmPushSet, TOKEN_DETAILS['pushSet']);
-        });
+        assert.equal(
+          TokenDetailsModel.prototype.saveTokenDetails['callCount'],
+          1
+        );
+
+        const tokenModelArgs = TokenDetailsModel.prototype.saveTokenDetails[
+          'getCall'
+        ](0)['args'];
+
+        const registration = await regPromise;
+        assert.equal(vapidModelArgs[0], registration.scope);
+
+        assert.equal(tokenModelArgs[0].swScope, registration.scope);
+        assert.equal(
+          arrayBufferToBase64(tokenModelArgs[0].vapidKey),
+          VapidSetup['details']['vapidKey']
+        );
+        assert.equal(tokenModelArgs[0].subscription, subscription);
+        assert.equal(tokenModelArgs[0].fcmSenderId, EXAMPLE_SENDER_ID);
+        assert.equal(tokenModelArgs[0].fcmToken, TOKEN_DETAILS['token']);
+        assert.equal(tokenModelArgs[0].fcmPushSet, TOKEN_DETAILS['pushSet']);
       });
 
-      it('should get a new token in ${ServiceClass.name} if PushSubscription details have changed', function() {
+      it(`should get a new token in ${
+        ServiceClass.name
+      } if PushSubscription details have changed`, function() {
         // Stubs
         const deleteTokenStub = sandbox.stub(
           TokenDetailsModel.prototype,
@@ -486,9 +491,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     it(`should get new token if VAPID details are updated in ${
       ServiceClass.name
     }`, async function() {
-      const registration = generateFakeReg(Promise.resolve(null));
+      const regPromise = generateFakeReg(Promise.resolve(null));
       const subscription = makeFakeSubscription();
-      mockGetReg(Promise.resolve(registration));
+      mockGetReg(regPromise);
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
@@ -571,9 +576,9 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
     it(`should handle update token errors in ${
       ServiceClass.name
     }`, async function() {
-      const registration = generateFakeReg(Promise.resolve(null));
+      const regPromise = generateFakeReg(Promise.resolve(null));
       const subscription = makeFakeSubscription();
-      mockGetReg(Promise.resolve(registration));
+      mockGetReg(regPromise);
 
       const errorMsg = 'messaging/' + ERROR_CODES.TOKEN_UPDATE_FAILED;
 
