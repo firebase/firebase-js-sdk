@@ -43,10 +43,15 @@ describe('EncodedResourcePath', () => {
     const dbName = 'resource-path-tests';
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
-          db.createObjectStore('test');
-          return PersistencePromise.resolve();
-        });
+        return SimpleDb.openOrCreate(
+          dbName,
+          persistenceHelpers.testSerializer(),
+          1,
+          db => {
+            db.createObjectStore('test');
+            return PersistencePromise.resolve();
+          }
+        );
       })
       .then(simpleDb => {
         db = simpleDb;

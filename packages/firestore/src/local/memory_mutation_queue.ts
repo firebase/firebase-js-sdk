@@ -30,6 +30,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { DocumentKeySet } from '../model/collections';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -87,6 +88,16 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.highestAcknowledgedBatchId);
+  }
+
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    const mutationBatch = this.findMutationBatch(batchId);
+    return PersistencePromise.resolve(
+      mutationBatch ? mutationBatch.keys() : null
+    );
   }
 
   acknowledgeBatch(

@@ -33,6 +33,8 @@ import {
   DbDocumentMutationKey,
   DbMutationBatch,
   DbMutationBatchKey,
+  DbMutationChanges,
+  DbMutationChangesKey,
   DbMutationQueue,
   DbMutationQueueKey
 } from './indexeddb_schema';
@@ -41,6 +43,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { DocumentKeySet } from '../model/collections';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -99,9 +102,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
           );
         }
         this.metadata = metadata;
-
-        // TODO(multitab): Don't GC mutations that are still required by other
-        // active clients.
 
         // On restart, nextBatchId may end up lower than
         // lastAcknowledgedBatchId since it's computed from the queue
@@ -178,6 +178,18 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.metadata.lastAcknowledgedBatchId);
   }
 
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    return mutationChangesStore(transaction)
+      .get([this.userId, batchId])
+      .next(
+        changes =>
+          changes ? this.serializer.fromDbMutationChanges(changes) : null
+      );
+  }
+
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
@@ -218,10 +230,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
     this.nextBatchId++;
     const batch = new MutationBatch(batchId, localWriteTime, mutations);
 
+    // TODO(multitab): Garbage collect the mutationChanges store
     const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+    const dbChanges = this.serializer.toDbMutationChanges(this.userId, batch);
 
     return mutationsStore(transaction)
       .put(dbBatch)
+      .next(() => mutationChangesStore(transaction).put(dbChanges))
       .next(() => {
         const promises: Array<PersistencePromise<void>> = [];
         for (const mutation of mutations) {
@@ -230,9 +245,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
             mutation.key.path,
             batchId
           );
-          documentMutationsStore(transaction).put(
-            indexKey,
-            DbDocumentMutation.PLACEHOLDER
+          promises.push(
+            documentMutationsStore(transaction).put(
+              indexKey,
+              DbDocumentMutation.PLACEHOLDER
+            )
           );
         }
         return PersistencePromise.waitFor(promises);
@@ -478,6 +495,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
   performConsistencyCheck(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
+    // TODO(multitab): Verify consistency of the mutationChanges store.
+
     return this.checkEmpty(txn).next(empty => {
       if (!empty) {
         return PersistencePromise.resolve();
@@ -583,6 +602,18 @@ function mutationQueuesStore(
   return getStore<DbMutationQueueKey, DbMutationQueue>(
     txn,
     DbMutationQueue.store
+  );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the mutationChanges object store.
+ */
+function mutationChangesStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbMutationChangesKey, DbMutationChanges> {
+  return getStore<DbMutationChangesKey, DbMutationChanges>(
+    txn,
+    DbMutationChanges.store
   );
 }
 

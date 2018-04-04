@@ -420,22 +420,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   async applyBatchState(
     batchId: BatchId,
-    batchState: MutationBatchState,
+    state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-    const mutationBatchResult = await this.localStore.lookupMutationBatch(
-      batchId
-    );
 
-    if (!mutationBatchResult) {
-      log.error(LOG_TAG, 'Unable to find mutation batch: ' + batchId);
-      return;
-    }
+    const documents = await this.localStore.lookupMutationDocuments(batchId);
+    assert(documents !== null, 'Unable to find mutation batch: ' + batchId);
 
-    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
 
-    if (batchState === 'pending') {
+    if (state === 'pending') {
       // Send the write to the Remote Store
       return this.remoteStore.fillWritePipeline();
     } else if (this.sharedClientState.hasLocalPendingMutation(batchId)) {

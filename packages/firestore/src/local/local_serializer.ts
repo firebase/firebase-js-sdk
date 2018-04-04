@@ -26,6 +26,7 @@ import { assert, fail } from '../util/assert';
 
 import {
   DbMutationBatch,
+  DbMutationChanges,
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
@@ -33,6 +34,8 @@ import {
   DbTimestamp
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
+import { EncodedResourcePath } from './encoded_resource_path';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -88,6 +91,31 @@ export class LocalSerializer {
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
+  }
+
+  /**
+   * Encodes a set of mutation keys into a DbMutationChanges object for local
+   * storage.
+   */
+  toDbMutationChanges(userId: string, batch: MutationBatch): DbMutationChanges {
+    const changesKeys: EncodedResourcePath[] = [];
+
+    batch.keys().forEach(key => {
+      changesKeys.push(this.remoteSerializer.toName(key));
+    });
+
+    return new DbMutationChanges(userId, batch.batchId, changesKeys);
+  }
+
+  /** Decodes a DbMutationChanges into its set of document keys. */
+  fromDbMutationChanges(dbMutationChanges: DbMutationChanges): DocumentKeySet {
+    let documentKeys = documentKeySet();
+
+    dbMutationChanges.changedPaths.forEach(path => {
+      documentKeys = documentKeys.add(this.remoteSerializer.fromName(path));
+    });
+
+    return documentKeys;
   }
 
   /** Decodes a DbTarget into QueryData */

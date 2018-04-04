@@ -354,6 +354,26 @@ export class LocalStore {
     });
   }
 
+  /** Gets the local view of the documents affected by a mutation batch. */
+  // PORTING NOTE: Multi-tab only.
+  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
+    return this.persistence.runTransaction(
+      'Lookup mutation documents',
+      false,
+      txn => {
+        return this.mutationQueue
+          .lookupMutationKeys(txn, batchId)
+          .next(keys => {
+            if (keys) {
+              return this.localDocuments.getDocuments(txn, keys);
+            } else {
+              return PersistencePromise.resolve(null);
+            }
+          });
+      }
+    );
+  }
+
   /**
    * Acknowledge the given batch.
    *
