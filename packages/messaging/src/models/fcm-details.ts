@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 export const DEFAULT_PUBLIC_VAPID_KEY = new Uint8Array([
   0x04,

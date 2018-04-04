@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 // These fields are strings to prevent closure from thinking goog.getMsg
 // should be used to initialise the values

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-'use strict';
-
 const EIGHT_DAYS_IN_MS = 8 * 86400000;
 
 /**
