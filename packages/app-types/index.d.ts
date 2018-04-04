@@ -24,6 +24,11 @@ export type FirebaseOptions = {
   [name: string]: any;
 };
 
+export interface FirebaseAppConfig {
+  name?: string;
+  automaticDataCollectionEnabled?: boolean;
+}
+
 export class FirebaseApp {
   /**
    * The (read-only) name (identifier) for this App. '[DEFAULT]' is the default
@@ -37,12 +42,27 @@ export class FirebaseApp {
   options: FirebaseOptions;
 
   /**
+   * The settable config flag for GDPR opt-in/opt-out
+   */
+  automaticDataCollectionEnabled: boolean;
+
+  /**
    * Make the given App unusable and free resources.
    */
   delete(): Promise<void>;
 }
 
 export interface FirebaseNamespace {
+  /**
+   * Create (and initialize) a FirebaseApp.
+   *
+   * @param options Options to configure the services used in the App.
+   * @param config The optional config for your firebase app
+   */
+  initializeApp(
+    options: FirebaseOptions,
+    config?: FirebaseAppConfig
+  ): FirebaseApp;
   /**
    * Create (and initialize) a FirebaseApp.
    *
