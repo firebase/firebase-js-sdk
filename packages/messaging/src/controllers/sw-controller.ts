@@ -18,24 +18,37 @@ import { ControllerInterface } from './controller-interface';
 import { ERROR_CODES } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import WorkerPageMessage from '../models/worker-page-message';
+import { FirebaseApp } from '@firebase/app-types';
 
 const FCM_MSG = 'FCM_MSG';
 
-export class SWController extends ControllerInterface {
-  private bgMessageHandler_: ((input: Object) => Promise<any>) | null = null;
+export type BgMessageHandler = (input: any) => Promise<any>;
 
-  constructor(app) {
+export class SWController extends ControllerInterface {
+  private bgMessageHandler_: BgMessageHandler | null = null;
+
+  constructor(app: FirebaseApp) {
     super(app);
 
-    self.addEventListener('push', e => this.onPush_(e), false);
+    self.addEventListener(
+      'push',
+      (e: any) => {
+        this.onPush_(e);
+      },
+      false
+    );
     self.addEventListener(
       'pushsubscriptionchange',
-      e => this.onSubChange_(e),
+      (e: any) => {
+        this.onSubChange_(e);
+      },
       false
     );
     self.addEventListener(
       'notificationclick',
-      e => this.onNotificationClick_(e),
+      (e: any) => {
+        this.onNotificationClick_(e);
+      },
       false
     );
   }
@@ -51,12 +64,13 @@ export class SWController extends ControllerInterface {
    *
    * If there is no notification data in the payload then no notification will be
    * shown.
-   * @private
    */
-  onPush_(event) {
-    let msgPayload;
+  // Visible for testing
+  // TODO: Make private
+  onPush_(event: any) {
+    let msgPayload: any;
     try {
-      msgPayload = event.data.json();
+      msgPayload = event.data!.json();
     } catch (err) {
       // Not JSON so not an FCM message
       return;
@@ -75,8 +89,8 @@ export class SWController extends ControllerInterface {
 
         const notificationDetails = this.getNotificationData_(msgPayload);
         if (notificationDetails) {
-          const notificationTitle = notificationDetails.title || '';
-          return (this.getSWRegistration_() as any).then(reg => {
+          const notificationTitle = (notificationDetails as any).title || '';
+          return this.getSWRegistration_().then(reg => {
             return reg.showNotification(notificationTitle, notificationDetails);
           });
         } else if (this.bgMessageHandler_) {
@@ -88,10 +102,9 @@ export class SWController extends ControllerInterface {
     event.waitUntil(handleMsgPromise);
   }
 
-  /**
-   * @private
-   */
-  onSubChange_(event) {
+  // Visible for testing
+  // TODO: Make private
+  onSubChange_(event: any) {
     const promiseChain = this.getSWRegistration_()
       .then(registration => {
         return registration.pushManager
@@ -129,10 +142,9 @@ export class SWController extends ControllerInterface {
     event.waitUntil(promiseChain);
   }
 
-  /**
-   * @private
-   */
-  onNotificationClick_(event) {
+  // Visible for testing
+  // TODO: Make private
+  onNotificationClick_(event: any) {
     if (
       !(
         event.notification &&
@@ -192,12 +204,9 @@ export class SWController extends ControllerInterface {
     event.waitUntil(promiseChain);
   }
 
-  /**
-   * @private
-   * @param {Object} msgPayload
-   * @return {NotificationOptions|undefined}
-   */
-  getNotificationData_(msgPayload) {
+  // Visible for testing
+  // TODO: Make private
+  getNotificationData_(msgPayload: any): NotificationOptions | undefined {
     if (!msgPayload) {
       return;
     }
@@ -228,12 +237,12 @@ export class SWController extends ControllerInterface {
    * and the promise it returns will be passed to event.waitUntil.
    * If you do not set this callback then all push messages will let and the
    * developer can handle them in a their own 'push' event callback
-   * @export
-   * @param {function(Object)} callback The callback to be called when a push
-   * message is received and a notification must be shown. The callback will
-   * be given the data from the push message.
+   *
+   * @param callback The callback to be called when a push message is received
+   * and a notification must be shown. The callback will be given the data from
+   * the push message.
    */
-  setBackgroundMessageHandler(callback) {
+  setBackgroundMessageHandler(callback: BgMessageHandler) {
     if (!callback || typeof callback !== 'function') {
       throw this.errorFactory_.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
@@ -242,12 +251,12 @@ export class SWController extends ControllerInterface {
   }
 
   /**
-   * @private
-   * @param {string} url The URL to look for when focusing a client.
-   * @return {Object} Returns an existing window client or a newly opened
-   * WindowClient.
+   * @param url The URL to look for when focusing a client.
+   * @return Returns an existing window client or a newly opened WindowClient.
    */
-  getWindowClient_(url) {
+  // Visible for testing
+  // TODO: Make private
+  getWindowClient_(url: string): Promise<any> {
     // Use URL to normalize the URL when comparing to windowClients.
     // This at least handles whether to include trailing slashes or not
     const parsedURL = new URL(url, (self as any).location).href;
@@ -257,7 +266,7 @@ export class SWController extends ControllerInterface {
         type: 'window',
         includeUncontrolled: true
       })
-      .then(clientList => {
+      .then((clientList: any) => {
         let suitableClient = null;
         for (let i = 0; i < clientList.length; i++) {
           const parsedClientUrl = new URL(
@@ -280,14 +289,14 @@ export class SWController extends ControllerInterface {
 
   /**
    * This message will attempt to send the message to a window client.
-   * @private
-   * @param {Object} client The WindowClient to send the message to.
-   * @param {Object} message The message to send to the client.
-   * @returns {Promise} Returns a promise that resolves after sending the
-   * message. This does not guarantee that the message was successfully
-   * received.
+   * @param client The WindowClient to send the message to.
+   * @param message The message to send to the client.
+   * @returns Returns a promise that resolves after sending the message. This
+   * does not guarantee that the message was successfully received.
    */
-  async attemptToMessageClient_(client, message) {
+  // Visible for testing
+  // TODO: Make private
+  async attemptToMessageClient_(client: any, message: any): Promise<void> {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
@@ -300,42 +309,46 @@ export class SWController extends ControllerInterface {
   }
 
   /**
-   * @private
-   * @returns {Promise<boolean>} If there is currently a visible WindowClient,
-   * this method will resolve to true, otherwise false.
+   * @returns If there is currently a visible WindowClient, this method will
+   * resolve to true, otherwise false.
    */
-  hasVisibleClients_() {
+  // Visible for testing
+  // TODO: Make private
+  hasVisibleClients_(): Promise<boolean> {
     return (self as any).clients
       .matchAll({
         type: 'window',
         includeUncontrolled: true
       })
-      .then(clientList => {
-        return clientList.some(client => client.visibilityState === 'visible');
+      .then((clientList: any) => {
+        return clientList.some(
+          (client: any) => client.visibilityState === 'visible'
+        );
       });
   }
 
   /**
-   * @private
-   * @param {Object} msgPayload The data from the push event that should be sent
-   * to all available pages.
-   * @returns {Promise} Returns a promise that resolves once the message
-   * has been sent to all WindowClients.
+   * @param msgPayload The data from the push event that should be sent to all
+   * available pages.
+   * @returns Returns a promise that resolves once the message has been sent to
+   * all WindowClients.
    */
-  sendMessageToWindowClients_(msgPayload) {
+  // Visible for testing
+  // TODO: Make private
+  sendMessageToWindowClients_(msgPayload: any): Promise<void> {
     return (self as any).clients
       .matchAll({
         type: 'window',
         includeUncontrolled: true
       })
-      .then(clientList => {
+      .then((clientList: any) => {
         const internalMsg = WorkerPageMessage.createNewMsg(
           WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED,
           msgPayload
         );
 
         return Promise.all(
-          clientList.map(client => {
+          clientList.map((client: any) => {
             return this.attemptToMessageClient_(client, internalMsg);
           })
         );
@@ -344,11 +357,9 @@ export class SWController extends ControllerInterface {
 
   /**
    * This will register the default service worker and return the registration.
-   * @private
-   * @return {Promise<!ServiceWorkerRegistration>} The service worker
-   * registration to be used for the push service.
+   * @return he service worker registration to be used for the push service.
    */
-  getSWRegistration_() {
+  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
     return Promise.resolve((self as any).registration);
   }
 

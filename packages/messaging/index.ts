@@ -17,11 +17,16 @@
 import { WindowController } from './src/controllers/window-controller';
 import { SWController } from './src/controllers/sw-controller';
 import { firebase } from '@firebase/app';
+import {
+  _FirebaseNamespace,
+  FirebaseServiceFactory
+} from '@firebase/app-types/private';
+
 import * as types from '@firebase/messaging-types';
 
-export function registerMessaging(instance) {
+export function registerMessaging(instance: _FirebaseNamespace) {
   const messagingName = 'messaging';
-  const factoryMethod = app => {
+  const factoryMethod: FirebaseServiceFactory = app => {
     if (self && 'ServiceWorkerGlobalScope' in self) {
       return new SWController(app);
     }
@@ -42,7 +47,7 @@ export function registerMessaging(instance) {
   );
 }
 
-registerMessaging(firebase);
+registerMessaging(firebase as _FirebaseNamespace);
 
 /**
  * Define extension behavior of `registerMessaging`

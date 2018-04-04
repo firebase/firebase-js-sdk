@@ -18,18 +18,25 @@ import { ErrorFactory } from '@firebase/util';
 import { ERROR_CODES, ERROR_MAP } from '../models/errors';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
-import { NotificationPermission } from '../models/notification-permission';
 import { IIDModel } from '../models/iid-model';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { FirebaseApp } from '@firebase/app-types';
+import { TokenDetails } from '../interfaces/token-details';
+import {
+  createSubscribe,
+  Observer,
+  NextFn,
+  PartialObserver
+} from '@firebase/util';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export class ControllerInterface {
-  public app;
-  public INTERNAL;
-  protected errorFactory_;
+export abstract class ControllerInterface {
+  public app: FirebaseApp;
+  public INTERNAL: any;
+  protected errorFactory_: ErrorFactory<string>;
   private messagingSenderId_: string;
   private tokenDetailsModel_: TokenDetailsModel;
   private vapidDetailsModel_: VapidDetailsModel;
@@ -37,9 +44,8 @@ export class ControllerInterface {
 
   /**
    * An interface of the Messaging Service API
-   * @param {!firebase.app.App} app
    */
-  constructor(app) {
+  constructor(app: FirebaseApp) {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
 
     if (
@@ -49,7 +55,7 @@ export class ControllerInterface {
       throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
+    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
 
     this.tokenDetailsModel_ = new TokenDetailsModel();
     this.vapidDetailsModel_ = new VapidDetailsModel();
@@ -66,8 +72,8 @@ export class ControllerInterface {
   async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
-    if (currentPermission !== NotificationPermission.GRANTED) {
-      if (currentPermission === NotificationPermission.DENIED) {
+    if (currentPermission !== 'granted') {
+      if (currentPermission === 'denied') {
         return Promise.reject(
           this.errorFactory_.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
         );
@@ -113,7 +119,7 @@ export class ControllerInterface {
     swReg: ServiceWorkerRegistration,
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array,
-    tokenDetails: Object
+    tokenDetails: TokenDetails
   ): Promise<string> {
     const isTokenValid = this.isTokenStillValid(
       pushSubscription,
@@ -122,8 +128,8 @@ export class ControllerInterface {
     );
     if (isTokenValid) {
       const now = Date.now();
-      if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
-        return tokenDetails['fcmToken'];
+      if (now < tokenDetails.createTime! + TOKEN_EXPIRATION_MILLIS) {
+        return tokenDetails.fcmToken;
       } else {
         return this.updateToken(
           swReg,
@@ -138,7 +144,7 @@ export class ControllerInterface {
     // have changed), delete the existing token from the FCM client and server
     // database. No need to unsubscribe from the Service Worker as we have a
     // good push subscription that we'd like to use in getNewToken.
-    await this.deleteTokenFromDB(tokenDetails['fcmToken']);
+    await this.deleteTokenFromDB(tokenDetails.fcmToken);
     return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
 
@@ -148,20 +154,20 @@ export class ControllerInterface {
   private isTokenStillValid(
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array,
-    tokenDetails: Object
-  ): Boolean {
-    if (arrayBufferToBase64(publicVapidKey) !== tokenDetails['vapidKey']) {
+    tokenDetails: TokenDetails
+  ): boolean {
+    if (arrayBufferToBase64(publicVapidKey) !== tokenDetails.vapidKey) {
       return false;
     }
 
     // getKey() isn't defined in the PushSubscription externs file, hence
-    // subscription['getKey']('<key name>').
+    // subscription.getKey('<key name>').
     return (
-      pushSubscription.endpoint === tokenDetails['endpoint'] &&
-      arrayBufferToBase64(pushSubscription['getKey']('auth')) ===
-        tokenDetails['auth'] &&
-      arrayBufferToBase64(pushSubscription['getKey']('p256dh')) ===
-        tokenDetails['p256dh']
+      pushSubscription.endpoint === tokenDetails.endpoint &&
+      arrayBufferToBase64(pushSubscription.getKey('auth')!) ===
+        tokenDetails.auth &&
+      arrayBufferToBase64(pushSubscription.getKey('p256dh')!) ===
+        tokenDetails.p256dh
     );
   }
 
@@ -169,24 +175,24 @@ export class ControllerInterface {
     swReg: ServiceWorkerRegistration,
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array,
-    tokenDetails: Object
+    tokenDetails: TokenDetails
   ): Promise<string> {
     try {
       const updatedToken = await this.iidModel_.updateToken(
         this.messagingSenderId_,
-        tokenDetails['fcmToken'],
-        tokenDetails['fcmPushSet'],
+        tokenDetails.fcmToken,
+        tokenDetails.fcmPushSet,
         pushSubscription,
         publicVapidKey
       );
 
-      const allDetails = {
+      const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
         subscription: pushSubscription,
         fcmSenderId: this.messagingSenderId_,
         fcmToken: updatedToken,
-        fcmPushSet: tokenDetails['fcmPushSet']
+        fcmPushSet: tokenDetails.fcmPushSet
       };
 
       await this.tokenDetailsModel_.saveTokenDetails(allDetails);
@@ -196,7 +202,7 @@ export class ControllerInterface {
       );
       return updatedToken;
     } catch (e) {
-      await this.deleteToken(tokenDetails['fcmToken']);
+      await this.deleteToken(tokenDetails.fcmToken);
       throw e;
     }
   }
@@ -211,17 +217,17 @@ export class ControllerInterface {
       pushSubscription,
       publicVapidKey
     );
-    const allDetails = {
+    const allDetails: TokenDetails = {
       swScope: swReg.scope,
       vapidKey: publicVapidKey,
       subscription: pushSubscription,
       fcmSenderId: this.messagingSenderId_,
-      fcmToken: tokenDetails['token'],
-      fcmPushSet: tokenDetails['pushSet']
+      fcmToken: tokenDetails.token,
+      fcmPushSet: tokenDetails.pushSet
     };
     await this.tokenDetailsModel_.saveTokenDetails(allDetails);
     await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
-    return tokenDetails['token'];
+    return tokenDetails.token;
   }
 
   /**
@@ -231,7 +237,7 @@ export class ControllerInterface {
    * whether or not the unsubscribe request was processed successfully.
    * @export
    */
-  async deleteToken(token: string): Promise<Boolean> {
+  async deleteToken(token: string): Promise<boolean> {
     // Delete the token details from the database.
     await this.deleteTokenFromDB(token);
     // Unsubscribe from the SW.
@@ -254,19 +260,19 @@ export class ControllerInterface {
   private async deleteTokenFromDB(token: string): Promise<void> {
     const details = await this.tokenDetailsModel_.deleteToken(token);
     await this.iidModel_.deleteToken(
-      details['fcmSenderId'],
-      details['fcmToken'],
-      details['fcmPushSet']
+      details.fcmSenderId,
+      details.fcmToken,
+      details.fcmPushSet
     );
   }
 
-  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
-  }
+  // Visible for testing
+  // TODO: Make protected
+  abstract getSWRegistration_(): Promise<ServiceWorkerRegistration>;
 
-  getPublicVapidKey_(): Promise<Uint8Array> {
-    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
-  }
+  // Visible for testing
+  // TODO: Make protected
+  abstract getPublicVapidKey_(): Promise<Uint8Array>;
 
   /**
    * Gets a PushSubscription for the current user.
@@ -295,44 +301,27 @@ export class ControllerInterface {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!ServiceWorkerRegistration} registration
-   */
-  useServiceWorker(registration) {
+  useServiceWorker(registration: ServiceWorkerRegistration) {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!string} b64PublicKey
-   */
-  usePublicVapidKey(b64PublicKey) {
+  usePublicVapidKey(b64PublicKey: string) {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!firebase.Observer|function(*)} nextOrObserver
-   * @param {function(!Error)=} optError
-   * @param {function()=} optCompleted
-   * @return {!function()}
-   */
-  onMessage(nextOrObserver, optError, optCompleted) {
+  onMessage(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ) {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!firebase.Observer|function()} nextOrObserver An observer object
-   * or a function triggered on token refresh.
-   * @param {function(!Error)=} optError Optional A function
-   * triggered on token refresh error.
-   * @param {function()=} optCompleted Optional function triggered when the
-   * observer is removed.
-   * @return {!function()} The unsubscribe function for the observer.
-   */
-  onTokenRefresh(nextOrObserver, optError, optCompleted) {
+  onTokenRefresh(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ) {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
@@ -340,11 +329,7 @@ export class ControllerInterface {
   // The following methods are used by the service worker only.
   //
 
-  /**
-   * @export
-   * @param {function(Object)} callback
-   */
-  setBackgroundMessageHandler(callback) {
+  setBackgroundMessageHandler(callback: (a: any) => any) {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
@@ -369,7 +354,7 @@ export class ControllerInterface {
    * @private
    * @return {string} The currenct permission state.
    */
-  getNotificationPermission_() {
+  getNotificationPermission_(): NotificationPermission {
     return (Notification as any).permission;
   }
 

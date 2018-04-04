@@ -28,6 +28,20 @@ import { IIDModel } from '../src/models/iid-model';
 
 const controllersToTest = [WindowController, SWController];
 
+/**
+ * As ControllerInterface is an abstract class, we need a concrete
+ * implementation that can be initialized for testing
+ */
+class MockControllerInterface extends ControllerInterface {
+  async getSWRegistration_() {
+    return await new ServiceWorkerRegistration();
+  }
+
+  async getPublicVapidKey_() {
+    return await new Uint8Array(0);
+  }
+}
+
 describe('Firebase Messaging > *ControllerInterface', function() {
   const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
@@ -48,44 +62,16 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('INTERNAL.delete()', function() {
     it('should call delete()', function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       sandbox.spy(controller, 'delete');
       controller.INTERNAL.delete();
       expect(controller.delete['callCount']).to.equal(1);
     });
   });
 
-  describe('getSWRegistration_()', function() {
-    it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
-      let thrownError;
-      try {
-        controller.getSWRegistration_();
-      } catch (err) {
-        thrownError = err;
-      }
-      expect(thrownError).to.exist;
-      expect(thrownError.code).to.equal('messaging/should-be-overriden');
-    });
-  });
-
-  describe('getPublicVapidKey_()', function() {
-    it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
-      let thrownError;
-      try {
-        controller.getPublicVapidKey_();
-      } catch (err) {
-        thrownError = err;
-      }
-      expect(thrownError).to.exist;
-      expect(thrownError.code).to.equal('messaging/should-be-overriden');
-    });
-  });
-
   describe('requestPermission()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
         controller.requestPermission();
@@ -163,10 +149,10 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('useServiceWorker()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
-        controller.useServiceWorker(null);
+        controller.useServiceWorker(null as any);
       } catch (err) {
         thrownError = err;
       }
@@ -177,10 +163,10 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('usePublicVapidKey()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
-        controller.usePublicVapidKey(null);
+        controller.usePublicVapidKey(null as any);
       } catch (err) {
         thrownError = err;
       }
@@ -191,10 +177,10 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('onMessage()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
-        controller.onMessage(null, null, null);
+        controller.onMessage(null as any, null as any, null as any);
       } catch (err) {
         thrownError = err;
       }
@@ -205,10 +191,10 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('onTokenRefresh()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
-        controller.onTokenRefresh(null, null, null);
+        controller.onTokenRefresh(null as any, null as any, null as any);
       } catch (err) {
         thrownError = err;
       }
@@ -219,10 +205,10 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('setBackgroundMessageHandler()', function() {
     it(`should throw`, function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       let thrownError;
       try {
-        controller.setBackgroundMessageHandler(null);
+        controller.setBackgroundMessageHandler(null as any);
       } catch (err) {
         thrownError = err;
       }
@@ -234,7 +220,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
   describe('getNotificationPermission_', function() {
     it('should return current permission', function() {
       sandbox.stub(Notification as any, 'permission').value('test');
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       const result = controller.getNotificationPermission_();
       expect(result).to.equal('test');
     });
@@ -242,7 +228,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('getTokenDetailsModel', function() {
     it('should return an instance of TokenDetailsModel', function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       const result = controller.getTokenDetailsModel();
       expect(result).to.be.instanceof(TokenDetailsModel);
     });
@@ -250,7 +236,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('getVapidDetailsModel', function() {
     it('should return an instance of VapidDetailsModel', function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       const result = controller.getVapidDetailsModel();
       expect(result).to.be.instanceof(VapidDetailsModel);
     });
@@ -258,7 +244,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
   describe('getIIDModel', function() {
     it('should return an instance of IIDModel', function() {
-      const controller = new ControllerInterface(app);
+      const controller = new MockControllerInterface(app);
       const result = controller.getIIDModel();
       expect(result).to.be.instanceof(IIDModel);
     });
