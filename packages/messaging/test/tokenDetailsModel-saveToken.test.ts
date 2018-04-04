@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import makeFakeSubscription from './make-fake-subscription';
+import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import TokenDetailsModel from '../src/models/token-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 
 describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
   const EXAMPLE_INPUT = {
@@ -66,7 +66,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
         }
       );
     });
@@ -86,7 +86,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_VAPID_KEY, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_VAPID_KEY, err.code);
         }
       );
     });
@@ -106,7 +106,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SUBSCRIPTION, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
         }
       );
     });
@@ -126,7 +126,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SENDER_ID, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SENDER_ID, err.code);
         }
       );
     });
@@ -146,7 +146,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_TOKEN, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_TOKEN, err.code);
         }
       );
     });
@@ -166,7 +166,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_PUSH_SET, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_PUSH_SET, err.code);
         }
       );
     });

@@ -18,15 +18,15 @@
 
 import { ErrorFactory, base64 } from '@firebase/util';
 
-import Errors from './errors';
-import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
-import FCMDetails from './fcm-details';
+import { ERROR_CODES, ERROR_MAP } from './errors';
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
-export default class IIDModel {
+export class IIDModel {
   private errorFactory_: ErrorFactory<string>;
 
   constructor() {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
+    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
   }
 
   /**
@@ -48,7 +48,7 @@ export default class IIDModel {
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
 
-    if (publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
+    if (publicVapidKey !== DEFAULT_PUBLIC_VAPID_KEY) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
     }
@@ -62,32 +62,27 @@ export default class IIDModel {
       body: fcmSubscribeBody
     };
 
-    return fetch(
-      FCMDetails.ENDPOINT + '/fcm/connect/subscribe',
-      subscribeOptions
-    )
+    return fetch(ENDPOINT + '/fcm/connect/subscribe', subscribeOptions)
       .then(response => response.json())
       .catch(() => {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED);
+        throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
       })
       .then(response => {
         const fcmTokenResponse = response;
         if (fcmTokenResponse['error']) {
           const message = fcmTokenResponse['error']['message'];
-          throw this.errorFactory_.create(Errors.codes.TOKEN_SUBSCRIBE_FAILED, {
+          throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
             message: message
           });
         }
 
         if (!fcmTokenResponse['token']) {
-          throw this.errorFactory_.create(
-            Errors.codes.TOKEN_SUBSCRIBE_NO_TOKEN
-          );
+          throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
         }
 
         if (!fcmTokenResponse['pushSet']) {
           throw this.errorFactory_.create(
-            Errors.codes.TOKEN_SUBSCRIBE_NO_PUSH_SET
+            ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET
           );
         }
 
@@ -119,7 +114,7 @@ export default class IIDModel {
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
 
-    if (publicVapidKey !== FCMDetails.DEFAULT_PUBLIC_VAPID_KEY) {
+    if (publicVapidKey !== DEFAULT_PUBLIC_VAPID_KEY) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmUpdateBody += `&application_pub_key=${applicationPubKey}`;
     }
@@ -134,23 +129,23 @@ export default class IIDModel {
     };
 
     let updateFetchRes;
-    return fetch(FCMDetails.ENDPOINT + '/fcm/connect/subscribe', updateOptions)
+    return fetch(ENDPOINT + '/fcm/connect/subscribe', updateOptions)
       .then(fetchResponse => {
         updateFetchRes = fetchResponse;
         return fetchResponse.json();
       })
       .catch(() => {
-        throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED);
+        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
       })
       .then(fcmTokenResponse => {
         if (!updateFetchRes.ok) {
           const message = fcmTokenResponse['error']['message'];
-          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_FAILED, {
+          throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
             message: message
           });
         }
         if (!fcmTokenResponse['token']) {
-          throw this.errorFactory_.create(Errors.codes.TOKEN_UPDATE_NO_TOKEN);
+          throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
         }
         return fcmTokenResponse['token'];
       });
@@ -179,7 +174,7 @@ export default class IIDModel {
     };
 
     return fetch(
-      FCMDetails.ENDPOINT + '/fcm/connect/unsubscribe',
+      ENDPOINT + '/fcm/connect/unsubscribe',
       unsubscribeOptions
     ).then(fetchResponse => {
       if (!fetchResponse.ok) {
@@ -188,7 +183,7 @@ export default class IIDModel {
             if (fcmTokenResponse['error']) {
               const message = fcmTokenResponse['error']['message'];
               throw this.errorFactory_.create(
-                Errors.codes.TOKEN_UNSUBSCRIBE_FAILED,
+                ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED,
                 {
                   message: message
                 }
@@ -197,7 +192,7 @@ export default class IIDModel {
           },
           err => {
             throw this.errorFactory_.create(
-              Errors.codes.TOKEN_UNSUBSCRIBE_FAILED
+              ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED
             );
           }
         );

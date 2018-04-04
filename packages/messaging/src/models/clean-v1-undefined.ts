@@ -26,7 +26,7 @@
  * underlying tokens.
  */
 
-import IIDModel from '../models/iid-model';
+import { IIDModel } from '../models/iid-model';
 
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';

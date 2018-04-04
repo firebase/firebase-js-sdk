@@ -15,14 +15,14 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import TokenDetailsModel from '../src/models/token-details-model';
-import IIDModel from '../src/models/iid-model';
-import WindowController from '../src/controllers/window-controller';
-import SWController from '../src/controllers/sw-controller';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { IIDModel } from '../src/models/iid-model';
+import { WindowController } from '../src/controllers/window-controller';
+import { SWController } from '../src/controllers/sw-controller';
 
 const EXAMPLE_TOKEN_SAVE = {
   fcmToken: 'ExampleFCMToken1337',
@@ -90,10 +90,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         throw new Error('Expected error to be thrown.');
       },
       err => {
-        assert.equal(
-          'messaging/' + Errors.codes.INVALID_DELETE_TOKEN,
-          err.code
-        );
+        assert.equal('messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN, err.code);
       }
     );
   });
@@ -212,7 +209,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
           return Promise.resolve(EXAMPLE_TOKEN_SAVE);
         });
 
-      const errorMsg = 'messaging/' + Errors.codes.TOKEN_UNSUBSCRIBE_FAILED;
+      const errorMsg = 'messaging/' + ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED;
       sandbox
         .stub(IIDModel.prototype, 'deleteToken')
         .callsFake(() => Promise.reject(new Error(errorMsg)));

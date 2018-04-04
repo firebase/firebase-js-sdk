@@ -15,16 +15,16 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 
-import FCMDetails from '../src/models/fcm-details';
-import WindowController from '../src/controllers/window-controller';
-import SWController from '../src/controllers/sw-controller';
-import ControllerInterface from '../src/controllers/controller-interface';
-import TokenDetailsModel from '../src/models/token-details-model';
-import VapidDetailsModel from '../src/models/vapid-details-model';
-import IIDModel from '../src/models/iid-model';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { WindowController } from '../src/controllers/window-controller';
+import { SWController } from '../src/controllers/sw-controller';
+import { ControllerInterface } from '../src/controllers/controller-interface';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { VapidDetailsModel } from '../src/models/vapid-details-model';
+import { IIDModel } from '../src/models/iid-model';
 
 const controllersToTest = [WindowController, SWController];
 
@@ -110,7 +110,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
         const controller = new ControllerInTest(app);
         return controller
-          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(
             () => {
               throw new Error('Expected an error.');
@@ -130,7 +130,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
         const controller = new ControllerInTest(app);
         return controller
-          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
             expect(subscription).to.equal(exampleSubscription);
           });
@@ -144,7 +144,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
           subscribe: options => {
             expect(options).to.deep.equal({
               userVisibleOnly: true,
-              applicationServerKey: FCMDetails.DEFAULT_PUBLIC_VAPID_KEY
+              applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY
             });
 
             return Promise.resolve(exampleSubscription);
@@ -153,7 +153,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
 
         const controller = new ControllerInTest(app);
         return controller
-          .getPushSubscription(reg, FCMDetails.DEFAULT_PUBLIC_VAPID_KEY)
+          .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
             expect(subscription).to.equal(exampleSubscription);
           });

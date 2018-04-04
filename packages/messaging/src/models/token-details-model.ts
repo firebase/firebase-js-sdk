@@ -15,9 +15,9 @@
  */
 'use strict';
 
-import DBInterface from './db-interface';
-import Errors from './errors';
-import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
+import { DBInterface } from './db-interface';
+import { ERROR_CODES } from './errors';
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { cleanV1 } from './clean-v1-undefined';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
@@ -39,7 +39,7 @@ ValidateInput.prototype.fcmSenderId;
 /** @type {string|undefined} */
 ValidateInput.prototype.fcmPushSet;
 
-export default class TokenDetailsModel extends DBInterface {
+export class TokenDetailsModel extends DBInterface {
   constructor() {
     super(DB_NAME, DB_VERSION);
   }
@@ -80,17 +80,13 @@ export default class TokenDetailsModel extends DBInterface {
   async validateInputs_(input) {
     if (input.fcmToken) {
       if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
-        return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_TOKEN)
-        );
+        return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
       }
     }
 
     if (input.swScope) {
       if (typeof input.swScope !== 'string' || input.swScope.length === 0) {
-        return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_SCOPE)
-        );
+        return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
       }
     }
 
@@ -100,7 +96,7 @@ export default class TokenDetailsModel extends DBInterface {
         input.vapidKey.length !== 65
       ) {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
+          this.errorFactory_.create(ERROR_CODES.BAD_VAPID_KEY)
         );
       }
     }
@@ -108,7 +104,7 @@ export default class TokenDetailsModel extends DBInterface {
     if (input.subscription) {
       if (!(input.subscription instanceof PushSubscription)) {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_SUBSCRIPTION)
+          this.errorFactory_.create(ERROR_CODES.BAD_SUBSCRIPTION)
         );
       }
     }
@@ -119,7 +115,7 @@ export default class TokenDetailsModel extends DBInterface {
         input.fcmSenderId.length === 0
       ) {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_SENDER_ID)
+          this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID)
         );
       }
     }
@@ -130,7 +126,7 @@ export default class TokenDetailsModel extends DBInterface {
         input.fcmPushSet.length === 0
       ) {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.BAD_PUSH_SET)
+          this.errorFactory_.create(ERROR_CODES.BAD_PUSH_SET)
         );
       }
     }
@@ -143,7 +139,7 @@ export default class TokenDetailsModel extends DBInterface {
    */
   getTokenDetailsFromToken(fcmToken) {
     if (!fcmToken) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_TOKEN));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
     }
 
     return this.validateInputs_({ fcmToken })
@@ -178,7 +174,7 @@ export default class TokenDetailsModel extends DBInterface {
    */
   getTokenDetailsFromSWScope(swScope) {
     if (!swScope) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
 
     return this.validateInputs_({ swScope })
@@ -220,34 +216,34 @@ export default class TokenDetailsModel extends DBInterface {
     fcmPushSet
   }) {
     if (!swScope) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_SCOPE));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
 
     if (!vapidKey) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
+        this.errorFactory_.create(ERROR_CODES.BAD_VAPID_KEY)
       );
     }
 
     if (!subscription) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.BAD_SUBSCRIPTION)
+        this.errorFactory_.create(ERROR_CODES.BAD_SUBSCRIPTION)
       );
     }
 
     if (!fcmSenderId) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.BAD_SENDER_ID)
+        this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID)
       );
     }
 
     if (!fcmToken) {
-      return Promise.reject(this.errorFactory_.create(Errors.codes.BAD_TOKEN));
+      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
     }
 
     if (!fcmPushSet) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.BAD_PUSH_SET)
+        this.errorFactory_.create(ERROR_CODES.BAD_PUSH_SET)
       );
     }
 
@@ -305,13 +301,13 @@ export default class TokenDetailsModel extends DBInterface {
   deleteToken(token: string) {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN)
+        this.errorFactory_.create(ERROR_CODES.INVALID_DELETE_TOKEN)
       );
     }
 
     return this.getTokenDetailsFromToken(token).then(details => {
       if (!details) {
-        throw this.errorFactory_.create(Errors.codes.DELETE_TOKEN_NOT_FOUND);
+        throw this.errorFactory_.create(ERROR_CODES.DELETE_TOKEN_NOT_FOUND);
       }
 
       return this.openDatabase().then(db => {
@@ -328,7 +324,7 @@ export default class TokenDetailsModel extends DBInterface {
           request.onsuccess = event => {
             if ((<IDBRequest>event.target).result === 0) {
               reject(
-                this.errorFactory_.create(Errors.codes.FAILED_TO_DELETE_TOKEN)
+                this.errorFactory_.create(ERROR_CODES.FAILED_TO_DELETE_TOKEN)
               );
               return;
             }

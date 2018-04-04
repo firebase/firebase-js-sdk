@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 const FakeRegistration = function() {};
 FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
-export default function(selectedState?, desiredValue?) {
+export function makeFakeSWReg(selectedState?, desiredValue?) {
   const fakeReg = new FakeRegistration();
   sinon.stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];

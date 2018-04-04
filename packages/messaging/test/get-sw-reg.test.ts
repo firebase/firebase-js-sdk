@@ -15,12 +15,11 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
-import DefaultSW from '../src/models/default-sw';
-import Errors from '../src/models/errors';
-import WindowController from '../src/controllers/window-controller';
-import SWController from '../src/controllers/sw-controller';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
+import { ERROR_CODES } from '../src/models/errors';
+import { WindowController } from '../src/controllers/window-controller';
+import { SWController } from '../src/controllers/sw-controller';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
@@ -86,7 +85,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Expected this error to throw due to no SW.');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.NO_SW_IN_REG, err.code);
+        assert.equal('messaging/' + ERROR_CODES.NO_SW_IN_REG, err.code);
       }
     );
   });
@@ -125,7 +124,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
       },
       error => {
         assert.equal(
-          'messaging/' + Errors.codes.FAILED_DEFAULT_REGISTRATION,
+          'messaging/' + ERROR_CODES.FAILED_DEFAULT_REGISTRATION,
           error.code
         );
         assert.equal(error.message.indexOf(errorMsg) !== -1, true);
@@ -145,7 +144,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });
@@ -171,7 +170,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });
@@ -197,7 +196,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });

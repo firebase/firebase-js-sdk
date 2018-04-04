@@ -15,7 +15,7 @@
  */
 import { expect } from 'chai';
 import { deleteDatabase } from './testing-utils/db-helper';
-import DBInterface from '../src/models/db-interface';
+import { DBInterface } from '../src/models/db-interface';
 
 describe(`Firebase Messaging > db-interface.onDBUpgrade()`, function() {
   const TEST_DB_NAME = 'test-db';

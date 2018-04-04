@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 function toBase64(arrayBuffer) {
   const uint8Version = new Uint8Array(arrayBuffer);
   return window.btoa(String.fromCharCode.apply(null, uint8Version));
 }
 
-export default arrayBuffer => {
+export function arrayBufferToBase64(arrayBuffer) {
   const base64String = toBase64(arrayBuffer);
   return base64String
     .replace(/=/g, '')
     .replace(/\+/g, '-')
     .replace(/\//g, '_');
-};
+}
