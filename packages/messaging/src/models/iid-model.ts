@@ -73,8 +73,6 @@ export class IIDModel {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
 
-    responseData = responseData as Object;
-
     if (responseData['error']) {
       const message = responseData['error']['message'];
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
@@ -141,8 +139,6 @@ export class IIDModel {
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
-
-    responseData = responseData as Object;
 
     if (responseData['error']) {
       const message = responseData['error']['message'];
