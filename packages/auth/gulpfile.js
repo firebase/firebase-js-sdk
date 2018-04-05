@@ -36,8 +36,9 @@ const COMPILER_PATH = `${path.dirname(require.resolve('google-closure-compiler/p
 
 const closureLibRoot = path.dirname(require.resolve('google-closure-library/package.json'));
 // Builds the core Firebase-auth JS.
-gulp.task('build-firebase-auth-js', () =>
-    gulp
+
+function buildFirebaseAuth() {
+  return gulp
     .src([
       `${closureLibRoot}/closure/goog/**/*.js`,
       `${closureLibRoot}/third_party/closure/goog/**/*.js`,
@@ -62,10 +63,13 @@ gulp.task('build-firebase-auth-js', () =>
         output_wrapper: OUTPUT_WRAPPER
       }
     }))
-    .pipe(gulp.dest('dist')));
+    .pipe(gulp.dest('dist'));
+}
+
+gulp.task('build-firebase-auth-js', buildFirebaseAuth);
 
 // Deletes intermediate files.
-gulp.task('clean', () => del(['dist/*', 'dist']));
+gulp.task('clean', done => del(['dist/*', 'dist'], done));
 
 // Creates a webserver that serves all files from the root of the package.
 gulp.task('serve', () => {
@@ -78,6 +82,4 @@ gulp.task('serve', () => {
 });
 
 
-gulp.task(
-    'default',
-    ['build-firebase-auth-js']);
+gulp.task('default', buildFirebaseAuth);
