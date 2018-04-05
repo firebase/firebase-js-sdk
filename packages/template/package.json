@@ -15,8 +15,8 @@
     "prepare": "gulp build"
   },
   "peerDependencies": {
-    "@firebase/app": "0.1.6",
-    "@firebase/app-types": "0.1.1"
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
   },
   "dependencies": {
     "@firebase/template-types": "0.1.0",
