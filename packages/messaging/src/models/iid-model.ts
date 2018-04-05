@@ -60,7 +60,7 @@ export class IIDModel {
       body: fcmSubscribeBody
     };
 
-    let responseData = null;
+    let responseData: Object | null = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -71,6 +71,8 @@ export class IIDModel {
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
+
+    responseData = responseData as Object;
 
     if (responseData['error']) {
       const message = responseData['error']['message'];
@@ -128,7 +130,7 @@ export class IIDModel {
       body: fcmUpdateBody
     };
 
-    let responseData = null;
+    let responseData: Object | null = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -138,6 +140,8 @@ export class IIDModel {
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
+
+    responseData = responseData as Object;
 
     if (responseData['error']) {
       const message = responseData['error']['message'];
