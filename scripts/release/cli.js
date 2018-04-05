@@ -227,7 +227,7 @@ const { argv } = require('yargs');
      * Reset the working tree (will remove unneeded changes if they weren't
      * committed already)
      */
-    await resetWorkingTree();
+    // await resetWorkingTree();
 
     /**
      * Exit with an error code
