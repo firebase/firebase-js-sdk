@@ -15,12 +15,6 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import {
-  DocumentReference,
-  DocumentSnapshot,
-  Query,
-  QuerySnapshot
-} from '../api/database';
 import { User } from '../auth/user';
 import {
   EventManager,
@@ -37,8 +31,13 @@ import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
 import { Persistence } from '../local/persistence';
-import { DocumentKeySet, documentKeySet } from '../model/collections';
+import {
+  DocumentKeySet,
+  documentKeySet,
+  DocumentMap
+} from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
@@ -367,55 +366,40 @@ export class FirestoreClient {
     });
   }
 
-  getDocumentFromLocalCache(
-    doc: DocumentReference,
-    observer: Observer<DocumentSnapshot>
-  ): void {
-    this.asyncQueue.schedule(() => {
-      return this.localStore.readDocument(doc._key).then(maybeDoc => {
+  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
+    return this.asyncQueue
+      .schedule(() => {
+        return this.localStore.readDocument(docKey);
+      })
+      .then((maybeDoc: MaybeDocument | null) => {
         if (maybeDoc instanceof Document) {
-          observer.next(
-            new DocumentSnapshot(doc.firestore, doc._key, maybeDoc, true)
-          );
+          return maybeDoc;
         } else {
-          observer.error(
-            new Error(
-              'Failed to get document from cache. (However, this document may ' +
-                "exist on the server. Run again without setting 'source' in " +
-                'the GetOptions to attempt to retrieve the document from the ' +
-                'server.)'
-            )
+          throw new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get document from cache. (However, this document may ' +
+              "exist on the server. Run again without setting 'source' in " +
+              'the GetOptions to attempt to retrieve the document from the ' +
+              'server.)'
           );
         }
       });
-    });
   }
 
-  getDocumentsFromLocalCache(
-    query: Query,
-    observer: Observer<QuerySnapshot>
-  ): void {
-    this.asyncQueue.schedule(() => {
-      return this.localStore.executeQuery(query._query).then(docs => {
+  getDocumentsFromLocalCache(query: InternalQuery): Promise<ViewSnapshot> {
+    return this.asyncQueue
+      .schedule(() => {
+        return this.localStore.executeQuery(query);
+      })
+      .then((docs: DocumentMap) => {
         const remoteKeys: DocumentKeySet = documentKeySet();
 
-        const view = new View(query._query, remoteKeys);
+        const view = new View(query, remoteKeys);
         const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
           docs
         );
-        const viewChange: ViewChange = view.applyChanges(viewDocChanges);
-        assert(
-          viewChange.limboChanges.length === 0,
-          'View returned limbo documents during local-only query execution.'
-        );
-
-        const snapshot: ViewSnapshot = viewChange.snapshot;
-
-        observer.next(
-          new QuerySnapshot(query.firestore, query._query, snapshot)
-        );
+        return view.applyChanges(viewDocChanges).snapshot;
       });
-    });
   }
 
   write(mutations: Mutation[]): Promise<void> {

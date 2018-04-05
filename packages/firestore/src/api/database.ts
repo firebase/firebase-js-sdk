@@ -957,50 +957,90 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot> {
-    validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
+    validateOptionNames('DocumentReference.get', options, ['source']);
+    if (options) {
+      validateNamedOptionalPropertyEquals(
+        'DocumentReference.get',
+        'options',
+        'source',
+        options.source,
+        ['default', 'server', 'cache']
+      );
+    }
     return new Promise(
       (resolve: Resolver<firestore.DocumentSnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
-          this._firestoreClient.getDocumentFromLocalCache(this, {
-            next: (snap: firestore.DocumentSnapshot) => resolve(snap),
-            error: reject
-          });
-          return;
+          this.firestore
+            .ensureClientConfigured()
+            .getDocumentFromLocalCache(this._key)
+            .then((doc: Document) => {
+              resolve(
+                new DocumentSnapshot(
+                  this.firestore,
+                  this._key,
+                  doc,
+                  /*fromCache=*/ true
+                )
+              );
+            }, reject);
+        } else {
+          this.getViaSnapshotListener_(resolve, reject, options);
         }
+      }
+    );
+  }
 
-        const unlisten = this.onSnapshotInternal(
-          {
-            includeQueryMetadataChanges: true,
-            includeDocumentMetadataChanges: true,
-            waitForSyncWhenOnline: true
-          },
-          {
-            next: (snap: firestore.DocumentSnapshot) => {
-              // Remove query first before passing event to user to avoid
-              // user actions affecting the now stale query.
-              unlisten();
+  private getViaSnapshotListener_(
+    resolve: Resolver<firestore.DocumentSnapshot>,
+    reject: Rejecter,
+    options?: firestore.GetOptions
+  ): void {
+    const unlisten = this.onSnapshotInternal(
+      {
+        includeQueryMetadataChanges: true,
+        includeDocumentMetadataChanges: true,
+        waitForSyncWhenOnline: true
+      },
+      {
+        next: (snap: firestore.DocumentSnapshot) => {
+          // Remove query first before passing event to user to avoid
+          // user actions affecting the now stale query.
+          unlisten();
 
-              if (!snap.exists && snap.metadata.fromCache) {
-                // TODO(dimond): If we're online and the document doesn't
-                // exist then we resolve with a doc.exists set to false. If
-                // we're offline however, we reject the Promise in this
-                // case. Two options: 1) Cache the negative response from
-                // the server so we can deliver that even when you're
-                // offline 2) Actually reject the Promise in the online case
-                // if the document doesn't exist.
-                reject(
-                  new FirestoreError(
-                    Code.ABORTED,
-                    'Failed to get document because the client is ' + 'offline.'
-                  )
-                );
-              } else {
-                resolve(snap);
-              }
-            },
-            error: reject
+          if (!snap.exists && snap.metadata.fromCache) {
+            // TODO(dimond): If we're online and the document doesn't
+            // exist then we resolve with a doc.exists set to false. If
+            // we're offline however, we reject the Promise in this
+            // case. Two options: 1) Cache the negative response from
+            // the server so we can deliver that even when you're
+            // offline 2) Actually reject the Promise in the online case
+            // if the document doesn't exist.
+            reject(
+              new FirestoreError(
+                Code.ABORTED,
+                'Failed to get document because the client is ' + 'offline.'
+              )
+            );
+          } else if (
+            snap.exists &&
+            snap.metadata.fromCache &&
+            options &&
+            options.source === 'server'
+          ) {
+            reject(
+              new FirestoreError(
+                Code.UNAVAILABLE,
+                'Failed to get document from server. (However, this ' +
+                  'document does exist in the local cache. Run again ' +
+                  'without setting source to FIRGetSourceServer to ' +
+                  'retrieve the cached document.)'
+              )
+            );
+          } else {
+            resolve(snap);
           }
-        );
+        },
+        error: reject
       }
     );
   }
@@ -1581,29 +1621,53 @@ export class Query implements firestore.Query {
         if (options && options.source === 'cache') {
           this.firestore
             .ensureClientConfigured()
-            .getDocumentsFromLocalCache(this, {
-              next: (snap: firestore.QuerySnapshot) => resolve(snap),
-              error: reject
-            });
-          return;
+            .getDocumentsFromLocalCache(this._query)
+            .then((viewSnap: ViewSnapshot) => {
+              resolve(new QuerySnapshot(this.firestore, this._query, viewSnap));
+            }, reject);
+        } else {
+          this.getViaSnapshotListener_(resolve, reject, options);
         }
-        const unlisten = this.onSnapshotInternal(
-          {
-            includeDocumentMetadataChanges: false,
-            includeQueryMetadataChanges: true,
-            waitForSyncWhenOnline: true
-          },
-          {
-            next: (result: firestore.QuerySnapshot) => {
-              // Remove query first before passing event to user to avoid
-              // user actions affecting the now stale query.
-              unlisten();
+      }
+    );
+  }
 
-              resolve(result);
-            },
-            error: reject
+  private getViaSnapshotListener_(
+    resolve: Resolver<firestore.QuerySnapshot>,
+    reject: Rejecter,
+    options?: firestore.GetOptions
+  ): void {
+    const unlisten = this.onSnapshotInternal(
+      {
+        includeDocumentMetadataChanges: false,
+        includeQueryMetadataChanges: true,
+        waitForSyncWhenOnline: true
+      },
+      {
+        next: (result: firestore.QuerySnapshot) => {
+          // Remove query first before passing event to user to avoid
+          // user actions affecting the now stale query.
+          unlisten();
+
+          if (
+            result.metadata.fromCache &&
+            options &&
+            options.source === 'server'
+          ) {
+            reject(
+              new FirestoreError(
+                Code.UNAVAILABLE,
+                'Failed to get documents from server. (However, these ' +
+                  'documents may exist in the local cache. Run again ' +
+                  'without setting source to "server" to ' +
+                  'retrieve the cached documents.)'
+              )
+            );
+          } else {
+            resolve(result);
           }
-        );
+        },
+        error: reject
       }
     );
   }

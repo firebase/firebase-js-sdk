@@ -118,8 +118,9 @@ export class AsyncQueue {
           // and return the rejected Promise.
           throw error;
         })
-        .then(() => {
+        .then(result => {
           this.operationInProgress = false;
+          return result;
         });
     });
     return this.tail as AnyDuringMigration;

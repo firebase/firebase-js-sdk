@@ -86,6 +86,16 @@ export function toDataArray(
   return docSet.docs.map(d => d.data());
 }
 
+export function toDataMap(
+  docSet: firestore.QuerySnapshot
+): { [field: string]: firestore.DocumentData } {
+  let docsData = {};
+  docSet.forEach(doc => {
+    docsData[doc.id] = doc.data();
+  });
+  return docsData;
+}
+
 export function withTestDb(
   persistence: boolean,
   fn: (db: firestore.FirebaseFirestore) => Promise<void>
@@ -188,6 +198,28 @@ export function withTestDoc(
 ): Promise<void> {
   return withTestDb(persistence, db => {
     return fn(db.collection('test-collection').doc());
+  });
+}
+
+// TODO(rsgowman): Modify withTestDoc to take in (an optional) initialData and
+// fix existing usages of it. Then delete this function. This makes withTestDoc
+// more analogous to withTestCollection and eliminates the pattern of
+// `withTestDoc(..., docRef => { docRef.set(initialData) ...});` that otherwise is
+// quite common.
+export function withTestDocAndInitialData(
+  persistence: boolean,
+  initialData: firestore.DocumentData | null,
+  fn: (doc: firestore.DocumentReference) => Promise<void>
+): Promise<void> {
+  return withTestDb(persistence, db => {
+    const docRef: firestore.DocumentReference = db
+      .collection('test-collection')
+      .doc();
+    if (initialData) {
+      return docRef.set(initialData).then(() => fn(docRef));
+    } else {
+      return fn(docRef);
+    }
   });
 }
 

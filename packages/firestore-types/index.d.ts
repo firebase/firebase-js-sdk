@@ -395,30 +395,32 @@ export interface SetOptions {
 }
 
 /**
- * An options object that configures the behavior of `get()` calls in
+ * An options object that configures the behavior of `get()` calls on
  * `DocumentReference` and `Query`. By providing a `GetOptions` object, these
  * methods can be configured to fetch results only from the server, only from
- * the local cache or attempt the server and fall back to the cache (which is
- * the default).
+ * the local cache or attempt to fetch results from the server and fall back to
+ * the cache (which is the default).
  */
 export interface GetOptions {
   /**
    * Describes whether we should get from server or cache.
    *
-   * Setting to 'default' (or not setting at all), if online, causes Firestore
-   * to try to give a consistent (server-retrieved) snapshot, or else revert to
-   * the cache to provide a value.
+   * Setting to 'default' (or not setting at all), causes Firestore to try to
+   * retrieve an up-to-date (server-retrieved) snapshot, but fall back to
+   * returning cached data if the server can't be reached.
    *
-   * Setting to 'server' causes Firestore to avoid the cache (generating an
-   * error if a value cannot be retrieved from the server). The cache will be
-   * updated if the RPC succeeds. Latency compensation still occurs (implying
-   * that if the cache is more up to date, then it's values will be merged into
-   * the results).
+   * Setting to 'server' causes Firestore to avoid the cache, generating an
+   * error if the server cannot be reached. Note that the cache will still be
+   * updated if the server request succeeds. Also note that latency-compensation
+   * still takes effect, so any pending write operations will be visible in the
+   * returned data (merged into the server-provided data).
    *
    * Setting to 'cache' causes Firestore to immediately return a value from the
    * cache, ignoring the server completely (implying that the returned value
-   * may be stale with respect to the value on the server.) For a single
-   * document, the get will fail if the document doesn't exist.
+   * may be stale with respect to the value on the server.) If there is no data
+   * in the cache to satisfy the `get()` call, `DocumentReference.get()` will
+   * return an error and `QuerySnapshot.get()` will return an empty
+   * `QuerySnapshot` with no documents.
    */
   readonly source?: 'default' | 'server' | 'cache';
 }
@@ -906,6 +908,11 @@ export class Query {
 
   /**
    * Executes the query and returns the results as a QuerySnapshot.
+   *
+   * Note: By default, get() attempts to provide up-to-date data when possible
+   * by waiting for data from the server, but it may return cached data or fail
+   * if you are offline and the server cannot be reached. This behavior can be
+   * altered via the `GetOptions` parameter.
    *
    * @param options An object to configure the get behavior.
    * @return A Promise that will be resolved with the results of the Query.
