@@ -19,6 +19,7 @@ import { ErrorFactory, base64 } from '@firebase/util';
 import { ERROR_CODES, ERROR_MAP } from './errors';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
+import { TokenDetails } from '../interfaces/token-details';
 
 export interface IIDDetails {
   token: string;
@@ -37,8 +38,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<IIDDetails> {
-    const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
-    const auth = arrayBufferToBase64(subscription['getKey']('auth'));
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
+    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
 
     let fcmSubscribeBody =
       `authorized_entity=${senderId}&` +
@@ -60,7 +61,7 @@ export class IIDModel {
       body: fcmSubscribeBody
     };
 
-    let responseData: Object | null = null;
+    let responseData: any = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -71,8 +72,6 @@ export class IIDModel {
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
-
-    responseData = responseData as Object;
 
     if (responseData['error']) {
       const message = responseData['error']['message'];
@@ -105,8 +104,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const p256dh = arrayBufferToBase64(subscription['getKey']('p256dh'));
-    const auth = arrayBufferToBase64(subscription['getKey']('auth'));
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
+    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
 
     let fcmUpdateBody =
       `push_set=${fcmPushSet}&` +
@@ -130,7 +129,7 @@ export class IIDModel {
       body: fcmUpdateBody
     };
 
-    let responseData: Object | null = null;
+    let responseData: any = null;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -140,8 +139,6 @@ export class IIDModel {
     } catch (err) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
-
-    responseData = responseData as Object;
 
     if (responseData['error']) {
       const message = responseData['error']['message'];

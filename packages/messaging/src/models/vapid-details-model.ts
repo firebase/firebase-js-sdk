@@ -27,11 +27,7 @@ export class VapidDetailsModel extends DBInterface {
     super(DB_NAME, DB_VERSION);
   }
 
-  /**
-   * @override
-   * @param {IDBDatabase} db
-   */
-  onDBUpgrade(db) {
+  onDBUpgrade(db: IDBDatabase) {
     db.createObjectStore(FCM_VAPID_OBJ_STORE, {
       keyPath: 'swScope'
     });
