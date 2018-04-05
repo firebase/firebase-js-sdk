@@ -220,14 +220,12 @@ describe('Firebase Messaging > *WindowController', function() {
       const controller = new WindowController(app);
       let thrownError;
       try {
-        controller.useServiceWorker(null);
+        controller.useServiceWorker(null as any);
       } catch (err) {
         thrownError = err;
       }
       expect(thrownError).to.exist;
-      expect(thrownError.code).to.deep.equal(
-        'messaging/sw-registration-expected'
-      );
+      expect(thrownError.code).to.equal('messaging/sw-registration-expected');
     });
 
     it(`should only be callable once`, function() {
@@ -287,7 +285,7 @@ describe('Firebase Messaging > *WindowController', function() {
 
       let thrownError;
       try {
-        controller.usePublicVapidKey({});
+        controller.usePublicVapidKey({} as any);
       } catch (err) {
         thrownError = err;
       }
@@ -375,7 +373,7 @@ describe('Firebase Messaging > *WindowController', function() {
       });
 
       const controller = new WindowController(app);
-      controller.onMessage(onMessageSpy, null, null);
+      controller.onMessage(onMessageSpy, null as any, null as any);
       controller.setupSWMessageListener_();
 
       const callback = spy.args[0][1];

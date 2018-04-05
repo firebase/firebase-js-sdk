@@ -128,7 +128,7 @@ describe('Firebase Messaging > *SWController', function() {
         .callsFake(() => Promise.resolve(true));
 
       const swController = new SWController(app);
-      swController.setBackgroundMessageHandler(() => {});
+      swController.setBackgroundMessageHandler((() => {}) as any);
       swController.onPush_({
         waitUntil: waitUntilSpy,
         data: {
@@ -281,7 +281,7 @@ describe('Firebase Messaging > *SWController', function() {
       const swController = new SWController(app);
       let thrownError;
       try {
-        swController.setBackgroundMessageHandler('');
+        swController.setBackgroundMessageHandler('' as any);
       } catch (err) {
         thrownError = err;
       }

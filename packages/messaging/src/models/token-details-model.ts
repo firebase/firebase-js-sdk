@@ -18,25 +18,11 @@ import { DBInterface } from './db-interface';
 import { ERROR_CODES } from './errors';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { cleanV1 } from './clean-v1-undefined';
+import { TokenDetails } from '../interfaces/token-details';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
 const DB_NAME = 'fcm_token_details_db';
 const DB_VERSION = 2;
-
-/** @record */
-function ValidateInput() {}
-/** @type {string|undefined} */
-ValidateInput.prototype.fcmToken;
-/** @type {string|undefined} */
-ValidateInput.prototype.swScope;
-/** @type {string|undefined} */
-ValidateInput.prototype.vapidKey;
-/** @type {PushSubscription|undefined} */
-ValidateInput.prototype.subscription;
-/** @type {string|undefined} */
-ValidateInput.prototype.fcmSenderId;
-/** @type {string|undefined} */
-ValidateInput.prototype.fcmPushSet;
 
 export class TokenDetailsModel extends DBInterface {
   constructor() {
@@ -71,12 +57,9 @@ export class TokenDetailsModel extends DBInterface {
   /**
    * This method takes an object and will check for known arguments and
    * validate the input.
-   * @private
-   * @param {!ValidateInput} input
-   * @return {!Promise} Returns promise that resolves if input is valid,
-   * rejects otherwise.
+   * @return Promise that resolves if input is valid, rejects otherwise.
    */
-  async validateInputs_(input) {
+  private async validateInputs_(input: Partial<TokenDetails>): Promise<void> {
     if (input.fcmToken) {
       if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
         return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
@@ -134,19 +117,17 @@ export class TokenDetailsModel extends DBInterface {
   /**
    * Given a token, this method will look up the details in indexedDB.
    * @param {string} fcmToken
-   * @return {Promise<Object>} The details associated with that token.
+   * @return {Promise<TokenDetails>} The details associated with that token.
    */
-  getTokenDetailsFromToken(fcmToken) {
+  getTokenDetailsFromToken(fcmToken: string): Promise<TokenDetails> {
     if (!fcmToken) {
       return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
     }
 
     return this.validateInputs_({ fcmToken })
-      .then(() => {
-        return this.openDatabase();
-      })
+      .then(() => this.openDatabase())
       .then(db => {
-        return new Promise((resolve, reject) => {
+        return new Promise<TokenDetails>((resolve, reject) => {
           const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const index = objectStore.index('fcmToken');
@@ -155,10 +136,9 @@ export class TokenDetailsModel extends DBInterface {
             reject((<IDBRequest>event.target).error);
           };
           request.onsuccess = function(event) {
-            const result = (<IDBRequest>event.target).result
-              ? (<IDBRequest>event.target).result
-              : null;
-            resolve(result);
+            const result: TokenDetails | null = (<IDBRequest>event.target)
+              .result;
+            resolve(result!);
           };
         });
       });
@@ -167,11 +147,9 @@ export class TokenDetailsModel extends DBInterface {
   /**
    * Given a service worker scope, this method will look up the details in
    * indexedDB.
-   * @public
-   * @param {string} swScope
-   * @return {Promise<Object>} The details associated with that token.
+   * @return The details associated with that token.
    */
-  getTokenDetailsFromSWScope(swScope) {
+  getTokenDetailsFromSWScope(swScope: string): Promise<TokenDetails> {
     if (!swScope) {
       return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
@@ -181,7 +159,7 @@ export class TokenDetailsModel extends DBInterface {
         return this.openDatabase();
       })
       .then(db => {
-        return new Promise((resolve, reject) => {
+        return new Promise<TokenDetails>((resolve, reject) => {
           const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const scopeRequest = objectStore.get(swScope);
@@ -190,10 +168,9 @@ export class TokenDetailsModel extends DBInterface {
           };
 
           scopeRequest.onsuccess = event => {
-            const result = (<IDBRequest>event.target).result
-              ? (<IDBRequest>event.target).result
-              : null;
-            resolve(result);
+            const result: TokenDetails | null = (<IDBRequest>event.target)
+              .result;
+            resolve(result!);
           };
         });
       });
@@ -201,10 +178,7 @@ export class TokenDetailsModel extends DBInterface {
 
   /**
    * Save the details for the fcm token for re-use at a later date.
-   * @param {{swScope: !string, vapidKey: !string,
-   * subscription: !PushSubscription, fcmSenderId: !string, fcmToken: !string,
-   * fcmPushSet: !string}} input A plain js object containing args to save.
-   * @return {Promise<void>}
+   * @param input A plain js object containing args to save.
    */
   saveTokenDetails({
     swScope,
@@ -213,7 +187,7 @@ export class TokenDetailsModel extends DBInterface {
     fcmSenderId,
     fcmToken,
     fcmPushSet
-  }) {
+  }: TokenDetails): Promise<void> {
     if (!swScope) {
       return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
     }
@@ -258,22 +232,19 @@ export class TokenDetailsModel extends DBInterface {
         return this.openDatabase();
       })
       .then(db => {
-        /**
-         * @dict
-         */
         const details = {
           swScope: swScope,
-          vapidKey: arrayBufferToBase64(vapidKey),
+          vapidKey: arrayBufferToBase64(vapidKey as Uint8Array),
           endpoint: subscription.endpoint,
-          auth: arrayBufferToBase64(subscription['getKey']('auth')),
-          p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),
+          auth: arrayBufferToBase64(subscription.getKey('auth')!),
+          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
           fcmPushSet: fcmPushSet,
           createTime: Date.now()
         };
 
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
           const transaction = db.transaction(
             [FCM_TOKEN_OBJ_STORE],
             this.TRANSACTION_READ_WRITE
@@ -297,7 +268,7 @@ export class TokenDetailsModel extends DBInterface {
    * @return {Promise<Object>} Resolves once the FCM token details have been
    * deleted and returns the deleted details.
    */
-  deleteToken(token: string) {
+  deleteToken(token: string): Promise<TokenDetails> {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
         this.errorFactory_.create(ERROR_CODES.INVALID_DELETE_TOKEN)
@@ -310,13 +281,13 @@ export class TokenDetailsModel extends DBInterface {
       }
 
       return this.openDatabase().then(db => {
-        return new Promise((resolve, reject) => {
+        return new Promise<TokenDetails>((resolve, reject) => {
           const transaction = db.transaction(
             [FCM_TOKEN_OBJ_STORE],
             this.TRANSACTION_READ_WRITE
           );
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const request = objectStore.delete(details['swScope']);
+          const request = objectStore.delete(details.swScope);
           request.onerror = event => {
             reject((<IDBRequest>event.target).error);
           };

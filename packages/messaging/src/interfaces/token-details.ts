@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-export enum NotificationPermission {
-  DEFAULT = 'default',
-  GRANTED = 'granted',
-  DENIED = 'denied'
+export interface TokenDetails {
+  fcmToken: string;
+  swScope: string;
+  vapidKey: string | Uint8Array;
+  subscription: PushSubscription;
+  fcmSenderId: string;
+  fcmPushSet: string;
+
+  createTime?: number;
+  endpoint?: string;
+  auth?: string;
+  p256dh?: string;
 }

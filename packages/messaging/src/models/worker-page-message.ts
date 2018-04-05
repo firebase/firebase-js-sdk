@@ -28,13 +28,13 @@ const msgType = {
   NOTIFICATION_CLICKED: 'notification-clicked'
 };
 
-const createNewMsg = (msgType, msgData) => {
+function createNewMsg(msgType: any, msgData: any) {
   const message = {
     [PARAMS.TYPE_OF_MSG]: msgType,
     [PARAMS.DATA]: msgData
   };
   return message;
-};
+}
 
 export default {
   PARAMS,

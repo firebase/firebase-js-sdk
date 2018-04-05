@@ -26,7 +26,6 @@ import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { IIDModel } from '../src/models/iid-model';
-import { NotificationPermission } from '../src/models/notification-permission';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TOKEN_EXPIRATION_MILLIS } from '../src/controllers/controller-interface';
@@ -151,7 +150,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
   it('should handle a failure to get registration', function() {
     sandbox
       .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-      .callsFake(() => NotificationPermission.GRANTED);
+      .callsFake(() => 'granted');
 
     sandbox
       .stub(navigator.serviceWorker, 'register')
@@ -181,10 +180,10 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
       ControllerInterface.prototype,
       'getNotificationPermission_'
     );
-    notificationStub.onCall(0).returns(NotificationPermission.DENIED);
-    notificationStub.onCall(1).returns(NotificationPermission.DEFAULT);
-    notificationStub.onCall(2).returns(NotificationPermission.DENIED);
-    notificationStub.onCall(3).returns(NotificationPermission.DEFAULT);
+    notificationStub.onCall(0).returns('denied');
+    notificationStub.onCall(1).returns('default');
+    notificationStub.onCall(2).returns('denied');
+    notificationStub.onCall(3).returns('default');
 
     return servicesToTest.reduce((chain, ServiceClass) => {
       const serviceInstance = new ServiceClass(app);
@@ -238,7 +237,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
         sandbox
           .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-          .callsFake(() => NotificationPermission.GRANTED);
+          .callsFake(() => 'granted');
 
         sandbox
           .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
@@ -269,7 +268,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.GRANTED);
+        .callsFake(() => 'granted');
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
@@ -290,7 +289,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.GRANTED);
+        .callsFake(() => 'granted');
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
@@ -339,7 +338,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
         sandbox
           .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-          .callsFake(() => NotificationPermission.GRANTED);
+          .callsFake(() => 'granted');
 
         sandbox
           .stub(ServiceClass.prototype, 'getPushSubscription')
@@ -422,7 +421,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
         sandbox
           .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-          .callsFake(() => NotificationPermission.GRANTED);
+          .callsFake(() => 'granted');
 
         const existingTokenDetails = VapidSetup['details'];
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
@@ -497,7 +496,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.GRANTED);
+        .callsFake(() => 'granted');
 
       // start with using the deault key.
       const getPublicVapidKeyStub = sandbox.stub(
@@ -584,7 +583,7 @@ describe('Firebase Messaging > *Controller.getToken()', function() {
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
-        .callsFake(() => NotificationPermission.GRANTED);
+        .callsFake(() => 'granted');
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')

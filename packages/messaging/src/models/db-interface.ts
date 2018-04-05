@@ -25,11 +25,7 @@ export class DBInterface {
   protected errorFactory_: ErrorFactory<string>;
   protected TRANSACTION_READ_WRITE: IDBTransactionMode;
 
-  /**
-   * @param {string} dbName
-   * @param {number} dbVersion
-   */
-  constructor(dbName, dbVersion) {
+  constructor(dbName: string, dbVersion: number) {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
     this.DB_NAME_ = dbName;
     this.dbVersion_ = dbVersion;
@@ -38,11 +34,11 @@ export class DBInterface {
   }
 
   /**
-   * Get the indexedDB as a promsie.
-   * @protected
-   * @return {!Promise<!IDBDatabase>} The IndexedDB database
+   * Get the indexedDB as a promise.
    */
-  openDatabase() {
+  // Visible for testing
+  // TODO: Make protected
+  openDatabase(): Promise<IDBDatabase> {
     if (this.openDbPromise_) {
       return this.openDbPromise_;
     }
