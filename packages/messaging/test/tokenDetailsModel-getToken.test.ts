@@ -17,40 +17,53 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 
-const EXAMPLE_INPUT = {
-  swScope: '/example-scope',
-  vapidKey: base64ToArrayBuffer(
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-  ),
-  subscription: makeFakeSubscription(),
-  fcmSenderId: '1234567',
-  fcmToken: 'qwerty',
-  fcmPushSet: '7654321'
-};
+const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 
 describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', () => {
+  let clock: sinon.SinonFakeTimers;
   let globalTokenModel: TokenDetailsModel;
+  let exampleInput: TokenDetails;
 
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+
     globalTokenModel = new TokenDetailsModel();
+
+    const fakeSubscription = makeFakeSubscription()
+    exampleInput = {
+      swScope: '/example-scope',
+      vapidKey: base64ToArrayBuffer(
+        'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+      ),
+      fcmSenderId: '1234567',
+      fcmToken: 'qwerty',
+      fcmPushSet: '7654321',
+      endpoint: fakeSubscription.endpoint,
+      auth: fakeSubscription.getKey('auth')!,
+      p256dh: fakeSubscription.getKey('p256dh')!,
+      createTime: Date.now()
+    };
   });
 
   afterEach(async () => {
     await globalTokenModel.closeDatabase();
     await deleteDatabase('fcm_token_details_db');
+
+    clock.restore()
   });
 
-  ['', [], {}, true, null, 123].forEach(badInput => {
+  for (const badInput of BAD_INPUTS) {
     it(`should throw on bad scope input ${JSON.stringify(badInput)}`, () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.getTokenDetailsFromSWScope(badInput as any).then(
+
+      return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -59,12 +72,12 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
         }
       );
     });
-  });
+  }
 
-  ['', [], {}, true, null, 123].forEach(badInput => {
+  for (const badInput of BAD_INPUTS) {
     it(`should throw on bad FCM Token input: '${badInput}'`, () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.getTokenDetailsFromToken(badInput as any).then(
+
+      return globalTokenModel.getTokenDetailsFromToken(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -73,49 +86,41 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
         }
       );
     });
-  });
+  }
 
   it('should get from scope', () => {
-    globalTokenModel = new TokenDetailsModel();
-    const now = Date.now();
-    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
-      .getTokenDetailsFromSWScope(EXAMPLE_INPUT.swScope)
+      .getTokenDetailsFromSWScope(exampleInput.swScope)
       .then(details => {
         assert.notExists(details);
-        return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
+        return globalTokenModel.saveTokenDetails(exampleInput);
       })
       .then(() => {
         return globalTokenModel.getTokenDetailsFromSWScope(
-          EXAMPLE_INPUT.swScope
+          exampleInput.swScope
         );
       })
       .then(details => {
         assert.exists(details);
-        compareDetails(EXAMPLE_INPUT, details!, now);
-        clock.restore();
+        compareDetails(exampleInput, details!);
       });
   });
 
   it('should get from token', () => {
-    globalTokenModel = new TokenDetailsModel();
-    const now = Date.now();
-    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
-      .getTokenDetailsFromToken(EXAMPLE_INPUT.fcmToken)
+      .getTokenDetailsFromToken(exampleInput.fcmToken)
       .then(details => {
         assert.notExists(details);
-        return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
+        return globalTokenModel.saveTokenDetails(exampleInput);
       })
       .then(() => {
         return globalTokenModel.getTokenDetailsFromToken(
-          EXAMPLE_INPUT.fcmToken
+          exampleInput.fcmToken
         );
       })
       .then(details => {
         assert.exists(details);
-        compareDetails(EXAMPLE_INPUT, details!, now);
-        clock.restore();
+        compareDetails(exampleInput, details!);
       });
   });
 });

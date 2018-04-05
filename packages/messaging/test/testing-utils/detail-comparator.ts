@@ -16,46 +16,37 @@
 
 import { assert } from 'chai';
 import { arrayBufferToBase64 } from '../../src/helpers/array-buffer-to-base64';
-
-/** Token details that are fed to the database */
-export declare interface InputDetails {
-  swScope: string;
-  vapidKey: Uint8Array;
-  subscription: PushSubscription;
-  fcmSenderId: string;
-  fcmToken: string;
-  fcmPushSet: string;
-}
+import { TokenDetails } from '../../src/interfaces/token-details';
 
 /** Compares the input details and the saved ones  */
-export function compareDetails(
-  input: InputDetails,
-  saved: object,
-  now: number
-): void {
-  const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
+export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
   const subscriptionValues = {
-    endpoint: input.subscription.endpoint,
-    auth: arrayBufferToBase64(input.subscription.getKey('auth')!),
-    p256dh: arrayBufferToBase64(input.subscription.getKey('p256dh')!)
+    endpoint: input.endpoint,
+    auth: input.auth,
+    p256dh: input.p256dh
   };
 
-  subscriptionKeys.forEach(keyName => {
-    assert.equal(saved[keyName], subscriptionValues[keyName]);
-  });
+  for (const key of Object.keys(subscriptionValues)) {
+    assert.equal(
+      arrayBufferToBase64(saved[key]),
+      arrayBufferToBase64(subscriptionValues[key])
+    );
+  }
 
-  Object.keys(saved).forEach(keyName => {
-    if (subscriptionKeys.indexOf(keyName) !== -1) {
+  for (const key of Object.keys(saved)) {
+    if (Object.keys(subscriptionValues).indexOf(key) !== -1) {
       return;
     }
 
-    if (keyName === 'createTime') {
-      assert.equal(saved[keyName], now);
-    } else if (keyName === 'vapidKey') {
-      assert.equal(saved[keyName], arrayBufferToBase64(input[keyName]));
+    if (key === 'createTime') {
+      assert.equal(saved[key], Date.now());
+    } else if (key === 'vapidKey') {
+      assert.equal(
+        arrayBufferToBase64(saved[key]),
+        arrayBufferToBase64(input[key])
+      );
     } else {
-      assert.equal(saved[keyName], input[keyName]);
+      assert.equal(saved[key], input[key]);
     }
-    return true;
-  });
+  }
 }

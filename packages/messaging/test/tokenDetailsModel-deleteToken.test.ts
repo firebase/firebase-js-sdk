@@ -17,34 +17,45 @@ import { assert } from 'chai';
 import * as sinon from 'sinon';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 
-const EXAMPLE_INPUT = {
-  swScope: '/example-scope',
-  vapidKey: base64ToArrayBuffer(
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-  ),
-  subscription: makeFakeSubscription(),
-  fcmSenderId: '1234567',
-  fcmToken: 'qwerty',
-  fcmPushSet: '7654321'
-};
-
 describe('Firebase Messaging > TokenDetailsModel.deleteToken()', () => {
+  let clock: sinon.SinonFakeTimers;
   let globalTokenModel: TokenDetailsModel;
+  let exampleInput: TokenDetails;
 
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+
     globalTokenModel = new TokenDetailsModel();
+
+    const fakeSubscription = makeFakeSubscription()
+    exampleInput = {
+      swScope: '/example-scope',
+      vapidKey: base64ToArrayBuffer(
+        'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+      ),
+      fcmSenderId: '1234567',
+      fcmToken: 'qwerty',
+      fcmPushSet: '7654321',
+      endpoint: fakeSubscription.endpoint,
+      auth: fakeSubscription.getKey('auth')!,
+      p256dh: fakeSubscription.getKey('p256dh')!,
+      createTime: Date.now()
+    };
   });
 
   afterEach(async () => {
     await globalTokenModel.closeDatabase();
     await deleteDatabase('fcm_token_details_db');
+
+    clock.restore();
   });
 
   it('should handle no input', () => {
@@ -73,22 +84,17 @@ describe('Firebase Messaging > TokenDetailsModel.deleteToken()', () => {
 
   it('should delete current token', () => {
     globalTokenModel = new TokenDetailsModel();
-    const now = Date.now();
-    const clock = sinon.useFakeTimers(now);
     return globalTokenModel
-      .saveTokenDetails(EXAMPLE_INPUT)
+      .saveTokenDetails(exampleInput)
       .then(() => {
-        return globalTokenModel.deleteToken(EXAMPLE_INPUT.fcmToken);
+        return globalTokenModel.deleteToken(exampleInput.fcmToken);
       })
       .then(details => {
-        compareDetails(EXAMPLE_INPUT, details, now);
-        return globalTokenModel.getTokenDetailsFromToken(
-          EXAMPLE_INPUT.fcmToken
-        );
+        compareDetails(exampleInput, details);
+        return globalTokenModel.getTokenDetailsFromToken(exampleInput.fcmToken);
       })
       .then(tokenDetails => {
         assert.equal(null, tokenDetails);
-        clock.restore();
       });
   });
 

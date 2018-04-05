@@ -14,44 +14,55 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import * as sinon from 'sinon';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 
-const EXAMPLE_INPUT = {
-  swScope: '/example-scope',
-  vapidKey: base64ToArrayBuffer(
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-  ),
-  subscription: makeFakeSubscription(),
-  fcmSenderId: '1234567',
-  fcmToken: 'qwerty',
-  fcmPushSet: '7654321'
-};
+const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 
 describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
+  let clock: sinon.SinonFakeTimers;
   let globalTokenModel: TokenDetailsModel;
+  let exampleInput: TokenDetails;
 
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+
     globalTokenModel = new TokenDetailsModel();
+
+    const fakeSubscription = makeFakeSubscription()
+    exampleInput = {
+      swScope: '/example-scope',
+      vapidKey: base64ToArrayBuffer(
+        'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+      ),
+      fcmSenderId: '1234567',
+      fcmToken: 'qwerty',
+      fcmPushSet: '7654321',
+      endpoint: fakeSubscription.endpoint,
+      auth: fakeSubscription.getKey('auth')!,
+      p256dh: fakeSubscription.getKey('p256dh')!,
+      createTime: Date.now()
+    };
   });
 
   afterEach(async () => {
     await globalTokenModel.closeDatabase();
     await deleteDatabase('fcm_token_details_db');
+
+    clock.restore();
   });
 
   it('should throw on bad input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.swScope = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.swScope = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -65,13 +76,10 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
   });
 
   it('should throw on bad vapid key input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.vapidKey = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.vapidKey = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -84,14 +92,45 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
     return Promise.all(promises);
   });
 
-  it('should throw on bad subscription input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+  it('should throw on bad endpoint input', () => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.subscription = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.endpoint = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
+        () => {
+          throw new Error('Expected promise to reject');
+        },
+        err => {
+          assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
+        }
+      );
+    });
+
+    return Promise.all(promises);
+  });
+
+  it('should throw on bad auth input', () => {
+    const promises = BAD_INPUTS.map(badInput => {
+      globalTokenModel = new TokenDetailsModel();
+      exampleInput.auth = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
+        () => {
+          throw new Error('Expected promise to reject');
+        },
+        err => {
+          assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
+        }
+      );
+    });
+
+    return Promise.all(promises);
+  });
+
+  it('should throw on bad p256dh input', () => {
+    const promises = BAD_INPUTS.map(badInput => {
+      globalTokenModel = new TokenDetailsModel();
+      exampleInput.p256dh = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -105,13 +144,10 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
   });
 
   it('should throw on bad send id input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.fcmSenderId = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.fcmSenderId = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -125,13 +161,10 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
   });
 
   it('should throw on bad token input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.fcmToken = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.fcmToken = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -145,13 +178,10 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
   });
 
   it('should throw on bad pushSet input', () => {
-    const badInputs = ['', [], {}, true, null, 123];
-
-    const promises = badInputs.map((badInput: any) => {
+    const promises = BAD_INPUTS.map(badInput => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = { ...EXAMPLE_INPUT };
-      validInput.fcmPushSet = badInput;
-      return globalTokenModel.saveTokenDetails(validInput).then(
+      exampleInput.fcmPushSet = badInput;
+      return globalTokenModel.saveTokenDetails(exampleInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
@@ -166,6 +196,6 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
 
   it('should save valid details', () => {
     globalTokenModel = new TokenDetailsModel();
-    return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
+    return globalTokenModel.saveTokenDetails(exampleInput);
   });
 });
