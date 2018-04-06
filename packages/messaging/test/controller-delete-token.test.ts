@@ -15,14 +15,14 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import { SWController } from '../src/controllers/sw-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { ERROR_CODES } from '../src/models/errors';
+import { IIDModel } from '../src/models/iid-model';
+import { TokenDetailsModel } from '../src/models/token-details-model';
 import { makeFakeApp } from './make-fake-app';
 import { makeFakeSWReg } from './make-fake-sw-reg';
 import { deleteDatabase } from './testing-utils/db-helper';
-import { ERROR_CODES } from '../src/models/errors';
-import { TokenDetailsModel } from '../src/models/token-details-model';
-import { IIDModel } from '../src/models/iid-model';
-import { WindowController } from '../src/controllers/window-controller';
-import { SWController } from '../src/controllers/sw-controller';
 
 const EXAMPLE_TOKEN_SAVE = {
   fcmToken: 'ExampleFCMToken1337',
@@ -33,7 +33,7 @@ const EXAMPLE_TOKEN_SAVE = {
   p256dh: '123456789098765642421'
 };
 
-describe('Firebase Messaging > *Controller.deleteToken()', function() {
+describe('Firebase Messaging > *Controller.deleteToken()', () => {
   const sandbox = sinon.sandbox.create();
 
   const app = makeFakeApp({
@@ -75,15 +75,15 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       .then(() => (globalMessagingService = null));
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should handle no token to delete', function() {
+  it('should handle no token to delete', () => {
     globalMessagingService = new WindowController(app);
     return globalMessagingService.deleteToken().then(
       () => {
@@ -95,7 +95,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     );
   });
 
-  it('should handle no registration', function() {
+  it('should handle no registration', () => {
     configureRegistrationMocks(WindowController, Promise.resolve(null));
 
     sandbox
@@ -111,7 +111,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
     return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
   });
 
-  it('should handle get subscription error', function() {
+  it('should handle get subscription error', () => {
     configureRegistrationMocks(
       WindowController,
       generateFakeReg(() => Promise.reject(new Error('Unknown error')))
@@ -138,7 +138,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
   });
 
   [WindowController, SWController].forEach(ServiceClass => {
-    it(`should handle null getSubscription() ${ServiceClass.name}`, function() {
+    it(`should handle null getSubscription() ${ServiceClass.name}`, () => {
       configureRegistrationMocks(
         ServiceClass,
         generateFakeReg(Promise.resolve(null))
@@ -157,7 +157,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
       return globalMessagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
 
-    it(`should handle error on unsubscribe ${ServiceClass.name}`, function() {
+    it(`should handle error on unsubscribe ${ServiceClass.name}`, () => {
       const errorMsg = 'unsubscribe-error-1234567890';
       const fakeSubscription = {
         endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
@@ -191,7 +191,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         );
     });
 
-    it(`should handle error on deleteToken ${ServiceClass.name}`, function() {
+    it(`should handle error on deleteToken ${ServiceClass.name}`, () => {
       const fakeSubscription = {
         endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
         unsubscribe: async () => {}
@@ -227,7 +227,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', function() {
         );
     });
 
-    it(`should delete with valid unsubscribe ${ServiceClass.name}`, function() {
+    it(`should delete with valid unsubscribe ${ServiceClass.name}`, () => {
       const fakeSubscription = {
         endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
         unsubscribe: async () => {}

@@ -16,7 +16,7 @@
 /**
  * FakeSubscription Constructor.
  */
-const FakeSubscription = function() {};
+const FakeSubscription = () => {};
 FakeSubscription.prototype = PushSubscription.prototype;
 
 /**

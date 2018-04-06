@@ -14,20 +14,28 @@
  * limitations under the License.
  */
 
-import { ErrorFactory, base64 } from '@firebase/util';
+import { base64, ErrorFactory } from '@firebase/util';
 
-import { ERROR_CODES, ERROR_MAP } from './errors';
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
-import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 import { TokenDetails } from '../interfaces/token-details';
+import { ERROR_CODES, ERROR_MAP } from './errors';
+import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
+// tslint:disable interface-name TSLint thinks I in IID is an interface prefix.
+//
+// TODO: Fix abbreviations in variable and class names to match Google
+// TypeScript style guide, which follows the Java style guide:
+// https://google.github.io/styleguide/javaguide.html#s5.3-camel-case
+//
+// In this case, IIDDetails should be IidDetails.
 export interface IIDDetails {
   token: string;
   pushSet: string;
 }
+// tslint:enable interface-name
 
 export class IIDModel {
-  private errorFactory_: ErrorFactory<string>;
+  private readonly errorFactory_: ErrorFactory<string>;
 
   constructor() {
     this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
@@ -38,8 +46,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<IIDDetails> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
-    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh'));
+    const auth = arrayBufferToBase64(subscription.getKey('auth'));
 
     let fcmSubscribeBody =
       `authorized_entity=${senderId}&` +
@@ -104,8 +112,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
-    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh'));
+    const auth = arrayBufferToBase64(subscription.getKey('auth'));
 
     let fcmUpdateBody =
       `push_set=${fcmPushSet}&` +
@@ -162,7 +170,7 @@ export class IIDModel {
     fcmToken: string,
     fcmPushSet: string
   ): Promise<void> {
-    let fcmUnsubscribeBody =
+    const fcmUnsubscribeBody =
       `authorized_entity=${senderId}&` +
       `token=${fcmToken}&` +
       `pushSet=${fcmPushSet}`;

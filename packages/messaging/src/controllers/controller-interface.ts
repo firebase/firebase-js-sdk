@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
-import { ERROR_CODES, ERROR_MAP } from '../models/errors';
-import { TokenDetailsModel } from '../models/token-details-model';
-import { VapidDetailsModel } from '../models/vapid-details-model';
-import { IIDModel } from '../models/iid-model';
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { FirebaseApp } from '@firebase/app-types';
-import { TokenDetails } from '../interfaces/token-details';
 import {
   createSubscribe,
-  Observer,
+  ErrorFactory,
   NextFn,
+  Observer,
   PartialObserver
 } from '@firebase/util';
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { TokenDetails } from '../interfaces/token-details';
+import { ERROR_CODES, ERROR_MAP } from '../models/errors';
+import { IIDModel } from '../models/iid-model';
+import { TokenDetailsModel } from '../models/token-details-model';
+import { VapidDetailsModel } from '../models/vapid-details-model';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export abstract class ControllerInterface {
-  public app: FirebaseApp;
-  public INTERNAL: any;
+  app: FirebaseApp;
+  INTERNAL: any;
   protected errorFactory_: ErrorFactory<string>;
-  private messagingSenderId_: string;
-  private tokenDetailsModel_: TokenDetailsModel;
-  private vapidDetailsModel_: VapidDetailsModel;
-  private iidModel_: IIDModel;
+  private readonly messagingSenderId_: string;
+  private readonly tokenDetailsModel_: TokenDetailsModel;
+  private readonly vapidDetailsModel_: VapidDetailsModel;
+  private readonly iidModel_: IIDModel;
 
   /**
    * An interface of the Messaging Service API
@@ -55,7 +55,7 @@ export abstract class ControllerInterface {
       throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
+    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
 
     this.tokenDetailsModel_ = new TokenDetailsModel();
     this.vapidDetailsModel_ = new VapidDetailsModel();
@@ -121,14 +121,14 @@ export abstract class ControllerInterface {
     publicVapidKey: Uint8Array,
     tokenDetails: TokenDetails
   ): Promise<string> {
-    const isTokenValid = this.isTokenStillValid(
+    const isTokenValid = isTokenStillValid(
       pushSubscription,
       publicVapidKey,
       tokenDetails
     );
     if (isTokenValid) {
       const now = Date.now();
-      if (now < tokenDetails.createTime! + TOKEN_EXPIRATION_MILLIS) {
+      if (now < tokenDetails.createTime + TOKEN_EXPIRATION_MILLIS) {
         return tokenDetails.fcmToken;
       } else {
         return this.updateToken(
@@ -146,29 +146,6 @@ export abstract class ControllerInterface {
     // good push subscription that we'd like to use in getNewToken.
     await this.deleteTokenFromDB(tokenDetails.fcmToken);
     return this.getNewToken(swReg, pushSubscription, publicVapidKey);
-  }
-
-  /*
-   * Checks if the tokenDetails match the details provided in the clients.
-   */
-  private isTokenStillValid(
-    pushSubscription: PushSubscription,
-    publicVapidKey: Uint8Array,
-    tokenDetails: TokenDetails
-  ): boolean {
-    if (arrayBufferToBase64(publicVapidKey) !== tokenDetails.vapidKey) {
-      return false;
-    }
-
-    // getKey() isn't defined in the PushSubscription externs file, hence
-    // subscription.getKey('<key name>').
-    return (
-      pushSubscription.endpoint === tokenDetails.endpoint &&
-      arrayBufferToBase64(pushSubscription.getKey('auth')!) ===
-        tokenDetails.auth &&
-      arrayBufferToBase64(pushSubscription.getKey('p256dh')!) ===
-        tokenDetails.p256dh
-    );
   }
 
   private async updateToken(
@@ -373,4 +350,27 @@ export abstract class ControllerInterface {
   getIIDModel() {
     return this.iidModel_;
   }
+}
+
+/**
+ * Checks if the tokenDetails match the details provided in the clients.
+ */
+function isTokenStillValid(
+  pushSubscription: PushSubscription,
+  publicVapidKey: Uint8Array,
+  tokenDetails: TokenDetails
+): boolean {
+  if (arrayBufferToBase64(publicVapidKey) !== tokenDetails.vapidKey) {
+    return false;
+  }
+
+  // getKey() isn't defined in the PushSubscription externs file, hence
+  // subscription.getKey('<key name>').
+  return (
+    pushSubscription.endpoint === tokenDetails.endpoint &&
+    arrayBufferToBase64(pushSubscription.getKey('auth')) ===
+      tokenDetails.auth &&
+    arrayBufferToBase64(pushSubscription.getKey('p256dh')) ===
+      tokenDetails.p256dh
+  );
 }

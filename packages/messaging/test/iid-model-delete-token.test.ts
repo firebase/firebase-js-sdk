@@ -15,11 +15,11 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { IIDModel } from '../src/models/iid-model';
 import { ERROR_CODES } from '../src/models/errors';
+import { IIDModel } from '../src/models/iid-model';
 import { fetchMock } from './testing-utils/mock-fetch';
 
-describe('Firebase Messaging > IIDModel.deleteToken()', function() {
+describe('Firebase Messaging > IIDModel.deleteToken()', () => {
   const fcmSenderId = '1234567';
   const fcmToken = 'qwerty';
   const fcmPushSet = '7654321';
@@ -32,21 +32,21 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     globalIIDModel = null;
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should delete on valid request', async function() {
+  it('should delete on valid request', async () => {
     globalIIDModel = new IIDModel();
     sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
     await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
   });
 
-  it('should handle fetch errors', async function() {
+  it('should handle fetch errors', async () => {
     globalIIDModel = new IIDModel();
     const errorMsg = 'invalid token';
 
@@ -60,9 +60,9 @@ describe('Firebase Messaging > IIDModel.deleteToken()', function() {
     }
   });
 
-  it('should handle fetch errors, HTML response returned', async function() {
+  it('should handle fetch errors, HTML response returned', async () => {
     globalIIDModel = new IIDModel();
-    let stubbedFetch = sandbox.stub(window, 'fetch');
+    const stubbedFetch = sandbox.stub(window, 'fetch');
     stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
     try {
       await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);

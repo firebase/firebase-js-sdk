@@ -17,8 +17,8 @@
 import { expect } from 'chai';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 
-describe('Firebase Messaging > array-buffer-to-base64', function() {
-  it('should return expected value for p256dh example', function() {
+describe('Firebase Messaging > array-buffer-to-base64', () => {
+  it('should return expected value for p256dh example', () => {
     const buffer = new Uint8Array([
       4,
       181,
@@ -92,7 +92,7 @@ describe('Firebase Messaging > array-buffer-to-base64', function() {
     expect(arrayBufferToBase64(buffer)).to.equal(expectedValue);
   });
 
-  it('should return expected value for auth example', function() {
+  it('should return expected value for auth example', () => {
     const buffer = new Uint8Array([
       255,
       237,

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { FirebaseMessaging } from '@firebase/messaging-types';
 import { FirebaseApp } from '@firebase/app-types';
-import { ControllerInterface } from './controller-interface';
-import { ERROR_CODES } from '../models/errors';
-import WorkerPageMessage from '../models/worker-page-message';
-import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
-import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   createSubscribe,
-  Observer,
   NextFn,
+  Observer,
   PartialObserver
 } from '@firebase/util';
+import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
+import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
+import { ERROR_CODES } from '../models/errors';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
+import * as WorkerPageMessage from '../models/worker-page-message';
+import { ControllerInterface } from './controller-interface';
 
 declare const firebase: any;
 
@@ -37,11 +37,11 @@ export class WindowController extends ControllerInterface
   private publicVapidKeyToUse_: Uint8Array | null = null;
   private manifestCheckPromise_: Promise<any> | null = null;
   private messageObserver_: Observer<{}, Error> | null = null;
-  private onMessage_ = createSubscribe(observer => {
+  private readonly onMessage_ = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
   private tokenRefreshObserver_: Observer<{}, Error> | null = null;
-  private onTokenRefresh_ = createSubscribe(observer => {
+  private readonly onTokenRefresh_ = createSubscribe(observer => {
     this.tokenRefreshObserver_ = observer;
   });
 
@@ -88,7 +88,7 @@ export class WindowController extends ControllerInterface
       return this.manifestCheckPromise_;
     }
 
-    const manifestTag = <HTMLAnchorElement>document.querySelector(
+    const manifestTag: HTMLAnchorElement = document.querySelector(
       'link[rel="manifest"]'
     );
     if (!manifestTag) {
@@ -280,7 +280,7 @@ export class WindowController extends ControllerInterface
         return;
       }
 
-      let stateChangeListener = () => {
+      const stateChangeListener = () => {
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
