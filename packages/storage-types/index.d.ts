@@ -77,7 +77,10 @@ export interface UploadTask {
   catch(onRejected: (a: Error) => any): Promise<any>;
   on(
     event: TaskEvent,
-    nextOrObserver?: Observer<any, any> | null | ((a: Object) => any),
+    nextOrObserver?:
+      | Observer<UploadTaskSnapshot, Error>
+      | null
+      | ((a: UploadTaskSnapshot) => any),
     error?: ((a: Error) => any) | null,
     complete?: (Unsubscribe) | null
   ): Function;
