@@ -42,15 +42,12 @@ export abstract class DBInterface {
   ): void;
 
   /** Gets record(s) from the objectStore that match the given key. */
-  get<ReturnType>(key: IDBValidKey): Promise<ReturnType | undefined> {
+  get<T>(key: IDBValidKey): Promise<T | undefined> {
     return this.createTransaction(objectStore => objectStore.get(key));
   }
 
   /** Gets record(s) from the objectStore that match the given index. */
-  getIndex<ReturnType>(
-    index: string,
-    key: IDBValidKey
-  ): Promise<ReturnType | undefined> {
+  getIndex<T>(index: string, key: IDBValidKey): Promise<T | undefined> {
     function runRequest(objectStore: IDBObjectStore): IDBRequest {
       const idbIndex = objectStore.index(index);
       return idbIndex.get(key);
@@ -93,16 +90,16 @@ export abstract class DBInterface {
    *
    * @return Promise that resolves with the result of the runRequest function
    */
-  private async createTransaction<ReturnType>(
+  private async createTransaction<T>(
     runRequest: (objectStore: IDBObjectStore) => IDBRequest,
     mode?: 'readonly' | 'readwrite'
-  ): Promise<ReturnType> {
+  ): Promise<T> {
     const db = await this.getDb();
     const transaction = db.transaction(this.objectStoreName, mode);
     const request = transaction.objectStore(this.objectStoreName);
-    const result = await promisify<ReturnType>(runRequest(request));
+    const result = await promisify<T>(runRequest(request));
 
-    return new Promise<ReturnType>((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
       transaction.oncomplete = () => {
         resolve(result);
       };
@@ -134,8 +131,8 @@ export abstract class DBInterface {
 }
 
 /** Promisifies an IDBRequest. Resolves with the IDBRequest's result. */
-function promisify<ReturnType>(request: IDBRequest): Promise<ReturnType> {
-  return new Promise<ReturnType>((resolve, reject) => {
+function promisify<T>(request: IDBRequest): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
     request.onsuccess = () => {
       resolve(request.result);
     };
