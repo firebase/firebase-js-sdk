@@ -69,9 +69,8 @@ export class DBInterface {
 
   /**
    * Close the currently open database.
-   * @return {!Promise} Returns the result of the promise chain.
    */
-  closeDatabase() {
+  closeDatabase(): Promise<void> {
     return Promise.resolve().then(() => {
       if (this.openDbPromise_) {
         return this.openDbPromise_.then(db => {
@@ -84,9 +83,8 @@ export class DBInterface {
 
   /**
    * @protected
-   * @param {!IDBDatabase} db
    */
-  onDBUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent) {
+  onDBUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent): void {
     throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
   }
 }
