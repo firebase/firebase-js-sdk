@@ -274,15 +274,15 @@ export abstract class ControllerInterface {
   // The following methods should only be available in the window.
   //
 
-  requestPermission() {
+  requestPermission(): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  useServiceWorker(registration: ServiceWorkerRegistration) {
+  useServiceWorker(registration: ServiceWorkerRegistration): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  usePublicVapidKey(b64PublicKey: string) {
+  usePublicVapidKey(b64PublicKey: string): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
@@ -290,7 +290,7 @@ export abstract class ControllerInterface {
     nextOrObserver: NextFn<{}> | PartialObserver<{}>,
     error?: (e: Error) => void,
     completed?: () => void
-  ) {
+  ): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
@@ -298,7 +298,7 @@ export abstract class ControllerInterface {
     nextOrObserver: NextFn<{}> | PartialObserver<{}>,
     error?: (e: Error) => void,
     completed?: () => void
-  ) {
+  ): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
@@ -306,7 +306,7 @@ export abstract class ControllerInterface {
   // The following methods are used by the service worker only.
   //
 
-  setBackgroundMessageHandler(callback: (a: any) => any) {
+  setBackgroundMessageHandler(callback: (a: any) => any): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
@@ -319,7 +319,7 @@ export abstract class ControllerInterface {
    * This method is required to adhere to the Firebase interface.
    * It closes any currently open indexdb database connections.
    */
-  delete() {
+  delete(): Promise<[void, void]> {
     return Promise.all([
       this.tokenDetailsModel_.closeDatabase(),
       this.vapidDetailsModel_.closeDatabase()
@@ -345,9 +345,8 @@ export abstract class ControllerInterface {
 
   /**
    * @protected
-   * @returns {IIDModel}
    */
-  getIIDModel() {
+  getIIDModel(): IIDModel {
     return this.iidModel_;
   }
 }

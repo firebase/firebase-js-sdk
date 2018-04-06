@@ -53,7 +53,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const activatedRegistration = makeFakeSWReg('active', {
       state: 'activated'
     });
-    activatedRegistration.update = () => {
+    activatedRegistration.update = async () => {
       updateCalled = true;
     };
 

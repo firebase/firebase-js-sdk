@@ -46,6 +46,7 @@
     "prefer-readonly": true,
     "radix": true,
     "triple-equals": [true, "allow-null-check"],
+    "typedef": [true, "call-signature", "parameter", "member-variable-declaration"],
     "use-isnan": true
   }
 }

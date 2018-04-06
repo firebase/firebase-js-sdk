@@ -12,7 +12,7 @@
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "gulp build",
     "type-check": "tsc --noEmit",
-    "lint": "tslint -p . {src,test}/**/*.ts",
+    "lint": "tslint -p .",
     "lint:fix": "yarn lint --fix"
   },
   "license": "Apache-2.0",
