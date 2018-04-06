@@ -41,14 +41,16 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', () => {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput as any, EXAMPLE_VAPID_KEY).then(
-        () => {
-          throw new Error('Expected promise to reject');
-        },
-        err => {
-          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
-        }
-      );
+      return vapidModel
+        .saveVapidDetails(badInput as any, EXAMPLE_VAPID_KEY)
+        .then(
+          () => {
+            throw new Error('Expected promise to reject');
+          },
+          err => {
+            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+          }
+        );
     });
   });
 

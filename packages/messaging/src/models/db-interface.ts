@@ -100,9 +100,7 @@ export abstract class DBInterface {
     const db = await this.getDb();
     const transaction = db.transaction(this.objectStoreName, mode);
     const request = transaction.objectStore(this.objectStoreName);
-    const result = await promisify<ReturnType>(
-      runRequest(request)
-    );
+    const result = await promisify<ReturnType>(runRequest(request));
 
     return new Promise<ReturnType>((resolve, reject) => {
       transaction.oncomplete = () => {
