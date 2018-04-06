@@ -28,7 +28,7 @@ export function makeFakeSWReg(
   sinon.stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];
   states.forEach(state => {
-    let finalValue = undefined;
+    let finalValue: object | undefined = undefined;
     if (state === selectedState) {
       finalValue = desiredValue;
     }
