@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { ControllerInterface } from './controller-interface';
+import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_CODES } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import WorkerPageMessage from '../models/worker-page-message';
-import { FirebaseApp } from '@firebase/app-types';
+import * as WorkerPageMessage from '../models/worker-page-message';
+import { ControllerInterface } from './controller-interface';
 
 const FCM_MSG = 'FCM_MSG';
 
@@ -70,7 +70,7 @@ export class SWController extends ControllerInterface {
   onPush_(event: any) {
     let msgPayload: any;
     try {
-      msgPayload = event.data!.json();
+      msgPayload = event.data.json();
     } catch (err) {
       // Not JSON so not an FCM message
       return;
@@ -215,7 +215,7 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    const notificationInformation = Object.assign({}, msgPayload.notification);
+    const notificationInformation = { ...msgPayload.notification };
     // Put the message payload under FCM_MSG name so we can identify the
     // notification as being an FCM notification vs a notification from
     // somewhere else (i.e. normal web push or developer generated

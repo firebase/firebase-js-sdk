@@ -7,10 +7,13 @@
   "module": "dist/esm/index.js",
   "scripts": {
     "dev": "gulp dev",
-    "test": "karma start --single-run && yarn type-check",
+    "test": "run-p test:karma type-check lint",
+    "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "gulp build",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "tslint -p . {src,test}/**/*.ts",
+    "lint:fix": "yarn lint --fix"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
@@ -40,6 +43,7 @@
     "sinon": "^4.3.0",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.5.0",
+    "tslint": "^5.9.1",
     "typescript": "^2.7.2",
     "webpack": "^3.11.0"
   },

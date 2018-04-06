@@ -19,8 +19,8 @@ import { ErrorFactory } from '@firebase/util';
 import { ERROR_CODES, ERROR_MAP } from './errors';
 
 export class DBInterface {
-  private DB_NAME_: string;
-  private dbVersion_: number;
+  private readonly DB_NAME_: string;
+  private readonly dbVersion_: number;
   private openDbPromise_: Promise<IDBDatabase> | null;
   protected errorFactory_: ErrorFactory<string>;
   protected TRANSACTION_READ_WRITE: IDBTransactionMode;
@@ -46,14 +46,15 @@ export class DBInterface {
     this.openDbPromise_ = new Promise((resolve, reject) => {
       const request = indexedDB.open(this.DB_NAME_, this.dbVersion_);
       request.onerror = event => {
-        reject((<IDBRequest>event.target).error);
+        reject((event.target as IDBRequest).error);
       };
       request.onsuccess = event => {
-        resolve((<IDBRequest>event.target).result);
+        resolve((event.target as IDBRequest).result);
       };
       request.onupgradeneeded = event => {
+        let db;
         try {
-          var db = (<IDBRequest>event.target).result;
+          db = (event.target as IDBRequest).result;
           this.onDBUpgrade(db, event);
         } catch (err) {
           // close the database as it can't be used.

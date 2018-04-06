@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { makeFakeSubscription } from './make-fake-subscription';
-import { deleteDatabase } from './testing-utils/db-helper';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { ERROR_CODES } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
-import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { makeFakeSubscription } from './make-fake-subscription';
+import { deleteDatabase } from './testing-utils/db-helper';
 
-describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
+describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
   const EXAMPLE_INPUT = {
     swScope: '/example-scope',
     vapidKey: base64ToArrayBuffer(
@@ -46,20 +46,20 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
       .then(() => (globalTokenModel = null));
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp;
   });
 
-  it('should throw on bad input', function() {
+  it('should throw on bad input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.swScope = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -74,12 +74,12 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad vapid key input', function() {
+  it('should throw on bad vapid key input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.vapidKey = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -94,12 +94,12 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad subscription input', function() {
+  it('should throw on bad subscription input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.subscription = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -114,12 +114,12 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad send id input', function() {
+  it('should throw on bad send id input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmSenderId = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -134,12 +134,12 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad token input', function() {
+  it('should throw on bad token input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmToken = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -154,12 +154,12 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad pushSet input', function() {
+  it('should throw on bad pushSet input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmPushSet = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
@@ -174,7 +174,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should save valid details', function() {
+  it('should save valid details', () => {
     globalTokenModel = new TokenDetailsModel();
     return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
   });

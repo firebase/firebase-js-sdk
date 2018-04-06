@@ -52,7 +52,7 @@ export class VapidDetailsModel extends DBInterface {
         };
 
         scopeRequest.onsuccess = () => {
-          let result = scopeRequest.result;
+          const result = scopeRequest.result;
           let vapidKey: any = null;
           if (result) {
             vapidKey = result.vapidKey;

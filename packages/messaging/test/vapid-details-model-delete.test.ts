@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { deleteDatabase } from './testing-utils/db-helper';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { ERROR_CODES } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
-import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { deleteDatabase } from './testing-utils/db-helper';
 
-describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
+describe('Firebase Messaging > VapidDetailsModel.deleteToken()', () => {
   const EXAMPLE_SCOPE = '/example-scope';
   const EXAMPLE_VAPID_STRING =
     'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
@@ -39,15 +39,15 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
       .then(() => (vapidModel = null));
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should throw on bad scope input', function() {
+  it('should throw on bad scope input', () => {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
@@ -62,7 +62,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
     });
   });
 
-  it('should delete non existant details', function() {
+  it('should delete non existant details', () => {
     vapidModel = new VapidDetailsModel();
     return vapidModel.deleteVapidDetails(EXAMPLE_SCOPE).then(
       () => {
@@ -77,7 +77,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
     );
   });
 
-  it('should save and delete details', function() {
+  it('should save and delete details', () => {
     vapidModel = new VapidDetailsModel();
     return vapidModel
       .saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY)

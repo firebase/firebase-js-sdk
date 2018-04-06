@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { TokenDetails } from '../interfaces/token-details';
+import { cleanV1 } from './clean-v1-undefined';
 import { DBInterface } from './db-interface';
 import { ERROR_CODES } from './errors';
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
-import { cleanV1 } from './clean-v1-undefined';
-import { TokenDetails } from '../interfaces/token-details';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
 const DB_NAME = 'fcm_token_details_db';
@@ -32,7 +32,7 @@ export class TokenDetailsModel extends DBInterface {
   onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent) {
     if (evt.oldVersion < 1) {
       // New IDB instance
-      var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+      const objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
         keyPath: 'swScope'
       });
 
@@ -132,13 +132,13 @@ export class TokenDetailsModel extends DBInterface {
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const index = objectStore.index('fcmToken');
           const request = index.get(fcmToken);
-          request.onerror = function(event) {
-            reject((<IDBRequest>event.target).error);
+          request.onerror = event => {
+            reject((event.target as IDBRequest).error);
           };
-          request.onsuccess = function(event) {
-            const result: TokenDetails | null = (<IDBRequest>event.target)
+          request.onsuccess = event => {
+            const result: TokenDetails | null = (event.target as IDBRequest)
               .result;
-            resolve(result!);
+            resolve(result);
           };
         });
       });
@@ -164,13 +164,13 @@ export class TokenDetailsModel extends DBInterface {
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const scopeRequest = objectStore.get(swScope);
           scopeRequest.onerror = event => {
-            reject((<IDBRequest>event.target).error);
+            reject((event.target as IDBRequest).error);
           };
 
           scopeRequest.onsuccess = event => {
-            const result: TokenDetails | null = (<IDBRequest>event.target)
+            const result: TokenDetails | null = (event.target as IDBRequest)
               .result;
-            resolve(result!);
+            resolve(result);
           };
         });
       });
@@ -236,8 +236,8 @@ export class TokenDetailsModel extends DBInterface {
           swScope: swScope,
           vapidKey: arrayBufferToBase64(vapidKey as Uint8Array),
           endpoint: subscription.endpoint,
-          auth: arrayBufferToBase64(subscription.getKey('auth')!),
-          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
+          auth: arrayBufferToBase64(subscription.getKey('auth')),
+          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
           fcmPushSet: fcmPushSet,
@@ -252,7 +252,7 @@ export class TokenDetailsModel extends DBInterface {
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const request = objectStore.put(details);
           request.onerror = event => {
-            reject((<IDBRequest>event.target).error);
+            reject((event.target as IDBRequest).error);
           };
           request.onsuccess = event => {
             resolve();
@@ -289,10 +289,10 @@ export class TokenDetailsModel extends DBInterface {
           const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
           const request = objectStore.delete(details.swScope);
           request.onerror = event => {
-            reject((<IDBRequest>event.target).error);
+            reject((event.target as IDBRequest).error);
           };
           request.onsuccess = event => {
-            if ((<IDBRequest>event.target).result === 0) {
+            if ((event.target as IDBRequest).result === 0) {
               reject(
                 this.errorFactory_.create(ERROR_CODES.FAILED_TO_DELETE_TOKEN)
               );

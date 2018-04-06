@@ -23,21 +23,15 @@ export const PARAMS = {
 
 // This value isn't using the TYPE_OF_MSG short hand as closure
 // expects the variable to be defined via goog.getMsg
-const msgType = {
+export const TYPES_OF_MSG = {
   PUSH_MSG_RECEIVED: 'push-msg-received',
   NOTIFICATION_CLICKED: 'notification-clicked'
 };
 
-function createNewMsg(msgType: any, msgData: any) {
+export function createNewMsg(msgType: any, msgData: any) {
   const message = {
     [PARAMS.TYPE_OF_MSG]: msgType,
     [PARAMS.DATA]: msgData
   };
   return message;
 }
-
-export default {
-  PARAMS,
-  TYPES_OF_MSG: msgType,
-  createNewMsg
-};

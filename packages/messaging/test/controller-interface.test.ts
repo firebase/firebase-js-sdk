@@ -18,13 +18,13 @@ import * as sinon from 'sinon';
 import { makeFakeApp } from './make-fake-app';
 import { makeFakeSWReg } from './make-fake-sw-reg';
 
-import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { WindowController } from '../src/controllers/window-controller';
-import { SWController } from '../src/controllers/sw-controller';
 import { ControllerInterface } from '../src/controllers/controller-interface';
+import { SWController } from '../src/controllers/sw-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { IIDModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
-import { IIDModel } from '../src/models/iid-model';
 
 const controllersToTest = [WindowController, SWController];
 
@@ -34,34 +34,34 @@ const controllersToTest = [WindowController, SWController];
  */
 class MockControllerInterface extends ControllerInterface {
   async getSWRegistration_() {
-    return await new ServiceWorkerRegistration();
+    return new ServiceWorkerRegistration();
   }
 
   async getPublicVapidKey_() {
-    return await new Uint8Array(0);
+    return new Uint8Array(0);
   }
 }
 
-describe('Firebase Messaging > *ControllerInterface', function() {
+describe('Firebase Messaging > *ControllerInterface', () => {
   const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
     messagingSenderId: '12345'
   });
 
-  const cleanup = function() {
+  const cleanup = () => {
     sandbox.restore();
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanup();
   });
 
-  after(function() {
+  after(() => {
     return cleanup();
   });
 
-  describe('INTERNAL.delete()', function() {
-    it('should call delete()', function() {
+  describe('INTERNAL.delete()', () => {
+    it('should call delete()', () => {
       const controller = new MockControllerInterface(app);
       sandbox.spy(controller, 'delete');
       controller.INTERNAL.delete();
@@ -69,8 +69,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('requestPermission()', function() {
-    it(`should throw`, function() {
+  describe('requestPermission()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -83,11 +83,9 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('getPushSubscription()', function() {
+  describe('getPushSubscription()', () => {
     controllersToTest.forEach(ControllerInTest => {
-      it(`should return rejection error in ${
-        ControllerInTest.name
-      }`, function() {
+      it(`should return rejection error in ${ControllerInTest.name}`, () => {
         const injectedError = new Error('Inject error.');
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
@@ -107,7 +105,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
           );
       });
 
-      it(`should return PushSubscription if returned`, function() {
+      it(`should return PushSubscription if returned`, () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
@@ -122,7 +120,7 @@ describe('Firebase Messaging > *ControllerInterface', function() {
           });
       });
 
-      it('should call subscribe() if no subscription', function() {
+      it('should call subscribe() if no subscription', () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
@@ -147,8 +145,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('useServiceWorker()', function() {
-    it(`should throw`, function() {
+  describe('useServiceWorker()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -161,8 +159,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('usePublicVapidKey()', function() {
-    it(`should throw`, function() {
+  describe('usePublicVapidKey()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -175,8 +173,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('onMessage()', function() {
-    it(`should throw`, function() {
+  describe('onMessage()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -189,8 +187,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('onTokenRefresh()', function() {
-    it(`should throw`, function() {
+  describe('onTokenRefresh()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -203,8 +201,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('setBackgroundMessageHandler()', function() {
-    it(`should throw`, function() {
+  describe('setBackgroundMessageHandler()', () => {
+    it(`should throw`, () => {
       const controller = new MockControllerInterface(app);
       let thrownError;
       try {
@@ -217,8 +215,8 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('getNotificationPermission_', function() {
-    it('should return current permission', function() {
+  describe('getNotificationPermission_', () => {
+    it('should return current permission', () => {
       sandbox.stub(Notification as any, 'permission').value('test');
       const controller = new MockControllerInterface(app);
       const result = controller.getNotificationPermission_();
@@ -226,24 +224,24 @@ describe('Firebase Messaging > *ControllerInterface', function() {
     });
   });
 
-  describe('getTokenDetailsModel', function() {
-    it('should return an instance of TokenDetailsModel', function() {
+  describe('getTokenDetailsModel', () => {
+    it('should return an instance of TokenDetailsModel', () => {
       const controller = new MockControllerInterface(app);
       const result = controller.getTokenDetailsModel();
       expect(result).to.be.instanceof(TokenDetailsModel);
     });
   });
 
-  describe('getVapidDetailsModel', function() {
-    it('should return an instance of VapidDetailsModel', function() {
+  describe('getVapidDetailsModel', () => {
+    it('should return an instance of VapidDetailsModel', () => {
       const controller = new MockControllerInterface(app);
       const result = controller.getVapidDetailsModel();
       expect(result).to.be.instanceof(VapidDetailsModel);
     });
   });
 
-  describe('getIIDModel', function() {
-    it('should return an instance of IIDModel', function() {
+  describe('getIIDModel', () => {
+    it('should return an instance of IIDModel', () => {
       const controller = new MockControllerInterface(app);
       const result = controller.getIIDModel();
       expect(result).to.be.instanceof(IIDModel);
