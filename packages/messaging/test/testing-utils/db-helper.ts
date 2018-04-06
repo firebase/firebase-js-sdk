@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export function deleteDatabase(dbName) {
+export function deleteDatabase(dbName: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.deleteDatabase(dbName);
     request.onerror = event => {

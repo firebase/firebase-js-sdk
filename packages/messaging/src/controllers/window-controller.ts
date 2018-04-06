@@ -20,7 +20,9 @@ import {
   createSubscribe,
   NextFn,
   Observer,
-  PartialObserver
+  PartialObserver,
+  Subscribe,
+  Unsubscribe
 } from '@firebase/util';
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
@@ -35,15 +37,17 @@ export class WindowController extends ControllerInterface
   implements FirebaseMessaging {
   private registrationToUse_: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse_: Uint8Array | null = null;
-  private manifestCheckPromise_: Promise<any> | null = null;
+  private manifestCheckPromise_: Promise<void> | null = null;
   private messageObserver_: Observer<{}, Error> | null = null;
-  private readonly onMessage_ = createSubscribe(observer => {
+  private readonly onMessage_: Subscribe<{}> = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
   private tokenRefreshObserver_: Observer<{}, Error> | null = null;
-  private readonly onTokenRefresh_ = createSubscribe(observer => {
-    this.tokenRefreshObserver_ = observer;
-  });
+  private readonly onTokenRefresh_: Subscribe<{}> = createSubscribe(
+    observer => {
+      this.tokenRefreshObserver_ = observer;
+    }
+  );
 
   /**
    * A service that provides a MessagingService instance.
@@ -59,11 +63,11 @@ export class WindowController extends ControllerInterface
    * The return promise will reject if the browser doesn't support
    * FCM, if permission is denied for notifications or it's not
    * possible to generate a token.
-   * @export
-   * @return {Promise<string> | Promise<null>} Returns a promise the
-   * resolves to an FCM token or null if permission isn't granted.
+   *
+   * @return Returns a promise that resolves to an FCM token or null if
+   * permission isn't granted.
    */
-  getToken() {
+  getToken(): Promise<string | null> {
     // Check that the required API's are available
     if (!this.isSupported_()) {
       return Promise.reject(
@@ -83,7 +87,7 @@ export class WindowController extends ControllerInterface
    * @return {Promise} Returns a promise that resolves if the manifest matches
    * our required sender ID
    */
-  manifestCheck_() {
+  manifestCheck_(): Promise<void> {
     if (this.manifestCheckPromise_) {
       return this.manifestCheckPromise_;
     }
@@ -124,18 +128,17 @@ export class WindowController extends ControllerInterface
 
   /**
    * Request permission if it is not currently granted
-   * @export
-   * @returns {Promise} Resolves if the permission was granted, otherwise
-   * rejects
+   *
+   * @return Resolves if the permission was granted, otherwise rejects
    */
-  async requestPermission() {
+  async requestPermission(): Promise<void> {
     if (
       ((Notification as any).permission as NotificationPermission) === 'granted'
     ) {
       return;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const managePermissionResult = (result: NotificationPermission) => {
         if (result === 'granted') {
           return resolve();
@@ -166,11 +169,11 @@ export class WindowController extends ControllerInterface
   /**
    * This method allows a developer to override the default service worker and
    * instead use a custom service worker.
-   * @export
+   *
    * @param registration The service worker registration that should be used to
    * receive the push messages.
    */
-  useServiceWorker(registration: ServiceWorkerRegistration) {
+  useServiceWorker(registration: ServiceWorkerRegistration): void {
     if (!(registration instanceof ServiceWorkerRegistration)) {
       throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
@@ -185,10 +188,10 @@ export class WindowController extends ControllerInterface
   /**
    * This method allows a developer to override the default vapid key
    * and instead use a custom VAPID public key.
-   * @export
+   *
    * @param publicKey A URL safe base64 encoded string.
    */
-  usePublicVapidKey(publicKey: string) {
+  usePublicVapidKey(publicKey: string): void {
     if (typeof publicKey !== 'string') {
       throw this.errorFactory_.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
     }
@@ -220,7 +223,7 @@ export class WindowController extends ControllerInterface
     nextOrObserver: NextFn<{}> | PartialObserver<{}>,
     error?: (e: Error) => void,
     completed?: () => void
-  ) {
+  ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
       return this.onMessage_(nextOrObserver, error, completed);
     } else {
@@ -229,7 +232,6 @@ export class WindowController extends ControllerInterface
   }
 
   /**
-   * @export
    * @param nextOrObserver An observer object or a function triggered on token
    * refresh.
    * @param error A function triggered on token refresh error.
@@ -240,7 +242,7 @@ export class WindowController extends ControllerInterface
     nextOrObserver: NextFn<{}> | PartialObserver<{}>,
     error?: (e: Error) => void,
     completed?: () => void
-  ) {
+  ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
       return this.onTokenRefresh_(nextOrObserver, error, completed);
     } else {
@@ -353,7 +355,7 @@ export class WindowController extends ControllerInterface
    */
   // Visible for testing
   // TODO: Make private
-  setupSWMessageListener_() {
+  setupSWMessageListener_(): void {
     if (!('serviceWorker' in navigator)) {
       return;
     }

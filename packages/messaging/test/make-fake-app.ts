@@ -16,7 +16,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export function makeFakeApp(options = {}): FirebaseApp {
+export function makeFakeApp(options: object = {}): FirebaseApp {
   window['firebase'] = window['firebase'] || {};
   const app: any = {};
   app.INTERNAL = window['firebase'].INTERNAL;

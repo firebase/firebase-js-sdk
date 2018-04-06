@@ -67,7 +67,7 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  onPush_(event: any) {
+  onPush_(event: any): void {
     let msgPayload: any;
     try {
       msgPayload = event.data.json();
@@ -104,7 +104,7 @@ export class SWController extends ControllerInterface {
 
   // Visible for testing
   // TODO: Make private
-  onSubChange_(event: any) {
+  onSubChange_(event: any): void {
     const promiseChain = this.getSWRegistration_()
       .then(registration => {
         return registration.pushManager
@@ -144,7 +144,7 @@ export class SWController extends ControllerInterface {
 
   // Visible for testing
   // TODO: Make private
-  onNotificationClick_(event: any) {
+  onNotificationClick_(event: any): void {
     if (
       !(
         event.notification &&
@@ -242,7 +242,7 @@ export class SWController extends ControllerInterface {
    * and a notification must be shown. The callback will be given the data from
    * the push message.
    */
-  setBackgroundMessageHandler(callback: BgMessageHandler) {
+  setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
       throw this.errorFactory_.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
