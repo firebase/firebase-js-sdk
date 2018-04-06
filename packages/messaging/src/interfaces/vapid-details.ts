@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect } from 'chai';
-import { DBInterface } from '../src/models/db-interface';
-import { deleteDatabase } from './testing-utils/db-helper';
 
-describe(`Firebase Messaging > db-interface.onDBUpgrade()`, () => {
-  const TEST_DB_NAME = 'test-db';
-
-  const cleanup = () => {
-    return deleteDatabase(TEST_DB_NAME);
-  };
-
-  beforeEach(() => {
-    return cleanup();
-  });
-
-  after(() => {
-    return cleanup();
-  });
-});
+export interface VapidDetails {
+  swScope: string;
+  vapidKey: Uint8Array;
+}
