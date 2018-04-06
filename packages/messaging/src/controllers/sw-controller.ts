@@ -367,16 +367,19 @@ export class SWController extends ControllerInterface {
    * This will return the default VAPID key or the uint8array version of the
    * public VAPID key provided by the developer.
    */
-  getPublicVapidKey_(): Promise<Uint8Array> {
-    return this.getSWRegistration_()
-      .then(swReg => {
-        return this.getVapidDetailsModel().getVapidFromSWScope(swReg.scope);
-      })
-      .then(vapidKeyFromDatabase => {
-        if (vapidKeyFromDatabase === null) {
-          return DEFAULT_PUBLIC_VAPID_KEY;
-        }
-        return vapidKeyFromDatabase;
-      });
+  async getPublicVapidKey_(): Promise<Uint8Array> {
+    const swReg = await this.getSWRegistration_();
+    if (!swReg) {
+      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+    }
+
+    const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
+      swReg.scope
+    );
+    if (vapidKeyFromDatabase == null) {
+      return DEFAULT_PUBLIC_VAPID_KEY;
+    }
+
+    return vapidKeyFromDatabase;
   }
 }

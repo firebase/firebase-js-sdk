@@ -20,19 +20,15 @@ import { cleanV1 } from './clean-v1-undefined';
 import { DBInterface } from './db-interface';
 import { ERROR_CODES } from './errors';
 
-const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
-const DB_NAME = 'fcm_token_details_db';
-const DB_VERSION = 2;
-
 export class TokenDetailsModel extends DBInterface {
-  constructor() {
-    super(DB_NAME, DB_VERSION);
-  }
+  protected readonly dbName: string = 'fcm_token_details_db';
+  protected readonly dbVersion: number = 2;
+  protected readonly objectStoreName: string = 'fcm_token_object_Store';
 
-  onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent): void {
+  protected onDbUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent): void {
     if (evt.oldVersion < 1) {
       // New IDB instance
-      const objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+      const objectStore = db.createObjectStore(this.objectStoreName, {
         keyPath: 'swScope'
       });
 
@@ -59,16 +55,16 @@ export class TokenDetailsModel extends DBInterface {
    * validate the input.
    * @return Promise that resolves if input is valid, rejects otherwise.
    */
-  private async validateInputs_(input: Partial<TokenDetails>): Promise<void> {
+  private validateInputs(input: Partial<TokenDetails>): void {
     if (input.fcmToken) {
       if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
-        return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
+        throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
       }
     }
 
     if (input.swScope) {
       if (typeof input.swScope !== 'string' || input.swScope.length === 0) {
-        return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
+        throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
       }
     }
 
@@ -77,17 +73,13 @@ export class TokenDetailsModel extends DBInterface {
         !(input.vapidKey instanceof Uint8Array) ||
         input.vapidKey.length !== 65
       ) {
-        return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.BAD_VAPID_KEY)
-        );
+        throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
       }
     }
 
     if (input.subscription) {
       if (!(input.subscription instanceof PushSubscription)) {
-        return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.BAD_SUBSCRIPTION)
-        );
+        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
       }
     }
 
@@ -96,9 +88,7 @@ export class TokenDetailsModel extends DBInterface {
         typeof input.fcmSenderId !== 'string' ||
         input.fcmSenderId.length === 0
       ) {
-        return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID)
-        );
+        throw this.errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
       }
     }
 
@@ -107,9 +97,7 @@ export class TokenDetailsModel extends DBInterface {
         typeof input.fcmPushSet !== 'string' ||
         input.fcmPushSet.length === 0
       ) {
-        return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.BAD_PUSH_SET)
-        );
+        throw this.errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
       }
     }
   }
@@ -119,29 +107,16 @@ export class TokenDetailsModel extends DBInterface {
    * @param {string} fcmToken
    * @return {Promise<TokenDetails>} The details associated with that token.
    */
-  getTokenDetailsFromToken(fcmToken: string): Promise<TokenDetails> {
+  async getTokenDetailsFromToken(
+    fcmToken: string
+  ): Promise<TokenDetails | undefined> {
     if (!fcmToken) {
-      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
+      throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
     }
 
-    return this.validateInputs_({ fcmToken })
-      .then(() => this.openDatabase())
-      .then(db => {
-        return new Promise<TokenDetails>((resolve, reject) => {
-          const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
-          const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const index = objectStore.index('fcmToken');
-          const request = index.get(fcmToken);
-          request.onerror = event => {
-            reject((event.target as IDBRequest).error);
-          };
-          request.onsuccess = event => {
-            const result: TokenDetails | null = (event.target as IDBRequest)
-              .result;
-            resolve(result);
-          };
-        });
-      });
+    this.validateInputs({ fcmToken });
+
+    return this.getIndex<TokenDetails>('fcmToken', fcmToken);
   }
 
   /**
@@ -149,160 +124,97 @@ export class TokenDetailsModel extends DBInterface {
    * indexedDB.
    * @return The details associated with that token.
    */
-  getTokenDetailsFromSWScope(swScope: string): Promise<TokenDetails> {
+  async getTokenDetailsFromSWScope(
+    swScope: string
+  ): Promise<TokenDetails | undefined> {
     if (!swScope) {
-      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
+      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
-    return this.validateInputs_({ swScope })
-      .then(() => {
-        return this.openDatabase();
-      })
-      .then(db => {
-        return new Promise<TokenDetails>((resolve, reject) => {
-          const transaction = db.transaction([FCM_TOKEN_OBJ_STORE]);
-          const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const scopeRequest = objectStore.get(swScope);
-          scopeRequest.onerror = event => {
-            reject((event.target as IDBRequest).error);
-          };
+    this.validateInputs({ swScope });
 
-          scopeRequest.onsuccess = event => {
-            const result: TokenDetails | null = (event.target as IDBRequest)
-              .result;
-            resolve(result);
-          };
-        });
-      });
+    return this.get<TokenDetails>(swScope);
   }
 
   /**
    * Save the details for the fcm token for re-use at a later date.
    * @param input A plain js object containing args to save.
    */
-  saveTokenDetails({
-    swScope,
-    vapidKey,
-    subscription,
-    fcmSenderId,
-    fcmToken,
-    fcmPushSet
-  }: TokenDetails): Promise<void> {
-    if (!swScope) {
-      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_SCOPE));
+  async saveTokenDetails(tokenDetails: TokenDetails): Promise<void> {
+    if (!tokenDetails.swScope) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
-    if (!vapidKey) {
-      return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.BAD_VAPID_KEY)
-      );
+    if (!tokenDetails.vapidKey) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
     }
 
-    if (!subscription) {
-      return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.BAD_SUBSCRIPTION)
-      );
+    if (!tokenDetails.subscription) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
     }
 
-    if (!fcmSenderId) {
-      return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID)
-      );
+    if (!tokenDetails.fcmSenderId) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    if (!fcmToken) {
-      return Promise.reject(this.errorFactory_.create(ERROR_CODES.BAD_TOKEN));
+    if (!tokenDetails.fcmToken) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
     }
 
-    if (!fcmPushSet) {
-      return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.BAD_PUSH_SET)
-      );
+    if (!tokenDetails.fcmPushSet) {
+      throw this.errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
     }
 
-    return this.validateInputs_({
-      swScope,
-      vapidKey,
-      subscription,
-      fcmSenderId,
-      fcmToken,
-      fcmPushSet
-    })
-      .then(() => {
-        return this.openDatabase();
-      })
-      .then(db => {
-        const details = {
-          swScope: swScope,
-          vapidKey: arrayBufferToBase64(vapidKey as Uint8Array),
-          endpoint: subscription.endpoint,
-          auth: arrayBufferToBase64(subscription.getKey('auth')),
-          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
-          fcmSenderId: fcmSenderId,
-          fcmToken: fcmToken,
-          fcmPushSet: fcmPushSet,
-          createTime: Date.now()
-        };
+    this.validateInputs(tokenDetails);
 
-        return new Promise<void>((resolve, reject) => {
-          const transaction = db.transaction(
-            [FCM_TOKEN_OBJ_STORE],
-            this.TRANSACTION_READ_WRITE
-          );
-          const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const request = objectStore.put(details);
-          request.onerror = event => {
-            reject((event.target as IDBRequest).error);
-          };
-          request.onsuccess = event => {
-            resolve();
-          };
-        });
-      });
+    const details = {
+      swScope: tokenDetails.swScope,
+      vapidKey: arrayBufferToBase64(tokenDetails.vapidKey as Uint8Array),
+      endpoint: tokenDetails.subscription.endpoint,
+      auth: arrayBufferToBase64(tokenDetails.subscription.getKey('auth')),
+      p256dh: arrayBufferToBase64(tokenDetails.subscription.getKey('p256dh')),
+      fcmSenderId: tokenDetails.fcmSenderId,
+      fcmToken: tokenDetails.fcmToken,
+      fcmPushSet: tokenDetails.fcmPushSet,
+      createTime: Date.now()
+    };
+
+    return this.put(details);
   }
 
   /**
    * This method deletes details of the current FCM token.
    * It's returning a promise in case we need to move to an async
    * method for deleting at a later date.
-   * @return {Promise<Object>} Resolves once the FCM token details have been
-   * deleted and returns the deleted details.
+   *
+   * @return Resolves once the FCM token details have been deleted and returns
+   * the deleted details.
    */
-  deleteToken(token: string): Promise<TokenDetails> {
+  async deleteToken(token: string): Promise<TokenDetails> {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.INVALID_DELETE_TOKEN)
+        this.errorFactory.create(ERROR_CODES.INVALID_DELETE_TOKEN)
       );
     }
 
-    return this.getTokenDetailsFromToken(token).then(details => {
-      if (!details) {
-        throw this.errorFactory_.create(ERROR_CODES.DELETE_TOKEN_NOT_FOUND);
-      }
+    const details = await this.getTokenDetailsFromToken(token);
+    if (!details) {
+      throw this.errorFactory.create(ERROR_CODES.DELETE_TOKEN_NOT_FOUND);
+    }
 
-      return this.openDatabase().then(db => {
-        return new Promise<TokenDetails>((resolve, reject) => {
-          const transaction = db.transaction(
-            [FCM_TOKEN_OBJ_STORE],
-            this.TRANSACTION_READ_WRITE
-          );
-          const objectStore = transaction.objectStore(FCM_TOKEN_OBJ_STORE);
-          const request = objectStore.delete(details.swScope);
-          request.onerror = event => {
-            reject((event.target as IDBRequest).error);
-          };
-          request.onsuccess = event => {
-            if ((event.target as IDBRequest).result === 0) {
-              reject(
-                this.errorFactory_.create(ERROR_CODES.FAILED_TO_DELETE_TOKEN)
-              );
-              return;
-            }
-
-            resolve(details);
-          };
-        });
-      });
-    });
+    await this.delete(details.swScope);
+    return details;
   }
+}
+
+/** Promisifies an IDBRequest. Resolves with the IDBRequest's result. */
+function promisify<ReturnType>(request: IDBRequest): Promise<ReturnType> {
+  return new Promise<ReturnType>((resolve, reject) => {
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
 }
