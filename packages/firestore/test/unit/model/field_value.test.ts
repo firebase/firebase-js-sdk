@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import { GeoPoint } from '../../../src/api/geo_point';
-import { Timestamp } from '../../../src/core/timestamp';
+import { Timestamp } from '../../../src/api/timestamp';
 import * as fieldValue from '../../../src/model/field_value';
 import * as typeUtils from '../../../src/util/types';
 import {

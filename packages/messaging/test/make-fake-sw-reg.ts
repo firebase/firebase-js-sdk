@@ -15,11 +15,16 @@
  */
 import * as sinon from 'sinon';
 
-const FakeRegistration = function() {};
+const FakeRegistration = () => {};
 FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
-export default function(selectedState?, desiredValue?) {
+export function makeFakeSWReg(
+  selectedState?: string,
+  desiredValue?: object
+): ServiceWorkerRegistration {
   const fakeReg = new FakeRegistration();
+  // No need to use a sandbox to stub this object as it should be a used
+  // once per test.
   sinon.stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];
   states.forEach(state => {

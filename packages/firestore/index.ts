@@ -41,6 +41,7 @@ declare module '@firebase/app-types' {
       GeoPoint: typeof types.GeoPoint;
       Query: typeof types.Query;
       QuerySnapshot: typeof types.QuerySnapshot;
+      Timestamp: typeof types.Timestamp;
       Transaction: typeof types.Transaction;
       WriteBatch: typeof types.WriteBatch;
       setLogLevel: typeof types.setLogLevel;

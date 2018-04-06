@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import arrayBufferToBase64 from '../../src/helpers/array-buffer-to-base64';
+
 import { assert } from 'chai';
+import { arrayBufferToBase64 } from '../../src/helpers/array-buffer-to-base64';
 
 /** Token details that are fed to the database */
 export declare interface InputDetails {
@@ -29,7 +30,7 @@ export declare interface InputDetails {
 /** Compares the input details and the saved ones  */
 export function compareDetails(
   input: InputDetails,
-  saved: Object,
+  saved: object,
   now: number
 ): void {
   const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];

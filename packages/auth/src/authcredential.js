@@ -35,6 +35,7 @@ goog.provide('fireauth.TwitterAuthProvider');
 
 goog.require('fireauth.ActionCodeUrl');
 goog.require('fireauth.AuthError');
+goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.idp');
@@ -750,6 +751,7 @@ fireauth.EmailAuthProvider.credentialWithLink = function(email, emailLink) {
  */
 fireauth.EmailAuthProvider.getActionCodeFromSignInEmailLink =
     function(emailLink) {
+  emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
   var actionCodeUrl = new fireauth.ActionCodeUrl(emailLink);
   var code = actionCodeUrl.getCode();
   if (actionCodeUrl.getMode() === fireauth.ActionCodeUrl.Mode.SIGN_IN && code) {

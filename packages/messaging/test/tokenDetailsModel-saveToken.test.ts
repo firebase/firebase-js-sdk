@@ -14,59 +14,49 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import makeFakeSubscription from './make-fake-subscription';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { TokenDetailsModel } from '../src/models/token-details-model';
+import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import TokenDetailsModel from '../src/models/token-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
-describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
-  const EXAMPLE_INPUT = {
-    swScope: '/example-scope',
-    vapidKey: base64ToArrayBuffer(
-      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-    ),
-    subscription: makeFakeSubscription(),
-    fcmSenderId: '1234567',
-    fcmToken: 'qwerty',
-    fcmPushSet: '7654321'
-  };
+const EXAMPLE_INPUT = {
+  swScope: '/example-scope',
+  vapidKey: base64ToArrayBuffer(
+    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+  ),
+  subscription: makeFakeSubscription(),
+  fcmSenderId: '1234567',
+  fcmToken: 'qwerty',
+  fcmPushSet: '7654321'
+};
 
-  let globalTokenModel;
+describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
+  let globalTokenModel: TokenDetailsModel;
 
-  const cleanUp = () => {
-    const promises = [];
-    if (globalTokenModel) {
-      promises.push(globalTokenModel.closeDatabase());
-    }
-
-    return Promise.all(promises)
-      .then(() => deleteDatabase('fcm_token_details_db'))
-      .then(() => (globalTokenModel = null));
-  };
-
-  beforeEach(function() {
-    return cleanUp();
+  beforeEach(() => {
+    globalTokenModel = new TokenDetailsModel();
   });
 
-  after(function() {
-    return cleanUp;
+  afterEach(async () => {
+    await globalTokenModel.closeDatabase();
+    await deleteDatabase('fcm_token_details_db');
   });
 
-  it('should throw on bad input', function() {
+  it('should throw on bad input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.swScope = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
         }
       );
     });
@@ -74,19 +64,19 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad vapid key input', function() {
+  it('should throw on bad vapid key input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.vapidKey = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_VAPID_KEY, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_VAPID_KEY, err.code);
         }
       );
     });
@@ -94,19 +84,19 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad subscription input', function() {
+  it('should throw on bad subscription input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.subscription = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SUBSCRIPTION, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
         }
       );
     });
@@ -114,19 +104,19 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad send id input', function() {
+  it('should throw on bad send id input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmSenderId = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SENDER_ID, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SENDER_ID, err.code);
         }
       );
     });
@@ -134,19 +124,19 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad token input', function() {
+  it('should throw on bad token input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmToken = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_TOKEN, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_TOKEN, err.code);
         }
       );
     });
@@ -154,19 +144,19 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should throw on bad pushSet input', function() {
+  it('should throw on bad pushSet input', () => {
     const badInputs = ['', [], {}, true, null, 123];
 
     const promises = badInputs.map((badInput: any) => {
       globalTokenModel = new TokenDetailsModel();
-      const validInput = Object.assign({}, EXAMPLE_INPUT);
+      const validInput = { ...EXAMPLE_INPUT };
       validInput.fcmPushSet = badInput;
       return globalTokenModel.saveTokenDetails(validInput).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_PUSH_SET, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_PUSH_SET, err.code);
         }
       );
     });
@@ -174,7 +164,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', function() {
     return Promise.all(promises);
   });
 
-  it('should save valid details', function() {
+  it('should save valid details', () => {
     globalTokenModel = new TokenDetailsModel();
     return globalTokenModel.saveTokenDetails(EXAMPLE_INPUT);
   });

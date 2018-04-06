@@ -13,41 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-import { ErrorFactory } from '@firebase/util';
-import Errors from '../models/errors';
-import TokenDetailsModel from '../models/token-details-model';
-import VapidDetailsModel from '../models/vapid-details-model';
-import NOTIFICATION_PERMISSION from '../models/notification-permission';
-import IIDModel from '../models/iid-model';
-import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
+import { FirebaseApp } from '@firebase/app-types';
+import {
+  createSubscribe,
+  ErrorFactory,
+  NextFn,
+  Observer,
+  PartialObserver
+} from '@firebase/util';
+import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { TokenDetails } from '../interfaces/token-details';
+import { ERROR_CODES, ERROR_MAP } from '../models/errors';
+import { IIDModel } from '../models/iid-model';
+import { TokenDetailsModel } from '../models/token-details-model';
+import { VapidDetailsModel } from '../models/vapid-details-model';
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export default class ControllerInterface {
-  public app;
-  public INTERNAL;
-  protected errorFactory_;
-  private messagingSenderId_: string;
-  private tokenDetailsModel_: TokenDetailsModel;
-  private vapidDetailsModel_: VapidDetailsModel;
-  private iidModel_: IIDModel;
+export abstract class ControllerInterface {
+  app: FirebaseApp;
+  INTERNAL: any;
+  protected errorFactory_: ErrorFactory<string>;
+  private readonly messagingSenderId_: string;
+  private readonly tokenDetailsModel_: TokenDetailsModel;
+  private readonly vapidDetailsModel_: VapidDetailsModel;
+  private readonly iidModel_: IIDModel;
 
   /**
    * An interface of the Messaging Service API
-   * @param {!firebase.app.App} app
    */
-  constructor(app) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', Errors.map);
+  constructor(app: FirebaseApp) {
+    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
 
     if (
       !app.options[SENDER_ID_OPTION_NAME] ||
       typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
     ) {
-      throw this.errorFactory_.create(Errors.codes.BAD_SENDER_ID);
+      throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
@@ -64,31 +69,41 @@ export default class ControllerInterface {
   /**
    * @export
    */
-  getToken(): Promise<string | null> {
+  async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
-    if (currentPermission !== NOTIFICATION_PERMISSION.granted) {
-      if (currentPermission === NOTIFICATION_PERMISSION.denied) {
+    if (currentPermission !== 'granted') {
+      if (currentPermission === 'denied') {
         return Promise.reject(
-          this.errorFactory_.create(Errors.codes.NOTIFICATIONS_BLOCKED)
+          this.errorFactory_.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
         );
       }
 
       // We must wait for permission to be granted
       return Promise.resolve(null);
     }
-    let swReg: ServiceWorkerRegistration;
-    return this.getSWRegistration_()
-      .then(reg => {
-        swReg = reg;
-        return this.tokenDetailsModel_.getTokenDetailsFromSWScope(swReg.scope);
-      })
-      .then(tokenDetails => {
-        if (tokenDetails) {
-          return this.manageExistingToken(tokenDetails, swReg);
-        }
-        return this.getNewToken(swReg);
-      });
+
+    const swReg = await this.getSWRegistration_();
+    const publicVapidKey = await this.getPublicVapidKey_();
+    // If a PushSubscription exists it's returned, otherwise a new subscription
+    // is generated and returned.
+    const pushSubscription = await this.getPushSubscription(
+      swReg,
+      publicVapidKey
+    );
+    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+      swReg.scope
+    );
+
+    if (tokenDetails) {
+      return this.manageExistingToken(
+        swReg,
+        pushSubscription,
+        publicVapidKey,
+        tokenDetails
+      );
+    }
+    return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
 
   /**
@@ -100,129 +115,96 @@ export default class ControllerInterface {
    * 3) If the database cache is invalidated: Send a request to FCM to update
    * the token, and to check if the token is still valid on FCM-side.
    */
-  private manageExistingToken(
-    tokenDetails: Object,
-    swReg: ServiceWorkerRegistration
+  private async manageExistingToken(
+    swReg: ServiceWorkerRegistration,
+    pushSubscription: PushSubscription,
+    publicVapidKey: Uint8Array,
+    tokenDetails: TokenDetails
   ): Promise<string> {
-    return this.isTokenStillValid(tokenDetails).then(isValid => {
-      if (isValid) {
-        const now = Date.now();
-        if (now < tokenDetails['createTime'] + TOKEN_EXPIRATION_MILLIS) {
-          return tokenDetails['fcmToken'];
-        } else {
-          return this.updateToken(tokenDetails, swReg);
-        }
+    const isTokenValid = isTokenStillValid(
+      pushSubscription,
+      publicVapidKey,
+      tokenDetails
+    );
+    if (isTokenValid) {
+      const now = Date.now();
+      if (now < tokenDetails.createTime + TOKEN_EXPIRATION_MILLIS) {
+        return tokenDetails.fcmToken;
       } else {
-        // If the VAPID details are updated, delete the existing token,
-        // and create a new one.
-        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
-          return this.getNewToken(swReg);
-        });
+        return this.updateToken(
+          swReg,
+          pushSubscription,
+          publicVapidKey,
+          tokenDetails
+        );
       }
-    });
+    }
+
+    // If the token is no longer valid (for example if the VAPID details
+    // have changed), delete the existing token from the FCM client and server
+    // database. No need to unsubscribe from the Service Worker as we have a
+    // good push subscription that we'd like to use in getNewToken.
+    await this.deleteTokenFromDB(tokenDetails.fcmToken);
+    return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
 
-  /*
-   * Checks if the tokenDetails match the details provided in the clients.
-   */
-  private isTokenStillValid(tokenDetails: Object): Promise<Boolean> {
-    // TODO Validate rest of the details.
-    return this.getPublicVapidKey_().then(publicKey => {
-      if (arrayBufferToBase64(publicKey) !== tokenDetails['vapidKey']) {
-        return false;
-      }
-      return true;
-    });
-  }
-
-  private updateToken(
-    tokenDetails: Object,
-    swReg: ServiceWorkerRegistration
+  private async updateToken(
+    swReg: ServiceWorkerRegistration,
+    pushSubscription: PushSubscription,
+    publicVapidKey: Uint8Array,
+    tokenDetails: TokenDetails
   ): Promise<string> {
-    let publicVapidKey: Uint8Array;
-    let updatedToken: string;
-    let subscription: PushSubscription;
-    return this.getPublicVapidKey_()
-      .then(publicKey => {
-        publicVapidKey = publicKey;
-        return this.getPushSubscription_(swReg, publicVapidKey);
-      })
-      .then(pushSubscription => {
-        subscription = pushSubscription;
-        return this.iidModel_.updateToken(
-          this.messagingSenderId_,
-          tokenDetails['fcmToken'],
-          tokenDetails['fcmPushSet'],
-          subscription,
-          publicVapidKey
-        );
-      })
-      .catch(err => {
-        return this.deleteToken(tokenDetails['fcmToken']).then(() => {
-          throw err;
-        });
-      })
-      .then(token => {
-        updatedToken = token;
-        const allDetails = {
-          swScope: swReg.scope,
-          vapidKey: publicVapidKey,
-          subscription: subscription,
-          fcmSenderId: this.messagingSenderId_,
-          fcmToken: updatedToken,
-          fcmPushSet: tokenDetails['fcmPushSet']
-        };
-        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
-      })
-      .then(() => {
-        return this.vapidDetailsModel_.saveVapidDetails(
-          swReg.scope,
-          publicVapidKey
-        );
-      })
-      .then(() => {
-        return updatedToken;
-      });
+    try {
+      const updatedToken = await this.iidModel_.updateToken(
+        this.messagingSenderId_,
+        tokenDetails.fcmToken,
+        tokenDetails.fcmPushSet,
+        pushSubscription,
+        publicVapidKey
+      );
+
+      const allDetails: TokenDetails = {
+        swScope: swReg.scope,
+        vapidKey: publicVapidKey,
+        subscription: pushSubscription,
+        fcmSenderId: this.messagingSenderId_,
+        fcmToken: updatedToken,
+        fcmPushSet: tokenDetails.fcmPushSet
+      };
+
+      await this.tokenDetailsModel_.saveTokenDetails(allDetails);
+      await this.vapidDetailsModel_.saveVapidDetails(
+        swReg.scope,
+        publicVapidKey
+      );
+      return updatedToken;
+    } catch (e) {
+      await this.deleteToken(tokenDetails.fcmToken);
+      throw e;
+    }
   }
 
-  private getNewToken(swReg: ServiceWorkerRegistration): Promise<string> {
-    let publicVapidKey: Uint8Array;
-    let subscription: PushSubscription;
-    let tokenDetails: Object;
-    return this.getPublicVapidKey_()
-      .then(publicKey => {
-        publicVapidKey = publicKey;
-        return this.getPushSubscription_(swReg, publicVapidKey);
-      })
-      .then(pushSubscription => {
-        subscription = pushSubscription;
-        return this.iidModel_.getToken(
-          this.messagingSenderId_,
-          subscription,
-          publicVapidKey
-        );
-      })
-      .then(iidTokenDetails => {
-        tokenDetails = iidTokenDetails;
-        const allDetails = {
-          swScope: swReg.scope,
-          vapidKey: publicVapidKey,
-          subscription: subscription,
-          fcmSenderId: this.messagingSenderId_,
-          fcmToken: tokenDetails['token'],
-          fcmPushSet: tokenDetails['pushSet']
-        };
-        return this.tokenDetailsModel_.saveTokenDetails(allDetails);
-      })
-      .then(() => {
-        return this.vapidDetailsModel_.saveVapidDetails(
-          swReg.scope,
-          publicVapidKey
-        );
-      })
-      .then(() => {
-        return tokenDetails['token'];
-      });
+  private async getNewToken(
+    swReg: ServiceWorkerRegistration,
+    pushSubscription: PushSubscription,
+    publicVapidKey: Uint8Array
+  ): Promise<string> {
+    const tokenDetails = await this.iidModel_.getToken(
+      this.messagingSenderId_,
+      pushSubscription,
+      publicVapidKey
+    );
+    const allDetails: TokenDetails = {
+      swScope: swReg.scope,
+      vapidKey: publicVapidKey,
+      subscription: pushSubscription,
+      fcmSenderId: this.messagingSenderId_,
+      fcmToken: tokenDetails.token,
+      fcmPushSet: tokenDetails.pushSet
+    };
+    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
+    await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
+    return tokenDetails.token;
   }
 
   /**
@@ -232,105 +214,100 @@ export default class ControllerInterface {
    * whether or not the unsubscribe request was processed successfully.
    * @export
    */
-  deleteToken(token: string): Promise<Boolean> {
-    return this.tokenDetailsModel_
-      .deleteToken(token)
-      .then(details => {
-        return this.iidModel_.deleteToken(
-          details['fcmSenderId'],
-          details['fcmToken'],
-          details['fcmPushSet']
-        );
-      })
-      .then(() => {
-        return this.getSWRegistration_()
-          .then(registration => {
-            if (registration) {
-              return registration.pushManager.getSubscription();
-            }
-          })
-          .then(subscription => {
-            if (subscription) {
-              return subscription.unsubscribe();
-            }
-          });
+  async deleteToken(token: string): Promise<boolean> {
+    // Delete the token details from the database.
+    await this.deleteTokenFromDB(token);
+    // Unsubscribe from the SW.
+    const registration = await this.getSWRegistration_();
+    if (registration) {
+      const pushSubscription = await registration.pushManager.getSubscription();
+      if (pushSubscription) {
+        return pushSubscription.unsubscribe();
+      }
+    }
+    // If there's no SW, consider it a success.
+    return true;
+  }
+
+  /**
+   * This method will delete the token from the client database, and make a
+   * call to FCM to remove it from the server DB. Does not temper with the
+   * push subscription.
+   */
+  private async deleteTokenFromDB(token: string): Promise<void> {
+    const details = await this.tokenDetailsModel_.deleteToken(token);
+    await this.iidModel_.deleteToken(
+      details.fcmSenderId,
+      details.fcmToken,
+      details.fcmPushSet
+    );
+  }
+
+  // Visible for testing
+  // TODO: Make protected
+  abstract getSWRegistration_(): Promise<ServiceWorkerRegistration>;
+
+  // Visible for testing
+  // TODO: Make protected
+  abstract getPublicVapidKey_(): Promise<Uint8Array>;
+
+  /**
+   * Gets a PushSubscription for the current user.
+   */
+  getPushSubscription(
+    swRegistration: ServiceWorkerRegistration,
+    publicVapidKey: Uint8Array
+  ): Promise<PushSubscription> {
+    return swRegistration.pushManager.getSubscription().then(subscription => {
+      if (subscription) {
+        return subscription;
+      }
+
+      return swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: publicVapidKey
       });
-  }
-
-  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
-  }
-
-  getPublicVapidKey_(): Promise<Uint8Array> {
-    throw this.errorFactory_.create(Errors.codes.SHOULD_BE_INHERITED);
+    });
   }
 
   //
   // The following methods should only be available in the window.
   //
 
-  requestPermission() {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  requestPermission(): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  getPushSubscription_(
-    registration,
-    publicVapidKey
-  ): Promise<PushSubscription> {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  useServiceWorker(registration: ServiceWorkerRegistration): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!ServiceWorkerRegistration} registration
-   */
-  useServiceWorker(registration) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  usePublicVapidKey(b64PublicKey: string): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!string} b64PublicKey
-   */
-  usePublicVapidKey(b64PublicKey) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  onMessage(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
-  /**
-   * @export
-   * @param {!firebase.Observer|function(*)} nextOrObserver
-   * @param {function(!Error)=} optError
-   * @param {function()=} optCompleted
-   * @return {!function()}
-   */
-  onMessage(nextOrObserver, optError, optCompleted) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
-  }
-
-  /**
-   * @export
-   * @param {!firebase.Observer|function()} nextOrObserver An observer object
-   * or a function triggered on token refresh.
-   * @param {function(!Error)=} optError Optional A function
-   * triggered on token refresh error.
-   * @param {function()=} optCompleted Optional function triggered when the
-   * observer is removed.
-   * @return {!function()} The unsubscribe function for the observer.
-   */
-  onTokenRefresh(nextOrObserver, optError, optCompleted) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_WINDOW);
+  onTokenRefresh(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   //
   // The following methods are used by the service worker only.
   //
 
-  /**
-   * @export
-   * @param {function(Object)} callback
-   */
-  setBackgroundMessageHandler(callback) {
-    throw this.errorFactory_.create(Errors.codes.AVAILABLE_IN_SW);
+  setBackgroundMessageHandler(callback: (a: any) => any): void {
+    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
   //
@@ -342,7 +319,7 @@ export default class ControllerInterface {
    * This method is required to adhere to the Firebase interface.
    * It closes any currently open indexdb database connections.
    */
-  delete() {
+  delete(): Promise<[void, void]> {
     return Promise.all([
       this.tokenDetailsModel_.closeDatabase(),
       this.vapidDetailsModel_.closeDatabase()
@@ -354,7 +331,7 @@ export default class ControllerInterface {
    * @private
    * @return {string} The currenct permission state.
    */
-  getNotificationPermission_() {
+  getNotificationPermission_(): NotificationPermission {
     return (Notification as any).permission;
   }
 
@@ -368,9 +345,31 @@ export default class ControllerInterface {
 
   /**
    * @protected
-   * @returns {IIDModel}
    */
-  getIIDModel() {
+  getIIDModel(): IIDModel {
     return this.iidModel_;
   }
+}
+
+/**
+ * Checks if the tokenDetails match the details provided in the clients.
+ */
+function isTokenStillValid(
+  pushSubscription: PushSubscription,
+  publicVapidKey: Uint8Array,
+  tokenDetails: TokenDetails
+): boolean {
+  if (arrayBufferToBase64(publicVapidKey) !== tokenDetails.vapidKey) {
+    return false;
+  }
+
+  // getKey() isn't defined in the PushSubscription externs file, hence
+  // subscription.getKey('<key name>').
+  return (
+    pushSubscription.endpoint === tokenDetails.endpoint &&
+    arrayBufferToBase64(pushSubscription.getKey('auth')) ===
+      tokenDetails.auth &&
+    arrayBufferToBase64(pushSubscription.getKey('p256dh')) ===
+      tokenDetails.p256dh
+  );
 }

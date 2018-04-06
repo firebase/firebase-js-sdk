@@ -181,4 +181,47 @@ describeSpec('Offline:', [], () => {
         })
     );
   });
+
+  specTest(
+    'New queries return immediately with fromCache=true when offline due to ' +
+      'stream failures.',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection2'));
+      return (
+        spec()
+          .userListens(query1)
+          // 2 Failures should mark the client offline and trigger an empty
+          // fromCache event.
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .expectEvents(query1, { fromCache: true })
+
+          // A new query should immediately return from cache.
+          .userListens(query2)
+          .expectEvents(query2, { fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'New queries return immediately with fromCache=true when offline due to ' +
+      'OnlineState timeout.',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection2'));
+      return (
+        spec()
+          .userListens(query1)
+          .runTimer(TimerId.OnlineStateTimeout)
+          .expectEvents(query1, { fromCache: true })
+
+          // A new query should immediately return from cache.
+          .userListens(query2)
+          .expectEvents(query2, { fromCache: true })
+      );
+    }
+  );
 });

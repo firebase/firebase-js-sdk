@@ -1146,9 +1146,11 @@ function populateActionCodes() {
 /**
  * Provides basic Database checks for authenticated and unauthenticated access.
  * The Database node being tested has the following rule:
- * "$user_id": {
- *   ".read": "$user_id === auth.uid",
- *   ".write": "$user_id === auth.uid"
+ * "users": {
+ *   "$user_id": {
+ *     ".read": "$user_id === auth.uid",
+ *     ".write": "$user_id === auth.uid"
+ *   }
  * }
  * This applies when Real-time database service is available.
  */
@@ -1219,6 +1221,32 @@ function checkDatabaseAuthAccess() {
 }
 
 
+/** Runs all web worker tests if web workers are supported. */
+function onRunWebWorkTests() {
+  if (!webWorker) {
+    alertError('Error: Web workers are not supported in the current browser!');
+    return;
+  }
+  var onError = function(error) {
+    alertError('Error code: ' + error.code + ' message: ' + error.message);
+  };
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+      .then(function(result) {
+        runWebWorkerTests(result.credential.idToken);
+      }, onError);
+}
+
+
+/** Runs service worker tests if supported. */
+function onRunServiceWorkTests() {
+  $.ajax('/checkIfAuthenticated').then(function(data, textStatus, jqXHR) {
+    alertSuccess('User authenticated: ' + data.uid);
+  }, function(jqXHR, textStatus, errorThrown) {
+    alertError(jqXHR.status + ': ' + JSON.stringify(jqXHR.responseJSON));
+  });
+}
+
+
 /**
  * Initiates the application by setting event listeners on the various buttons.
  */
@@ -1236,7 +1264,7 @@ function initApp(){
   // The action code for email verification or password reset
   // can be passed in the url address as a parameter, and for convenience
   // this preloads the input field.
-  populateActionCodes(); 
+  populateActionCodes();
 
   // Allows to login the user if previously logged in.
   if (auth.onIdTokenChanged) {
@@ -1356,6 +1384,7 @@ function initApp(){
   $('#confirm-email-verification').click(onApplyActionCode);
   $('#get-token').click(onGetIdToken);
   $('#refresh-token').click(onRefreshToken);
+  $('#get-token-worker').click(onGetCurrentUserDataFromWebWorker);
   $('#sign-out').click(onSignOut);
 
   $('.popup-redirect-provider').click(onPopupRedirectProviderClick);
@@ -1375,6 +1404,9 @@ function initApp(){
 
   $('#fetch-providers-for-email').click(onFetchProvidersForEmail);
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
+
+  $('#run-web-worker-tests').click(onRunWebWorkTests);
+  $('#run-service-worker-tests').click(onRunServiceWorkTests);
 }
 
 $(initApp);

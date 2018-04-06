@@ -154,12 +154,18 @@ declare namespace firebase.auth {
     applyActionCode(code: string): Promise<any>;
     checkActionCode(code: string): Promise<any>;
     confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    createUserAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
     ): Promise<any>;
     currentUser: firebase.User | null;
     fetchProvidersForEmail(email: string): Promise<any>;
+    fetchSignInMethodsForEmail(email: string): Promise<any>;
+    isSignInWithEmailLink(emailLink: string): boolean;
     getRedirectResult(): Promise<any>;
     languageCode: string | null;
     onAuthStateChanged(
@@ -176,6 +182,10 @@ declare namespace firebase.auth {
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
+    sendSignInLinkToEmail(
+      email: string,
+      actionCodeSettings: firebase.auth.ActionCodeSettings
+    ): Promise<any>;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
@@ -185,15 +195,22 @@ declare namespace firebase.auth {
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInAnonymously(): Promise<any>;
+    signInAnonymouslyAndRetrieveData(): Promise<any>;
     signInWithCredential(
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInWithCustomToken(token: string): Promise<any>;
+    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    signInAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<any>;
+    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
     signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
     signOut(): Promise<any>;
@@ -203,6 +220,7 @@ declare namespace firebase.auth {
 
   interface AuthCredential {
     providerId: string;
+    signInMethod: string;
   }
 
   interface AuthProvider {
@@ -216,9 +234,15 @@ declare namespace firebase.auth {
 
   class EmailAuthProvider extends EmailAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
+    static EMAIL_LINK_SIGN_IN_METHOD: string;
     static credential(
       email: string,
       password: string
+    ): firebase.auth.AuthCredential;
+    static credentialWithLink(
+      email: string,
+      emailLink: string
     ): firebase.auth.AuthCredential;
   }
   class EmailAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -232,6 +256,7 @@ declare namespace firebase.auth {
 
   class FacebookAuthProvider extends FacebookAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static FACEBOOK_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class FacebookAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -244,6 +269,7 @@ declare namespace firebase.auth {
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GITHUB_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -256,6 +282,7 @@ declare namespace firebase.auth {
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GOOGLE_SIGN_IN_METHOD: string;
     static credential(
       idToken?: string | null,
       accessToken?: string | null
@@ -271,6 +298,7 @@ declare namespace firebase.auth {
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static PHONE_SIGN_IN_METHOD: string;
     static credential(
       verificationId: string,
       verificationCode: string
@@ -301,6 +329,7 @@ declare namespace firebase.auth {
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static TWITTER_SIGN_IN_METHOD: string;
     static credential(
       token: string,
       secret: string
@@ -613,6 +642,26 @@ declare namespace firebase.firestore {
     host?: string;
     /** Whether to use SSL when connecting. */
     ssl?: boolean;
+
+    /**
+     * Enables the use of `Timestamp`s for timestamp fields in
+     * `DocumentSnapshot`s.
+     *
+     * Currently, Firestore returns timestamp fields as `Date` but `Date` only
+     * supports millisecond precision, which leads to truncation and causes
+     * unexpected behavior when using a timestamp from a snapshot as a part
+     * of a subsequent query.
+     *
+     * Setting `timestampsInSnapshots` to true will cause Firestore to return
+     * `Timestamp` values instead of `Date` avoiding this kind of problem. To make
+     * this work you must also change any code that uses `Date` to use `Timestamp`
+     * instead.
+     *
+     * NOTE: in the future `timestampsInSnapshots: true` will become the
+     * default and this option will be removed so you should change your code to
+     * use Timestamp now and opt-in to this new behavior as soon as you can.
+     */
+    timestampsInSnapshots?: boolean;
   }
 
   export type LogLevel = 'debug' | 'error' | 'silent';
@@ -702,6 +751,24 @@ declare namespace firebase.firestore {
      */
     app: firebase.app.App;
 
+    /**
+     * Re-enables use of the network for this Firestore instance after a prior
+     * call to disableNetwork().
+     *
+     * @return A promise that is resolved once the network has been enabled.
+     */
+    enableNetwork(): Promise<void>;
+
+    /**
+     * Disables network usage for this instance. It can be re-enabled via
+     * enableNetwork(). While the network is disabled, any snapshot listeners or
+     * get() calls will return results from cache, and any write operations will
+     * be queued until the network is restored.
+     *
+     * @return A promise that is resolved once the network has been disabled.
+     */
+    disableNetwork(): Promise<void>;
+
     INTERNAL: { delete: () => Promise<void> };
   }
 
@@ -723,6 +790,94 @@ declare namespace firebase.firestore {
 
     readonly latitude: number;
     readonly longitude: number;
+
+    /**
+     * Returns true if this `GeoPoint` is equal to the provided one.
+     *
+     * @param other The `GeoPoint` to compare against.
+     * @return true if this `GeoPoint` is equal to the provided one.
+     */
+    isEqual(other: GeoPoint): boolean;
+  }
+
+  /**
+   * A Timestamp represents a point in time independent of any time zone or
+   * calendar, represented as seconds and fractions of seconds at nanosecond
+   * resolution in UTC Epoch time. It is encoded using the Proleptic Gregorian
+   * Calendar which extends the Gregorian calendar backwards to year one. It is
+   * encoded assuming all minutes are 60 seconds long, i.e. leap seconds are
+   * "smeared" so that no leap second table is needed for interpretation. Range is
+   * from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
+   *
+   * @see https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+   */
+  export class Timestamp {
+    /**
+     * Creates a new timestamp with the current date, with millisecond precision.
+     *
+     * @return a new timestamp representing the current date.
+     */
+    static now(): Timestamp;
+
+    /**
+     * Creates a new timestamp from the given date.
+     *
+     * @param date The date to initialize the `Timestamp` from.
+     * @return A new `Timestamp` representing the same point in time as the given
+     *     date.
+     */
+    static fromDate(date: Date): Timestamp;
+
+    /**
+     * Creates a new timestamp from the given number of milliseconds.
+     *
+     * @param milliseconds Number of milliseconds since Unix epoch
+     *     1970-01-01T00:00:00Z.
+     * @return A new `Timestamp` representing the same point in time as the given
+     *     number of milliseconds.
+     */
+    static fromMillis(milliseconds: number): Timestamp;
+
+    /**
+     * Creates a new timestamp.
+     *
+     * @param seconds The number of seconds of UTC time since Unix epoch
+     *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+     *     9999-12-31T23:59:59Z inclusive.
+     * @param nanoseconds The non-negative fractions of a second at nanosecond
+     *     resolution. Negative second values with fractions must still have
+     *     non-negative nanoseconds values that count forward in time. Must be
+     *     from 0 to 999,999,999 inclusive.
+     */
+    constructor(seconds: number, nanoseconds: number);
+
+    readonly seconds: number;
+    readonly nanoseconds: number;
+
+    /**
+     * Returns a new `Date` corresponding to this timestamp. This may lose
+     * precision.
+     *
+     * @return JavaScript `Date` object representing the same point in time as
+     *     this `Timestamp`, with millisecond precision.
+     */
+    toDate(): Date;
+
+    /**
+     * Returns the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+     *
+     * @return The point in time corresponding to this timestamp, represented as
+     *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+     */
+    toMillis(): number;
+
+    /**
+     * Returns true if this `Timestamp` is equal to the provided one.
+     *
+     * @param other The `Timestamp` to compare against.
+     * @return true if this `Timestamp` is equal to the provided one.
+     */
+    isEqual(other: Timestamp): boolean;
   }
 
   /**
@@ -751,6 +906,14 @@ declare namespace firebase.firestore {
      * Returns the bytes of this Blob in a new Uint8Array.
      */
     public toUint8Array(): Uint8Array;
+
+    /**
+     * Returns true if this `Blob` is equal to the provided one.
+     *
+     * @param other The `Blob` to compare against.
+     * @return true if this `Blob` is equal to the provided one.
+     */
+    isEqual(other: Blob): boolean;
   }
 
   /**
@@ -1092,6 +1255,29 @@ declare namespace firebase.firestore {
     ): () => void;
   }
 
+  /**
+   * Options that configure how data is retrieved from a `DocumentSnapshot`
+   * (e.g. the desired behavior for server timestamps that have not yet been set
+   * to their final value).
+   */
+  export interface SnapshotOptions {
+    /**
+     * If set, controls the return value for server timestamps that have not yet
+     * been set to their final value.
+     *
+     * By specifying 'estimate', pending server timestamps return an estimate
+     * based on the local clock. This estimate will differ from the final value
+     * and cause these values to change once the server result becomes available.
+     *
+     * By specifying 'previous', pending timestamps will be ignored and return
+     * their previous value instead.
+     *
+     * If omitted or set to 'none', `null` will be returned by default until the
+     * server value becomes available.
+     */
+    readonly serverTimestamps?: 'estimate' | 'previous' | 'none';
+  }
+
   /** Metadata about a snapshot, describing the state of the snapshot. */
   export interface SnapshotMetadata {
     /**
@@ -1112,15 +1298,27 @@ declare namespace firebase.firestore {
      * the client has received up-to-date data from the backend.
      */
     readonly fromCache: boolean;
+
+    /**
+     * Returns true if this `SnapshotMetadata` is equal to the provided one.
+     *
+     * @param other The `SnapshotMetadata` to compare against.
+     * @return true if this `SnapshotMetadata` is equal to the provided one.
+     */
+    isEqual(other: SnapshotMetadata): boolean;
   }
 
   /**
    * A `DocumentSnapshot` contains data read from a document in your Firestore
    * database. The data can be extracted with `.data()` or `.get(<field>)` to
    * get a specific field.
+   *
+   * For a `DocumentSnapshot` that points to a non-existing document, any data
+   * access will return 'undefined'. You can use the `exists` property to
+   * explicitly verify a document's existence.
    */
   export class DocumentSnapshot {
-    private constructor();
+    protected constructor();
 
     /** True if the document exists. */
     readonly exists: boolean;
@@ -1137,20 +1335,75 @@ declare namespace firebase.firestore {
     readonly metadata: SnapshotMetadata;
 
     /**
-     * Retrieves all fields in the document as an Object.
+     * Retrieves all fields in the document as an Object. Returns 'undefined' if
+     * the document doesn't exist.
      *
-     * @return An Object containing all fields in the document.
+     * By default, `FieldValue.serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @param options An options object to configure how data is retrieved from
+     * the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
+     * @return An Object containing all fields in the document or 'undefined' if
+     * the document doesn't exist.
      */
-    data(): DocumentData;
+    data(options?: SnapshotOptions): DocumentData | undefined;
 
     /**
-     * Retrieves the field specified by `fieldPath`.
+     * Retrieves the field specified by `fieldPath`. Returns 'undefined' if the
+     * document or field doesn't exist.
+     *
+     * By default, a `FieldValue.serverTimestamp()` that has not yet been set to
+     * its final value will be returned as `null`. You can override this by
+     * passing an options object.
      *
      * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
+     * @param options An options object to configure how the field is retrieved
+     * from the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
      * @return The data at the specified field location or undefined if no such
      * field exists in the document.
      */
-    get(fieldPath: string | FieldPath): any;
+    get(fieldPath: string | FieldPath, options?: SnapshotOptions): any;
+
+    /**
+     * Returns true if this `DocumentSnapshot` is equal to the provided one.
+     *
+     * @param other The `DocumentSnapshot` to compare against.
+     * @return true if this `DocumentSnapshot` is equal to the provided one.
+     */
+    isEqual(other: DocumentSnapshot): boolean;
+  }
+
+  /**
+   * A `QueryDocumentSnapshot` contains data read from a document in your
+   * Firestore database as part of a query. The document is guaranteed to exist
+   * and its data can be extracted with `.data()` or `.get(<field>)` to get a
+   * specific field.
+   *
+   * A `QueryDocumentSnapshot` offers the same API surface as a
+   * `DocumentSnapshot`. Since query results contain only existing documents, the
+   * `exists` property will always be true and `data()` will never return
+   * 'undefined'.
+   */
+  export class QueryDocumentSnapshot extends DocumentSnapshot {
+    private constructor();
+
+    /**
+     * Retrieves all fields in the document as an Object.
+     *
+     * By default, `FieldValue.serverTimestamp()` values that have not yet been
+     * set to their final value will be returned as `null`. You can override
+     * this by passing an options object.
+     *
+     * @override
+     * @param options An options object to configure how data is retrieved from
+     * the snapshot (e.g. the desired behavior for server timestamps that have
+     * not yet been set to their final value).
+     * @return An Object containing all fields in the document.
+     */
+    data(options?: SnapshotOptions): DocumentData;
   }
 
   /**
@@ -1410,7 +1663,7 @@ declare namespace firebase.firestore {
     readonly docChanges: DocumentChange[];
 
     /** An array of all the documents in the QuerySnapshot. */
-    readonly docs: DocumentSnapshot[];
+    readonly docs: QueryDocumentSnapshot[];
 
     /** The number of documents in the QuerySnapshot. */
     readonly size: number;
@@ -1421,11 +1674,22 @@ declare namespace firebase.firestore {
     /**
      * Enumerates all of the documents in the QuerySnapshot.
      *
-     * @param callback A callback to be called with a `DocumentSnapshot` for
+     * @param callback A callback to be called with a `QueryDocumentSnapshot` for
      * each document in the snapshot.
      * @param thisArg The `this` binding for the callback.
      */
-    forEach(callback: (result: DocumentSnapshot) => void, thisArg?: any): void;
+    forEach(
+      callback: (result: QueryDocumentSnapshot) => void,
+      thisArg?: any
+    ): void;
+
+    /**
+     * Returns true if this `QuerySnapshot` is equal to the provided one.
+     *
+     * @param other The `QuerySnapshot` to compare against.
+     * @return true if this `QuerySnapshot` is equal to the provided one.
+     */
+    isEqual(other: QuerySnapshot): boolean;
   }
 
   /**
@@ -1442,7 +1706,7 @@ declare namespace firebase.firestore {
     readonly type: DocumentChangeType;
 
     /** The document affected by this change. */
-    readonly doc: DocumentSnapshot;
+    readonly doc: QueryDocumentSnapshot;
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -1502,6 +1766,14 @@ declare namespace firebase.firestore {
      * newly created document after it has been written to the backend.
      */
     add(data: DocumentData): Promise<DocumentReference>;
+
+    /**
+     * Returns true if this `CollectionReference` is equal to the provided one.
+     *
+     * @param other The `CollectionReference` to compare against.
+     * @return true if this `CollectionReference` is equal to the provided one.
+     */
+    isEqual(other: CollectionReference): boolean;
   }
 
   /**
@@ -1521,6 +1793,14 @@ declare namespace firebase.firestore {
      * Returns a sentinel for use with update() to mark a field for deletion.
      */
     static delete(): FieldValue;
+
+    /**
+     * Returns true if this `FieldValue` is equal to the provided one.
+     *
+     * @param other The `FieldValue` to compare against.
+     * @return true if this `FieldValue` is equal to the provided one.
+     */
+    isEqual(other: FieldValue): boolean;
   }
 
   /**
@@ -1542,6 +1822,14 @@ declare namespace firebase.firestore {
      * It can be used in queries to sort or filter by the document ID.
      */
     static documentId(): FieldPath;
+
+    /**
+     * Returns true if this `FieldPath` is equal to the provided one.
+     *
+     * @param other The `FieldPath` to compare against.
+     * @return true if this `FieldPath` is equal to the provided one.
+     */
+    isEqual(other: FieldPath): boolean;
   }
 
   /**

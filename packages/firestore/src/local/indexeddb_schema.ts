@@ -78,7 +78,7 @@ type KeyPath = any; // tslint:disable-line:no-any
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
  */
 export class DbTimestamp {
-  constructor(public seconds: number, public nanos: number) {}
+  constructor(public seconds: number, public nanoseconds: number) {}
 }
 
 // The key for the singleton object in the 'owner' store is 'owner'.

@@ -32,13 +32,16 @@ export interface FullMetadata extends UploadMetadata {
 export interface Reference {
   bucket: string;
   child(path: string): Reference;
-  delete(): Promise<any>;
+  delete(): Promise<void>;
   fullPath: string;
-  getDownloadURL(): Promise<any>;
-  getMetadata(): Promise<any>;
+  getDownloadURL(): Promise<string>;
+  getMetadata(): Promise<FullMetadata>;
   name: string;
   parent: Reference | null;
-  put(data: any | any | any, metadata?: UploadMetadata): UploadTask;
+  put(
+    data: Blob | Uint8Array | ArrayBuffer,
+    metadata?: UploadMetadata
+  ): UploadTask;
   putString(
     data: string,
     format?: StringFormat,
@@ -47,7 +50,7 @@ export interface Reference {
   root: Reference;
   storage: Storage;
   toString(): string;
-  updateMetadata(metadata: SettableMetadata): Promise<any>;
+  updateMetadata(metadata: SettableMetadata): Promise<FullMetadata>;
 }
 
 export interface SettableMetadata {
@@ -105,6 +108,6 @@ export class FirebaseStorage {
   maxUploadRetryTime: number;
   ref(path?: string): Reference;
   refFromURL(url: string): Reference;
-  setMaxOperationRetryTime(time: number): any;
-  setMaxUploadRetryTime(time: number): any;
+  setMaxOperationRetryTime(time: number): void;
+  setMaxUploadRetryTime(time: number): void;
 }

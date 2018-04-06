@@ -16,3 +16,4 @@ dist/
 # Local config.
 **/.firebaserc
 demo/public/config.js
+demo/functions/node_modules/
