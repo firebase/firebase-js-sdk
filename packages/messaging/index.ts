@@ -24,7 +24,7 @@ import { WindowController } from './src/controllers/window-controller';
 
 import * as types from '@firebase/messaging-types';
 
-export function registerMessaging(instance: _FirebaseNamespace) {
+export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
   const factoryMethod: FirebaseServiceFactory = app => {
     if (self && 'ServiceWorkerGlobalScope' in self) {

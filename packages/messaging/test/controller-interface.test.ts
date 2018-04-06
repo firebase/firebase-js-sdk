@@ -33,11 +33,11 @@ const controllersToTest = [WindowController, SWController];
  * implementation that can be initialized for testing
  */
 class MockControllerInterface extends ControllerInterface {
-  async getSWRegistration_() {
+  async getSWRegistration_(): Promise<ServiceWorkerRegistration> {
     return new ServiceWorkerRegistration();
   }
 
-  async getPublicVapidKey_() {
+  async getPublicVapidKey_(): Promise<Uint8Array> {
     return new Uint8Array(0);
   }
 }
