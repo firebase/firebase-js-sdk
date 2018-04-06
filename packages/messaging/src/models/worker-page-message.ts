@@ -28,10 +28,12 @@ export const TYPES_OF_MSG = {
   NOTIFICATION_CLICKED: 'notification-clicked'
 };
 
-export function createNewMsg(msgType: any, msgData: any) {
-  const message = {
+export function createNewMsg(
+  msgType: any,
+  msgData: any
+): { [key: string]: any } {
+  return {
     [PARAMS.TYPE_OF_MSG]: msgType,
     [PARAMS.DATA]: msgData
   };
-  return message;
 }

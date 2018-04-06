@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-function toBase64(arrayBuffer: ArrayBuffer | Uint8Array) {
+function toBase64(arrayBuffer: ArrayBuffer | Uint8Array): string {
   const uint8Version = new Uint8Array(arrayBuffer);
   return btoa(String.fromCharCode.apply(null, uint8Version));
 }
 
-export function arrayBufferToBase64(arrayBuffer: ArrayBuffer | Uint8Array) {
+export function arrayBufferToBase64(
+  arrayBuffer: ArrayBuffer | Uint8Array
+): string {
   const base64String = toBase64(arrayBuffer);
   return base64String
     .replace(/=/g, '')

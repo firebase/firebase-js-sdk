@@ -29,7 +29,7 @@ export class TokenDetailsModel extends DBInterface {
     super(DB_NAME, DB_VERSION);
   }
 
-  onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent) {
+  onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent): void {
     if (evt.oldVersion < 1) {
       // New IDB instance
       const objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {

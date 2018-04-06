@@ -18,7 +18,10 @@ import * as sinon from 'sinon';
 const FakeRegistration = () => {};
 FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
-export function makeFakeSWReg(selectedState?, desiredValue?) {
+export function makeFakeSWReg(
+  selectedState?: string,
+  desiredValue?: object
+): ServiceWorkerRegistration {
   const fakeReg = new FakeRegistration();
   // No need to use a sandbox to stub this object as it should be a used
   // once per test.
