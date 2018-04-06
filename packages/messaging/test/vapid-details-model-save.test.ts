@@ -19,46 +19,38 @@ import { ERROR_CODES } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { deleteDatabase } from './testing-utils/db-helper';
 
+const EXAMPLE_SCOPE = '/example-scope';
+const EXAMPLE_VAPID_STRING =
+  'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+  '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
+
 describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
-  const EXAMPLE_SCOPE = '/example-scope';
-  const EXAMPLE_VAPID_STRING =
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-    '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
-  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
-
-  let vapidModel;
-
-  const cleanUp = () => {
-    let promiseChain = Promise.resolve();
-    if (vapidModel) {
-      promiseChain = promiseChain.then(() => vapidModel.closeDatabase());
-    }
-
-    return promiseChain
-      .then(() => deleteDatabase('fcm_vapid_details_db'))
-      .then(() => (vapidModel = null));
-  };
+  let vapidModel: VapidDetailsModel;
 
   beforeEach(() => {
-    return cleanUp();
+    vapidModel = new VapidDetailsModel();
   });
 
-  after(() => {
-    return cleanUp();
+  afterEach(async () => {
+    await vapidModel.closeDatabase();
+    await deleteDatabase('fcm_vapid_details_db');
   });
 
   it('should throw on bad scope input', () => {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_KEY).then(
-        () => {
-          throw new Error('Expected promise to reject');
-        },
-        err => {
-          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
-        }
-      );
+      return vapidModel
+        .saveVapidDetails(badInput as any, EXAMPLE_VAPID_KEY)
+        .then(
+          () => {
+            throw new Error('Expected promise to reject');
+          },
+          err => {
+            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+          }
+        );
     });
   });
 
@@ -66,7 +58,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, badInput).then(
+      return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, badInput as any).then(
         () => {
           throw new Error('Expected promise to reject');
         },

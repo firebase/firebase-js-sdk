@@ -20,38 +20,28 @@ import { TokenDetailsModel } from '../src/models/token-details-model';
 import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 
+const EXAMPLE_INPUT = {
+  swScope: '/example-scope',
+  vapidKey: base64ToArrayBuffer(
+    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+  ),
+  subscription: makeFakeSubscription(),
+  fcmSenderId: '1234567',
+  fcmToken: 'qwerty',
+  fcmPushSet: '7654321'
+};
+
 describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
-  const EXAMPLE_INPUT = {
-    swScope: '/example-scope',
-    vapidKey: base64ToArrayBuffer(
-      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-    ),
-    subscription: makeFakeSubscription(),
-    fcmSenderId: '1234567',
-    fcmToken: 'qwerty',
-    fcmPushSet: '7654321'
-  };
-
-  let globalTokenModel;
-
-  const cleanUp = () => {
-    const promises: any = [];
-    if (globalTokenModel) {
-      promises.push(globalTokenModel.closeDatabase());
-    }
-
-    return Promise.all(promises)
-      .then(() => deleteDatabase('fcm_token_details_db'))
-      .then(() => (globalTokenModel = null));
-  };
+  let globalTokenModel: TokenDetailsModel;
 
   beforeEach(() => {
-    return cleanUp();
+    globalTokenModel = new TokenDetailsModel();
   });
 
-  after(() => {
-    return cleanUp;
+  afterEach(async () => {
+    await globalTokenModel.closeDatabase();
+    await deleteDatabase('fcm_token_details_db');
   });
 
   it('should throw on bad input', () => {

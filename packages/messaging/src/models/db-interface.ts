@@ -18,73 +18,126 @@ import { ErrorFactory } from '@firebase/util';
 
 import { ERROR_CODES, ERROR_MAP } from './errors';
 
-export class DBInterface {
-  private readonly DB_NAME_: string;
-  private readonly dbVersion_: number;
-  private openDbPromise_: Promise<IDBDatabase> | null;
-  protected errorFactory_: ErrorFactory<string>;
-  protected TRANSACTION_READ_WRITE: IDBTransactionMode;
+export abstract class DBInterface {
+  private dbPromise: Promise<IDBDatabase> | null = null;
 
-  constructor(dbName: string, dbVersion: number) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
-    this.DB_NAME_ = dbName;
-    this.dbVersion_ = dbVersion;
-    this.openDbPromise_ = null;
-    this.TRANSACTION_READ_WRITE = 'readwrite';
-  }
+  protected abstract readonly dbName: string;
+  protected abstract readonly dbVersion: number;
+  protected abstract readonly objectStoreName: string;
+
+  protected readonly errorFactory: ErrorFactory<string> = new ErrorFactory(
+    'messaging',
+    'Messaging',
+    ERROR_MAP
+  );
 
   /**
-   * Get the indexedDB as a promise.
+   * Database initialization.
+   *
+   * This function should create and update object stores.
    */
-  // Visible for testing
-  // TODO: Make protected
-  openDatabase(): Promise<IDBDatabase> {
-    if (this.openDbPromise_) {
-      return this.openDbPromise_;
+  protected abstract onDbUpgrade(
+    db: IDBDatabase,
+    event: IDBVersionChangeEvent
+  ): void;
+
+  /** Gets record(s) from the objectStore that match the given key. */
+  get<T>(key: IDBValidKey): Promise<T | undefined> {
+    return this.createTransaction(objectStore => objectStore.get(key));
+  }
+
+  /** Gets record(s) from the objectStore that match the given index. */
+  getIndex<T>(index: string, key: IDBValidKey): Promise<T | undefined> {
+    function runRequest(objectStore: IDBObjectStore): IDBRequest {
+      const idbIndex = objectStore.index(index);
+      return idbIndex.get(key);
     }
 
-    this.openDbPromise_ = new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.DB_NAME_, this.dbVersion_);
-      request.onerror = event => {
-        reject((event.target as IDBRequest).error);
-      };
-      request.onsuccess = event => {
-        resolve((event.target as IDBRequest).result);
-      };
-      request.onupgradeneeded = event => {
-        let db;
-        try {
-          db = (event.target as IDBRequest).result;
-          this.onDBUpgrade(db, event);
-        } catch (err) {
-          // close the database as it can't be used.
-          db.close();
-          reject(err);
-        }
-      };
-    });
+    return this.createTransaction(runRequest);
+  }
 
-    return this.openDbPromise_;
+  /** Assigns or overwrites the record for the given value. */
+  // tslint:disable-next-line:no-any IndexedDB values are of type "any"
+  put(value: any): Promise<void> {
+    return this.createTransaction(
+      objectStore => objectStore.put(value),
+      'readwrite'
+    );
+  }
+
+  /** Deletes record(s) from the objectStore that match the given key. */
+  delete(key: IDBValidKey | IDBKeyRange): Promise<void> {
+    return this.createTransaction(
+      objectStore => objectStore.delete(key),
+      'readwrite'
+    );
   }
 
   /**
    * Close the currently open database.
    */
-  closeDatabase(): Promise<void> {
-    return Promise.resolve().then(() => {
-      if (this.openDbPromise_) {
-        return this.openDbPromise_.then(db => {
-          db.close();
-          this.openDbPromise_ = null;
-        });
-      }
-    });
+  async closeDatabase(): Promise<void> {
+    if (this.dbPromise) {
+      const db = await this.dbPromise;
+      db.close();
+      this.dbPromise = null;
+    }
   }
 
   /**
-   * @protected
+   * Creates an IndexedDB Transaction and passes its objectStore to the
+   * runRequest function, which runs the database request.
+   *
+   * @return Promise that resolves with the result of the runRequest function
    */
-  onDBUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent): void {
-    throw this.errorFactory_.create(ERROR_CODES.SHOULD_BE_INHERITED);
+  private async createTransaction<T>(
+    runRequest: (objectStore: IDBObjectStore) => IDBRequest,
+    mode?: 'readonly' | 'readwrite'
+  ): Promise<T> {
+    const db = await this.getDb();
+    const transaction = db.transaction(this.objectStoreName, mode);
+    const request = transaction.objectStore(this.objectStoreName);
+    const result = await promisify<T>(runRequest(request));
+
+    return new Promise<T>((resolve, reject) => {
+      transaction.oncomplete = () => {
+        resolve(result);
+      };
+      transaction.onerror = () => {
+        reject(transaction.error);
+      };
+    });
   }
+
+  /** Gets the cached db connection or opens a new one. */
+  private getDb(): Promise<IDBDatabase> {
+    if (!this.dbPromise) {
+      this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+        const request = indexedDB.open(this.dbName, this.dbVersion);
+        request.onsuccess = () => {
+          resolve(request.result);
+        };
+        request.onerror = () => {
+          this.dbPromise = null;
+          reject(request.error);
+        };
+        request.onupgradeneeded = event =>
+          this.onDbUpgrade(request.result, event);
+      });
+    }
+
+    return this.dbPromise;
+  }
+}
+
+/** Promisifies an IDBRequest. Resolves with the IDBRequest's result. */
+function promisify<T>(request: IDBRequest): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    request.onerror = () => {
+      reject(request.error);
+    };
+  });
 }

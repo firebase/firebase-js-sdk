@@ -23,44 +23,33 @@ import { makeFakeSubscription } from './make-fake-subscription';
 import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 
+const EXAMPLE_INPUT = {
+  swScope: '/example-scope',
+  vapidKey: base64ToArrayBuffer(
+    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+      '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+  ),
+  subscription: makeFakeSubscription(),
+  fcmSenderId: '1234567',
+  fcmToken: 'qwerty',
+  fcmPushSet: '7654321'
+};
+
 describe('Firebase Messaging > TokenDetailsModel.deleteToken()', () => {
-  const EXAMPLE_INPUT = {
-    swScope: '/example-scope',
-    vapidKey: base64ToArrayBuffer(
-      'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
-    ),
-    subscription: makeFakeSubscription(),
-    fcmSenderId: '1234567',
-    fcmToken: 'qwerty',
-    fcmPushSet: '7654321'
-  };
-
-  let globalTokenModel;
-
-  const cleanUp = () => {
-    const promises: any = [];
-
-    if (globalTokenModel) {
-      promises.push(globalTokenModel.closeDatabase());
-    }
-
-    return Promise.all(promises)
-      .then(() => deleteDatabase('fcm_token_details_db'))
-      .then(() => (globalTokenModel = null));
-  };
+  let globalTokenModel: TokenDetailsModel;
 
   beforeEach(() => {
-    return cleanUp();
+    globalTokenModel = new TokenDetailsModel();
   });
 
-  after(() => {
-    return cleanUp();
+  afterEach(async () => {
+    await globalTokenModel.closeDatabase();
+    await deleteDatabase('fcm_token_details_db');
   });
 
   it('should handle no input', () => {
     globalTokenModel = new TokenDetailsModel();
-    return globalTokenModel.deleteToken().then(
+    return globalTokenModel.deleteToken(undefined as any).then(
       () => {
         throw new Error('Expected this to throw an error due to no token');
       },
