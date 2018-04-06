@@ -36,8 +36,8 @@ export function compareDetails(
   const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
   const subscriptionValues = {
     endpoint: input.subscription.endpoint,
-    auth: arrayBufferToBase64(input.subscription.getKey('auth')),
-    p256dh: arrayBufferToBase64(input.subscription.getKey('p256dh'))
+    auth: arrayBufferToBase64(input.subscription.getKey('auth')!),
+    p256dh: arrayBufferToBase64(input.subscription.getKey('p256dh')!)
   };
 
   subscriptionKeys.forEach(keyName => {

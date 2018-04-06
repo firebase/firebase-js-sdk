@@ -138,7 +138,7 @@ export class TokenDetailsModel extends DBInterface {
           request.onsuccess = event => {
             const result: TokenDetails | null = (event.target as IDBRequest)
               .result;
-            resolve(result);
+            resolve(result!);
           };
         });
       });
@@ -170,7 +170,7 @@ export class TokenDetailsModel extends DBInterface {
           scopeRequest.onsuccess = event => {
             const result: TokenDetails | null = (event.target as IDBRequest)
               .result;
-            resolve(result);
+            resolve(result!);
           };
         });
       });
@@ -236,8 +236,8 @@ export class TokenDetailsModel extends DBInterface {
           swScope: swScope,
           vapidKey: arrayBufferToBase64(vapidKey as Uint8Array),
           endpoint: subscription.endpoint,
-          auth: arrayBufferToBase64(subscription.getKey('auth')),
-          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')),
+          auth: arrayBufferToBase64(subscription.getKey('auth')!),
+          p256dh: arrayBufferToBase64(subscription.getKey('p256dh')!),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
           fcmPushSet: fcmPushSet,
