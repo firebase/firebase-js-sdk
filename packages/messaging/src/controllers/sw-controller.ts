@@ -370,7 +370,7 @@ export class SWController extends ControllerInterface {
   async getPublicVapidKey_(): Promise<Uint8Array> {
     const swReg = await this.getSWRegistration_();
     if (!swReg) {
-      return DEFAULT_PUBLIC_VAPID_KEY;
+      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
     const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
