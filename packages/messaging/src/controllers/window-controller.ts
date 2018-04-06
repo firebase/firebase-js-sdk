@@ -88,9 +88,9 @@ export class WindowController extends ControllerInterface
       return this.manifestCheckPromise_;
     }
 
-    const manifestTag: HTMLAnchorElement = document.querySelector(
+    const manifestTag = document.querySelector<HTMLAnchorElement>(
       'link[rel="manifest"]'
-    ) as HTMLAnchorElement;
+    );
     if (!manifestTag) {
       this.manifestCheckPromise_ = Promise.resolve();
     } else {
