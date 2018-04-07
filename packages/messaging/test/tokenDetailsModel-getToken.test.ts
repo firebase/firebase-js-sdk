@@ -92,7 +92,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
       })
       .then(details => {
         assert.exists(details);
-        compareDetails(EXAMPLE_INPUT, details, now);
+        compareDetails(EXAMPLE_INPUT, details!, now);
         clock.restore();
       });
   });
@@ -114,7 +114,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
       })
       .then(details => {
         assert.exists(details);
-        compareDetails(EXAMPLE_INPUT, details, now);
+        compareDetails(EXAMPLE_INPUT, details!, now);
         clock.restore();
       });
   });

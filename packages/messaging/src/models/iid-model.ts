@@ -46,8 +46,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<IIDDetails> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh'));
-    const auth = arrayBufferToBase64(subscription.getKey('auth'));
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
+    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
 
     let fcmSubscribeBody =
       `authorized_entity=${senderId}&` +
@@ -112,8 +112,8 @@ export class IIDModel {
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh'));
-    const auth = arrayBufferToBase64(subscription.getKey('auth'));
+    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
+    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
 
     let fcmUpdateBody =
       `push_set=${fcmPushSet}&` +

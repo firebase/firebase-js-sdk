@@ -47,7 +47,7 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
 // An array to capture listeners before the true auth functions
 // exist
-let tokenListeners = [];
+let tokenListeners: any[] = [];
 
 /**
  * Global context object for a collection of services using
@@ -71,7 +71,7 @@ class FirebaseAppImpl implements FirebaseApp {
     config: FirebaseAppConfig,
     private firebase_: FirebaseNamespace
   ) {
-    this.name_ = config.name;
+    this.name_ = config.name!;
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);

@@ -55,7 +55,7 @@ export abstract class ControllerInterface {
       throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME];
+    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
 
     this.tokenDetailsModel_ = new TokenDetailsModel();
     this.vapidDetailsModel_ = new VapidDetailsModel();
@@ -128,7 +128,7 @@ export abstract class ControllerInterface {
     );
     if (isTokenValid) {
       const now = Date.now();
-      if (now < tokenDetails.createTime + TOKEN_EXPIRATION_MILLIS) {
+      if (now < tokenDetails.createTime! + TOKEN_EXPIRATION_MILLIS) {
         return tokenDetails.fcmToken;
       } else {
         return this.updateToken(
@@ -367,9 +367,9 @@ function isTokenStillValid(
   // subscription.getKey('<key name>').
   return (
     pushSubscription.endpoint === tokenDetails.endpoint &&
-    arrayBufferToBase64(pushSubscription.getKey('auth')) ===
+    arrayBufferToBase64(pushSubscription.getKey('auth')!) ===
       tokenDetails.auth &&
-    arrayBufferToBase64(pushSubscription.getKey('p256dh')) ===
+    arrayBufferToBase64(pushSubscription.getKey('p256dh')!) ===
       tokenDetails.p256dh
   );
 }
