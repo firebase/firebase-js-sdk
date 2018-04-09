@@ -1491,6 +1491,28 @@ function testDelay_invalid() {
 }
 
 
+function testDelay_offline_defaultDelay() {
+  // Simulate navigator.onLine is false.
+  stubs.replace(fireauth.util, 'isOnline', function() {
+    return false;
+  });
+  var delay = new fireauth.util.Delay(10000, 50000);
+  // Offline delay used instead of the supplied delay range.
+  assertEquals(5000, delay.get());
+}
+
+
+function testDelay_offline_shortDelay() {
+  // Simulate navigator.onLine is false.
+  stubs.replace(fireauth.util, 'isOnline', function() {
+    return false;
+  });
+  var delay = new fireauth.util.Delay(2000, 50000);
+  // Short delay used instead of offline delay.
+  assertEquals(2000, delay.get());
+}
+
+
 function testDelay_mobileDevice_default() {
   // Simulate mobile browser.
   stubs.replace(fireauth.util, 'isMobileDevice', function(ua) {
