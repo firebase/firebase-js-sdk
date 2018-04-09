@@ -96,7 +96,7 @@ export class SpecBuilder {
   }
 
   // Configures Garbage Collection behavior (on or off). Default is on.
-  withGCEnabled(gcEnabled: boolean): SpecBuilder {
+  withGCEnabled(gcEnabled: boolean): this {
     assert(
       !this.currentStep,
       'withGCEnabled() must be called before all spec steps.'
@@ -105,7 +105,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userListens(query: Query, resumeToken?: string): SpecBuilder {
+  userListens(query: Query, resumeToken?: string): this {
     this.nextStep();
 
     let targetId: TargetId = 0;
@@ -135,7 +135,7 @@ export class SpecBuilder {
    * Registers a previously active target with the test expectations after a
    * stream disconnect.
    */
-  restoreListen(query: Query, resumeToken: string): SpecBuilder {
+  restoreListen(query: Query, resumeToken: string): this {
     let targetId = this.queryMapping[query.canonicalId()];
 
     if (isNullOrUndefined(targetId)) {
@@ -155,7 +155,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userUnlistens(query: Query): SpecBuilder {
+  userUnlistens(query: Query): this {
     this.nextStep();
     if (!objUtils.contains(this.queryMapping, query.canonicalId())) {
       throw new Error('Unlistening to query not listened to: ' + query);
@@ -172,7 +172,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userSets(key: string, value: JsonObject<AnyJs>): SpecBuilder {
+  userSets(key: string, value: JsonObject<AnyJs>): this {
     this.nextStep();
     this.currentStep = {
       userSet: [key, value]
@@ -180,7 +180,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userPatches(key: string, value: JsonObject<AnyJs>): SpecBuilder {
+  userPatches(key: string, value: JsonObject<AnyJs>): this {
     this.nextStep();
     this.currentStep = {
       userPatch: [key, value]
@@ -188,7 +188,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userDeletes(key: string): SpecBuilder {
+  userDeletes(key: string): this {
     this.nextStep();
     this.currentStep = {
       userDelete: key
@@ -197,7 +197,7 @@ export class SpecBuilder {
   }
 
   // PORTING NOTE: Only used by web multi-tab tests.
-  becomeHidden(): SpecBuilder {
+  becomeHidden(): this {
     this.nextStep();
     this.currentStep = {
       applyClientState: { visibility: 'hidden' }
@@ -206,7 +206,7 @@ export class SpecBuilder {
   }
 
   // PORTING NOTE: Only used by web multi-tab tests.
-  becomeVisible(): SpecBuilder {
+  becomeVisible(): this {
     this.nextStep();
     this.currentStep = {
       applyClientState: { visibility: 'visible' }
@@ -214,19 +214,19 @@ export class SpecBuilder {
     return this;
   }
 
-  runTimer(timerId: TimerId) {
+  runTimer(timerId: TimerId): this {
     this.nextStep();
     this.currentStep = { runTimer: timerId };
     return this;
   }
 
-  changeUser(uid: string | null): SpecBuilder {
+  changeUser(uid: string | null): this {
     this.nextStep();
     this.currentStep = { changeUser: uid };
     return this;
   }
 
-  disableNetwork(): SpecBuilder {
+  disableNetwork(): this {
     this.nextStep();
     this.currentStep = {
       enableNetwork: false,
@@ -238,7 +238,7 @@ export class SpecBuilder {
     return this;
   }
 
-  enableNetwork(): SpecBuilder {
+  enableNetwork(): this {
     this.nextStep();
     this.currentStep = {
       enableNetwork: true
@@ -246,7 +246,7 @@ export class SpecBuilder {
     return this;
   }
 
-  restart(): SpecBuilder {
+  restart(): this {
     this.nextStep();
     this.currentStep = {
       restart: true,
@@ -261,7 +261,7 @@ export class SpecBuilder {
     return this;
   }
 
-  shutdown(): SpecBuilder {
+  shutdown(): this {
     this.nextStep();
     this.currentStep = {
       shutdown: true,
@@ -287,7 +287,7 @@ export class SpecBuilder {
   /** Overrides the currently expected set of active targets. */
   expectActiveTargets(
     ...targets: Array<{ query: Query; resumeToken: string }>
-  ): SpecBuilder {
+  ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
     this.activeTargets = {};
@@ -308,7 +308,7 @@ export class SpecBuilder {
    * Expects a document to be in limbo. A targetId is assigned if it's not in
    * limbo yet.
    */
-  expectLimboDocs(...keys: DocumentKey[]): SpecBuilder {
+  expectLimboDocs(...keys: DocumentKey[]): this {
     this.assertStep('Limbo expectation requires previous step');
     const currentStep = this.currentStep!;
 
@@ -344,10 +344,7 @@ export class SpecBuilder {
    * with no document for NoDocument. This is translated into normal watch
    * messages.
    */
-  ackLimbo(
-    version: TestSnapshotVersion,
-    doc: Document | NoDocument
-  ): SpecBuilder {
+  ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
     const query = Query.atPath(doc.key.path);
     this.watchAcks(query);
     if (doc instanceof Document) {
@@ -367,7 +364,7 @@ export class SpecBuilder {
    * with either a document or with no document for NoDocument. This is
    * translated into normal watch messages.
    */
-  watchRemovesLimboTarget(doc: Document | NoDocument): SpecBuilder {
+  watchRemovesLimboTarget(doc: Document | NoDocument): this {
     const query = Query.atPath(doc.key.path);
     this.watchRemoves(query);
     return this;
@@ -383,7 +380,7 @@ export class SpecBuilder {
     options?: {
       expectUserCallback: boolean;
     }
-  ): SpecBuilder {
+  ): this {
     this.nextStep();
     this.currentStep = {
       writeAck: {
@@ -399,10 +396,7 @@ export class SpecBuilder {
    *
    * expectUserCallback defaults to true if options are omitted.
    */
-  failWrite(
-    err: RpcError,
-    options?: { expectUserCallback: boolean }
-  ): SpecBuilder {
+  failWrite(err: RpcError, options?: { expectUserCallback: boolean }): this {
     this.nextStep();
     this.currentStep = {
       failWrite: {
@@ -413,7 +407,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchAcks(query: Query): SpecBuilder {
+  watchAcks(query: Query): this {
     this.nextStep();
     this.currentStep = {
       watchAck: [this.getTargetId(query)]
@@ -426,7 +420,7 @@ export class SpecBuilder {
   // Eventually we want to make the model more generic so we can add resume
   // tokens in other places.
   // TODO(b/37254270): Handle global resume tokens
-  watchCurrents(query: Query, resumeToken: string): SpecBuilder {
+  watchCurrents(query: Query, resumeToken: string): this {
     this.nextStep();
     this.currentStep = {
       watchCurrent: [[this.getTargetId(query)], resumeToken]
@@ -434,7 +428,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchRemoves(query: Query, cause?: RpcError): SpecBuilder {
+  watchRemoves(query: Query, cause?: RpcError): this {
     this.nextStep();
     this.currentStep = {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
@@ -451,7 +445,7 @@ export class SpecBuilder {
   watchSends(
     targets: { affects?: Query[]; removed?: Query[] },
     ...docs: Document[]
-  ): SpecBuilder {
+  ): this {
     this.nextStep();
     const affects =
       targets.affects &&
@@ -477,7 +471,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchRemovesDoc(key: DocumentKey, ...targets: Query[]): SpecBuilder {
+  watchRemovesDoc(key: DocumentKey, ...targets: Query[]): this {
     this.nextStep();
     this.currentStep = {
       watchEntity: {
@@ -488,7 +482,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchFilters(queries: Query[], ...docs: DocumentKey[]): SpecBuilder {
+  watchFilters(queries: Query[], ...docs: DocumentKey[]): this {
     this.nextStep();
     const targetIds = queries.map(query => {
       return this.getTargetId(query);
@@ -506,7 +500,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchResets(...queries: Query[]): SpecBuilder {
+  watchResets(...queries: Query[]): this {
     this.nextStep();
     const targetIds = queries.map(query => this.getTargetId(query));
     this.currentStep = {
@@ -515,7 +509,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchSnapshots(version: TestSnapshotVersion): SpecBuilder {
+  watchSnapshots(version: TestSnapshotVersion): this {
     this.assertStep('Watch snapshot requires previous watch step');
     this.currentStep!.watchSnapshot = version;
     return this;
@@ -525,7 +519,7 @@ export class SpecBuilder {
     query: Query,
     version: TestSnapshotVersion,
     ...docs: Document[]
-  ): SpecBuilder {
+  ): this {
     this.watchAcks(query);
     this.watchSends({ affects: [query] }, ...docs);
     this.watchCurrents(query, 'resume-token-' + version);
@@ -533,10 +527,7 @@ export class SpecBuilder {
     return this;
   }
 
-  watchStreamCloses(
-    error: Code,
-    opts?: { runBackoffTimer: boolean }
-  ): SpecBuilder {
+  watchStreamCloses(error: Code, opts?: { runBackoffTimer: boolean }): this {
     if (!opts) {
       opts = { runBackoffTimer: true };
     }
@@ -565,7 +556,7 @@ export class SpecBuilder {
       metadata?: Document[];
       errorCode?: Code;
     }
-  ): SpecBuilder {
+  ): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     if (!currentStep.expect) {
@@ -593,7 +584,7 @@ export class SpecBuilder {
    * Verifies the total number of requests sent to the write backend since test
    * initialization.
    */
-  expectWriteStreamRequestCount(num: number): SpecBuilder {
+  expectWriteStreamRequestCount(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
@@ -605,7 +596,7 @@ export class SpecBuilder {
    * Verifies the total number of requests sent to the watch backend since test
    * initialization.
    */
-  expectWatchStreamRequestCount(num: number): SpecBuilder {
+  expectWatchStreamRequestCount(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
@@ -613,7 +604,7 @@ export class SpecBuilder {
     return this;
   }
 
-  expectNumOutstandingWrites(num: number): SpecBuilder {
+  expectNumOutstandingWrites(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
@@ -621,7 +612,7 @@ export class SpecBuilder {
     return this;
   }
 
-  expectNumActiveClients(num: number): SpecBuilder {
+  expectNumActiveClients(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
@@ -629,7 +620,7 @@ export class SpecBuilder {
     return this;
   }
 
-  expectPrimaryState(isPrimary: boolean): SpecBuilder {
+  expectPrimaryState(isPrimary: boolean): this {
     this.assertStep('Expectations requires previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
@@ -742,218 +733,6 @@ export class MultiClientSpecBuilder extends SpecBuilder {
       this.currentStep.clientIndex = this.activeClientIndex;
     }
     super.nextStep();
-  }
-
-  withGCEnabled(gcEnabled: boolean): MultiClientSpecBuilder {
-    super.withGCEnabled(gcEnabled);
-    return this;
-  }
-
-  userListens(query: Query, resumeToken?: string): MultiClientSpecBuilder {
-    super.userListens(query, resumeToken);
-    return this;
-  }
-
-  restoreListen(query: Query, resumeToken: string): MultiClientSpecBuilder {
-    super.restoreListen(query, resumeToken);
-    return this;
-  }
-
-  userUnlistens(query: Query): MultiClientSpecBuilder {
-    super.userUnlistens(query);
-    return this;
-  }
-
-  userSets(key: string, value: JsonObject<AnyJs>): MultiClientSpecBuilder {
-    super.userSets(key, value);
-    return this;
-  }
-
-  userPatches(key: string, value: JsonObject<AnyJs>): MultiClientSpecBuilder {
-    super.userPatches(key, value);
-    return this;
-  }
-
-  userDeletes(key: string): MultiClientSpecBuilder {
-    super.userDeletes(key);
-    return this;
-  }
-
-  becomeHidden(): MultiClientSpecBuilder {
-    super.becomeHidden();
-    return this;
-  }
-
-  becomeVisible(): MultiClientSpecBuilder {
-    super.becomeVisible();
-    return this;
-  }
-
-  runTimer(timerId: TimerId) {
-    super.runTimer(timerId);
-    return this;
-  }
-
-  changeUser(uid: string | null): MultiClientSpecBuilder {
-    super.changeUser(uid);
-    return this;
-  }
-
-  disableNetwork(): MultiClientSpecBuilder {
-    super.disableNetwork();
-    return this;
-  }
-
-  enableNetwork(): MultiClientSpecBuilder {
-    super.enableNetwork();
-    return this;
-  }
-
-  restart(): MultiClientSpecBuilder {
-    super.restart();
-    return this;
-  }
-
-  expectActiveTargets(...targets): MultiClientSpecBuilder {
-    super.expectActiveTargets(...targets);
-    return this;
-  }
-
-  expectLimboDocs(...keys): MultiClientSpecBuilder {
-    super.expectLimboDocs(...keys);
-    return this;
-  }
-
-  ackLimbo(
-    version: TestSnapshotVersion,
-    doc: Document | NoDocument
-  ): MultiClientSpecBuilder {
-    super.ackLimbo(version, doc);
-    return this;
-  }
-
-  watchRemovesLimboTarget(doc: Document | NoDocument): MultiClientSpecBuilder {
-    super.watchRemovesLimboTarget(doc);
-    return this;
-  }
-
-  writeAcks(
-    version: TestSnapshotVersion,
-    options?: { expectUserCallback: boolean }
-  ): MultiClientSpecBuilder {
-    super.writeAcks(version, options);
-    return this;
-  }
-
-  failWrite(
-    err: RpcError,
-    options?: { expectUserCallback: boolean }
-  ): MultiClientSpecBuilder {
-    super.failWrite(err, options);
-    return this;
-  }
-
-  watchAcks(query: Query): MultiClientSpecBuilder {
-    super.watchAcks(query);
-    return this;
-  }
-
-  watchCurrents(query: Query, resumeToken: string): MultiClientSpecBuilder {
-    super.watchCurrents(query, resumeToken);
-    return this;
-  }
-
-  watchRemoves(query: Query, cause?: RpcError): MultiClientSpecBuilder {
-    super.watchRemoves(query, cause);
-    return this;
-  }
-
-  watchSends(
-    targets: { affects?: Query[]; removed?: Query[] },
-    ...docs
-  ): MultiClientSpecBuilder {
-    super.watchSends(targets, ...docs);
-    return this;
-  }
-
-  watchRemovesDoc(key: DocumentKey, ...targets): MultiClientSpecBuilder {
-    super.watchRemovesDoc(key, ...targets);
-    return this;
-  }
-
-  watchFilters(queries: Query[], ...docs): MultiClientSpecBuilder {
-    super.watchFilters(queries, ...docs);
-    return this;
-  }
-
-  watchResets(...queries): MultiClientSpecBuilder {
-    super.watchResets(...queries);
-    return this;
-  }
-
-  watchSnapshots(version: TestSnapshotVersion): MultiClientSpecBuilder {
-    super.watchSnapshots(version);
-    return this;
-  }
-
-  watchAcksFull(
-    query: Query,
-    version: TestSnapshotVersion,
-    ...docs
-  ): MultiClientSpecBuilder {
-    super.watchAcksFull(query, version, ...docs);
-    return this;
-  }
-
-  watchStreamCloses(error: Code): MultiClientSpecBuilder {
-    super.watchStreamCloses(error);
-    return this;
-  }
-
-  expectEvents(
-    query: Query,
-    events: {
-      fromCache?: boolean;
-      hasPendingWrites?: boolean;
-      added?: Document[];
-      modified?: Document[];
-      removed?: Document[];
-      metadata?: Document[];
-      errorCode?: Code;
-    }
-  ): MultiClientSpecBuilder {
-    super.expectEvents(query, events);
-    return this;
-  }
-
-  expectWatchStreamRequestCount(num: number): MultiClientSpecBuilder {
-    super.expectWatchStreamRequestCount(num);
-    return this;
-  }
-
-  expectNumOutstandingWrites(num: number): MultiClientSpecBuilder {
-    super.expectNumOutstandingWrites(num);
-    return this;
-  }
-
-  expectNumActiveClients(num: number): MultiClientSpecBuilder {
-    super.expectNumActiveClients(num);
-    return this;
-  }
-
-  expectPrimaryState(isPrimary: boolean): MultiClientSpecBuilder {
-    super.expectPrimaryState(isPrimary);
-    return this;
-  }
-
-  expectWriteStreamRequestCount(num: number): MultiClientSpecBuilder {
-    super.expectWriteStreamRequestCount(num);
-    return this;
-  }
-
-  shutdown(): MultiClientSpecBuilder {
-    super.shutdown();
-    return this;
   }
 }
 
