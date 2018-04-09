@@ -81,7 +81,7 @@ export class TokenDetailsModel extends DBInterface {
               newValue.p256dh = base64ToArrayBuffer(value.p256dh).buffer;
             }
 
-            cursor.update(value);
+            cursor.update(newValue);
             cursor.continue();
           }
         };

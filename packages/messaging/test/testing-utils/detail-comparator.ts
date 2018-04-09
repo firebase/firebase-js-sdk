@@ -20,30 +20,35 @@ import { TokenDetails } from '../../src/interfaces/token-details';
 
 /** Compares the input details and the saved ones  */
 export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
-  const subscriptionValues = {
+  const subscription = {
     endpoint: input.endpoint,
     auth: input.auth,
     p256dh: input.p256dh
   };
 
-  for (const key of Object.keys(subscriptionValues)) {
-    assert.equal(isArrayBufferEqual(saved[key], subscriptionValues[key]), true);
+  for (const key of Object.keys(subscription)) {
+    assert.equal(
+      isArrayBufferEqual(saved[key], subscription[key]),
+      true,
+      `${key} does not match`
+    );
   }
 
   for (const key of Object.keys(saved)) {
-    if (Object.keys(subscriptionValues).indexOf(key) !== -1) {
+    if (Object.keys(subscription).indexOf(key) !== -1) {
       return;
     }
 
     if (key === 'createTime') {
-      assert.equal(saved[key], Date.now());
+      assert.equal(saved[key], Date.now(), `${key} does not match`);
     } else if (key === 'vapidKey') {
       assert.equal(
         isArrayBufferEqual(saved[key].buffer, input[key].buffer),
-        true
+        true,
+        `${key} does not match`
       );
     } else {
-      assert.equal(saved[key], input[key]);
+      assert.equal(saved[key], input[key], `${key} does not match`);
     }
   }
 }

@@ -16,6 +16,7 @@
 
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
@@ -30,13 +31,14 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
   let clock: sinon.SinonFakeTimers;
   let globalTokenModel: TokenDetailsModel;
   let exampleInput: TokenDetails;
+  let fakeSubscription: PushSubscription;
 
   beforeEach(() => {
     clock = sinon.useFakeTimers();
 
     globalTokenModel = new TokenDetailsModel();
 
-    const fakeSubscription = makeFakeSubscription();
+    fakeSubscription = makeFakeSubscription();
     exampleInput = {
       swScope: '/example-scope',
       vapidKey: base64ToArrayBuffer(
@@ -58,6 +60,40 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     await deleteDatabase('fcm_token_details_db');
 
     clock.restore();
+  });
+
+  describe('Database update v2 -> v3', () => {
+    it('converts database contents', async () => {
+      class OldDBTokenDetailsModel extends TokenDetailsModel {
+        protected readonly dbVersion: number = 2;
+      }
+
+      const oldDBTokenDetailsModel = new OldDBTokenDetailsModel();
+
+      // Old (v2) version of exampleInput
+      // vapidKey, auth and p256dh are strings, createTime does not exist
+      await oldDBTokenDetailsModel.put({
+        swScope: '/example-scope',
+        vapidKey:
+          'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I',
+        fcmSenderId: '1234567',
+        fcmToken: 'qwerty',
+        fcmPushSet: '7654321',
+        endpoint: fakeSubscription.endpoint,
+        auth: arrayBufferToBase64(fakeSubscription.getKey('auth')!),
+        p256dh: arrayBufferToBase64(fakeSubscription.getKey('p256dh')!)
+      });
+      await oldDBTokenDetailsModel.closeDatabase();
+
+      // Get the same token using DB v3
+      const tokenDetails = await globalTokenModel.get<TokenDetails>(
+        exampleInput.swScope
+      );
+
+      assert.exists(tokenDetails);
+      compareDetails(tokenDetails!, exampleInput);
+    });
   });
 
   describe('saveToken', () => {
