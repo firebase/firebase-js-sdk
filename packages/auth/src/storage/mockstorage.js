@@ -36,7 +36,7 @@ fireauth.storage.MockStorage = function() {
    */
   this.storageListeners_ = [];
   fireauth.storage.MockStorage.base(this, 'constructor');
-  /** @protected {string} The storage type identifier. */
+  /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.MOCK_STORAGE;
 };
 goog.inherits(fireauth.storage.MockStorage, fireauth.storage.InMemoryStorage);

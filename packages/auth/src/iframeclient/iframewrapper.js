@@ -247,11 +247,6 @@ fireauth.iframeclient.IframeWrapper.loadGApiJs_ = function() {
   // If there is no cached promise, initialize a new one.
   fireauth.iframeclient.IframeWrapper.cachedGApiLoader_ =
       new goog.Promise(function(resolve, reject) {
-    // Offline, fail quickly instead of waiting for request to timeout.
-    if (!fireauth.util.isOnline()) {
-      reject(new Error('Network Error'));
-      return;
-    }
     // Function to run when gapi.load is ready.
     var onGapiLoad = function() {
       // The developer may have tried to previously run gapi.load and failed.

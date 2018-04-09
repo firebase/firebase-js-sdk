@@ -18,8 +18,8 @@ goog.provide('fireauth.storage.Factory');
 goog.provide('fireauth.storage.Factory.EnvConfig');
 
 goog.require('fireauth.storage.AsyncStorage');
+goog.require('fireauth.storage.HybridIndexedDB');
 goog.require('fireauth.storage.InMemoryStorage');
-goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.LocalStorage');
 goog.require('fireauth.storage.NullStorage');
 goog.require('fireauth.storage.SessionStorage');
@@ -111,7 +111,12 @@ fireauth.storage.Factory.getEnvConfig = function() {
 fireauth.storage.Factory.prototype.makePersistentStorage = function() {
   if (fireauth.util.persistsStorageWithIndexedDB()) {
     // If persistent storage is implemented using indexedDB, use indexedDB.
-    return fireauth.storage.IndexedDB.getFireauthManager();
+    // Use HybridIndexedDB instead of indexedDB directly since this will
+    // fallback to a fallback storage when indexedDB is not supported (private
+    // browsing mode, etc).
+    return new fireauth.storage.HybridIndexedDB(
+        fireauth.util.isWorker() ?
+        new fireauth.storage.InMemoryStorage() : new this.env_.persistent());
   }
   return new this.env_.persistent();
 };

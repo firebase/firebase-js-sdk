@@ -249,6 +249,8 @@ function testIframeWrapper_offline() {
     assertEquals('Network Error', error.message);
     asyncTestCase.signal();
   });
+  // Simulate short timeout when navigator.onLine is false.
+  clock.tick(5000);
   iframeWrapper
       .sendMessage(
           {'type': 'messageType', 'field1': 'value1', 'field2': 'value2'})

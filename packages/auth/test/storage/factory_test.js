@@ -19,15 +19,18 @@ goog.provide('fireauth.storage.FactoryTest');
 goog.require('fireauth.storage.AsyncStorage');
 goog.require('fireauth.storage.Factory');
 goog.require('fireauth.storage.Factory.EnvConfig');
+goog.require('fireauth.storage.HybridIndexedDB');
 goog.require('fireauth.storage.InMemoryStorage');
 goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.LocalStorage');
 goog.require('fireauth.storage.NullStorage');
 goog.require('fireauth.storage.SessionStorage');
+goog.require('fireauth.storage.Storage');
 /** @suppress {extraRequire} */
 goog.require('fireauth.storage.testHelper');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
+goog.require('goog.testing.recordFunction');
 
 goog.setTestOnly('fireauth.storage.FactoryTest');
 
@@ -78,6 +81,11 @@ function testGetStorage_browser_persistent_indexedDB() {
   var mock = {
     type: 'indexedDB'
   };
+  // Record calls to HybridIndexedDB.
+  stubs.replace(
+      fireauth.storage,
+      'HybridIndexedDB',
+      goog.testing.recordFunction(fireauth.storage.HybridIndexedDB));
   stubs.replace(
      fireauth.util,
       'persistsStorageWithIndexedDB',
@@ -93,6 +101,12 @@ function testGetStorage_browser_persistent_indexedDB() {
   var factory = new fireauth.storage.Factory(
       fireauth.storage.Factory.EnvConfig.BROWSER);
   assertEquals('indexedDB', factory.makePersistentStorage().type);
+  assertEquals(1, fireauth.storage.HybridIndexedDB.getCallCount());
+  // Confirm localStorage used as fallback when indexedDB is not supported.
+  var fallbackStorage =
+      fireauth.storage.HybridIndexedDB.getLastCall().getArgument(0);
+  assertEquals(
+      fireauth.storage.Storage.Type.LOCAL_STORAGE, fallbackStorage.type);
 }
 
 
@@ -144,10 +158,22 @@ function testGetStorage_worker_persistent() {
   var mock = {
     type: 'indexedDB'
   };
+  // Record calls to HybridIndexedDB.
+  stubs.replace(
+      fireauth.storage,
+      'HybridIndexedDB',
+      goog.testing.recordFunction(fireauth.storage.HybridIndexedDB));
   // persistsStorageWithIndexedDB is true in a worker environment.
   stubs.replace(
      fireauth.util,
       'persistsStorageWithIndexedDB',
+      function() {
+        return true;
+      });
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
       function() {
         return true;
       });
@@ -162,6 +188,12 @@ function testGetStorage_worker_persistent() {
   var factory = new fireauth.storage.Factory(
       fireauth.storage.Factory.EnvConfig.WORKER);
   assertEquals('indexedDB', factory.makePersistentStorage().type);
+  assertEquals(1, fireauth.storage.HybridIndexedDB.getCallCount());
+  // Confirm in memory storage used as fallback when indexedDB is not supported.
+  var fallbackStorage =
+      fireauth.storage.HybridIndexedDB.getLastCall().getArgument(0);
+  assertEquals(
+      fireauth.storage.Storage.Type.IN_MEMORY, fallbackStorage.type);
 }
 
 
