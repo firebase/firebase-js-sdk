@@ -33,7 +33,7 @@ goog.require('goog.Promise');
 fireauth.storage.InMemoryStorage = function() {
   /** @protected {!Object} The object where we store values. */
   this.storage = {};
-  /** @protected {string} The storage type identifier. */
+  /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.IN_MEMORY;
 };
 
