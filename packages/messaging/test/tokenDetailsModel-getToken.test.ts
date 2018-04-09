@@ -36,7 +36,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
 
     globalTokenModel = new TokenDetailsModel();
 
-    const fakeSubscription = makeFakeSubscription()
+    const fakeSubscription = makeFakeSubscription();
     exampleInput = {
       swScope: '/example-scope',
       vapidKey: base64ToArrayBuffer(
@@ -57,12 +57,11 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
     await globalTokenModel.closeDatabase();
     await deleteDatabase('fcm_token_details_db');
 
-    clock.restore()
+    clock.restore();
   });
 
   for (const badInput of BAD_INPUTS) {
     it(`should throw on bad scope input ${JSON.stringify(badInput)}`, () => {
-
       return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
@@ -76,7 +75,6 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
 
   for (const badInput of BAD_INPUTS) {
     it(`should throw on bad FCM Token input: '${badInput}'`, () => {
-
       return globalTokenModel.getTokenDetailsFromToken(badInput).then(
         () => {
           throw new Error('Expected promise to reject');
@@ -114,9 +112,7 @@ describe('Firebase Messaging > TokenDetailsModel.getTokenDetailsFromToken()', ()
         return globalTokenModel.saveTokenDetails(exampleInput);
       })
       .then(() => {
-        return globalTokenModel.getTokenDetailsFromToken(
-          exampleInput.fcmToken
-        );
+        return globalTokenModel.getTokenDetailsFromToken(exampleInput.fcmToken);
       })
       .then(details => {
         assert.exists(details);

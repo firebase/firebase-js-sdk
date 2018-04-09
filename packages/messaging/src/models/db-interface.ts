@@ -121,8 +121,7 @@ export abstract class DBInterface {
           this.dbPromise = null;
           reject(request.error);
         };
-        request.onupgradeneeded = event =>
-          this.onDbUpgrade(request, event);
+        request.onupgradeneeded = event => this.onDbUpgrade(request, event);
       });
     }
 

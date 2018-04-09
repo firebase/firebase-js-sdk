@@ -71,7 +71,7 @@ describe('Firebase Messaging > Helpers', () => {
 
     beforeEach(() => {
       buffer = new Uint8Array([1, 2, 3, 4, 5]).buffer;
-    })
+    });
 
     it('returns true if array buffers are same', () => {
       expect(isArrayBufferEqual(buffer, buffer)).to.be.true;

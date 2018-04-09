@@ -34,7 +34,7 @@ describe('Firebase Messaging > TokenDetailsModel.saveToken()', () => {
 
     globalTokenModel = new TokenDetailsModel();
 
-    const fakeSubscription = makeFakeSubscription()
+    const fakeSubscription = makeFakeSubscription();
     exampleInput = {
       swScope: '/example-scope',
       vapidKey: base64ToArrayBuffer(
