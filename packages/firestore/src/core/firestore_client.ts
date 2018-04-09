@@ -23,7 +23,7 @@ import {
   QueryListener
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
-import { View, ViewChange, ViewDocumentChanges } from './view';
+import { View, ViewDocumentChanges } from './view';
 import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { GarbageCollector } from '../local/garbage_collector';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
@@ -43,7 +43,6 @@ import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
@@ -368,7 +367,7 @@ export class FirestoreClient {
 
   getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
     return this.asyncQueue
-      .schedule(() => {
+      .enqueue(() => {
         return this.localStore.readDocument(docKey);
       })
       .then((maybeDoc: MaybeDocument | null) => {
@@ -388,7 +387,7 @@ export class FirestoreClient {
 
   getDocumentsFromLocalCache(query: InternalQuery): Promise<ViewSnapshot> {
     return this.asyncQueue
-      .schedule(() => {
+      .enqueue(() => {
         return this.localStore.executeQuery(query);
       })
       .then((docs: DocumentMap) => {
