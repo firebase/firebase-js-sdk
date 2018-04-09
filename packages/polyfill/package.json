@@ -17,8 +17,7 @@
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
-    "@types/node": "^9.4.6",
-    "gulp": "^4.0.0"
+    "@types/node": "^9.4.6"
   },
   "repository": {
     "type": "git",
