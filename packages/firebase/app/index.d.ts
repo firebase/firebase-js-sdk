@@ -447,6 +447,7 @@ declare namespace firebase.database {
     key: string | null;
     onDisconnect(): firebase.database.OnDisconnect;
     parent: firebase.database.Reference | null;
+    path: string;
     push(
       value?: any,
       onComplete?: (a: Error | null) => any
