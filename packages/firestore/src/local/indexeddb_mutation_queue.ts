@@ -227,10 +227,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
             mutation.key.path,
             batchId
           );
+          promises.push(
           documentMutationsStore(transaction).put(
             indexKey,
             DbDocumentMutation.PLACEHOLDER
-          );
+          )
+        );
         }
         return PersistencePromise.waitFor(promises);
       })
