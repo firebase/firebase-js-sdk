@@ -8,7 +8,7 @@ const plugins = [
     typescript: require('typescript')
   }),
   resolve(),
-  commonjs(),
+  commonjs()
 ];
 
 const external = Object.keys(
@@ -25,17 +25,15 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     plugins,
-    external,
+    external
   },
   /**
    * Node.js Build
    */
   {
     input: 'index.node.ts',
-    output: [
-      { file: pkg.main, format: 'cjs' }
-    ],
+    output: [{ file: pkg.main, format: 'cjs' }],
     plugins,
-    external,
+    external
   }
 ];

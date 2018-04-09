@@ -4,7 +4,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 import pkg from './package.json';
 
-import firebasePkg from '../firebase/package.json'
+import firebasePkg from '../firebase/package.json';
 
 const plugins = [
   typescript({
@@ -17,7 +17,7 @@ const plugins = [
     }
   }),
   resolve(),
-  commonjs(),
+  commonjs()
 ];
 
 const external = Object.keys(
@@ -30,5 +30,5 @@ export default {
     { file: pkg.module, format: 'es' }
   ],
   plugins,
-  external,
+  external
 };
