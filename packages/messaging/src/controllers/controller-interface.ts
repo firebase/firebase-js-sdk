@@ -22,7 +22,6 @@ import {
   Observer,
   PartialObserver
 } from '@firebase/util';
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from '../models/errors';

@@ -91,5 +91,16 @@ describe('Firebase Messaging > Helpers', () => {
       const longerBuffer = new Uint8Array([1, 2, 3, 4, 5, 6]).buffer;
       expect(isArrayBufferEqual(buffer, longerBuffer)).to.be.false;
     });
+
+    it('returns false if either array buffer is undefined or null', () => {
+      expect(isArrayBufferEqual(buffer, undefined)).to.be.false;
+      expect(isArrayBufferEqual(buffer, null)).to.be.false;
+      expect(isArrayBufferEqual(undefined, buffer)).to.be.false;
+      expect(isArrayBufferEqual(null, buffer)).to.be.false;
+      expect(isArrayBufferEqual(undefined, undefined)).to.be.false;
+      expect(isArrayBufferEqual(null, null)).to.be.false;
+      expect(isArrayBufferEqual(undefined, null)).to.be.false;
+      expect(isArrayBufferEqual(null, undefined)).to.be.false;
+    });
   });
 });

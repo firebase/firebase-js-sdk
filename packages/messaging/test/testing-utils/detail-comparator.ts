@@ -15,7 +15,7 @@
  */
 
 import { assert } from 'chai';
-import { arrayBufferToBase64 } from '../../src/helpers/array-buffer-to-base64';
+import { isArrayBufferEqual } from '../../src/helpers/is-array-buffer-equal';
 import { TokenDetails } from '../../src/interfaces/token-details';
 
 /** Compares the input details and the saved ones  */
@@ -27,10 +27,7 @@ export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
   };
 
   for (const key of Object.keys(subscriptionValues)) {
-    assert.equal(
-      arrayBufferToBase64(saved[key]),
-      arrayBufferToBase64(subscriptionValues[key])
-    );
+    assert.equal(isArrayBufferEqual(saved[key], subscriptionValues[key]), true);
   }
 
   for (const key of Object.keys(saved)) {
@@ -42,8 +39,8 @@ export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
       assert.equal(saved[key], Date.now());
     } else if (key === 'vapidKey') {
       assert.equal(
-        arrayBufferToBase64(saved[key]),
-        arrayBufferToBase64(input[key])
+        isArrayBufferEqual(saved[key].buffer, input[key].buffer),
+        true
       );
     } else {
       assert.equal(saved[key], input[key]);

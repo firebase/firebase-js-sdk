@@ -21,8 +21,8 @@ import {
 } from '../src/controllers/controller-interface';
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
-import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
@@ -405,13 +405,10 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         );
 
         assert.equal(tokenModelArgs[0].endpoint, ENDPOINT);
+        assert.equal(isArrayBufferEqual(tokenModelArgs[0].auth, AUTH), true);
         assert.equal(
-          arrayBufferToBase64(tokenModelArgs[0].auth),
-          arrayBufferToBase64(AUTH)
-        );
-        assert.equal(
-          arrayBufferToBase64(tokenModelArgs[0].p256dh),
-          arrayBufferToBase64(P256DH)
+          isArrayBufferEqual(tokenModelArgs[0].p256dh, P256DH),
+          true
         );
         assert.equal(tokenModelArgs[0].fcmSenderId, EXAMPLE_SENDER_ID);
         assert.equal(tokenModelArgs[0].fcmToken, TOKEN_DETAILS['token']);

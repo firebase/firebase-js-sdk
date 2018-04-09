@@ -15,7 +15,6 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';

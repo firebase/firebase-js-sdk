@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
