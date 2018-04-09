@@ -19,11 +19,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import uglify from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
-const plugins = [
-  resolve(),
-  commonjs(),
-  uglify()
-];
+const plugins = [resolve(), commonjs(), uglify()];
 
 const GLOBAL_NAME = 'firebase';
 
@@ -37,7 +33,7 @@ const appConfig = {
     format: 'umd',
     name: GLOBAL_NAME
   },
-  plugins,
+  plugins
 };
 
 /**
@@ -56,7 +52,14 @@ const firebaseJsConfig = {
 /**
  * All of these configs are built to extend the top two configs
  */
-const components = ['auth', 'database', 'firestore', 'functions', 'messaging', 'storage'];
+const components = [
+  'auth',
+  'database',
+  'firestore',
+  'functions',
+  'messaging',
+  'storage'
+];
 
 const componentsConfig = components.map(component => ({
   input: `${component}/index.js`,
@@ -67,16 +70,10 @@ const componentsConfig = components.map(component => ({
     name: GLOBAL_NAME,
     globals: {
       '@firebase/app': GLOBAL_NAME
-    },
+    }
   },
   plugins,
-  external: [
-    '@firebase/app',
-  ]
+  external: ['@firebase/app']
 }));
 
-export default [
-  appConfig, 
-  ...componentsConfig,
-  firebaseJsConfig
-];
+export default [appConfig, ...componentsConfig, firebaseJsConfig];
