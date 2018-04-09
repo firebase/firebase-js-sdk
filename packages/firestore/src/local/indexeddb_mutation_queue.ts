@@ -80,7 +80,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // For the moment store these together in the same mutations table assuming
     // that empty userIDs aren't allowed.
     assert(user.uid !== '', 'UserID must not be an empty string.');
-    const userId = user.isUnauthenticated() ? '' : user.uid!;
+    const userId = user.isAuthenticated() ? user.uid! : '';
     return new IndexedDbMutationQueue(userId, serializer);
   }
 
@@ -222,7 +222,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => {
         const promises: Array<PersistencePromise<void>> = [];
         for (const mutation of mutations) {
-          const encodedPath = EncodedResourcePath.encode(mutation.key.path);
           const indexKey = DbDocumentMutation.key(
             this.userId,
             mutation.key.path,
@@ -256,14 +255,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    const range = IDBKeyRange.lowerBound(this.keyForBatchId(batchId + 1));
+    // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
+    // been acknowledged so the first unacknowledged batch after batchID will
+    // have a batchID larger than both of these values.
+    const nextBatchId =
+      Math.max(batchId, this.metadata.lastAcknowledgedBatchId) + 1;
+
+    const range = IDBKeyRange.lowerBound(this.keyForBatchId(nextBatchId));
     let foundBatch: MutationBatch | null = null;
     return mutationsStore(transaction)
       .iterate({ range }, (key, dbBatch, control) => {
         if (dbBatch.userId === this.userId) {
           assert(
-            dbBatch.batchId > batchId,
-            'Should have found mutation after ' + batchId
+            dbBatch.batchId >= nextBatchId,
+            'Should have found mutation after ' + nextBatchId
           );
           foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
         }
@@ -379,7 +384,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       queryPath
     );
-    const encodedQueryPath = indexPrefix[1];
     const indexStart = IDBKeyRange.lowerBound(indexPrefix);
 
     // Collect up unique batchIDs encountered during a scan of the index. Use a
@@ -516,8 +520,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const startRange = IDBKeyRange.lowerBound(indexKey);
     let containsKey = false;
     return documentMutationsStore(txn)
-      .iterate({ range: startRange, keysOnly: true }, (key, _, control) => {
-        const [userID, keyPath, batchID] = key;
+      .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
+        const [userID, keyPath, /*batchID*/ _] = key;
         if (userID === this.userId && keyPath === encodedPath) {
           containsKey = true;
         }

@@ -87,37 +87,6 @@ export class SortedMap<K, V> {
     return null;
   }
 
-  // Returns the key of the item *before* the specified key, or null if key is
-  // the first item.
-  getPredecessorKey(key: K): K | null {
-    let node = this.root;
-    let rightParent: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null = null;
-    while (!node.isEmpty()) {
-      const cmp = this.comparator(key, node.key);
-      if (cmp === 0) {
-        if (!node.left.isEmpty()) {
-          node = node.left;
-          while (!node.right.isEmpty()) node = node.right;
-          return node.key;
-        } else if (rightParent) {
-          return rightParent.key;
-        } else {
-          return null; // first item.
-        }
-      } else if (cmp < 0) {
-        node = node.left;
-      } else if (cmp > 0) {
-        rightParent = node;
-        node = node.right;
-      }
-    }
-
-    throw fail(
-      'Attempted to find predecessor key for a nonexistent key.' +
-        '  What gives?'
-    );
-  }
-
   // Returns the index of the element in this sorted map, or -1 if it doesn't
   // exist.
   indexOf(key: K): number {
@@ -516,7 +485,7 @@ export class LLRBNode<K, V> {
 
   // In a balanced RB tree, the black-depth (number of black nodes) from root to
   // leaves is equal on both sides.  This function verifies that or asserts.
-  private check(): number {
+  protected check(): number {
     if (this.isRed() && this.left.isRed()) {
       throw fail('Red node has red child(' + this.key + ',' + this.value + ')');
     }
@@ -593,7 +562,7 @@ export class LLRBEmptyNode<K, V> {
     return true;
   }
 
-  private check() {
+  protected check() {
     return 0;
   }
 } // end LLRBEmptyNode

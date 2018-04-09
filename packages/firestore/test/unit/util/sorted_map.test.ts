@@ -412,23 +412,6 @@ describe('SortedMap Tests', () => {
     expect(expected).to.equal(10);
   });
 
-  it('SortedMap.getPredecessorKey works.', () => {
-    const map = new SortedMap(primitiveComparator)
-      .insert(1, 1)
-      .insert(50, 50)
-      .insert(3, 3)
-      .insert(4, 4)
-      .insert(7, 7)
-      .insert(9, 9);
-
-    expect(map.getPredecessorKey(1)).to.equal(null);
-    expect(map.getPredecessorKey(3)).to.equal(1);
-    expect(map.getPredecessorKey(4)).to.equal(3);
-    expect(map.getPredecessorKey(7)).to.equal(4);
-    expect(map.getPredecessorKey(9)).to.equal(7);
-    expect(map.getPredecessorKey(50)).to.equal(9);
-  });
-
   it('SortedMap.indexOf returns index.', () => {
     const map = new SortedMap(primitiveComparator)
       .insert(1, 1)

@@ -76,6 +76,20 @@ describe('Database Tests', function() {
     expect(db.ref().toString()).to.equal('https://localhost/');
   });
 
+  it('Can read ns query param', function() {
+    var db = defaultApp.database('http://localhost:80/?ns=foo&unused=true');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
+    expect(db.ref().toString()).to.equal('http://localhost:80/');
+  });
+
+  it('Only reads ns query param when subdomain not set', function() {
+    var db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
+    expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
+  });
+
   it('Different instances for different URLs', function() {
     var db1 = defaultApp.database('http://foo1.bar.com');
     var db2 = defaultApp.database('http://foo2.bar.com');
@@ -135,11 +149,33 @@ describe('Database Tests', function() {
     expect(ref.key).to.equal('grand-child');
   });
 
+  it('Can get ref from ref', function() {
+    const db1 = (firebase as any).database();
+    const db2 = (firebase as any).database();
+
+    const ref1 = db1.ref('child');
+    const ref2 = db2.ref(ref1);
+
+    expect(ref1.key).to.equal('child');
+    expect(ref2.key).to.equal('child');
+  });
+
   it('ref() validates arguments', function() {
     const db = (firebase as any).database();
     expect(function() {
       const ref = (db as any).ref('path', 'extra');
     }).to.throw(/Expects no more than 1/);
+  });
+
+  it('ref() validates project', function() {
+    const db1 = defaultApp.database('http://bar.foo.com');
+    const db2 = defaultApp.database('http://foo.bar.com');
+
+    const ref1 = db1.ref('child');
+
+    expect(function() {
+      db2.ref(ref1);
+    }).to.throw(/does not match.*database/i);
   });
 
   it('Can get refFromURL()', function() {

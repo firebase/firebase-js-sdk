@@ -18,9 +18,11 @@
 import DBInterface from './db-interface';
 import Errors from './errors';
 import arrayBufferToBase64 from '../helpers/array-buffer-to-base64';
+import { cleanV1 } from './clean-v1-undefined';
 
 const FCM_TOKEN_OBJ_STORE = 'fcm_token_object_Store';
-const DB_VERSION = 1;
+const DB_NAME = 'fcm_token_details_db';
+const DB_VERSION = 2;
 
 /** @record */
 function ValidateInput() {}
@@ -39,29 +41,32 @@ ValidateInput.prototype.fcmPushSet;
 
 export default class TokenDetailsModel extends DBInterface {
   constructor() {
-    super(TokenDetailsModel.dbName, DB_VERSION);
+    super(DB_NAME, DB_VERSION);
   }
 
-  static get dbName() {
-    return 'fcm_token_details_db';
-  }
+  onDBUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent) {
+    if (evt.oldVersion < 1) {
+      // New IDB instance
+      var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
+        keyPath: 'swScope'
+      });
 
-  /**
-   * @override
-   */
-  onDBUpgrade(db) {
-    var objectStore = db.createObjectStore(FCM_TOKEN_OBJ_STORE, {
-      keyPath: 'swScope'
-    });
+      // Make sure the sender ID can be searched
+      objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
+        unique: false
+      });
 
-    // Make sure the sender ID can be searched
-    objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
-      unique: false
-    });
+      objectStore.createIndex('fcmToken', 'fcmToken', {
+        unique: true
+      });
+    }
 
-    objectStore.createIndex('fcmToken', 'fcmToken', {
-      unique: true
-    });
+    if (evt.oldVersion < 2) {
+      // Prior to version 2, we were using either 'fcm_token_details_db'
+      // or 'undefined' as the database name due to bug in the SDK
+      // So remove the old tokens and databases.
+      cleanV1();
+    }
   }
 
   /**
@@ -72,7 +77,7 @@ export default class TokenDetailsModel extends DBInterface {
    * @return {!Promise} Returns promise that resolves if input is valid,
    * rejects otherwise.
    */
-  validateInputs_(input) {
+  async validateInputs_(input) {
     if (input.fcmToken) {
       if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
         return Promise.reject(
@@ -90,7 +95,10 @@ export default class TokenDetailsModel extends DBInterface {
     }
 
     if (input.vapidKey) {
-      if (typeof input.vapidKey !== 'string' || input.vapidKey.length === 0) {
+      if (
+        !(input.vapidKey instanceof Uint8Array) ||
+        input.vapidKey.length !== 65
+      ) {
         return Promise.reject(
           this.errorFactory_.create(Errors.codes.BAD_VAPID_KEY)
         );
@@ -126,8 +134,6 @@ export default class TokenDetailsModel extends DBInterface {
         );
       }
     }
-
-    return Promise.resolve();
   }
 
   /**
@@ -262,13 +268,14 @@ export default class TokenDetailsModel extends DBInterface {
          */
         const details = {
           swScope: swScope,
-          vapidKey: vapidKey,
+          vapidKey: arrayBufferToBase64(vapidKey),
           endpoint: subscription.endpoint,
           auth: arrayBufferToBase64(subscription['getKey']('auth')),
           p256dh: arrayBufferToBase64(subscription['getKey']('p256dh')),
           fcmSenderId: fcmSenderId,
           fcmToken: fcmToken,
-          fcmPushSet: fcmPushSet
+          fcmPushSet: fcmPushSet,
+          createTime: Date.now()
         };
 
         return new Promise((resolve, reject) => {
@@ -292,11 +299,10 @@ export default class TokenDetailsModel extends DBInterface {
    * This method deletes details of the current FCM token.
    * It's returning a promise in case we need to move to an async
    * method for deleting at a later date.
-   * @param {string} token Token to be deleted
    * @return {Promise<Object>} Resolves once the FCM token details have been
    * deleted and returns the deleted details.
    */
-  deleteToken(token) {
+  deleteToken(token: string) {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
         this.errorFactory_.create(Errors.codes.INVALID_DELETE_TOKEN)

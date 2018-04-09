@@ -15,7 +15,7 @@
  */
 'use strict';
 
-const FCM_APPLICATION_SERVER_KEY = [
+const DEFAULT_PUBLIC_VAPID_KEY = new Uint8Array([
   0x04,
   0x33,
   0x94,
@@ -81,15 +81,16 @@ const FCM_APPLICATION_SERVER_KEY = [
   0xc0,
   0x9c,
   0x6e
-];
+]);
 
 const SUBSCRIPTION_DETAILS = {
   userVisibleOnly: true,
-  applicationServerKey: new Uint8Array(FCM_APPLICATION_SERVER_KEY)
+  applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY
 };
 
 export default {
-  ENDPOINT: 'https://fcm.googleapis.com',
-  APPLICATION_SERVER_KEY: FCM_APPLICATION_SERVER_KEY,
-  SUBSCRIPTION_OPTIONS: SUBSCRIPTION_DETAILS
+  DEFAULT_PUBLIC_VAPID_KEY,
+  SUBSCRIPTION_DETAILS,
+  ENDPOINT: 'https://fcm.googleapis.com'
+  // ENDPOINT: 'https://jmt17.google.com'
 };

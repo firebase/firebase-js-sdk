@@ -32,8 +32,11 @@ Are you in the right place?
 -->
 #### Relevant Code:
 
-<!-- Fork this JSBin, provide your own URL, or a simple code snippet below -->
-http://jsbin.com/rinilu/edit?js,console
+<!-- 
+  Reproduce the issue on StackBlitz and provide your forked URL
+  or give us some sample code below
+-->
+https://stackblitz.com/fork/firebase-issue-sandbox
 
 ```javascript
 // TODO(you): code here to reproduce the problem

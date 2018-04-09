@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { documentMap } from './collections';
@@ -76,20 +75,6 @@ export class DocumentSet {
 
   isEmpty(): boolean {
     return this.sortedSet.isEmpty();
-  }
-
-  /**
-   * Returns previous document or null if it's a first doc.
-   *
-   * @param key A key that MUST be present in the DocumentSet.
-   */
-  prevDoc(key: DocumentKey): Document | null {
-    assert(
-      this.has(key),
-      'Trying to get a previous document to non-existing key: ' + key
-    );
-    const doc = this.keyedMap.get(key);
-    return this.sortedSet.getPredecessorKey(doc!);
   }
 
   /**

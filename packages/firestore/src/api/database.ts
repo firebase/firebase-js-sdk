@@ -33,11 +33,7 @@ import {
   RelationOp
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
-import {
-  ChangeType,
-  DocumentViewChange,
-  ViewSnapshot
-} from '../core/view_snapshot';
+import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -387,11 +383,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   INTERNAL = {
-    delete: (): Promise<void> => {
+    delete: async (): Promise<void> => {
       if (this._firestoreClient) {
         return this._firestoreClient.shutdown();
-      } else {
-        return Promise.resolve();
       }
     }
   };
@@ -689,13 +683,11 @@ export class WriteBatch implements firestore.WriteBatch {
     return this;
   }
 
-  commit(): Promise<void> {
+  async commit(): Promise<void> {
     this.verifyNotCommitted();
     this._committed = true;
     if (this._mutations.length > 0) {
       return this._firestore.ensureClientConfigured().write(this._mutations);
-    } else {
-      return Promise.resolve();
     }
   }
 

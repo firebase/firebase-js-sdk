@@ -29,7 +29,6 @@ import { mapCodeFromRpcCode } from '../remote/rpc_error';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { AnyJs } from '../util/misc';
 import { NodeCallback, nodePromise } from '../util/node_api';
 import { Deferred } from '../util/promise';
 
@@ -38,14 +37,14 @@ const LOG_TAG = 'Connection';
 // TODO(b/38203344): The SDK_VERSION is set independently from Firebase because
 // we are doing out-of-band releases. Once we release as part of Firebase, we
 // should use the Firebase version instead.
-const X_GOOG_API_CLIENT_VALUE = `gl-node/${process.versions.node} fire/${
-  SDK_VERSION
-} grpc/${grpcVersion}`;
+const X_GOOG_API_CLIENT_VALUE = `gl-node/${
+  process.versions.node
+} fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
-type DuplexRpc = () => grpc.ClientDuplexStream;
-type ReadableRpc<Req> = (req: Req) => grpc.ClientReadableStream;
+type DuplexRpc<Req, Resp> = () => grpc.ClientDuplexStream<Req, Resp>;
+type ReadableRpc<Req, Resp> = (req: Req) => grpc.ClientReadableStream<Resp>;
 type UnaryRpc<Req, Resp> = (
-  req,
+  req: Req,
   callback: (err?: grpc.ServiceError, resp?: Resp) => void
 ) => grpc.ClientUnaryCall;
 
@@ -136,7 +135,7 @@ export class GrpcConnection implements Connection {
   private getRpcCallable<Req, Resp>(
     rpcName: string,
     token: Token | null
-  ): UnaryRpc<Req, Resp> | ReadableRpc<Req> | DuplexRpc {
+  ): UnaryRpc<Req, Resp> | ReadableRpc<Req, Resp> | DuplexRpc<Req, Resp> {
     // RPC Methods have the first character lower-cased
     // (e.g. Listen => listen(), BatchGetDocuments => batchGetDocuments()).
     const rpcMethod = rpcName.charAt(0).toLowerCase() + rpcName.slice(1);
@@ -183,7 +182,7 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp[]> {
-    const rpc = this.getRpcCallable(rpcName, token) as ReadableRpc<Req>;
+    const rpc = this.getRpcCallable(rpcName, token) as ReadableRpc<Req, Resp>;
     const results = [];
     const responseDeferred = new Deferred<Resp[]>();
 
@@ -215,7 +214,7 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     token: Token | null
   ): Stream<Req, Resp> {
-    const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc;
+    const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc<Req, Resp>;
     const grpcStream = rpc();
 
     let closed = false;

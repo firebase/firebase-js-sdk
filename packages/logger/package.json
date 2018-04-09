@@ -1,0 +1,53 @@
+{
+  "name": "@firebase/logger",
+  "version": "0.1.0",
+  "description": "A logger package for use in the Firebase JS SDK",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "scripts": {
+    "dev": "gulp dev",
+    "test": "run-p test:browser test:node",
+    "test:browser": "karma start --single-run",
+    "test:browser:debug": "karma start --browsers Chrome --auto-watch",
+    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
+    "prepare": "gulp build"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/chai": "^4.1.2",
+    "@types/mocha": "^2.2.48",
+    "@types/sinon": "^4.1.3",
+    "chai": "^4.1.1",
+    "gulp": "^4.0.0",
+    "karma": "^2.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-cli": "^1.0.1",
+    "karma-mocha": "^1.3.0",
+    "karma-sauce-launcher": "^1.2.0",
+    "karma-spec-reporter": "^0.0.32",
+    "karma-webpack": "^2.0.9",
+    "mocha": "^5.0.1",
+    "npm-run-all": "^4.1.1",
+    "nyc": "^11.4.1",
+    "ts-loader": "^3.5.0",
+    "ts-node": "^5.0.0",
+    "typescript": "^2.7.2",
+    "webpack": "^3.11.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/logger"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/esm/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  },
+  "dependencies": {}
+}

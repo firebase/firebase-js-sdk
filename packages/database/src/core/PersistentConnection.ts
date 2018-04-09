@@ -935,7 +935,7 @@ export class PersistentConnection extends ServerActions {
     if (this.securityDebugCallback_) {
       this.securityDebugCallback_(body);
     } else {
-      if ('msg' in body && typeof console !== 'undefined') {
+      if ('msg' in body) {
         console.log('FIREBASE: ' + body['msg'].replace('\n', '\nFIREBASE: '));
       }
     }

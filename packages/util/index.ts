@@ -14,18 +14,68 @@
  * limitations under the License.
  */
 
-export * from './src/assert';
-export * from './src/crypt';
-export * from './src/constants';
-export * from './src/deepCopy';
-export * from './src/deferred';
-export * from './src/environment';
-export * from './src/errors';
-export * from './src/json';
-export * from './src/jwt';
-export * from './src/obj';
-export * from './src/query';
-export * from './src/sha1';
-export * from './src/subscribe';
-export * from './src/validation';
-export * from './src/utf8';
+export { assert, assertionError } from './src/assert';
+export { base64, base64Decode, base64Encode } from './src/crypt';
+export { CONSTANTS } from './src/constants';
+export { deepCopy, deepExtend, patchProperty } from './src/deepCopy';
+export { Deferred } from './src/deferred';
+export {
+  getUA,
+  isMobileCordova,
+  isNodeSdk,
+  isReactNative
+} from './src/environment';
+export {
+  ErrorFactory,
+  ErrorList,
+  FirebaseError,
+  patchCapture,
+  StringLike
+} from './src/errors';
+export { jsonEval, stringify } from './src/json';
+export {
+  decode,
+  isAdmin,
+  issuedAtTime,
+  isValidFormat,
+  isValidTimestamp
+} from './src/jwt';
+export {
+  clone,
+  contains,
+  every,
+  extend,
+  findKey,
+  findValue,
+  forEach,
+  getAnyKey,
+  getCount,
+  getValues,
+  isEmpty,
+  isNonNullObject,
+  map,
+  safeGet
+} from './src/obj';
+export { querystring, querystringDecode } from './src/query';
+export { Sha1 } from './src/sha1';
+export {
+  async,
+  CompleteFn,
+  createSubscribe,
+  ErrorFn,
+  Executor,
+  NextFn,
+  Observable,
+  Observer,
+  PartialObserver,
+  Subscribe,
+  Unsubscribe
+} from './src/subscribe';
+export {
+  errorPrefix,
+  validateArgCount,
+  validateCallback,
+  validateContextObject,
+  validateNamespace
+} from './src/validation';
+export { stringLength, stringToByteArray } from './src/utf8';

@@ -30,6 +30,7 @@ goog.require('fireauth.InvalidOriginError');
 goog.require('fireauth.PopupAuthEventProcessor');
 goog.require('fireauth.RedirectAuthEventProcessor');
 goog.require('fireauth.RpcHandler');
+goog.require('fireauth.UniversalLinkSubscriber');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.iframeclient.IfcHandler');
@@ -108,6 +109,7 @@ function tearDown() {
   } finally {
     mockControl.$tearDown();
   }
+  fireauth.UniversalLinkSubscriber.clear();
 }
 
 

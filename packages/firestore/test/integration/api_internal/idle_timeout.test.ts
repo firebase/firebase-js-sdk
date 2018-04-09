@@ -15,8 +15,9 @@
  */
 
 import { apiDescribe, withTestDb } from '../util/helpers';
-import { drainAsyncQueue } from '../util/internal_helpers';
+import { asyncQueue } from '../util/internal_helpers';
 import { Deferred } from '../../util/promise';
+import { TimerId } from '../../../src/util/async_queue';
 
 apiDescribe('Idle Timeout', persistence => {
   it('can write document after idle timeout', () => {
@@ -25,7 +26,9 @@ apiDescribe('Idle Timeout', persistence => {
       return docRef
         .set({ foo: 'bar' })
         .then(() => {
-          return drainAsyncQueue(db);
+          return asyncQueue(db).runDelayedOperationsEarly(
+            TimerId.WriteStreamIdle
+          );
         })
         .then(() => docRef.set({ foo: 'bar' }));
     });
@@ -49,7 +52,9 @@ apiDescribe('Idle Timeout', persistence => {
 
       return awaitOnlineSnapshot()
         .then(() => {
-          return drainAsyncQueue(db);
+          return asyncQueue(db).runDelayedOperationsEarly(
+            TimerId.ListenStreamIdle
+          );
         })
         .then(() => awaitOnlineSnapshot());
     });
