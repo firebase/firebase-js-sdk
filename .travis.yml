@@ -7,10 +7,6 @@ cache: yarn
 env:
   global:
     - CXX=g++-4.8
-  matrix:
-    - TEST_COMMAND='yarn test'
-    - TEST_COMMAND='yarn test:saucelabs'
-
 before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
@@ -18,10 +14,6 @@ before_install:
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
 before_script:
   - cp config/ci.config.json config/project.json
-script:
-  - xvfb-run $TEST_COMMAND
-after_success:
-  - yarn test:coverage
 
 # Misc Addons/Configs
 dist: trusty
@@ -35,12 +27,21 @@ addons:
       - google-chrome-stable
       - g++-4.8
 
-# NPM Canary Build Config
-deploy:
-  skip_cleanup: true
-  provider: script
-  script: yarn release --canary
-  on:
-    repo: firebase/firebase-js-sdk
-    branch: master
-    condition: $TEST_COMMAND = 'yarn test'
+jobs:
+  include:
+    - script: xvfb-run yarn test
+      after_success: yarn test:coverage
+      env: '#comment: yarn test'
+    - script: xvfb-run yarn test:saucelabs
+      env: '#comment: yarn test:saucelabs'
+    - stage: deploy
+      install: skip
+      script: skip
+      # NPM Canary Build Config
+      deploy:
+        skip_cleanup: true
+        provider: script
+        script: yarn release --canary
+        on:
+          repo: firebase/firebase-js-sdk
+          branch: master
