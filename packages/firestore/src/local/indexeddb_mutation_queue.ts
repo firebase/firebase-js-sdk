@@ -74,7 +74,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * @param user The user for which to create a mutation queue.
    * @param serializer The serializer to use when persisting to IndexedDb.
    */
-  static forUser(user: User, serializer: LocalSerializer) {
+  static forUser(user: User, serializer: LocalSerializer) : IndexedDbMutationQueue {
     // TODO(mcg): Figure out what constraints there are on userIDs
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming

@@ -119,7 +119,7 @@ enum UserDataSource {
   QueryValue // from a where clause or cursor bound
 }
 
-function isWrite(dataSource: UserDataSource) {
+function isWrite(dataSource: UserDataSource) : boolean{
   switch (dataSource) {
     case UserDataSource.Set: // fall through
     case UserDataSource.MergeSet: // fall through
@@ -230,7 +230,7 @@ class ParseContext {
     );
   }
 
-  private validatePath() {
+  private validatePath() : void {
     // TODO(b/34871131): Remove null check once we have proper paths for fields
     // within arrays.
     if (this.path === null) {
@@ -241,7 +241,7 @@ class ParseContext {
     }
   }
 
-  private validatePathSegment(segment: string) {
+  private validatePathSegment(segment: string) : void{
     if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
       throw this.createError('Document fields cannot begin and end with __');
     }
@@ -624,7 +624,7 @@ function validatePlainObject(
   message: string,
   context: ParseContext,
   input: AnyJs
-) {
+):void {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
     const description = valueDescription(input);
     if (description === 'an object') {
