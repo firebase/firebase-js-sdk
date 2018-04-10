@@ -75,6 +75,9 @@ const MAX_PENDING_WRITES = 10;
  * - pulling pending mutations from LocalStore and sending them to Datastore.
  * - retrying mutations that failed because of network problems.
  * - acking mutations to the SyncEngine once they are accepted or rejected.
+ *
+ * RemoteStore always starts out offline. A call to `enableNetwork()`
+ * initializes the network connection.
  */
 export class RemoteStore {
   private pendingWrites: MutationBatch[] = [];
@@ -139,7 +142,8 @@ export class RemoteStore {
    * LocalStore, etc.
    */
   start(): Promise<void> {
-    return this.enableNetwork();
+    // Start is a no-op for RemoteStore.
+    return Promise.resolve();
   }
 
   private isNetworkEnabled(): boolean {

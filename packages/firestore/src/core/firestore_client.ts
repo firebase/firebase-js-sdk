@@ -174,7 +174,7 @@ export class FirestoreClient {
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
     return this.asyncQueue.enqueue(() => {
-      return this.remoteStore.enableNetwork();
+      return this.syncEngine.enableNetwork();
     });
   }
 
@@ -264,6 +264,7 @@ export class FirestoreClient {
       );
       this.sharedClientState = new WebStorageSharedClientState(
         this.asyncQueue,
+        this.platform,
         storagePrefix,
         this.clientId,
         user
@@ -279,7 +280,7 @@ export class FirestoreClient {
    */
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence(this.asyncQueue, this.clientId);
+    this.persistence = new MemoryPersistence(this.clientId);
     this.sharedClientState = new MemorySharedClientState();
     return this.persistence.start();
   }
@@ -333,12 +334,13 @@ export class FirestoreClient {
 
         this.eventMgr = new EventManager(this.syncEngine);
 
-        // NOTE: RemoteStore and SharedClientState depend on LocalStore (for
-        // persisting stream tokens, refilling mutation queue, etc.) so they must
-        // be started after LocalStore.
+        // NOTE: SyncEngine depends on both LocalStore and SharedClientState
+        // (for persisting stream tokens, refilling mutation queue, retrieving
+        // the list of active targets, etc.) so it must be started last.
         await this.localStore.start();
-        await this.remoteStore.start();
         await this.sharedClientState.start();
+        await this.remoteStore.start();
+        await this.syncEngine.start();
 
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
@@ -358,18 +360,22 @@ export class FirestoreClient {
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     return this.asyncQueue.enqueue(() => {
-      return this.remoteStore.disableNetwork();
+      return this.syncEngine.disableNetwork();
     });
   }
 
   shutdown(): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
-      this.credentials.removeUserChangeListener();
-
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      await this.sharedClientState.shutdown();
+      await this.syncEngine.shutdown();
       await this.remoteStore.shutdown();
+      await this.sharedClientState.shutdown();
       await this.persistence.shutdown();
+
+      // `removeUserChangeListener` must be called after shutting down the
+      // RemoteStore as it will prevent the RemoteStore from retrieving
+      // auth tokens.
+      this.credentials.removeUserChangeListener();
     });
   }
 

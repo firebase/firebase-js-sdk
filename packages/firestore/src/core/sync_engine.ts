@@ -105,6 +105,8 @@ class QueryView {
  * global async queue.
  */
 export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
+  private networkAllowed = false;
+
   private viewHandler: ViewHandler | null = null;
   private errorHandler: ErrorHandler | null = null;
 
@@ -410,12 +412,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only
-  applyPendingBatch(batchId: BatchId): Promise<void> {
-    // TODO(multitab): Implement applyPendingBatch
-    throw new FirestoreError(
-      Code.UNIMPLEMENTED,
-      'applyPendingBatch not implemented'
-    );
+  async applyPendingBatch(batchId: BatchId): Promise<void> {
+    this.assertSubscribed('applyPendingBatch()');
+    const localWriteResult = await this.localStore.lookupLocalWrite(batchId);
+    if (localWriteResult) {
+      await this.emitNewSnapsAndNotifyLocalStore(localWriteResult.changes);
+      // If we are the primary client, we need to send this write to the
+      // backend. Secondary clients will ignore these writes since their remote
+      // connection is disabled.
+      await this.remoteStore.fillWritePipeline();
+    }
   }
 
   applySuccessfulWrite(mutationBatchResult: MutationBatchResult): Promise<void>;
@@ -574,7 +580,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.limboTargetsByKey;
   }
 
-  private emitNewSnapsAndNotifyLocalStore(
+  private async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
@@ -620,14 +626,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
     });
 
-    return Promise.all(queriesProcessed)
-      .then(() => {
-        this.viewHandler!(newSnaps);
-        return this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-      })
-      .then(() => {
-        return this.localStore.collectGarbage();
-      });
+    await Promise.all(queriesProcessed);
+    this.viewHandler!(newSnaps);
+    await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+    // TODO(multitab): Multitab garbage collection
+    if (this.isPrimary) {
+      await this.localStore.collectGarbage();
+    }
   }
 
   private assertSubscribed(fnName: string): void {
@@ -653,11 +658,37 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
-    return Promise.resolve();
+    if (this.isPrimary && this.networkAllowed) {
+      return this.remoteStore.enableNetwork();
+    } else {
+      return this.remoteStore.disableNetwork();
+    }
   }
 
   // PORTING NOTE: Multi-tab only
   getActiveClients(): Promise<ClientId[]> {
     return this.localStore.getActiveClients();
+  }
+
+  async enableNetwork(): Promise<void> {
+    this.networkAllowed = true;
+    if (this.isPrimary) {
+      return this.remoteStore.enableNetwork();
+    }
+  }
+
+  async disableNetwork(): Promise<void> {
+    // TODO(multitab): Release primary lease
+    this.networkAllowed = false;
+    return this.remoteStore.disableNetwork();
+  }
+
+  start(): Promise<void> {
+    // TODO(multitab): Read list of active targets and forward to RemoteStore
+    return this.enableNetwork();
+  }
+
+  shutdown(): Promise<void> {
+    return this.disableNetwork();
   }
 }

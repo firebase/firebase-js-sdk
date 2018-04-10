@@ -69,7 +69,7 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence(new AsyncQueue(), AutoId.newId());
+  const persistence = new MemoryPersistence(AutoId.newId());
   await persistence.start();
   return persistence;
 }
@@ -99,6 +99,7 @@ export async function populateWebStorage(
   // NOTE: We don't call shutdown() on it because that would delete the data.
   const secondaryClientState = new WebStorageSharedClientState(
     new AsyncQueue(),
+    new BrowserPlatform(),
     TEST_PERSISTENCE_PREFIX,
     existingClientId,
     user

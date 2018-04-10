@@ -25,6 +25,7 @@ import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
 import { SharedClientStateSyncer } from './shared_client_state_syncer';
 import { AsyncQueue } from '../util/async_queue';
+import { Platform } from '../platform/platform';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -403,6 +404,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   constructor(
     private readonly queue: AsyncQueue,
+    private readonly platform: Platform,
     private readonly persistenceKey: string,
     private readonly localClientId: ClientId,
     initialUser: User
@@ -413,7 +415,7 @@ export class WebStorageSharedClientState implements SharedClientState {
         'LocalStorage is not available on this platform.'
       );
     }
-    this.storage = window.localStorage;
+    this.storage = this.platform.window.localStorage;
     this.currentUser = initialUser;
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
       this.localClientId
@@ -432,7 +434,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     // respective start() calls). Otherwise, we might for example miss a
     // mutation that is added after LocalStore's start() processed the existing
     // mutations but before we observe WebStorage events.
-    window.addEventListener('storage', this.storageListener);
+    this.platform.window.addEventListener('storage', this.storageListener);
   }
 
   /** Returns 'true' if LocalStorage is available in the current environment. */
@@ -528,7 +530,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.started,
       'WebStorageSharedClientState.shutdown() called when not started'
     );
-    window.removeEventListener('storage', this.storageListener);
+    this.platform.window.removeEventListener('storage', this.storageListener);
     this.storage.removeItem(this.localClientStorageKey);
     this.started = false;
   }

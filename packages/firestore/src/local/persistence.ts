@@ -80,6 +80,9 @@ export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
  * writes in order to avoid relying on being able to read back uncommitted
  * writes.
  */
+// TODO(multitab): Instead of marking methods as multi-tab safe, we should
+// point out (and maybe enforce) when methods cannot safely be used from
+// secondary tabs.
 export interface Persistence {
   /**
    * Starts persistent storage, opening the database or similar.

@@ -43,6 +43,46 @@ import {
 } from './spec_test_runner';
 import { TimerId } from '../../../src/util/async_queue';
 
+// These types are used in a protected API by SpecBuilder and need to be
+// exported.
+export type QueryMap = { [query: string]: TargetId };
+export type LimboMap = { [key: string]: TargetId };
+export type ActiveTargetMap = {
+  [targetId: number]: { query: SpecQuery; resumeToken: string };
+};
+
+/**
+ * Tracks the expected memory state of a client (e.g. the expected active watch
+ * targets based on userListens(), userUnlistens(), and watchRemoves()
+ * as well as the expectActiveTargets() and expectLimboDocs() expectations).
+ *
+ * Automatically keeping track of the active targets makes writing tests
+ * much simpler and the tests much easier to follow.
+ *
+ * Whenever the map changes, the expected state is automatically encoded in
+ * the tests.
+ */
+export class ClientMemoryState {
+  activeTargets: ActiveTargetMap;
+  queryMapping: QueryMap;
+  limboMapping: LimboMap;
+
+  queryIdGenerator: TargetIdGenerator;
+  limboIdGenerator: TargetIdGenerator;
+
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.queryMapping = {};
+    this.limboMapping = {};
+    this.activeTargets = {};
+    this.queryIdGenerator = TargetIdGenerator.forLocalStore();
+    this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
+  }
+}
+
 /**
  * Provides a high-level language to construct spec tests that can be exported
  * to the spec JSON format or be run as a spec test directly.
@@ -57,26 +97,34 @@ export class SpecBuilder {
   protected currentStep: SpecStep | null = null;
 
   private steps: SpecStep[] = [];
-  private queryMapping: { [query: string]: TargetId } = {};
-  private limboMapping: { [key: string]: TargetId } = {};
 
-  /**
-   * Tracks all expected active watch targets based on userListens(),
-   * userUnlistens(), and  watchRemoves() steps and the expectActiveTargets()
-   * and expectLimboDocs() expectations.
-   *
-   * Automatically keeping track of the active targets makes writing tests
-   * much simpler and the tests much easier to follow.
-   *
-   * Whenever the map changes, the expected state is automatically encoded in
-   * the tests.
-   */
-  private activeTargets: {
-    [targetId: number]: { query: SpecQuery; resumeToken: string };
-  } = {};
+  private readonly currentClientState: ClientMemoryState = new ClientMemoryState();
 
-  private queryIdGenerator: TargetIdGenerator = TargetIdGenerator.forLocalStore();
-  private limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  // Accessor function that can be overridden to return a different
+  // `ClientMemoryState`.
+  protected get clientState(): ClientMemoryState {
+    return this.currentClientState;
+  }
+
+  private get queryIdGenerator(): TargetIdGenerator {
+    return this.clientState.queryIdGenerator;
+  }
+
+  private get limboIdGenerator(): TargetIdGenerator {
+    return this.clientState.limboIdGenerator;
+  }
+
+  private get queryMapping(): QueryMap {
+    return this.clientState.queryMapping;
+  }
+
+  private get limboMapping(): LimboMap {
+    return this.clientState.limboMapping;
+  }
+
+  private get activeTargets(): ActiveTargetMap {
+    return this.clientState.activeTargets;
+  }
 
   /**
    * Exports the spec steps as a JSON object that be used in the spec runner.
@@ -220,6 +268,12 @@ export class SpecBuilder {
     return this;
   }
 
+  drainQueue(): this {
+    this.nextStep();
+    this.currentStep = { drainQueue: true };
+    return this;
+  }
+
   changeUser(uid: string | null): this {
     this.nextStep();
     this.currentStep = { changeUser: uid };
@@ -257,7 +311,7 @@ export class SpecBuilder {
     };
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
-    this.resetInMemoryState();
+    this.clientState.reset();
     return this;
   }
 
@@ -272,16 +326,8 @@ export class SpecBuilder {
     };
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
-    this.resetInMemoryState();
+    this.clientState.reset();
     return this;
-  }
-
-  private resetInMemoryState(): void {
-    this.queryMapping = {};
-    this.limboMapping = {};
-    this.activeTargets = {};
-    this.queryIdGenerator = TargetIdGenerator.forLocalStore();
-    this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
   }
 
   /** Overrides the currently expected set of active targets. */
@@ -290,7 +336,7 @@ export class SpecBuilder {
   ): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
-    this.activeTargets = {};
+    this.clientState.activeTargets = {};
     targets.forEach(({ query, resumeToken }) => {
       this.activeTargets[this.getTargetId(query)] = {
         query: SpecBuilder.queryToSpec(query),
@@ -714,6 +760,15 @@ export class SpecBuilder {
 export class MultiClientSpecBuilder extends SpecBuilder {
   // TODO(multitab): Consider merging this with SpecBuilder.
   private activeClientIndex = -1;
+
+  private clientStates: ClientMemoryState[] = [];
+
+  protected get clientState(): ClientMemoryState {
+    if (!this.clientStates[this.activeClientIndex]) {
+      this.clientStates[this.activeClientIndex] = new ClientMemoryState();
+    }
+    return this.clientStates[this.activeClientIndex];
+  }
 
   client(clientIndex: number): MultiClientSpecBuilder {
     // Since `currentStep` is fully self-contained and does not rely on previous

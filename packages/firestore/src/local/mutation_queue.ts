@@ -81,14 +81,22 @@ export interface MutationQueue extends GarbageSource {
     streamToken: ProtoByteString
   ): PersistencePromise<void>;
 
-  /** Creates a new mutation batch and adds it to this mutation queue. */
+  /**
+   * Creates a new mutation batch and adds it to this mutation queue.
+   *
+   * TODO(multitab): Make this operation safe to use from secondary clients.
+   */
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch>;
 
-  /** Loads the mutation batch with the given batchId. */
+  /**
+   * Loads the mutation batch with the given batchId.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   */
   lookupMutationBatch(
     transaction: PersistenceTransaction,
     batchId: BatchId

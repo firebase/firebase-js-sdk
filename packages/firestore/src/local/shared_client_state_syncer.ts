@@ -23,6 +23,11 @@ import { ClientId } from './shared_client_state';
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
+  // TODO(multitab): Consider different names for these methods that convey
+  // that these method are used in multi-tab to load existing batches from
+  // persistence (a possible name for `applyPendingBatch` could be
+  // `applyBatchFromPersistence`).
+
   /** Registers a new pending mutation batch. */
   applyPendingBatch(batchId: BatchId): Promise<void>;
 
