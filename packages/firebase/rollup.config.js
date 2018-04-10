@@ -73,7 +73,15 @@ const componentsConfig = components.map(component => ({
     name: GLOBAL_NAME,
     globals: {
       '@firebase/app': GLOBAL_NAME
-    }
+    },
+    intro: `try  {`,
+    outro: `} catch(err) {
+              console.error(err);
+              throw new Error(
+                'Cannot instantiate firebase-${component} - ' +
+                'be sure to load firebase-app.js first.'
+              );
+            }`
   },
   plugins,
   external: ['@firebase/app']
