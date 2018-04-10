@@ -6,14 +6,11 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "echo 'Types package, skipping tests'"
   },
   "files": [
     "index.d.ts"
   ],
-  "devDependencies": {
-    "typescript": "^2.7.2"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/template-types"

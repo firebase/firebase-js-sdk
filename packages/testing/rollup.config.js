@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,5 +14,25 @@
  * limitations under the License.
  */
 
-import { firebase } from '@firebase/app';
-import '@firebase/functions';
+import resolve from 'rollup-plugin-node-resolve';
+import typescript from 'rollup-plugin-typescript2';
+import commonjs from 'rollup-plugin-commonjs';
+import pkg from './package.json';
+
+const plugins = [
+  typescript({
+    typescript: require('typescript')
+  }),
+  resolve(),
+  commonjs()
+];
+
+const external = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+export default {
+  input: 'index.ts',
+  output: [{ file: pkg.main, format: 'cjs' }],
+  plugins,
+  external
+};
