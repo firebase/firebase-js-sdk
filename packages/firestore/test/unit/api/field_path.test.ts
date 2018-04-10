@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { FieldPath } from '../../../src/api/field_path';
 import { field, expectEqual, expectNotEqual } from '../../util/helpers';
 
 describe('FieldPath', () => {

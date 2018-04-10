@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import {EmptyCredentialsProvider, Token} from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
@@ -133,11 +133,11 @@ class MockConnection implements Connection {
     this.activeTargets = [];
   }
 
-  invokeRPC(rpcName: string, request: any): Promise<any> {
+  invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
+  invokeStreamingRPC<Req>(rpcName: string, request: Req): never{
     throw new Error('Not implemented!');
   }
 
@@ -185,7 +185,8 @@ class MockConnection implements Connection {
     this.watchStream = null;
   }
 
-  openStream(rpcName: string): Stream<any, any> {
+  openStream<Req, Resp>(rpcName: string,
+                        token: Token | null): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
@@ -238,7 +239,8 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      return writeStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
@@ -271,7 +273,8 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      return this.watchStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return this.watchStream as any;
     }
   }
 }
@@ -425,6 +428,7 @@ abstract class TestRunner {
   }
 
   run(steps: SpecStep[]): Promise<void> {
+    // tslint:disable-next-line:no-console
     console.log('Running spec: ' + this.name);
     return sequence(steps, async step => {
       await this.doStep(step);

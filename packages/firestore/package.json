@@ -5,8 +5,8 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
     "dev": "gulp dev",
-    "lint": "tslint -p tsconfig.json -c tslint.json src/**/*.ts test/**/*.ts",
-    "lint:fix": "tslint --fix -p tsconfig.json -c tslint.json  src/**/*.ts test/**/*.ts",
+    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
+    "lint:fix": "tslint --fix -p tsconfig.json -c tslint.json  'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-s lint test:all",
     "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",

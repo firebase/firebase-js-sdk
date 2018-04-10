@@ -23,8 +23,7 @@ import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   toDataArray,
-  withTestCollection,
-  withTestDbs
+  withTestCollection
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 

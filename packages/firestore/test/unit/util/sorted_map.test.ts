@@ -300,6 +300,7 @@ describe('SortedMap Tests', () => {
         map = map.remove(i);
       }
       const end = new Date().getTime();
+      // tslint:disable-next-line:no-console
       console.log(end - start);
     }
   });
@@ -342,6 +343,7 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
+      // tslint:disable-next-line:no-console
       console.log(N + ': ' + elapsed);
     }
   });
@@ -349,7 +351,7 @@ describe('SortedMap Tests', () => {
   xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (tree: { [key: number]: number }, max: number) => {
       const keys: number[] = [];
-      obj.forEach(tree, k => keys.push(parseInt(k, 10)));
+      obj.forEach(tree, k => keys.push(Number(k)));
 
       keys.sort();
       expect(keys.length).to.equal(max);
@@ -382,6 +384,7 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
+      // tslint:disable-next-line:no-console
       console.log(N + ': ' + elapsed);
     }
   });

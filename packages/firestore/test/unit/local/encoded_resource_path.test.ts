@@ -16,8 +16,6 @@
 
 import { expect } from 'chai';
 import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
-import { PersistenceTransaction } from '../../../src/local/persistence';
-import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
@@ -25,10 +23,8 @@ import {
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
-import { fail } from '../../../src/util/assert';
 import { path } from '../../util/helpers';
 
-import * as persistenceHelpers from './persistence_test_helpers';
 
 let db: SimpleDb;
 const sep = '\u0001\u0001';

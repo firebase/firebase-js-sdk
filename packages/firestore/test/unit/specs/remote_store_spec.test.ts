@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, path, resumeTokenForSnapshot } from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -91,7 +90,6 @@ describeSpec('Remote store:', [], () => {
     ['no-android', 'no-ios'],
     () => {
       const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 1000, { key: 'a' });
       return (
         spec()
           .userListens(query)
