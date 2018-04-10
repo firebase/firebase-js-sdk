@@ -38,7 +38,7 @@ describe('Path', () => {
   addEqualityMatcher();
 
   it('can be constructed', () => {
-    const path = new ResourcePath(['rooms', 'Eros', 'messages']);
+    const _ = new ResourcePath(['rooms', 'Eros', 'messages']);
   });
 
   it('can index into itself', () => {

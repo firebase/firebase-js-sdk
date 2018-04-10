@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
 
