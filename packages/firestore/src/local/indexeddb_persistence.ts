@@ -344,6 +344,8 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
+    // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
+    // three different write modes (readonly, readwrite, readwrite_primary).
     if (this.persistenceError) {
       return Promise.reject(this.persistenceError);
     }
@@ -362,11 +364,11 @@ export class IndexedDbPersistence implements Persistence {
         return this.canActAsPrimary(txn)
           .next(canActAsPrimary => {
             if (!canActAsPrimary) {
+              // TODO(multitab): Handle this gracefully and transition back to
+              // secondary state.
               log.error(
                 `Failed to obtain primary lease for action '${action}'.`
               );
-              // TODO(multitab): Handle this gracefully and transition back to
-              // secondary state.
               throw new FirestoreError(
                 Code.FAILED_PRECONDITION,
                 PRIMARY_LEASE_LOST_ERROR_MSG

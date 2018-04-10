@@ -53,10 +53,7 @@ export class MemoryPersistence implements Persistence {
 
   private started = false;
 
-  constructor(
-    private readonly queue: AsyncQueue,
-    private readonly clientId: ClientId
-  ) {}
+  constructor(private readonly clientId: ClientId) {}
 
   async start(): Promise<void> {
     // No durable state to read on startup.
@@ -76,7 +73,7 @@ export class MemoryPersistence implements Persistence {
 
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
     // All clients using memory persistence act as primary.
-    this.queue.enqueue(() => primaryStateListener(true));
+    primaryStateListener(true);
   }
 
   getMutationQueue(user: User): MutationQueue {

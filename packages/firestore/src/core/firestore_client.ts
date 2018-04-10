@@ -280,7 +280,7 @@ export class FirestoreClient {
    */
   private startMemoryPersistence(): Promise<void> {
     this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence(this.asyncQueue, this.clientId);
+    this.persistence = new MemoryPersistence(this.clientId);
     this.sharedClientState = new MemorySharedClientState();
     return this.persistence.start();
   }
@@ -337,8 +337,6 @@ export class FirestoreClient {
         // NOTE: SyncEngine depends on both LocalStore and SharedClientState
         // (for persisting stream tokens, refilling mutation queue, retrieving
         // the list of active targets, etc.) so it must be started last.
-
-        // PORTING NOTE: RemoteStore does not need an explicit start on web.
         await this.localStore.start();
         await this.sharedClientState.start();
         await this.syncEngine.start();
