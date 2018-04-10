@@ -117,12 +117,12 @@ export class Precondition {
   }
 
   /** Creates a new Precondition with an exists flag. */
-  static exists(exists: boolean) : Precondition {
+  static exists(exists: boolean): Precondition {
     return new Precondition(undefined, exists);
   }
 
   /** Creates a new Precondition based on a version a document exists at. */
-  static updateTime(version: SnapshotVersion) : Precondition  {
+  static updateTime(version: SnapshotVersion): Precondition {
     return new Precondition(version);
   }
 
@@ -135,7 +135,7 @@ export class Precondition {
    * Returns true if the preconditions is valid for the given document
    * (or null if no document is available).
    */
-  isValidFor(maybeDoc: MaybeDocument | null) :boolean {
+  isValidFor(maybeDoc: MaybeDocument | null): boolean {
     if (this.updateTime !== undefined) {
       return (
         maybeDoc instanceof Document &&
@@ -153,7 +153,7 @@ export class Precondition {
     }
   }
 
-  isEqual(other: Precondition):boolean {
+  isEqual(other: Precondition): boolean {
     return (
       misc.equals(this.updateTime, other.updateTime) &&
       this.exists === other.exists

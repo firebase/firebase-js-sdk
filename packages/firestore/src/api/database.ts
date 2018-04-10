@@ -494,7 +494,7 @@ follow these steps, YOUR APP MAY BREAK.`);
     }
   }
 
-  static setLogLevel(level: firestore.LogLevel) :void {
+  static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
     validateArgType('Firestore.setLogLevel', 'string', 1, level);
     switch (level) {
@@ -743,7 +743,7 @@ export class WriteBatch implements firestore.WriteBatch {
     }
   }
 
-  private verifyNotCommitted() :void{
+  private verifyNotCommitted(): void {
     if (this._committed) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -764,7 +764,7 @@ export class DocumentReference implements firestore.DocumentReference {
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
 
-  static forPath(path: ResourcePath, firestore: Firestore) : DocumentReference{
+  static forPath(path: ResourcePath, firestore: Firestore): DocumentReference {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

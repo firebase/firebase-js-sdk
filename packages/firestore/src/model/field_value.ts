@@ -77,7 +77,7 @@ export class FieldValueOptions {
   static fromSnapshotOptions(
     options: SnapshotOptions,
     timestampsInSnapshots: boolean
-  ) : FieldValueOptions{
+  ): FieldValueOptions {
     switch (options.serverTimestamps) {
       case 'estimate':
         return new FieldValueOptions(

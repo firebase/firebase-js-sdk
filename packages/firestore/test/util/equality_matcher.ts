@@ -23,7 +23,7 @@ import { use } from 'chai';
  * implementation is used.
  */
 
-function customDeepEqual(left, right)  : boolean{
+function customDeepEqual(left, right): boolean {
   /**
    * START: Custom compare logic
    */
@@ -56,7 +56,7 @@ function customDeepEqual(left, right)  : boolean{
 /** The original equality function passed in by chai(). */
 let originalFunction = null;
 
-export function addEqualityMatcher() : void{
+export function addEqualityMatcher(): void {
   let isActive = true;
 
   before(() => {
@@ -65,7 +65,7 @@ export function addEqualityMatcher() : void{
 
       const assertEql = _super => {
         originalFunction = originalFunction || _super;
-        return function(...args)  :void{
+        return function(...args): void {
           if (isActive) {
             const [right, msg] = args;
             utils.flag(this, 'message', msg);

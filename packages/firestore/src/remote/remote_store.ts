@@ -514,7 +514,7 @@ export class RemoteStore {
     return promiseChain;
   }
 
-  cleanUpWriteStreamState():void {
+  cleanUpWriteStreamState(): void {
     this.lastBatchSeen = BATCHID_UNKNOWN;
     log.debug(
       LOG_TAG,
