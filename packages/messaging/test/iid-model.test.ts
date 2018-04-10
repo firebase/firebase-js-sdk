@@ -51,11 +51,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      await globalIIDModel.getToken(
-        fcmSenderId,
-        subscription,
-        appPubKey
-      );
+      await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
     });
 
     it('gets token on valid request with default VAPID key', async () => {
@@ -77,11 +73,7 @@ describe('Firebase Messaging > IIDModel', () => {
       const errorMsg = 'invalid token';
       sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
-        await globalIIDModel.getToken(
-          fcmSenderId,
-          subscription,
-          appPubKey
-        );
+        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.equal(errorMsg);
@@ -93,11 +85,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.htmlError(400, 'html-response'));
       try {
-        await globalIIDModel.getToken(
-          fcmSenderId,
-          subscription,
-          appPubKey
-        );
+        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
@@ -112,11 +100,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
       try {
-        await globalIIDModel.getToken(
-          fcmSenderId,
-          subscription,
-          appPubKey
-        );
+        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.include(
@@ -133,11 +117,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
       try {
-        await globalIIDModel.getToken(
-          fcmSenderId,
-          subscription,
-          appPubKey
-        );
+        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
