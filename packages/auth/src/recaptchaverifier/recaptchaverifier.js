@@ -448,6 +448,16 @@ fireauth.BaseRecaptchaVerifier.Loader = function() {
 
 
 /**
+ * The default timeout delay (units in milliseconds) for requests loading
+ * the external reCAPTCHA dependencies.
+ * @const {!fireauth.util.Delay}
+ * @private
+ */
+fireauth.BaseRecaptchaVerifier.Loader.DEFAULT_DEPENDENCY_TIMEOUT_ =
+    new fireauth.util.Delay(30000, 60000);
+
+
+/**
  * Loads the grecaptcha client library if it is not loaded and returns a promise
  * that resolves on success. If the right conditions are available, will reload
  * the dependencies for a specified language code.
@@ -458,12 +468,10 @@ fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
     function(hl) {
   var self = this;
   return new goog.Promise(function(resolve, reject) {
-    // Offline, fail quickly instead of waiting for request to timeout.
-    if (!fireauth.util.isOnline()) {
+    var timer = setTimeout(function() {
       reject(new fireauth.AuthError(
           fireauth.authenum.Error.NETWORK_REQUEST_FAILED));
-      return;
-    }
+    }, fireauth.BaseRecaptchaVerifier.Loader.DEFAULT_DEPENDENCY_TIMEOUT_.get());
     // Load grecaptcha SDK if not already loaded or language changed since last
     // load and no other rendered reCAPTCHA is visible,
     if (!goog.global['grecaptcha'] || (hl !== self.hl_ && !self.counter_)) {
@@ -471,6 +479,7 @@ fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
       // reloads. This means that the callback name has to remain the same.
       goog.global[self.cbName_] = function() {
         if (!goog.global['grecaptcha']) {
+          clearTimeout(timer);
           // This should not happen.
           reject(new fireauth.AuthError(
               fireauth.authenum.Error.INTERNAL_ERROR));
@@ -489,6 +498,7 @@ fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
             self.counter_++;
             return widgetId;
           };
+          clearTimeout(timer);
           resolve();
         }
         delete goog.global[self.cbName_];
@@ -500,6 +510,7 @@ fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
       // TODO: eventually, replace all dependencies on goog.net.jsloader.
       goog.Promise.resolve(goog.net.jsloader.safeLoad(url))
           .thenCatch(function(error) {
+            clearTimeout(timer);
             // In case library fails to load, typically due to a network error,
             // reset cached loader to null to force a refresh on a retrial.
             reject(new fireauth.AuthError(
@@ -507,6 +518,7 @@ fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
                 'Unable to load external reCAPTCHA dependencies!'));
           });
     } else {
+      clearTimeout(timer);
       resolve();
     }
   });

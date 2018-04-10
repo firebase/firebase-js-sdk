@@ -21,8 +21,9 @@ import {
 } from '../src/controllers/controller-interface';
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
-import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
+import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IIDModel } from '../src/models/iid-model';
@@ -37,44 +38,47 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
 describe('Firebase Messaging > *Controller.getToken()', () => {
   const sandbox = sinon.sandbox.create();
   const now = Date.now();
-  const expiredDate = new Date(now - ONE_DAY);
+  const expiredDate = now - ONE_DAY * 8; // 8 days ago
   const FAKE_SUBSCRIPTION = makeFakeSubscription();
 
   const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
   const EXAMPLE_SENDER_ID = '1234567890';
-  const CUSTOM_VAPID_KEY =
+  const CUSTOM_VAPID_KEY = base64ToArrayBuffer(
     'BDd3_hVL9fZi9Ybo2UUzA284WG5FZR30_95YeZJsiApwXK' +
-    'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo';
-  const DEFAULT_VAPID_KEY = arrayBufferToBase64(DEFAULT_PUBLIC_VAPID_KEY);
+      'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo'
+  );
+  const ENDPOINT = FAKE_SUBSCRIPTION.endpoint;
+  const AUTH = FAKE_SUBSCRIPTION.getKey('auth')!;
+  const P256DH = FAKE_SUBSCRIPTION.getKey('p256dh')!;
 
-  const EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID = {
+  const EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID: TokenDetails = {
     swScope: '/example-scope',
-    vapidKey: DEFAULT_VAPID_KEY,
-    endpoint: FAKE_SUBSCRIPTION.endpoint,
-    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')!),
-    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')!),
+    vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
+    endpoint: ENDPOINT,
+    auth: AUTH,
+    p256dh: P256DH,
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty1',
     fcmPushSet: '87654321',
     createTime: now
   };
-  const EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID = {
+  const EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID: TokenDetails = {
     swScope: '/example-scope',
     vapidKey: CUSTOM_VAPID_KEY,
-    endpoint: FAKE_SUBSCRIPTION.endpoint,
-    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')!),
-    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')!),
+    endpoint: ENDPOINT,
+    auth: AUTH,
+    p256dh: P256DH,
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty2',
     fcmPushSet: '7654321',
     createTime: now
   };
-  const EXAMPLE_EXPIRED_TOKEN_DETAILS = {
+  const EXAMPLE_EXPIRED_TOKEN_DETAILS: TokenDetails = {
     swScope: '/example-scope',
-    vapidKey: DEFAULT_VAPID_KEY,
-    endpoint: FAKE_SUBSCRIPTION.endpoint,
-    auth: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('auth')!),
-    p256dh: arrayBufferToBase64(FAKE_SUBSCRIPTION['getKey']('p256dh')!),
+    vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
+    endpoint: ENDPOINT,
+    auth: AUTH,
+    p256dh: P256DH,
     fcmSenderId: EXAMPLE_SENDER_ID,
     fcmToken: 'qwerty3',
     fcmPushSet: '654321',
@@ -231,7 +235,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
         if (VapidSetup['name'] === 'custom') {
-          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
+          vapidKeyToUse = CUSTOM_VAPID_KEY;
         }
         sandbox
           .stub(ServiceClass.prototype, 'getPublicVapidKey_')
@@ -264,9 +268,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(() => Promise.resolve(subscription));
       sandbox
         .stub(ServiceClass.prototype, 'getPublicVapidKey_')
-        .callsFake(() =>
-          Promise.resolve(base64ToArrayBuffer(CUSTOM_VAPID_KEY))
-        );
+        .callsFake(() => Promise.resolve(CUSTOM_VAPID_KEY));
 
       sandbox
         .stub(ControllerInterface.prototype, 'getNotificationPermission_')
@@ -348,7 +350,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
         if (VapidSetup['name'] === 'custom') {
-          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
+          vapidKeyToUse = CUSTOM_VAPID_KEY;
         }
         sandbox
           .stub(ServiceClass.prototype, 'getPublicVapidKey_')
@@ -398,10 +400,16 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         assert.equal(tokenModelArgs[0].swScope, registration.scope);
         assert.equal(
-          arrayBufferToBase64(tokenModelArgs[0].vapidKey),
+          tokenModelArgs[0].vapidKey,
           VapidSetup['details']['vapidKey']
         );
-        assert.equal(tokenModelArgs[0].subscription, subscription);
+
+        assert.equal(tokenModelArgs[0].endpoint, ENDPOINT);
+        assert.equal(isArrayBufferEqual(tokenModelArgs[0].auth, AUTH), true);
+        assert.equal(
+          isArrayBufferEqual(tokenModelArgs[0].p256dh, P256DH),
+          true
+        );
         assert.equal(tokenModelArgs[0].fcmSenderId, EXAMPLE_SENDER_ID);
         assert.equal(tokenModelArgs[0].fcmToken, TOKEN_DETAILS['token']);
         assert.equal(tokenModelArgs[0].fcmPushSet, TOKEN_DETAILS['pushSet']);
@@ -428,7 +436,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         const existingTokenDetails = VapidSetup['details'];
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
         if (VapidSetup['name'] === 'custom') {
-          vapidKeyToUse = base64ToArrayBuffer(CUSTOM_VAPID_KEY);
+          vapidKeyToUse = CUSTOM_VAPID_KEY;
         }
         sandbox
           .stub(ServiceClass.prototype, 'getPublicVapidKey_')
@@ -539,9 +547,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       };
 
       // now update the VAPID key.
-      getPublicVapidKeyStub.callsFake(() =>
-        Promise.resolve(base64ToArrayBuffer(CUSTOM_VAPID_KEY))
-      );
+      getPublicVapidKeyStub.callsFake(() => Promise.resolve(CUSTOM_VAPID_KEY));
 
       const saveTokenDetailsStub = sandbox.stub(
         TokenDetailsModel.prototype,

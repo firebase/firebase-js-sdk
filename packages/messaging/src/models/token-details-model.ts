@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DBInterface } from './db-interface';
@@ -22,31 +22,70 @@ import { ERROR_CODES } from './errors';
 
 export class TokenDetailsModel extends DBInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
-  protected readonly dbVersion: number = 2;
+  protected readonly dbVersion: number = 3;
   protected readonly objectStoreName: string = 'fcm_token_object_Store';
 
-  protected onDbUpgrade(db: IDBDatabase, evt: IDBVersionChangeEvent): void {
-    if (evt.oldVersion < 1) {
-      // New IDB instance
-      const objectStore = db.createObjectStore(this.objectStoreName, {
-        keyPath: 'swScope'
-      });
+  protected onDbUpgrade(
+    request: IDBOpenDBRequest,
+    event: IDBVersionChangeEvent
+  ): void {
+    const db: IDBDatabase = request.result;
 
-      // Make sure the sender ID can be searched
-      objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
-        unique: false
-      });
+    // Lack of 'break' statements is intentional.
+    switch (event.oldVersion) {
+      case 0: {
+        // New IDB instance
+        const objectStore = db.createObjectStore(this.objectStoreName, {
+          keyPath: 'swScope'
+        });
 
-      objectStore.createIndex('fcmToken', 'fcmToken', {
-        unique: true
-      });
-    }
+        // Make sure the sender ID can be searched
+        objectStore.createIndex('fcmSenderId', 'fcmSenderId', {
+          unique: false
+        });
 
-    if (evt.oldVersion < 2) {
-      // Prior to version 2, we were using either 'fcm_token_details_db'
-      // or 'undefined' as the database name due to bug in the SDK
-      // So remove the old tokens and databases.
-      cleanV1();
+        objectStore.createIndex('fcmToken', 'fcmToken', { unique: true });
+      }
+
+      case 1: {
+        // Prior to version 2, we were using either 'fcm_token_details_db'
+        // or 'undefined' as the database name due to bug in the SDK
+        // So remove the old tokens and databases.
+        cleanV1();
+      }
+
+      case 2: {
+        const objectStore = request.transaction.objectStore(
+          this.objectStoreName
+        );
+        const cursorRequest = objectStore.openCursor();
+        cursorRequest.onsuccess = () => {
+          const cursor: IDBCursorWithValue = cursorRequest.result;
+          if (cursor) {
+            const value = cursor.value;
+            const newValue: Partial<TokenDetails> = { ...value };
+
+            if (!value.createTime) {
+              newValue.createTime = Date.now();
+            }
+
+            if (typeof value.vapidKey === 'string') {
+              newValue.vapidKey = base64ToArrayBuffer(value.vapidKey);
+            }
+
+            if (typeof value.auth === 'string') {
+              newValue.auth = base64ToArrayBuffer(value.auth).buffer;
+            }
+
+            if (typeof value.auth === 'string') {
+              newValue.p256dh = base64ToArrayBuffer(value.p256dh).buffer;
+            }
+
+            cursor.update(newValue);
+            cursor.continue();
+          }
+        };
+      }
     }
   }
 
@@ -77,8 +116,20 @@ export class TokenDetailsModel extends DBInterface {
       }
     }
 
-    if (input.subscription) {
-      if (!(input.subscription instanceof PushSubscription)) {
+    if (input.endpoint) {
+      if (typeof input.endpoint !== 'string' || input.endpoint.length === 0) {
+        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+      }
+    }
+
+    if (input.auth) {
+      if (!(input.auth instanceof ArrayBuffer)) {
+        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+      }
+    }
+
+    if (input.p256dh) {
+      if (!(input.p256dh instanceof ArrayBuffer)) {
         throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
       }
     }
@@ -149,7 +200,7 @@ export class TokenDetailsModel extends DBInterface {
       throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
     }
 
-    if (!tokenDetails.subscription) {
+    if (!tokenDetails.endpoint || !tokenDetails.auth || !tokenDetails.p256dh) {
       throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
     }
 
@@ -167,19 +218,7 @@ export class TokenDetailsModel extends DBInterface {
 
     this.validateInputs(tokenDetails);
 
-    const details = {
-      swScope: tokenDetails.swScope,
-      vapidKey: arrayBufferToBase64(tokenDetails.vapidKey as Uint8Array),
-      endpoint: tokenDetails.subscription.endpoint,
-      auth: arrayBufferToBase64(tokenDetails.subscription.getKey('auth')!),
-      p256dh: arrayBufferToBase64(tokenDetails.subscription.getKey('p256dh')!),
-      fcmSenderId: tokenDetails.fcmSenderId,
-      fcmToken: tokenDetails.fcmToken,
-      fcmPushSet: tokenDetails.fcmPushSet,
-      createTime: Date.now()
-    };
-
-    return this.put(details);
+    return this.put(tokenDetails);
   }
 
   /**

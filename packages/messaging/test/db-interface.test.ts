@@ -34,7 +34,12 @@ class MockDbInterface extends DBInterface {
   readonly dbVersion: number = 1;
   readonly objectStoreName: string = 'test-obj-store';
 
-  protected onDbUpgrade(db: IDBDatabase, event: IDBVersionChangeEvent): void {
+  protected onDbUpgrade(
+    request: IDBOpenDBRequest,
+    event: IDBVersionChangeEvent
+  ): void {
+    const db: IDBDatabase = request.result;
+
     const objectStore = db.createObjectStore(this.objectStoreName, {
       keyPath: 'key'
     });

@@ -32,6 +32,7 @@ goog.require('goog.Promise');
 goog.require('goog.Uri');
 goog.require('goog.dom');
 goog.require('goog.html.TrustedResourceUrl');
+goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.TestCase');
@@ -49,6 +50,7 @@ var grecaptcha;
 var myElement, myElement2;
 var ignoreArgument;
 var loaderInstance;
+var clock;
 
 
 /**
@@ -262,6 +264,7 @@ function tearDown() {
   delete goog.global['devCallback'];
   delete goog.global['devExpiredCallback'];
   stubs.reset();
+  goog.dispose(clock);
 }
 
 
@@ -563,6 +566,8 @@ function testBaseRecaptchaVerifier_render() {
 
 function testBaseRecaptchaVerifier_render_offline() {
   return installAndRunTest('testBaseAppVerifier_render_offline', function() {
+    // Install mock clock.
+    clock = new goog.testing.MockClock(true);
     var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
     var recaptchaConfig = {
       'recaptchaSiteKey': 'SITE_KEY'
@@ -574,7 +579,15 @@ function testBaseRecaptchaVerifier_render_offline() {
     rpcHandlerConstructor('API_KEY', null, ignoreArgument).$returns(rpcHandler);
     // Simulate first attempt fails due to network connection not being
     // available.
-    isOnline().$returns(false);
+    isOnline().$does(function() {
+      goog.Promise.resolve().then(function() {
+        clock.tick(5000);
+      });
+      return false;
+    });
+    // Simulate first call does nothing due to network timeout.
+    safeLoad(ignoreArgument).$returns(
+        new goog.Promise(function(resolve, reject) {}));
     // Simulate second attempt succeeding.
     isOnline().$returns(true);
     safeLoad(ignoreArgument)
