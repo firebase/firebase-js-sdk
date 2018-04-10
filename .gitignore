@@ -76,3 +76,6 @@ typings/
 
 # rollup-plugin-typescript2 cache
 .rpt2_cache/
+
+# NPM Lockfiles
+package-lock.json
