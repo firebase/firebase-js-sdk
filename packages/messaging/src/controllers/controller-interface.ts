@@ -16,10 +16,8 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import {
-  createSubscribe,
   ErrorFactory,
   NextFn,
-  Observer,
   PartialObserver
 } from '@firebase/util';
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
