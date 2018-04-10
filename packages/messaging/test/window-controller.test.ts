@@ -15,17 +15,17 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 
-import FCMDetails from '../src/models/fcm-details';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
-import WindowController from '../src/controllers/window-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
-describe('Firebase Messaging > *WindowController', function() {
+describe('Firebase Messaging > *WindowController', () => {
   const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
     messagingSenderId: '12345'
@@ -35,16 +35,16 @@ describe('Firebase Messaging > *WindowController', function() {
     sandbox.restore();
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanup();
   });
 
-  after(function() {
+  after(() => {
     return cleanup();
   });
 
-  describe('manifestCheck_()', function() {
-    it("should resolve when the tag isn't defined", function() {
+  describe('manifestCheck_()', () => {
+    it("should resolve when the tag isn't defined", () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
@@ -54,7 +54,7 @@ describe('Firebase Messaging > *WindowController', function() {
       return controller.manifestCheck_();
     });
 
-    it('should fetch the manifest if defined and resolve when no gcm_sender_id', function() {
+    it('should fetch the manifest if defined and resolve when no gcm_sender_id', () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
@@ -77,7 +77,7 @@ describe('Firebase Messaging > *WindowController', function() {
       return controller.manifestCheck_();
     });
 
-    it('should fetch the manifest if defined and resolve with expected gcm_sender_id', function() {
+    it('should fetch the manifest if defined and resolve with expected gcm_sender_id', () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
@@ -102,7 +102,7 @@ describe('Firebase Messaging > *WindowController', function() {
       return controller.manifestCheck_();
     });
 
-    it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', function() {
+    it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
@@ -134,7 +134,7 @@ describe('Firebase Messaging > *WindowController', function() {
       );
     });
 
-    it('should fetch the manifest and resolve if the request fails', function() {
+    it('should fetch the manifest and resolve if the request fails', () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
@@ -152,15 +152,15 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('requestPermission', function() {
-    it('should resolve if the permission is already granted', function() {
+  describe('requestPermission', () => {
+    it('should resolve if the permission is already granted', () => {
       sandbox.stub(Notification as any, 'permission').value('granted');
 
       const controller = new WindowController(app);
       return controller.requestPermission();
     });
 
-    it('should reject if the requestPermission() is denied', function() {
+    it('should reject if the requestPermission() is denied', () => {
       sandbox.stub(Notification as any, 'permission').value('denied');
       sandbox
         .stub(Notification as any, 'requestPermission')
@@ -177,7 +177,7 @@ describe('Firebase Messaging > *WindowController', function() {
       );
     });
 
-    it('should reject if the requestPermission() is default', function() {
+    it('should reject if the requestPermission() is default', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
         .stub(Notification as any, 'requestPermission')
@@ -194,7 +194,7 @@ describe('Firebase Messaging > *WindowController', function() {
       );
     });
 
-    it('should resolve if the requestPermission() is granted', function() {
+    it('should resolve if the requestPermission() is granted', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
         .stub(Notification as any, 'requestPermission')
@@ -204,7 +204,7 @@ describe('Firebase Messaging > *WindowController', function() {
       return controller.requestPermission() as any;
     });
 
-    it('should resolve if the requestPermission() is granted using old callback API', function() {
+    it('should resolve if the requestPermission() is granted using old callback API', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox.stub(Notification as any, 'requestPermission').callsFake(cb => {
         cb('granted');
@@ -215,22 +215,20 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('useServiceWorker()', function() {
-    it(`should throw on invalid input`, function() {
+  describe('useServiceWorker()', () => {
+    it(`should throw on invalid input`, () => {
       const controller = new WindowController(app);
       let thrownError;
       try {
-        controller.useServiceWorker(null);
+        controller.useServiceWorker(null as any);
       } catch (err) {
         thrownError = err;
       }
       expect(thrownError).to.exist;
-      expect(thrownError.code).to.deep.equal(
-        'messaging/sw-registration-expected'
-      );
+      expect(thrownError.code).to.equal('messaging/sw-registration-expected');
     });
 
-    it(`should only be callable once`, function() {
+    it(`should only be callable once`, () => {
       const registration = makeFakeSWReg();
       const controller = new WindowController(app);
       controller.useServiceWorker(registration);
@@ -247,8 +245,8 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('onMessage()', function() {
-    it(`should call through to private function`, function() {
+  describe('onMessage()', () => {
+    it(`should call through to private function`, () => {
       const nextFunc = () => {};
       const errFunc = () => {};
       const compFunc = () => {};
@@ -264,8 +262,8 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('onTokenRefresh()', function() {
-    it(`should call through to private function`, function() {
+  describe('onTokenRefresh()', () => {
+    it(`should call through to private function`, () => {
       const nextFunc = () => {};
       const errFunc = () => {};
       const compFunc = () => {};
@@ -281,13 +279,13 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('usePublicVapidKey()', function() {
-    it('should throw an error when passing in an invalid value', function() {
+  describe('usePublicVapidKey()', () => {
+    it('should throw an error when passing in an invalid value', () => {
       const controller = new WindowController(app);
 
       let thrownError;
       try {
-        controller.usePublicVapidKey({});
+        controller.usePublicVapidKey({} as any);
       } catch (err) {
         thrownError = err;
       }
@@ -295,7 +293,7 @@ describe('Firebase Messaging > *WindowController', function() {
       expect(thrownError.code).to.equal('messaging/invalid-public-vapid-key');
     });
 
-    it('should throw an error when called twice', function() {
+    it('should throw an error when called twice', () => {
       const controller = new WindowController(app);
       controller.usePublicVapidKey(VALID_VAPID_KEY);
 
@@ -311,7 +309,7 @@ describe('Firebase Messaging > *WindowController', function() {
       );
     });
 
-    it('should throw when decrypting to invalid value', function() {
+    it('should throw when decrypting to invalid value', () => {
       const controller = new WindowController(app);
 
       let thrownError;
@@ -329,15 +327,15 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('getPublicVapidKey_()', function() {
-    it('should return the default key by default', function() {
+  describe('getPublicVapidKey_()', () => {
+    it('should return the default key by default', () => {
       const controller = new WindowController(app);
       return controller.getPublicVapidKey_().then(pubKey => {
-        expect(pubKey).to.equal(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+        expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
     });
 
-    it('should return the custom key if set', function() {
+    it('should return the custom key if set', () => {
       const controller = new WindowController(app);
       controller.usePublicVapidKey(VALID_VAPID_KEY);
       return controller.getPublicVapidKey_().then(pubKey => {
@@ -346,15 +344,15 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('setupSWMessageListener_()', function() {
-    it('should not do anything is no service worker support', function() {
+  describe('setupSWMessageListener_()', () => {
+    it('should not do anything is no service worker support', () => {
       sandbox.stub(window, 'navigator').value({});
 
       const controller = new WindowController(app);
       controller.setupSWMessageListener_();
     });
 
-    it('should add listener when supported', function() {
+    it('should add listener when supported', () => {
       const spy = sandbox.spy();
       sandbox.stub(navigator, 'serviceWorker').value({
         addEventListener: spy
@@ -366,7 +364,7 @@ describe('Firebase Messaging > *WindowController', function() {
       expect(spy.args[0][0]).to.equal('message');
     });
 
-    it('should do nothing when non-fcm message is passed in', function() {
+    it('should do nothing when non-fcm message is passed in', () => {
       const spy = sandbox.spy();
       const onMessageSpy = sandbox.spy();
 
@@ -375,7 +373,7 @@ describe('Firebase Messaging > *WindowController', function() {
       });
 
       const controller = new WindowController(app);
-      controller.onMessage(onMessageSpy, null, null);
+      controller.onMessage(onMessageSpy, null as any, null as any);
       controller.setupSWMessageListener_();
 
       const callback = spy.args[0][1];
@@ -398,7 +396,7 @@ describe('Firebase Messaging > *WindowController', function() {
       expect(onMessageSpy.callCount).to.equal(0);
     });
 
-    it('should not throw when message observer is not defined', function() {
+    it('should not throw when message observer is not defined', () => {
       const messageCallbackSpy = sandbox.spy();
       sandbox.stub(navigator, 'serviceWorker').value({
         addEventListener: messageCallbackSpy
@@ -418,7 +416,7 @@ describe('Firebase Messaging > *WindowController', function() {
       });
     });
 
-    it('should call onMessage for push msg received event', async function() {
+    it('should call onMessage for push msg received event', async () => {
       const messageCallbackSpy = sandbox.spy();
       const onMessageSpy = sandbox.spy();
 
@@ -454,8 +452,8 @@ describe('Firebase Messaging > *WindowController', function() {
     });
   });
 
-  describe('waitForRegistrationToActivate_', function() {
-    it('should handle service worker lifecycle', function() {
+  describe('waitForRegistrationToActivate_', () => {
+    it('should handle service worker lifecycle', () => {
       let changeListener;
       const swValue = {
         state: 'installing',

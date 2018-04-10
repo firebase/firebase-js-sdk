@@ -803,10 +803,10 @@ function testAddRemoveListeners_indexeddb() {
       function() {
         return true;
       });
-  // Use mock indexedDB manager.
+  // Use mock indexedDB for hybrid indexedDB.
   stubs.replace(
-     fireauth.storage.IndexedDB,
-      'getFireauthManager',
+      fireauth.storage,
+      'HybridIndexedDB',
       function() {
         return mockIndexeddb;
       });
@@ -881,10 +881,10 @@ function testAddRemoveListeners_indexeddb_cannotRunInBackground() {
       function() {
         return true;
       });
-  // Use mock indexedDB manager.
+  // Use mock indexedDB for hybrid indexedDB.
   stubs.replace(
-     fireauth.storage.IndexedDB,
-      'getFireauthManager',
+      fireauth.storage,
+      'HybridIndexedDB',
       function() {
         return mockIndexeddb;
       });

@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-export function deleteDatabase(dbName: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.deleteDatabase(dbName);
-    request.onerror = event => {
-      reject((event.target as any).error);
-    };
-    request.onsuccess = event => {
-      resolve();
-    };
-    request.onblocked = event => {
-      console.warn('deleteDb blocked.');
-    };
-  });
+export interface VapidDetails {
+  swScope: string;
+  vapidKey: Uint8Array;
 }

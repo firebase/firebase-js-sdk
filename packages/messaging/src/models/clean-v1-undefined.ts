@@ -26,12 +26,12 @@
  * underlying tokens.
  */
 
-import IIDModel from '../models/iid-model';
+import { IIDModel } from '../models/iid-model';
 
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
 
-function handleDb(db: IDBDatabase) {
+function handleDb(db: IDBDatabase): void {
   if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
     // We found a database with the name 'undefined', but our expected object
     // store isn't defined.
@@ -70,15 +70,13 @@ function handleDb(db: IDBDatabase) {
   };
 }
 
-function cleanV1() {
+export function cleanV1(): void {
   const request: IDBOpenDBRequest = indexedDB.open(OLD_DB_NAME);
-  request.onerror = function(event) {
+  request.onerror = event => {
     // NOOP - Nothing we can do.
   };
-  request.onsuccess = function(event) {
+  request.onsuccess = event => {
     const db = request.result;
     handleDb(db);
   };
 }
-
-export { cleanV1 };

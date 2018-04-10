@@ -1270,9 +1270,29 @@ fireauth.util.Delay = function(shortDelay, longDelay, opt_userAgent, opt_env) {
 
 
 /**
+ * The default value for the offline delay timeout in ms.
+ * @const {number}
+ * @private
+ */
+fireauth.util.Delay.OFFLINE_DELAY_MS_ = 5000;
+
+
+/**
  * @return {number} The delay that matches with the current environment.
  */
 fireauth.util.Delay.prototype.get = function() {
+  // navigator.onLine is unreliable in some cases.
+  // Failing hard in those cases may make it impossible to recover for end user.
+  // Waiting for the regular full duration when there is no network can result
+  // in a bad experience.
+  // Instead return a short timeout duration. If there is no network connection,
+  // the user would wait 5 seconds to detect that. If there is a connection
+  // (false alert case), the user still has the ability to try to send the
+  // request. If it fails (timeout too short), they can still retry.
+  if (!fireauth.util.isOnline()) {
+    // Pick the shorter timeout.
+    return Math.min(fireauth.util.Delay.OFFLINE_DELAY_MS_, this.shortDelay_);
+  }
   // If running in a mobile environment, return the long delay, otherwise
   // return the short delay.
   // This could be improved in the future to dynamically change based on other
