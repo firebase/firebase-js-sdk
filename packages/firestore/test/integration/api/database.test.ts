@@ -25,7 +25,7 @@ import {
   withTestDb,
   withTestDoc
 } from '../util/helpers';
-import {query} from '../../util/api_helpers';
+import { query } from '../../util/api_helpers';
 
 const Timestamp = firebase.firestore.Timestamp;
 
@@ -420,7 +420,7 @@ apiDescribe('Database', persistence => {
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
   xdescribe('Listens are rejected remotely:', () => {
-    const queryForRejection = query("foo");
+    const queryForRejection = query('foo');
 
     it('will reject listens', () => {
       const deferred = new Deferred();

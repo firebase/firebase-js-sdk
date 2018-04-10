@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import * as api from '../../../src/protos/firestore_proto_api';
-import {EmptyCredentialsProvider, Token} from '../../../src/api/credentials';
+import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
@@ -137,7 +137,7 @@ class MockConnection implements Connection {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC<Req>(rpcName: string, request: Req): never{
+  invokeStreamingRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
@@ -185,8 +185,10 @@ class MockConnection implements Connection {
     this.watchStream = null;
   }
 
-  openStream<Req, Resp>(rpcName: string,
-                        token: Token | null): Stream<Req, Resp> {
+  openStream<Req, Resp>(
+    rpcName: string,
+    token: Token | null
+  ): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
