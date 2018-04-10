@@ -509,6 +509,11 @@ declare namespace firebase.messaging {
 declare namespace firebase.storage {
   interface FullMetadata extends firebase.storage.UploadMetadata {
     bucket: string;
+    /**
+     * @deprecated
+     * Use Reference.getDownloadURL instead. This property will be removed in a
+     * future release.
+     */
     downloadURLs: string[];
     fullPath: string;
     generation: string;
@@ -613,6 +618,11 @@ declare namespace firebase.storage {
 
   interface UploadTaskSnapshot {
     bytesTransferred: number;
+    /**
+     * @deprecated
+     * Use Reference.getDownloadURL instead. This property will be removed in a
+     * future release.
+     */
     downloadURL: string | null;
     metadata: firebase.storage.FullMetadata;
     ref: firebase.storage.Reference;
