@@ -3,12 +3,13 @@
   "version": "0.3.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "scripts": {
-    "dev": "gulp dev",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "echo 'No test suite for polyfills'",
-    "prepare": "gulp build"
+    "prepare": "npm run build"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -18,7 +19,10 @@
   },
   "devDependencies": {
     "@types/node": "^9.4.6",
-    "gulp": "^4.0.0"
+    "rollup": "^0.57.1",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-typescript2": "^0.12.0"
   },
   "repository": {
     "type": "git",

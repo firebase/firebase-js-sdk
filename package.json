@@ -45,8 +45,6 @@
     "dependency-graph": "^0.7.0",
     "firebase-tools": "^3.17.4",
     "glob": "^7.1.2",
-    "gulp-sourcemaps": "^2.6.4",
-    "gulp-typescript": "^4.0.1",
     "husky": "^0.14.3",
     "inquirer": "^5.1.0",
     "istanbul-instrumenter-loader": "^3.0.0",

@@ -15,7 +15,7 @@
  */
 
 import * as admin from 'firebase-admin';
-import * as request from 'request-promise';
+import request from 'request-promise';
 import * as fs from 'fs';
 
 const DBURL = 'http://localhost:9000';
