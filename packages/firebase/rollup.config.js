@@ -30,6 +30,7 @@ const appConfig = {
   input: 'app/index.js',
   output: {
     file: 'firebase-app.js',
+    sourcemap: true,
     format: 'umd',
     name: GLOBAL_NAME
   },
@@ -43,6 +44,7 @@ const firebaseJsConfig = {
   input: 'index.js',
   output: {
     file: 'firebase.js',
+    sourcemap: true,
     format: 'umd',
     name: GLOBAL_NAME
   },
@@ -66,6 +68,7 @@ const componentsConfig = components.map(component => ({
   output: {
     file: `firebase-${component}.js`,
     format: 'iife',
+    sourcemap: true,
     extend: true,
     name: GLOBAL_NAME,
     globals: {
