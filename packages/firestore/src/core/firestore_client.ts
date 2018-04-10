@@ -339,6 +339,7 @@ export class FirestoreClient {
         // the list of active targets, etc.) so it must be started last.
         await this.localStore.start();
         await this.sharedClientState.start();
+        await this.remoteStore.start();
         await this.syncEngine.start();
 
         // NOTE: This will immediately call the listener, so we make sure to

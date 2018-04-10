@@ -352,6 +352,7 @@ abstract class TestRunner {
   protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
 
+  private started = false;
   private serializer: JsonProtoSerializer;
 
   constructor(
@@ -443,17 +444,20 @@ abstract class TestRunner {
     await this.persistence.start();
     await this.localStore.start();
     await this.sharedClientState.start();
+    await this.remoteStore.start();
     await this.syncEngine.start();
 
     this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
     );
+
+    this.started = true;
   }
 
   async shutdown(): Promise<void> {
-    await this.sharedClientState.shutdown();
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    if (this.started) {
+      await this.doShutdown();
+    }
   }
 
   /** Runs a single SpecStep on this runner. */
@@ -827,7 +831,9 @@ abstract class TestRunner {
   private async doShutdown(): Promise<void> {
     await this.syncEngine.shutdown();
     await this.remoteStore.shutdown();
+    await this.sharedClientState.shutdown();
     await this.persistence.shutdown();
+    this.started = false;
   }
 
   private async doRestart(): Promise<void> {
@@ -841,6 +847,7 @@ abstract class TestRunner {
     // interleaved events.
     await this.queue.enqueue(async () => {
       await this.localStore.start();
+      await this.remoteStore.start();
       await this.syncEngine.start();
 
       const deferred = new Deferred<void>();

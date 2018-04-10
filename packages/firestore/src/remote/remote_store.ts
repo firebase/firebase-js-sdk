@@ -137,6 +137,16 @@ export class RemoteStore {
   /** SyncEngine to notify of watch and write events. */
   syncEngine: RemoteSyncer;
 
+  /**
+   * Starts up the remote store, creating streams, restoring state from
+   * LocalStore, etc.
+   */
+  start(): Promise<void> {
+    console.log('starting remotestore');
+    // Start is a no-op for RemoteStore.
+    return Promise.resolve();
+  }
+
   private isNetworkEnabled(): boolean {
     assert(
       (this.watchStream == null) === (this.writeStream == null),
