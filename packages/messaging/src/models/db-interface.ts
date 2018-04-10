@@ -37,7 +37,7 @@ export abstract class DBInterface {
    * This function should create and update object stores.
    */
   protected abstract onDbUpgrade(
-    db: IDBDatabase,
+    request: IDBOpenDBRequest,
     event: IDBVersionChangeEvent
   ): void;
 
@@ -121,8 +121,7 @@ export abstract class DBInterface {
           this.dbPromise = null;
           reject(request.error);
         };
-        request.onupgradeneeded = event =>
-          this.onDbUpgrade(request.result, event);
+        request.onupgradeneeded = event => this.onDbUpgrade(request, event);
       });
     }
 

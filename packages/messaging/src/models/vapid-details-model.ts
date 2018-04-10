@@ -25,7 +25,8 @@ export class VapidDetailsModel extends DBInterface {
   protected readonly dbVersion: number = 1;
   protected readonly objectStoreName: string = 'fcm_vapid_object_Store';
 
-  protected onDbUpgrade(db: IDBDatabase): void {
+  protected onDbUpgrade(request: IDBOpenDBRequest): void {
+    const db: IDBDatabase = request.result;
     db.createObjectStore(this.objectStoreName, { keyPath: 'swScope' });
   }
 

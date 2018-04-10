@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
 import { makeFakeApp } from './make-fake-app';
 import { makeFakeSWReg } from './make-fake-sw-reg';
 
@@ -43,29 +46,26 @@ class MockControllerInterface extends ControllerInterface {
 }
 
 describe('Firebase Messaging > *ControllerInterface', () => {
-  const sandbox = sinon.sandbox.create();
-  const app = makeFakeApp({
-    messagingSenderId: '12345'
-  });
-
-  const cleanup = () => {
-    sandbox.restore();
-  };
+  let sandbox: sinon.SinonSandbox;
+  let app: FirebaseApp;
 
   beforeEach(() => {
-    return cleanup();
+    sandbox = sinon.sandbox.create();
+    app = makeFakeApp({
+      messagingSenderId: '12345'
+    });
   });
 
-  after(() => {
-    return cleanup();
+  afterEach(() => {
+    sandbox.restore();
   });
 
   describe('INTERNAL.delete()', () => {
     it('should call delete()', () => {
       const controller = new MockControllerInterface(app);
-      sandbox.spy(controller, 'delete');
+      const spy = sandbox.spy(controller, 'delete');
       controller.INTERNAL.delete();
-      expect(controller.delete['callCount']).to.equal(1);
+      expect(spy.callCount).to.equal(1);
     });
   });
 
@@ -84,12 +84,14 @@ describe('Firebase Messaging > *ControllerInterface', () => {
   });
 
   describe('getPushSubscription()', () => {
-    controllersToTest.forEach(ControllerInTest => {
+    for (const ControllerInTest of controllersToTest) {
       it(`should return rejection error in ${ControllerInTest.name}`, () => {
         const injectedError = new Error('Inject error.');
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
-          getSubscription: () => Promise.reject(injectedError)
+          getSubscription: async () => {
+            throw injectedError;
+          }
         });
 
         const controller = new ControllerInTest(app);
@@ -109,7 +111,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
-          getSubscription: () => Promise.resolve(exampleSubscription)
+          getSubscription: async () => exampleSubscription
         });
 
         const controller = new ControllerInTest(app);
@@ -125,13 +127,13 @@ describe('Firebase Messaging > *ControllerInterface', () => {
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
           getSubscription: async () => {},
-          subscribe: options => {
+          subscribe: async options => {
             expect(options).to.deep.equal({
               userVisibleOnly: true,
               applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY
             });
 
-            return Promise.resolve(exampleSubscription);
+            return exampleSubscription;
           }
         });
 
@@ -142,7 +144,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
             expect(subscription).to.equal(exampleSubscription);
           });
       });
-    });
+    }
   });
 
   describe('useServiceWorker()', () => {
