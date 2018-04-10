@@ -152,7 +152,7 @@ export class SimpleDb {
     ) as AnyDuringMigration;
   }
 
-  close() :void{
+  close(): void {
     this.db.close();
   }
 }

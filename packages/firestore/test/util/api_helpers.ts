@@ -61,7 +61,7 @@ export function documentSnapshot(
   path: string,
   data: JsonObject<AnyJs>,
   fromCache: boolean
-) : DocumentSnapshot{
+): DocumentSnapshot {
   if (data) {
     return new DocumentSnapshot(
       FIRESTORE,
@@ -98,7 +98,7 @@ export function querySnapshot(
   hasPendingWrites: boolean,
   fromCache: boolean,
   syncStateChanged: boolean
-) : QuerySnapshot{
+): QuerySnapshot {
   const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
   Object.keys(oldDocs).forEach(key => {

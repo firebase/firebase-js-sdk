@@ -198,7 +198,7 @@ export class WatchChangeAggregator {
     );
   }
 
-  private addDocumentChange(docChange: DocumentWatchChange) :void{
+  private addDocumentChange(docChange: DocumentWatchChange): void {
     let relevant = false;
 
     for (const targetId of docChange.updatedTargetIds) {
@@ -228,7 +228,7 @@ export class WatchChangeAggregator {
     }
   }
 
-  private addTargetChange(targetChange: WatchTargetChange):void {
+  private addTargetChange(targetChange: WatchTargetChange): void {
     targetChange.targetIds.forEach(targetId => {
       const change = this.ensureTargetChange(targetId);
       switch (targetChange.state) {

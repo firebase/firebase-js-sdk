@@ -172,7 +172,7 @@ export class MutationBatchResult {
     commitVersion: SnapshotVersion,
     results: MutationResult[],
     streamToken: ProtoByteString
-  ) :MutationBatchResult{
+  ): MutationBatchResult {
     assert(
       batch.mutations.length === results.length,
       'Mutations sent ' +

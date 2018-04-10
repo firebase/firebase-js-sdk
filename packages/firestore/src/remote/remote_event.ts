@@ -47,7 +47,7 @@ export class RemoteEvent {
     public documentUpdates: MaybeDocumentMap
   ) {}
 
-  addDocumentUpdate(doc: MaybeDocument) : void {
+  addDocumentUpdate(doc: MaybeDocument): void {
     this.documentUpdates = this.documentUpdates.insert(doc.key, doc);
   }
 
@@ -131,11 +131,11 @@ export class ResetMapping {
     return this.docs;
   }
 
-  add(key: DocumentKey) : void {
+  add(key: DocumentKey): void {
     this.docs = this.docs.add(key);
   }
 
-  delete(key: DocumentKey): void  {
+  delete(key: DocumentKey): void {
     this.docs = this.docs.delete(key);
   }
 
@@ -155,12 +155,12 @@ export class UpdateMapping {
     return result;
   }
 
-  add(key: DocumentKey) : void {
+  add(key: DocumentKey): void {
     this.addedDocuments = this.addedDocuments.add(key);
     this.removedDocuments = this.removedDocuments.delete(key);
   }
 
-  delete(key: DocumentKey): void  {
+  delete(key: DocumentKey): void {
     this.addedDocuments = this.addedDocuments.delete(key);
     this.removedDocuments = this.removedDocuments.add(key);
   }

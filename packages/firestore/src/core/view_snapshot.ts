@@ -50,7 +50,7 @@ export class DocumentChangeSet {
 
   constructor() {}
 
-  track(change: DocumentViewChange):void  {
+  track(change: DocumentViewChange): void {
     const key = change.doc.key;
     const oldChange = this.changeMap.get(key);
     if (!oldChange) {
