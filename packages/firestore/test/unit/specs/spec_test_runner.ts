@@ -1146,7 +1146,7 @@ class SharedMockStorage {
       },
       getItem: (key: string) => this.getItem(key),
       key: (index: number) => this.key(index),
-      clear: () => this.clear,
+      clear: () => this.clear(),
       removeItem: (key: string) => {
         const oldValue = this.getItem(key);
         this.removeItem(key);

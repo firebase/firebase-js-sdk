@@ -142,7 +142,6 @@ export class RemoteStore {
    * LocalStore, etc.
    */
   start(): Promise<void> {
-    console.log('starting remotestore');
     // Start is a no-op for RemoteStore.
     return Promise.resolve();
   }
