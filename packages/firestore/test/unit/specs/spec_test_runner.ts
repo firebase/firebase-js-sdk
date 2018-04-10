@@ -700,7 +700,7 @@ abstract class TestRunner {
       )
     );
     // The watch stream should re-open if we have active listeners.
-    if (!this.queryListeners.isEmpty()) {
+    if (spec.runBackoffTimer && !this.queryListeners.isEmpty()) {
       await this.queue.runDelayedOperationsEarly(
         TimerId.ListenStreamConnectionBackoff
       );
@@ -1167,6 +1167,7 @@ export type SpecSnapshotVersion = TestSnapshotVersion;
 
 export type SpecWatchStreamClose = {
   error: SpecError;
+  runBackoffTimer: boolean;
 };
 
 export type SpecWriteAck = {

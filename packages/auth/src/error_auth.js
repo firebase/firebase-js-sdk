@@ -240,7 +240,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_APP_CREDENTIAL] =
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_APP_ID] =
     'The mobile app identifier is not registed for the current project.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_AUTH] =
-    'The user\'s credential is no longer valid. The user must sign in again.';
+    'This user\'s credential isn\'t valid for this project. This can happen ' +
+    'if the user\'s token has been tampered with, or if the user isn\'t for ' +
+    'the project associated with this API key.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_AUTH_EVENT] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CODE] =

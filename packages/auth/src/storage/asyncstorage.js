@@ -45,6 +45,8 @@ fireauth.storage.AsyncStorage = function(opt_asyncStorage) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
         'The React Native compatibility library was not found.');
   }
+  /** @public {string} The storage type identifier. */
+  this.type = fireauth.storage.Storage.Type.ASYNC_STORAGE;
 };
 
 

@@ -32,6 +32,7 @@ goog.require('goog.Promise');
 goog.require('goog.Uri');
 goog.require('goog.dom');
 goog.require('goog.html.TrustedResourceUrl');
+goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.TestCase');
@@ -49,6 +50,7 @@ var grecaptcha;
 var myElement, myElement2;
 var ignoreArgument;
 var loaderInstance;
+var clock;
 
 
 /**
@@ -262,6 +264,7 @@ function tearDown() {
   delete goog.global['devCallback'];
   delete goog.global['devExpiredCallback'];
   stubs.reset();
+  goog.dispose(clock);
 }
 
 
@@ -349,11 +352,56 @@ function installAndRunTest(id, func) {
 }
 
 
+function testBaseRecaptchaVerifier_noDOM() {
+  return installAndRunTest('testBaseAppVerifier_noHttpOrHttps', function() {
+    var isDOMSupported = mockControl.createMethodMock(
+        fireauth.util, 'isDOMSupported');
+    isDOMSupported().$returns(false).$once();
+    mockControl.$replayAll();
+    var expectedError = new fireauth.AuthError(
+        fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+        'RecaptchaVerifier is only supported in a browser HTTP/HTTPS ' +
+        'environment with DOM support.');
+    var error = assertThrows(function() {
+      new fireauth.BaseRecaptchaVerifier('API_KEY', 'id');
+    });
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+  });
+}
+
+
 function testBaseRecaptchaVerifier_noHttpOrHttps() {
   return installAndRunTest('testBaseAppVerifier_noHttpOrHttps', function() {
     var isHttpOrHttps = mockControl.createMethodMock(
         fireauth.util, 'isHttpOrHttps');
     isHttpOrHttps().$returns(false).$once();
+    mockControl.$replayAll();
+    var expectedError = new fireauth.AuthError(
+        fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+        'RecaptchaVerifier is only supported in a browser HTTP/HTTPS ' +
+        'environment.');
+    var recaptchaVerifier = new fireauth.BaseRecaptchaVerifier(
+        'API_KEY', myElement);
+    return recaptchaVerifier.render().thenCatch(function(error) {
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    });
+  });
+}
+
+
+function testBaseRecaptchaVerifier_worker() {
+  return installAndRunTest('testBaseAppVerifier_noHttpOrHttps', function() {
+    // This gets called in some underlying dependencies at various points.
+    // It is not feasible counting the exact number of calls and the sequence
+    // they get called. It is better to use property replacer to stub this
+    // utility.
+    stubs.replace(
+        fireauth.util,
+        'isWorker',
+        function() {return true;});
+    var isHttpOrHttps = mockControl.createMethodMock(
+        fireauth.util, 'isHttpOrHttps');
+    isHttpOrHttps().$returns(true).$once();
     mockControl.$replayAll();
     var expectedError = new fireauth.AuthError(
         fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
@@ -518,6 +566,8 @@ function testBaseRecaptchaVerifier_render() {
 
 function testBaseRecaptchaVerifier_render_offline() {
   return installAndRunTest('testBaseAppVerifier_render_offline', function() {
+    // Install mock clock.
+    clock = new goog.testing.MockClock(true);
     var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
     var recaptchaConfig = {
       'recaptchaSiteKey': 'SITE_KEY'
@@ -529,7 +579,15 @@ function testBaseRecaptchaVerifier_render_offline() {
     rpcHandlerConstructor('API_KEY', null, ignoreArgument).$returns(rpcHandler);
     // Simulate first attempt fails due to network connection not being
     // available.
-    isOnline().$returns(false);
+    isOnline().$does(function() {
+      goog.Promise.resolve().then(function() {
+        clock.tick(5000);
+      });
+      return false;
+    });
+    // Simulate first call does nothing due to network timeout.
+    safeLoad(ignoreArgument).$returns(
+        new goog.Promise(function(resolve, reject) {}));
     // Simulate second attempt succeeding.
     isOnline().$returns(true);
     safeLoad(ignoreArgument)

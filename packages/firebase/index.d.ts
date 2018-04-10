@@ -154,12 +154,18 @@ declare namespace firebase.auth {
     applyActionCode(code: string): Promise<any>;
     checkActionCode(code: string): Promise<any>;
     confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    createUserAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
     ): Promise<any>;
     currentUser: firebase.User | null;
     fetchProvidersForEmail(email: string): Promise<any>;
+    fetchSignInMethodsForEmail(email: string): Promise<any>;
+    isSignInWithEmailLink(emailLink: string): boolean;
     getRedirectResult(): Promise<any>;
     languageCode: string | null;
     onAuthStateChanged(
@@ -176,6 +182,10 @@ declare namespace firebase.auth {
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
+    sendSignInLinkToEmail(
+      email: string,
+      actionCodeSettings: firebase.auth.ActionCodeSettings
+    ): Promise<any>;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
@@ -185,15 +195,22 @@ declare namespace firebase.auth {
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInAnonymously(): Promise<any>;
+    signInAnonymouslyAndRetrieveData(): Promise<any>;
     signInWithCredential(
       credential: firebase.auth.AuthCredential
     ): Promise<any>;
     signInWithCustomToken(token: string): Promise<any>;
+    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    signInAndRetrieveDataWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<any>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<any>;
+    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
     signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
     signOut(): Promise<any>;
@@ -203,6 +220,7 @@ declare namespace firebase.auth {
 
   interface AuthCredential {
     providerId: string;
+    signInMethod: string;
   }
 
   interface AuthProvider {
@@ -216,9 +234,15 @@ declare namespace firebase.auth {
 
   class EmailAuthProvider extends EmailAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
+    static EMAIL_LINK_SIGN_IN_METHOD: string;
     static credential(
       email: string,
       password: string
+    ): firebase.auth.AuthCredential;
+    static credentialWithLink(
+      email: string,
+      emailLink: string
     ): firebase.auth.AuthCredential;
   }
   class EmailAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -232,6 +256,7 @@ declare namespace firebase.auth {
 
   class FacebookAuthProvider extends FacebookAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static FACEBOOK_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class FacebookAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -244,6 +269,7 @@ declare namespace firebase.auth {
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GITHUB_SIGN_IN_METHOD: string;
     static credential(token: string): firebase.auth.AuthCredential;
   }
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
@@ -256,6 +282,7 @@ declare namespace firebase.auth {
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static GOOGLE_SIGN_IN_METHOD: string;
     static credential(
       idToken?: string | null,
       accessToken?: string | null
@@ -271,6 +298,7 @@ declare namespace firebase.auth {
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static PHONE_SIGN_IN_METHOD: string;
     static credential(
       verificationId: string,
       verificationCode: string
@@ -301,6 +329,7 @@ declare namespace firebase.auth {
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
+    static TWITTER_SIGN_IN_METHOD: string;
     static credential(
       token: string,
       secret: string
@@ -474,6 +503,7 @@ declare namespace firebase.messaging {
     requestPermission(): Promise<any> | null;
     setBackgroundMessageHandler(callback: (a: Object) => any): any;
     useServiceWorker(registration: any): any;
+    usePublicVapidKey(b64PublicKey: string): void;
   }
 }
 
@@ -613,6 +643,26 @@ declare namespace firebase.firestore {
     host?: string;
     /** Whether to use SSL when connecting. */
     ssl?: boolean;
+
+    /**
+     * Enables the use of `Timestamp`s for timestamp fields in
+     * `DocumentSnapshot`s.
+     *
+     * Currently, Firestore returns timestamp fields as `Date` but `Date` only
+     * supports millisecond precision, which leads to truncation and causes
+     * unexpected behavior when using a timestamp from a snapshot as a part
+     * of a subsequent query.
+     *
+     * Setting `timestampsInSnapshots` to true will cause Firestore to return
+     * `Timestamp` values instead of `Date` avoiding this kind of problem. To make
+     * this work you must also change any code that uses `Date` to use `Timestamp`
+     * instead.
+     *
+     * NOTE: in the future `timestampsInSnapshots: true` will become the
+     * default and this option will be removed so you should change your code to
+     * use Timestamp now and opt-in to this new behavior as soon as you can.
+     */
+    timestampsInSnapshots?: boolean;
   }
 
   export type LogLevel = 'debug' | 'error' | 'silent';
@@ -748,6 +798,86 @@ declare namespace firebase.firestore {
      * @return true if this `GeoPoint` is equal to the provided one.
      */
     isEqual(other: GeoPoint): boolean;
+  }
+
+  /**
+   * A Timestamp represents a point in time independent of any time zone or
+   * calendar, represented as seconds and fractions of seconds at nanosecond
+   * resolution in UTC Epoch time. It is encoded using the Proleptic Gregorian
+   * Calendar which extends the Gregorian calendar backwards to year one. It is
+   * encoded assuming all minutes are 60 seconds long, i.e. leap seconds are
+   * "smeared" so that no leap second table is needed for interpretation. Range is
+   * from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
+   *
+   * @see https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+   */
+  export class Timestamp {
+    /**
+     * Creates a new timestamp with the current date, with millisecond precision.
+     *
+     * @return a new timestamp representing the current date.
+     */
+    static now(): Timestamp;
+
+    /**
+     * Creates a new timestamp from the given date.
+     *
+     * @param date The date to initialize the `Timestamp` from.
+     * @return A new `Timestamp` representing the same point in time as the given
+     *     date.
+     */
+    static fromDate(date: Date): Timestamp;
+
+    /**
+     * Creates a new timestamp from the given number of milliseconds.
+     *
+     * @param milliseconds Number of milliseconds since Unix epoch
+     *     1970-01-01T00:00:00Z.
+     * @return A new `Timestamp` representing the same point in time as the given
+     *     number of milliseconds.
+     */
+    static fromMillis(milliseconds: number): Timestamp;
+
+    /**
+     * Creates a new timestamp.
+     *
+     * @param seconds The number of seconds of UTC time since Unix epoch
+     *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+     *     9999-12-31T23:59:59Z inclusive.
+     * @param nanoseconds The non-negative fractions of a second at nanosecond
+     *     resolution. Negative second values with fractions must still have
+     *     non-negative nanoseconds values that count forward in time. Must be
+     *     from 0 to 999,999,999 inclusive.
+     */
+    constructor(seconds: number, nanoseconds: number);
+
+    readonly seconds: number;
+    readonly nanoseconds: number;
+
+    /**
+     * Returns a new `Date` corresponding to this timestamp. This may lose
+     * precision.
+     *
+     * @return JavaScript `Date` object representing the same point in time as
+     *     this `Timestamp`, with millisecond precision.
+     */
+    toDate(): Date;
+
+    /**
+     * Returns the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+     *
+     * @return The point in time corresponding to this timestamp, represented as
+     *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+     */
+    toMillis(): number;
+
+    /**
+     * Returns true if this `Timestamp` is equal to the provided one.
+     *
+     * @param other The `Timestamp` to compare against.
+     * @return true if this `Timestamp` is equal to the provided one.
+     */
+    isEqual(other: Timestamp): boolean;
   }
 
   /**
@@ -1769,6 +1899,4 @@ declare namespace firebase.firestore {
   }
 }
 
-declare module 'firebase' {
-  export = firebase;
-}
+export = firebase;

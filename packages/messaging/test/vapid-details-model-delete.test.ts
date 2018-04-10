@@ -14,55 +14,47 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import VapidDetailsModel from '../src/models/vapid-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
-describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
-  const EXAMPLE_SCOPE = '/example-scope';
-  const EXAMPLE_VAPID_STRING =
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-    '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
-  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
+const EXAMPLE_SCOPE = '/example-scope';
+const EXAMPLE_VAPID_STRING =
+  'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+  '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
 
-  let vapidModel;
+describe('Firebase Messaging > VapidDetailsModel.deleteToken()', () => {
+  let vapidModel: VapidDetailsModel;
 
-  const cleanUp = () => {
-    let promiseChain = Promise.resolve();
-    if (vapidModel) {
-      promiseChain = promiseChain.then(() => vapidModel.closeDatabase());
-    }
-
-    return promiseChain
-      .then(() => deleteDatabase('fcm_vapid_details_db'))
-      .then(() => (vapidModel = null));
-  };
-
-  beforeEach(function() {
-    return cleanUp();
+  beforeEach(() => {
+    vapidModel = new VapidDetailsModel();
   });
 
-  after(function() {
-    return cleanUp();
+  afterEach(async () => {
+    await vapidModel.closeDatabase();
+    await deleteDatabase('fcm_vapid_details_db');
   });
 
-  it('should throw on bad scope input', function() {
+  it('should throw on bad scope input', () => {
     const badInputs = ['', [], {}, true, null, 123];
     badInputs.forEach(badInput => {
       vapidModel = new VapidDetailsModel();
-      return vapidModel.saveVapidDetails(badInput, EXAMPLE_VAPID_KEY).then(
-        () => {
-          throw new Error('Expected promise to reject');
-        },
-        err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
-        }
-      );
+      return vapidModel
+        .saveVapidDetails(badInput as any, EXAMPLE_VAPID_KEY)
+        .then(
+          () => {
+            throw new Error('Expected promise to reject');
+          },
+          err => {
+            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+          }
+        );
     });
   });
 
-  it('should delete non existant details', function() {
+  it('should delete non existant details', () => {
     vapidModel = new VapidDetailsModel();
     return vapidModel.deleteVapidDetails(EXAMPLE_SCOPE).then(
       () => {
@@ -70,14 +62,14 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
       },
       err => {
         assert.equal(
-          'messaging/' + Errors.codes.DELETE_SCOPE_NOT_FOUND,
+          'messaging/' + ERROR_CODES.DELETE_SCOPE_NOT_FOUND,
           err.code
         );
       }
     );
   });
 
-  it('should save and delete details', function() {
+  it('should save and delete details', () => {
     vapidModel = new VapidDetailsModel();
     return vapidModel
       .saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY)
@@ -89,7 +81,7 @@ describe('Firebase Messaging > VapidDetailsModel.deleteToken()', function() {
         return vapidModel.getVapidFromSWScope(EXAMPLE_SCOPE);
       })
       .then(vapid => {
-        assert.deepEqual(vapid, null);
+        assert.equal(vapid, null);
       });
   });
 });

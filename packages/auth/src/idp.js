@@ -22,6 +22,7 @@ goog.provide('fireauth.idp');
 goog.provide('fireauth.idp.IdpSettings');
 goog.provide('fireauth.idp.ProviderId');
 goog.provide('fireauth.idp.Settings');
+goog.provide('fireauth.idp.SignInMethod');
 
 
 /**
@@ -38,6 +39,21 @@ fireauth.idp.ProviderId = {
   GITHUB: 'github.com',
   GOOGLE: 'google.com',
   PASSWORD: 'password',
+  PHONE: 'phone',
+  TWITTER: 'twitter.com'
+};
+
+
+/**
+ * Enums for supported sign in methods.
+ * @enum {string}
+ */
+fireauth.idp.SignInMethod = {
+  EMAIL_LINK: 'emailLink',
+  EMAIL_PASSWORD: 'password',
+  FACEBOOK: 'facebook.com',
+  GITHUB: 'github.com',
+  GOOGLE: 'google.com',
   PHONE: 'phone',
   TWITTER: 'twitter.com'
 };

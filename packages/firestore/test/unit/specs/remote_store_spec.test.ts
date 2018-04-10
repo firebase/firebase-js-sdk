@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, path } from '../../util/helpers';
+import { doc, path, resumeTokenForSnapshot } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -83,4 +83,36 @@ describeSpec('Remote store:', [], () => {
         .expectEvents(query, { added: [doc1] })
     );
   });
+
+  // TODO(b/72313632): This test is web-only because the Android / iOS spec
+  // tests exclude backoff entirely.
+  specTest(
+    'Handles user changes while offline (b/74749605).',
+    ['no-android', 'no-ios'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        spec()
+          .userListens(query)
+
+          // close the stream (this should trigger retry with backoff; but don't
+          // run it in an attempt to reproduce b/74749605).
+          .watchStreamCloses(Code.UNAVAILABLE, { runBackoffTimer: false })
+
+          // Because we didn't let the backoff timer run and restart the watch
+          // stream, there will be no active targets.
+          .expectActiveTargets()
+
+          // Change user (will shut down existing streams and start new ones).
+          .changeUser('abc')
+          // Our query should be sent to the new stream.
+          .expectActiveTargets({ query, resumeToken: '' })
+
+          // Close the (newly-created) stream as if it too failed (should trigger
+          // retry with backoff, potentially reproducing the crash in b/74749605).
+          .watchStreamCloses(Code.UNAVAILABLE)
+      );
+    }
+  );
 });

@@ -87,9 +87,8 @@ export class ExponentialBackoff {
    * already, it will be canceled.
    */
   backoffAndRun(op: () => Promise<void>): void {
-    if (this.timerPromise !== null) {
-      this.timerPromise.cancel();
-    }
+    // Cancel any pending backoff operation.
+    this.cancel();
 
     // First schedule using the current base (which may be 0 and should be
     // honored as such).
@@ -115,6 +114,13 @@ export class ExponentialBackoff {
     }
     if (this.currentBaseMs > this.maxDelayMs) {
       this.currentBaseMs = this.maxDelayMs;
+    }
+  }
+
+  cancel(): void {
+    if (this.timerPromise !== null) {
+      this.timerPromise.cancel();
+      this.timerPromise = null;
     }
   }
 

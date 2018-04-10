@@ -13,32 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
 // These fields are strings to prevent closure from thinking goog.getMsg
 // should be used to initialise the values
-const PARAMS = {
+export const PARAMS = {
   TYPE_OF_MSG: 'firebase-messaging-msg-type',
   DATA: 'firebase-messaging-msg-data'
 };
 
 // This value isn't using the TYPE_OF_MSG short hand as closure
 // expects the variable to be defined via goog.getMsg
-const msgType = {
+export const TYPES_OF_MSG = {
   PUSH_MSG_RECEIVED: 'push-msg-received',
   NOTIFICATION_CLICKED: 'notification-clicked'
 };
 
-const createNewMsg = (msgType, msgData) => {
-  const message = {
+export function createNewMsg(
+  msgType: any,
+  msgData: any
+): { [key: string]: any } {
+  return {
     [PARAMS.TYPE_OF_MSG]: msgType,
     [PARAMS.DATA]: msgData
   };
-  return message;
-};
-
-export default {
-  PARAMS,
-  TYPES_OF_MSG: msgType,
-  createNewMsg
-};
+}

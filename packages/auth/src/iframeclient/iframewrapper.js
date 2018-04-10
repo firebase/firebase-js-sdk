@@ -174,10 +174,12 @@ fireauth.iframeclient.IframeWrapper.prototype.registerEvent =
   this.onIframeOpen_.then(function() {
     self.iframe_.register(
         eventName,
-        handler,
+        /** @type {function(this:gapi.iframes.Iframe,
+         *                  *, gapi.iframes.Iframe): *}
+         */ (handler),
         /** @type {!gapi.iframes.IframesFilter} */ (
-              fireauth.util.getObjectRef(
-                  'gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER')));
+            fireauth.util.getObjectRef(
+                'gapi.iframes.CROSS_ORIGIN_IFRAMES_FILTER')));
   });
 };
 
@@ -191,10 +193,13 @@ fireauth.iframeclient.IframeWrapper.prototype.unregisterEvent =
     function(eventName, handler) {
   var self = this;
   this.onIframeOpen_.then(function() {
-    self.iframe_.unregister(eventName, handler);
+    self.iframe_.unregister(
+        eventName,
+        /** @type {(function(this:gapi.iframes.Iframe,
+         *                   *, gapi.iframes.Iframe): *|undefined)}
+         */ (handler));
   });
 };
-
 
 
 /** @private @const {!goog.string.Const} The GApi loader URL. */
@@ -242,11 +247,6 @@ fireauth.iframeclient.IframeWrapper.loadGApiJs_ = function() {
   // If there is no cached promise, initialize a new one.
   fireauth.iframeclient.IframeWrapper.cachedGApiLoader_ =
       new goog.Promise(function(resolve, reject) {
-    // Offline, fail quickly instead of waiting for request to timeout.
-    if (!fireauth.util.isOnline()) {
-      reject(new Error('Network Error'));
-      return;
-    }
     // Function to run when gapi.load is ready.
     var onGapiLoad = function() {
       // The developer may have tried to previously run gapi.load and failed.

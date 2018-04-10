@@ -14,60 +14,48 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { ERROR_CODES } from '../src/models/errors';
+import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { deleteDatabase } from './testing-utils/db-helper';
-import Errors from '../src/models/errors';
-import VapidDetailsModel from '../src/models/vapid-details-model';
-import base64ToArrayBuffer from '../src/helpers/base64-to-array-buffer';
 
-describe('Firebase Messaging > VapidDetailsModel.getVapidFromSWScope()', function() {
-  const EXAMPLE_SCOPE = '/example-scope';
-  const EXAMPLE_VAPID_STRING =
-    'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-    '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
-  const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
+const EXAMPLE_SCOPE = '/example-scope';
+const EXAMPLE_VAPID_STRING =
+  'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+  '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I';
+const EXAMPLE_VAPID_KEY = base64ToArrayBuffer(EXAMPLE_VAPID_STRING);
 
-  let vapidModel;
+describe('Firebase Messaging > VapidDetailsModel.getVapidFromSWScope()', () => {
+  let vapidModel: VapidDetailsModel;
 
-  const cleanUp = () => {
-    let promiseChain = Promise.resolve();
-    if (vapidModel) {
-      promiseChain = promiseChain.then(() => vapidModel.closeDatabase());
-    }
-
-    return promiseChain
-      .then(() => deleteDatabase('fcm_vapid_details_db'))
-      .then(() => (vapidModel = null));
-  };
-
-  beforeEach(function() {
-    return cleanUp();
+  beforeEach(() => {
+    vapidModel = new VapidDetailsModel();
   });
 
-  after(function() {
-    return cleanUp();
+  afterEach(async () => {
+    await vapidModel.closeDatabase();
+    await deleteDatabase('fcm_vapid_details_db');
   });
 
-  it('should throw on bad scope input', function() {
-    const badInputs = ['', [], {}, true, null, 123];
-    badInputs.forEach(badInput => {
-      vapidModel = new VapidDetailsModel();
-      return vapidModel.getVapidFromSWScope(badInput).then(
+  const badInputs = ['', [], {}, true, null, 123];
+  badInputs.forEach(badInput => {
+    it(`should throw on bad scope input ${badInput}`, () => {
+      return vapidModel.getVapidFromSWScope(badInput as any).then(
         () => {
           throw new Error('Expected promise to reject');
         },
         err => {
-          assert.equal('messaging/' + Errors.codes.BAD_SCOPE, err.code);
+          assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
         }
       );
     });
   });
 
-  it('should get vapid key', function() {
-    vapidModel = new VapidDetailsModel();
+  it('should get vapid key', () => {
     return vapidModel
       .getVapidFromSWScope(EXAMPLE_SCOPE)
       .then(vapidKey => {
-        assert.deepEqual(null, vapidKey);
+        assert.equal(null, vapidKey);
         return vapidModel.saveVapidDetails(EXAMPLE_SCOPE, EXAMPLE_VAPID_KEY);
       })
       .then(() => {

@@ -31,6 +31,9 @@ goog.require('fireauth.common.testHelper');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.json');
+goog.require('goog.net.CorsXmlHttpFactory');
+goog.require('goog.net.EventType');
+goog.require('goog.net.FetchXmlHttpFactory');
 goog.require('goog.net.XhrIo');
 goog.require('goog.net.XhrLike');
 goog.require('goog.object');
@@ -169,6 +172,7 @@ function tearDown() {
   } finally {
     mockControl.$tearDown();
   }
+  delete goog.global['self'];
 }
 
 
@@ -179,7 +183,7 @@ function testGetApiKey() {
 
 function testRpcHandler_XMLHttpRequest_notSupported() {
   stubs.replace(
-      fireauth.util,
+      fireauth.RpcHandler,
       'getXMLHttpRequest',
       function() {return undefined;});
   var expectedError = new fireauth.AuthError(
@@ -187,6 +191,177 @@ function testRpcHandler_XMLHttpRequest_notSupported() {
       'The XMLHttpRequest compatibility library was not found.');
   var error = assertThrows(function() { new fireauth.RpcHandler('apiKey'); });
   fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+}
+
+
+function testRpcHandler_XMLHttpRequest_worker() {
+  // Test worker environment that FetchXmlHttpFactory is used in initialization
+  // of goog.net.XhrIo.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  // Simulates global self in a worker environment.
+  goog.global['self']  = {};
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var createInstance = mockControl.createMethodMock(
+      goog.net.FetchXmlHttpFactory.prototype, 'createInstance');
+  stubs.reset();
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return true;});
+  // Simulate fetch, Request and Headers API supported.
+  stubs.replace(
+      fireauth.util,
+      'isFetchSupported',
+      function() {return true;});
+  // No XMLHttpRequest available.
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return undefined;});
+  // Confirm RPC handler calls XHR instance from FetchXmlHttpFactory XHR.
+  createInstance().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
+}
+
+
+function testRpcHandler_XMLHttpRequest_worker_fetchNotSupported() {
+  // Test worker environment where fetch, Headers and Request are not supported.
+  // Simulates global self in a worker environment.
+  goog.global['self']  = {};
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.OPERATION_NOT_SUPPORTED,
+      'fetch, Headers and Request native APIs or equivalent Polyfills ' +
+      'must be available to support HTTP requests from a Worker environment.');
+  stubs.reset();
+  // Simulate worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return true;});
+  // Simulate fetch, Request and Headers API not supported.
+  stubs.replace(
+      fireauth.util,
+      'isFetchSupported',
+      function() {return false;});
+  // No XMLHttpRequest available.
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return undefined;});
+  asyncTestCase.waitForSignals(1);
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then expected error thrown.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(actualError) {
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError, actualError);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testRpcHandler_XMLHttpRequest_corsBrowser() {
+  // Test CORS browser environment that CorsXmlHttpFactory is used in
+  // initialization of goog.net.XhrIo.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var createInstance = mockControl.createMethodMock(
+      goog.net.CorsXmlHttpFactory.prototype, 'createInstance');
+  stubs.reset();
+  // Non-worker environment.
+  stubs.replace(
+      fireauth.util,
+      'isWorker',
+      function() {return false;});
+  // CORS supporting browser.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Non-native environment.
+  stubs.replace(
+      fireauth.util,
+      'isNativeEnvironment',
+      function() {return false;});
+  // Confirm RPC handler calls XHR instance from CorsXmlHttpFactory XHR.
+  createInstance().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
+}
+
+
+function testRpcHandler_XMLHttpRequest_reactNative() {
+  // Test react-native environment that built-in XMLHttpRequest is used in
+  // xhrFactory.
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var xhrInstance = mockControl.createStrictMock(goog.net.XhrLike);
+  var xhrConstructor = mockControl.createConstructorMock(
+      goog.net, 'XhrLike');
+  stubs.reset();
+  // CORS supporting environment.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Return native XMLHttpRequest..
+  stubs.replace(
+      fireauth.RpcHandler,
+      'getXMLHttpRequest',
+      function() {return xhrConstructor;});
+  // React-native environment.
+  stubs.replace(
+      fireauth.util,
+      'isNativeEnvironment',
+      function() {return true;});
+  stubs.replace(
+      fireauth.util,
+      'getEnvironment',
+      function() {return fireauth.util.Env.REACT_NATIVE;});
+  // Confirm RPC handler calls XHR instance from factory XHR.
+  xhrConstructor().$returns(xhrInstance);
+  xhrInstance.open(ignoreArgument, ignoreArgument, ignoreArgument).$once();
+  xhrInstance.setRequestHeader(ignoreArgument, ignoreArgument).$once();
+  xhrInstance.send(ignoreArgument).$once();
+  xhrInstance.abort().$once();
+  asyncTestCase.waitForSignals(1);
+  mockControl.$replayAll();
+  rpcHandler = new fireauth.RpcHandler('apiKey');
+  // Simulate RPC and then timeout.
+  rpcHandler.fetchProvidersForIdentifier('user@example.com')
+      .thenCatch(function(error) {
+        asyncTestCase.signal();
+      });
+  // Timeout XHR request.
+  clock.tick(delay * 2);
 }
 
 
@@ -205,7 +380,7 @@ function testRpcHandler_XMLHttpRequest_node() {
   // Return mock XHR constructor. In a Node.js environment the polyfill library
   // would be used.
   stubs.replace(
-      fireauth.util,
+      fireauth.RpcHandler,
       'getXMLHttpRequest',
       function() {return xhrConstructor;});
   // Node.js environment.
@@ -384,6 +559,156 @@ function testSendFirebaseBackendRequest_timeout() {
 }
 
 
+function testSendFirebaseBackendRequest_offline_falseAlert() {
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var expectedResponse = [
+    'google.com',
+    'myauthprovider.com'
+  ];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'authUri': 'https://accounts.google.com/o/oauth2/auth?foo=bar',
+    'providerId': 'google.com',
+    'allProviders': [
+      'google.com',
+      'myauthprovider.com'
+    ],
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'MY_SESSION_ID'
+  };
+  var identifier = 'MY_ID';
+  stubs.reset();
+  // Simulate browser supports CORS.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Simulate expected URL returned for current URL.
+  stubs.replace(
+      fireauth.util,
+      'getCurrentUrl',
+      function() {
+        return CURRENT_URL;
+      });
+  // Simulate false alert navigator.onLine.
+  stubs.replace(
+      fireauth.util,
+      'isOnline',
+      function() {return false;});
+  // Overwrite XHR IO send to simulate a 4999ms delay before the response.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'send',
+      function(url, httpMethod, data, headers) {
+        assertEquals(
+             'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+             'createAuthUri?key=apiKey',
+             url);
+        assertEquals('POST', httpMethod);
+        assertEquals(goog.json.serialize(request), data);
+        assertObjectEquals(
+            fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_, headers);
+        clock.tick(4999);
+        this.dispatchEvent(goog.net.EventType.COMPLETE);
+      });
+  // Simulate expected response returned.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'getResponseText',
+      function() {
+        return JSON.stringify(serverResponse);
+      });
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL
+  };
+  rpcHandler.fetchProvidersForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testSendFirebaseBackendRequest_offline_slowResponse() {
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'authUri': 'https://accounts.google.com/o/oauth2/auth?foo=bar',
+    'providerId': 'google.com',
+    'allProviders': [
+      'google.com',
+      'myauthprovider.com'
+    ],
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'MY_SESSION_ID'
+  };
+  var identifier = 'MY_ID';
+  stubs.reset();
+  // Simulate browser supports CORS.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Simulate expected URL returned for current URL.
+  stubs.replace(
+      fireauth.util,
+      'getCurrentUrl',
+      function() {
+        return CURRENT_URL;
+      });
+  // Simulate false alert navigator.onLine.
+  stubs.replace(
+      fireauth.util,
+      'isOnline',
+      function() {return false;});
+  // Overwrite XHR IO send to simulate a 5000mx delay before the response.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'send',
+      function(url, httpMethod, data, headers) {
+        assertEquals(
+             'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+             'createAuthUri?key=apiKey',
+             url);
+        assertEquals('POST', httpMethod);
+        assertEquals(goog.json.serialize(request), data);
+        assertObjectEquals(
+            fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_, headers);
+        clock.tick(5000);
+        this.dispatchEvent(goog.net.EventType.COMPLETE);
+      });
+  // Simulate expected response returned.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'getResponseText',
+      function() {
+        return JSON.stringify(serverResponse);
+      });
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL
+  };
+  // Expected timeout error even though the request was eventually returned.
+  var timeoutError = new fireauth.AuthError(
+      fireauth.authenum.Error.NETWORK_REQUEST_FAILED);
+  rpcHandler.fetchProvidersForIdentifier(identifier)
+      .thenCatch(function(actualError) {
+        // Timeout error should have been returned.
+        fireauth.common.testHelper.assertErrorEquals(timeoutError, actualError);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testSendFirebaseBackendRequest_offline() {
   // Test network timeout error for offline Firebase backend request.
   asyncTestCase.waitForSignals(1);
@@ -407,6 +732,8 @@ function testSendFirebaseBackendRequest_offline() {
         fireauth.common.testHelper.assertErrorEquals(timeoutError, error);
         asyncTestCase.signal();
       });
+  // Simulate short timeout when navigator.onLine is false.
+  clock.tick(5000);
 }
 
 
@@ -466,6 +793,8 @@ function testSendStsTokenBackendRequest_offline() {
     fireauth.common.testHelper.assertErrorEquals(timeoutError, error);
     asyncTestCase.signal();
   });
+  // Simulate short timeout when navigator.onLine is false.
+  clock.tick(5000);
 }
 
 
@@ -1641,6 +1970,132 @@ function testIsOAuthClientIdValid_error() {
 }
 
 
+function testFetchSignInMethodsForIdentifier() {
+  var expectedResponse = ['google.com', 'emailLink'];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'allProviders': [
+      'google.com',
+      "password"
+    ],
+    'signinMethods': [
+       'google.com',
+       'emailLink'
+    ],
+    'registered': true,
+    'sessionId': 'AXT8iKR2x89y2o7zRnroApio_uo'
+  };
+  var identifier = 'user@example.com';
+
+  asyncTestCase.waitForSignals(1);
+  var request = {'identifier': identifier, 'continueUri': CURRENT_URL};
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'createAuthUri?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.fetchSignInMethodsForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testFetchSignInMethodsForIdentifier_noSignInMethodsReturned() {
+  var expectedResponse = [];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'registered': true,
+    'sessionId': 'AXT8iKR2x89y2o7zRnroApio_uo'
+  };
+  var identifier = 'user@example.com';
+
+  asyncTestCase.waitForSignals(1);
+  var request = {'identifier': identifier, 'continueUri': CURRENT_URL};
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'createAuthUri?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.fetchSignInMethodsForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testFetchSignInMethodsForIdentifier_nonHttpOrHttps() {
+  // Simulate non http or https current URL.
+  stubs.replace(fireauth.util, 'getCurrentUrl', function() {
+    return 'chrome-extension://234567890/index.html';
+  });
+  stubs.replace(fireauth.util, 'getCurrentScheme', function() {
+    return 'chrome-extension:';
+  });
+  var expectedResponse = ['google.com', 'emailLink'];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'allProviders': [
+      'google.com',
+      'password'
+    ],
+    'signinMethods': [
+       'google.com',
+       'emailLink'
+    ],
+    'registered': true,
+    'sessionId': 'AXT8iKR2x89y2o7zRnroApio_uo'
+  };
+  var identifier = 'user@example.com';
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    // A fallback HTTP URL should be used.
+    'continueUri': 'http://localhost'
+  };
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'createAuthUri?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.fetchSignInMethodsForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testFetchSignInMethodsForIdentifier_serverCaughtError() {
+  var identifier = 'user@example.com';
+  var requestBody = {'identifier': identifier, 'continueUri': CURRENT_URL};
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/createAuthUri?key=apiKey';
+
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_IDENTIFIER] =
+      fireauth.authenum.Error.INVALID_EMAIL;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_CONTINUE_URI] =
+      fireauth.authenum.Error.INTERNAL_ERROR;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.fetchSignInMethodsForIdentifier(identifier);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
 function testFetchProvidersForIdentifier() {
   var expectedResponse = [
     'google.com',
@@ -2082,6 +2537,107 @@ function testVerifyCustomToken_unknownServerResponse() {
       function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignIn_success() {
+  var expectedResponse = {'idToken': 'ID_TOKEN'};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.emailLinkSignIn('user@example.com', 'OTP_CODE')
+      .then(function(response) {
+        assertObjectEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignIn_serverCaughtError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+                    'relyingparty/emailLinkSignin?key=apiKey';
+  var email = 'user@example.com';
+  var oobCode = 'OTP_CODE';
+  var requestBody = {
+    'email': email,
+    'oobCode': oobCode,
+    'returnSecureToken': true
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_EMAIL] =
+      fireauth.authenum.Error.INVALID_EMAIL;
+  errorMap[fireauth.RpcHandler.ServerError.TOO_MANY_ATTEMPTS_TRY_LATER] =
+      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
+  errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
+      fireauth.authenum.Error.USER_DISABLED;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.emailLinkSignIn(email, oobCode);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests invalid server response emailLinkSignIn error.
+ */
+function testEmailLinkSignIn_unknownServerResponse() {
+  // Test when server returns unexpected response with no error message.
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      {});
+  rpcHandler.emailLinkSignIn('user@example.com', 'OTP_CODE')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignIn_emptyActionCodeError() {
+  // Test when empty action code is passed in emailLinkSignIn request.
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.emailLinkSignIn('user@example.com', '').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR), error);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testEmailLinkSignIn_invalidEmailError() {
+  // Test when invalid email is passed in emailLinkSignIn request.
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.emailLinkSignIn('user@invalid', 'OTP_CODE')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
             error);
         asyncTestCase.signal();
       });
@@ -3094,6 +3650,189 @@ function testVerifyAssertionForExisting_serverCaughtError() {
 
 
 /**
+ * Tests successful sendSignInLinkToEmail RPC call with action code settings.
+ */
+function testSendSignInLinkToEmail_success_actionCodeSettings() {
+  var userEmail = 'user@example.com';
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': true,
+    'androidMinimumVersion': '12',
+    'canHandleCodeInApp': true
+  };
+  var expectedResponse = {'email': userEmail};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+        'email': userEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'iOSBundleId': 'com.example.ios',
+        'androidPackageName': 'com.example.android',
+        'androidInstallApp': true,
+        'androidMinimumVersion': '12',
+        'canHandleCodeInApp': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.sendSignInLinkToEmail('user@example.com', additionalRequestData)
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful sendSignInLinkToEmail RPC call with custom locale.
+ */
+function testSendSignInLinkToEmail_success_customLocale() {
+  var userEmail = 'user@example.com';
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': true,
+    'androidMinimumVersion': '12',
+    'canHandleCodeInApp': true
+  };
+  var expectedResponse = {'email': userEmail};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+        'email': userEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'iOSBundleId': 'com.example.ios',
+        'androidPackageName': 'com.example.android',
+        'androidInstallApp': true,
+        'androidMinimumVersion': '12',
+        'canHandleCodeInApp': true
+      }),
+      {'Content-Type': 'application/json', 'X-Firebase-Locale': 'es'},
+      delay,
+      expectedResponse);
+  rpcHandler.updateCustomLocaleHeader('es');
+  rpcHandler.sendSignInLinkToEmail('user@example.com', additionalRequestData)
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid email sendSignInLinkToEmail error.
+ */
+function testSendSignInLinkToEmail_invalidEmailError() {
+  // Test when invalid email is passed in getOobCode request.
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': true,
+    'androidMinimumVersion': '12',
+    'canHandleCodeInApp': true
+  };
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.sendSignInLinkToEmail('user@invalid', additionalRequestData)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid response sendSignInLinkToEmail error.
+ */
+function testSendSignInLinkToEmail_unknownServerResponse() {
+  var userEmail = 'user@example.com';
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': true,
+    'androidMinimumVersion': '12',
+    'canHandleCodeInApp': true
+  };
+  var expectedResponse = {};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+        'email': userEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'iOSBundleId': 'com.example.ios',
+        'androidPackageName': 'com.example.android',
+        'androidInstallApp': true,
+        'androidMinimumVersion': '12',
+        'canHandleCodeInApp': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.sendSignInLinkToEmail(userEmail, additionalRequestData)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests server side sendSignInLinkToEmail error.
+ */
+function testSendSignInLinkToEmail_serverCaughtError() {
+  var userEmail = 'user@example.com';
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+                    'gparty/getOobConfirmationCode?key=apiKey';
+  var requestBody = {
+    'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+    'email': userEmail
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_RECIPIENT_EMAIL] =
+      fireauth.authenum.Error.INVALID_RECIPIENT_EMAIL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_SENDER] =
+      fireauth.authenum.Error.INVALID_SENDER;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_MESSAGE_PAYLOAD] =
+      fireauth.authenum.Error.INVALID_MESSAGE_PAYLOAD;
+
+  // Action code settings related errors.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_CONTINUE_URI] =
+      fireauth.authenum.Error.INVALID_CONTINUE_URI;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_ANDROID_PACKAGE_NAME] =
+      fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_IOS_BUNDLE_ID] =
+      fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
+  errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
+      fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.sendSignInLinkToEmail(userEmail, {});
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests successful sendPasswordResetEmail RPC call with action code settings.
  */
 function testSendPasswordResetEmail_success_actionCodeSettings() {
@@ -3547,6 +4286,34 @@ function testCheckActionCode_success() {
     'email': 'user@example.com',
     'newEmail': 'fake@example.com',
     'requestType': 'PASSWORD_RESET'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPass' +
+      'word?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.checkActionCode(code).then(
+      function(info) {
+        assertObjectEquals(expectedResponse, info);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful checkActionCode RPC call for email sign-in.
+ */
+function testCheckActionCode_emailSignIn_success() {
+  var code = 'EMAIL_SIGNIN_CODE';
+  // Email field is empty for EMAIL_SIGNIN.
+  var expectedResponse = {
+    'requestType': 'EMAIL_SIGNIN'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
@@ -4145,6 +4912,131 @@ function testUpdateEmailAndPassword_noPassword() {
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.WEAK_PASSWORD),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignInForLinking_success() {
+  var expectedResponse = {'idToken': 'ID_TOKEN'};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.emailLinkSignInForLinking(
+      'ID_TOKEN', 'user@example.com', 'OTP_CODE')
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignInForLinking_serverCaughtError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+                    'relyingparty/emailLinkSignin?key=apiKey';
+  var email = 'user@example.com';
+  var oobCode = 'OTP_CODE';
+  var id_token = 'ID_TOKEN';
+  var requestBody = {
+    'idToken': 'ID_TOKEN',
+    'email': email,
+    'oobCode': oobCode,
+    'returnSecureToken': true
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_EMAIL] =
+      fireauth.authenum.Error.INVALID_EMAIL;
+  errorMap[fireauth.RpcHandler.ServerError.TOO_MANY_ATTEMPTS_TRY_LATER] =
+      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
+  errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
+      fireauth.authenum.Error.USER_DISABLED;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.emailLinkSignInForLinking(id_token, email, oobCode);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests invalid server response emailLinkSignInForLinking error.
+ */
+function testEmailLinkSignInForLinking_unknownServerResponse() {
+  // Test when server returns unexpected response with no error message.
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      {});
+  rpcHandler.emailLinkSignInForLinking(
+      'ID_TOKEN', 'user@example.com', 'OTP_CODE')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignInForLinking_emptyActionCodeError() {
+  // Test when empty action code is passed in emailLinkSignInForLinking request.
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.emailLinkSignInForLinking('ID_TOKEN', 'user@example.com', '')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignInForLinking_invalidEmailError() {
+  // Test when invalid email is passed in emailLinkSignInForLinking request.
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.emailLinkSignInForLinking(
+      'ID_TOKEN', 'user@invalid', 'OTP_CODE')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testEmailLinkSignInForLinking_emptyIdTokenError() {
+  // Test when empty ID token is passed in emailLinkSignInForLinking request.
+  asyncTestCase.waitForSignals(1);
+  // Test when request is invalid.
+  rpcHandler.emailLinkSignInForLinking(
+      '', 'user@example.com', 'OTP_CODE')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
             error);
         asyncTestCase.signal();
       });

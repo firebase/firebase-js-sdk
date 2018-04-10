@@ -19,6 +19,7 @@ goog.provide('fireauth.storage.IndexedDBTest');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.storage.IndexedDB');
+goog.require('fireauth.storage.Storage');
 goog.require('goog.Promise');
 goog.require('goog.testing.MockClock');
 goog.require('goog.testing.PropertyReplacer');
@@ -33,9 +34,12 @@ var db = null;
 var manager;
 var clock;
 var indexedDBMock;
+var containsObjectStore;
+var deleted;
 
 
 function setUp() {
+  deleted = 0;
   // IndexedDB not supported in IE9.
   stubs.replace(
       fireauth.storage.IndexedDB,
@@ -44,13 +48,35 @@ function setUp() {
         return true;
       });
   clock = new goog.testing.MockClock(true);
+  // Callback to run to determine whether the database constains an object
+  // store.
+  containsObjectStore = function() {
+    return true;
+  };
   indexedDBMock = {
+    deleteDatabase: function(dbName) {
+      assertEquals('firebaseLocalStorageDb', dbName);
+      var request = {};
+      // Simulate successful deletion.
+      goog.Promise.resolve().then(function() {
+        deleted++;
+        db = null;
+        request.onsuccess();
+      });
+      return request;
+    },
     open: function(dbName, version) {
       assertEquals('firebaseLocalStorageDb', dbName);
       assertEquals(1, version);
       var dbRequest = {};
       goog.Promise.resolve().then(function() {
         db = {
+          objectStoreNames: {
+            contains: function(name) {
+              assertEquals('firebaseLocalStorage', name);
+              return containsObjectStore();
+            }
+          },
           key: null,
           store: {},
           createObjectStore: function(objectStoreName, keyPath) {
@@ -240,6 +266,7 @@ function testIndexedDb_notSupported() {
 
 function testIndexedDb_null() {
   manager = getDefaultFireauthManager();
+  assertEquals(fireauth.storage.Storage.Type.INDEXEDDB, manager.type);
   return manager.get('key1')
       .then(function(data) {
         assertNull(data);
@@ -247,7 +274,7 @@ function testIndexedDb_null() {
 }
 
 
-function testIndexedDb_setGetRemove() {
+function testIndexedDb_setGetRemove_objectStoreContained() {
   manager = getDefaultFireauthManager();
   manager.addStorageListener(function() {
     fail('Storage should not be triggered for local changes!');
@@ -257,6 +284,48 @@ function testIndexedDb_setGetRemove() {
         return manager.set('key1', 'value1');
       })
       .then(function() {
+        // No database deletion should occur.
+        assertEquals(0, deleted);
+        return manager.get('key1');
+      })
+      .then(function(data) {
+        assertEquals('value1', data);
+      })
+      .then(function() {
+        return manager.remove('key1');
+      })
+      .then(function() {
+        return manager.get('key1');
+      })
+      .then(function(data) {
+        assertNull(data);
+      });
+}
+
+
+function testIndexedDb_setGetRemove_objectStoreMissing() {
+  // Track number of initialization trials.
+  var trials = 2;
+  containsObjectStore = function() {
+    trials--;
+    // Fail first time and then succeed the second time.
+    if (trials != 0) {
+      return false;
+    }
+    return true;
+  };
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(function() {
+    fail('Storage should not be triggered for local changes!');
+  });
+  return goog.Promise.resolve()
+      .then(function() {
+        return manager.set('key1', 'value1');
+      })
+      .then(function() {
+        // Db should have been deleted and re-initialized.
+        assertEquals(0, trials);
+        assertEquals(1, deleted);
         return manager.get('key1');
       })
       .then(function(data) {

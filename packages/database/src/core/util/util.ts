@@ -27,7 +27,7 @@ import { stringToByteArray } from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { SessionStorage } from '../storage/storage';
 import { isNodeSdk } from '@firebase/util';
-import { Logger } from '@firebase/logger';
+import { Logger, LogLevel } from '@firebase/logger';
 
 const logClient = new Logger('@firebase/database');
 
@@ -108,6 +108,7 @@ export const enableLogging = function(
     "Can't turn on custom loggers persistently."
   );
   if (logger_ === true) {
+    logClient.logLevel = LogLevel.VERBOSE;
     logger = logClient.log.bind(logClient);
     if (persistent) SessionStorage.set('logging_enabled', true);
   } else if (typeof logger_ === 'function') {

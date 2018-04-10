@@ -15,9 +15,9 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
+import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
@@ -45,7 +45,7 @@ export class LocalSerializer {
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const readTime = remoteDoc.noDocument.readTime;
-      const timestamp = new Timestamp(readTime.seconds, readTime.nanos);
+      const timestamp = new Timestamp(readTime.seconds, readTime.nanoseconds);
       return new NoDocument(key, SnapshotVersion.fromTimestamp(timestamp));
     } else {
       return fail('Unexpected DbRemoteDocument');
@@ -60,7 +60,10 @@ export class LocalSerializer {
     } else {
       const path = maybeDoc.key.path.toArray();
       const timestamp = maybeDoc.version.toTimestamp();
-      const readTime = new DbTimestamp(timestamp.seconds, timestamp.nanos);
+      const readTime = new DbTimestamp(
+        timestamp.seconds,
+        timestamp.nanoseconds
+      );
       return new DbRemoteDocument(new DbNoDocument(path, readTime), null);
     }
   }
@@ -73,7 +76,7 @@ export class LocalSerializer {
     return new DbMutationBatch(
       userId,
       batch.batchId,
-      batch.localWriteTime.toEpochMilliseconds(),
+      batch.localWriteTime.toMillis(),
       serializedMutations
     );
   }
@@ -83,7 +86,7 @@ export class LocalSerializer {
     const mutations = dbBatch.mutations.map(m =>
       this.remoteSerializer.fromMutation(m)
     );
-    const timestamp = Timestamp.fromEpochMilliseconds(dbBatch.localWriteTimeMs);
+    const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
   }
 
@@ -91,7 +94,7 @@ export class LocalSerializer {
   fromDbTarget(dbTarget: DbTarget): QueryData {
     const readTime = new Timestamp(
       dbTarget.readTime.seconds,
-      dbTarget.readTime.nanos
+      dbTarget.readTime.nanoseconds
     );
     const version = SnapshotVersion.fromTimestamp(readTime);
     let query: Query;
@@ -119,7 +122,10 @@ export class LocalSerializer {
         queryData.purpose
     );
     const timestamp = queryData.snapshotVersion.toTimestamp();
-    const dbTimestamp = new DbTimestamp(timestamp.seconds, timestamp.nanos);
+    const dbTimestamp = new DbTimestamp(
+      timestamp.seconds,
+      timestamp.nanoseconds
+    );
     let queryProto: DbQuery;
     if (queryData.query.isDocumentQuery()) {
       queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);

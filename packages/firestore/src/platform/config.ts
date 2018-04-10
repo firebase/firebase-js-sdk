@@ -32,11 +32,13 @@ import {
 import { FieldPath } from '../api/field_path';
 import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
+import { Timestamp } from '../api/timestamp';
 import { shallowCopy } from '../util/obj';
 
 const firestoreNamespace = {
   Firestore: PublicFirestore,
   GeoPoint,
+  Timestamp,
   Blob: PublicBlob,
   Transaction: PublicTransaction,
   WriteBatch: PublicWriteBatch,
