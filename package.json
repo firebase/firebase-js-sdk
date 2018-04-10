@@ -27,7 +27,9 @@
     "test": "lerna run --parallel test",
     "pretest:coverage": "mkdirp coverage",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
-    "test:setup": "node tools/config.js"
+    "test:setup": "node tools/config.js",
+    "pretest:saucelabs": "lerna run --parallel pretest",
+    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run"
   },
   "repository": {
     "type": "git",

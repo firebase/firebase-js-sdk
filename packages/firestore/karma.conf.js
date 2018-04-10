@@ -71,3 +71,5 @@ function getFirestoreSettings(argv) {
     };
   }
 }
+
+module.exports.files = getTestFiles(argv);
