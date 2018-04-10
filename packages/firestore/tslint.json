@@ -29,6 +29,7 @@
     "no-any": true,
     "no-arg": true,
     "no-conditional-assignment": true,
+    "no-console": [true, "log"],
     "no-construct": true,
     "no-debugger": true,
     "no-default-export": true,
