@@ -31,7 +31,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'MemoryPersistence';
 

@@ -630,7 +630,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.viewHandler!(newSnaps);
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
     // TODO(multitab): Multitab garbage collection
-    await this.localStore.collectGarbage();
+    if (this.isPrimary) {
+      await this.localStore.collectGarbage();
+    }
   }
 
   private assertSubscribed(fnName: string): void {
