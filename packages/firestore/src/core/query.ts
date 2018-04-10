@@ -450,7 +450,7 @@ export class RelationFilter implements Filter {
     return this.matchesComparison(value.compareTo(this.value));
   }
 
-  private matchesComparison(comparison: number) {
+  private matchesComparison(comparison: number): boolean {
     switch (this.op) {
       case RelationOp.LESS_THAN:
         return comparison < 0;
@@ -560,7 +560,7 @@ export function fieldFilter(
   field: FieldPath,
   op: RelationOp,
   value: FieldValue
-) {
+): Filter {
   if (value.isEqual(NullValue.INSTANCE)) {
     if (op !== RelationOp.EQUAL) {
       throw new FirestoreError(
