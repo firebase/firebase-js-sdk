@@ -25,7 +25,6 @@ import {
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';
 
-
 let db: SimpleDb;
 const sep = '\u0001\u0001';
 
