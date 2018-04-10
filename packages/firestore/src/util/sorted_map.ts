@@ -136,7 +136,7 @@ export class SortedMap<K, V> {
     return (this.root as LLRBNode<K, V>).inorderTraversal(action);
   }
 
-  forEach(fn: (k: K, v: V) => void) {
+  forEach(fn: (k: K, v: V) => void): void {
     this.inorderTraversal((k, v) => {
       fn(k, v);
       return false;
@@ -562,7 +562,7 @@ export class LLRBEmptyNode<K, V> {
     return true;
   }
 
-  protected check() {
+  protected check(): 0 {
     return 0;
   }
 } // end LLRBEmptyNode
