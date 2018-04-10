@@ -16,8 +16,8 @@
     "prepare": "npm run build"
   },
   "peerDependencies": {
-    "@firebase/app": "^0.1.0",
-    "@firebase/app-types": "^0.1.0"
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
   },
   "dependencies": {
     "@firebase/template-types": "0.1.0",

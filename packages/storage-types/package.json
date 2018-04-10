@@ -11,7 +11,7 @@
     "index.d.ts"
   ],
   "peerDependencies": {
-    "@firebase/app-types": "^0.1.0"
+    "@firebase/app-types": "0.x"
   },
   "repository": {
     "type": "git",
