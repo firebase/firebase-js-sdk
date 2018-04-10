@@ -19,13 +19,13 @@ packages/storage  @sphippen
 packages/storage-types  @sphippen
 
 # Messaging Code
-packages/messaging  @gauntface @pinarx
-packages/messaging-types  @gauntface @pinarx
-integration/messaging  @gauntface @pinarx
+packages/messaging  @gauntface @pinarx @mmermerkaya
+packages/messaging-types  @gauntface @pinarx @mmermerkaya
+integration/messaging  @gauntface @pinarx @mmermerkaya
 
 # Auth Code
-packages/auth  @bojeil-google @wti806 @tmsch
-packages/auth-types  @bojeil-google @wti806 @tmsch
+packages/auth  @bojeil-google @wti806
+packages/auth-types  @bojeil-google @wti806
 
 # Testing Code
 packages/testing  @tonymeng @ryanpbrewster

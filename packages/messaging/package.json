@@ -7,13 +7,18 @@
   "module": "dist/esm/index.js",
   "scripts": {
     "dev": "gulp dev",
-    "test": "karma start --single-run",
+    "test": "run-p test:karma type-check lint",
+    "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "gulp build"
+    "prepare": "gulp build",
+    "type-check": "tsc --noEmit",
+    "lint": "tslint -p .",
+    "lint:fix": "yarn lint --fix"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app": "^0.1.0"
+    "@firebase/app": "^0.1.0",
+    "@firebase/app-types": "^0.1.0"
   },
   "dependencies": {
     "@firebase/messaging-types": "0.1.2",
@@ -38,6 +43,7 @@
     "sinon": "^4.3.0",
     "source-map-loader": "^0.2.3",
     "ts-loader": "^3.5.0",
+    "tslint": "^5.9.1",
     "typescript": "^2.7.2",
     "webpack": "^3.11.0"
   },

@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-export default {
-  granted: 'granted',
-  default: 'default',
-  denied: 'denied'
-};
+export function isArrayBufferEqual(
+  a: ArrayBuffer | undefined | null,
+  b: ArrayBuffer | undefined | null
+): boolean {
+  if (a == null || b == null) {
+    return false;
+  }
+
+  if (a === b) {
+    return true;
+  }
+
+  if (a.byteLength !== b.byteLength) {
+    return false;
+  }
+
+  const viewA = new DataView(a);
+  const viewB = new DataView(b);
+
+  for (let i = 0; i < a.byteLength; i++) {
+    if (viewA.getUint8(i) !== viewB.getUint8(i)) {
+      return false;
+    }
+  }
+
+  return true;
+}

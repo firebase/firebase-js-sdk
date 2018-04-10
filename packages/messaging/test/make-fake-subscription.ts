@@ -16,7 +16,7 @@
 /**
  * FakeSubscription Constructor.
  */
-const FakeSubscription = function() {};
+const FakeSubscription = () => {};
 FakeSubscription.prototype = PushSubscription.prototype;
 
 /**
@@ -36,15 +36,15 @@ const stringToArrayBuffer = string => {
 
 /**
  * Used only in tests to make a semi-reasonable fake push subscription.
- * @param  {Object=} options Options to set on the object if desired.
- * @return {PushSubscription}              Returns a fake subscription.
+ * @param options Options to set on the object if desired.
+ * @return Returns a fake subscription.
  */
-export default function(options = {}) {
+export function makeFakeSubscription(options: any = {}): PushSubscription {
   const fakeSub = new FakeSubscription();
 
   // Set endpoint
-  const endpoint = (options as any).endpoint
-    ? (options as any).endpoint
+  const endpoint = options.endpoint
+    ? options.endpoint
     : 'https://example-push-endpoint.com/';
 
   Object.defineProperty(fakeSub, 'endpoint', {
@@ -57,15 +57,11 @@ export default function(options = {}) {
       let keyString = null;
       switch (keyName) {
         case 'auth': {
-          keyString = (options as any).auth
-            ? (options as any).auth
-            : 'auth-secret';
+          keyString = options.auth ? options.auth : 'auth-secret';
           break;
         }
         case 'p256dh': {
-          keyString = (options as any).p256dh
-            ? (options as any).p256dh
-            : 'the-user-public-key';
+          keyString = options.p256dh ? options.p256dh : 'the-user-public-key';
           break;
         }
         default:
