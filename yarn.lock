@@ -8238,6 +8238,10 @@ promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.npmjs.org/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
 
+promise-polyfill@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.npmjs.org/promise-polyfill/-/promise-polyfill-7.1.2.tgz#ab05301d8c28536301622d69227632269a70ca3b"
+
 prompt@1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/prompt/-/prompt-1.0.0.tgz#8e57123c396ab988897fb327fd3aedc3e735e4fe"
