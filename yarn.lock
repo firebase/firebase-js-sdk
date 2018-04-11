@@ -2448,6 +2448,10 @@ core-js@^2.0.0, core-js@^2.2.0, core-js@^2.4.0:
   version "2.5.3"
   resolved "https://registry.npmjs.org/core-js/-/core-js-2.5.3.tgz#8acc38345824f16d8365b7c9b4259168e8ed603e"
 
+core-js@^2.5.5:
+  version "2.5.5"
+  resolved "https://registry.npmjs.org/core-js/-/core-js-2.5.5.tgz#b14dde936c640c0579a6b50cabcc132dd6127e3b"
+
 core-js@~2.3.0:
   version "2.3.0"
   resolved "https://registry.npmjs.org/core-js/-/core-js-2.3.0.tgz#fab83fbb0b2d8dc85fa636c4b9d34c75420c6d65"
@@ -8234,9 +8238,9 @@ promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.npmjs.org/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
 
-promise-polyfill@^7.1.0:
-  version "7.1.0"
-  resolved "https://registry.npmjs.org/promise-polyfill/-/promise-polyfill-7.1.0.tgz#4d749485b44577c14137591c6f36e5d7e2dd3378"
+promise-polyfill@^7.1.2:
+  version "7.1.2"
+  resolved "https://registry.npmjs.org/promise-polyfill/-/promise-polyfill-7.1.2.tgz#ab05301d8c28536301622d69227632269a70ca3b"
 
 prompt@1.0.0:
   version "1.0.0"
