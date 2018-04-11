@@ -19,7 +19,7 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
 
-/** Tests in these packages are exluded due to flakiness or long run time. */
+/** Tests in these packages are excluded due to flakiness or long run time. */
 const excluded = [
   'packages/database/*',
   'packages/firestore/*',
@@ -103,14 +103,6 @@ module.exports = function(config) {
 
     files: getTestFiles(),
 
-    client: Object.assign({}, karmaBase.client, {
-      firestoreSettings: {
-        host: 'firestore.googleapis.com',
-        ssl: true,
-        timestampsInSnapshots: true
-      }
-    }),
-
     logLevel: config.LOG_INFO,
 
     preprocessors: { '**/test/**/*.ts': ['webpack', 'sourcemap'] },
@@ -143,11 +135,6 @@ module.exports = function(config) {
       startConnect: true
     }
   });
-
-  /* https://docs.travis-ci.com/user/pull-requests/#Pull-Requests-and-Security-Restrictions */
-  if (process.env.TRAVIS_PULL_REQUEST != 'false') {
-    karmaConfig.browsers = ['Chrome', 'Firefox'];
-  }
 
   config.set(karmaConfig);
 };

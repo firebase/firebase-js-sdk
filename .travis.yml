@@ -31,9 +31,10 @@ jobs:
   include:
     - script: xvfb-run yarn test
       after_success: yarn test:coverage
-      env: '#comment: yarn test'
+      env: '#comment = yarn test'
     - script: xvfb-run yarn test:saucelabs
-      env: '#comment: yarn test:saucelabs'
+      env: '#comment = yarn test:saucelabs'
+      if: type = push
     - stage: deploy
       install: skip
       script: skip
