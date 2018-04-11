@@ -28,7 +28,7 @@ import {
 const FieldPath = firebase.firestore.FieldPath;
 const Timestamp = firebase.firestore.Timestamp;
 
-// tslint:disable-next-line:no-any Allow custom type for testing.
+// tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;
 
 apiDescribe('Nested Fields', persistence => {
