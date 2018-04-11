@@ -21,8 +21,7 @@ import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import {
   WebStorageSharedClientState,
-  ClientId,
-  MemorySharedClientState
+  ClientId
 } from '../../../src/local/shared_client_state';
 import { BatchId, MutationBatchState, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
@@ -69,7 +68,7 @@ export async function testIndexedDbPersistence(
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence(new AsyncQueue(), AutoId.newId());
+  const persistence = new MemoryPersistence(AutoId.newId());
   await persistence.start();
   return persistence;
 }
@@ -126,10 +125,12 @@ export async function populateWebStorage(
 /**
  * Removes Firestore data (by prefix match) from Local Storage.
  */
-export function clearWebStorage() {
-  let key;
-  for (let i = 0; (key = window.localStorage.key(i)) !== null; ++i) {
-    if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+export function clearWebStorage(): void {
+  for (let i = 0; ; ++i) {
+    const key = window.localStorage.key(i);
+    if (key === null) {
+      break;
+    } else if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
       window.localStorage.removeItem(key);
     }
   }

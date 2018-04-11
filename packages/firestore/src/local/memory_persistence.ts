@@ -31,7 +31,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { AsyncQueue } from '../util/async_queue';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -53,10 +52,7 @@ export class MemoryPersistence implements Persistence {
 
   private started = false;
 
-  constructor(
-    private readonly queue: AsyncQueue,
-    private readonly clientId: ClientId
-  ) {}
+  constructor(private readonly clientId: ClientId) {}
 
   async start(): Promise<void> {
     // No durable state to read on startup.
@@ -74,9 +70,9 @@ export class MemoryPersistence implements Persistence {
     return [this.clientId];
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
     // All clients using memory persistence act as primary.
-    this.queue.enqueue(() => primaryStateListener(true));
+    primaryStateListener(true);
   }
 
   getMutationQueue(user: User): MutationQueue {

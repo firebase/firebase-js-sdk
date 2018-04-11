@@ -60,8 +60,8 @@ describe('SimpleDb', () => {
       store: SimpleDbStore<number, User>,
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
-  ) {
-    return db.runTransaction('readwrite', ['users'], txn => {
+  ): Promise<T> {
+    return db.runTransaction<T>('readwrite', ['users'], txn => {
       return fn(txn.store<number, User>('users'), txn);
     });
   }

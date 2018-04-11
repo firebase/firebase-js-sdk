@@ -4,19 +4,20 @@
   "private": true,
   "description": "A template package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/cjs/index.node.js",
-  "browser": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
   "scripts": {
-    "dev": "gulp dev",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
-    "prepare": "gulp build"
+    "prepare": "npm run build"
   },
   "peerDependencies": {
-    "@firebase/app": "0.1.6",
-    "@firebase/app-types": "0.1.1"
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
   },
   "dependencies": {
     "@firebase/template-types": "0.1.0",
@@ -28,7 +29,6 @@
     "@types/mocha": "^2.2.48",
     "@types/sinon": "^4.1.3",
     "chai": "^4.1.1",
-    "gulp": "^4.0.0",
     "karma": "^2.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-cli": "^1.0.1",
@@ -39,6 +39,10 @@
     "mocha": "^5.0.1",
     "npm-run-all": "^4.1.1",
     "nyc": "^11.4.1",
+    "rollup": "^0.57.1",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-typescript2": "^0.12.0",
     "ts-loader": "^3.5.0",
     "ts-node": "^5.0.0",
     "typescript": "^2.7.2",
@@ -51,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/esm/index.d.ts",
+  "typings": "dist/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

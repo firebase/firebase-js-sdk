@@ -332,8 +332,8 @@ export class LocalStore {
     );
   }
 
-  /** Reads a mutation batch from persistence and returns its changes. */
-  lookupMutationBatch(batchId: BatchId): Promise<LocalWriteResult | null> {
+  /** Returns the local view of all documents in a mutation batch. */
+  lookupLocalWrite(batchId: BatchId): Promise<LocalWriteResult | null> {
     return this.persistence.runTransaction('Lookup batch', false, txn => {
       let batch: MutationBatch;
       return this.mutationQueue
@@ -699,7 +699,7 @@ export class LocalStore {
             queryData = cached;
             return PersistencePromise.resolve();
           } else {
-            // TODO(multi-tab): targetIdGenerator is not multi-tab safe
+            // TODO(multitab): targetIdGenerator is not multi-tab safe
             const targetId = this.targetIdGenerator.next();
             queryData = new QueryData(query, targetId, QueryPurpose.Listen);
             return this.queryCache.addQueryData(txn, queryData);

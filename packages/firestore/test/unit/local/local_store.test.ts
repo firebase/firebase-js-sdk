@@ -68,9 +68,6 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
-import { SharedClientState } from '../../../src/local/shared_client_state';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { AutoId } from '../../../src/util/misc';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -273,7 +270,9 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
-function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) {
+function genericLocalStoreTests(
+  getPersistence: () => Promise<Persistence>
+): void {
   let persistence: Persistence;
   let localStore: LocalStore;
 

@@ -416,13 +416,6 @@ fireauth.RpcHandler.prototype.sendXhr_ = function(
     opt_data,
     opt_headers,
     opt_timeout) {
-  // Offline, fail quickly instead of waiting for request to timeout.
-  if (!fireauth.util.isOnline()) {
-    if (opt_callback) {
-      opt_callback(null);
-    }
-    return;
-  }
   var sendXhr;
   if (fireauth.util.supportsCors() || fireauth.util.isWorker()) {
     // If supports CORS use goog.net.XhrIo.

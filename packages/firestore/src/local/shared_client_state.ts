@@ -638,7 +638,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     batchId: BatchId,
     state: MutationBatchState,
     error?: FirestoreError
-  ) {
+  ): void {
     const mutationState = new MutationMetadata(
       this.currentUser,
       batchId,
