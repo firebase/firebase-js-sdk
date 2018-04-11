@@ -1,6 +1,6 @@
-import "./promise";
-import { global } from "./global";
+import './promise';
+import { global } from './global';
 
-((self) => {
+(self => {
   require('whatwg-fetch');
 })(global);

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { global } from "./global";
+import { global } from './global';
 
 // Polyfill Promise
 if (typeof Promise === 'undefined') {
