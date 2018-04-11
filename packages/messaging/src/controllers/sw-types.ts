@@ -1,0 +1,105 @@
+/**
+ * Subset of Web Worker types from lib.webworker.d.ts
+ *
+ * Since it's not possible to have both "dom" and "webworker" libs in a single
+ * project, we have to manually declare the web worker types we need.
+ */
+
+// Not the whole interface, just the parts we're currently using.
+// If TS claims that something does not exist on this, feel free to add it.
+interface ServiceWorkerGlobalScope {
+  readonly location: WorkerLocation;
+  readonly clients: Clients;
+  readonly registration: ServiceWorkerRegistration;
+  addEventListener<K extends keyof ServiceWorkerGlobalScopeEventMap>(
+    type: K,
+    listener: (
+      this: ServiceWorkerGlobalScope,
+      ev: ServiceWorkerGlobalScopeEventMap[K]
+    ) => any,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+}
+
+// Same as the previous interface
+interface ServiceWorkerGlobalScopeEventMap {
+  notificationclick: NotificationEvent;
+  push: PushEvent;
+  pushsubscriptionchange: PushSubscriptionChangeEvent;
+}
+
+interface Client {
+  readonly id: string;
+  readonly reserved: boolean;
+  readonly type: ClientTypes;
+  readonly url: string;
+  postMessage(message: any, transfer?: any[]): void;
+}
+
+interface ClientQueryOptions {
+  includeReserved?: boolean;
+  includeUncontrolled?: boolean;
+  type?: ClientTypes;
+}
+
+interface WindowClient extends Client {
+  readonly ancestorOrigins: ReadonlyArray<string>;
+  readonly focused: boolean;
+  readonly visibilityState: VisibilityState;
+  focus(): Promise<WindowClient>;
+  navigate(url: string): Promise<WindowClient>;
+}
+
+interface Clients {
+  claim(): Promise<void>;
+  get(id: string): Promise<any>;
+  matchAll(options?: ClientQueryOptions): Promise<Client[]>;
+  openWindow(url: string): Promise<WindowClient | null>;
+}
+
+interface NotificationOptions {
+  body?: string;
+  data?: any;
+  dir?: NotificationDirection;
+  icon?: string;
+  lang?: string;
+  tag?: string;
+}
+
+interface ExtendableEvent extends Event {
+  waitUntil(f: Promise<any>): void;
+}
+
+interface NotificationEvent extends ExtendableEvent {
+  readonly action: string;
+  readonly notification: Notification;
+}
+
+interface PushMessageData {
+  arrayBuffer(): ArrayBuffer;
+  blob(): Blob;
+  json(): any;
+  text(): string;
+}
+
+interface PushEvent extends ExtendableEvent {
+  readonly data: PushMessageData | null;
+}
+
+interface PushSubscriptionChangeEvent extends ExtendableEvent {
+  readonly newSubscription: PushSubscription | null;
+  readonly oldSubscription: PushSubscription | null;
+}
+
+interface WorkerLocation {
+  readonly hash: string;
+  readonly host: string;
+  readonly hostname: string;
+  readonly href: string;
+  readonly origin: string;
+  readonly pathname: string;
+  readonly port: string;
+  readonly protocol: string;
+  readonly search: string;
+  toString(): string;
+}
