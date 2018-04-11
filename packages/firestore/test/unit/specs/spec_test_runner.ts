@@ -332,7 +332,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
 class TestMutationQueue {
   private mutations: Mutation[][] = [];
 
-  push(mutation: Mutation[]) {
+  push(mutation: Mutation[]) : void {
     this.mutations.push(mutation);
   }
 
@@ -355,7 +355,7 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
-  private outstandingCallbacks: Deferred<void>[] = [];
+  private outstandingCallbacks: Array<Deferred<void>> = [];
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
