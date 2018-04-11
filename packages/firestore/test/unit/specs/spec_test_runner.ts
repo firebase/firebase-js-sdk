@@ -360,11 +360,7 @@ abstract class TestRunner {
   private started = false;
   private serializer: JsonProtoSerializer;
 
-  constructor(
-    private readonly name: string,
-    protected readonly platform: TestPlatform,
-    config: SpecConfig
-  ) {
+  constructor(protected readonly platform: TestPlatform, config: SpecConfig) {
     this.clientId = AutoId.newId();
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
@@ -440,7 +436,7 @@ abstract class TestRunner {
 
   protected abstract getSharedClientState(): SharedClientState;
 
-  get isPrimaryClient() {
+  get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
   }
 
@@ -1108,7 +1104,7 @@ class MockDocument {
     return this._visibilityState;
   }
 
-  addEventListener(type: string, listener: EventListener) {
+  addEventListener(type: string, listener: EventListener): void {
     assert(
       type === 'visibilitychange',
       "MockDocument only supports events of type 'visibilitychange'"
@@ -1116,13 +1112,13 @@ class MockDocument {
     this.visibilityListener = listener;
   }
 
-  removeEventListener(type: string, listener: EventListener) {
+  removeEventListener(type: string, listener: EventListener): void {
     if (listener === this.visibilityListener) {
       this.visibilityListener = null;
     }
   }
 
-  raiseVisibilityEvent(visibility: VisibilityState) {
+  raiseVisibilityEvent(visibility: VisibilityState): void {
     this._visibilityState = visibility;
     if (this.visibilityListener) {
       this.visibilityListener(new Event('visibilitychange'));
@@ -1137,17 +1133,18 @@ class MockDocument {
  */
 class SharedMockStorage {
   private readonly data = new Map<string, string>();
-  private readonly activeClients: {
+  private readonly activeClients: Array<{
     storageListener: EventListener;
     storageArea: Storage;
-  }[] = [];
+  }> = [];
 
   getStorageArea(storageListener: EventListener): Storage {
     const clientIndex = this.activeClients.length;
+    const self = this;
 
     const storageArea: Storage = {
-      get length() {
-        return this.length;
+      get length(): number {
+        return self.length;
       },
       getItem: (key: string) => this.getItem(key),
       key: (index: number) => this.key(index),
@@ -1206,11 +1203,11 @@ class SharedMockStorage {
       }
 
       client.storageListener({
-        key: key,
-        oldValue: oldValue,
-        newValue: newValue,
+        key,
+        oldValue,
+        newValue,
         storageArea: client.storageArea
-      } as any); // tslint
+      } as any); // tslint:disable-line:no-any Not mocking entire Event type.
     });
   }
 }
@@ -1294,7 +1291,7 @@ class TestPlatform implements Platform {
     return this.basePlatform.emptyByteString;
   }
 
-  raiseVisibilityEvent(visibility: VisibilityState) {
+  raiseVisibilityEvent(visibility: VisibilityState): void {
     if (this.mockDocument) {
       this.mockDocument.raiseVisibilityEvent(visibility);
     }
@@ -1365,12 +1362,13 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
+  // tslint:disable-next-line:no-console
   console.log('Running spec: ' + name);
 
   const sharedMockStorage = new SharedMockStorage();
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
-  let runners: TestRunner[] = [];
+  const runners: TestRunner[] = [];
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
@@ -1379,9 +1377,9 @@ export async function runSpec(
         sharedMockStorage
       );
       if (usePersistence) {
-        runners[clientIndex] = new IndexedDbTestRunner(name, platform, config);
+        runners[clientIndex] = new IndexedDbTestRunner(platform, config);
       } else {
-        runners[clientIndex] = new MemoryTestRunner(name, platform, config);
+        runners[clientIndex] = new MemoryTestRunner(platform, config);
       }
       await runners[clientIndex].start();
     }

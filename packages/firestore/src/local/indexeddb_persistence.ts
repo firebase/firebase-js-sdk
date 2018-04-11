@@ -188,7 +188,7 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) {
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
     this.primaryStateListener = primaryStateListener;
     primaryStateListener(this.isPrimary);
   }
