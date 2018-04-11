@@ -194,7 +194,7 @@ export class SpecBuilder {
     return this;
   }
 
-  runTimer(timerId: TimerId) {
+  runTimer(timerId: TimerId) : SpecBuilder {
     this.nextStep();
     this.currentStep = { runTimer: timerId };
     return this;
@@ -660,6 +660,6 @@ export class SpecBuilder {
   }
 }
 
-export function spec() {
+export function spec() : SpecBuilder {
   return new SpecBuilder();
 }

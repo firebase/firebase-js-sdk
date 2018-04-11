@@ -70,7 +70,7 @@ describe('IndexedDbQueryCache', () => {
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests() {
+function genericQueryCacheTests() : void {
   addEqualityMatcher();
 
   const QUERY_ROOMS = Query.atPath(path('rooms'));
@@ -81,7 +81,7 @@ function genericQueryCacheTests() {
    * Creates a new QueryData object from the the given parameters, synthesizing
    * a resume token from the snapshot version.
    */
-  function testQueryData(query: Query, targetId: TargetId, version?: number) {
+  function testQueryData(query: Query, targetId: TargetId, version?: number) : QueryData {
     if (version === undefined) {
       version = 0;
     }
