@@ -728,7 +728,7 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
-  protected nextStep() {
+  protected nextStep() : void {
     if (this.currentStep !== null) {
       this.currentStep.clientIndex = this.activeClientIndex;
     }
