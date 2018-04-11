@@ -127,7 +127,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
           getSubscription: async () => {},
-          subscribe: async options => {
+          subscribe: async (options: PushSubscriptionOptions) => {
             expect(options).to.deep.equal({
               userVisibleOnly: true,
               applicationServerKey: DEFAULT_PUBLIC_VAPID_KEY

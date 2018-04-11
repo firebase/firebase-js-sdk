@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /**
  * FakeSubscription Constructor.
  */
-const FakeSubscription = () => {};
+const FakeSubscription = ((() => {}) as any) as {
+  new (): PushSubscription;
+};
 FakeSubscription.prototype = PushSubscription.prototype;
 
-/**
- * @private
- * @param  {string} string String to convert to ArrayBuffer.
- * @return {ArrayBuffer} ArrayBuffer containing bytes from supplied string.
- */
-const stringToArrayBuffer = string => {
+function stringToArrayBuffer(string: string): ArrayBuffer {
   // String char codes are 16 bits (See MDN).
   const arrayBuffer = new ArrayBuffer(string.length * 2);
   const bufferView = new Uint16Array(arrayBuffer);
@@ -32,7 +30,7 @@ const stringToArrayBuffer = string => {
     bufferView[i] = string.charCodeAt(i);
   }
   return arrayBuffer;
-};
+}
 
 /**
  * Used only in tests to make a semi-reasonable fake push subscription.
@@ -53,7 +51,7 @@ export function makeFakeSubscription(options: any = {}): PushSubscription {
 
   // Set getKey
   Object.defineProperty(fakeSub, 'getKey', {
-    value: keyName => {
+    value: (keyName: string) => {
       let keyString = null;
       switch (keyName) {
         case 'auth': {

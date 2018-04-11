@@ -67,7 +67,7 @@ describe('Firebase Messaging > Helpers', () => {
   });
 
   describe('isArrayBufferEqual', () => {
-    let buffer: ArrayBuffer;
+    let buffer: ArrayBufferLike;
 
     beforeEach(() => {
       buffer = new Uint8Array([1, 2, 3, 4, 5]).buffer;

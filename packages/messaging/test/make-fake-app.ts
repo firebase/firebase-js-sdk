@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
+declare const window: { firebase: any };
+
 import { FirebaseApp } from '@firebase/app-types';
 
 export function makeFakeApp(options: object = {}): FirebaseApp {
-  window['firebase'] = window['firebase'] || {};
+  window.firebase = window.firebase || {};
   const app: any = {};
-  app.INTERNAL = window['firebase'].INTERNAL;
+  app.INTERNAL = window.firebase.INTERNAL;
   app.options = options;
-  return app as FirebaseApp;
+  return app;
 }

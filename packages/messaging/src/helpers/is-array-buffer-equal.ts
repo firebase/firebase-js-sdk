@@ -15,8 +15,8 @@
  */
 
 export function isArrayBufferEqual(
-  a: ArrayBuffer | undefined | null,
-  b: ArrayBuffer | undefined | null
+  a: ArrayBufferLike | undefined | null,
+  b: ArrayBufferLike | undefined | null
 ): boolean {
   if (a == null || b == null) {
     return false;
