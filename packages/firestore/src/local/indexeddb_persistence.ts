@@ -188,7 +188,7 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) : void {
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
     this.primaryStateListener = primaryStateListener;
     primaryStateListener(this.isPrimary);
   }
@@ -531,7 +531,7 @@ export class IndexedDbPersistence implements Persistence {
    * Records a zombied primary client (a primary client that had its tab closed)
    * in LocalStorage or, if passed null, deletes any recorded zombied owner.
    */
-  private setZombiedClientId(zombiedClientId: ClientId | null) : void {
+  private setZombiedClientId(zombiedClientId: ClientId | null): void {
     try {
       if (zombiedClientId === null) {
         window.localStorage.removeItem(this.zombiedClientLocalStorageKey());

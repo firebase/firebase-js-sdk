@@ -74,7 +74,7 @@ export class MemoryPersistence implements Persistence {
     return [this.clientId];
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) : void {
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
     // All clients using memory persistence act as primary.
     this.queue.enqueue(() => primaryStateListener(true));
   }

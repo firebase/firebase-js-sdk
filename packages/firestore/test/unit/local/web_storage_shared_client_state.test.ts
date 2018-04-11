@@ -44,7 +44,7 @@ const GRACE_INTERVAL_MS = 100;
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 
-function mutationKey(user: User, batchId: BatchId) : string {
+function mutationKey(user: User, batchId: BatchId): string {
   if (user.isAuthenticated()) {
     return `fs_mutations_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
@@ -289,7 +289,7 @@ describe('WebStorageSharedClientState', () => {
     async function verifyState(
       minBatchId: BatchId | null,
       expectedTargets: TargetId[]
-    ) : Promise<void> {
+    ): Promise<void> {
       await queue.drain();
       const actualTargets = sharedClientState.getAllActiveQueryTargets();
 
@@ -484,7 +484,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
-            'invalid' as any  // tslint:disable-line:no-any
+            'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );
       }).then(clientState => {

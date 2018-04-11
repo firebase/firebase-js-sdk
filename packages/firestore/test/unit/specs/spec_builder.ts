@@ -137,7 +137,6 @@ export class SpecBuilder {
   restoreListen(query: Query, resumeToken: string): this {
     const targetId = this.queryMapping[query.canonicalId()];
 
-
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
     }
@@ -728,7 +727,7 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
-  protected nextStep() : void {
+  protected nextStep(): void {
     if (this.currentStep !== null) {
       this.currentStep.clientIndex = this.activeClientIndex;
     }

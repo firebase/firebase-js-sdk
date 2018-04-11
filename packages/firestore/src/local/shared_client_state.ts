@@ -372,7 +372,7 @@ export class LocalClientState implements ClientState {
     return JSON.stringify(data);
   }
 
-  clearPendingMutations() : void {
+  clearPendingMutations(): void {
     this.pendingBatchIds = new SortedSet<BatchId>(primitiveComparator);
   }
 }
@@ -595,7 +595,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     batchId: BatchId,
     state: MutationBatchState,
     error?: FirestoreError
-  ) : void {
+  ): void {
     const mutationState = new MutationMetadata(
       this.currentUser,
       batchId,

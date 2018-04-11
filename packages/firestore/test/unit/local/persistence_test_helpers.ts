@@ -120,8 +120,8 @@ export async function populateWebStorage(
 /**
  * Removes Firestore data (by prefix match) from Local Storage.
  */
-export function clearWebStorage() :void {
-  for(let i = 0; ; ++i) {
+export function clearWebStorage(): void {
+  for (let i = 0; ; ++i) {
     const key = window.localStorage.key(i++);
     if (key === null) {
       break;

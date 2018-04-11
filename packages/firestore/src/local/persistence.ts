@@ -98,7 +98,7 @@ export interface Persistence {
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener) : void;
+  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void;
 
   /**
    * Returns the IDs of the clients that are currently active. If multi-tab
