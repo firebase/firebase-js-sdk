@@ -52,7 +52,7 @@ apiDescribe('Server Timestamps', persistence => {
   let listenerRegistration: () => void;
 
   // Returns the expected data, with an arbitrary timestamp substituted in.
-  function expectedDataWithTimestamp(timestamp: object | null) : AnyTestData {
+  function expectedDataWithTimestamp(timestamp: object | null): AnyTestData {
     return { a: 42, when: timestamp, deep: { when: timestamp } };
   }
 

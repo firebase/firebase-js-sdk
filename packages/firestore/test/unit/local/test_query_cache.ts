@@ -119,7 +119,7 @@ export class TestQueryCache {
     });
   }
 
-  setLastRemoteSnapshotVersion(version: SnapshotVersion) : Promise<void> {
+  setLastRemoteSnapshotVersion(version: SnapshotVersion): Promise<void> {
     return this.persistence.runTransaction(
       'setLastRemoteSnapshotVersion',
       txn => this.cache.setLastRemoteSnapshotVersion(txn, version)

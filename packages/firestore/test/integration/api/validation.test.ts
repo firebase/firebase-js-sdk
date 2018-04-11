@@ -70,7 +70,7 @@ const validationIt: ValidationIt = Object.assign(
       persistence: boolean,
       message: string,
       _: (db: firestore.FirebaseFirestore) => void | Promise<any>
-    ) : void {
+    ): void {
       // tslint:disable-next-line:ban
       it.skip(message, () => {});
     },
@@ -78,7 +78,7 @@ const validationIt: ValidationIt = Object.assign(
       persistence: boolean,
       message: string,
       testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
-    ) : void {
+    ): void {
       // tslint:disable-next-line:ban
       it.only(message, () => {
         return withTestDb(persistence, async db => {
