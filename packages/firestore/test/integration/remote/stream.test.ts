@@ -30,7 +30,6 @@ import {
 } from '../../../src/remote/watch_change';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Deferred } from '../../../src/util/promise';
-import { Datastore } from '../../../src/remote/datastore';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
 import { FirestoreError } from '@firebase/firestore-types';
@@ -50,7 +49,7 @@ const SINGLE_MUTATION = [setMutation('docs/1', { foo: 'bar' })];
 
 class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
   private pendingCallbacks: StreamEventType[] = [];
-  private pendingPromises: Deferred<StreamEventType>[] = [];
+  private pendingPromises: Array<Deferred<StreamEventType>> = [];
 
   /**
    * Returns a Promise that resolves when the next callback fires. Resolves the
@@ -63,7 +62,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     let promise: Promise<StreamEventType>;
 
     if (this.pendingCallbacks.length > 0) {
-      let pendingCallback = this.pendingCallbacks.shift();
+      const pendingCallback = this.pendingCallbacks.shift();
       promise = Promise.resolve(pendingCallback);
     } else {
       const deferred = new Deferred<StreamEventType>();
@@ -114,7 +113,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 
   private async resolvePending(actualCallback: StreamEventType): Promise<void> {
     if (this.pendingPromises.length > 0) {
-      let pendingPromise = this.pendingPromises.shift();
+      const pendingPromise = this.pendingPromises.shift();
       pendingPromise.resolve(actualCallback);
     } else {
       this.pendingCallbacks.push(actualCallback);
@@ -154,11 +153,9 @@ describe('Watch Stream', () => {
 });
 
 describe('Write Stream', () => {
-  let queue: AsyncQueue;
   let streamListener: StreamStatusListener;
 
   beforeEach(() => {
-    queue = new AsyncQueue();
     streamListener = new StreamStatusListener();
   });
 
@@ -213,10 +210,10 @@ describe('Write Stream', () => {
   });
 
   it('closes when idle', () => {
-    let queue = new AsyncQueue();
+    const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      let writeStream = ds.newPersistentWriteStream();
+      const writeStream = ds.newPersistentWriteStream();
       writeStream.start(streamListener);
       return streamListener
         .awaitCallback('open')
@@ -240,10 +237,10 @@ describe('Write Stream', () => {
   });
 
   it('cancels idle on write', () => {
-    let queue = new AsyncQueue();
+    const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      let writeStream = ds.newPersistentWriteStream();
+      const writeStream = ds.newPersistentWriteStream();
       writeStream.start(streamListener);
       return streamListener
         .awaitCallback('open')

@@ -20,7 +20,6 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { MemoryQueryCache } from '../../../src/local/memory_query_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -35,7 +34,6 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
-import { fail } from '../../../src/util/assert';
 
 let persistence: Persistence;
 let cache: TestQueryCache;
@@ -72,7 +70,7 @@ describe('IndexedDbQueryCache', () => {
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests() {
+function genericQueryCacheTests(): void {
   addEqualityMatcher();
 
   const QUERY_ROOMS = Query.atPath(path('rooms'));
@@ -83,7 +81,11 @@ function genericQueryCacheTests() {
    * Creates a new QueryData object from the the given parameters, synthesizing
    * a resume token from the snapshot version.
    */
-  function testQueryData(query: Query, targetId: TargetId, version?: number) {
+  function testQueryData(
+    query: Query,
+    targetId: TargetId,
+    version?: number
+  ): QueryData {
     if (version === undefined) {
       version = 0;
     }

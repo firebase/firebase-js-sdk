@@ -106,7 +106,7 @@ describe('SortedSet', () => {
         arr.push(elem);
         return true;
       }
-    }, 2);
+    }, start);
     expect(arr).to.deep.equal([2, 5]);
 
     arr = [];

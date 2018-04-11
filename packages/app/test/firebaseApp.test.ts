@@ -113,6 +113,19 @@ describe('Firebase App Class', () => {
     }, /'abc'.*exists/i);
   });
 
+  it('automaticDataCollectionEnabled is `false` by default', () => {
+    let app = firebase.initializeApp({}, 'my-app');
+    assert.equal(app.automaticDataCollectionEnabled, false);
+  });
+
+  it('automaticDataCollectionEnabled can be set via the config object', () => {
+    let app = firebase.initializeApp(
+      {},
+      { automaticDataCollectionEnabled: true }
+    );
+    assert.equal(app.automaticDataCollectionEnabled, true);
+  });
+
   it('Modifying options object does not change options.', () => {
     let options = { opt: 'original', nested: { opt: 123 } };
     firebase.initializeApp(options);
@@ -378,6 +391,16 @@ describe('Firebase App Class', () => {
       it("where name == '" + data + "'", () => {
         assert.throws(() => {
           firebase.initializeApp({}, data as string);
+        }, /Illegal app name/i);
+      });
+    }
+  });
+  describe('Check for bad app names, passed as an object', () => {
+    let tests = ['', 123, false, null];
+    for (const name of tests) {
+      it("where name == '" + name + "'", () => {
+        assert.throws(() => {
+          firebase.initializeApp({}, { name: name as string });
         }, /Illegal app name/i);
       });
     }

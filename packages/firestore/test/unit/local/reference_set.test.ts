@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import { ReferenceSet } from '../../../src/local/reference_set';
-import { expectSetToEqual, key } from '../../util/helpers';
+import { key } from '../../util/helpers';
 
 describe('ReferenceSet', () => {
   it('can add/remove references', async () => {

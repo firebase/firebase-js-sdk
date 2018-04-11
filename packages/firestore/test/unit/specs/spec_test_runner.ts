@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
@@ -143,11 +143,11 @@ class MockConnection implements Connection {
     this.activeTargets = [];
   }
 
-  invokeRPC(rpcName: string, request: any): Promise<any> {
+  invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
+  invokeStreamingRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
@@ -177,25 +177,28 @@ class MockConnection implements Connection {
     this.resetAndCloseWriteStream(err);
   }
 
-  private resetAndCloseWriteStream(err?: FirestoreError) {
+  private resetAndCloseWriteStream(err?: FirestoreError): void {
     this.writeSendBarriers = [];
     this.earlyWrites = [];
     this.writeStream!.callOnClose(err);
     this.writeStream = null;
   }
 
-  failWatchStream(err?: FirestoreError) {
+  failWatchStream(err?: FirestoreError): void {
     this.resetAndCloseWatchStream(err);
   }
 
-  private resetAndCloseWatchStream(err?: FirestoreError) {
+  private resetAndCloseWatchStream(err?: FirestoreError): void {
     this.activeTargets = {};
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
     this.watchStream = null;
   }
 
-  openStream(rpcName: string): Stream<any, any> {
+  openStream<Req, Resp>(
+    rpcName: string,
+    token: Token | null
+  ): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
@@ -248,7 +251,8 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      return writeStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
@@ -281,7 +285,8 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      return this.watchStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return this.watchStream as any;
     }
   }
 }
@@ -324,10 +329,10 @@ class EventAggregator implements Observer<ViewSnapshot> {
  * add or retrieve mutations.
  */
 // PORTING NOTE: Multi-tab only.
-class TestMutationQueue {
+class OutstandingMutationTracker {
   private mutations: Mutation[][] = [];
 
-  push(mutation: Mutation[]) {
+  push(mutation: Mutation[]): void {
     this.mutations.push(mutation);
   }
 
@@ -350,7 +355,7 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
-  private outstandingCallbacks: Deferred<void>[] = [];
+  private outstandingCallbacks: Array<Deferred<void>> = [];
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -371,12 +376,12 @@ abstract class TestRunner {
   protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
 
+  private started = false;
   private serializer: JsonProtoSerializer;
 
   constructor(
-    private readonly name: string,
     protected readonly platform: TestPlatform,
-    private outstandingWrites: TestMutationQueue,
+    private outstandingMutations: OutstandingMutationTracker,
     config: SpecConfig
   ) {
     this.clientId = AutoId.newId();
@@ -454,7 +459,7 @@ abstract class TestRunner {
 
   protected abstract getSharedClientState(): SharedClientState;
 
-  get isPrimaryClient() {
+  get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
   }
 
@@ -463,17 +468,20 @@ abstract class TestRunner {
     await this.persistence.start();
     await this.localStore.start();
     await this.sharedClientState.start();
+    await this.remoteStore.start();
     await this.syncEngine.start();
 
     this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
     );
+
+    this.started = true;
   }
 
   async shutdown(): Promise<void> {
-    await this.sharedClientState.shutdown();
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    if (this.started) {
+      await this.doShutdown();
+    }
   }
 
   /** Runs a single SpecStep on this runner. */
@@ -590,7 +598,7 @@ abstract class TestRunner {
 
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
-    this.outstandingWrites.push(mutations);
+    this.outstandingMutations.push(mutations);
     this.outstandingCallbacks.push(userCallback);
     return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, userCallback);
@@ -785,8 +793,8 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextWrite = this.outstandingWrites.poll();
-    return this.validateNextWriteRequest(nextWrite).then(() => {
+    const nextMutation = this.outstandingMutations.poll();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         const nextCallback = this.outstandingCallbacks.shift();
@@ -801,12 +809,12 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextWrite = this.outstandingWrites.peek();
-    return this.validateNextWriteRequest(nextWrite).then(() => {
+    const nextMutation = this.outstandingMutations.peek();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
       // If this is a permanent error, the write is not expected to be sent
       // again.
       if (isPermanentError(error.code)) {
-        this.outstandingWrites.poll();
+        this.outstandingMutations.poll();
       }
 
       this.connection.failWrite(error);
@@ -854,12 +862,12 @@ abstract class TestRunner {
   private async doShutdown(): Promise<void> {
     await this.syncEngine.shutdown();
     await this.remoteStore.shutdown();
+    await this.sharedClientState.shutdown();
     await this.persistence.shutdown();
+    this.started = false;
   }
 
   private async doRestart(): Promise<void> {
-    const isPrimary = this.isPrimaryClient;
-
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
@@ -870,8 +878,18 @@ abstract class TestRunner {
     // interleaved events.
     await this.queue.enqueue(async () => {
       await this.localStore.start();
+      await this.remoteStore.start();
       await this.syncEngine.start();
-      await this.syncEngine.applyPrimaryState(isPrimary);
+
+      const deferred = new Deferred<void>();
+      // We need to wait for the processing in `applyPrimaryState` to complete,
+      // but `setPrimaryStateListener` doesn't return a promise.
+      this.persistence.setPrimaryStateListener(isPrimary => {
+        return this.syncEngine
+          .applyPrimaryState(isPrimary)
+          .then(deferred.resolve);
+      });
+      await deferred.promise;
     });
   }
 
@@ -949,7 +967,7 @@ abstract class TestRunner {
     this.validateActiveTargets();
   }
 
-  private validateLimboDocs() {
+  private validateLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
@@ -972,9 +990,9 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets() {
+  private validateActiveTargets(): void {
     if (!this.isPrimaryClient) {
-      expect(obj.isEmpty(this.connection.activeTargets)).to.be.true;
+      expect(this.connection.activeTargets).to.be.empty;
       return;
     }
 
@@ -1097,7 +1115,7 @@ abstract class TestRunner {
 
 class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new MemoryPersistence(this.queue, this.clientId);
+    return new MemoryPersistence(this.clientId);
   }
 
   protected getSharedClientState(): SharedClientState {
@@ -1116,7 +1134,7 @@ class MockDocument {
     return this._visibilityState;
   }
 
-  addEventListener(type: string, listener: EventListener) {
+  addEventListener(type: string, listener: EventListener): void {
     assert(
       type === 'visibilitychange',
       "MockDocument only supports events of type 'visibilitychange'"
@@ -1124,13 +1142,13 @@ class MockDocument {
     this.visibilityListener = listener;
   }
 
-  removeEventListener(type: string, listener: EventListener) {
+  removeEventListener(type: string, listener: EventListener): void {
     if (listener === this.visibilityListener) {
       this.visibilityListener = null;
     }
   }
 
-  raiseVisibilityEvent(visibility: VisibilityState) {
+  raiseVisibilityEvent(visibility: VisibilityState): void {
     this._visibilityState = visibility;
     if (this.visibilityListener) {
       this.visibilityListener(new Event('visibilitychange'));
@@ -1139,59 +1157,88 @@ class MockDocument {
 }
 
 /**
- * `WebStorage` mock that implements the WebStorage API used by Firestore.
+ * `WebStorage` mock that implements the WebStorage behavior for multiple
+ * clients. To get a client-specific storage area that implements the WebStorage
+ * API, invoke `getStorageArea(storageListener)`.
  */
-class MockStorage {
-  private static sharedData = new Map<string, string>();
-  private static activeInstances = new Map<EventListener, MockStorage>();
+class SharedMockStorage {
+  private readonly data = new Map<string, string>();
+  private readonly activeClients: Array<{
+    storageListener: EventListener;
+    storageArea: Storage;
+  }> = [];
 
-  eventListener: EventListener | null = null;
+  getStorageArea(storageListener: EventListener): Storage {
+    const clientIndex = this.activeClients.length;
+    const self = this;
 
-  getItem(key: string): string | null {
-    if (MockStorage.sharedData.has(key)) {
-      return MockStorage.sharedData.get(key);
-    }
-    return null;
+    const storageArea: Storage = {
+      get length(): number {
+        return self.length;
+      },
+      getItem: (key: string) => this.getItem(key),
+      key: (index: number) => this.key(index),
+      clear: () => this.clear(),
+      removeItem: (key: string) => {
+        const oldValue = this.getItem(key);
+        this.removeItem(key);
+        this.raiseStorageEvent(clientIndex, key, oldValue, null);
+      },
+      setItem: (key: string, value: string) => {
+        const oldValue = this.getItem(key);
+        this.setItem(key, value);
+        this.raiseStorageEvent(clientIndex, key, oldValue, value);
+      }
+    };
+
+    this.activeClients[clientIndex] = { storageListener, storageArea };
+
+    return storageArea;
   }
 
-  removeItem(key: string): void {
-    const oldValue = MockStorage.sharedData.get(key);
-    MockStorage.sharedData.delete(key);
-    this.raiseStorageEvent(key, oldValue, null);
+  private clear(): void {
+    this.data.clear();
   }
 
-  setItem(key: string, value: string): void {
-    const oldValue = MockStorage.sharedData.get(key);
-    MockStorage.sharedData.set(key, value);
-    this.raiseStorageEvent(key, oldValue, value);
+  private getItem(key: string): string | null {
+    return this.data.get(key);
   }
 
-  raiseStorageEvent(
+  private key(index: number): string | null {
+    return Array.from(this.data.keys())[index];
+  }
+
+  private removeItem(key: string): void {
+    this.data.delete(key);
+  }
+
+  private setItem(key: string, data: string): void {
+    this.data.set(key, data);
+  }
+
+  private get length(): number {
+    return this.data.size;
+  }
+
+  private raiseStorageEvent(
+    sourceClientIndex: number,
     key: string,
     oldValue: string | null,
     newValue: string | null
   ): void {
-    MockStorage.activeInstances.forEach((storage, listener) => {
+    this.activeClients.forEach((client, index) => {
       // WebStorage doesn't raise events for writes from the originating client.
-      if (storage !== this) {
-        listener({
-          key: key,
-          oldValue: oldValue,
-          newValue: newValue,
-          storageArea: storage
-        } as any);
+      if (sourceClientIndex === index) {
+        return;
       }
+
+      client.storageListener({
+        key,
+        oldValue,
+        newValue,
+        storageArea: client.storageArea
+      } as any); // tslint:disable-line:no-any Not mocking entire Event type.
     });
-  }
-
-  start(eventListener: EventListener): void {
-    MockStorage.activeInstances.set(eventListener, this);
-    this.eventListener = eventListener;
-  }
-
-  shutdown(): void {
-    MockStorage.activeInstances.delete(this.eventListener);
-    this.eventListener = null;
   }
 }
 
@@ -1200,16 +1247,23 @@ class MockStorage {
  * Firestore.
  */
 class MockWindow {
-  private webStorage = new MockStorage();
+  private readonly storageArea: Storage;
+  private storageListener: EventListener = () => {};
 
-  get localStorage(): Storage {
-    return this.webStorage as any;
+  constructor(sharedMockStorage: SharedMockStorage) {
+    this.storageArea = sharedMockStorage.getStorageArea(event =>
+      this.storageListener(event)
+    );
   }
 
-  addEventListener(type: string, listener: EventListener) {
+  get localStorage(): Storage {
+    return this.storageArea;
+  }
+
+  addEventListener(type: string, listener: EventListener): void {
     switch (type) {
       case 'storage':
-        this.webStorage.start(listener);
+        this.storageListener = listener;
         break;
       case 'unload':
         // The spec tests currently do not rely on 'unload' listeners.
@@ -1219,14 +1273,13 @@ class MockWindow {
     }
   }
 
-  removeEventListener(type: string, listener: EventListener) {
+  removeEventListener(type: string, listener: EventListener): void {
     if (type === 'storage') {
       assert(
-        this.webStorage.eventListener === listener,
-        "Listener passed to 'removeEventListener' doesn't match the listener passed to 'addEventListener'."
+        this.storageListener === listener,
+        "Listener passed to 'removeEventListener' doesn't match the current listener."
       );
-      this.webStorage.shutdown();
-      this.webStorage = null;
+      this.storageListener = () => {};
     }
   }
 }
@@ -1235,15 +1288,18 @@ class MockWindow {
  * Implementation of `Platform` that allows mocking of `document` and `window`.
  */
 class TestPlatform implements Platform {
-  mockDocument: MockDocument | null = null;
-  mockWindow: MockWindow | null = null;
+  readonly mockDocument: MockDocument | null = null;
+  readonly mockWindow: MockWindow | null = null;
 
-  constructor(private readonly basePlatform: Platform) {
+  constructor(
+    private readonly basePlatform: Platform,
+    private readonly mockStorage: SharedMockStorage
+  ) {
     if (this.basePlatform.document) {
       this.mockDocument = new MockDocument();
     }
     if (this.basePlatform.window) {
-      this.mockWindow = new MockWindow();
+      this.mockWindow = new MockWindow(this.mockStorage);
     }
   }
 
@@ -1251,6 +1307,7 @@ class TestPlatform implements Platform {
     // tslint:disable-next-line:no-any MockWindow doesn't support full Document interface.
     return this.mockDocument as any;
   }
+
   get window(): Window | null {
     // tslint:disable-next-line:no-any MockWindow doesn't support full Window interface.
     return this.mockWindow as any;
@@ -1264,7 +1321,7 @@ class TestPlatform implements Platform {
     return this.basePlatform.emptyByteString;
   }
 
-  raiseVisibilityEvent(visibility: VisibilityState) {
+  raiseVisibilityEvent(visibility: VisibilityState): void {
     if (this.mockDocument) {
       this.mockDocument.raiseVisibilityEvent(visibility);
     }
@@ -1335,27 +1392,31 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
+  // tslint:disable-next-line:no-console
   console.log('Running spec: ' + name);
 
+  const sharedMockStorage = new SharedMockStorage();
+
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
-  let runners: TestRunner[] = [];
-  const mutationQueue = new TestMutationQueue();
+  const runners: TestRunner[] = [];
+  const outstandingMutations = new OutstandingMutationTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
-      const platform = new TestPlatform(PlatformSupport.getPlatform());
+      const platform = new TestPlatform(
+        PlatformSupport.getPlatform(),
+        sharedMockStorage
+      );
       if (usePersistence) {
         runners[clientIndex] = new IndexedDbTestRunner(
-          name,
           platform,
-          mutationQueue,
+          outstandingMutations,
           config
         );
       } else {
         runners[clientIndex] = new MemoryTestRunner(
-          name,
           platform,
-          mutationQueue,
+          outstandingMutations,
           config
         );
       }

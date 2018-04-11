@@ -67,9 +67,9 @@ export interface LocalWriteResult {
 
 /** The result of a user-change operation in the local store. */
 export interface UserChangeResult {
-  affectedDocuments: MaybeDocumentMap;
-  removedBatchIds: BatchId[];
-  addedBatchIds: BatchId[];
+  readonly affectedDocuments: MaybeDocumentMap;
+  readonly removedBatchIds: BatchId[];
+  readonly addedBatchIds: BatchId[];
 }
 
 /**
@@ -247,8 +247,8 @@ export class LocalStore {
             }
           }
 
-          // Return the set of all (potentially) changed documents and the set
-          // of affected mutation batch IDs as the result of this user change.
+          // Return the set of all (potentially) changed documents and the list
+          // of mutation batch IDs that were affected by change.
           return this.localDocuments
             .getDocuments(txn, changedKeys)
             .next(affectedDocuments => {
@@ -332,29 +332,7 @@ export class LocalStore {
     );
   }
 
-  /** Reads a mutation batch from persistence and returns its changes. */
-  lookupMutationBatch(batchId: BatchId): Promise<LocalWriteResult | null> {
-    return this.persistence.runTransaction('Lookup batch', false, txn => {
-      let batch: MutationBatch;
-      return this.mutationQueue
-        .lookupMutationBatch(txn, batchId)
-        .next(promisedBatch => {
-          if (promisedBatch) {
-            batch = promisedBatch;
-            const keys = batch.keys();
-            return this.localDocuments
-              .getDocuments(txn, keys)
-              .next((changedDocuments: MaybeDocumentMap) => {
-                return { batchId: batch.batchId, changes: changedDocuments };
-              });
-          } else {
-            return PersistencePromise.resolve(null);
-          }
-        });
-    });
-  }
-
-  /** Gets the local view of the documents affected by a mutation batch. */
+  /** Returns the local view of the documents affected by a mutation batch. */
   // PORTING NOTE: Multi-tab only.
   lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
     return this.persistence.runTransaction(
@@ -719,7 +697,7 @@ export class LocalStore {
             queryData = cached;
             return PersistencePromise.resolve();
           } else {
-            // TODO(multi-tab): targetIdGenerator is not multi-tab safe
+            // TODO(multitab): targetIdGenerator is not multi-tab safe
             const targetId = this.targetIdGenerator.next();
             queryData = new QueryData(query, targetId, QueryPurpose.Listen);
             return this.queryCache.addQueryData(txn, queryData);

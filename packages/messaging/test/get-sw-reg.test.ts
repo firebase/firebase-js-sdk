@@ -15,12 +15,11 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import makeFakeApp from './make-fake-app';
-import makeFakeSWReg from './make-fake-sw-reg';
-import DefaultSW from '../src/models/default-sw';
-import Errors from '../src/models/errors';
-import WindowController from '../src/controllers/window-controller';
-import SWController from '../src/controllers/sw-controller';
+import { SWController } from '../src/controllers/sw-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { ERROR_CODES } from '../src/models/errors';
+import { makeFakeApp } from './make-fake-app';
+import { makeFakeSWReg } from './make-fake-sw-reg';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
@@ -28,7 +27,7 @@ const app = makeFakeApp({
   messagingSenderId: EXAMPLE_SENDER_ID
 });
 
-describe('Firebase Messaging > *Controller.getSWReg_()', function() {
+describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   const sandbox = sinon.sandbox.create();
 
   const mockWindowRegistration = registration => {
@@ -41,20 +40,20 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
     sandbox.restore();
   };
 
-  beforeEach(function() {
+  beforeEach(() => {
     return cleanUp();
   });
 
-  after(function() {
+  after(() => {
     return cleanUp();
   });
 
-  it('should get sw reg in window', function() {
+  it('should get sw reg in window', () => {
     let updateCalled = false;
     const activatedRegistration = makeFakeSWReg('active', {
       state: 'activated'
     });
-    activatedRegistration.update = () => {
+    activatedRegistration.update = async () => {
       updateCalled = true;
     };
 
@@ -76,7 +75,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
       });
   });
 
-  it('should handle no sw reg in page', function() {
+  it('should handle no sw reg in page', () => {
     const fakeReg = {};
     mockWindowRegistration(fakeReg);
 
@@ -86,12 +85,12 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Expected this error to throw due to no SW.');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.NO_SW_IN_REG, err.code);
+        assert.equal('messaging/' + ERROR_CODES.NO_SW_IN_REG, err.code);
       }
     );
   });
 
-  it('should get sw reg in sw', function() {
+  it('should get sw reg in sw', () => {
     const fakeReg = {};
     (self as any).registration = fakeReg;
 
@@ -110,7 +109,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
       });
   });
 
-  it('should make registration error available to developer', function() {
+  it('should make registration error available to developer', () => {
     const errorMsg = 'test-reg-error-1234567890';
     const mockRegisterMethod = sandbox.stub(
       navigator.serviceWorker,
@@ -125,7 +124,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
       },
       error => {
         assert.equal(
-          'messaging/' + Errors.codes.FAILED_DEFAULT_REGISTRATION,
+          'messaging/' + ERROR_CODES.FAILED_DEFAULT_REGISTRATION,
           error.code
         );
         assert.equal(error.message.indexOf(errorMsg) !== -1, true);
@@ -133,7 +132,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
     );
   });
 
-  it('should test redundant edge case', function() {
+  it('should test redundant edge case', () => {
     const redundantRegistration = makeFakeSWReg('installing', {
       state: 'redundant'
     });
@@ -145,12 +144,12 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });
 
-  it('should handle installed to redundant edge case', function() {
+  it('should handle installed to redundant edge case', () => {
     const swValue = {
       state: 'installing',
       addEventListener: (eventName, cb) => {
@@ -171,12 +170,12 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });
 
-  it('should handle waiting to redundant edge case', function() {
+  it('should handle waiting to redundant edge case', () => {
     const swValue = {
       state: 'waiting',
       addEventListener: (eventName, cb) => {
@@ -197,7 +196,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', function() {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + Errors.codes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ERROR_CODES.SW_REG_REDUNDANT, err.code);
       }
     );
   });

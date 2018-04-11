@@ -137,6 +137,15 @@ export class RemoteStore {
   /** SyncEngine to notify of watch and write events. */
   syncEngine: RemoteSyncer;
 
+  /**
+   * Starts up the remote store, creating streams, restoring state from
+   * LocalStore, etc.
+   */
+  start(): Promise<void> {
+    // Start is a no-op for RemoteStore.
+    return Promise.resolve();
+  }
+
   private isNetworkEnabled(): boolean {
     assert(
       (this.watchStream == null) === (this.writeStream == null),
@@ -509,7 +518,7 @@ export class RemoteStore {
     return promiseChain;
   }
 
-  cleanUpWriteStreamState() {
+  cleanUpWriteStreamState(): void {
     this.lastBatchSeen = BATCHID_UNKNOWN;
     log.debug(
       LOG_TAG,

@@ -19,14 +19,14 @@ import { makeConstructorPrivate } from '../../../src/util/api';
 
 describe('makeConstructorPrivate', () => {
   class PrivateClass {
-    public x = 'x-value';
+    x = 'x-value';
     private _y = 'y-value';
 
-    public getY(): string {
+    getY(): string {
       return this._y;
     }
 
-    public setY(newValue: string): void {
+    setY(newValue: string): void {
       this._y = newValue;
     }
 

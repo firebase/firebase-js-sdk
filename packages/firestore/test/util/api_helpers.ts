@@ -61,7 +61,7 @@ export function documentSnapshot(
   path: string,
   data: JsonObject<AnyJs>,
   fromCache: boolean
-) {
+): DocumentSnapshot {
   if (data) {
     return new DocumentSnapshot(
       FIRESTORE,
@@ -87,7 +87,7 @@ export function query(path: string): Query {
  * @param docsToAdd Specifies data to be added into the query snapshot as of now. Each entry maps
  *     to a document, with the key being the document id, and the value being the document contents.
  * @param hasPendingWrites Whether the query snapshot has pending writes.
- * @param isFromCache Whether the query snapshot is cache result.
+ * @param fromCache Whether the query snapshot is cache result.
  * @param syncStateChanged Whether the sync state has changed.
  * @return A query snapshot that consists of both sets of documents.
  */
@@ -98,7 +98,7 @@ export function querySnapshot(
   hasPendingWrites: boolean,
   fromCache: boolean,
   syncStateChanged: boolean
-) {
+): QuerySnapshot {
   const query: InternalQuery = InternalQuery.atPath(pathFrom(path));
   let oldDocuments: DocumentSet = new DocumentSet();
   Object.keys(oldDocs).forEach(key => {

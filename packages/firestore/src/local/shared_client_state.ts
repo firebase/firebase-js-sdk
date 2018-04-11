@@ -456,8 +456,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     return typeof window !== 'undefined' && window.localStorage != null;
   }
 
-  // TOOD(multitab): Persist the mutations that are already pending mutations at
-  // client startup.
+  // TOOD(multitab): Register the mutations that are already pending at client
+  // startup.
   async start(): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
@@ -638,7 +638,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     batchId: BatchId,
     state: MutationBatchState,
     error?: FirestoreError
-  ) {
+  ): void {
     const mutationState = new MutationMetadata(
       this.currentUser,
       batchId,

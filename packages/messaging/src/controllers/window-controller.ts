@@ -13,75 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
+import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseMessaging } from '@firebase/messaging-types';
-import ControllerInterface from './controller-interface';
-import Errors from '../models/errors';
-import WorkerPageMessage from '../models/worker-page-message';
-import DefaultSW from '../models/default-sw';
-import NOTIFICATION_PERMISSION from '../models/notification-permission';
-import FCMDetails from '../models/fcm-details';
-import base64ToArrayBuffer from '../helpers/base64-to-array-buffer';
-import { createSubscribe } from '@firebase/util';
+import {
+  createSubscribe,
+  NextFn,
+  Observer,
+  PartialObserver,
+  Subscribe,
+  Unsubscribe
+} from '@firebase/util';
+import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
+import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
+import { ERROR_CODES } from '../models/errors';
+import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
+import * as WorkerPageMessage from '../models/worker-page-message';
+import { ControllerInterface } from './controller-interface';
 
 declare const firebase: any;
 
-export default class WindowController extends ControllerInterface
+export class WindowController extends ControllerInterface
   implements FirebaseMessaging {
-  private registrationToUse_;
-  private publicVapidKeyToUse_;
-  private manifestCheckPromise_;
-  private messageObserver_ = null;
-  private onMessage_ = createSubscribe(observer => {
+  private registrationToUse_: ServiceWorkerRegistration | null = null;
+  private publicVapidKeyToUse_: Uint8Array | null = null;
+  private manifestCheckPromise_: Promise<void> | null = null;
+  private messageObserver_: Observer<{}, Error> | null = null;
+  private readonly onMessage_: Subscribe<{}> = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
-  private tokenRefreshObserver_ = null;
-  private onTokenRefresh_ = createSubscribe(observer => {
-    this.tokenRefreshObserver_ = observer;
-  });
+  private tokenRefreshObserver_: Observer<{}, Error> | null = null;
+  private readonly onTokenRefresh_: Subscribe<{}> = createSubscribe(
+    observer => {
+      this.tokenRefreshObserver_ = observer;
+    }
+  );
 
   /**
    * A service that provides a MessagingService instance.
-   * @param {!firebase.app.App} app
    */
-  constructor(app) {
+  constructor(app: FirebaseApp) {
     super(app);
-
-    /**
-     * @private
-     * @type {ServiceWorkerRegistration}
-     */
-    this.registrationToUse_;
-
-    /**
-     * @private
-     * @type {Promise}
-     */
-    this.manifestCheckPromise_;
-
-    /**
-     * @private
-     * @type {firebase.Observer}
-     */
-    this.messageObserver_ = null;
-
-    /**
-     * @private {!firebase.Subscribe} The subscribe function to the onMessage
-     * observer.
-     */
-    this.onMessage_ = createSubscribe(observer => {
-      this.messageObserver_ = observer;
-    });
-
-    /**
-     * @private
-     * @type {firebase.Observer}
-     */
-    this.tokenRefreshObserver_ = null;
-    this.onTokenRefresh_ = createSubscribe(observer => {
-      this.tokenRefreshObserver_ = observer;
-    });
 
     this.setupSWMessageListener_();
   }
@@ -91,15 +63,15 @@ export default class WindowController extends ControllerInterface
    * The return promise will reject if the browser doesn't support
    * FCM, if permission is denied for notifications or it's not
    * possible to generate a token.
-   * @export
-   * @return {Promise<string> | Promise<null>} Returns a promise the
-   * resolves to an FCM token or null if permission isn't granted.
+   *
+   * @return Returns a promise that resolves to an FCM token or null if
+   * permission isn't granted.
    */
-  getToken() {
+  getToken(): Promise<string | null> {
     // Check that the required API's are available
     if (!this.isSupported_()) {
       return Promise.reject(
-        this.errorFactory_.create(Errors.codes.UNSUPPORTED_BROWSER)
+        this.errorFactory_.create(ERROR_CODES.UNSUPPORTED_BROWSER)
       );
     }
 
@@ -115,12 +87,12 @@ export default class WindowController extends ControllerInterface
    * @return {Promise} Returns a promise that resolves if the manifest matches
    * our required sender ID
    */
-  manifestCheck_() {
+  manifestCheck_(): Promise<void> {
     if (this.manifestCheckPromise_) {
       return this.manifestCheckPromise_;
     }
 
-    const manifestTag = <HTMLAnchorElement>document.querySelector(
+    const manifestTag = document.querySelector<HTMLAnchorElement>(
       'link[rel="manifest"]'
     );
     if (!manifestTag) {
@@ -145,7 +117,7 @@ export default class WindowController extends ControllerInterface
 
           if (manifestContent['gcm_sender_id'] !== '103953800507') {
             throw this.errorFactory_.create(
-              Errors.codes.INCORRECT_GCM_SENDER_ID
+              ERROR_CODES.INCORRECT_GCM_SENDER_ID
             );
           }
         });
@@ -156,26 +128,27 @@ export default class WindowController extends ControllerInterface
 
   /**
    * Request permission if it is not currently granted
-   * @export
-   * @returns {Promise} Resolves if the permission was granted, otherwise
-   * rejects
+   *
+   * @return Resolves if the permission was granted, otherwise rejects
    */
-  async requestPermission() {
-    if ((Notification as any).permission === NOTIFICATION_PERMISSION.granted) {
+  async requestPermission(): Promise<void> {
+    if (
+      ((Notification as any).permission as NotificationPermission) === 'granted'
+    ) {
       return;
     }
 
-    return new Promise((resolve, reject) => {
-      const managePermissionResult = result => {
-        if (result === NOTIFICATION_PERMISSION.granted) {
+    return new Promise<void>((resolve, reject) => {
+      const managePermissionResult = (result: NotificationPermission) => {
+        if (result === 'granted') {
           return resolve();
-        } else if (result === NOTIFICATION_PERMISSION.denied) {
+        } else if (result === 'denied') {
           return reject(
-            this.errorFactory_.create(Errors.codes.PERMISSION_BLOCKED)
+            this.errorFactory_.create(ERROR_CODES.PERMISSION_BLOCKED)
           );
         } else {
           return reject(
-            this.errorFactory_.create(Errors.codes.PERMISSION_DEFAULT)
+            this.errorFactory_.create(ERROR_CODES.PERMISSION_DEFAULT)
           );
         }
       };
@@ -196,17 +169,17 @@ export default class WindowController extends ControllerInterface
   /**
    * This method allows a developer to override the default service worker and
    * instead use a custom service worker.
-   * @export
-   * @param {!ServiceWorkerRegistration} registration The service worker
-   * registration that should be used to receive the push messages.
+   *
+   * @param registration The service worker registration that should be used to
+   * receive the push messages.
    */
-  useServiceWorker(registration) {
+  useServiceWorker(registration: ServiceWorkerRegistration): void {
     if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw this.errorFactory_.create(Errors.codes.SW_REGISTRATION_EXPECTED);
+      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
-    if (typeof this.registrationToUse_ !== 'undefined') {
-      throw this.errorFactory_.create(Errors.codes.USE_SW_BEFORE_GET_TOKEN);
+    if (this.registrationToUse_ != null) {
+      throw this.errorFactory_.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
     }
 
     this.registrationToUse_ = registration;
@@ -215,26 +188,24 @@ export default class WindowController extends ControllerInterface
   /**
    * This method allows a developer to override the default vapid key
    * and instead use a custom VAPID public key.
-   * @export
-   * @param {!string} publicKey A URL safe base64 encoded string.
+   *
+   * @param publicKey A URL safe base64 encoded string.
    */
-  usePublicVapidKey(publicKey) {
+  usePublicVapidKey(publicKey: string): void {
     if (typeof publicKey !== 'string') {
-      throw this.errorFactory_.create(Errors.codes.INVALID_PUBLIC_VAPID_KEY);
+      throw this.errorFactory_.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
     }
 
-    if (typeof this.publicVapidKeyToUse_ !== 'undefined') {
+    if (this.publicVapidKeyToUse_ != null) {
       throw this.errorFactory_.create(
-        Errors.codes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
+        ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
       );
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
     if (parsedKey.length !== 65) {
-      throw this.errorFactory_.create(
-        Errors.codes.PUBLIC_KEY_DECRYPTION_FAILED
-      );
+      throw this.errorFactory_.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
     }
 
     this.publicVapidKeyToUse_ = parsedKey;
@@ -242,49 +213,61 @@ export default class WindowController extends ControllerInterface
 
   /**
    * @export
-   * @param {!firebase.Observer|function(*)} nextOrObserver An observer object
-   * or a function triggered on message.
-   * @param {function(!Error)=} optError Optional A function triggered on
-   * message error.
-   * @param {function()=} optCompleted Optional function triggered when the
-   * observer is removed.
-   * @return {!function()} The unsubscribe function for the observer.
+   * @param nextOrObserver An observer object or a function triggered on
+   * message.
+   * @param error A function triggered on message error.
+   * @param completed function triggered when the observer is removed.
+   * @return The unsubscribe function for the observer.
    */
-  onMessage(nextOrObserver, optError?, optCompleted?) {
-    return this.onMessage_(nextOrObserver, optError, optCompleted);
+  onMessage(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ): Unsubscribe {
+    if (typeof nextOrObserver === 'function') {
+      return this.onMessage_(nextOrObserver, error, completed);
+    } else {
+      return this.onMessage_(nextOrObserver);
+    }
   }
 
   /**
-   * @export
-   * @param {!firebase.Observer|function()} nextOrObserver An observer object
-   * or a function triggered on token refresh.
-   * @param {function(!Error)=} optError Optional A function
-   * triggered on token refresh error.
-   * @param {function()=} optCompleted Optional function triggered when the
-   * observer is removed.
-   * @return {!function()} The unsubscribe function for the observer.
+   * @param nextOrObserver An observer object or a function triggered on token
+   * refresh.
+   * @param error A function triggered on token refresh error.
+   * @param completed function triggered when the observer is removed.
+   * @return The unsubscribe function for the observer.
    */
-  onTokenRefresh(nextOrObserver, optError, optCompleted) {
-    return this.onTokenRefresh_(nextOrObserver, optError, optCompleted);
+  onTokenRefresh(
+    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    error?: (e: Error) => void,
+    completed?: () => void
+  ): Unsubscribe {
+    if (typeof nextOrObserver === 'function') {
+      return this.onTokenRefresh_(nextOrObserver, error, completed);
+    } else {
+      return this.onTokenRefresh_(nextOrObserver);
+    }
   }
 
   /**
    * Given a registration, wait for the service worker it relates to
    * become activer
-   * @private
-   * @param  {ServiceWorkerRegistration} registration Registration to wait
-   * for service worker to become active
-   * @return {Promise<!ServiceWorkerRegistration>} Wait for service worker
-   * registration to become active
+   * @param registration Registration to wait for service worker to become active
+   * @return Wait for service worker registration to become active
    */
-  waitForRegistrationToActivate_(registration) {
+  // Visible for testing
+  // TODO: Make private
+  waitForRegistrationToActivate_(
+    registration: ServiceWorkerRegistration
+  ): Promise<ServiceWorkerRegistration> {
     const serviceWorker =
       registration.installing || registration.waiting || registration.active;
 
     return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
         // This is a rare scenario but has occured in firefox
-        reject(this.errorFactory_.create(Errors.codes.NO_SW_IN_REG));
+        reject(this.errorFactory_.create(ERROR_CODES.NO_SW_IN_REG));
         return;
       }
       // Because the Promise function is called on next tick there is a
@@ -295,15 +278,15 @@ export default class WindowController extends ControllerInterface
       }
 
       if (serviceWorker.state === 'redundant') {
-        reject(this.errorFactory_.create(Errors.codes.SW_REG_REDUNDANT));
+        reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
         return;
       }
 
-      let stateChangeListener = () => {
+      const stateChangeListener = () => {
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
-          reject(this.errorFactory_.create(Errors.codes.SW_REG_REDUNDANT));
+          reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
         } else {
           // Return early and wait to next state change
           return;
@@ -315,12 +298,10 @@ export default class WindowController extends ControllerInterface
   }
 
   /**
-   * This will regiater the default service worker and return the registration
-   * @private
-   * @return {Promise<!ServiceWorkerRegistration>} The service worker
-   * registration to be used for the push service.
+   * This will register the default service worker and return the registration
+   * @return The service worker registration to be used for the push service.
    */
-  getSWRegistration_() {
+  getSWRegistration_(): Promise<ServiceWorkerRegistration> {
     if (this.registrationToUse_) {
       return this.waitForRegistrationToActivate_(this.registrationToUse_);
     }
@@ -329,19 +310,19 @@ export default class WindowController extends ControllerInterface
     // use a new service worker as registrationToUse_ is no longer undefined
     this.registrationToUse_ = null;
 
-    return navigator.serviceWorker
-      .register(DefaultSW.path, {
-        scope: DefaultSW.scope
+    return (navigator as any).serviceWorker
+      .register(DEFAULT_SW_PATH, {
+        scope: DEFAULT_SW_SCOPE
       })
-      .catch(err => {
+      .catch((err: Error) => {
         throw this.errorFactory_.create(
-          Errors.codes.FAILED_DEFAULT_REGISTRATION,
+          ERROR_CODES.FAILED_DEFAULT_REGISTRATION,
           {
             browserErrorMessage: err.message
           }
         );
       })
-      .then(registration => {
+      .then((registration: ServiceWorkerRegistration) => {
         return this.waitForRegistrationToActivate_(registration).then(() => {
           this.registrationToUse_ = registration;
 
@@ -358,31 +339,30 @@ export default class WindowController extends ControllerInterface
   /**
    * This will return the default VAPID key or the uint8array version of the public VAPID key
    * provided by the developer.
-   * @private
    */
   getPublicVapidKey_(): Promise<Uint8Array> {
     if (this.publicVapidKeyToUse_) {
       return Promise.resolve(this.publicVapidKeyToUse_);
     }
 
-    return Promise.resolve(FCMDetails.DEFAULT_PUBLIC_VAPID_KEY);
+    return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
   }
 
   /**
    * This method will set up a message listener to handle
    * events from the service worker that should trigger
    * events in the page.
-   *
-   * @private
    */
-  setupSWMessageListener_() {
+  // Visible for testing
+  // TODO: Make private
+  setupSWMessageListener_(): void {
     if (!('serviceWorker' in navigator)) {
       return;
     }
 
-    navigator.serviceWorker.addEventListener(
+    (navigator as any).serviceWorker.addEventListener(
       'message',
-      event => {
+      (event: MessageEvent) => {
         if (!event.data || !event.data[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
           // Not a message from FCM
           return;
@@ -409,10 +389,11 @@ export default class WindowController extends ControllerInterface
 
   /**
    * Checks to see if the required API's are valid or not.
-   * @private
-   * @return {boolean} Returns true if the desired APIs are available.
+   * @return Returns true if the desired APIs are available.
    */
-  isSupported_() {
+  // Visible for testing
+  // TODO: Make private
+  isSupported_(): boolean {
     return (
       'serviceWorker' in navigator &&
       'PushManager' in window &&

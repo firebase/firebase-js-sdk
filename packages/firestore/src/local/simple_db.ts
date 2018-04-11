@@ -157,7 +157,7 @@ export class SimpleDb {
     ) as AnyDuringMigration;
   }
 
-  close() {
+  close(): void {
     this.db.close();
   }
 }

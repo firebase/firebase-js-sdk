@@ -96,8 +96,9 @@ function testMutation(
   );
 }
 
-function getAllObjectStores(db: IDBDatabase): String[] {
-  const objectStores: String[] = [];
+
+function getAllObjectStores(db: IDBDatabase): string[] {
+  const objectStores: string[] = [];
   for (let i = 0; i < db.objectStoreNames.length; ++i) {
     objectStores.push(db.objectStoreNames.item(i));
   }

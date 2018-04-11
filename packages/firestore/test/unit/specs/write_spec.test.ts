@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
@@ -687,7 +686,7 @@ describeSpec('Writes:', [], () => {
           modified: [docV2]
         })
         .client(1)
-        .drainQueue()
+        .drainQueue() // Process all local storage events.
         .expectEvents(query, {
           hasPendingWrites: true,
           fromCache: true,
@@ -700,7 +699,7 @@ describeSpec('Writes:', [], () => {
           modified: [docV3]
         })
         .client(0)
-        .drainQueue()
+        .drainQueue() // Process all local storage events.
         .expectEvents(query, {
           hasPendingWrites: true,
           modified: [docV3]
