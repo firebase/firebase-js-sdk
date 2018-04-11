@@ -24,14 +24,13 @@ import {
   Subscribe,
   Unsubscribe
 } from '@firebase/util';
+
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
 import { ERROR_CODES } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import * as WorkerPageMessage from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
-
-declare const firebase: any;
 
 export class WindowController extends ControllerInterface
   implements FirebaseMessaging {
@@ -42,6 +41,7 @@ export class WindowController extends ControllerInterface
   private readonly onMessage_: Subscribe<{}> = createSubscribe(observer => {
     this.messageObserver_ = observer;
   });
+  // @ts-ignore: Unused variable error, this is not implemented yet.
   private tokenRefreshObserver_: Observer<{}, Error> | null = null;
   private readonly onTokenRefresh_: Subscribe<{}> = createSubscribe(
     observer => {

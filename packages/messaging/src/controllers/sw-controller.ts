@@ -15,6 +15,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+
 import { ERROR_CODES } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import * as WorkerPageMessage from '../models/worker-page-message';
@@ -123,7 +124,7 @@ export class SWController extends ControllerInterface {
     }
 
     try {
-      const subscription = await registration.pushManager.getSubscription();
+      await registration.pushManager.getSubscription();
       // TODO: Check if it's still valid. If not, then update token.
     } catch (err) {
       // The best thing we can do is log this to the terminal so
@@ -185,7 +186,6 @@ export class SWController extends ControllerInterface {
     }
 
     // Delete notification data from payload before sending to the page.
-    const notificationData = msgPayload['notification'];
     delete msgPayload['notification'];
 
     const internalMsg = WorkerPageMessage.createNewMsg(
