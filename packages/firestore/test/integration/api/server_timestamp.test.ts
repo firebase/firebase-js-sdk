@@ -18,7 +18,7 @@ import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
 import firebase from '../util/firebase_export';
-import { apiDescribe, DEFAULT_SETTINGS, withTestDoc } from '../util/helpers';
+import { apiDescribe, withTestDoc } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 
 const Timestamp = firebase.firestore.Timestamp;

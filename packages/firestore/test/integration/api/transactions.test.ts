@@ -375,7 +375,7 @@ apiDescribe('Database transactions', persistence => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc1 = db.collection('counters').doc();
       const doc2 = db.collection('counters').doc();
-      let tries = 0;
+      // let tries = 0;
       return (
         doc1
           .set({
@@ -383,7 +383,8 @@ apiDescribe('Database transactions', persistence => {
           })
           .then(() => {
             return db.runTransaction(transaction => {
-              tries++;
+              // ++tries;
+
               // Get the first doc.
               return (
                 transaction

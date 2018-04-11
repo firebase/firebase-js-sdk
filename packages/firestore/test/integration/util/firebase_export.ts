@@ -20,4 +20,6 @@
 // instead.
 
 import firebase from '@firebase/app';
+
+// tslint:disable-next-line:no-default-export
 export default firebase;
