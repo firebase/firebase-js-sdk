@@ -243,7 +243,6 @@ export class SpecBuilder {
     return this;
   }
 
-<<<<<<< HEAD
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();

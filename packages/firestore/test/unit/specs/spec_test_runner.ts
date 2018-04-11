@@ -964,7 +964,7 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets() : void{
+  private validateActiveTargets(): void {
     if (!this.isPrimaryClient) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
