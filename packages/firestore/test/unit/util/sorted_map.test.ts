@@ -19,7 +19,7 @@ import { primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { LLRBNode, SortedMap } from '../../../src/util/sorted_map';
 
-function shuffle(arr: number[]) {
+function shuffle(arr: number[]) : void {
   for (let i = arr.length - 1; i > 0; i--) {
     // Choose a random array index in [0, i] (inclusive with i).
     const j = Math.floor(Math.random() * (i + 1));

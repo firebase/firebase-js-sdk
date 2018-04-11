@@ -638,7 +638,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs) {
+    function verifyMutation(mutation: Mutation, proto: AnyJs) : void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);

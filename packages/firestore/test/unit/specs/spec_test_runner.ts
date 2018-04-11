@@ -167,18 +167,18 @@ class MockConnection implements Connection {
     this.resetAndCloseWriteStream(err);
   }
 
-  private resetAndCloseWriteStream(err?: FirestoreError) {
+  private resetAndCloseWriteStream(err?: FirestoreError) : void {
     this.writeSendBarriers = [];
     this.earlyWrites = [];
     this.writeStream!.callOnClose(err);
     this.writeStream = null;
   }
 
-  failWatchStream(err?: FirestoreError) {
+  failWatchStream(err?: FirestoreError) : void {
     this.resetAndCloseWatchStream(err);
   }
 
-  private resetAndCloseWatchStream(err?: FirestoreError) {
+  private resetAndCloseWatchStream(err?: FirestoreError)  : void{
     this.activeTargets = {};
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
@@ -860,7 +860,7 @@ abstract class TestRunner {
     this.validateActiveTargets();
   }
 
-  private validateLimboDocs() {
+  private validateLimboDocs() : void {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
@@ -883,7 +883,7 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets() {
+  private validateActiveTargets() : void {
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);
     obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
       expect(obj.contains(actualTargets, targetId)).to.equal(

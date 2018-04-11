@@ -260,7 +260,7 @@ describe('Mutation', () => {
     base: MaybeDocument | null,
     mutationResult: MutationResult,
     expected: MaybeDocument | null
-  ) {
+  ) : void {
     const actual = mutation.applyToRemoteDocument(base, mutationResult);
     expect(actual).to.deep.equal(expected);
   }
