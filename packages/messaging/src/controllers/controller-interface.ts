@@ -15,7 +15,9 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseServiceInternals } from '@firebase/app-types/private';
 import { ErrorFactory, NextFn, PartialObserver } from '@firebase/util';
+
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from '../models/errors';
@@ -29,7 +31,7 @@ export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export abstract class ControllerInterface {
   app: FirebaseApp;
-  INTERNAL: any;
+  INTERNAL: FirebaseServiceInternals;
   protected errorFactory_: ErrorFactory<string>;
   private readonly messagingSenderId_: string;
   private readonly tokenDetailsModel_: TokenDetailsModel;
@@ -56,8 +58,9 @@ export abstract class ControllerInterface {
     this.iidModel_ = new IIDModel();
 
     this.app = app;
-    this.INTERNAL = {};
-    this.INTERNAL.delete = () => this.delete();
+    this.INTERNAL = {
+      delete: () => this.delete()
+    };
   }
 
   /**
@@ -306,7 +309,8 @@ export abstract class ControllerInterface {
   // The following methods are used by the service worker only.
   //
 
-  setBackgroundMessageHandler(callback: (a: any) => any): void {
+  // tslint:disable-next-line no-any Defined in child class.
+  setBackgroundMessageHandler(callback: any): void {
     throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
@@ -319,8 +323,8 @@ export abstract class ControllerInterface {
    * This method is required to adhere to the Firebase interface.
    * It closes any currently open indexdb database connections.
    */
-  delete(): Promise<[void, void]> {
-    return Promise.all([
+  async delete(): Promise<void> {
+    await Promise.all([
       this.tokenDetailsModel_.closeDatabase(),
       this.vapidDetailsModel_.closeDatabase()
     ]);
@@ -330,6 +334,9 @@ export abstract class ControllerInterface {
    * Returns the current Notification Permission state.
    */
   getNotificationPermission_(): NotificationPermission {
+    // TODO: Remove the cast when this issue is fixed:
+    // https://github.com/Microsoft/TypeScript/issues/14701
+    // tslint:disable-next-line no-any
     return (Notification as any).permission;
   }
 

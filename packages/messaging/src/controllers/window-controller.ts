@@ -133,6 +133,9 @@ export class WindowController extends ControllerInterface
    */
   async requestPermission(): Promise<void> {
     if (
+      // TODO: Remove the cast when this issue is fixed:
+      // https://github.com/Microsoft/TypeScript/issues/14701
+      // tslint:disable-next-line no-any
       ((Notification as any).permission as NotificationPermission) === 'granted'
     ) {
       return;
@@ -310,7 +313,7 @@ export class WindowController extends ControllerInterface
     // use a new service worker as registrationToUse_ is no longer undefined
     this.registrationToUse_ = null;
 
-    return (navigator as any).serviceWorker
+    return navigator.serviceWorker
       .register(DEFAULT_SW_PATH, {
         scope: DEFAULT_SW_SCOPE
       })
