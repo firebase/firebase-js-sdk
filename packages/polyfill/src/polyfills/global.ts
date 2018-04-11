@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-import { global } from './global';
+const __global = (() => {
+  if (typeof global !== 'undefined') {
+    return global;
+  }
+  if (typeof window !== 'undefined') {
+    return window;
+  }
+  if (typeof self !== 'undefined') {
+    return self;
+  }
+  throw new Error('unable to locate global object');
+})();
 
-// Polyfill Promise
-if (typeof Promise === 'undefined') {
-  // HACK: TS throws an error if I attempt to use 'dot-notation'
-  global['Promise'] = require('promise-polyfill') as PromiseConstructor;
-}
+export const global = __global;
