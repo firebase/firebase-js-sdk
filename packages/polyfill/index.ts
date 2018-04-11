@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
-import './src/polyfills/promise';
-import './src/shims/Array';
-import './src/shims/String';
+// Fetch
+import 'whatwg-fetch';
+
+// DOM
+import 'core-js/web';
+
+// ES6
+import 'core-js/es6';
