@@ -39,7 +39,7 @@ describe('DocumentChange:', () => {
     query: Query,
     initialDocs: Document[],
     updates: Array<Document | DocumentKey>
-  ) : void {
+  ): void {
     const view = new View(query, documentKeySet());
     const initialSnapshot = applyDocChanges(view, ...initialDocs).snapshot!;
     const updatedSnapshot = applyDocChanges(view, ...updates).snapshot;

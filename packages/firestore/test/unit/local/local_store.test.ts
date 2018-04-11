@@ -270,7 +270,9 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
-function genericLocalStoreTests(getPersistence: () => Promise<Persistence>) : void {
+function genericLocalStoreTests(
+  getPersistence: () => Promise<Persistence>
+): void {
   let persistence: Persistence;
   let localStore: LocalStore;
 

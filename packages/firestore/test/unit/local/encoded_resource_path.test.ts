@@ -197,7 +197,7 @@ function runTransaction<T>(
     store: SimpleDbStore<string, boolean>,
     transaction: SimpleDbTransaction
   ) => PersistencePromise<T>
-) : Promise<T> {
+): Promise<T> {
   return db.runTransaction<T>('readwrite', ['test'], txn => {
     return fn(txn.store<string, boolean>('test'), txn);
   });

@@ -120,7 +120,7 @@ describe('IndexedDbMutationQueue', () => {
  * Defines the set of tests to run against both mutation queue
  * implementations.
  */
-function genericMutationQueueTests() : void {
+function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
   beforeEach(() => {

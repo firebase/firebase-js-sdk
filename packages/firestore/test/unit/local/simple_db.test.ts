@@ -55,12 +55,12 @@ describe('SimpleDb', () => {
   let db: SimpleDb;
 
   // helper to reduce test boilerplate.
-  function runTransaction<T> (
+  function runTransaction<T>(
     fn: (
       store: SimpleDbStore<number, User>,
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
-  ) : Promise<T> {
+  ): Promise<T> {
     return db.runTransaction<T>('readwrite', ['users'], txn => {
       return fn(txn.store<number, User>('users'), txn);
     });
