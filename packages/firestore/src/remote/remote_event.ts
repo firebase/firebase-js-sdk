@@ -47,11 +47,11 @@ export class RemoteEvent {
     public documentUpdates: MaybeDocumentMap
   ) {}
 
-  addDocumentUpdate(doc: MaybeDocument) {
+  addDocumentUpdate(doc: MaybeDocument): void {
     this.documentUpdates = this.documentUpdates.insert(doc.key, doc);
   }
 
-  handleExistenceFilterMismatch(targetId: TargetId) {
+  handleExistenceFilterMismatch(targetId: TargetId): void {
     /*
      * An existence filter mismatch will reset the query and we need to reset
      * the mapping to contain no documents and an empty resume token.
@@ -131,11 +131,11 @@ export class ResetMapping {
     return this.docs;
   }
 
-  add(key: DocumentKey) {
+  add(key: DocumentKey): void {
     this.docs = this.docs.add(key);
   }
 
-  delete(key: DocumentKey) {
+  delete(key: DocumentKey): void {
     this.docs = this.docs.delete(key);
   }
 
@@ -155,12 +155,12 @@ export class UpdateMapping {
     return result;
   }
 
-  add(key: DocumentKey) {
+  add(key: DocumentKey): void {
     this.addedDocuments = this.addedDocuments.add(key);
     this.removedDocuments = this.removedDocuments.delete(key);
   }
 
-  delete(key: DocumentKey) {
+  delete(key: DocumentKey): void {
     this.addedDocuments = this.addedDocuments.delete(key);
     this.removedDocuments = this.removedDocuments.add(key);
   }

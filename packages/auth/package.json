@@ -40,6 +40,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
   },
   "peerDependencies": {
-    "@firebase/app": "^0.1.0"
+    "@firebase/app": "0.x"
   }
 }
