@@ -360,7 +360,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * Applies an OnlineState change to the sync engine and notifies any views of
    * the change.
    */
-  applyOnlineStateChange(onlineState: OnlineState) {
+  applyOnlineStateChange(onlineState: OnlineState): void {
     const newViewSnapshots = [] as ViewSnapshot[];
     this.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);

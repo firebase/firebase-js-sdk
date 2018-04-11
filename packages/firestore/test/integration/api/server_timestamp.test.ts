@@ -18,8 +18,11 @@ import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
 import firebase from '../util/firebase_export';
-import { apiDescribe, DEFAULT_SETTINGS, withTestDoc } from '../util/helpers';
+import { apiDescribe, withTestDoc } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
+
+// tslint:disable-next-line:no-any Allow custom types for testing.
+type AnyTestData = any;
 
 const Timestamp = firebase.firestore.Timestamp;
 
@@ -49,7 +52,7 @@ apiDescribe('Server Timestamps', persistence => {
   let listenerRegistration: () => void;
 
   // Returns the expected data, with an arbitrary timestamp substituted in.
-  function expectedDataWithTimestamp(timestamp: object | null) {
+  function expectedDataWithTimestamp(timestamp: object | null): AnyTestData {
     return { a: 42, when: timestamp, deep: { when: timestamp } };
   }
 

@@ -25,7 +25,7 @@ import {
 import { primitiveComparator } from '../util/misc';
 
 /** Helper function to assert Uint8Array is available at runtime. */
-function assertUint8ArrayAvailable() {
+function assertUint8ArrayAvailable(): void {
   if (typeof Uint8Array === 'undefined') {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,
@@ -35,7 +35,7 @@ function assertUint8ArrayAvailable() {
 }
 
 /** Helper function to assert Base64 functions are available at runtime. */
-function assertBase64Available() {
+function assertBase64Available(): void {
   if (!PlatformSupport.getPlatform().base64Available) {
     throw new FirestoreError(
       Code.UNIMPLEMENTED,

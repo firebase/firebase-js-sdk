@@ -36,7 +36,7 @@ export class Transaction {
 
   constructor(private datastore: Datastore) {}
 
-  private recordVersion(doc: MaybeDocument) {
+  private recordVersion(doc: MaybeDocument): void {
     let docVersion = doc.version;
     if (doc instanceof NoDocument) {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
@@ -73,7 +73,7 @@ export class Transaction {
     });
   }
 
-  private write(mutations: Mutation[]) {
+  private write(mutations: Mutation[]): void {
     if (this.committed) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -117,15 +117,15 @@ export class Transaction {
     }
   }
 
-  set(key: DocumentKey, data: ParsedSetData) {
+  set(key: DocumentKey, data: ParsedSetData): void {
     this.write(data.toMutations(key, this.precondition(key)));
   }
 
-  update(key: DocumentKey, data: ParsedUpdateData) {
+  update(key: DocumentKey, data: ParsedUpdateData): void {
     this.write(data.toMutations(key, this.preconditionForUpdate(key)));
   }
 
-  delete(key: DocumentKey) {
+  delete(key: DocumentKey): void {
     this.write([new DeleteMutation(key, this.precondition(key))]);
     // Since the delete will be applied before all following writes, we need to
     // ensure that the precondition for the next write will be exists: false.
