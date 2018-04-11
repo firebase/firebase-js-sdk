@@ -60,7 +60,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests() {
+function genericRemoteDocumentCacheTests(): void {
   // Helpers for use throughout tests.
   const DOC_PATH = 'a/b';
   const LONG_DOC_PATH = 'a/b/c/d/e/f';

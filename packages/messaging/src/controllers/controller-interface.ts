@@ -15,14 +15,8 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  createSubscribe,
-  ErrorFactory,
-  NextFn,
-  Observer,
-  PartialObserver
-} from '@firebase/util';
-import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { ErrorFactory, NextFn, PartialObserver } from '@firebase/util';
+import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from '../models/errors';
 import { IIDModel } from '../models/iid-model';
@@ -128,7 +122,7 @@ export abstract class ControllerInterface {
     );
     if (isTokenValid) {
       const now = Date.now();
-      if (now < tokenDetails.createTime! + TOKEN_EXPIRATION_MILLIS) {
+      if (now < tokenDetails.createTime + TOKEN_EXPIRATION_MILLIS) {
         return tokenDetails.fcmToken;
       } else {
         return this.updateToken(
@@ -166,10 +160,13 @@ export abstract class ControllerInterface {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        subscription: pushSubscription,
         fcmSenderId: this.messagingSenderId_,
         fcmToken: updatedToken,
-        fcmPushSet: tokenDetails.fcmPushSet
+        fcmPushSet: tokenDetails.fcmPushSet,
+        createTime: Date.now(),
+        endpoint: pushSubscription.endpoint,
+        auth: pushSubscription.getKey('auth')!,
+        p256dh: pushSubscription.getKey('p256dh')!
       };
 
       await this.tokenDetailsModel_.saveTokenDetails(allDetails);
@@ -197,10 +194,13 @@ export abstract class ControllerInterface {
     const allDetails: TokenDetails = {
       swScope: swReg.scope,
       vapidKey: publicVapidKey,
-      subscription: pushSubscription,
       fcmSenderId: this.messagingSenderId_,
       fcmToken: tokenDetails.token,
-      fcmPushSet: tokenDetails.pushSet
+      fcmPushSet: tokenDetails.pushSet,
+      createTime: Date.now(),
+      endpoint: pushSubscription.endpoint,
+      auth: pushSubscription.getKey('auth')!,
+      p256dh: pushSubscription.getKey('p256dh')!
     };
     await this.tokenDetailsModel_.saveTokenDetails(allDetails);
     await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
@@ -328,8 +328,6 @@ export abstract class ControllerInterface {
 
   /**
    * Returns the current Notification Permission state.
-   * @private
-   * @return {string} The currenct permission state.
    */
   getNotificationPermission_(): NotificationPermission {
     return (Notification as any).permission;
@@ -359,17 +357,21 @@ function isTokenStillValid(
   publicVapidKey: Uint8Array,
   tokenDetails: TokenDetails
 ): boolean {
-  if (arrayBufferToBase64(publicVapidKey) !== tokenDetails.vapidKey) {
+  if (
+    !isArrayBufferEqual(publicVapidKey.buffer, tokenDetails.vapidKey.buffer)
+  ) {
     return false;
   }
 
-  // getKey() isn't defined in the PushSubscription externs file, hence
-  // subscription.getKey('<key name>').
-  return (
-    pushSubscription.endpoint === tokenDetails.endpoint &&
-    arrayBufferToBase64(pushSubscription.getKey('auth')!) ===
-      tokenDetails.auth &&
-    arrayBufferToBase64(pushSubscription.getKey('p256dh')!) ===
-      tokenDetails.p256dh
+  const isEndpointEqual = pushSubscription.endpoint === tokenDetails.endpoint;
+  const isAuthEqual = isArrayBufferEqual(
+    pushSubscription.getKey('auth'),
+    tokenDetails.auth
   );
+  const isP256dhEqual = isArrayBufferEqual(
+    pushSubscription.getKey('p256dh'),
+    tokenDetails.p256dh
+  );
+
+  return isEndpointEqual && isAuthEqual && isP256dhEqual;
 }

@@ -5,16 +5,13 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "tsc"
+    "test": "echo 'Types package, skipping tests'"
   },
   "files": [
     "index.d.ts"
   ],
   "peerDependencies": {
-    "@firebase/app-types": "^0.1.0"
-  },
-  "devDependencies": {
-    "typescript": "^2.7.2"
+    "@firebase/app-types": "0.x"
   },
   "repository": {
     "type": "git",

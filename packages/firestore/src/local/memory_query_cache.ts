@@ -68,7 +68,7 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  private saveQueryData(queryData: QueryData) {
+  private saveQueryData(queryData: QueryData): void {
     this.queries.set(queryData.query, queryData);
     const targetId = queryData.targetId;
     if (targetId > this.highestTargetId) {

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { base64, ErrorFactory } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
-import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
@@ -33,6 +32,10 @@ export interface IIDDetails {
   pushSet: string;
 }
 // tslint:enable interface-name
+
+interface ApiResponse extends Partial<IIDDetails> {
+  error?: { message: string };
+}
 
 export class IIDModel {
   private readonly errorFactory_: ErrorFactory<string>;
@@ -69,7 +72,7 @@ export class IIDModel {
       body: fcmSubscribeBody
     };
 
-    let responseData: any = null;
+    let responseData: ApiResponse;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -81,24 +84,24 @@ export class IIDModel {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
 
-    if (responseData['error']) {
-      const message = responseData['error']['message'];
+    if (responseData.error) {
+      const message = responseData.error.message;
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
         message: message
       });
     }
 
-    if (!responseData['token']) {
+    if (!responseData.token) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
     }
 
-    if (!responseData['pushSet']) {
+    if (!responseData.pushSet) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
     }
 
     return {
-      token: responseData['token'],
-      pushSet: responseData['pushSet']
+      token: responseData.token,
+      pushSet: responseData.pushSet
     };
   }
 
@@ -137,7 +140,7 @@ export class IIDModel {
       body: fcmUpdateBody
     };
 
-    let responseData: any = null;
+    let responseData: ApiResponse;
     try {
       const response = await fetch(
         ENDPOINT + '/fcm/connect/subscribe',
@@ -148,18 +151,18 @@ export class IIDModel {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
 
-    if (responseData['error']) {
-      const message = responseData['error']['message'];
+    if (responseData.error) {
+      const message = responseData.error.message;
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
         message: message
       });
     }
 
-    if (!responseData['token']) {
+    if (!responseData.token) {
       throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
     }
 
-    return responseData['token'];
+    return responseData.token;
   }
 
   /**
@@ -189,9 +192,9 @@ export class IIDModel {
         ENDPOINT + '/fcm/connect/unsubscribe',
         unsubscribeOptions
       );
-      const responseData = await response.json();
-      if (responseData['error']) {
-        const message = responseData['error']['message'];
+      const responseData: ApiResponse = await response.json();
+      if (responseData.error) {
+        const message = responseData.error.message;
         throw this.errorFactory_.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED, {
           message: message
         });

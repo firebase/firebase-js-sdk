@@ -20,12 +20,7 @@ import * as firestore from '@firebase/firestore-types';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
-import {
-  apiDescribe,
-  toDataArray,
-  withTestCollection,
-  withTestDbs
-} from '../util/helpers';
+import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 
 const Timestamp = firebase.firestore.Timestamp;

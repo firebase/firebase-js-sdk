@@ -80,7 +80,7 @@ export function lookupOrInsert<V>(
   return obj[key];
 }
 
-export function isEmpty<V>(obj: Dict<V>) {
+export function isEmpty<V>(obj: Dict<V>): boolean {
   assert(
     obj != null && typeof obj === 'object',
     'isEmpty() expects object parameter.'

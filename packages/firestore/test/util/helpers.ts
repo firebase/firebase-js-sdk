@@ -207,7 +207,7 @@ export function deleteMutation(keyStr: string): DeleteMutation {
 export function transformMutation(
   keyStr: string,
   serverTimestampFields: string[]
-) {
+): TransformMutation {
   return new TransformMutation(
     key(keyStr),
     serverTimestampFields.map(

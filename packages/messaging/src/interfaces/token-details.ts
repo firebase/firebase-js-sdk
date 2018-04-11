@@ -17,13 +17,11 @@
 export interface TokenDetails {
   fcmToken: string;
   swScope: string;
-  vapidKey: string | Uint8Array;
-  subscription: PushSubscription;
+  vapidKey: Uint8Array;
   fcmSenderId: string;
   fcmPushSet: string;
-
-  createTime?: number;
-  endpoint?: string;
-  auth?: string;
-  p256dh?: string;
+  endpoint: string;
+  auth: ArrayBuffer;
+  p256dh: ArrayBuffer;
+  createTime: number;
 }
