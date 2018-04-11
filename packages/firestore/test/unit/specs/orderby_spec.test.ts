@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { doc, orderBy, path } from '../../util/helpers';
 
