@@ -16,7 +16,7 @@
 
 import { ErrorFactory } from '@firebase/util';
 
-import { ERROR_CODES, ERROR_MAP } from './errors';
+import { ERROR_MAP } from './errors';
 
 export abstract class DBInterface {
   private dbPromise: Promise<IDBDatabase> | null = null;

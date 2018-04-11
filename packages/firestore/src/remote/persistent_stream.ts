@@ -284,7 +284,7 @@ export abstract class PersistentStream<
   }
 
   /** Marks the stream as active again. */
-  private cancelIdleCheck() {
+  private cancelIdleCheck(): void {
     if (this.inactivityTimerPromise) {
       this.inactivityTimerPromise.cancel();
       this.inactivityTimerPromise = null;
@@ -663,7 +663,7 @@ export class PersistentWriteStream extends PersistentStream<
     super.start(listener);
   }
 
-  protected tearDown() {
+  protected tearDown(): void {
     if (this.handshakeComplete_) {
       this.writeMutations([]);
     }

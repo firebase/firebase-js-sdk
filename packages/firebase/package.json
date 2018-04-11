@@ -18,10 +18,9 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "dev": "run-p watch:compiler watch:server",
-    "watch:compiler": "gulp watch",
-    "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
-    "prepare": "gulp build"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "prepare": "npm run build"
   },
   "main": "index.node.js",
   "browser": "index.js",
@@ -39,16 +38,10 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
-    "compression-webpack-plugin": "^1.1.7",
-    "git-rev-sync": "^1.10.0",
-    "gulp": "^4.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-sourcemaps": "^2.6.4",
-    "npm-run-all": "^4.1.1",
-    "webpack": "^3.11.0",
-    "webpack-dev-server": "^2.11.1",
-    "webpack-stream": "^4.0.2",
-    "wrapper-webpack-plugin": "^1.0.0"
+    "rollup": "^0.57.1",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-uglify": "^3.0.0"
   },
   "typings": "index.d.ts"
 }

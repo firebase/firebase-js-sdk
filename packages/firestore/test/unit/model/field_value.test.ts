@@ -23,7 +23,6 @@ import {
   blob,
   dbId,
   expectCorrectComparisonGroups,
-  expectCorrectComparisons,
   expectEqualitySets,
   field,
   key,

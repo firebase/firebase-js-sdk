@@ -36,7 +36,7 @@ export abstract class Path {
    * We need this so that we can have a non-static construct method that returns
    * the polymorphic `this` type.
    */
-  private init(segments: string[], offset?: number, length?: number) {
+  private init(segments: string[], offset?: number, length?: number): void {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
@@ -217,7 +217,7 @@ export class FieldPath extends Path {
    * Returns true if the string could be used as a segment in a field path
    * without escaping.
    */
-  private static isValidIdentifier(segment: string) {
+  private static isValidIdentifier(segment: string): boolean {
     return identifierRegExp.test(segment);
   }
 

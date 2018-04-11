@@ -15,16 +15,16 @@
  */
 
 export const fetchMock = {
-  jsonOk(body: string): Promise<Response> {
+  async jsonOk(body: string): Promise<Response> {
     const mockResponse = new (window as any).Response(body, {
       status: 200,
       headers: {
         'Content-type': 'application/json'
       }
     });
-    return Promise.resolve(mockResponse);
+    return mockResponse;
   },
-  jsonError(status: number, msg: string): Promise<Response> {
+  async jsonError(status: number, msg: string): Promise<Response> {
     const errorMsg = { error: { message: msg } };
     const mockResponse = new (window as any).Response(
       JSON.stringify(errorMsg),
@@ -35,15 +35,15 @@ export const fetchMock = {
         }
       }
     );
-    return Promise.resolve(mockResponse);
+    return mockResponse;
   },
-  htmlError(status: number, msg: string): Promise<Response> {
+  async htmlError(status: number, msg: string): Promise<Response> {
     const mockResponse = new (window as any).Response(msg, {
       status: status,
       headers: {
         'Content-type': 'text/html'
       }
     });
-    return Promise.resolve(mockResponse);
+    return mockResponse;
   }
 };

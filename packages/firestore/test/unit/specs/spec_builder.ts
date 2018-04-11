@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
@@ -74,7 +73,7 @@ export class ClientMemoryState {
     this.reset();
   }
 
-  reset() {
+  reset(): void {
     this.queryMapping = {};
     this.limboMapping = {};
     this.activeTargets = {};
@@ -184,7 +183,7 @@ export class SpecBuilder {
    * stream disconnect.
    */
   restoreListen(query: Query, resumeToken: string): this {
-    let targetId = this.queryMapping[query.canonicalId()];
+    const targetId = this.queryMapping[query.canonicalId()];
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
@@ -192,7 +191,7 @@ export class SpecBuilder {
 
     this.activeTargets[targetId] = {
       query: SpecBuilder.queryToSpec(query),
-      resumeToken: resumeToken
+      resumeToken
     };
 
     const currentStep = this.currentStep!;
@@ -783,7 +782,7 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     return this;
   }
 
-  protected nextStep() {
+  protected nextStep(): void {
     if (this.currentStep !== null) {
       this.currentStep.clientIndex = this.activeClientIndex;
     }
