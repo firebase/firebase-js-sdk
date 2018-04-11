@@ -245,15 +245,3 @@ export class TokenDetailsModel extends DBInterface {
     return details;
   }
 }
-
-/** Promisifies an IDBRequest. Resolves with the IDBRequest's result. */
-function promisify<ReturnType>(request: IDBRequest): Promise<ReturnType> {
-  return new Promise<ReturnType>((resolve, reject) => {
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-    request.onerror = () => {
-      reject(request.error);
-    };
-  });
-}
