@@ -164,7 +164,7 @@ apiDescribe('Server Timestamps', persistence => {
    * up when done.
    */
   function withTestSetup(test: () => Promise<void>): Promise<void> {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, null, doc => {
       // Set variables for use during test.
       docRef = doc;
 

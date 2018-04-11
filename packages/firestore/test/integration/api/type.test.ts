@@ -49,39 +49,27 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('can read and write geo point fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({ geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const latLong = docSnapshot.data()['geopoint'];
-          expect(latLong instanceof firebase.firestore.GeoPoint).to.equal(true);
-          expect(latLong.latitude).to.equal(1.23);
-          expect(latLong.longitude).to.equal(4.56);
-        });
+    const data = { geopoint: new firebase.firestore.GeoPoint(1.23, 4.56) };
+    return withTestDoc(persistence, data, doc => {
+      return doc.get().then(docSnapshot => {
+        const latLong = docSnapshot.data()['geopoint'];
+        expect(latLong instanceof firebase.firestore.GeoPoint).to.equal(true);
+        expect(latLong.latitude).to.equal(1.23);
+        expect(latLong.longitude).to.equal(4.56);
+      });
     });
   });
 
   it('can read and write bytes fields', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set({
-          bytes: firebase.firestore.Blob.fromUint8Array(
-            new Uint8Array([0, 1, 255])
-          )
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(docSnapshot => {
-          const blob = docSnapshot.data()['bytes'];
-          expect(blob instanceof firebase.firestore.Blob).to.equal(true);
-          expect(blob.toUint8Array()).to.deep.equal(
-            new Uint8Array([0, 1, 255])
-          );
-        });
+    const data = {
+      bytes: firebase.firestore.Blob.fromUint8Array(new Uint8Array([0, 1, 255]))
+    };
+    return withTestDoc(persistence, data, doc => {
+      return doc.get().then(docSnapshot => {
+        const blob = docSnapshot.data()['bytes'];
+        expect(blob instanceof firebase.firestore.Blob).to.equal(true);
+        expect(blob.toUint8Array()).to.deep.equal(new Uint8Array([0, 1, 255]));
+      });
     });
   });
 
@@ -110,13 +98,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('can read and write document references', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, null, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
     });
   });
 
   it('can read and write document references in an array', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, null, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
     });
   });

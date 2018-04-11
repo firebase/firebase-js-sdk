@@ -18,14 +18,14 @@ import { expect } from 'chai';
 import {
   apiDescribe,
   toDataMap,
-  withTestDocAndInitialData,
+  withTestDoc,
   withTestCollection
 } from '../util/helpers';
 
 apiDescribe('GetOptions', persistence => {
   it('get document while online with default get options', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       return docRef.get().then(doc => {
         expect(doc.exists).to.be.true;
         expect(doc.metadata.fromCache).to.be.false;
@@ -53,7 +53,7 @@ apiDescribe('GetOptions', persistence => {
 
   it('get document while offline with default get options', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       // Register a snapshot to force the data to stay in the cache and not be
       // garbage collected.
       docRef.onSnapshot(() => {});
@@ -107,7 +107,7 @@ apiDescribe('GetOptions', persistence => {
 
   it('get document while online with source=cache', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       // Register a snapshot to force the data to stay in the cache and not be
       // garbage collected.
       docRef.onSnapshot(() => {});
@@ -148,7 +148,7 @@ apiDescribe('GetOptions', persistence => {
   it('get document while offline with source=cache', () => {
     const initialData = { key: 'value' };
 
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       // Register a snapshot to force the data to stay in the cache and not be
       // garbage collected.
       docRef.onSnapshot(() => {});
@@ -202,7 +202,7 @@ apiDescribe('GetOptions', persistence => {
 
   it('get document while online with source=server', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       return docRef.get({ source: 'server' }).then(doc => {
         expect(doc.exists).to.be.true;
         expect(doc.metadata.fromCache).to.be.false;
@@ -230,7 +230,7 @@ apiDescribe('GetOptions', persistence => {
 
   it('get document while offline with source=server', () => {
     const initialData = { key: 'value' };
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       return docRef
         .get({ source: 'server' })
         .then(ignored => {})
@@ -273,7 +273,7 @@ apiDescribe('GetOptions', persistence => {
   it('get document while offline with different get options', () => {
     const initialData = { key: 'value' };
 
-    return withTestDocAndInitialData(persistence, initialData, docRef => {
+    return withTestDoc(persistence, initialData, docRef => {
       // Register a snapshot to force the data to stay in the cache and not be
       // garbage collected.
       docRef.onSnapshot(() => {});
@@ -395,7 +395,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with default get options', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return docRef.get().then(doc => {
         expect(doc.exists).to.be.false;
         expect(doc.metadata.fromCache).to.be.false;
@@ -417,7 +417,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with default get options', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return docRef.firestore
         .disableNetwork()
         .then(() => docRef.get())
@@ -445,7 +445,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with source=cache', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       // attempt to get doc. Currently, this is expected to fail. In the
       // future, we might consider adding support for negative cache hits so
       // that we know certain documents *don't* exist.
@@ -470,7 +470,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with source=cache', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return (
         docRef.firestore
           .disableNetwork()
@@ -503,7 +503,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with source=server', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return docRef.get({ source: 'server' }).then(doc => {
         expect(doc.exists).to.be.false;
         expect(doc.metadata.fromCache).to.be.false;
@@ -524,7 +524,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with source=server', () => {
-    return withTestDocAndInitialData(persistence, null, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return (
         docRef.firestore
           .disableNetwork()

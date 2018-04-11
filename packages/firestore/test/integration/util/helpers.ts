@@ -200,20 +200,6 @@ export function withTestDbsSettings(
 
 export function withTestDoc(
   persistence: boolean,
-  fn: (doc: firestore.DocumentReference) => Promise<void>
-): Promise<void> {
-  return withTestDb(persistence, db => {
-    return fn(db.collection('test-collection').doc());
-  });
-}
-
-// TODO(rsgowman): Modify withTestDoc to take in (an optional) initialData and
-// fix existing usages of it. Then delete this function. This makes withTestDoc
-// more analogous to withTestCollection and eliminates the pattern of
-// `withTestDoc(..., docRef => { docRef.set(initialData) ...});` that otherwise is
-// quite common.
-export function withTestDocAndInitialData(
-  persistence: boolean,
   initialData: firestore.DocumentData | null,
   fn: (doc: firestore.DocumentReference) => Promise<void>
 ): Promise<void> {

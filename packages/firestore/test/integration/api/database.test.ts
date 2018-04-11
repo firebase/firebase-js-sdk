@@ -31,7 +31,7 @@ const Timestamp = firebase.firestore.Timestamp;
 
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       return docRef.set({
         desc: 'Stuff related to Firestore project...',
         owner: {
@@ -51,12 +51,9 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete a document', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, { foo: 'bar' }, docRef => {
       return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return docRef.get();
-        })
+        .get()
         .then(doc => {
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
           return docRef.delete();
@@ -71,11 +68,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can update existing document', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const updateData = {
         desc: 'NewDescription',
         'owner.email': 'new@xyz.com'
@@ -85,8 +82,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny', email: 'new@xyz.com' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
+        .update(updateData)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -96,7 +92,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can retrieve document that does not exist', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, null, doc => {
       return doc.get().then(snapshot => {
         expect(snapshot.exists).to.equal(false);
         expect(snapshot.data()).to.equal(undefined);
@@ -106,11 +102,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can merge data with an existing document using set', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'description',
-        'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'description',
+      'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         updated: true,
         'owner.data': { name: 'Sebastian' }
@@ -121,8 +117,7 @@ apiDescribe('Database', persistence => {
         'owner.data': { name: 'Sebastian', email: 'abc@xyz.com' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -132,16 +127,15 @@ apiDescribe('Database', persistence => {
   });
 
   it('can merge server timestamps', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        updated: false
-      };
+    const initialData = {
+      updated: false
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         time: firebase.firestore.FieldValue.serverTimestamp()
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -152,12 +146,12 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete field using merge', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        untouched: true,
-        foo: 'bar',
-        nested: { untouched: true, foo: 'bar' }
-      };
+    const initialData = {
+      untouched: true,
+      foo: 'bar',
+      nested: { untouched: true, foo: 'bar' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         foo: firebase.firestore.FieldValue.delete(),
         nested: { foo: firebase.firestore.FieldValue.delete() }
@@ -167,8 +161,7 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -178,13 +171,13 @@ apiDescribe('Database', persistence => {
   });
 
   it('can replace an array by merging using set', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        untouched: true,
-        data: 'old',
-        topLevel: ['old', 'old'],
-        mapInArray: [{ data: 'old' }]
-      };
+    const initialData = {
+      untouched: true,
+      data: 'old',
+      topLevel: ['old', 'old'],
+      mapInArray: [{ data: 'old' }]
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         data: 'new',
         topLevel: ['new'],
@@ -197,8 +190,7 @@ apiDescribe('Database', persistence => {
         mapInArray: [{ data: 'new' }]
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -208,7 +200,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('cannot update nonexistent document', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, null, doc => {
       return doc
         .update({ owner: 'abc' })
         .then(
@@ -229,11 +221,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete a field with an update', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const updateData = {
         'owner.email': firebase.firestore.FieldValue.delete()
       };
@@ -242,8 +234,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
+        .update(updateData)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -255,22 +246,19 @@ apiDescribe('Database', persistence => {
   it('can update nested fields', () => {
     const FieldPath = firebase.firestore.FieldPath;
 
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny' },
-        'is.admin': false
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const finalData = {
         desc: 'Description',
         owner: { name: 'Sebastian' },
         'is.admin': true
       };
       return doc
-        .set(initialData)
-        .then(() =>
-          doc.update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
-        )
+        .update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -283,7 +271,7 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
-        return withTestDoc(persistence, async doc => {
+        return withTestDoc(persistence, null, async doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
@@ -366,7 +354,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('Local document events are fired with hasLocalChanges=true.', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       let gotLocalDocEvent = false;
       const remoteDocEventDeferred = new Deferred();
       const unlisten = docRef.onSnapshot(
@@ -392,7 +380,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('Metadata only changes are not fired when no options provided', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       const secondUpdateFound = new Deferred();
       let count = 0;
       const unlisten = docRef.onSnapshot(doc => {
@@ -579,7 +567,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can queue writes while offline', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       const firestore = docRef.firestore;
 
       return firestore
@@ -598,7 +586,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can get documents while offline', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, null, docRef => {
       const firestore = docRef.firestore;
 
       return firestore.disableNetwork().then(() => {

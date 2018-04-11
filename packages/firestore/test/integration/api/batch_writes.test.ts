@@ -32,7 +32,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can set documents', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
+    return integrationHelpers.withTestDoc(persistence, null, doc => {
       return doc.firestore
         .batch()
         .set(doc, { foo: 'bar' })
@@ -46,7 +46,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can set documents with merge', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
+    return integrationHelpers.withTestDoc(persistence, null, doc => {
       return doc.firestore
         .batch()
         .set(doc, { a: 'b', nested: { a: 'b' } }, { merge: true })
@@ -70,15 +70,11 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can update documents', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
-      return doc
-        .set({ foo: 'bar' })
-        .then(() =>
-          doc.firestore
-            .batch()
-            .update(doc, { baz: 42 })
-            .commit()
-        )
+    return integrationHelpers.withTestDoc(persistence, { foo: 'bar' }, doc => {
+      return doc.firestore
+        .batch()
+        .update(doc, { baz: 42 })
+        .commit()
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
@@ -88,10 +84,9 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can delete documents', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
+    return integrationHelpers.withTestDoc(persistence, { foo: 'bar' }, doc => {
       return doc
-        .set({ foo: 'bar' })
-        .then(() => doc.get())
+        .get()
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
         })
@@ -273,7 +268,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can write the same document multiple times', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
+    return integrationHelpers.withTestDoc(persistence, null, doc => {
       const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
       const unsubscribe = doc.onSnapshot(
         { includeMetadataChanges: true },
