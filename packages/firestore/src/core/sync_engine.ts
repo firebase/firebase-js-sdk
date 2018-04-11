@@ -424,9 +424,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-    const mutationBatchResult = await this.localStore.lookupLocalWrite(
-      batchId
-    );
+    const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
 
     if (!mutationBatchResult) {
       log.error(LOG_TAG, 'Unable to find mutation batch: ' + batchId);

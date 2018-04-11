@@ -332,7 +332,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
 class OutstandingWriteTracker {
   private mutations: Mutation[][] = [];
 
-  push(mutation: Mutation[]) : void {
+  push(mutation: Mutation[]): void {
     this.mutations.push(mutation);
   }
 
@@ -379,7 +379,11 @@ abstract class TestRunner {
   private started = false;
   private serializer: JsonProtoSerializer;
 
-  constructor(protected readonly platform: TestPlatform, private outstandingWrites: OutstandingWriteTracker, config: SpecConfig) {
+  constructor(
+    protected readonly platform: TestPlatform,
+    private outstandingWrites: OutstandingWriteTracker,
+    config: SpecConfig
+  ) {
     this.clientId = AutoId.newId();
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
@@ -1404,9 +1408,17 @@ export async function runSpec(
         sharedMockStorage
       );
       if (usePersistence) {
-        runners[clientIndex] = new IndexedDbTestRunner(platform, mutationQueue, config);
+        runners[clientIndex] = new IndexedDbTestRunner(
+          platform,
+          mutationQueue,
+          config
+        );
       } else {
-        runners[clientIndex] = new MemoryTestRunner(platform, mutationQueue, config);
+        runners[clientIndex] = new MemoryTestRunner(
+          platform,
+          mutationQueue,
+          config
+        );
       }
       await runners[clientIndex].start();
     }
