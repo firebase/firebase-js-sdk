@@ -25,6 +25,6 @@ export enum MessageType {
 }
 
 export interface InternalMessage {
-  [MessageParameter.TYPE_OF_MSG]: MessageType,
-  [MessageParameter.DATA]: any // tslint:disable-line no-any ¯\_(ツ)_/¯
+  [MessageParameter.TYPE_OF_MSG]: MessageType;
+  [MessageParameter.DATA]: any; // tslint:disable-line no-any ¯\_(ツ)_/¯
 }
