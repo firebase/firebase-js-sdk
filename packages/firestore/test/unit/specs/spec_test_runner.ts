@@ -1191,7 +1191,7 @@ export async function runSpec(
   const platform = new TestPlatform(PlatformSupport.getPlatform());
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
-  let runners: TestRunner[] = [];
+  const runners: TestRunner[] = [];
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {

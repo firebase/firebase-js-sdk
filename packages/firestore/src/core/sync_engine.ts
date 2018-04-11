@@ -134,7 +134,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ) {}
 
   // Only used for testing.
-  get isPrimaryClient() {
+  get isPrimaryClient() : boolean {
     return this.isPrimary;
   }
 

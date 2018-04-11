@@ -134,7 +134,7 @@ describe('WebStorageSharedClientState', () => {
       expect(type).to.equal('storage');
       writeToLocalStorage = (key, value) => {
         callback({
-          key: key,
+          key,
           storageArea: window.localStorage,
           newValue: value
         });
