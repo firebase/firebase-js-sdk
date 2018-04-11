@@ -1028,13 +1028,13 @@ export class DocumentReference implements firestore.DocumentReference {
               );
             }, reject);
         } else {
-          this.getViaSnapshotListener_(resolve, reject, options);
+          this.getViaSnapshotListener(resolve, reject, options);
         }
       }
     );
   }
 
-  private getViaSnapshotListener_(
+  private getViaSnapshotListener(
     resolve: Resolver<firestore.DocumentSnapshot>,
     reject: Rejecter,
     options?: firestore.GetOptions
@@ -1061,7 +1061,7 @@ export class DocumentReference implements firestore.DocumentReference {
             // if the document doesn't exist.
             reject(
               new FirestoreError(
-                Code.ABORTED,
+                Code.UNAVAILABLE,
                 'Failed to get document because the client is ' + 'offline.'
               )
             );
@@ -1076,7 +1076,7 @@ export class DocumentReference implements firestore.DocumentReference {
                 Code.UNAVAILABLE,
                 'Failed to get document from server. (However, this ' +
                   'document does exist in the local cache. Run again ' +
-                  'without setting source to FIRGetSourceServer to ' +
+                  'without setting source to "server" to ' +
                   'retrieve the cached document.)'
               )
             );
@@ -1679,13 +1679,13 @@ export class Query implements firestore.Query {
               resolve(new QuerySnapshot(this.firestore, this._query, viewSnap));
             }, reject);
         } else {
-          this.getViaSnapshotListener_(resolve, reject, options);
+          this.getViaSnapshotListener(resolve, reject, options);
         }
       }
     );
   }
 
-  private getViaSnapshotListener_(
+  private getViaSnapshotListener(
     resolve: Resolver<firestore.QuerySnapshot>,
     reject: Rejecter,
     options?: firestore.GetOptions

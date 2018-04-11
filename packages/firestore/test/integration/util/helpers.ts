@@ -90,7 +90,7 @@ export function toDataArray(
 export function toDataMap(
   docSet: firestore.QuerySnapshot
 ): { [field: string]: firestore.DocumentData } {
-  let docsData = {};
+  const docsData = {};
   docSet.forEach(doc => {
     docsData[doc.id] = doc.data();
   });

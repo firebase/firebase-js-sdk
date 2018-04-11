@@ -49,7 +49,7 @@ import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
 
 import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query as InternalQuery } from './query';
+import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState } from './types';
 import { ViewSnapshot } from './view_snapshot';
@@ -348,7 +348,7 @@ export class FirestoreClient {
   }
 
   listen(
-    query: InternalQuery,
+    query: Query,
     observer: Observer<ViewSnapshot>,
     options: ListenOptions
   ): QueryListener {
@@ -385,7 +385,7 @@ export class FirestoreClient {
       });
   }
 
-  getDocumentsFromLocalCache(query: InternalQuery): Promise<ViewSnapshot> {
+  getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.executeQuery(query);
