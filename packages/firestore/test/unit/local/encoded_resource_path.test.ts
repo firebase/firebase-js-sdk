@@ -16,6 +16,7 @@
 
 import { expect } from 'chai';
 import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
+import * as persistenceHelpers from './persistence_test_helpers';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
@@ -24,6 +25,7 @@ import {
 } from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';
+
 
 let db: SimpleDb;
 const sep = '\u0001\u0001';
