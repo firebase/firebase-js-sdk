@@ -329,7 +329,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
  * add or retrieve mutations.
  */
 // PORTING NOTE: Multi-tab only.
-class TestMutationQueue {
+class OutstandingWriteTracker {
   private mutations: Mutation[][] = [];
 
   push(mutation: Mutation[]) : void {
@@ -379,7 +379,7 @@ abstract class TestRunner {
   private started = false;
   private serializer: JsonProtoSerializer;
 
-  constructor(protected readonly platform: TestPlatform, private outstandingWrites: TestMutationQueue, config: SpecConfig) {
+  constructor(protected readonly platform: TestPlatform, private outstandingWrites: OutstandingWriteTracker, config: SpecConfig) {
     this.clientId = AutoId.newId();
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
@@ -1395,7 +1395,7 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
-  const mutationQueue = new TestMutationQueue();
+  const mutationQueue = new OutstandingWriteTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
