@@ -17,8 +17,5 @@
 // Fetch
 import 'whatwg-fetch';
 
-// DOM
-import 'core-js/web';
-
 // ES6
 import 'core-js/es6';
