@@ -48,6 +48,7 @@
     "semicolon": [true, "always", "ignore-bound-class-methods"],
     "switch-default": true,
     "triple-equals": [true, "allow-null-check"],
+    "typedef": [true, "call-signature", "property-declaration"],
     "use-isnan": true,
     "variable-name": [
       true,

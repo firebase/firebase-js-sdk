@@ -18,7 +18,7 @@ export class ExistenceFilter {
   // TODO(b/33078163): just use simplest form of existence filter for now
   constructor(public count: number) {}
 
-  isEqual(other: ExistenceFilter) {
+  isEqual(other: ExistenceFilter): boolean {
     return other && other.count === this.count;
   }
 }

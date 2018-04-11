@@ -303,7 +303,9 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
  * Builds a CredentialsProvider depending on the type of
  * the credentials passed in.
  */
-export function makeCredentialsProvider(credentials?: CredentialsSettings) {
+export function makeCredentialsProvider(
+  credentials?: CredentialsSettings
+): CredentialsProvider {
   if (!credentials) {
     return new EmptyCredentialsProvider();
   }
