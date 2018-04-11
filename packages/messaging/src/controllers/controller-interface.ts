@@ -15,11 +15,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  ErrorFactory,
-  NextFn,
-  PartialObserver
-} from '@firebase/util';
+import { ErrorFactory, NextFn, PartialObserver } from '@firebase/util';
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from '../models/errors';
