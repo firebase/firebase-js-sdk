@@ -31,7 +31,7 @@ import { Code, FirestoreError } from './error';
  * original constructor are copied to the new constructor.
  */
 export function makeConstructorPrivate<T>(cls: T, optionalMessage?: string): T {
-  function PublicConstructor() {
+  function PublicConstructor(): never {
     let error = 'This constructor is private.';
     if (optionalMessage) {
       error += ' ';

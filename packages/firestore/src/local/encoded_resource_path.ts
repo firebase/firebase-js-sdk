@@ -83,7 +83,7 @@ export function encode(path: ResourcePath): EncodedResourcePath {
 }
 
 /** Encodes a single segment of a resource path into the given result */
-function encodeSegment(segment: string, resultBuf: string) {
+function encodeSegment(segment: string, resultBuf: string): string {
   let result = resultBuf;
   const length = segment.length;
   for (let i = 0; i < length; i++) {
@@ -187,7 +187,9 @@ export function decode(path: EncodedResourcePath): ResourcePath {
  * always terminated with a separator, and so a successor can always be
  * cheaply computed by incrementing the last character of the path.
  */
-export function prefixSuccessor(path: EncodedResourcePath) {
+export function prefixSuccessor(
+  path: EncodedResourcePath
+): EncodedResourcePath {
   const c = path.charCodeAt(path.length - 1);
   // TODO(mcg): this really should be a general thing, but not worth it right
   // now

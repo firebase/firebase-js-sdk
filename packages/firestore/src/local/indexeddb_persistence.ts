@@ -391,7 +391,7 @@ export class IndexedDbPersistence implements Persistence {
    * Records a zombied owner (an owner that had its tab closed) in LocalStorage
    * or, if passed null, deletes any recorded zombied owner.
    */
-  private setZombiedOwnerId(zombieOwnerId: string | null) {
+  private setZombiedOwnerId(zombieOwnerId: string | null): void {
     try {
       if (zombieOwnerId === null) {
         window.localStorage.removeItem(this.zombiedOwnerLocalStorageKey());
