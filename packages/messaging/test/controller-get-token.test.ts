@@ -15,10 +15,8 @@
  */
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
-import {
-  ControllerInterface,
-  TOKEN_EXPIRATION_MILLIS
-} from '../src/controllers/controller-interface';
+
+import { ControllerInterface } from '../src/controllers/controller-interface';
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
