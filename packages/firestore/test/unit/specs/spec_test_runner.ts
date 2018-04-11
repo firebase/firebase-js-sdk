@@ -329,7 +329,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
  * add or retrieve mutations.
  */
 // PORTING NOTE: Multi-tab only.
-class OutstandingWriteTracker {
+class OutstandingMutationTracker {
   private mutations: Mutation[][] = [];
 
   push(mutation: Mutation[]): void {
@@ -381,7 +381,7 @@ abstract class TestRunner {
 
   constructor(
     protected readonly platform: TestPlatform,
-    private outstandingWrites: OutstandingWriteTracker,
+    private outstandingMutations: OutstandingMutationTracker,
     config: SpecConfig
   ) {
     this.clientId = AutoId.newId();
@@ -598,7 +598,7 @@ abstract class TestRunner {
 
   private doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
-    this.outstandingWrites.push(mutations);
+    this.outstandingMutations.push(mutations);
     this.outstandingCallbacks.push(userCallback);
     return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, userCallback);
@@ -793,8 +793,8 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextWrite = this.outstandingWrites.poll();
-    return this.validateNextWriteRequest(nextWrite).then(() => {
+    const nextMutation = this.outstandingMutations.poll();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
       if (writeAck.expectUserCallback) {
         const nextCallback = this.outstandingCallbacks.shift();
@@ -809,12 +809,12 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextWrite = this.outstandingWrites.peek();
-    return this.validateNextWriteRequest(nextWrite).then(() => {
+    const nextMutation = this.outstandingMutations.peek();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
       // If this is a permanent error, the write is not expected to be sent
       // again.
       if (isPermanentError(error.code)) {
-        this.outstandingWrites.poll();
+        this.outstandingMutations.poll();
       }
 
       this.connection.failWrite(error);
@@ -1399,7 +1399,7 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
-  const mutationQueue = new OutstandingWriteTracker();
+  const outstandingMutations = new OutstandingMutationTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
@@ -1410,13 +1410,13 @@ export async function runSpec(
       if (usePersistence) {
         runners[clientIndex] = new IndexedDbTestRunner(
           platform,
-          mutationQueue,
+          outstandingMutations,
           config
         );
       } else {
         runners[clientIndex] = new MemoryTestRunner(
           platform,
-          mutationQueue,
+          outstandingMutations,
           config
         );
       }

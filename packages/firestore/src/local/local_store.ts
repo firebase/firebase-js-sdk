@@ -67,9 +67,9 @@ export interface LocalWriteResult {
 
 /** The result of a user-change operation in the local store. */
 export interface UserChangeResult {
-  affectedDocuments: MaybeDocumentMap;
-  removedBatchIds: BatchId[];
-  addedBatchIds: BatchId[];
+  readonly affectedDocuments: MaybeDocumentMap;
+  readonly removedBatchIds: BatchId[];
+  readonly addedBatchIds: BatchId[];
 }
 
 /**
@@ -247,8 +247,8 @@ export class LocalStore {
             }
           }
 
-          // Return the set of all (potentially) changed documents and the set
-          // of affected mutation batch IDs as the result of this user change.
+          // Return the set of all (potentially) changed documents and the list
+          // of mutation batch IDs that were affected by change.
           return this.localDocuments
             .getDocuments(txn, changedKeys)
             .next(affectedDocuments => {
