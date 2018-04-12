@@ -355,6 +355,9 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
+  private acknowledgedDocs: string[];
+  private rejectedDocs: string[];
+
   private outstandingCallbacks: Array<Deferred<void>> = [];
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
@@ -404,6 +407,8 @@ abstract class TestRunner {
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
+    this.acknowledgedDocs = [];
+    this.rejectedDocs = [];
   }
 
   private init(): void {
@@ -491,6 +496,8 @@ abstract class TestRunner {
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
     this.eventList = [];
+    this.rejectedDocs = [];
+    this.acknowledgedDocs = [];
   }
 
   private doStep(step: SpecStep): Promise<void> {
@@ -525,7 +532,7 @@ abstract class TestRunner {
     } else if ('runTimer' in step) {
       return this.doRunTimer(step.runTimer!);
     } else if ('drainQueue' in step) {
-      return this.doDrainQueue(step.drainQueue);
+      return this.doDrainQueue();
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
@@ -597,11 +604,26 @@ abstract class TestRunner {
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
+    const documentKeys = mutations.map(val => val.key.path.toString());
     const userCallback = new Deferred<void>();
+    const syncEngineCallback = new Deferred<void>();
+
+    syncEngineCallback.promise.then(
+      () => {
+        this.acknowledgedDocs.push(...documentKeys);
+        userCallback.resolve();
+      },
+      () => {
+        this.rejectedDocs.push(...documentKeys);
+        userCallback.resolve();
+      }
+    );
+
     this.outstandingMutations.push(mutations);
     this.outstandingCallbacks.push(userCallback);
+
     return this.queue.enqueue(() => {
-      return this.syncEngine.write(mutations, userCallback);
+      return this.syncEngine.write(mutations, syncEngineCallback);
     });
   }
 
@@ -794,12 +816,9 @@ abstract class TestRunner {
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
     const nextMutation = this.outstandingMutations.poll();
+
     return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
-      if (writeAck.expectUserCallback) {
-        const nextCallback = this.outstandingCallbacks.shift();
-        return nextCallback.promise;
-      }
     });
   }
 
@@ -818,17 +837,6 @@ abstract class TestRunner {
       }
 
       this.connection.failWrite(error);
-      if (writeFailure.expectUserCallback) {
-        const nextCallback = this.outstandingCallbacks.shift();
-        return nextCallback.promise.then(
-          () => {
-            fail('write should have failed');
-          },
-          err => {
-            expect(err).not.to.be.null;
-          }
-        );
-      }
     });
   }
 
@@ -847,12 +855,8 @@ abstract class TestRunner {
     await this.syncEngine.disableNetwork();
   }
 
-  private async doDrainQueue(drainQueue: SpecDrainQueue): Promise<void> {
+  private async doDrainQueue(): Promise<void> {
     await this.queue.drain();
-    if (drainQueue.expectUserCallback) {
-      const nextCallback = this.outstandingCallbacks.shift();
-      return nextCallback.promise;
-    }
   }
 
   private async doEnableNetwork(): Promise<void> {
@@ -957,6 +961,14 @@ abstract class TestRunner {
       }
       if ('isPrimary' in expectation) {
         expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
+      }
+      if ('userCallbacks' in expectation) {
+        expect(this.acknowledgedDocs).to.have.members(
+          expectation.userCallbacks.acknowledgedDocs
+        );
+        expect(this.rejectedDocs).to.have.members(
+          expectation.userCallbacks.rejectedDocs
+        );
       }
     }
 
@@ -1511,7 +1523,7 @@ export interface SpecStep {
   /**
    * Process all events currently enqueued in the AsyncQueue.
    */
-  drainQueue?: SpecDrainQueue;
+  drainQueue?: true;
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
@@ -1587,20 +1599,11 @@ export type SpecWatchStreamClose = {
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
   version: SpecSnapshotVersion;
-  /** Whether the ack is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export type SpecWriteFailure = {
   /** The error the backend uses to fail the write. */
   error: SpecError;
-  /** Whether the failure is expected to generate a user callback. */
-  expectUserCallback: boolean;
-};
-
-export type SpecDrainQueue = {
-  /** Whether the drain is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export interface SpecWatchEntity {
@@ -1694,5 +1697,12 @@ export interface StateExpectation {
    */
   activeTargets?: {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
+  };
+  /**
+   * Expected set of callbacks for previously written docs.
+   */
+  userCallbacks?: {
+    acknowledgedDocs: string[];
+    rejectedDocs: string[];
   };
 }
