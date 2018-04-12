@@ -27,9 +27,10 @@ import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IIDModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSubscription } from './make-fake-subscription';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 

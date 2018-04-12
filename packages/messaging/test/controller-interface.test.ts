@@ -18,9 +18,6 @@ import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSWReg } from './make-fake-sw-reg';
-
 import { ControllerInterface } from '../src/controllers/controller-interface';
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
@@ -28,6 +25,9 @@ import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IIDModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 const controllersToTest = [WindowController, SWController];
 

@@ -15,9 +15,11 @@
  */
 
 import { assert } from 'chai';
+
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { ERROR_CODES } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
+
 import { deleteDatabase } from './testing-utils/db-helper';
 
 const EXAMPLE_SCOPE = '/example-scope';

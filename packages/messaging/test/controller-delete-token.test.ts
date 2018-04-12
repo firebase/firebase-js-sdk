@@ -23,10 +23,11 @@ import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { ERROR_CODES } from '../src/models/errors';
 import { IIDModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSubscription } from './make-fake-subscription';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+
 import { deleteDatabase } from './testing-utils/db-helper';
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 const FAKE_SUBSCRIPTION = makeFakeSubscription();
 const EXAMPLE_TOKEN_SAVE = {

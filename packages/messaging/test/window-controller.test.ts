@@ -15,8 +15,9 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';

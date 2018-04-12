@@ -25,8 +25,8 @@ import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseError } from '@firebase/util';
 
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 import { SWController } from '../src/controllers/sw-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';

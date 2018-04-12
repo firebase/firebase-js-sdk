@@ -15,11 +15,13 @@
  */
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ERROR_CODES } from '../src/models/errors';
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
