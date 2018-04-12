@@ -15,7 +15,6 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
-import * as ResourcePath from './encoded_resource_path';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -36,7 +35,6 @@ import {
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
-import { path } from '../../test/util/helpers';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 
 /** Serializer for values stored in the LocalStore. */
