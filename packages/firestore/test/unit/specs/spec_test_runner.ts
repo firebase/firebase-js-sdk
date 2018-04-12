@@ -329,21 +329,21 @@ class EventAggregator implements Observer<ViewSnapshot> {
  * add or retrieve mutations.
  */
 // PORTING NOTE: Multi-tab only.
-class OutstandingMutationTracker {
-  private mutations: Mutation[][] = [];
+class SharedWriteTracker {
+  private writes: Mutation[][] = [];
 
-  push(mutation: Mutation[]): void {
-    this.mutations.push(mutation);
+  push(write: Mutation[]): void {
+    this.writes.push(write);
   }
 
   peek(): Mutation[] {
-    assert(this.mutations.length > 0, 'No pending mutations');
-    return this.mutations[0];
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes[0];
   }
 
-  poll(): Mutation[] {
-    assert(this.mutations.length > 0, 'No pending mutations');
-    return this.mutations.shift()!;
+  shift(): Mutation[] {
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes.shift()!;
   }
 }
 
@@ -355,7 +355,9 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
-  private outstandingCallbacks: Array<Deferred<void>> = [];
+  private acknowledgedDocs: string[];
+  private rejectedDocs: string[];
+
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -381,7 +383,7 @@ abstract class TestRunner {
 
   constructor(
     protected readonly platform: TestPlatform,
-    private outstandingMutations: OutstandingMutationTracker,
+    private sharedWrites: SharedWriteTracker,
     config: SpecConfig
   ) {
     this.clientId = AutoId.newId();
@@ -404,6 +406,8 @@ abstract class TestRunner {
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
+    this.acknowledgedDocs = [];
+    this.rejectedDocs = [];
   }
 
   private init(): void {
@@ -491,6 +495,8 @@ abstract class TestRunner {
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
     this.eventList = [];
+    this.rejectedDocs = [];
+    this.acknowledgedDocs = [];
   }
 
   private doStep(step: SpecStep): Promise<void> {
@@ -525,7 +531,7 @@ abstract class TestRunner {
     } else if ('runTimer' in step) {
       return this.doRunTimer(step.runTimer!);
     } else if ('drainQueue' in step) {
-      return this.doDrainQueue(step.drainQueue);
+      return this.doDrainQueue();
     } else if ('enableNetwork' in step) {
       return step.enableNetwork!
         ? this.doEnableNetwork()
@@ -597,11 +603,25 @@ abstract class TestRunner {
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
+    const documentKeys = mutations.map(val => val.key.path.toString());
     const userCallback = new Deferred<void>();
-    this.outstandingMutations.push(mutations);
-    this.outstandingCallbacks.push(userCallback);
+    const syncEngineCallback = new Deferred<void>();
+
+    syncEngineCallback.promise.then(
+      () => {
+        this.acknowledgedDocs.push(...documentKeys);
+        userCallback.resolve();
+      },
+      () => {
+        this.rejectedDocs.push(...documentKeys);
+        userCallback.resolve();
+      }
+    );
+
+    this.sharedWrites.push(mutations);
+
     return this.queue.enqueue(() => {
-      return this.syncEngine.write(mutations, userCallback);
+      return this.syncEngine.write(mutations, syncEngineCallback);
     });
   }
 
@@ -793,13 +813,9 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextMutation = this.outstandingMutations.poll();
+    const nextMutation = this.sharedWrites.shift();
     return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
-      if (writeAck.expectUserCallback) {
-        const nextCallback = this.outstandingCallbacks.shift();
-        return nextCallback.promise;
-      }
     });
   }
 
@@ -809,26 +825,15 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextMutation = this.outstandingMutations.peek();
+    const nextMutation = this.sharedWrites.peek();
     return this.validateNextWriteRequest(nextMutation).then(() => {
       // If this is a permanent error, the write is not expected to be sent
       // again.
       if (isPermanentError(error.code)) {
-        this.outstandingMutations.poll();
+        this.sharedWrites.shift();
       }
 
       this.connection.failWrite(error);
-      if (writeFailure.expectUserCallback) {
-        const nextCallback = this.outstandingCallbacks.shift();
-        return nextCallback.promise.then(
-          () => {
-            fail('write should have failed');
-          },
-          err => {
-            expect(err).not.to.be.null;
-          }
-        );
-      }
     });
   }
 
@@ -847,12 +852,8 @@ abstract class TestRunner {
     await this.syncEngine.disableNetwork();
   }
 
-  private async doDrainQueue(drainQueue: SpecDrainQueue): Promise<void> {
+  private async doDrainQueue(): Promise<void> {
     await this.queue.drain();
-    if (drainQueue.expectUserCallback) {
-      const nextCallback = this.outstandingCallbacks.shift();
-      return nextCallback.promise;
-    }
   }
 
   private async doEnableNetwork(): Promise<void> {
@@ -957,6 +958,14 @@ abstract class TestRunner {
       }
       if ('isPrimary' in expectation) {
         expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
+      }
+      if ('userCallbacks' in expectation) {
+        expect(this.acknowledgedDocs).to.have.members(
+          expectation.userCallbacks.acknowledgedDocs
+        );
+        expect(this.rejectedDocs).to.have.members(
+          expectation.userCallbacks.rejectedDocs
+        );
       }
     }
 
@@ -1399,7 +1408,7 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
-  const outstandingMutations = new OutstandingMutationTracker();
+  const outstandingMutations = new SharedWriteTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
@@ -1464,7 +1473,7 @@ export interface SpecConfig {
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
-  /** The index of the current client for multi-client spec tests. */
+  /** The index of the local client for multi-client spec tests. */
   clientIndex?: number; // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
@@ -1511,7 +1520,7 @@ export interface SpecStep {
   /**
    * Process all events currently enqueued in the AsyncQueue.
    */
-  drainQueue?: SpecDrainQueue;
+  drainQueue?: true;
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
@@ -1587,20 +1596,11 @@ export type SpecWatchStreamClose = {
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
   version: SpecSnapshotVersion;
-  /** Whether the ack is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export type SpecWriteFailure = {
   /** The error the backend uses to fail the write. */
   error: SpecError;
-  /** Whether the failure is expected to generate a user callback. */
-  expectUserCallback: boolean;
-};
-
-export type SpecDrainQueue = {
-  /** Whether the drain is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export interface SpecWatchEntity {
@@ -1694,5 +1694,12 @@ export interface StateExpectation {
    */
   activeTargets?: {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
+  };
+  /**
+   * Expected set of callbacks for previously written docs.
+   */
+  userCallbacks?: {
+    acknowledgedDocs: string[];
+    rejectedDocs: string[];
   };
 }

@@ -424,19 +424,24 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-
     const documents = await this.localStore.lookupMutationDocuments(batchId);
     assert(documents !== null, 'Unable to find mutation batch: ' + batchId);
 
-    await this.emitNewSnapsAndNotifyLocalStore(documents);
-
     if (state === 'pending') {
-      // Send the write to the Remote Store
+      // If we are the primary client, we need to send this write to the
+      // backend. Secondary clients will ignore these writes since their remote
+      // connection is disabled.
       await this.remoteStore.fillWritePipeline();
-    } else if (this.sharedClientState.hasLocalPendingMutation(batchId)) {
+    } else if (state === 'acknowledged' || state === 'rejected') {
+      // NOTE: Both these methods are no-ops for batches that originated from
+      // other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
+    } else {
+      fail(`Unknown batchState: ${state}`);
     }
+
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
   }
 
   applySuccessfulWrite(
@@ -455,7 +460,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        this.sharedClientState.applyMutationState(batchId, 'acknowledged');
+        this.sharedClientState.trackMutationResult(batchId, 'acknowledged');
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       });

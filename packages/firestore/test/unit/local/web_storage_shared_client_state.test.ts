@@ -265,7 +265,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalPendingMutation(0);
       assertClientState([], 0, 0);
       assertBatchState(0, 'pending');
-      sharedClientState.applyMutationState(0, 'acknowledged');
+      sharedClientState.trackMutationResult(0, 'acknowledged');
       assertBatchState(0, 'acknowledged');
     });
 
@@ -273,7 +273,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalPendingMutation(0);
       assertClientState([], 0, 0);
       assertBatchState(0, 'pending');
-      sharedClientState.applyMutationState(0, 'rejected', MUTATION_ERROR);
+      sharedClientState.trackMutationResult(0, 'rejected', MUTATION_ERROR);
       assertBatchState(0, 'rejected', MUTATION_ERROR);
     });
   });

@@ -391,7 +391,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Obtains or extends the new primary lease for the current client. This
+   * Obtains or extends the new primary lease for the local client. This
    * method does not verify that the client is eligible for this lease.
    */
   private acquireOrExtendPrimaryLease(txn): PersistencePromise<void> {
