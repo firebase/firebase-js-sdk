@@ -469,6 +469,20 @@ export class UserDataConverter {
     }
   }
 
+  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
+    let result = new SortedMap<string, FieldValue>(primitiveComparator);
+    objUtils.forEach(obj, (key: string, val: AnyJs) => {
+      const parsedValue = this.parseData(
+        val,
+        context.childContextForField(key)
+      );
+      if (parsedValue != null) {
+        result = result.insert(key, parsedValue);
+      }
+    });
+    return new ObjectValue(result);
+  }
+
   private parseArray(array: AnyJs[], context: ParseContext): FieldValue {
     const result = [] as FieldValue[];
     let entryIndex = 0;
@@ -486,67 +500,6 @@ export class UserDataConverter {
       entryIndex++;
     }
     return new ArrayValue(result);
-  }
-
-  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
-    let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
-      );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
-      }
-    });
-    return new ObjectValue(result);
-  }
-
-  /**
-   * Helper to parse a scalar value (i.e. not an Object or Array)
-   *
-   * @return The parsed value, or null if the value was a FieldValue sentinel
-   * that should not be included in the resulting parsed data.
-   */
-  private parseScalarValue(
-    value: AnyJs,
-    context: ParseContext
-  ): FieldValue | null {
-    if (value === null) {
-      return NullValue.INSTANCE;
-    } else if (typeof value === 'number') {
-      if (typeUtils.isSafeInteger(value)) {
-        return new IntegerValue(value);
-      } else {
-        return new DoubleValue(value);
-      }
-    } else if (typeof value === 'boolean') {
-      return BooleanValue.of(value);
-    } else if (typeof value === 'string') {
-      return new StringValue(value);
-    } else if (value instanceof Date) {
-      return new TimestampValue(Timestamp.fromDate(value));
-    } else if (value instanceof Timestamp) {
-      // Firestore backend truncates precision down to microseconds. To ensure
-      // offline mode works the same with regards to truncation, perform the
-      // truncation immediately without waiting for the backend to do that.
-      return new TimestampValue(
-        new Timestamp(
-          value.seconds,
-          Math.floor(value.nanoseconds / 1000) * 1000
-        )
-      );
-    } else if (value instanceof GeoPoint) {
-      return new GeoPointValue(value);
-    } else if (value instanceof Blob) {
-      return new BlobValue(value);
-    } else if (value instanceof DocumentKeyReference) {
-      return new RefValue(value.databaseId, value.key);
-    } else {
-      throw context.createError(
-        `Unsupported field value: ${valueDescription(value)}`
-      );
-    }
   }
 
   /**
@@ -595,6 +548,53 @@ export class UserDataConverter {
       );
     } else {
       fail('Unknown FieldValue type: ' + value);
+    }
+  }
+
+  /**
+   * Helper to parse a scalar value (i.e. not an Object or Array)
+   *
+   * @return The parsed value, or null if the value was a FieldValue sentinel
+   * that should not be included in the resulting parsed data.
+   */
+  private parseScalarValue(
+    value: AnyJs,
+    context: ParseContext
+  ): FieldValue | null {
+    if (value === null) {
+      return NullValue.INSTANCE;
+    } else if (typeof value === 'number') {
+      if (typeUtils.isSafeInteger(value)) {
+        return new IntegerValue(value);
+      } else {
+        return new DoubleValue(value);
+      }
+    } else if (typeof value === 'boolean') {
+      return BooleanValue.of(value);
+    } else if (typeof value === 'string') {
+      return new StringValue(value);
+    } else if (value instanceof Date) {
+      return new TimestampValue(Timestamp.fromDate(value));
+    } else if (value instanceof Timestamp) {
+      // Firestore backend truncates precision down to microseconds. To ensure
+      // offline mode works the same with regards to truncation, perform the
+      // truncation immediately without waiting for the backend to do that.
+      return new TimestampValue(
+        new Timestamp(
+          value.seconds,
+          Math.floor(value.nanoseconds / 1000) * 1000
+        )
+      );
+    } else if (value instanceof GeoPoint) {
+      return new GeoPointValue(value);
+    } else if (value instanceof Blob) {
+      return new BlobValue(value);
+    } else if (value instanceof DocumentKeyReference) {
+      return new RefValue(value.databaseId, value.key);
+    } else {
+      throw context.createError(
+        `Unsupported field value: ${valueDescription(value)}`
+      );
     }
   }
 }
