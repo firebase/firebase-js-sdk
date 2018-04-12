@@ -23,6 +23,7 @@ import {
   QueryListener
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
+import { View, ViewDocumentChanges } from './view';
 import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { GarbageCollector } from '../local/garbage_collector';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
@@ -30,6 +31,13 @@ import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
 import { Persistence } from '../local/persistence';
+import {
+  DocumentKeySet,
+  documentKeySet,
+  DocumentMap
+} from '../model/collections';
+import { Document, MaybeDocument } from '../model/document';
+import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
@@ -355,6 +363,42 @@ export class FirestoreClient {
     this.asyncQueue.enqueue(() => {
       return this.eventMgr.unlisten(listener);
     });
+  }
+
+  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
+    return this.asyncQueue
+      .enqueue(() => {
+        return this.localStore.readDocument(docKey);
+      })
+      .then((maybeDoc: MaybeDocument | null) => {
+        if (maybeDoc instanceof Document) {
+          return maybeDoc;
+        } else {
+          throw new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get document from cache. (However, this document may ' +
+              "exist on the server. Run again without setting 'source' in " +
+              'the GetOptions to attempt to retrieve the document from the ' +
+              'server.)'
+          );
+        }
+      });
+  }
+
+  getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
+    return this.asyncQueue
+      .enqueue(() => {
+        return this.localStore.executeQuery(query);
+      })
+      .then((docs: DocumentMap) => {
+        const remoteKeys: DocumentKeySet = documentKeySet();
+
+        const view = new View(query, remoteKeys);
+        const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
+          docs
+        );
+        return view.applyChanges(viewDocChanges).snapshot;
+      });
   }
 
   write(mutations: Mutation[]): Promise<void> {
