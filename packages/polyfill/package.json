@@ -15,7 +15,7 @@
   "dependencies": {
     "core-js": "2.5.5",
     "promise-polyfill": "7.1.2",
-    "whatwg-fetch": "2.0.3"
+    "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
     "rollup": "0.57.1",
