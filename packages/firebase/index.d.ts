@@ -36,6 +36,7 @@ declare namespace firebase {
   interface User extends firebase.UserInfo {
     delete(): Promise<any>;
     emailVerified: boolean;
+    getIdTokenResult(forceRefresh?: boolean): Promise<any>;
     getIdToken(forceRefresh?: boolean): Promise<any>;
     getToken(forceRefresh?: boolean): Promise<any>;
     isAnonymous: boolean;
@@ -295,6 +296,15 @@ declare namespace firebase.auth {
       customOAuthParameters: Object
     ): firebase.auth.AuthProvider;
   }
+
+  type IdTokenResult = {
+    token: string;
+    expirationTime: string;
+    authTime: string;
+    issuedAtTime: string;
+    signInProvider: string | null;
+    claims: Object;
+  };
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID: string;

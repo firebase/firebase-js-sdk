@@ -174,6 +174,23 @@ fireauth.IdToken.prototype.getPhoneNumber = function() {
  * @return {?fireauth.IdToken} The decoded token.
  */
 fireauth.IdToken.parse = function(tokenString) {
+  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
+  if (token && token['sub'] && token['iss'] && token['aud'] && token['exp']) {
+    return new fireauth.IdToken(
+        /** @type {!fireauth.IdToken.JsonToken} */ (token));
+  }
+  return null;
+};
+
+/**
+ * Converts the information part of JWT token to plain object format.
+ * @param {?string} tokenString The JWT token.
+ * @return {?Object}
+ */
+fireauth.IdToken.parseIdTokenClaims = function(tokenString) {
+  if (!tokenString) {
+    return null;
+  }
   // Token format is <algorithm>.<info>.<sig>
   var fields = tokenString.split('.');
   if (fields.length != 3) {
@@ -187,10 +204,7 @@ fireauth.IdToken.parse = function(tokenString) {
   }
   try {
     var token = JSON.parse(goog.crypt.base64.decodeString(jsonInfo, true));
-    if (token['sub'] && token['iss'] && token['aud'] && token['exp']) {
-      return new fireauth.IdToken(
-          /** @type {!fireauth.IdToken.JsonToken} */ (token));
-    }
+    return /** @type {?Object} */ (token);
   } catch (e) {}
   return null;
 };

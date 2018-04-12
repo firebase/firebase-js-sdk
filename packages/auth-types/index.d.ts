@@ -20,6 +20,7 @@ import { Observer, Unsubscribe } from '@firebase/util';
 export interface User extends UserInfo {
   delete(): Promise<any>;
   emailVerified: boolean;
+  getIdTokenResult(forceRefresh?: boolean): Promise<any>;
   getIdToken(forceRefresh?: boolean): Promise<any>;
   getToken(forceRefresh?: boolean): Promise<any>;
   isAnonymous: boolean;
@@ -159,6 +160,15 @@ export class GoogleAuthProvider_Instance implements AuthProvider {
   providerId: string;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
+
+export type IdTokenResult = {
+  token: string;
+  expirationTime: string;
+  authTime: string;
+  issuedAtTime: string;
+  signInProvider: string | null;
+  claims: Object;
+};
 
 export class OAuthProvider implements AuthProvider {
   providerId: string;
