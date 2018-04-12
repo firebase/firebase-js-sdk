@@ -6908,7 +6908,7 @@ mkdirp@0.5.1, mkdirp@0.5.x, mkdirp@0.x.x, "mkdirp@>=0.5 0", mkdirp@^0.5.0, mkdir
   dependencies:
     minimist "0.0.8"
 
-mocha@^5.0.1:
+mocha@^5.0.1, mocha@^5.0.5:
   version "5.0.5"
   resolved "https://registry.npmjs.org/mocha/-/mocha-5.0.5.tgz#e228e3386b9387a4710007a641f127b00be44b52"
   dependencies:
