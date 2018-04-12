@@ -16,6 +16,7 @@
 
 /**
  * Subset of Web Worker types from lib.webworker.d.ts
+ * https://github.com/Microsoft/TypeScript/blob/master/lib/lib.webworker.d.ts
  *
  * Since it's not possible to have both "dom" and "webworker" libs in a single
  * project, we have to manually declare the web worker types we need.
