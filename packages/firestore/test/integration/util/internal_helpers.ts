@@ -21,7 +21,7 @@ import { Datastore } from '../../../src/remote/datastore';
 
 import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
-import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
 import { Firestore } from '../../../src/api/database';
 

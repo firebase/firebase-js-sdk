@@ -1090,8 +1090,8 @@ export class JsonProtoSerializer {
     } else if (filter.fieldFilter !== undefined) {
       return [this.fromRelationFilter(filter)];
     } else if (filter.compositeFilter !== undefined) {
-      return filter.compositeFilter.filters!
-        .map(f => this.fromFilter(f))
+      return filter.compositeFilter
+        .filters!.map(f => this.fromFilter(f))
         .reduce((accum, current) => accum.concat(current));
     } else {
       return fail('Unknown filter: ' + JSON.stringify(filter));

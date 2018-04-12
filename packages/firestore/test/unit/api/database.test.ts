@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import {
-  CollectionReference,
-  DocumentReference,
-  DocumentSnapshot,
-  Query,
-  QuerySnapshot
-} from '../../../src/api/database';
 import {
   collectionReference,
   documentReference,

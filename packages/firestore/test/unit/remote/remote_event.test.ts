@@ -32,7 +32,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import * as objUtils from '../../../src/util/obj';
 import {
   deletedDoc,
   doc,

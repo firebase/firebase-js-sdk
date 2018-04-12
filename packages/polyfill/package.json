@@ -13,15 +13,15 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "core-js": "^2.5.5",
-    "promise-polyfill": "^7.1.2",
-    "whatwg-fetch": "^2.0.3"
+    "core-js": "2.5.5",
+    "promise-polyfill": "7.1.2",
+    "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "^0.57.1",
-    "rollup-plugin-commonjs": "^9.1.0",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-typescript2": "^0.12.0"
+    "rollup": "0.57.1",
+    "rollup-plugin-commonjs": "9.1.0",
+    "rollup-plugin-node-resolve": "3.3.0",
+    "rollup-plugin-typescript2": "0.12.0"
   },
   "repository": {
     "type": "git",
