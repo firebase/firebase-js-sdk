@@ -527,7 +527,7 @@ export class UserDataConverter {
         // No transform to add for a delete, so we do nothing.
       } else if (context.dataSource === UserDataSource.Update) {
         assert(
-          context.path == null || context.path.length > 0,
+          context.path.length > 0,
           'FieldValue.delete() at the top level should have already' +
             ' been handled.'
         );
@@ -552,15 +552,14 @@ export class UserDataConverter {
   }
 
   /**
-   * Helper to parse a scalar value (i.e. not an Object or Array)
+   * Helper to parse a scalar value (i.e. not an Object, Array, or FieldValue)
    *
-   * @return The parsed value, or null if the value was a FieldValue sentinel
-   * that should not be included in the resulting parsed data.
+   * @return The parsed value
    */
   private parseScalarValue(
     value: AnyJs,
     context: ParseContext
-  ): FieldValue | null {
+  ): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
