@@ -14,26 +14,17 @@
  * limitations under the License.
  */
 
-// These fields are strings to prevent closure from thinking goog.getMsg
-// should be used to initialise the values
-export const PARAMS = {
-  TYPE_OF_MSG: 'firebase-messaging-msg-type',
-  DATA: 'firebase-messaging-msg-data'
-};
+export enum MessageParameter {
+  TYPE_OF_MSG = 'firebase-messaging-msg-type',
+  DATA = 'firebase-messaging-msg-data'
+}
 
-// This value isn't using the TYPE_OF_MSG short hand as closure
-// expects the variable to be defined via goog.getMsg
-export const TYPES_OF_MSG = {
-  PUSH_MSG_RECEIVED: 'push-msg-received',
-  NOTIFICATION_CLICKED: 'notification-clicked'
-};
+export enum MessageType {
+  PUSH_MSG_RECEIVED = 'push-msg-received',
+  NOTIFICATION_CLICKED = 'notification-clicked'
+}
 
-export function createNewMsg(
-  msgType: any,
-  msgData: any
-): { [key: string]: any } {
-  return {
-    [PARAMS.TYPE_OF_MSG]: msgType,
-    [PARAMS.DATA]: msgData
-  };
+export interface InternalMessage {
+  [MessageParameter.TYPE_OF_MSG]: MessageType;
+  [MessageParameter.DATA]: any; // tslint:disable-line no-any ¯\_(ツ)_/¯
 }
