@@ -1,6 +1,9 @@
-[![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
-
 # Firebase Javascript SDK
+
+<!-- BADGES -->
+[![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
+[![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
+<!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
@@ -143,3 +146,9 @@ implement git hooks. We leverage the prepush hook to do two things:
 
 See [Contributing](./CONTRIBUTING.md) for more information on contributing to the Firebase
 JavaScript SDK.
+
+### Big Thanks
+
+Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs][homepage]
+
+[homepage]: https://saucelabs.com
