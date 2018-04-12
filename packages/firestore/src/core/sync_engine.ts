@@ -425,24 +425,25 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
     const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
-    assert( mutationBatchResult !== null, 'Unable to find mutation batch: ' + batchId);
-
-
+    assert(
+      mutationBatchResult !== null,
+      'Unable to find mutation batch: ' + batchId
+    );
 
     if (batchState === 'pending') {
       // If we are the primary client, we need to send this write to the
       // backend. Secondary clients will ignore these writes since their remote
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
-    } else if (batchState === 'acknowledged' || batchState === 'rejected')  {
+    } else if (batchState === 'acknowledged' || batchState === 'rejected') {
       // NOTE: Both these methods are no-ops for batches that came from other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
     } else {
-        fail(`Unknown batchState: ${batchState}`);
-      }
+      fail(`Unknown batchState: ${batchState}`);
+    }
 
-      await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
+    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
   }
 
   applySuccessfulWrite(
