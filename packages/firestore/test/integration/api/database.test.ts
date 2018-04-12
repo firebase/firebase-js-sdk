@@ -31,7 +31,7 @@ const Timestamp = firebase.firestore.Timestamp;
 
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return docRef.set({
         desc: 'Stuff related to Firestore project...',
         owner: {
@@ -92,7 +92,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can retrieve document that does not exist', () => {
-    return withTestDoc(persistence, null, doc => {
+    return withTestDoc(persistence, doc => {
       return doc.get().then(snapshot => {
         expect(snapshot.exists).to.equal(false);
         expect(snapshot.data()).to.equal(undefined);
@@ -200,7 +200,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('cannot update nonexistent document', () => {
-    return withTestDoc(persistence, null, doc => {
+    return withTestDoc(persistence, doc => {
       return doc
         .update({ owner: 'abc' })
         .then(
@@ -271,7 +271,7 @@ apiDescribe('Database', persistence => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
-        return withTestDoc(persistence, null, async doc => {
+        return withTestDoc(persistence, async doc => {
           // tslint:disable-next-line:no-any Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
           // tslint:disable-next-line:no-any Intentionally passing bad types.
@@ -354,7 +354,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('Local document events are fired with hasLocalChanges=true.', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       let gotLocalDocEvent = false;
       const remoteDocEventDeferred = new Deferred();
       const unlisten = docRef.onSnapshot(
@@ -380,7 +380,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('Metadata only changes are not fired when no options provided', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       const secondUpdateFound = new Deferred();
       let count = 0;
       const unlisten = docRef.onSnapshot(doc => {
@@ -567,7 +567,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can queue writes while offline', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       const firestore = docRef.firestore;
 
       return firestore
@@ -586,7 +586,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can get documents while offline', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       const firestore = docRef.firestore;
 
       return firestore.disableNetwork().then(() => {

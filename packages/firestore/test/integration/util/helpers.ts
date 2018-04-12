@@ -198,11 +198,27 @@ export function withTestDbsSettings(
   });
 }
 
+export type WithTestDocCallback = (doc: firestore.DocumentReference) => Promise<void>;
 export function withTestDoc(
   persistence: boolean,
-  initialData: firestore.DocumentData | null,
-  fn: (doc: firestore.DocumentReference) => Promise<void>
+  fn: WithTestDocCallback
+): Promise<void>;
+export function withTestDoc(
+  persistence: boolean,
+  initialData: firestore.DocumentData,
+  fn: WithTestDocCallback
+): Promise<void>;
+export function withTestDoc(
+  persistence: boolean,
+  initialDataOrFn: firestore.DocumentData | WithTestDocCallback,
+  fn?: WithTestDocCallback
 ): Promise<void> {
+  let initialData = null;
+  if (fn) {
+    initialData = initialDataOrFn;
+  } else {
+    fn = initialDataOrFn as WithTestDocCallback;
+  }
   return withTestDb(persistence, db => {
     const docRef: firestore.DocumentReference = db
       .collection('test-collection')

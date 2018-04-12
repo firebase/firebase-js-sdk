@@ -395,7 +395,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with default get options', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return docRef.get().then(doc => {
         expect(doc.exists).to.be.false;
         expect(doc.metadata.fromCache).to.be.false;
@@ -417,7 +417,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with default get options', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return docRef.firestore
         .disableNetwork()
         .then(() => docRef.get())
@@ -445,7 +445,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with source=cache', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       // attempt to get doc. Currently, this is expected to fail. In the
       // future, we might consider adding support for negative cache hits so
       // that we know certain documents *don't* exist.
@@ -470,7 +470,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with source=cache', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return (
         docRef.firestore
           .disableNetwork()
@@ -503,7 +503,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while online with source=server', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return docRef.get({ source: 'server' }).then(doc => {
         expect(doc.exists).to.be.false;
         expect(doc.metadata.fromCache).to.be.false;
@@ -524,7 +524,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   it('get non existing doc while offline with source=server', () => {
-    return withTestDoc(persistence, null, docRef => {
+    return withTestDoc(persistence, docRef => {
       return (
         docRef.firestore
           .disableNetwork()

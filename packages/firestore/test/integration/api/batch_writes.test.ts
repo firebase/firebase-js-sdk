@@ -32,7 +32,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can set documents', () => {
-    return integrationHelpers.withTestDoc(persistence, null, doc => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
       return doc.firestore
         .batch()
         .set(doc, { foo: 'bar' })
@@ -46,7 +46,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can set documents with merge', () => {
-    return integrationHelpers.withTestDoc(persistence, null, doc => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
       return doc.firestore
         .batch()
         .set(doc, { a: 'b', nested: { a: 'b' } }, { merge: true })
@@ -268,7 +268,7 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can write the same document multiple times', () => {
-    return integrationHelpers.withTestDoc(persistence, null, doc => {
+    return integrationHelpers.withTestDoc(persistence, doc => {
       const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
       const unsubscribe = doc.onSnapshot(
         { includeMetadataChanges: true },

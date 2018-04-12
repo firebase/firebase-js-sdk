@@ -23,7 +23,7 @@ const apiDescribe = integrationHelpers.apiDescribe;
 
 apiDescribe('Smoke Test', persistence => {
   it('can write a single document', () => {
-    return integrationHelpers.withTestDoc(persistence, null, ref => {
+    return integrationHelpers.withTestDoc(persistence, ref => {
       return ref.set({
         name: 'Patryk',
         message: 'We are actually writing data!'
@@ -44,7 +44,7 @@ apiDescribe('Smoke Test', persistence => {
   });
 
   it('can read a written document with DocumentKey', () => {
-    return integrationHelpers.withTestDoc(persistence, null, ref1 => {
+    return integrationHelpers.withTestDoc(persistence, ref1 => {
       const ref2 = ref1.firestore.collection('users').doc();
       const data = { user: ref2, message: 'We are writing data' };
       return ref2.set({ name: 'patryk' }).then(() => {

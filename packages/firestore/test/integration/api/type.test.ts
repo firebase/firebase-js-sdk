@@ -98,13 +98,13 @@ apiDescribe('Firestore', persistence => {
   });
 
   it('can read and write document references', () => {
-    return withTestDoc(persistence, null, doc => {
+    return withTestDoc(persistence, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, ref: doc });
     });
   });
 
   it('can read and write document references in an array', () => {
-    return withTestDoc(persistence, null, doc => {
+    return withTestDoc(persistence, doc => {
       return expectRoundtrip(doc.firestore, { a: 42, refs: [doc] });
     });
   });
