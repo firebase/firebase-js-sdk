@@ -16,11 +16,11 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseServiceInternals } from '@firebase/app-types/private';
-import { ErrorFactory, NextFn, PartialObserver } from '@firebase/util';
+import { NextFn, PartialObserver } from '@firebase/util';
 
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
-import { ERROR_CODES, ERROR_MAP } from '../models/errors';
+import { ERROR_CODES, errorFactory } from '../models/errors';
 import { IIDModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
@@ -32,7 +32,6 @@ export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export abstract class ControllerInterface {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
-  protected errorFactory_: ErrorFactory<string>;
   private readonly messagingSenderId_: string;
   private readonly tokenDetailsModel_: TokenDetailsModel;
   private readonly vapidDetailsModel_: VapidDetailsModel;
@@ -42,13 +41,11 @@ export abstract class ControllerInterface {
    * An interface of the Messaging Service API
    */
   constructor(app: FirebaseApp) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
-
     if (
       !app.options[SENDER_ID_OPTION_NAME] ||
       typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
     ) {
-      throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
+      throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
     this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
@@ -72,7 +69,7 @@ export abstract class ControllerInterface {
     if (currentPermission !== 'granted') {
       if (currentPermission === 'denied') {
         return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
+          errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
         );
       }
 
@@ -278,15 +275,15 @@ export abstract class ControllerInterface {
   //
 
   requestPermission(): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   useServiceWorker(registration: ServiceWorkerRegistration): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   usePublicVapidKey(b64PublicKey: string): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onMessage(
@@ -294,7 +291,7 @@ export abstract class ControllerInterface {
     error?: (e: Error) => void,
     completed?: () => void
   ): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
@@ -302,7 +299,7 @@ export abstract class ControllerInterface {
     error?: (e: Error) => void,
     completed?: () => void
   ): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   //
@@ -311,7 +308,7 @@ export abstract class ControllerInterface {
 
   // tslint:disable-next-line no-any Defined in child class.
   setBackgroundMessageHandler(callback: any): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
   //

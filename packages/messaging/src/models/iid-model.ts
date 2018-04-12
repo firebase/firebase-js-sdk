@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
-
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
-import { ERROR_CODES, ERROR_MAP } from './errors';
+import { ERROR_CODES, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
 // tslint:disable interface-name TSLint thinks I in IID is an interface prefix.
@@ -38,12 +36,6 @@ interface ApiResponse extends Partial<IIDDetails> {
 }
 
 export class IIDModel {
-  private readonly errorFactory_: ErrorFactory<string>;
-
-  constructor() {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
-  }
-
   async getToken(
     senderId: string,
     subscription: PushSubscription,
@@ -81,22 +73,22 @@ export class IIDModel {
 
       responseData = await response.json();
     } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
+      throw errorFactory.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
     }
 
     if (responseData.error) {
       const message = responseData.error.message;
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
+      throw errorFactory.create(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED, {
         message: message
       });
     }
 
     if (!responseData.token) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
+      throw errorFactory.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_TOKEN);
     }
 
     if (!responseData.pushSet) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
+      throw errorFactory.create(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
     }
 
     return {
@@ -148,18 +140,18 @@ export class IIDModel {
       );
       responseData = await response.json();
     } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
+      throw errorFactory.create(ERROR_CODES.TOKEN_UPDATE_FAILED);
     }
 
     if (responseData.error) {
       const message = responseData.error.message;
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
+      throw errorFactory.create(ERROR_CODES.TOKEN_UPDATE_FAILED, {
         message: message
       });
     }
 
     if (!responseData.token) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
+      throw errorFactory.create(ERROR_CODES.TOKEN_UPDATE_NO_TOKEN);
     }
 
     return responseData.token;
@@ -195,12 +187,12 @@ export class IIDModel {
       const responseData: ApiResponse = await response.json();
       if (responseData.error) {
         const message = responseData.error.message;
-        throw this.errorFactory_.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED, {
+        throw errorFactory.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED, {
           message: message
         });
       }
     } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
+      throw errorFactory.create(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
     }
   }
 }

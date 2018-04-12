@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { ErrorFactory } from '@firebase/util';
+
 export const ERROR_CODES = {
   AVAILABLE_IN_WINDOW: 'only-available-in-window',
   AVAILABLE_IN_SW: 'only-available-in-sw',
@@ -149,3 +151,9 @@ export const ERROR_MAP = {
   [ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED]:
     'The public VAPID key did not equal ' + '65 bytes when decrypted.'
 };
+
+export const errorFactory: ErrorFactory<string> = new ErrorFactory(
+  'messaging',
+  'Messaging',
+  ERROR_MAP
+);
