@@ -428,11 +428,7 @@ export class SpecBuilder {
     options?: { expectUserCallback: boolean }
   ): this {
     this.nextStep();
-    this.currentStep = {
-      writeAck: {
-        version
-      }
-    };
+    this.currentStep = { writeAck: { version } };
 
     if (!options || options.expectUserCallback) {
       return this.expectUserCallbacks({ acknowledged: docs });
@@ -452,11 +448,7 @@ export class SpecBuilder {
     options?: { expectUserCallback: boolean }
   ): this {
     this.nextStep();
-    this.currentStep = {
-      failWrite: {
-        error: err
-      }
-    };
+    this.currentStep = { failWrite: { error: err } };
 
     if (!options || options.expectUserCallback) {
       return this.expectUserCallbacks({ rejected: docs });

@@ -752,6 +752,10 @@ export class MemorySharedClientState implements SharedClientState {
     this.localState.removePendingMutation(batchId);
   }
 
+  hasLocalPendingMutation(batchId: BatchId): boolean {
+    return this.localState.hasLocalPendingMutation(batchId);
+  }
+
   trackMutationResult(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
