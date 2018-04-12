@@ -91,8 +91,6 @@ export class TokenDetailsModel extends DBInterface {
 
   /**
    * Given a token, this method will look up the details in indexedDB.
-   * @param {string} fcmToken
-   * @return {Promise<TokenDetails>} The details associated with that token.
    */
   async getTokenDetailsFromToken(
     fcmToken: string

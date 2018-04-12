@@ -345,9 +345,8 @@ export abstract class ControllerInterface {
     return this.vapidDetailsModel;
   }
 
-  /**
-   * @protected
-   */
+  // Visible for testing
+  // TODO: make protected
   getIIDModel(): IIDModel {
     return this.iidModel;
   }

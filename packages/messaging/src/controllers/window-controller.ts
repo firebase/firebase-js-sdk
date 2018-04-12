@@ -88,10 +88,11 @@ export class WindowController extends ControllerInterface
   /**
    * The method checks that a manifest is defined and has the correct GCM
    * sender ID.
-   * @private
-   * @return {Promise} Returns a promise that resolves if the manifest matches
+   * @return Returns a promise that resolves if the manifest matches
    * our required sender ID
    */
+  // Visible for testing
+  // TODO: make private
   manifestCheck_(): Promise<void> {
     if (this.manifestCheckPromise) {
       return this.manifestCheckPromise;
