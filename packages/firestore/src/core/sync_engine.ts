@@ -425,21 +425,24 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
     const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
+    assert( mutationBatchResult !== null, 'Unable to find mutation batch: ' + batchId);
 
-    if (!mutationBatchResult) {
-      log.error(LOG_TAG, 'Unable to find mutation batch: ' + batchId);
-      return;
-    }
 
-    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
 
     if (batchState === 'pending') {
-      // Send the write to the Remote Store
+      // If we are the primary client, we need to send this write to the
+      // backend. Secondary clients will ignore these writes since their remote
+      // connection is disabled.
       await this.remoteStore.fillWritePipeline();
-    } else if (this.sharedClientState.hasLocalPendingMutation(batchId)) {
+    } else if (batchState === 'acknowledged' || batchState === 'rejected')  {
+      // NOTE: Both these methods are no-ops for batches that came from other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
-    }
+    } else {
+        fail(`Unknown batchState: ${batchState}`);
+      }
+
+      await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
   }
 
   applySuccessfulWrite(
@@ -458,7 +461,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        this.sharedClientState.applyMutationState(batchId, 'acknowledged');
+        this.sharedClientState.trackMutationResult(batchId, 'acknowledged');
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       });

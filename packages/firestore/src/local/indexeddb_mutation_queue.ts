@@ -103,9 +103,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         this.metadata = metadata;
 
-        // TODO(multitab): Don't GC mutations that are still required by other
-        // active clients.
-
         // On restart, nextBatchId may end up lower than
         // lastAcknowledgedBatchId since it's computed from the queue
         // contents, and there may be no mutations in the queue. In this
