@@ -267,12 +267,10 @@ export class SpecBuilder {
     return this;
   }
 
-  drainQueue(options?: { expectUserCallback: boolean }): this {
+  drainQueue(): this {
     this.nextStep();
     this.currentStep = {
-      drainQueue: {
-        expectUserCallback: options ? options.expectUserCallback : false
-      }
+      drainQueue: true
     };
     return this;
   }
@@ -425,19 +423,22 @@ export class SpecBuilder {
    * expectUserCallback defaults to true if options are omitted.
    */
   writeAcks(
+    docs: string[],
     version: TestSnapshotVersion,
-    options?: {
-      expectUserCallback: boolean;
-    }
+    options?: { expectUserCallback: boolean }
   ): this {
     this.nextStep();
     this.currentStep = {
       writeAck: {
-        version,
-        expectUserCallback: options ? options.expectUserCallback : true
+        version
       }
     };
-    return this;
+
+    if (!options || options.expectUserCallback) {
+      return this.expectUserCallbacks({ acknowledged: docs });
+    } else {
+      return this;
+    }
   }
 
   /**
@@ -445,15 +446,23 @@ export class SpecBuilder {
    *
    * expectUserCallback defaults to true if options are omitted.
    */
-  failWrite(err: RpcError, options?: { expectUserCallback: boolean }): this {
+  failWrite(
+    docs: string[],
+    err: RpcError,
+    options?: { expectUserCallback: boolean }
+  ): this {
     this.nextStep();
     this.currentStep = {
       failWrite: {
-        error: err,
-        expectUserCallback: options ? options.expectUserCallback : true
+        error: err
       }
     };
-    return this;
+
+    if (!options || options.expectUserCallback) {
+      return this.expectUserCallbacks({ rejected: docs });
+    } else {
+      return this;
+    }
   }
 
   watchAcks(query: Query): this {
@@ -591,6 +600,29 @@ export class SpecBuilder {
         runBackoffTimer: opts.runBackoffTimer
       }
     };
+    return this;
+  }
+
+  expectUserCallbacks(docs: {
+    acknowledged?: string[];
+    rejected?: string[];
+  }): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.userCallbacks = currentStep.stateExpect
+      .userCallbacks || { acknowledgedDocs: [], rejectedDocs: [] };
+
+    if (docs.acknowledged) {
+      currentStep.stateExpect.userCallbacks.acknowledgedDocs.push(
+        ...docs.acknowledged
+      );
+    }
+
+    if (docs.rejected) {
+      currentStep.stateExpect.userCallbacks.rejectedDocs.push(...docs.rejected);
+    }
+
     return this;
   }
 
