@@ -132,6 +132,7 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         const obj = s.toValue(new fieldValue.IntegerValue(example));
+        // TODO: This test fails with grpc 1.10.1, please fix.
         expect(obj).to.deep.equal({ integerValue: '' + example });
 
         const longVal = Long.fromString(example.toString(), false);
