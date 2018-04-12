@@ -16,16 +16,16 @@
 
 import * as sinon from 'sinon';
 
-const FakeRegistration = ((() => {}) as any) as {
+const fakeRegistration = ((() => {}) as any) as {
   new (): ServiceWorkerRegistration;
 };
-FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
+fakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
 export function makeFakeSWReg(
   selectedState?: string,
   desiredValue?: object
 ): ServiceWorkerRegistration {
-  const fakeReg: ServiceWorkerRegistration = new FakeRegistration();
+  const fakeReg: ServiceWorkerRegistration = new fakeRegistration();
   // No need to use a sandbox to stub this object as it should be a used
   // once per test.
   sinon.stub(fakeReg, 'scope').value('/injected-scope');

@@ -32,10 +32,10 @@ export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export abstract class ControllerInterface {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
-  private readonly messagingSenderId_: string;
-  private readonly tokenDetailsModel_: TokenDetailsModel;
-  private readonly vapidDetailsModel_: VapidDetailsModel;
-  private readonly iidModel_: IIDModel;
+  private readonly messagingSenderId: string;
+  private readonly tokenDetailsModel: TokenDetailsModel;
+  private readonly vapidDetailsModel: VapidDetailsModel;
+  private readonly iidModel: IIDModel;
 
   /**
    * An interface of the Messaging Service API
@@ -48,11 +48,11 @@ export abstract class ControllerInterface {
       throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
+    this.messagingSenderId = app.options[SENDER_ID_OPTION_NAME]!;
 
-    this.tokenDetailsModel_ = new TokenDetailsModel();
-    this.vapidDetailsModel_ = new VapidDetailsModel();
-    this.iidModel_ = new IIDModel();
+    this.tokenDetailsModel = new TokenDetailsModel();
+    this.vapidDetailsModel = new VapidDetailsModel();
+    this.iidModel = new IIDModel();
 
     this.app = app;
     this.INTERNAL = {
@@ -85,7 +85,7 @@ export abstract class ControllerInterface {
       swReg,
       publicVapidKey
     );
-    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+    const tokenDetails = await this.tokenDetailsModel.getTokenDetailsFromSWScope(
       swReg.scope
     );
 
@@ -149,8 +149,8 @@ export abstract class ControllerInterface {
     tokenDetails: TokenDetails
   ): Promise<string> {
     try {
-      const updatedToken = await this.iidModel_.updateToken(
-        this.messagingSenderId_,
+      const updatedToken = await this.iidModel.updateToken(
+        this.messagingSenderId,
         tokenDetails.fcmToken,
         tokenDetails.fcmPushSet,
         pushSubscription,
@@ -160,7 +160,7 @@ export abstract class ControllerInterface {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        fcmSenderId: this.messagingSenderId_,
+        fcmSenderId: this.messagingSenderId,
         fcmToken: updatedToken,
         fcmPushSet: tokenDetails.fcmPushSet,
         createTime: Date.now(),
@@ -169,8 +169,8 @@ export abstract class ControllerInterface {
         p256dh: pushSubscription.getKey('p256dh')!
       };
 
-      await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-      await this.vapidDetailsModel_.saveVapidDetails(
+      await this.tokenDetailsModel.saveTokenDetails(allDetails);
+      await this.vapidDetailsModel.saveVapidDetails(
         swReg.scope,
         publicVapidKey
       );
@@ -186,15 +186,15 @@ export abstract class ControllerInterface {
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const tokenDetails = await this.iidModel_.getToken(
-      this.messagingSenderId_,
+    const tokenDetails = await this.iidModel.getToken(
+      this.messagingSenderId,
       pushSubscription,
       publicVapidKey
     );
     const allDetails: TokenDetails = {
       swScope: swReg.scope,
       vapidKey: publicVapidKey,
-      fcmSenderId: this.messagingSenderId_,
+      fcmSenderId: this.messagingSenderId,
       fcmToken: tokenDetails.token,
       fcmPushSet: tokenDetails.pushSet,
       createTime: Date.now(),
@@ -202,8 +202,8 @@ export abstract class ControllerInterface {
       auth: pushSubscription.getKey('auth')!,
       p256dh: pushSubscription.getKey('p256dh')!
     };
-    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-    await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
+    await this.tokenDetailsModel.saveTokenDetails(allDetails);
+    await this.vapidDetailsModel.saveVapidDetails(swReg.scope, publicVapidKey);
     return tokenDetails.token;
   }
 
@@ -235,8 +235,8 @@ export abstract class ControllerInterface {
    * push subscription.
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
-    const details = await this.tokenDetailsModel_.deleteToken(token);
-    await this.iidModel_.deleteToken(
+    const details = await this.tokenDetailsModel.deleteToken(token);
+    await this.iidModel.deleteToken(
       details.fcmSenderId,
       details.fcmToken,
       details.fcmPushSet
@@ -322,8 +322,8 @@ export abstract class ControllerInterface {
    */
   async delete(): Promise<void> {
     await Promise.all([
-      this.tokenDetailsModel_.closeDatabase(),
-      this.vapidDetailsModel_.closeDatabase()
+      this.tokenDetailsModel.closeDatabase(),
+      this.vapidDetailsModel.closeDatabase()
     ]);
   }
 
@@ -338,18 +338,18 @@ export abstract class ControllerInterface {
   }
 
   getTokenDetailsModel(): TokenDetailsModel {
-    return this.tokenDetailsModel_;
+    return this.tokenDetailsModel;
   }
 
   getVapidDetailsModel(): VapidDetailsModel {
-    return this.vapidDetailsModel_;
+    return this.vapidDetailsModel;
   }
 
   /**
    * @protected
    */
   getIIDModel(): IIDModel {
-    return this.iidModel_;
+    return this.iidModel;
   }
 }
 

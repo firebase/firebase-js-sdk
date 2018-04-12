@@ -84,8 +84,8 @@ describe('Firebase Messaging > *ControllerInterface', () => {
   });
 
   describe('getPushSubscription()', () => {
-    for (const ControllerInTest of controllersToTest) {
-      it(`should return rejection error in ${ControllerInTest.name}`, () => {
+    for (const controllerInTest of controllersToTest) {
+      it(`should return rejection error in ${controllerInTest.name}`, () => {
         const injectedError = new Error('Inject error.');
         const reg = makeFakeSWReg();
         sandbox.stub(reg, 'pushManager').value({
@@ -94,7 +94,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
           }
         });
 
-        const controller = new ControllerInTest(app);
+        const controller = new controllerInTest(app);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(
@@ -114,7 +114,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
           getSubscription: async () => exampleSubscription
         });
 
-        const controller = new ControllerInTest(app);
+        const controller = new controllerInTest(app);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
@@ -137,7 +137,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
           }
         });
 
-        const controller = new ControllerInTest(app);
+        const controller = new controllerInTest(app);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {

@@ -44,7 +44,7 @@ export interface Payload {
 }
 
 export class SWController extends ControllerInterface {
-  private bgMessageHandler_: BgMessageHandler | null = null;
+  private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {
     super(app);
@@ -106,7 +106,7 @@ export class SWController extends ControllerInterface {
     const hasVisibleClients = await this.hasVisibleClients_();
     if (hasVisibleClients) {
       // Do not need to show a notification.
-      if (msgPayload.notification || this.bgMessageHandler_) {
+      if (msgPayload.notification || this.bgMessageHandler) {
         // Send to page
         return this.sendMessageToWindowClients_(msgPayload);
       }
@@ -118,8 +118,8 @@ export class SWController extends ControllerInterface {
       const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
       return reg.showNotification(notificationTitle, notificationDetails);
-    } else if (this.bgMessageHandler_) {
-      await this.bgMessageHandler_(msgPayload);
+    } else if (this.bgMessageHandler) {
+      await this.bgMessageHandler(msgPayload);
       return;
     }
   }
@@ -254,7 +254,7 @@ export class SWController extends ControllerInterface {
       throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
-    this.bgMessageHandler_ = callback;
+    this.bgMessageHandler = callback;
   }
 
   /**

@@ -17,17 +17,17 @@
 /**
  * FakeSubscription Constructor.
  */
-const FakeSubscription = ((() => {}) as any) as {
+const fakeSubscription = ((() => {}) as any) as {
   new (): PushSubscription;
 };
-FakeSubscription.prototype = PushSubscription.prototype;
+fakeSubscription.prototype = PushSubscription.prototype;
 
-function stringToArrayBuffer(string: string): ArrayBuffer {
+function stringToArrayBuffer(str: string): ArrayBuffer {
   // String char codes are 16 bits (See MDN).
-  const arrayBuffer = new ArrayBuffer(string.length * 2);
+  const arrayBuffer = new ArrayBuffer(str.length * 2);
   const bufferView = new Uint16Array(arrayBuffer);
-  for (let i = 0; i < string.length; i++) {
-    bufferView[i] = string.charCodeAt(i);
+  for (let i = 0; i < str.length; i++) {
+    bufferView[i] = str.charCodeAt(i);
   }
   return arrayBuffer;
 }
@@ -38,7 +38,7 @@ function stringToArrayBuffer(string: string): ArrayBuffer {
  * @return Returns a fake subscription.
  */
 export function makeFakeSubscription(options: any = {}): PushSubscription {
-  const fakeSub = new FakeSubscription();
+  const fakeSub = new fakeSubscription();
 
   // Set endpoint
   const endpoint = options.endpoint

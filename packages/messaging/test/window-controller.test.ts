@@ -252,7 +252,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = () => {};
 
       const controller = new WindowController(app);
-      const onMessageStub = sandbox.stub(controller as any, 'onMessage_');
+      const onMessageStub = sandbox.stub(controller as any, 'onMessage');
       controller.onMessage(nextFunc, errFunc, compFunc);
 
       expect(onMessageStub.callCount).to.equal(1);
@@ -271,7 +271,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const controller = new WindowController(app);
       const onTokenRefreshStub = sandbox.stub(
         controller as any,
-        'onTokenRefresh_'
+        'onTokenRefresh'
       );
       controller.onTokenRefresh(nextFunc, errFunc, compFunc);
 
@@ -410,7 +410,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const callback = messageCallbackSpy.args[0][1];
 
       // Ensure it's not defined
-      controller['messageObserver_'] = null;
+      controller['messageObserver'] = null;
 
       callback({
         data: {

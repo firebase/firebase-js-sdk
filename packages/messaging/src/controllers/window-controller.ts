@@ -34,18 +34,23 @@ import { ControllerInterface } from './controller-interface';
 
 export class WindowController extends ControllerInterface
   implements FirebaseMessaging {
-  private registrationToUse_: ServiceWorkerRegistration | null = null;
-  private publicVapidKeyToUse_: Uint8Array | null = null;
-  private manifestCheckPromise_: Promise<void> | null = null;
-  private messageObserver_: Observer<{}, Error> | null = null;
-  private readonly onMessage_: Subscribe<{}> = createSubscribe(observer => {
-    this.messageObserver_ = observer;
-  });
+  private registrationToUse: ServiceWorkerRegistration | null = null;
+  private publicVapidKeyToUse: Uint8Array | null = null;
+  private manifestCheckPromise: Promise<void> | null = null;
+
+  private messageObserver: Observer<{}, Error> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
-  private tokenRefreshObserver_: Observer<{}, Error> | null = null;
-  private readonly onTokenRefresh_: Subscribe<{}> = createSubscribe(
+  private tokenRefreshObserver: Observer<{}, Error> | null = null;
+
+  private readonly onMessageInternal: Subscribe<{}> = createSubscribe(
     observer => {
-      this.tokenRefreshObserver_ = observer;
+      this.messageObserver = observer;
+    }
+  );
+
+  private readonly onTokenRefreshInternal: Subscribe<{}> = createSubscribe(
+    observer => {
+      this.tokenRefreshObserver = observer;
     }
   );
 
@@ -88,17 +93,17 @@ export class WindowController extends ControllerInterface
    * our required sender ID
    */
   manifestCheck_(): Promise<void> {
-    if (this.manifestCheckPromise_) {
-      return this.manifestCheckPromise_;
+    if (this.manifestCheckPromise) {
+      return this.manifestCheckPromise;
     }
 
     const manifestTag = document.querySelector<HTMLAnchorElement>(
       'link[rel="manifest"]'
     );
     if (!manifestTag) {
-      this.manifestCheckPromise_ = Promise.resolve();
+      this.manifestCheckPromise = Promise.resolve();
     } else {
-      this.manifestCheckPromise_ = fetch(manifestTag.href)
+      this.manifestCheckPromise = fetch(manifestTag.href)
         .then(response => {
           return response.json();
         })
@@ -121,7 +126,7 @@ export class WindowController extends ControllerInterface
         });
     }
 
-    return this.manifestCheckPromise_;
+    return this.manifestCheckPromise;
   }
 
   /**
@@ -175,11 +180,11 @@ export class WindowController extends ControllerInterface
       throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
-    if (this.registrationToUse_ != null) {
+    if (this.registrationToUse != null) {
       throw errorFactory.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
     }
 
-    this.registrationToUse_ = registration;
+    this.registrationToUse = registration;
   }
 
   /**
@@ -193,7 +198,7 @@ export class WindowController extends ControllerInterface
       throw errorFactory.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
     }
 
-    if (this.publicVapidKeyToUse_ != null) {
+    if (this.publicVapidKeyToUse != null) {
       throw errorFactory.create(ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
     }
 
@@ -203,7 +208,7 @@ export class WindowController extends ControllerInterface
       throw errorFactory.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
     }
 
-    this.publicVapidKeyToUse_ = parsedKey;
+    this.publicVapidKeyToUse = parsedKey;
   }
 
   /**
@@ -220,9 +225,9 @@ export class WindowController extends ControllerInterface
     completed?: () => void
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
-      return this.onMessage_(nextOrObserver, error, completed);
+      return this.onMessageInternal(nextOrObserver, error, completed);
     } else {
-      return this.onMessage_(nextOrObserver);
+      return this.onMessageInternal(nextOrObserver);
     }
   }
 
@@ -239,9 +244,9 @@ export class WindowController extends ControllerInterface
     completed?: () => void
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
-      return this.onTokenRefresh_(nextOrObserver, error, completed);
+      return this.onTokenRefreshInternal(nextOrObserver, error, completed);
     } else {
-      return this.onTokenRefresh_(nextOrObserver);
+      return this.onTokenRefreshInternal(nextOrObserver);
     }
   }
 
@@ -297,13 +302,13 @@ export class WindowController extends ControllerInterface
    * @return The service worker registration to be used for the push service.
    */
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    if (this.registrationToUse_) {
-      return this.waitForRegistrationToActivate_(this.registrationToUse_);
+    if (this.registrationToUse) {
+      return this.waitForRegistrationToActivate_(this.registrationToUse);
     }
 
     // Make the registration null so we know useServiceWorker will not
-    // use a new service worker as registrationToUse_ is no longer undefined
-    this.registrationToUse_ = null;
+    // use a new service worker as registrationToUse is no longer undefined
+    this.registrationToUse = null;
 
     return navigator.serviceWorker
       .register(DEFAULT_SW_PATH, {
@@ -316,7 +321,7 @@ export class WindowController extends ControllerInterface
       })
       .then((registration: ServiceWorkerRegistration) => {
         return this.waitForRegistrationToActivate_(registration).then(() => {
-          this.registrationToUse_ = registration;
+          this.registrationToUse = registration;
 
           // We update after activation due to an issue with Firefox v49 where
           // a race condition occassionally causes the service work to not
@@ -333,8 +338,8 @@ export class WindowController extends ControllerInterface
    * provided by the developer.
    */
   getPublicVapidKey_(): Promise<Uint8Array> {
-    if (this.publicVapidKeyToUse_) {
-      return Promise.resolve(this.publicVapidKeyToUse_);
+    if (this.publicVapidKeyToUse) {
+      return Promise.resolve(this.publicVapidKeyToUse);
     }
 
     return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
@@ -365,8 +370,8 @@ export class WindowController extends ControllerInterface
           case MessageType.PUSH_MSG_RECEIVED:
           case MessageType.NOTIFICATION_CLICKED:
             const pushMessage = workerPageMessage[MessageParameter.DATA];
-            if (this.messageObserver_) {
-              this.messageObserver_.next(pushMessage);
+            if (this.messageObserver) {
+              this.messageObserver.next(pushMessage);
             }
             break;
           default:
