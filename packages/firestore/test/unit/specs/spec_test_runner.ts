@@ -329,21 +329,21 @@ class EventAggregator implements Observer<ViewSnapshot> {
  * add or retrieve mutations.
  */
 // PORTING NOTE: Multi-tab only.
-class OutstandingMutationTracker {
-  private mutations: Mutation[][] = [];
+class SharedWriteTracker {
+  private writes: Mutation[][] = [];
 
-  push(mutation: Mutation[]): void {
-    this.mutations.push(mutation);
+  push(write: Mutation[]): void {
+    this.writes.push(write);
   }
 
   peek(): Mutation[] {
-    assert(this.mutations.length > 0, 'No pending mutations');
-    return this.mutations[0];
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes[0];
   }
 
-  poll(): Mutation[] {
-    assert(this.mutations.length > 0, 'No pending mutations');
-    return this.mutations.shift()!;
+  shift(): Mutation[] {
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes.shift()!;
   }
 }
 
@@ -358,7 +358,6 @@ abstract class TestRunner {
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
 
-  private outstandingCallbacks: Array<Deferred<void>> = [];
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -384,7 +383,7 @@ abstract class TestRunner {
 
   constructor(
     protected readonly platform: TestPlatform,
-    private outstandingMutations: OutstandingMutationTracker,
+    private sharedWrites: SharedWriteTracker,
     config: SpecConfig
   ) {
     this.clientId = AutoId.newId();
@@ -619,8 +618,7 @@ abstract class TestRunner {
       }
     );
 
-    this.outstandingMutations.push(mutations);
-    this.outstandingCallbacks.push(userCallback);
+    this.sharedWrites.push(mutations);
 
     return this.queue.enqueue(() => {
       return this.syncEngine.write(mutations, syncEngineCallback);
@@ -815,8 +813,7 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextMutation = this.outstandingMutations.poll();
-
+    const nextMutation = this.sharedWrites.shift();
     return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
     });
@@ -828,12 +825,12 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextMutation = this.outstandingMutations.peek();
+    const nextMutation = this.sharedWrites.peek();
     return this.validateNextWriteRequest(nextMutation).then(() => {
       // If this is a permanent error, the write is not expected to be sent
       // again.
       if (isPermanentError(error.code)) {
-        this.outstandingMutations.poll();
+        this.sharedWrites.shift();
       }
 
       this.connection.failWrite(error);
@@ -1411,7 +1408,7 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
-  const outstandingMutations = new OutstandingMutationTracker();
+  const outstandingMutations = new SharedWriteTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
@@ -1476,7 +1473,7 @@ export interface SpecConfig {
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
-  /** The index of the current client for multi-client spec tests. */
+  /** The index of the local client for multi-client spec tests. */
   clientIndex?: number; // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;

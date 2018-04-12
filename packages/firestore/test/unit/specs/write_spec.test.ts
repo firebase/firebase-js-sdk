@@ -761,7 +761,7 @@ describeSpec('Writes:', [], () => {
       .expectUserCallbacks({
         acknowledged: ['collection/a']
       });
-    // TODO(heldacks): This event doesn't fire since we are holding the write
+    // TODO(b/33446471): This event doesn't fire since we are holding the write
     // acknowledgment.
     // .expectEvents(query, {
     //   fromCache: true,

@@ -68,11 +68,11 @@ export type ClientId = string;
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
 
-  /** Associates a new Mutation Batch ID with the current Firestore client. */
+  /** Associates a new Mutation Batch ID with the local Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
 
   /**
-   * Removes a Mutation Batch ID from the current Firestore client.
+   * Removes a Mutation Batch ID from the local Firestore client.
    *
    * This method can be called with Batch IDs that are not associated with this
    * client, in which case no change takes place.
@@ -80,12 +80,17 @@ export interface SharedClientState {
   removeLocalPendingMutation(batchId: BatchId): void;
 
   /**
-   * Verifies whether a Mutation Batch ID is associated with the current client.
+   * Verifies whether a Mutation Batch ID is associated with the local client.
    */
+  // Visible for testing.
   hasLocalPendingMutation(batchId: BatchId): boolean;
 
-  /** Transitions a pending mutation to its final state. */
-  applyMutationState(
+  /**
+   * Records that a pending mutation has been acknowledged or rejected.
+   * Called by the primary client to notify secondary clients of mutation
+   * results as they come back from the backend.
+   */
+  trackMutationResult(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -99,10 +104,10 @@ export interface SharedClientState {
    */
   getMinimumGlobalPendingMutation(): BatchId | null;
 
-  /** Associates a new Query Target ID with the current Firestore clients. */
+  /** Associates a new Query Target ID with the local Firestore clients. */
   addLocalQueryTarget(targetId: TargetId): void;
 
-  /** Removes a Query Target ID for the current Firestore clients. */
+  /** Removes a Query Target ID for the local Firestore clients. */
   removeLocalQueryTarget(targetId: TargetId): void;
 
   /**
@@ -395,7 +400,7 @@ export class LocalClientState implements ClientState {
 /**
  * `WebStorageSharedClientState` uses WebStorage (window.localStorage) as the
  * backing store for the SharedClientState. It keeps track of all active
- * clients and supports modifications of the current client's data.
+ * clients and supports modifications of the local client's data.
  */
 // TODO(multitab): Rename all usages of LocalStorage to WebStorage to better differentiate from LocalClient.
 export class WebStorageSharedClientState implements SharedClientState {
@@ -517,8 +522,8 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   addLocalPendingMutation(batchId: BatchId): void {
     this.localClientState.addPendingMutation(batchId);
-    this.persistClientState();
     this.persistMutationState(batchId, 'pending');
+    this.persistClientState();
   }
 
   removeLocalPendingMutation(batchId: BatchId): void {
@@ -530,16 +535,17 @@ export class WebStorageSharedClientState implements SharedClientState {
     return this.localClientState.hasLocalPendingMutation(batchId);
   }
 
-  applyMutationState(
+  trackMutationResult(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void {
-    assert(
-      batchId >= this.getMinimumGlobalPendingMutation(),
-      `Cannot change mutation state for batch that is not pending: ${batchId}`
-    );
-    this.persistMutationState(batchId, state, error);
+    // Only persist the mutation state if at least one client is still
+    // interested in this mutation. The mutation might have already been
+    // removed by a client that is no longer active.
+    if (batchId >= this.getMinimumGlobalPendingMutation()) {
+      this.persistMutationState(batchId, state, error);
+    }
   }
 
   addLocalQueryTarget(targetId: TargetId): void {
@@ -746,11 +752,7 @@ export class MemorySharedClientState implements SharedClientState {
     this.localState.removePendingMutation(batchId);
   }
 
-  hasLocalPendingMutation(batchId: BatchId): boolean {
-    return this.localState.hasLocalPendingMutation(batchId);
-  }
-
-  applyMutationState(
+  trackMutationResult(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
