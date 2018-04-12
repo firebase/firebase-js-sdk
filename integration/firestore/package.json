@@ -18,6 +18,7 @@
     "gulp-replace": "0.6.1",
     "karma": "2.0.0",
     "karma-chrome-launcher": "2.2.0",
+    "karma-firefox-launcher": "1.1.0",
     "karma-mocha": "1.3.0",
     "karma-spec-reporter": "0.0.32",
     "mocha": "5.0.5",
