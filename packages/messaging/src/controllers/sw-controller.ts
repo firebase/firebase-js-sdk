@@ -32,7 +32,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export type BgMessageHandler = (input: Payload) => void;
+export type BgMessageHandler = (input: Payload) => Promise<void>;
 
 export interface NotificationDetails extends NotificationOptions {
   title: string;
@@ -119,7 +119,7 @@ export class SWController extends ControllerInterface {
       const reg = await this.getSWRegistration_();
       return reg.showNotification(notificationTitle, notificationDetails);
     } else if (this.bgMessageHandler_) {
-      this.bgMessageHandler_(msgPayload);
+      await this.bgMessageHandler_(msgPayload);
       return;
     }
   }
