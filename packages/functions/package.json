@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.4",
     "@types/chai-as-promised": "^7.1.0",
-    "@types/mocha": "^2.2.48",
+    "@types/mocha": "^5.0.0",
     "@types/sinon": "^2.3.3",
     "chai": "^4.1.1",
     "karma": "^2.0.0",
