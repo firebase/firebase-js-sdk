@@ -15,6 +15,7 @@
  */
 
 import * as api from '../protos/firestore_proto_api';
+import  *  as ResourcePath from './encoded_resource_path';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -34,8 +35,9 @@ import {
   DbTimestamp
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
-import { EncodedResourcePath } from './encoded_resource_path';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
+import {path} from '../../test/util/helpers';
+import {decode, encode, EncodedResourcePath} from './encoded_resource_path';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -101,7 +103,7 @@ export class LocalSerializer {
     const changesKeys: EncodedResourcePath[] = [];
 
     batch.keys().forEach(key => {
-      changesKeys.push(this.remoteSerializer.toName(key));
+      changesKeys.push(encode(key.path));
     });
 
     return new DbMutationChanges(userId, batch.batchId, changesKeys);
@@ -112,7 +114,7 @@ export class LocalSerializer {
     let documentKeys = documentKeySet();
 
     dbMutationChanges.changedPaths.forEach(path => {
-      documentKeys = documentKeys.add(this.remoteSerializer.fromName(path));
+      documentKeys = documentKeys.add(new DocumentKey(decode(path)));
     });
 
     return documentKeys;
