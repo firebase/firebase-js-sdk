@@ -479,7 +479,7 @@ apiDescribe('Database', persistence => {
             expect(err.message).to.exist;
           }
         )
-        .then(queryForRejection.get)
+        .then(() => queryForRejection.get())
         .then(
           () => {
             throw new Error('Promise resolved even though error was expected.');
