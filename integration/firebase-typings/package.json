@@ -9,6 +9,6 @@
     "firebase": "4.12.1"
   },
   "devDependencies": {
-    "typescript": "^2.7.2"
+    "typescript": "2.8.1"
   }
 }
