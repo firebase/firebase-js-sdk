@@ -51,9 +51,6 @@ export default [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs' }],
     plugins,
-    external: [
-      ...external,
-      'util'
-    ]
+    external: [...external, 'util']
   }
 ];
