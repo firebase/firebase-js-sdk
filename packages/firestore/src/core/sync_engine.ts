@@ -29,7 +29,7 @@ import { CurrentStatusUpdate, RemoteEvent } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -42,7 +42,13 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
+import {
+  BatchId,
+  MutationBatchState,
+  OnlineState,
+  ProtoByteString,
+  TargetId
+} from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -412,47 +418,53 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only
-  async applyPendingBatch(batchId: BatchId): Promise<void> {
-    this.assertSubscribed('applyPendingBatch()');
-    const localWriteResult = await this.localStore.lookupLocalWrite(batchId);
-    if (localWriteResult) {
-      await this.emitNewSnapsAndNotifyLocalStore(localWriteResult.changes);
+  async applyBatchState(
+    batchId: BatchId,
+    batchState: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void> {
+    this.assertSubscribed('applyBatchState()');
+    const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
+    assert(
+      mutationBatchResult !== null,
+      'Unable to find mutation batch: ' + batchId
+    );
+
+    if (batchState === 'pending') {
       // If we are the primary client, we need to send this write to the
       // backend. Secondary clients will ignore these writes since their remote
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
+    } else if (batchState === 'acknowledged' || batchState === 'rejected') {
+      // NOTE: Both these methods are no-ops for batches that originated from
+      // other clients.
+      this.sharedClientState.removeLocalPendingMutation(batchId);
+      this.processUserCallback(batchId, error ? error : null);
+    } else {
+      fail(`Unknown batchState: ${batchState}`);
     }
+
+    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
   }
 
-  applySuccessfulWrite(mutationBatchResult: MutationBatchResult): Promise<void>;
-  // PORTING NOTE: Multi-tab only
-  applySuccessfulWrite(batchId: BatchId): Promise<void>;
   applySuccessfulWrite(
-    mutationBatchResultOrBatchId: MutationBatchResult | BatchId
+    mutationBatchResult: MutationBatchResult
   ): Promise<void> {
     this.assertSubscribed('applySuccessfulWrite()');
 
-    if (typeof mutationBatchResultOrBatchId === 'number') {
-      // TODO(multitab): Implement applySuccessfulWrite(batchId)
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'applySuccessfulWrite(batchId) not implemented'
-      );
-    }
+    const batchId = mutationBatchResult.batch.batchId;
 
-    const mutationBatchResult = mutationBatchResultOrBatchId;
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught
     // up), so we raise user callbacks first so that they consistently happen
     // before listen events.
-    this.processUserCallback(
-      mutationBatchResult.batch.batchId,
-      /*error=*/ null
-    );
+    this.processUserCallback(batchId, /*error=*/ null);
 
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        this.sharedClientState.trackMutationResult(batchId, 'acknowledged');
+        this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       });
   }
@@ -644,11 +656,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   handleUserChange(user: User): Promise<void> {
     this.currentUser = user;
-    this.sharedClientState.handleUserChange(user);
     return this.localStore
       .handleUserChange(user)
-      .then(changes => {
-        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      .then(result => {
+        this.sharedClientState.handleUserChange(
+          user,
+          result.removedBatchIds,
+          result.addedBatchIds
+        );
+        return this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
       })
       .then(() => {
         return this.remoteStore.handleUserChange(user);

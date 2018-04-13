@@ -23,7 +23,7 @@ import {
   WebStorageSharedClientState,
   ClientId
 } from '../../../src/local/shared_client_state';
-import { BatchId, TargetId } from '../../../src/core/types';
+import { BatchId, MutationBatchState, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
@@ -75,7 +75,11 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
-  async applyPendingBatch(batchId: BatchId): Promise<void> {}
+  async applyBatchState(
+    batchId: BatchId,
+    state: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void> {}
   async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
     batchId: BatchId,

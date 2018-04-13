@@ -65,6 +65,13 @@ export interface LocalWriteResult {
   changes: MaybeDocumentMap;
 }
 
+/** The result of a user-change operation in the local store. */
+export interface UserChangeResult {
+  readonly affectedDocuments: MaybeDocumentMap;
+  readonly removedBatchIds: BatchId[];
+  readonly addedBatchIds: BatchId[];
+}
+
 /**
  * Local storage in the Firestore client. Coordinates persistence components
  * like the mutation queue and remote document cache to present a
@@ -195,7 +202,7 @@ export class LocalStore {
    * In response the local store switches the mutation queue to the new user and
    * returns any resulting document changes.
    */
-  handleUserChange(user: User): Promise<MaybeDocumentMap> {
+  handleUserChange(user: User): Promise<UserChangeResult> {
     return this.persistence.runTransaction('Handle user change', true, txn => {
       // Swap out the mutation queue, grabbing the pending mutation batches
       // before and after.
@@ -220,19 +227,37 @@ export class LocalStore {
           return this.mutationQueue.getAllMutationBatches(txn);
         })
         .next(newBatches => {
+          const removedBatchIds: BatchId[] = [];
+          const addedBatchIds: BatchId[] = [];
+
           // Union the old/new changed keys.
           let changedKeys = documentKeySet();
-          for (const batches of [oldBatches, newBatches]) {
-            for (const batch of batches) {
-              for (const mutation of batch.mutations) {
-                changedKeys = changedKeys.add(mutation.key);
-              }
+
+          for (const batch of oldBatches) {
+            removedBatchIds.push(batch.batchId);
+            for (const mutation of batch.mutations) {
+              changedKeys = changedKeys.add(mutation.key);
             }
           }
 
-          // Return the set of all (potentially) changed documents as the
-          // result of the user change.
-          return this.localDocuments.getDocuments(txn, changedKeys);
+          for (const batch of newBatches) {
+            addedBatchIds.push(batch.batchId);
+            for (const mutation of batch.mutations) {
+              changedKeys = changedKeys.add(mutation.key);
+            }
+          }
+
+          // Return the set of all (potentially) changed documents and the list
+          // of mutation batch IDs that were affected by change.
+          return this.localDocuments
+            .getDocuments(txn, changedKeys)
+            .next(affectedDocuments => {
+              return {
+                affectedDocuments,
+                removedBatchIds,
+                addedBatchIds
+              };
+            });
         });
     });
   }

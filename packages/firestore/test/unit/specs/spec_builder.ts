@@ -269,7 +269,9 @@ export class SpecBuilder {
 
   drainQueue(): this {
     this.nextStep();
-    this.currentStep = { drainQueue: true };
+    this.currentStep = {
+      drainQueue: true
+    };
     return this;
   }
 
@@ -421,19 +423,18 @@ export class SpecBuilder {
    * expectUserCallback defaults to true if options are omitted.
    */
   writeAcks(
+    doc: string,
     version: TestSnapshotVersion,
-    options?: {
-      expectUserCallback: boolean;
-    }
+    options?: { expectUserCallback: boolean }
   ): this {
     this.nextStep();
-    this.currentStep = {
-      writeAck: {
-        version,
-        expectUserCallback: options ? options.expectUserCallback : true
-      }
-    };
-    return this;
+    this.currentStep = { writeAck: { version } };
+
+    if (!options || options.expectUserCallback) {
+      return this.expectUserCallbacks({ acknowledged: [doc] });
+    } else {
+      return this;
+    }
   }
 
   /**
@@ -441,15 +442,19 @@ export class SpecBuilder {
    *
    * expectUserCallback defaults to true if options are omitted.
    */
-  failWrite(err: RpcError, options?: { expectUserCallback: boolean }): this {
+  failWrite(
+    doc: string,
+    err: RpcError,
+    options?: { expectUserCallback: boolean }
+  ): this {
     this.nextStep();
-    this.currentStep = {
-      failWrite: {
-        error: err,
-        expectUserCallback: options ? options.expectUserCallback : true
-      }
-    };
-    return this;
+    this.currentStep = { failWrite: { error: err } };
+
+    if (!options || options.expectUserCallback) {
+      return this.expectUserCallbacks({ rejected: [doc] });
+    } else {
+      return this;
+    }
   }
 
   watchAcks(query: Query): this {
@@ -587,6 +592,29 @@ export class SpecBuilder {
         runBackoffTimer: opts.runBackoffTimer
       }
     };
+    return this;
+  }
+
+  expectUserCallbacks(docs: {
+    acknowledged?: string[];
+    rejected?: string[];
+  }): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.userCallbacks = currentStep.stateExpect
+      .userCallbacks || { acknowledgedDocs: [], rejectedDocs: [] };
+
+    if (docs.acknowledged) {
+      currentStep.stateExpect.userCallbacks.acknowledgedDocs.push(
+        ...docs.acknowledged
+      );
+    }
+
+    if (docs.rejected) {
+      currentStep.stateExpect.userCallbacks.rejectedDocs.push(...docs.rejected);
+    }
+
     return this;
   }
 

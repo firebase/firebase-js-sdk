@@ -28,8 +28,8 @@ describeSpec('Persistence:', [], () => {
       .userSets('collection/key2', { baz: 'quu' })
       .restart()
       .expectNumOutstandingWrites(2)
-      .writeAcks(1, { expectUserCallback: false })
-      .writeAcks(2, { expectUserCallback: false })
+      .writeAcks('collection/key1', 1, { expectUserCallback: false })
+      .writeAcks('collection/key2', 2, { expectUserCallback: false })
       .expectNumOutstandingWrites(0);
   });
 
@@ -98,7 +98,7 @@ describeSpec('Persistence:', [], () => {
         .withGCEnabled(false)
         .userSets('collection/key', { foo: 'bar' })
         // Normally the write would get GC'd from remote documents here.
-        .writeAcks(1000)
+        .writeAcks('collection/key', 1000)
         .userListens(query)
         // Version is 0 since we never received a server version via watch.
         .expectEvents(query, {
@@ -117,11 +117,11 @@ describeSpec('Persistence:', [], () => {
       .userSets('users/user1', { uid: 'user1', extra: true })
       .changeUser(null)
       .expectNumOutstandingWrites(1)
-      .writeAcks(1000)
+      .writeAcks('users/anon', 1000)
       .changeUser('user1')
       .expectNumOutstandingWrites(2)
-      .writeAcks(2000)
-      .writeAcks(3000);
+      .writeAcks('users/user1', 2000)
+      .writeAcks('users/user1', 3000);
   });
 
   specTest(
@@ -137,12 +137,12 @@ describeSpec('Persistence:', [], () => {
         .changeUser(null)
         .restart()
         .expectNumOutstandingWrites(1)
-        .writeAcks(1000, { expectUserCallback: false })
+        .writeAcks('users/anon', 1000, { expectUserCallback: false })
         .changeUser('user1')
         .restart()
         .expectNumOutstandingWrites(2)
-        .writeAcks(2000, { expectUserCallback: false })
-        .writeAcks(3000, { expectUserCallback: false });
+        .writeAcks('users/user1', 2000, { expectUserCallback: false })
+        .writeAcks('users/user2', 3000, { expectUserCallback: false });
     }
   );
 

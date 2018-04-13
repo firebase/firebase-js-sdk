@@ -323,9 +323,28 @@ class EventAggregator implements Observer<ViewSnapshot> {
   }
 }
 
-interface OutstandingWrite {
-  mutations: Mutation[];
-  userCallback: Deferred<void>;
+/**
+ * FIFO queue that tracks all outstanding mutations for a single test run.
+ * As these mutations are shared among the set of active clients, any client can
+ * add or retrieve mutations.
+ */
+// PORTING NOTE: Multi-tab only.
+class SharedWriteTracker {
+  private writes: Mutation[][] = [];
+
+  push(write: Mutation[]): void {
+    this.writes.push(write);
+  }
+
+  peek(): Mutation[] {
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes[0];
+  }
+
+  shift(): Mutation[] {
+    assert(this.writes.length > 0, 'No pending mutations');
+    return this.writes.shift()!;
+  }
 }
 
 abstract class TestRunner {
@@ -336,7 +355,9 @@ abstract class TestRunner {
   private syncEngine: SyncEngine;
 
   private eventList: QueryEvent[] = [];
-  private outstandingWrites: OutstandingWrite[] = [];
+  private acknowledgedDocs: string[];
+  private rejectedDocs: string[];
+
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
   );
@@ -360,7 +381,11 @@ abstract class TestRunner {
   private started = false;
   private serializer: JsonProtoSerializer;
 
-  constructor(protected readonly platform: TestPlatform, config: SpecConfig) {
+  constructor(
+    protected readonly platform: TestPlatform,
+    private sharedWrites: SharedWriteTracker,
+    config: SpecConfig
+  ) {
     this.clientId = AutoId.newId();
     this.databaseInfo = new DatabaseInfo(
       new DatabaseId('project'),
@@ -381,6 +406,8 @@ abstract class TestRunner {
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
+    this.acknowledgedDocs = [];
+    this.rejectedDocs = [];
   }
 
   private init(): void {
@@ -468,6 +495,8 @@ abstract class TestRunner {
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
     this.eventList = [];
+    this.rejectedDocs = [];
+    this.acknowledgedDocs = [];
   }
 
   private doStep(step: SpecStep): Promise<void> {
@@ -574,10 +603,18 @@ abstract class TestRunner {
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
-    const userCallback = new Deferred<void>();
-    this.outstandingWrites.push({ mutations, userCallback });
+    const documentKeys = mutations.map(val => val.key.path.toString());
+    const syncEngineCallback = new Deferred<void>();
+
+    syncEngineCallback.promise.then(
+      () => this.acknowledgedDocs.push(...documentKeys),
+      () => this.rejectedDocs.push(...documentKeys)
+    );
+
+    this.sharedWrites.push(mutations);
+
     return this.queue.enqueue(() => {
-      return this.syncEngine.write(mutations, userCallback);
+      return this.syncEngine.write(mutations, syncEngineCallback);
     });
   }
 
@@ -769,12 +806,9 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
+    const nextMutation = this.sharedWrites.shift();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
-      if (writeAck.expectUserCallback) {
-        return nextWrite.userCallback.promise;
-      }
     });
   }
 
@@ -784,25 +818,15 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextWrite = this.outstandingWrites.shift()!;
-    return this.validateNextWriteRequest(nextWrite.mutations).then(() => {
-      // If this is not a permanent error, the write is expected to be sent
+    const nextMutation = this.sharedWrites.peek();
+    return this.validateNextWriteRequest(nextMutation).then(() => {
+      // If this is a permanent error, the write is not expected to be sent
       // again.
-      if (!isPermanentError(error.code)) {
-        this.outstandingWrites.unshift(nextWrite);
+      if (isPermanentError(error.code)) {
+        this.sharedWrites.shift();
       }
 
       this.connection.failWrite(error);
-      if (writeFailure.expectUserCallback) {
-        return nextWrite.userCallback.promise.then(
-          () => {
-            fail('write should have failed');
-          },
-          err => {
-            expect(err).not.to.be.null;
-          }
-        );
-      }
     });
   }
 
@@ -927,6 +951,14 @@ abstract class TestRunner {
       }
       if ('isPrimary' in expectation) {
         expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
+      }
+      if ('userCallbacks' in expectation) {
+        expect(this.acknowledgedDocs).to.have.members(
+          expectation.userCallbacks.acknowledgedDocs
+        );
+        expect(this.rejectedDocs).to.have.members(
+          expectation.userCallbacks.rejectedDocs
+        );
       }
     }
 
@@ -1369,6 +1401,7 @@ export async function runSpec(
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
+  const outstandingMutations = new SharedWriteTracker();
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
@@ -1377,9 +1410,17 @@ export async function runSpec(
         sharedMockStorage
       );
       if (usePersistence) {
-        runners[clientIndex] = new IndexedDbTestRunner(platform, config);
+        runners[clientIndex] = new IndexedDbTestRunner(
+          platform,
+          outstandingMutations,
+          config
+        );
       } else {
-        runners[clientIndex] = new MemoryTestRunner(platform, config);
+        runners[clientIndex] = new MemoryTestRunner(
+          platform,
+          outstandingMutations,
+          config
+        );
       }
       await runners[clientIndex].start();
     }
@@ -1425,7 +1466,7 @@ export interface SpecConfig {
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
-  /** The index of the current client for multi-client spec tests. */
+  /** The index of the local client for multi-client spec tests. */
   clientIndex?: number; // PORTING NOTE: Only used by web multi-tab tests
   /** Listen to a new query (must be unique) */
   userListen?: SpecUserListen;
@@ -1548,15 +1589,11 @@ export type SpecWatchStreamClose = {
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
   version: SpecSnapshotVersion;
-  /** Whether the ack is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export type SpecWriteFailure = {
   /** The error the backend uses to fail the write. */
   error: SpecError;
-  /** Whether the failure is expected to generate a user callback. */
-  expectUserCallback: boolean;
 };
 
 export interface SpecWatchEntity {
@@ -1650,5 +1687,12 @@ export interface StateExpectation {
    */
   activeTargets?: {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
+  };
+  /**
+   * Expected set of callbacks for previously written docs.
+   */
+  userCallbacks?: {
+    acknowledgedDocs: string[];
+    rejectedDocs: string[];
   };
 }

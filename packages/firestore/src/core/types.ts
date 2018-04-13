@@ -30,6 +30,9 @@ export type TargetId = number;
 // they're strings. We should probably (de-)serialize to a common internal type.
 export type ProtoByteString = Uint8Array | string;
 
+/** The different states of a mutation batch. */
+export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
+
 /**
  * Describes the online state of the Firestore client. Note that this does not
  * indicate whether or not the remote store is trying to connect or not. This is

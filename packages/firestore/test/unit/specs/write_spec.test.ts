@@ -57,7 +57,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query] }, docAv2)
         .watchSnapshots(2000)
-        .writeAcks(2000)
+        .writeAcks('collection/a', 2000)
         .expectEvents(query, {
           metadata: [docAv2]
         })
@@ -68,7 +68,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query] }, docBv2)
         .watchSnapshots(3000)
-        .writeAcks(3000)
+        .writeAcks('collection/b', 3000)
         .expectEvents(query, {
           metadata: [docBv2]
         });
@@ -101,7 +101,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query1] }, doc1c)
         .watchSnapshots(2000)
-        .writeAcks(2000)
+        .writeAcks('collection/key', 2000)
         .expectEvents(query1, {
           metadata: [doc1c]
         });
@@ -136,7 +136,7 @@ describeSpec('Writes:', [], () => {
       })
       .watchSends({ affects: [query1] }, doc1c)
       .watchSnapshots(watchVersion)
-      .writeAcks(ackedVersion) // The ack is already outdated by the newer doc1c
+      .writeAcks('collection/key', ackedVersion) // The ack is already outdated by the newer doc1c
       .expectEvents(query1, {
         modified: [doc1c]
       });
@@ -167,7 +167,7 @@ describeSpec('Writes:', [], () => {
             modified: [docV2Local]
           })
           // The ack arrives before the watch snapshot; no events yet
-          .writeAcks(2000)
+          .writeAcks('collection/key', 2000)
           .watchSends({ affects: [query] }, docV2)
           .watchSnapshots(2000)
           .expectEvents(query, {
@@ -200,7 +200,7 @@ describeSpec('Writes:', [], () => {
           modified: [docV3Local]
         })
         // The ack arrives before the watch snapshot; no events yet
-        .writeAcks(3000)
+        .writeAcks('collection/key', 3000)
         // watch sends some stale data; no events
         .watchSends({ affects: [query] }, docV2)
         .watchSnapshots(2000)
@@ -251,7 +251,7 @@ describeSpec('Writes:', [], () => {
     specification.expectNumOutstandingWrites(10);
     for (let i = 0; i < numWrites; i++) {
       specification
-        .writeAcks((i + 1) * 1000)
+        .writeAcks('collection/a' + i, (i + 1) * 1000)
         .watchSends({ affects: [query] }, docs[i])
         .watchSnapshots((i + 1) * 1000)
         .expectEvents(query, {
@@ -290,7 +290,10 @@ describeSpec('Writes:', [], () => {
     specification.expectNumOutstandingWrites(10);
     for (let i = 0; i < numWrites; i++) {
       specification
-        .failWrite(new RpcError(Code.PERMISSION_DENIED, 'permission denied'))
+        .failWrite(
+          'collection/a' + i,
+          new RpcError(Code.PERMISSION_DENIED, 'permission denied')
+        )
         .expectEvents(query, {
           fromCache: true,
           hasPendingWrites: i < numWrites - 1,
@@ -330,14 +333,17 @@ describeSpec('Writes:', [], () => {
         .userSets('collection/b', { v: 1 })
         .expectEvents(query, { hasPendingWrites: true, added: [docBLocal] })
         // ack write but no watch snapshot so it'll be held.
-        .writeAcks(2000)
+        .writeAcks('collection/b', 2000)
         .userSets('collection/a', { v: 2 })
         .expectEvents(query, {
           hasPendingWrites: true,
           modified: [docAv2Local]
         })
         // reject write, should be released immediately.
-        .failWrite(new RpcError(Code.PERMISSION_DENIED, 'failure'))
+        .failWrite(
+          'collection/a',
+          new RpcError(Code.PERMISSION_DENIED, 'failure')
+        )
         .expectEvents(query, { hasPendingWrites: true, modified: [docAv1] })
         // watch updates, B should be visible
         .watchSends({ affects: [query] }, docB)
@@ -375,7 +381,7 @@ describeSpec('Writes:', [], () => {
           added: [docALocal]
         })
         // ack write but without a watch event.
-        .writeAcks(1000)
+        .writeAcks('collection/a', 1000)
         // Do another write.
         .userSets('collection/b', { v: 1 })
         .expectEvents(query, {
@@ -383,7 +389,7 @@ describeSpec('Writes:', [], () => {
           added: [docBLocal]
         })
         // ack second write
-        .writeAcks(2000)
+        .writeAcks('collection/b', 2000)
         // Finally watcher catches up.
         .watchSends({ affects: [query] }, docA, docB)
         .watchSnapshots(2000)
@@ -417,7 +423,7 @@ describeSpec('Writes:', [], () => {
             added: [docALocal]
           })
           // ack write but without a watch event.
-          .writeAcks(1000)
+          .writeAcks('collection/a', 1000)
 
           // handshake + write = 2 requests
           .expectWriteStreamRequestCount(2)
@@ -469,7 +475,7 @@ describeSpec('Writes:', [], () => {
             added: [docALocal]
           })
           // ack write but without a watch event.
-          .writeAcks(1000)
+          .writeAcks('collection/a', 1000)
           // Unlisten before the write is released.
           .userUnlistens(query)
           // Re-add listen and make sure we don't get any events.
@@ -506,7 +512,7 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(code, 'failure'))
+        .failWrite('collection/key', new RpcError(code, 'failure'))
         .expectEvents(query1, {
           fromCache: true,
           removed: [doc1a]
@@ -537,9 +543,13 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(Code.RESOURCE_EXHAUSTED, 'transient error'), {
-          expectUserCallback: false
-        });
+        .failWrite(
+          'collection/key',
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'transient error'),
+          {
+            expectUserCallback: false
+          }
+        );
     }
   );
 
@@ -569,10 +579,10 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(code, 'transient error'), {
+        .failWrite('collection/key', new RpcError(code, 'transient error'), {
           expectUserCallback: false
         })
-        .writeAcks(1000)
+        .writeAcks('collection/key', 1000)
         .watchAcks(query1)
         .watchSends({ affects: [query1] }, doc1b)
         .watchCurrents(query1, 'resume-token-1000')
@@ -611,7 +621,7 @@ describeSpec('Writes:', [], () => {
           })
           .watchSends({ affects: [query] }, docV2)
           .watchSnapshots(2000)
-          .writeAcks(2000)
+          .writeAcks('collection/doc', 2000)
           .expectEvents(query, { metadata: [docV2] })
       );
     }
@@ -633,7 +643,7 @@ describeSpec('Writes:', [], () => {
         expectRequestCount({ handshakes: 2, writes: 2, closes: 1 })
       )
       .expectNumOutstandingWrites(1)
-      .writeAcks(1, { expectUserCallback: false })
+      .writeAcks('collection/key', 1, { expectUserCallback: false })
       .expectNumOutstandingWrites(0);
   });
 
@@ -706,4 +716,56 @@ describeSpec('Writes:', [], () => {
         });
     }
   );
+
+  specTest('Write is acknowledged by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const localDoc = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const remoteDoc = doc('collection/a', 1000, { v: 1 });
+
+    // TODO(multitab): Once query specs are shared between clients,
+    // client 0 no longer needs to manually initialize the query
+    return client(0)
+      .userListens(query)
+      .watchAcksFull(query, 500)
+      .expectEvents(query, {})
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        fromCache: true
+      })
+      .userSets('collection/a', { v: 1 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        fromCache: true,
+        added: [localDoc]
+      })
+      .client(0)
+      .drainQueue()
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        added: [localDoc]
+      })
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .watchSends({ affects: [query] }, remoteDoc)
+      .watchSnapshots(1000)
+      .expectEvents(query, {
+        metadata: [remoteDoc]
+      })
+      .client(1)
+      .drainQueue()
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+    // TODO(b/33446471): This event doesn't fire since we are holding the write
+    // acknowledgment.
+    // .expectEvents(query, {
+    //   fromCache: true,
+    //   metadata: [remoteDoc]
+    // });
+  });
 });
