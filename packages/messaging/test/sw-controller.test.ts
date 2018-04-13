@@ -48,13 +48,12 @@ describe('Firebase Messaging > *SWController', () => {
     // Here we're adding placeholders for Sinon to overwrite, which prevents the
     // "Cannot stub non-existent own property" errors.
     //
-    // ts-ignore is needed because TS also thinks that we're in a SW context,
-    // and considers these properties readonly.
+    // Casting to any is needed because TS also thinks that we're in a SW
+    // context and considers these properties readonly.
 
-    // @ts-ignore
-    self.clients = 'This is a placeholder for sinon to overwrite.';
-    // @ts-ignore
-    self.registration = 'This is a placeholder for sinon to overwrite.';
+    (self as any).clients = 'This is a placeholder for sinon to overwrite.';
+    (self as any).registration =
+      'This is a placeholder for sinon to overwrite.';
 
     sandbox = sinon.sandbox.create();
     app = makeFakeApp({
@@ -63,10 +62,8 @@ describe('Firebase Messaging > *SWController', () => {
   });
 
   afterEach(() => {
-    // @ts-ignore
-    delete self.clients;
-    // @ts-ignore
-    delete self.registration;
+    delete (self as any).clients;
+    delete (self as any).registration;
 
     sandbox.restore();
   });
