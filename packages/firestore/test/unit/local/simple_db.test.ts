@@ -22,6 +22,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+import * as persistenceHelpers from './persistence_test_helpers';
 
 interface User {
   id: number;
@@ -76,16 +77,23 @@ describe('SimpleDb', () => {
     const dbName = 'simpledb-tests';
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
-          const objectStore = db.createObjectStore('users', { keyPath: 'id' });
-          objectStore.createIndex('age-name', ['age', 'name'], {
-            unique: false
-          });
+        return SimpleDb.openOrCreate(
+          dbName,
+          persistenceHelpers.testSerializer(),
+          1,
+          db => {
+            const objectStore = db.createObjectStore('users', {
+              keyPath: 'id'
+            });
+            objectStore.createIndex('age-name', ['age', 'name'], {
+              unique: false
+            });
 
-          // A store that uses arrays as keys.
-          db.createObjectStore('docs');
-          return PersistencePromise.resolve();
-        });
+            // A store that uses arrays as keys.
+            db.createObjectStore('docs');
+            return PersistencePromise.resolve();
+          }
+        );
       })
       .then(simpleDb => {
         db = simpleDb;

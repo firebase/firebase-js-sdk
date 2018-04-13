@@ -20,6 +20,7 @@ import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
+import { LocalSerializer } from './local_serializer';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -34,10 +35,12 @@ export class SimpleDb {
   /** Opens the specified database, creating or upgrading it if necessary. */
   static openOrCreate(
     name: string,
+    serializer: LocalSerializer,
     version: number,
     runUpgrade: (
       db: IDBDatabase,
       txn: SimpleDbTransaction,
+      serializer: LocalSerializer,
       fromVersion: number,
       toVersion: number
     ) => PersistencePromise<void>
@@ -75,12 +78,14 @@ export class SimpleDb {
         // we wrap that in a SimpleDbTransaction to allow use of our friendlier
         // API for schema migration operations.
         const txn = new SimpleDbTransaction(request.transaction);
-        runUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION).next(() => {
-          debug(
-            LOG_TAG,
-            'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
-          );
-        });
+        runUpgrade(db, txn, serializer, event.oldVersion, SCHEMA_VERSION).next(
+          () => {
+            debug(
+              LOG_TAG,
+              'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+            );
+          }
+        );
       };
     }).toPromise();
   }

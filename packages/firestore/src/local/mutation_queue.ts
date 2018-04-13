@@ -24,6 +24,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { DocumentKeySet } from '../model/collections';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue extends GarbageSource {
@@ -187,12 +188,22 @@ export interface MutationQueue extends GarbageSource {
    *
    * In both cases, the array of mutations to remove must be a contiguous range
    * of batchIds. This is most easily accomplished by loading mutations with
-   * getAllMutationBatchesThroughBatchId()
+   * getAllMutationBatchesThroughBatchId().
+   *
+   * Even after this removal, `lookupMutationKeys()` can continue to be used to
+   * retrieve the list of a mutation's document keys.
    */
   removeMutationBatches(
     transaction: PersistenceTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<void>;
+
+  /** Returns the keys of the documents affected by the given mutation batch. */
+  // PORTING NOTE: Multi-tab only.
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Performs a consistency check, examining the mutation queue for any

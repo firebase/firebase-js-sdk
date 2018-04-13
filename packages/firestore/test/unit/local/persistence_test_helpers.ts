@@ -30,6 +30,7 @@ import { User } from '../../../src/auth/user';
 import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
+import { LocalSerializer } from '../../../src/local/local_serializer';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
@@ -37,6 +38,12 @@ export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'fs_';
 
+export function testSerializer(): LocalSerializer {
+  const remoteSerializer = new JsonProtoSerializer(new DatabaseId('project'), {
+    useProto3Json: true
+  });
+  return new LocalSerializer(remoteSerializer);
+}
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
  * any previous contents if they existed.

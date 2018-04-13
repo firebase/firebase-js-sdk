@@ -24,6 +24,7 @@ import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { LocalSerializer } from './local_serializer';
 
 /**
  * Schema Version for the Web client:
@@ -44,6 +45,7 @@ export const SCHEMA_VERSION = 3;
 export function createOrUpgradeDb(
   db: IDBDatabase,
   txn: SimpleDbTransaction,
+  serializer: LocalSerializer,
   fromVersion: number,
   toVersion: number
 ): PersistencePromise<void> {
@@ -70,6 +72,7 @@ export function createOrUpgradeDb(
     p = p.next(() => {
       createClientMetadataStore(db);
       createTargetChangeStore(db);
+      return createAndPopulateMutationChangesStore(txn, db, serializer);
     });
   }
   return p;
@@ -190,6 +193,71 @@ export class DbMutationBatch {
      */
     public mutations: api.Write[]
   ) {}
+}
+
+/** keys in the 'mutationChanges' object store are [userId, batchId] pairs. */
+export type DbMutationChangesKey = [string, BatchId];
+
+/**
+ * An object to be stored in the 'mutationChanges' store in IndexedDb.
+ *
+ * Represents the document keys that are affected by a mutation batch. Mutation
+ * changes are used for multi-client synchronization and ensure that secondary
+ * clients can replay or revert mutations applied by primary clients.
+ */
+// PORTING NOTE: Multi-tab only.
+export class DbMutationChanges {
+  /** Name of the IndexedDb object store.  */
+  static store = 'mutationChanges';
+
+  /** Keys are automatically assigned via the userId, batchId properties. */
+  static keyPath = ['userId', 'batchId'];
+
+  constructor(
+    /**
+     * The normalized user ID to which this batch belongs.
+     */
+    public userId: string,
+    /**
+     * An identifier for this batch, allocated by the mutation queue in a
+     * monotonically increasing manner.
+     */
+    public batchId: BatchId,
+    /**
+     * The list of documents affected by this mutation.
+     */
+    public changedPaths: EncodedResourcePath[]
+  ) {}
+}
+
+/**
+ * Creates a mutationChanges object store. Populates the store with data from
+ * the mutationStore.
+ */
+function createAndPopulateMutationChangesStore(
+  txn: SimpleDbTransaction,
+  db: IDBDatabase,
+  serializer: LocalSerializer
+): PersistencePromise<void> {
+  db.createObjectStore(DbMutationChanges.store, {
+    keyPath: DbMutationChanges.keyPath as KeyPath
+  });
+
+  const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  const changesStore = txn.store<DbMutationChangesKey, DbMutationChanges>(
+    DbMutationChanges.store
+  );
+
+  return mutationStore.iterate((key, dbBatch) => {
+    const mutationBatch = serializer.fromDbMutationBatch(dbBatch);
+    const mutationChanges = serializer.toDbMutationChanges(
+      dbBatch.userId,
+      mutationBatch
+    );
+    changesStore.put(mutationChanges);
+  });
 }
 
 /**
@@ -651,7 +719,8 @@ export const V2_STORES = V1_STORES;
 export const V3_STORES = [
   ...V2_STORES,
   DbClientMetadata.store,
-  DbTargetChange.store
+  DbTargetChange.store,
+  DbMutationChanges.store
 ];
 
 /**

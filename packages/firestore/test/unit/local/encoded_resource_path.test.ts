@@ -16,6 +16,7 @@
 
 import { expect } from 'chai';
 import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
+import * as persistenceHelpers from './persistence_test_helpers';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
@@ -38,10 +39,15 @@ describe('EncodedResourcePath', () => {
     const dbName = 'resource-path-tests';
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
-          db.createObjectStore('test');
-          return PersistencePromise.resolve();
-        });
+        return SimpleDb.openOrCreate(
+          dbName,
+          persistenceHelpers.testSerializer(),
+          1,
+          db => {
+            db.createObjectStore('test');
+            return PersistencePromise.resolve();
+          }
+        );
       })
       .then(simpleDb => {
         db = simpleDb;

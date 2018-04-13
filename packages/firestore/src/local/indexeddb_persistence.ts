@@ -175,7 +175,12 @@ export class IndexedDbPersistence implements Persistence {
       "Expected 'window' and 'document' to be defined"
     );
 
-    return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
+    return SimpleDb.openOrCreate(
+      this.dbName,
+      this.serializer,
+      SCHEMA_VERSION,
+      createOrUpgradeDb
+    )
       .then(db => {
         this.simpleDb = db;
       })
