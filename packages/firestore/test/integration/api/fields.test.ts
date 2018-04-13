@@ -46,67 +46,55 @@ apiDescribe('Nested Fields', persistence => {
   };
 
   it('can be written with set()', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set(testData())
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(testData());
-        });
+    return withTestDoc(persistence, testData(), doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.data()).to.deep.equal(testData());
+      });
     });
   });
 
   it('can be read directly with .get(<string>)', () => {
-    return withTestDoc(persistence, doc => {
-      const obj = testData();
-      return doc
-        .set(obj)
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get('name')).to.deep.equal(obj.name);
-          expect(docSnap.get('metadata')).to.deep.equal(obj.metadata);
-          expect(docSnap.get('metadata.deep.field')).to.deep.equal(
-            obj.metadata.deep.field
-          );
-          expect(docSnap.get('metadata.nofield')).to.be.undefined;
-          expect(docSnap.get('nometadata.nofield')).to.be.undefined;
-        });
+    const obj = testData();
+    return withTestDoc(persistence, obj, doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.data()).to.deep.equal(obj);
+        expect(docSnap.get('name')).to.deep.equal(obj.name);
+        expect(docSnap.get('metadata')).to.deep.equal(obj.metadata);
+        expect(docSnap.get('metadata.deep.field')).to.deep.equal(
+          obj.metadata.deep.field
+        );
+        expect(docSnap.get('metadata.nofield')).to.be.undefined;
+        expect(docSnap.get('nometadata.nofield')).to.be.undefined;
+      });
     });
   });
 
   it('can be read directly with .get(<FieldPath>)', () => {
-    return withTestDoc(persistence, doc => {
-      const obj = testData();
-      return doc
-        .set(obj)
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get(new FieldPath('name'))).to.deep.equal(obj.name);
-          expect(docSnap.get(new FieldPath('metadata'))).to.deep.equal(
-            obj.metadata
-          );
-          expect(
-            docSnap.get(new FieldPath('metadata', 'deep', 'field'))
-          ).to.deep.equal(obj.metadata.deep.field);
-          expect(docSnap.get(new FieldPath('metadata', 'nofield'))).to.be
-            .undefined;
-          expect(docSnap.get(new FieldPath('nometadata', 'nofield'))).to.be
-            .undefined;
-        });
+    const obj = testData();
+    return withTestDoc(persistence, obj, doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.data()).to.deep.equal(obj);
+        expect(docSnap.get(new FieldPath('name'))).to.deep.equal(obj.name);
+        expect(docSnap.get(new FieldPath('metadata'))).to.deep.equal(
+          obj.metadata
+        );
+        expect(
+          docSnap.get(new FieldPath('metadata', 'deep', 'field'))
+        ).to.deep.equal(obj.metadata.deep.field);
+        expect(docSnap.get(new FieldPath('metadata', 'nofield'))).to.be
+          .undefined;
+        expect(docSnap.get(new FieldPath('nometadata', 'nofield'))).to.be
+          .undefined;
+      });
     });
   });
 
   it('can be updated with update(<string>)', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, testData(), doc => {
       return doc
-        .set(testData())
-        .then(() => {
-          return doc.update({
-            'metadata.deep.field': 100,
-            'metadata.added': 200
-          });
+        .update({
+          'metadata.deep.field': 100,
+          'metadata.added': 200
         })
         .then(() => doc.get())
         .then(docSnap => {
@@ -125,17 +113,14 @@ apiDescribe('Nested Fields', persistence => {
   });
 
   it('can be updated with update(<FieldPath>)', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, testData(), doc => {
       return doc
-        .set(testData())
-        .then(() => {
-          return doc.update(
-            new FieldPath('metadata', 'deep', 'field'),
-            100,
-            new FieldPath('metadata', 'added'),
-            200
-          );
-        })
+        .update(
+          new FieldPath('metadata', 'deep', 'field'),
+          100,
+          new FieldPath('metadata', 'added'),
+          200
+        )
         .then(() => doc.get())
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({
@@ -247,46 +232,30 @@ apiDescribe('Fields with special characters', persistence => {
   };
 
   it('can be written with set()', () => {
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set(testData())
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(testData());
-        });
+    return withTestDoc(persistence, testData(), doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.data()).to.deep.equal(testData());
+      });
     });
   });
 
   it('can be read directly with .data(<field>)', () => {
-    return withTestDoc(persistence, doc => {
-      const obj = testData();
-      return doc
-        .set(obj)
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal(obj);
-          expect(docSnap.get(new FieldPath('field.dot'))).to.deep.equal(
-            obj['field.dot']
-          );
-          expect(docSnap.get('field\\slash')).to.deep.equal(
-            obj['field\\slash']
-          );
-        });
+    const obj = testData();
+    return withTestDoc(persistence, obj, doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.data()).to.deep.equal(obj);
+        expect(docSnap.get(new FieldPath('field.dot'))).to.deep.equal(
+          obj['field.dot']
+        );
+        expect(docSnap.get('field\\slash')).to.deep.equal(obj['field\\slash']);
+      });
     });
   });
 
   it('can be updated with update()', () => {
-    return withTestDoc(persistence, doc => {
+    return withTestDoc(persistence, testData(), doc => {
       return doc
-        .set(testData())
-        .then(() => {
-          return doc.update(
-            new FieldPath('field.dot'),
-            100,
-            'field\\slash',
-            200
-          );
-        })
+        .update(new FieldPath('field.dot'), 100, 'field\\slash', 200)
         .then(() => doc.get())
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({
@@ -388,25 +357,22 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
       Math.floor(timestamp.nanoseconds / 1000) * 1000
     );
 
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set(testDataWithTimestamps(timestamp))
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.get('timestamp'))
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()['timestamp'])
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
+    return withTestDoc(persistence, testDataWithTimestamps(timestamp), doc => {
+      return doc.get().then(docSnap => {
+        expect(docSnap.get('timestamp'))
+          .to.be.an.instanceof(Timestamp)
+          .that.deep.equals(truncatedTimestamp);
+        expect(docSnap.data()['timestamp'])
+          .to.be.an.instanceof(Timestamp)
+          .that.deep.equals(truncatedTimestamp);
 
-          expect(docSnap.get('nested.timestamp2'))
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()['nested']['timestamp2'])
-            .to.be.an.instanceof(Timestamp)
-            .that.deep.equals(truncatedTimestamp);
-        });
+        expect(docSnap.get('nested.timestamp2'))
+          .to.be.an.instanceof(Timestamp)
+          .that.deep.equals(truncatedTimestamp);
+        expect(docSnap.data()['nested']['timestamp2'])
+          .to.be.an.instanceof(Timestamp)
+          .that.deep.equals(truncatedTimestamp);
+      });
     });
   });
 

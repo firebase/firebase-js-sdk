@@ -32,19 +32,14 @@ apiDescribe('Smoke Test', persistence => {
   });
 
   it('can read a written document', () => {
-    return integrationHelpers.withTestDoc(persistence, ref => {
-      const data = {
-        name: 'Patryk',
-        message: 'We are actually writing data!'
-      };
-      return ref
-        .set(data)
-        .then(() => {
-          return ref.get();
-        })
-        .then((doc: firestore.DocumentSnapshot) => {
-          expect(doc.data()).to.deep.equal(data);
-        });
+    const data = {
+      name: 'Patryk',
+      message: 'We are actually writing data!'
+    };
+    return integrationHelpers.withTestDoc(persistence, data, ref => {
+      return ref.get().then((doc: firestore.DocumentSnapshot) => {
+        expect(doc.data()).to.deep.equal(data);
+      });
     });
   });
 

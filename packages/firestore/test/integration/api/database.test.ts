@@ -51,12 +51,9 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete a document', () => {
-    return withTestDoc(persistence, docRef => {
+    return withTestDoc(persistence, { foo: 'bar' }, docRef => {
       return docRef
-        .set({ foo: 'bar' })
-        .then(() => {
-          return docRef.get();
-        })
+        .get()
         .then(doc => {
           expect(doc.data()).to.deep.equal({ foo: 'bar' });
           return docRef.delete();
@@ -71,11 +68,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can update existing document', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const updateData = {
         desc: 'NewDescription',
         'owner.email': 'new@xyz.com'
@@ -85,8 +82,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny', email: 'new@xyz.com' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
+        .update(updateData)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -106,11 +102,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can merge data with an existing document using set', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'description',
-        'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'description',
+      'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         updated: true,
         'owner.data': { name: 'Sebastian' }
@@ -121,8 +117,7 @@ apiDescribe('Database', persistence => {
         'owner.data': { name: 'Sebastian', email: 'abc@xyz.com' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -132,16 +127,15 @@ apiDescribe('Database', persistence => {
   });
 
   it('can merge server timestamps', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        updated: false
-      };
+    const initialData = {
+      updated: false
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         time: firebase.firestore.FieldValue.serverTimestamp()
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -152,12 +146,12 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete field using merge', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        untouched: true,
-        foo: 'bar',
-        nested: { untouched: true, foo: 'bar' }
-      };
+    const initialData = {
+      untouched: true,
+      foo: 'bar',
+      nested: { untouched: true, foo: 'bar' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         foo: firebase.firestore.FieldValue.delete(),
         nested: { foo: firebase.firestore.FieldValue.delete() }
@@ -167,8 +161,7 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -178,13 +171,13 @@ apiDescribe('Database', persistence => {
   });
 
   it('can replace an array by merging using set', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        untouched: true,
-        data: 'old',
-        topLevel: ['old', 'old'],
-        mapInArray: [{ data: 'old' }]
-      };
+    const initialData = {
+      untouched: true,
+      data: 'old',
+      topLevel: ['old', 'old'],
+      mapInArray: [{ data: 'old' }]
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const mergeData = {
         data: 'new',
         topLevel: ['new'],
@@ -197,8 +190,7 @@ apiDescribe('Database', persistence => {
         mapInArray: [{ data: 'new' }]
       };
       return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
+        .set(mergeData, { merge: true })
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -229,11 +221,11 @@ apiDescribe('Database', persistence => {
   });
 
   it('can delete a field with an update', () => {
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny', email: 'abc@xyz.com' }
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const updateData = {
         'owner.email': firebase.firestore.FieldValue.delete()
       };
@@ -242,8 +234,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny' }
       };
       return doc
-        .set(initialData)
-        .then(() => doc.update(updateData))
+        .update(updateData)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
@@ -255,22 +246,19 @@ apiDescribe('Database', persistence => {
   it('can update nested fields', () => {
     const FieldPath = firebase.firestore.FieldPath;
 
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny' },
-        'is.admin': false
-      };
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    return withTestDoc(persistence, initialData, doc => {
       const finalData = {
         desc: 'Description',
         owner: { name: 'Sebastian' },
         'is.admin': true
       };
       return doc
-        .set(initialData)
-        .then(() =>
-          doc.update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
-        )
+        .update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
         .then(() => doc.get())
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;

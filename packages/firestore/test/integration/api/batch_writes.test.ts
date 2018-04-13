@@ -70,15 +70,11 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can update documents', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
-      return doc
-        .set({ foo: 'bar' })
-        .then(() =>
-          doc.firestore
-            .batch()
-            .update(doc, { baz: 42 })
-            .commit()
-        )
+    return integrationHelpers.withTestDoc(persistence, { foo: 'bar' }, doc => {
+      return doc.firestore
+        .batch()
+        .update(doc, { baz: 42 })
+        .commit()
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
@@ -88,10 +84,9 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can delete documents', () => {
-    return integrationHelpers.withTestDoc(persistence, doc => {
+    return integrationHelpers.withTestDoc(persistence, { foo: 'bar' }, doc => {
       return doc
-        .set({ foo: 'bar' })
-        .then(() => doc.get())
+        .get()
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
         })
