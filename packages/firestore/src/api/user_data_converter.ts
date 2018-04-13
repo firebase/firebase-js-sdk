@@ -556,10 +556,7 @@ export class UserDataConverter {
    *
    * @return The parsed value
    */
-  private parseScalarValue(
-    value: AnyJs,
-    context: ParseContext
-  ): FieldValue {
+  private parseScalarValue(value: AnyJs, context: ParseContext): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
