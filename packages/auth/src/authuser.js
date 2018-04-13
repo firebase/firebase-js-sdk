@@ -36,6 +36,7 @@ goog.require('fireauth.AuthEventHandler');
 goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.ConfirmationResult');
+goog.require('fireauth.IdTokenResult');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.ProactiveRefresh');
 goog.require('fireauth.RpcHandler');
@@ -917,6 +918,20 @@ fireauth.AuthUser.prototype.reloadWithoutSaving_ = function() {
           }
           return idToken;
         });
+  });
+};
+
+
+/**
+ * This operation resolves with the Firebase ID token result which contains
+ * the entire payload claims.
+ * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
+ * @return {!goog.Promise<!fireauth.IdTokenResult>} A Promise that resolves with
+ *     the ID token result.
+ */
+fireauth.AuthUser.prototype.getIdTokenResult = function(opt_forceRefresh) {
+  return this.getIdToken(opt_forceRefresh).then(function(idToken) {
+    return new fireauth.IdTokenResult(idToken);
   });
 };
 
