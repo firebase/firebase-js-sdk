@@ -22,6 +22,7 @@
 goog.provide('fireauth.common.testHelper');
 
 goog.require('fireauth.storage.Factory');
+goog.require('fireauth.util');
 goog.require('goog.Promise');
 
 goog.setTestOnly('fireauth.common.testHelper');
@@ -154,6 +155,35 @@ fireauth.common.testHelper.assertUserStorage =
   }
   // Wait for all checks to complete before resolving.
   return goog.Promise.all(promises);
+};
+
+
+/**
+ * @param {!fireauth.IdTokenResult} idTokenResult The ID token result to assert.
+ * @param {?string} token The expected token string.
+ * @param {?number} expirationTime The expected expiration time in seconds.
+ * @param {?number} authTime The expected auth time in seconds.
+ * @param {?number} issuedAtTime The expected issued time in seconds.
+ * @param {?string} signInProvider The expected sign-in provider.
+ * @param {!Object} claims The expected payload claims .
+ */
+fireauth.common.testHelper.assertIdTokenResult = function (
+    idTokenResult,
+    token,
+    expirationTime,
+    authTime,
+    issuedAtTime,
+    signInProvider,
+    claims) {
+  assertEquals(token, idTokenResult['token']);
+  assertEquals(fireauth.util.utcTimestampToDateString(expirationTime * 1000),
+      idTokenResult['expirationTime']);
+  assertEquals(fireauth.util.utcTimestampToDateString(authTime * 1000),
+      idTokenResult['authTime']);
+  assertEquals(fireauth.util.utcTimestampToDateString(issuedAtTime * 1000),
+      idTokenResult['issuedAtTime']);
+  assertEquals(signInProvider, idTokenResult['signInProvider']);
+  assertObjectEquals(claims, idTokenResult['claims']);
 };
 
 
