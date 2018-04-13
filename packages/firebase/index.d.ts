@@ -306,7 +306,7 @@ declare namespace firebase.auth {
     claims: {
       [key: string]: any;
     };
-  };
+  }
 
   class PhoneAuthProvider extends PhoneAuthProvider_Instance {
     static PROVIDER_ID: string;

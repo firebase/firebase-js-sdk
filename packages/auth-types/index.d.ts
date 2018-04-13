@@ -170,7 +170,7 @@ export interface IdTokenResult {
   claims: {
     [key: string]: any;
   };
-};
+}
 
 export class OAuthProvider implements AuthProvider {
   providerId: string;
