@@ -36,7 +36,6 @@ jobs:
       env: '#comment = yarn test:saucelabs'
       if: type = push
     - stage: deploy
-      install: skip
       script: skip
       # NPM Canary Build Config
       deploy:
