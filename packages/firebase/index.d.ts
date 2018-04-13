@@ -36,7 +36,9 @@ declare namespace firebase {
   interface User extends firebase.UserInfo {
     delete(): Promise<any>;
     emailVerified: boolean;
-    getIdTokenResult(forceRefresh?: boolean): Promise<firebase.auth.IdTokenResult>;
+    getIdTokenResult(
+      forceRefresh?: boolean
+    ): Promise<firebase.auth.IdTokenResult>;
     getIdToken(forceRefresh?: boolean): Promise<any>;
     getToken(forceRefresh?: boolean): Promise<any>;
     isAnonymous: boolean;
