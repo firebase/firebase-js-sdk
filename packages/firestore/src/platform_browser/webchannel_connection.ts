@@ -71,7 +71,10 @@ export class WebChannelConnection implements Connection {
    * Modifies the headers for a request, adding any authorization token if
    * present and any additional headers for the request.
    */
-  private modifyHeadersForRequest(headers: StringMap, token: Token | null) {
+  private modifyHeadersForRequest(
+    headers: StringMap,
+    token: Token | null
+  ): void {
     if (token) {
       for (const header in token.authHeaders) {
         if (token.authHeaders.hasOwnProperty(header)) {

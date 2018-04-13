@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
 import { makeFakeApp } from './make-fake-app';
 import { makeFakeSWReg } from './make-fake-sw-reg';
 
@@ -26,83 +28,82 @@ import { VapidDetailsModel } from '../src/models/vapid-details-model';
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
-describe('Firebase Messaging > *SWController', () => {
-  const sandbox = sinon.sandbox.create();
-  const originalReg = self['registration'];
-  const originalClients = self['clients'];
+const originalReg = self['registration'];
+const originalClients = self['clients'];
 
-  const app = makeFakeApp({
-    messagingSenderId: '12345'
+describe('Firebase Messaging > *SWController', () => {
+  let sandbox: sinon.SinonSandbox;
+  let app: FirebaseApp;
+
+  beforeEach(() => {
+    sandbox = sinon.sandbox.create();
+    app = makeFakeApp({
+      messagingSenderId: '12345'
+    });
   });
 
-  const cleanup = () => {
+  afterEach(() => {
     sandbox.restore();
 
     // Just in case it was anything different after a test.
     self['registration'] = originalReg;
     self['clients'] = originalClients;
-  };
-
-  beforeEach(() => {
-    return cleanup();
   });
 
-  after(() => {
-    return cleanup();
-  });
-
-  describe('onPush_', () => {
-    it('should handle a push event with no data', () => {
+  describe('onPush', () => {
+    it('should handle a push event with no data', async () => {
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
+        waitUntil: sandbox.spy(),
         data: undefined
-      });
+      } as any);
     });
 
-    it('should handle a push event where .json() throws', () => {
+    it('should handle a push event where .json() throws', async () => {
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
+        waitUntil: sandbox.spy(),
         data: {
           json: () => {
             throw new Error('Injected Error');
           }
         }
-      });
+      } as any);
     });
 
-    it('should not do anything if window is in focus', () => {
+    it('should not do anything if window is in focus', async () => {
       const waitUntilSpy = sandbox.spy();
       sandbox.stub(SWController.prototype, 'sendMessageToWindowClients_');
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(true));
+        .callsFake(async () => true);
 
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
             return {};
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(swController.sendMessageToWindowClients_['callCount']).to.equal(
           0
         );
       });
     });
 
-    it('should send to window if a notification payload', () => {
+    it('should send to window if a notification payload', async () => {
       const waitUntilSpy = sandbox.spy();
       sandbox.stub(SWController.prototype, 'sendMessageToWindowClients_');
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(true));
+        .callsFake(async () => true);
 
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
@@ -111,52 +112,52 @@ describe('Firebase Messaging > *SWController', () => {
             };
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(swController.sendMessageToWindowClients_['callCount']).to.equal(
           1
         );
       });
     });
 
-    it('should send to window if a bgMessageHandler is defined', () => {
+    it('should send to window if a bgMessageHandler is defined', async () => {
       const waitUntilSpy = sandbox.spy();
       sandbox.stub(SWController.prototype, 'sendMessageToWindowClients_');
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(true));
+        .callsFake(async () => true);
 
       const swController = new SWController(app);
       swController.setBackgroundMessageHandler((() => {}) as any);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
             return {};
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(swController.sendMessageToWindowClients_['callCount']).to.equal(
           1
         );
       });
     });
 
-    it('should generate notification without options and show notification if no visible clients', () => {
+    it('should generate notification without options and show notification if no visible clients', async () => {
       const registration = makeFakeSWReg();
       self['registration'] = registration;
 
       const waitUntilSpy = sandbox.spy();
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(false));
+        .callsFake(async () => false);
       sandbox.spy(registration, 'showNotification');
 
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
@@ -165,9 +166,9 @@ describe('Firebase Messaging > *SWController', () => {
             };
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(registration.showNotification['callCount']).to.equal(1);
         expect(registration.showNotification['args'][0][0]).to.equal('');
         expect(registration.showNotification['args'][0][1]).to.deep.equal({
@@ -180,7 +181,7 @@ describe('Firebase Messaging > *SWController', () => {
       });
     });
 
-    it('should generate notification with options and show notification if no visible clients', () => {
+    it('should generate notification with options and show notification if no visible clients', async () => {
       const registration = makeFakeSWReg();
       self['registration'] = registration;
 
@@ -188,36 +189,36 @@ describe('Firebase Messaging > *SWController', () => {
       const waitUntilSpy = sandbox.spy();
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(false));
+        .callsFake(async () => false);
       sandbox.spy(registration, 'showNotification');
 
       const payloadData = {};
 
       const swController = new SWController(app);
       swController.setBackgroundMessageHandler(bgMessageHandlerSpy);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
             return payloadData;
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(bgMessageHandlerSpy['callCount']).to.equal(1);
         expect(bgMessageHandlerSpy['args'][0][0]).to.equal(payloadData);
       });
     });
 
-    it('should fall back to background message handler otherwise', () => {
+    it('should fall back to background message handler otherwise', async () => {
       const registration = makeFakeSWReg();
       self['registration'] = registration;
 
       const waitUntilSpy = sandbox.spy();
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(false));
+        .callsFake(async () => false);
       sandbox.spy(registration, 'showNotification');
 
       const notificationData = {
@@ -227,7 +228,7 @@ describe('Firebase Messaging > *SWController', () => {
       };
 
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
@@ -236,9 +237,9 @@ describe('Firebase Messaging > *SWController', () => {
             };
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0].then(() => {
+      return waitUntilSpy.getCall(0).args[0].then(() => {
         expect(registration.showNotification['callCount']).to.equal(1);
         expect(registration.showNotification['args'][0][0]).to.equal(
           notificationData.title
@@ -256,23 +257,23 @@ describe('Firebase Messaging > *SWController', () => {
       });
     });
 
-    it('should do nothing if no background message handler and no notification', () => {
+    it('should do nothing if no background message handler and no notification', async () => {
       const waitUntilSpy = sandbox.spy();
       sandbox
         .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(() => Promise.resolve(false));
+        .callsFake(async () => false);
 
       const swController = new SWController(app);
-      swController.onPush_({
+      await swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
           json: () => {
             return {};
           }
         }
-      });
+      } as any);
 
-      return waitUntilSpy.args[0][0];
+      return waitUntilSpy.getCall(0).args[0];
     });
   });
 
@@ -296,13 +297,13 @@ describe('Firebase Messaging > *SWController', () => {
   describe('hasVisibleClients_', () => {
     it('should return false when no clients', () => {
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([]);
+          return [];
         }
       };
 
@@ -314,13 +315,13 @@ describe('Firebase Messaging > *SWController', () => {
 
     it('should return false when all clients arent visible', () => {
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([
+          return [
             {
               visibilityState: 'hidden'
             },
@@ -330,7 +331,7 @@ describe('Firebase Messaging > *SWController', () => {
             {
               visibilityState: 'unloaded'
             }
-          ]);
+          ];
         }
       };
 
@@ -342,13 +343,13 @@ describe('Firebase Messaging > *SWController', () => {
 
     it('should return true when a client is visible', () => {
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([
+          return [
             {
               visibilityState: 'hidden'
             },
@@ -361,7 +362,7 @@ describe('Firebase Messaging > *SWController', () => {
             {
               visibilityState: 'visible'
             }
-          ]);
+          ];
         }
       };
 
@@ -375,13 +376,13 @@ describe('Firebase Messaging > *SWController', () => {
   describe('getWindowClient_', () => {
     it('should return null when no client', () => {
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([]);
+          return [];
         }
       };
 
@@ -393,13 +394,13 @@ describe('Firebase Messaging > *SWController', () => {
 
     it('should return null when no matching clients', () => {
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([
+          return [
             {
               url: '/other-url'
             },
@@ -409,7 +410,7 @@ describe('Firebase Messaging > *SWController', () => {
             {
               url: '/other-url/3'
             }
-          ]);
+          ];
         }
       };
 
@@ -424,13 +425,13 @@ describe('Firebase Messaging > *SWController', () => {
         url: '/test-url'
       };
       self['clients'] = {
-        matchAll: options => {
+        matchAll: async options => {
           expect(options).to.deep.equal({
             type: 'window',
             includeUncontrolled: true
           });
 
-          return Promise.resolve([
+          return [
             {
               url: '/other-url'
             },
@@ -441,7 +442,7 @@ describe('Firebase Messaging > *SWController', () => {
             {
               url: '/other-url/3'
             }
-          ]);
+          ];
         }
       };
 
@@ -452,36 +453,34 @@ describe('Firebase Messaging > *SWController', () => {
     });
   });
 
-  describe('onNotificationClick_', () => {
-    it('should do nothing for no notification', () => {
-      const event = {
+  describe('onNotificationClick', () => {
+    it('should do nothing for no notification', async () => {
+      const event: any = {
         waitUntil: sandbox.spy(),
         stopImmediatePropagation: sandbox.spy()
       };
       const swController = new SWController(app);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(0);
       expect(event.stopImmediatePropagation.callCount).to.equal(0);
     });
 
-    it('should do nothing for notification with no data', () => {
-      const event = {
+    it('should do nothing for notification with no data', async () => {
+      const event: any = {
         notification: {},
         waitUntil: sandbox.spy(),
         stopImmediatePropagation: sandbox.spy()
       };
       const swController = new SWController(app);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(0);
       expect(event.stopImmediatePropagation.callCount).to.equal(0);
     });
 
-    it('should do nothing for notification with no FCM data', () => {
-      const event = {
+    it('should do nothing for notification with no FCM data', async () => {
+      const event: any = {
         notification: {
           data: {}
         },
@@ -490,14 +489,13 @@ describe('Firebase Messaging > *SWController', () => {
       };
       const swController = new SWController(app);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(0);
       expect(event.stopImmediatePropagation.callCount).to.equal(0);
     });
 
-    it('should handle FCM notification without a notification data field', () => {
-      const event = {
+    it('should handle FCM notification without a notification data field', async () => {
+      const event: any = {
         notification: {
           data: {
             FCM_MSG: {}
@@ -509,15 +507,14 @@ describe('Firebase Messaging > *SWController', () => {
       };
       const swController = new SWController(app);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(0);
       expect(event.stopImmediatePropagation.callCount).to.equal(1);
       expect(event.notification.close.callCount).to.equal(1);
     });
 
-    it('should handle FCM notification without a click_action field', () => {
-      const event = {
+    it('should handle FCM notification without a click_action field', async () => {
+      const event: any = {
         notification: {
           data: {
             FCM_MSG: {
@@ -531,16 +528,15 @@ describe('Firebase Messaging > *SWController', () => {
       };
       const swController = new SWController(app);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(0);
       expect(event.stopImmediatePropagation.callCount).to.equal(1);
       expect(event.notification.close.callCount).to.equal(1);
     });
 
-    it('should open click_action URL for FCM notification (third-party so no window client access)', () => {
+    it('should open click_action URL for FCM notification (third-party so no window client access)', async () => {
       const clickAction = '/test-click-action';
-      const event = {
+      const event: any = {
         notification: {
           data: {
             FCM_MSG: {
@@ -566,24 +562,25 @@ describe('Firebase Messaging > *SWController', () => {
 
       sandbox
         .stub(swController, 'getWindowClient_')
-        .callsFake(() => Promise.resolve(null));
+        .callsFake(async () => null);
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(1);
       expect(event.stopImmediatePropagation.callCount).to.equal(1);
       expect(event.notification.close.callCount).to.equal(1);
 
-      return event.waitUntil.args[0][0].then(() => {
+      return event.waitUntil.getCall(0).args[0].then(() => {
         expect(self['clients'].openWindow.callCount).to.equal(1);
-        expect(self['clients'].openWindow.args[0][0]).to.equal(clickAction);
+        expect(self['clients'].openWindow.getCall(0).args[0]).to.equal(
+          clickAction
+        );
       });
     });
 
-    it('should open click_action URL for FCM notification (same origin will include window client access)', () => {
+    it('should open click_action URL for FCM notification (same origin will include window client access)', async () => {
       const fakeWindowClient = {};
       const clickAction = '/test-click-action';
-      const event = {
+      const event: any = {
         notification: {
           data: {
             FCM_MSG: {
@@ -609,20 +606,21 @@ describe('Firebase Messaging > *SWController', () => {
 
       sandbox
         .stub(swController, 'getWindowClient_')
-        .callsFake(() => Promise.resolve(null));
+        .callsFake(async () => null);
       sandbox
         .stub(swController, 'attemptToMessageClient_')
         .callsFake(async () => {});
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(1);
       expect(event.stopImmediatePropagation.callCount).to.equal(1);
       expect(event.notification.close.callCount).to.equal(1);
 
-      return event.waitUntil.args[0][0].then(() => {
+      return event.waitUntil.getCall(0).args[0].then(() => {
         expect(self['clients'].openWindow.callCount).to.equal(1);
-        expect(self['clients'].openWindow.args[0][0]).to.equal(clickAction);
+        expect(self['clients'].openWindow.getCall(0).args[0]).to.equal(
+          clickAction
+        );
 
         expect(swController.attemptToMessageClient_['callCount']).to.equal(1);
         expect(swController.attemptToMessageClient_['args'][0][0]).to.equal(
@@ -637,12 +635,12 @@ describe('Firebase Messaging > *SWController', () => {
       });
     });
 
-    it('should not open a window if one exists, instead focus is', () => {
+    it('should not open a window if one exists, instead focus is', async () => {
       const fakeWindowClient = {
         focus: sandbox.stub().callsFake(() => fakeWindowClient)
       };
       const clickAction = '/test-click-action';
-      const event = {
+      const event: any = {
         notification: {
           data: {
             FCM_MSG: {
@@ -668,18 +666,17 @@ describe('Firebase Messaging > *SWController', () => {
 
       sandbox
         .stub(swController, 'getWindowClient_')
-        .callsFake(() => Promise.resolve(fakeWindowClient));
+        .callsFake(async () => fakeWindowClient);
       sandbox
         .stub(swController, 'attemptToMessageClient_')
         .callsFake(async () => {});
 
-      swController.onNotificationClick_(event);
+      await swController.onNotificationClick(event);
 
-      expect(event.waitUntil.callCount).to.equal(1);
       expect(event.stopImmediatePropagation.callCount).to.equal(1);
       expect(event.notification.close.callCount).to.equal(1);
 
-      return event.waitUntil.args[0][0].then(() => {
+      return event.waitUntil.getCall(0).args[0].then(() => {
         expect(self['clients'].openWindow.callCount).to.equal(0);
 
         expect(fakeWindowClient.focus.callCount).to.equal(1);
@@ -701,14 +698,16 @@ describe('Firebase Messaging > *SWController', () => {
   describe('getNotificationData_', () => {
     it('should return nothing for no payload', () => {
       const swController = new SWController(app);
-      expect(swController.getNotificationData_(undefined)).to.equal(undefined);
+      expect(swController.getNotificationData_(undefined as any)).to.equal(
+        undefined
+      );
     });
   });
 
   describe('attemptToMessageClient_', () => {
     it('should reject when no window client provided', () => {
       const swController = new SWController(app);
-      return swController.attemptToMessageClient_(null, {}).then(
+      return swController.attemptToMessageClient_(null as any, {} as any).then(
         () => {
           throw new Error('Expected error to be thrown');
         },
@@ -720,14 +719,14 @@ describe('Firebase Messaging > *SWController', () => {
     });
 
     it('should message window client', () => {
-      const msg = {};
-      const client = {
+      const msg: any = {};
+      const client: any = {
         postMessage: sandbox.spy()
       };
       const swController = new SWController(app);
       return swController.attemptToMessageClient_(client, msg).then(() => {
         expect(client.postMessage.callCount).to.equal(1);
-        expect(client.postMessage.args[0][0]).to.equal(msg);
+        expect(client.postMessage.getCall(0).args[0]).to.equal(msg);
       });
     });
   });
@@ -735,7 +734,7 @@ describe('Firebase Messaging > *SWController', () => {
   describe('sendMessageToWindowClients_', () => {
     it('should do nothing when no clients', () => {
       self['clients'] = {
-        matchAll: sandbox.stub().callsFake(() => Promise.resolve([]))
+        matchAll: sandbox.stub().callsFake(async () => [])
       };
 
       const swController = new SWController(app);
@@ -744,7 +743,7 @@ describe('Firebase Messaging > *SWController', () => {
 
       return swController.sendMessageToWindowClients_(payload).then(() => {
         expect(self['clients'].matchAll.callCount).to.equal(1);
-        expect(self['clients'].matchAll.args[0][0]).to.deep.equal({
+        expect(self['clients'].matchAll.getCall(0).args[0]).to.deep.equal({
           type: 'window',
           includeUncontrolled: true
         });
@@ -754,7 +753,7 @@ describe('Firebase Messaging > *SWController', () => {
     it('should message existing clients', () => {
       const clients = [{}, {}];
       self['clients'] = {
-        matchAll: sandbox.stub().callsFake(() => Promise.resolve(clients))
+        matchAll: sandbox.stub().callsFake(async () => clients)
       };
 
       const swController = new SWController(app);
@@ -762,13 +761,13 @@ describe('Firebase Messaging > *SWController', () => {
         .stub(swController, 'attemptToMessageClient_')
         .callsFake(async () => {});
 
-      const payload = {
+      const payload: any = {
         example: 'test'
       };
 
       return swController.sendMessageToWindowClients_(payload).then(() => {
         expect(self['clients'].matchAll.callCount).to.equal(1);
-        expect(self['clients'].matchAll.args[0][0]).to.deep.equal({
+        expect(self['clients'].matchAll.getCall(0).args[0]).to.deep.equal({
           type: 'window',
           includeUncontrolled: true
         });
@@ -799,7 +798,7 @@ describe('Firebase Messaging > *SWController', () => {
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
         listeners[eventName] = eventCb;
       });
-      sandbox.stub(SWController.prototype, 'onPush_');
+      sandbox.stub(SWController.prototype, 'onPush');
       const pushEvent = new Event('push');
 
       const swController = new SWController(app);
@@ -807,8 +806,8 @@ describe('Firebase Messaging > *SWController', () => {
 
       listeners['push'](pushEvent);
 
-      expect(swController.onPush_['callCount']).to.equal(1);
-      expect(swController.onPush_['args'][0][0]).to.equal(pushEvent);
+      expect(swController.onPush['callCount']).to.equal(1);
+      expect(swController.onPush['args'][0][0]).to.equal(pushEvent);
     });
 
     it('should hook up subscription change events', () => {
@@ -816,7 +815,7 @@ describe('Firebase Messaging > *SWController', () => {
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
         listeners[eventName] = eventCb;
       });
-      sandbox.stub(SWController.prototype, 'onSubChange_');
+      sandbox.stub(SWController.prototype, 'onSubChange');
       const pushEvent = new Event('pushsubscriptionchange');
 
       const swController = new SWController(app);
@@ -824,10 +823,10 @@ describe('Firebase Messaging > *SWController', () => {
 
       listeners['pushsubscriptionchange'](pushEvent);
 
-      expect(swController.onSubChange_['callCount']).to.equal(1);
-      expect(swController.onSubChange_['args'][0][0]).to.equal(pushEvent);
+      expect(swController.onSubChange['callCount']).to.equal(1);
+      expect(swController.onSubChange['args'][0][0]).to.equal(pushEvent);
 
-      // sandbox.stub(swController, 'onNotificationClick_');
+      // sandbox.stub(swController, 'onNotificationClick');
 
       // const notificaitonClick = new Event('notificationclick');
 
@@ -839,7 +838,7 @@ describe('Firebase Messaging > *SWController', () => {
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
         listeners[eventName] = eventCb;
       });
-      sandbox.stub(SWController.prototype, 'onNotificationClick_');
+      sandbox.stub(SWController.prototype, 'onNotificationClick');
       const pushEvent = new Event('notificationclick');
 
       const swController = new SWController(app);
@@ -847,36 +846,37 @@ describe('Firebase Messaging > *SWController', () => {
 
       listeners['notificationclick'](pushEvent);
 
-      expect(swController.onNotificationClick_['callCount']).to.equal(1);
-      expect(swController.onNotificationClick_['args'][0][0]).to.equal(
+      expect(swController.onNotificationClick['callCount']).to.equal(1);
+      expect(swController.onNotificationClick['args'][0][0]).to.equal(
         pushEvent
       );
     });
   });
 
-  describe('onSubChange_', () => {
+  describe('onSubChange', () => {
     it('should do nothing if subscription is same', () => {});
 
     it('should update token if the subscription has changed', () => {});
 
-    it('should handle errors and delete token', () => {
+    it('should handle errors and delete token', async () => {
       const registration = makeFakeSWReg();
       self['registration'] = registration;
 
       sandbox
         .stub(SWController.prototype, 'getSWRegistration_')
-        .callsFake(() => Promise.reject('Injected Error'));
-      const event = {
+        .callsFake(async () => {
+          throw new Error('Injected Error');
+        });
+      const event: any = {
         waitUntil: sandbox.spy()
       };
 
       const swController = new SWController(app);
-      swController.onSubChange_(event);
+      await swController.onSubChange(event);
 
-      expect(event.waitUntil.callCount).to.equal(1);
-
-      return event.waitUntil.args[0][0]
-        .then(() => {
+      return event.waitUntil
+        .getCall(0)
+        .args[0].then(() => {
           throw new Error('Expected error');
         })
         .catch(err => {
@@ -892,7 +892,7 @@ describe('Firebase Messaging > *SWController', () => {
       const controller = new SWController(app);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(() => Promise.resolve(null));
+        .callsFake(async () => null);
       return controller.getPublicVapidKey_().then(pubKey => {
         expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
@@ -903,7 +903,7 @@ describe('Firebase Messaging > *SWController', () => {
       const controller = new SWController(app);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(() => Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY));
+        .callsFake(async () => DEFAULT_PUBLIC_VAPID_KEY);
       return controller.getPublicVapidKey_().then(pubKey => {
         expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
       });
@@ -915,7 +915,7 @@ describe('Firebase Messaging > *SWController', () => {
       const vapidKeyInUse = base64ToArrayBuffer(VALID_VAPID_KEY);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(() => Promise.resolve(vapidKeyInUse));
+        .callsFake(async () => vapidKeyInUse);
       return controller.getPublicVapidKey_().then(pubKey => {
         expect(pubKey).deep.equal(vapidKeyInUse);
       });

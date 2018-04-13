@@ -86,7 +86,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: AnyJs, description: string) {
+function assertPresent(value: AnyJs, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -1090,8 +1090,8 @@ export class JsonProtoSerializer {
     } else if (filter.fieldFilter !== undefined) {
       return [this.fromRelationFilter(filter)];
     } else if (filter.compositeFilter !== undefined) {
-      return filter.compositeFilter.filters!
-        .map(f => this.fromFilter(f))
+      return filter.compositeFilter
+        .filters!.map(f => this.fromFilter(f))
         .reduce((accum, current) => accum.concat(current));
     } else {
       return fail('Unknown filter: ' + JSON.stringify(filter));

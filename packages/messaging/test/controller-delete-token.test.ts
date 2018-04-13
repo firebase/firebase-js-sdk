@@ -104,9 +104,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
     sandbox
       .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake(token => {
+      .callsFake(async token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        return EXAMPLE_TOKEN_SAVE;
       });
 
     sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
@@ -125,9 +125,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
     sandbox
       .stub(TokenDetailsModel.prototype, 'deleteToken')
-      .callsFake(token => {
+      .callsFake(async token => {
         assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-        return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+        return EXAMPLE_TOKEN_SAVE;
       });
 
     sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
@@ -152,9 +152,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake(token => {
+        .callsFake(async token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+          return EXAMPLE_TOKEN_SAVE;
         });
 
       sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
@@ -167,7 +167,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       const errorMsg = 'unsubscribe-error-1234567890';
       const fakeSubscription: any = {
         endpoint: EXAMPLE_TOKEN_SAVE.endpoint,
-        unsubscribe: () => Promise.reject(new Error(errorMsg))
+        unsubscribe: async () => {
+          throw new Error(errorMsg);
+        }
       };
 
       configureRegistrationMocks(
@@ -177,9 +179,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake(token => {
+        .callsFake(async token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+          return EXAMPLE_TOKEN_SAVE;
         });
 
       sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
@@ -210,15 +212,15 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake(token => {
+        .callsFake(async token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+          return EXAMPLE_TOKEN_SAVE;
         });
 
       const errorMsg = 'messaging/' + ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED;
-      sandbox
-        .stub(IIDModel.prototype, 'deleteToken')
-        .callsFake(() => Promise.reject(new Error(errorMsg)));
+      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {
+        throw new Error(errorMsg);
+      });
 
       globalMessagingService = new ServiceClass(app);
       return globalMessagingService
@@ -246,9 +248,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
       sandbox
         .stub(TokenDetailsModel.prototype, 'deleteToken')
-        .callsFake(token => {
+        .callsFake(async token => {
           assert.equal(token, EXAMPLE_TOKEN_SAVE.fcmToken);
-          return Promise.resolve(EXAMPLE_TOKEN_SAVE);
+          return EXAMPLE_TOKEN_SAVE;
         });
 
       sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});

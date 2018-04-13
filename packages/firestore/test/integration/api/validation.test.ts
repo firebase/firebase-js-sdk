@@ -66,18 +66,20 @@ const validationIt: ValidationIt = Object.assign(
     });
   },
   {
-    skip: function(
+    skip(
       persistence: boolean,
       message: string,
       _: (db: firestore.FirebaseFirestore) => void | Promise<any>
-    ) {
+    ): void {
+      // tslint:disable-next-line:ban
       it.skip(message, () => {});
     },
-    only: function(
+    only(
       persistence: boolean,
       message: string,
       testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
-    ) {
+    ): void {
+      // tslint:disable-next-line:ban
       it.only(message, () => {
         return withTestDb(persistence, async db => {
           const maybePromise = testFunction(db);
@@ -305,7 +307,7 @@ apiDescribe('Validation:', persistence => {
   describe('Writes', () => {
     /** Class used to verify custom classes can't be used in writes. */
     class TestClass {
-      constructor(public readonly property: string) {}
+      constructor(readonly property: string) {}
     }
 
     validationIt(persistence, 'must be objects.', db => {

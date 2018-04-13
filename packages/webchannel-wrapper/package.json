@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "closure-builder": "2.2.39",
-    "watch": "^1.0.2"
+    "watch": "1.0.2"
   },
   "repository": {
     "type": "git",

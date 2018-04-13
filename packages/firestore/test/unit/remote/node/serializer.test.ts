@@ -132,6 +132,7 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         const obj = s.toValue(new fieldValue.IntegerValue(example));
+        // TODO: This test fails with grpc 1.10.1, please fix.
         expect(obj).to.deep.equal({ integerValue: '' + example });
 
         const longVal = Long.fromString(example.toString(), false);
@@ -638,7 +639,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs) {
+    function verifyMutation(mutation: Mutation, proto: AnyJs): void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);
