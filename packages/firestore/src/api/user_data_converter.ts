@@ -469,6 +469,20 @@ export class UserDataConverter {
     }
   }
 
+  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
+    let result = new SortedMap<string, FieldValue>(primitiveComparator);
+    objUtils.forEach(obj, (key: string, val: AnyJs) => {
+      const parsedValue = this.parseData(
+        val,
+        context.childContextForField(key)
+      );
+      if (parsedValue != null) {
+        result = result.insert(key, parsedValue);
+      }
+    });
+    return new ObjectValue(result);
+  }
+
   private parseArray(array: AnyJs[], context: ParseContext): FieldValue {
     const result = [] as FieldValue[];
     let entryIndex = 0;
@@ -488,30 +502,64 @@ export class UserDataConverter {
     return new ArrayValue(result);
   }
 
-  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
-    let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
+  /**
+   * "Parses" the provided FieldValueImpl, adding any necessary transforms to
+   * context.fieldTransforms.
+   */
+  private parseSentinelFieldValue(
+    value: FieldValueImpl,
+    context: ParseContext
+  ): void {
+    // Sentinels are only supported with writes, and not within arrays.
+    if (!isWrite(context.dataSource)) {
+      throw context.createError(
+        `${value.methodName} can only be used with update() and set()`
       );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
+    }
+    if (context.path === null) {
+      throw context.createError(
+        `${value.methodName} is not currently supported inside arrays`
+      );
+    }
+
+    if (value instanceof DeleteFieldValueImpl) {
+      if (context.dataSource === UserDataSource.MergeSet) {
+        // No transform to add for a delete, so we do nothing.
+      } else if (context.dataSource === UserDataSource.Update) {
+        assert(
+          context.path.length > 0,
+          'FieldValue.delete() at the top level should have already' +
+            ' been handled.'
+        );
+        throw context.createError(
+          'FieldValue.delete() can only appear at the top level ' +
+            'of your update data'
+        );
+      } else {
+        // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+        throw context.createError(
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
+            '{merge:true}'
+        );
       }
-    });
-    return new ObjectValue(result);
+    } else if (value instanceof ServerTimestampFieldValueImpl) {
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, ServerTimestampTransform.instance)
+      );
+    } else {
+      fail('Unknown FieldValue type: ' + value);
+    }
   }
 
   /**
-   * Helper to parse a scalar value (i.e. not an Object or Array)
+   * Helper to parse a scalar value (i.e. not an Object, Array, or FieldValue)
    *
-   * @return The parsed value, or null if the value was a FieldValue sentinel
-   * that should not be included in the resulting parsed data.
+   * @return The parsed value
    */
   private parseScalarValue(
     value: AnyJs,
     context: ParseContext
-  ): FieldValue | null {
+  ): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
@@ -546,55 +594,6 @@ export class UserDataConverter {
       throw context.createError(
         `Unsupported field value: ${valueDescription(value)}`
       );
-    }
-  }
-
-  /**
-   * "Parses" the provided FieldValueImpl, adding any necessary transforms to
-   * context.fieldTransforms.
-   */
-  private parseSentinelFieldValue(
-    value: FieldValueImpl,
-    context: ParseContext
-  ): void {
-    // Sentinels are only supported with writes, and not within arrays.
-    if (!isWrite(context.dataSource)) {
-      throw context.createError(
-        `${value.methodName} can only be used with update() and set()`
-      );
-    }
-    if (context.path === null) {
-      throw context.createError(
-        `${value.methodName} is not currently supported inside arrays`
-      );
-    }
-
-    if (value instanceof DeleteFieldValueImpl) {
-      if (context.dataSource === UserDataSource.MergeSet) {
-        // No transform to add for a delete, so we do nothing.
-      } else if (context.dataSource === UserDataSource.Update) {
-        assert(
-          context.path == null || context.path.length > 0,
-          'FieldValue.delete() at the top level should have already' +
-            ' been handled.'
-        );
-        throw context.createError(
-          'FieldValue.delete() can only appear at the top level ' +
-            'of your update data'
-        );
-      } else {
-        // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
-        throw context.createError(
-          'FieldValue.delete() cannot be used with set() unless you pass ' +
-            '{merge:true}'
-        );
-      }
-    } else if (value instanceof ServerTimestampFieldValueImpl) {
-      context.fieldTransforms.push(
-        new FieldTransform(context.path, ServerTimestampTransform.instance)
-      );
-    } else {
-      fail('Unknown FieldValue type: ' + value);
     }
   }
 }

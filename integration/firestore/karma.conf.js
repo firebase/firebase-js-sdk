@@ -18,14 +18,16 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
+const files = [
+  `${path.dirname(require.resolve('firebase'))}/firebase.js`,
+  `${path.dirname(require.resolve('firebase'))}/firebase-firestore.js`,
+  './dist/test-harness.js'
+];
+
 module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     // files to load into karma
-    files: [
-      `${path.dirname(require.resolve('firebase'))}/firebase.js`,
-      `${path.dirname(require.resolve('firebase'))}/firebase-firestore.js`,
-      './dist/test-harness.js'
-    ],
+    files: files,
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
@@ -33,3 +35,5 @@ module.exports = function(config) {
 
   config.set(karmaConfig);
 };
+
+module.exports.files = files;

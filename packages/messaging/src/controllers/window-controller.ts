@@ -29,7 +29,7 @@ import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
 import { ERROR_CODES } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import * as WorkerPageMessage from '../models/worker-page-message';
+import { MessageParameter, MessageType } from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
 export class WindowController extends ControllerInterface
@@ -360,20 +360,19 @@ export class WindowController extends ControllerInterface
       return;
     }
 
-    (navigator as any).serviceWorker.addEventListener(
+    navigator.serviceWorker.addEventListener(
       'message',
-      (event: MessageEvent) => {
-        if (!event.data || !event.data[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
+      event => {
+        if (!event.data || !event.data[MessageParameter.TYPE_OF_MSG]) {
           // Not a message from FCM
           return;
         }
 
         const workerPageMessage = event.data;
-        switch (workerPageMessage[WorkerPageMessage.PARAMS.TYPE_OF_MSG]) {
-          case WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED:
-          case WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED:
-            const pushMessage =
-              workerPageMessage[WorkerPageMessage.PARAMS.DATA];
+        switch (workerPageMessage[MessageParameter.TYPE_OF_MSG]) {
+          case MessageType.PUSH_MSG_RECEIVED:
+          case MessageType.NOTIFICATION_CLICKED:
+            const pushMessage = workerPageMessage[MessageParameter.DATA];
             if (this.messageObserver_) {
               this.messageObserver_.next(pushMessage);
             }
