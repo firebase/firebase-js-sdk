@@ -297,7 +297,7 @@ declare namespace firebase.auth {
     ): firebase.auth.AuthProvider;
   }
 
-  interface IdTokenResult = {
+  interface IdTokenResult {
     token: string;
     expirationTime: string;
     authTime: string;

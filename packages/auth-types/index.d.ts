@@ -161,7 +161,7 @@ export class GoogleAuthProvider_Instance implements AuthProvider {
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
-export interface IdTokenResult = {
+export interface IdTokenResult {
   token: string;
   expirationTime: string;
   authTime: string;
