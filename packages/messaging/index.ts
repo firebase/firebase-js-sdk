@@ -19,8 +19,10 @@ import {
   _FirebaseNamespace,
   FirebaseServiceFactory
 } from '@firebase/app-types/private';
+
 import { SWController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
+import { ERROR_CODES, errorFactory } from './src/models/errors';
 
 import * as types from '@firebase/messaging-types';
 
@@ -28,11 +30,18 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
   const factoryMethod: FirebaseServiceFactory = app => {
     if (self && 'ServiceWorkerGlobalScope' in self) {
+      // Running in ServiceWorker context
       return new SWController(app);
-    }
+    } else {
+      // Assume we are in the window context.
 
-    // Assume we are in the window context.
-    return new WindowController(app);
+      // Check that the required API's are available
+      if (!isWindowControllerSupported()) {
+        throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
+      }
+
+      return new WindowController(app);
+    }
   };
 
   const namespaceExports = {
@@ -62,4 +71,18 @@ declare module '@firebase/app-types' {
   interface FirebaseApp {
     messaging?(): types.FirebaseMessaging;
   }
+}
+
+/**
+ * Checks to see if the required API's are valid or not.
+ */
+function isWindowControllerSupported(): boolean {
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }

@@ -349,13 +349,6 @@ describe('Firebase Messaging > *WindowController', () => {
   });
 
   describe('setupSWMessageListener_()', () => {
-    it('should not do anything is no service worker support', () => {
-      sandbox.stub(window, 'navigator').value({});
-
-      const controller = new WindowController(app);
-      controller.setupSWMessageListener_();
-    });
-
     it('should add listener when supported', () => {
       const spy = sandbox.spy();
       sandbox.stub(navigator, 'serviceWorker').value({
