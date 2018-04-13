@@ -29,10 +29,12 @@ addons:
 
 jobs:
   include:
-    - script: xvfb-run yarn test
+    - stage: test
+      script: xvfb-run yarn test
       after_success: yarn test:coverage
       env: '#comment = yarn test'
-    - script: xvfb-run yarn test:saucelabs
+    - stage: test
+      script: xvfb-run yarn test:saucelabs
       env: '#comment = yarn test:saucelabs'
       if: type = push
     - stage: deploy
@@ -42,6 +44,4 @@ jobs:
         skip_cleanup: true
         provider: script
         script: yarn release --canary
-        on:
-          repo: firebase/firebase-js-sdk
-          branch: master
+      if: type = push AND repo = firebase/firebase-js-sdk AND branch = master
