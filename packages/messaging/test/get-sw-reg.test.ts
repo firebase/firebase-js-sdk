@@ -33,7 +33,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   const mockWindowRegistration = registration => {
     sandbox
       .stub(navigator.serviceWorker, 'register')
-      .callsFake(() => Promise.resolve(registration));
+      .callsFake(async () => registration);
   };
 
   const cleanUp = () => {
@@ -115,7 +115,9 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
       navigator.serviceWorker,
       'register'
     );
-    mockRegisterMethod.callsFake(() => Promise.reject(new Error(errorMsg)));
+    mockRegisterMethod.callsFake(async () => {
+      throw new Error(errorMsg);
+    });
 
     const messagingService = new WindowController(app);
     return messagingService.getSWRegistration_().then(

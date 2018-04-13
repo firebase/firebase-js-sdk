@@ -604,18 +604,11 @@ abstract class TestRunner {
 
   private doMutations(mutations: Mutation[]): Promise<void> {
     const documentKeys = mutations.map(val => val.key.path.toString());
-    const userCallback = new Deferred<void>();
     const syncEngineCallback = new Deferred<void>();
 
     syncEngineCallback.promise.then(
-      () => {
-        this.acknowledgedDocs.push(...documentKeys);
-        userCallback.resolve();
-      },
-      () => {
-        this.rejectedDocs.push(...documentKeys);
-        userCallback.resolve();
-      }
+      () => this.acknowledgedDocs.push(...documentKeys),
+      () => this.rejectedDocs.push(...documentKeys)
     );
 
     this.sharedWrites.push(mutations);

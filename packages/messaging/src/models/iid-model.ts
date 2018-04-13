@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-import { base64, ErrorFactory } from '@firebase/util';
+import { ErrorFactory } from '@firebase/util';
 
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
-import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, ERROR_MAP } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 

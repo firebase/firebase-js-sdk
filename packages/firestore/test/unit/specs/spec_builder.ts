@@ -423,7 +423,7 @@ export class SpecBuilder {
    * expectUserCallback defaults to true if options are omitted.
    */
   writeAcks(
-    docs: string[],
+    doc: string,
     version: TestSnapshotVersion,
     options?: { expectUserCallback: boolean }
   ): this {
@@ -431,7 +431,7 @@ export class SpecBuilder {
     this.currentStep = { writeAck: { version } };
 
     if (!options || options.expectUserCallback) {
-      return this.expectUserCallbacks({ acknowledged: docs });
+      return this.expectUserCallbacks({ acknowledged: [doc] });
     } else {
       return this;
     }
@@ -443,7 +443,7 @@ export class SpecBuilder {
    * expectUserCallback defaults to true if options are omitted.
    */
   failWrite(
-    docs: string[],
+    doc: string,
     err: RpcError,
     options?: { expectUserCallback: boolean }
   ): this {
@@ -451,7 +451,7 @@ export class SpecBuilder {
     this.currentStep = { failWrite: { error: err } };
 
     if (!options || options.expectUserCallback) {
-      return this.expectUserCallbacks({ rejected: docs });
+      return this.expectUserCallbacks({ rejected: [doc] });
     } else {
       return this;
     }
