@@ -49,6 +49,45 @@ const plugins = [
 
 const external = Object.keys(pkg.dependencies || {});
 
+/**
+ * Complete Package Builds
+ */
+const completeBuilds = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.browser, format: 'cjs' },
+      { file: pkg.module, format: 'es' },
+    ],
+    plugins,
+    external
+  },
+  /**
+   * App Node.js Builds
+   */
+  {
+    input: 'src/index.node.ts',
+    output: { file: pkg.main, format: 'cjs' },
+    plugins,
+    external
+  },
+  /**
+   * App React Native Builds
+   */
+  {
+    input: 'src/index.rn.ts',
+    output: { file: pkg['react-native'], format: 'cjs' },
+    plugins,
+    external: [...external, 'react-native']
+  },
+];
+
+/**
+ * Individual Component Builds
+ */
 const appBuilds = [
   /**
    * App Browser Builds
@@ -97,4 +136,4 @@ const componentBuilds = components.map(component => {
 });
 
 
-export default [...appBuilds, ...componentBuilds];
+export default [...completeBuilds, ...appBuilds, ...componentBuilds];
