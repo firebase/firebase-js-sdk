@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { BatchId, TargetId } from '../core/types';
+import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
 
@@ -56,5 +56,9 @@ export interface RemoteSyncer {
    * the local view of any documents affected by the batch and then, emitting
    * snapshots with the reverted value.
    */
-  rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void>;
+  rejectFailedWrite(
+    batchId: BatchId,
+    streamToken: ProtoByteString,
+    error: FirestoreError
+  ): Promise<void>;
 }

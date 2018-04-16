@@ -128,7 +128,7 @@ export class LocalDocumentsView {
     // Query the remote documents and overlay mutations.
     // TODO(mikelehen): There may be significant overlap between the mutations
     // affecting these remote documents and the
-    // getAllMutationBatchesAffectingQuery() mutations. Consider optimizing.
+    // getPendingMutationBatchesAffectingQuery() mutations. Consider optimizing.
     let results: DocumentMap;
     return this.remoteDocumentCache
       .getDocumentsMatchingQuery(transaction, query)
@@ -139,7 +139,7 @@ export class LocalDocumentsView {
         results = promisedResults;
         // Now use the mutation queue to discover any other documents that may
         // match the query after applying mutations.
-        return this.mutationQueue.getAllMutationBatchesAffectingQuery(
+        return this.mutationQueue.getPendingMutationBatchesAffectingQuery(
           transaction,
           query
         );
@@ -197,7 +197,7 @@ export class LocalDocumentsView {
     document: MaybeDocument | null
   ): PersistencePromise<MaybeDocument | null> {
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKey(transaction, documentKey)
+      .getPendingMutationBatchesAffectingDocumentKey(transaction, documentKey)
       .next(batches => {
         for (const batch of batches) {
           document = batch.applyToLocalView(documentKey, document);

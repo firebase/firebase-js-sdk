@@ -731,7 +731,11 @@ export class RemoteStore {
       this.writeStream.inhibitBackoff();
 
       return this.syncEngine
-        .rejectFailedWrite(batch.batchId, error)
+        .rejectFailedWrite(
+          batch.batchId,
+          this.writeStream.lastStreamToken,
+          error
+        )
         .then(() => {
           // It's possible that with the completion of this mutation
           // another slot has freed up.

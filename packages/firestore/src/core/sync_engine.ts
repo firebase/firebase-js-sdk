@@ -424,11 +424,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-    const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
-    assert(
-      mutationBatchResult !== null,
-      'Unable to find mutation batch: ' + batchId
-    );
+    const documents = await this.localStore.lookupMutationDocuments(batchId);
+    assert(documents !== null, 'Unable to find mutation batch: ' + batchId);
 
     if (batchState === 'pending') {
       // If we are the primary client, we need to send this write to the
@@ -444,7 +441,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       fail(`Unknown batchState: ${batchState}`);
     }
 
-    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
   }
 
   applySuccessfulWrite(
@@ -469,7 +466,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
   }
 
-  rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
+  rejectFailedWrite(
+    batchId: BatchId,
+    streamToken: ProtoByteString,
+    error: FirestoreError
+  ): Promise<void> {
     this.assertSubscribed('rejectFailedWrite()');
 
     // The local store may or may not be able to apply the write result and
@@ -478,7 +479,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // listen events.
     this.processUserCallback(batchId, error);
 
-    return this.localStore.rejectBatch(batchId).then(changes => {
+    return this.localStore.rejectBatch(batchId, streamToken).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes);
     });
   }
