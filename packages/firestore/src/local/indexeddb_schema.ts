@@ -132,9 +132,9 @@ export class DbMutationQueue {
      */
     public userId: string,
     /**
-     * An identifier for the highest numbered batch that has been acknowledged
+     * An identifier for the highest numbered batch that has been processed
      * by the server. All MutationBatches in this queue with batchIds less
-     * than or equal to this value are considered to have been acknowledged by
+     * than or equal to this value are considered to have been responded to by
      * the server.
      */
     public lastAcknowledgedBatchId: number,

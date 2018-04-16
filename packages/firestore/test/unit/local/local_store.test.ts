@@ -160,7 +160,10 @@ class LocalStoreTester {
   afterRejectingMutation(): LocalStoreTester {
     this.promiseChain = this.promiseChain
       .then(() => {
-        return this.localStore.rejectBatch(this.batches.shift()!.batchId);
+        return this.localStore.rejectBatch(
+          this.batches.shift()!.batchId,
+          emptyByteString()
+        );
       })
       .then((changes: MaybeDocumentMap) => {
         this.lastChanges = changes;
@@ -231,6 +234,12 @@ class LocalStoreTester {
       return this.localStore
         .readDocument(doc.key)
         .then((result: MaybeDocument) => {
+          console.log(
+            'document exists: ' +
+              result.key +
+              ' : ' +
+              (result instanceof Document)
+          );
           expectEqual(result, doc);
         });
     });

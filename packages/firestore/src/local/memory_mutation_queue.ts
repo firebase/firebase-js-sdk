@@ -30,8 +30,16 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { DocumentKeySet } from '../model/collections';
 
 export class MemoryMutationQueue implements MutationQueue {
+  releaseMutationBatch(batch: MutationBatch): void {
+    if (this.garbageCollector) {
+      for (const mutation of batch.mutations) {
+        this.garbageCollector.addPotentialGarbageKey(mutation.key);
+      }
+    }
+  }
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -89,12 +97,21 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.highestAcknowledgedBatchId);
   }
 
-  acknowledgeBatch(
+  lookupMutationKeys(
     transaction: PersistenceTransaction,
-    batch: MutationBatch,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    const mutationBatch = this.findMutationBatch(batchId);
+    return PersistencePromise.resolve(
+      mutationBatch ? mutationBatch.keys() : null
+    );
+  }
+
+  setLastProcessedBatch(
+    transaction: PersistenceTransaction,
+    batchId: BatchId,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    const batchId = batch.batchId;
     assert(
       batchId > this.highestAcknowledgedBatchId,
       'Mutation batchIDs must be acknowledged in order'
@@ -199,11 +216,18 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(null);
   }
 
-  getAllMutationBatches(
+  getPendingMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
+    let startIndex = this.indexOfBatchId(this.highestAcknowledgedBatchId + 1);
+    if (startIndex < 0) {
+      startIndex = 0;
+    }
     return PersistencePromise.resolve(
-      this.getAllLiveMutationBatchesBeforeIndex(this.mutationQueue.length)
+      this.getAllLiveMutationBatchesInRange(
+        startIndex,
+        this.mutationQueue.length
+      )
     );
   }
 
@@ -225,11 +249,11 @@ export class MemoryMutationQueue implements MutationQueue {
     }
 
     return PersistencePromise.resolve(
-      this.getAllLiveMutationBatchesBeforeIndex(endIndex)
+      this.getAllLiveMutationBatchesInRange(0, endIndex)
     );
   }
 
-  getAllMutationBatchesAffectingDocumentKey(
+  getPendingMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]> {
@@ -252,7 +276,7 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(result);
   }
 
-  getAllMutationBatchesAffectingQuery(
+  getPendingMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
@@ -286,7 +310,10 @@ export class MemoryMutationQueue implements MutationQueue {
         // the document /rooms/abc/messages/xyx.
         // TODO(mcg): we'll need a different scanner when we implement
         // ancestor queries.
-        if (rowKeyPath.length === immediateChildrenPathLength) {
+        if (
+          rowKeyPath.length === immediateChildrenPathLength &&
+          true // ref.targetOrBatchId > this.highestAcknowledgedBatchId
+        ) {
           uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
         }
         return true;
@@ -385,7 +412,7 @@ export class MemoryMutationQueue implements MutationQueue {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const ref = new DocReference(key, 0);
+    const ref = new DocReference(key, this.highestAcknowledgedBatchId + 1);
     const firstRef = this.batchesByDocumentKey.firstAfterOrEqual(ref);
     return PersistencePromise.resolve(key.isEqual(firstRef && firstRef.key));
   }
@@ -403,16 +430,16 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   /**
-   * A private helper that collects all the mutations batches in the queue up to
-   * but not including the given endIndex. All tombstones in the queue are
-   * excluded.
+   * A private helper that collects all the mutations batches in the queue from
+   * startIndex up to but not including the given endIndex. All tombstones in
+   * the queue are excluded.
    */
-  private getAllLiveMutationBatchesBeforeIndex(
+  private getAllLiveMutationBatchesInRange(
+    startIndex: number,
     endIndex: number
   ): MutationBatch[] {
     const result: MutationBatch[] = [];
-
-    for (let i = 0; i < endIndex; i++) {
+    for (let i = startIndex; i < endIndex; i++) {
       const batch = this.mutationQueue[i];
       if (!batch.isTombstone()) {
         result.push(batch);

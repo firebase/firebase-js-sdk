@@ -48,7 +48,7 @@ export class TestMutationQueue {
   countBatches(): Promise<number> {
     return this.persistence
       .runTransaction('countBatches', true, txn => {
-        return this.queue.getAllMutationBatches(txn);
+        return this.queue.getPendingMutationBatches(txn);
       })
       .then(batches => batches.length);
   }
@@ -69,15 +69,15 @@ export class TestMutationQueue {
     );
   }
 
-  acknowledgeBatch(
-    batch: MutationBatch,
+  setLastProcessedBatch(
+    batchId: BatchId,
     streamToken: ProtoByteString
   ): Promise<void> {
     return this.persistence.runTransaction(
       'acknowledgeThroughBatchId',
       true,
       txn => {
-        return this.queue.acknowledgeBatch(txn, batch, streamToken);
+        return this.queue.setLastProcessedBatch(txn, batchId, streamToken);
       }
     );
   }
@@ -118,17 +118,17 @@ export class TestMutationQueue {
     );
   }
 
-  getAllMutationBatches(): Promise<MutationBatch[]> {
+  getAllPendingBatches(): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatches',
       true,
       txn => {
-        return this.queue.getAllMutationBatches(txn);
+        return this.queue.getPendingMutationBatches(txn);
       }
     );
   }
 
-  getAllMutationBatchesThroughBatchId(
+  getAllPendingBatchesThroughBatchId(
     batchId: BatchId
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
@@ -147,7 +147,7 @@ export class TestMutationQueue {
       'getAllMutationBatchesAffectingDocumentKey',
       true,
       txn => {
-        return this.queue.getAllMutationBatchesAffectingDocumentKey(
+        return this.queue.getPendingMutationBatchesAffectingDocumentKey(
           txn,
           documentKey
         );
@@ -160,7 +160,7 @@ export class TestMutationQueue {
       'getAllMutationBatchesAffectingQuery',
       true,
       txn => {
-        return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
+        return this.queue.getPendingMutationBatchesAffectingQuery(txn, query);
       }
     );
   }

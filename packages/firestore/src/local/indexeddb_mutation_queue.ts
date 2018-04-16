@@ -41,6 +41,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { DocumentKeySet } from '../model/collections';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -154,16 +155,21 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     let empty = true;
-    const range = IDBKeyRange.bound(
-      this.keyForBatchId(Number.NEGATIVE_INFINITY),
-      this.keyForBatchId(Number.POSITIVE_INFINITY)
+    return this.getHighestAcknowledgedBatchId(transaction).next(
+      highestAcknowledgedBatchId => {
+        const range = IDBKeyRange.bound(
+          this.keyForBatchId(highestAcknowledgedBatchId),
+          this.keyForBatchId(Number.POSITIVE_INFINITY),
+          false
+        );
+        return mutationsStore(transaction)
+          .iterate({ range }, (key, value, control) => {
+            empty = false;
+            control.done();
+          })
+          .next(() => empty);
+      }
     );
-    return mutationsStore(transaction)
-      .iterate({ range }, (key, value, control) => {
-        empty = false;
-        control.done();
-      })
-      .next(() => empty);
   }
 
   getNextBatchId(
@@ -178,12 +184,24 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.metadata.lastAcknowledgedBatchId);
   }
 
-  acknowledgeBatch(
+  lookupMutationKeys(
     transaction: PersistenceTransaction,
-    batch: MutationBatch,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    return mutationsStore(transaction)
+      .get(this.keyForBatchId(batchId))
+      .next(
+        dbBatch =>
+          dbBatch ? this.serializer.fromDbMutationBatch(dbBatch) : null
+      )
+      .next(mutationBatch => mutationBatch.keys());
+  }
+
+  setLastProcessedBatch(
+    transaction: PersistenceTransaction,
+    batchId: BatchId,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    const batchId = batch.batchId;
     assert(
       batchId > this.metadata.lastAcknowledgedBatchId,
       'Mutation batchIDs must be acknowledged in order'
@@ -282,18 +300,25 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => foundBatch);
   }
 
-  getAllMutationBatches(
+  getPendingMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
-    const range = IDBKeyRange.bound(
-      this.keyForBatchId(BATCHID_UNKNOWN),
-      this.keyForBatchId(Number.POSITIVE_INFINITY)
+    return this.getHighestAcknowledgedBatchId(transaction).next(
+      highestAcknowledgedBatchId => {
+        const range = IDBKeyRange.bound(
+          this.keyForBatchId(highestAcknowledgedBatchId),
+          this.keyForBatchId(Number.POSITIVE_INFINITY),
+          false
+        );
+        return mutationsStore(transaction)
+          .loadAll(range)
+          .next(dbBatches =>
+            dbBatches.map(dbBatch =>
+              this.serializer.fromDbMutationBatch(dbBatch)
+            )
+          );
+      }
     );
-    return mutationsStore(transaction)
-      .loadAll(range)
-      .next(dbBatches =>
-        dbBatches.map(dbBatch => this.serializer.fromDbMutationBatch(dbBatch))
-      );
   }
 
   getAllMutationBatchesThroughBatchId(
@@ -311,58 +336,66 @@ export class IndexedDbMutationQueue implements MutationQueue {
       );
   }
 
-  getAllMutationBatchesAffectingDocumentKey(
+  getPendingMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]> {
-    // Scan the document-mutation index starting with a prefix starting with
-    // the given documentKey.
-    const indexPrefix = DbDocumentMutation.prefixForPath(
-      this.userId,
-      documentKey.path
-    );
-    const indexStart = IDBKeyRange.lowerBound(indexPrefix);
+    return this.getHighestAcknowledgedBatchId(transaction).next(
+      highestAcknowledgedBatch => {
+        // Scan the document-mutation index starting with a prefix starting with
+        // the given documentKey.
+        const indexPrefix = DbDocumentMutation.key(
+          this.userId,
+          documentKey.path,
+          highestAcknowledgedBatch
+        );
+        const indexStart = IDBKeyRange.lowerBound(indexPrefix, false);
 
-    const results: MutationBatch[] = [];
-    return documentMutationsStore(transaction)
-      .iterate({ range: indexStart }, (indexKey, _, control) => {
-        const [userID, encodedPath, batchID] = indexKey;
+        const results: MutationBatch[] = [];
+        return documentMutationsStore(transaction)
+          .iterate({ range: indexStart }, (indexKey, _, control) => {
+            const [userID, encodedPath, batchID] = indexKey;
 
-        // Only consider rows matching exactly the specific key of
-        // interest. Note that because we order by path first, and we
-        // order terminators before path separators, we'll encounter all
-        // the index rows for documentKey contiguously. In particular, all
-        // the rows for documentKey will occur before any rows for
-        // documents nested in a subcollection beneath documentKey so we
-        // can stop as soon as we hit any such row.
-        const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId || !documentKey.path.isEqual(path)) {
-          control.done();
-          return;
-        }
-        const mutationKey = this.keyForBatchId(batchID);
-        // Look up the mutation batch in the store.
-        // PORTING NOTE: because iteration is callback driven in the web,
-        // we just look up the key instead of keeping an open iterator
-        // like iOS.
-        return mutationsStore(transaction)
-          .get(mutationKey)
-          .next(dbBatch => {
-            if (dbBatch === null) {
-              fail(
-                'Dangling document-mutation reference found: ' +
-                  indexKey +
-                  ' which points to ' +
-                  mutationKey
-              );
+            // Only consider rows matching exactly the specific key of
+            // interest. Note that because we order by path first, and we
+            // order terminators before path separators, we'll encounter all
+            // the index rows for documentKey contiguously. In particular, all
+            // the rows for documentKey will occur before any rows for
+            // documents nested in a subcollection beneath documentKey so we
+            // can stop as soon as we hit any such row.
+            const path = EncodedResourcePath.decode(encodedPath);
+            if (userID !== this.userId || !documentKey.path.isEqual(path)) {
+              control.done();
+              return;
             }
-            results.push(this.serializer.fromDbMutationBatch(dbBatch!));
-          });
-      })
-      .next(() => results);
+            if (batchID <= highestAcknowledgedBatch) {
+              return;
+            }
+            const mutationKey = this.keyForBatchId(batchID);
+            // Look up the mutation batch in the store.
+            // PORTING NOTE: because iteration is callback driven in the web,
+            // we just look up the key instead of keeping an open iterator
+            // like iOS.
+            return mutationsStore(transaction)
+              .get(mutationKey)
+              .next(dbBatch => {
+                if (dbBatch === null) {
+                  fail(
+                    'Dangling document-mutation reference found: ' +
+                      indexKey +
+                      ' which points to ' +
+                      mutationKey
+                  );
+                }
+                results.push(this.serializer.fromDbMutationBatch(dbBatch!));
+              });
+          })
+          .next(() => results);
+      }
+    );
   }
 
-  getAllMutationBatchesAffectingQuery(
+  getPendingMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
@@ -370,72 +403,83 @@ export class IndexedDbMutationQueue implements MutationQueue {
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
-
     const queryPath = query.path;
     const immediateChildrenLength = queryPath.length + 1;
 
-    // TODO(mcg): Actually implement a single-collection query
-    //
-    // This is actually executing an ancestor query, traversing the whole
-    // subtree below the collection which can be horrifically inefficient for
-    // some structures. The right way to solve this is to implement the full
-    // value index, but that's not in the cards in the near future so this is
-    // the best we can do for the moment.
-    //
-    // Since we don't yet index the actual properties in the mutations, our
-    // current approach is to just return all mutation batches that affect
-    // documents in the collection being queried.
-    const indexPrefix = DbDocumentMutation.prefixForPath(
-      this.userId,
-      queryPath
-    );
-    const indexStart = IDBKeyRange.lowerBound(indexPrefix);
-
-    // Collect up unique batchIDs encountered during a scan of the index. Use a
-    // SortedSet to accumulate batch IDs so they can be traversed in order in a
-    // scan of the main table.
-    let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
-    return documentMutationsStore(transaction)
-      .iterate({ range: indexStart }, (indexKey, _, control) => {
-        const [userID, encodedPath, batchID] = indexKey;
-        const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId || !queryPath.isPrefixOf(path)) {
-          control.done();
-          return;
-        }
-        // Rows with document keys more than one segment longer than the
-        // query path can't be matches. For example, a query on 'rooms'
-        // can't match the document /rooms/abc/messages/xyx.
-        // TODO(mcg): we'll need a different scanner when we implement
-        // ancestor queries.
-        if (path.length !== immediateChildrenLength) {
-          return;
-        }
-        uniqueBatchIDs = uniqueBatchIDs.add(batchID);
-      })
-      .next(() => {
-        const results: MutationBatch[] = [];
-        const promises: Array<PersistencePromise<void>> = [];
-        // TODO(rockwood): Implement this using iterate.
-        uniqueBatchIDs.forEach(batchID => {
-          const mutationKey = this.keyForBatchId(batchID);
-          promises.push(
-            mutationsStore(transaction)
-              .get(mutationKey)
-              .next(mutation => {
-                if (mutation === null) {
-                  fail(
-                    'Dangling document-mutation reference found, ' +
-                      'which points to ' +
-                      mutationKey
-                  );
-                }
-                results.push(this.serializer.fromDbMutationBatch(mutation!));
-              })
-          );
+    return this.getHighestAcknowledgedBatchId(transaction).next(lowestBatch => {
+      // TODO(mcg): Actually implement a single-collection query
+      //
+      // This is actually executing an ancestor query, traversing the whole
+      // subtree below the collection which can be horrifically inefficient for
+      // some structures. The right way to solve this is to implement the full
+      // value index, but that's not in the cards in the near future so this is
+      // the best we can do for the moment.
+      //
+      // Since we don't yet index the actual properties in the mutations, our
+      // current approach is to just return all mutation batches that affect
+      // documents in the collection being queried.
+      const indexPrefix = DbDocumentMutation.prefixForPath(
+        this.userId,
+        queryPath
+      );
+      const indexStart = IDBKeyRange.lowerBound(indexPrefix);
+      // Collect up unique batchIDs encountered during a scan of the index. Use a
+      // SortedSet to accumulate batch IDs so they can be traversed in order in a
+      // scan of the main table.
+      let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
+      return documentMutationsStore(transaction)
+        .iterate({ range: indexStart }, (indexKey, _, control) => {
+          const [userID, encodedPath, batchID] = indexKey;
+          const path = EncodedResourcePath.decode(encodedPath);
+          if (userID !== this.userId || !queryPath.isPrefixOf(path)) {
+            control.done();
+            return;
+          }
+          if (batchID <= lowestBatch) {
+            return;
+          }
+          // Rows with document keys more than one segment longer than the
+          // query path can't be matches. For example, a query on 'rooms'
+          // can't match the document /rooms/abc/messages/xyx.
+          // TODO(mcg): we'll need a different scanner when we implement
+          // ancestor queries.
+          if (path.length !== immediateChildrenLength) {
+            return;
+          }
+          uniqueBatchIDs = uniqueBatchIDs.add(batchID);
+        })
+        .next(() => {
+          const results: MutationBatch[] = [];
+          const promises: Array<PersistencePromise<void>> = [];
+          // TODO(rockwood): Implement this using iterate.
+          uniqueBatchIDs.forEach(batchID => {
+            const mutationKey = this.keyForBatchId(batchID);
+            promises.push(
+              mutationsStore(transaction)
+                .get(mutationKey)
+                .next(mutation => {
+                  if (mutation === null) {
+                    fail(
+                      'Dangling document-mutation reference found, ' +
+                        'which points to ' +
+                        mutationKey
+                    );
+                  }
+                  results.push(this.serializer.fromDbMutationBatch(mutation!));
+                })
+            );
+          });
+          return PersistencePromise.waitFor(promises).next(() => results);
         });
-        return PersistencePromise.waitFor(promises).next(() => results);
-      });
+    });
+  }
+
+  releaseMutationBatch(batch: MutationBatch): void {
+    for (const mutation of batch.mutations) {
+      if (this.garbageCollector !== null) {
+        this.garbageCollector.addPotentialGarbageKey(mutation.key);
+      }
+    }
   }
 
   removeMutationBatches(
@@ -520,19 +564,37 @@ export class IndexedDbMutationQueue implements MutationQueue {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const indexKey = DbDocumentMutation.prefixForPath(this.userId, key.path);
-    const encodedPath = indexKey[1];
-    const startRange = IDBKeyRange.lowerBound(indexKey);
-    let containsKey = false;
-    return documentMutationsStore(txn)
-      .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
-        const [userID, keyPath, /*batchID*/ _] = key;
-        if (userID === this.userId && keyPath === encodedPath) {
-          containsKey = true;
-        }
-        control.done();
-      })
-      .next(() => containsKey);
+    return this.getHighestAcknowledgedBatchId(txn).next(
+      highestAcknowledgedBatch => {
+        const indexKey = DbDocumentMutation.key(
+          this.userId,
+          key.path,
+          highestAcknowledgedBatch
+        );
+        const encodedPath = indexKey[1];
+        const startRange = IDBKeyRange.lowerBound(indexKey, false);
+        let containsKey = false;
+        return documentMutationsStore(txn)
+          .iterate(
+            {
+              range: startRange,
+              keysOnly: true
+            },
+            (key, value, control) => {
+              const [userID, keyPath, batchId] = key;
+              if (
+                userID === this.userId &&
+                keyPath === encodedPath &&
+                batchId > highestAcknowledgedBatch
+              ) {
+                containsKey = true;
+              }
+              control.done();
+            }
+          )
+          .next(() => containsKey);
+      }
+    );
   }
 
   /**

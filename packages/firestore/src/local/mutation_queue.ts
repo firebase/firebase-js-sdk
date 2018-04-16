@@ -24,6 +24,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { DocumentKeySet } from '../model/collections';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue extends GarbageSource {
@@ -64,9 +65,11 @@ export interface MutationQueue extends GarbageSource {
   /**
    * Acknowledges the given batch.
    */
-  acknowledgeBatch(
+
+  // maybe do function for acknowledge and rejected ?
+  setLastProcessedBatch(
     transaction: PersistenceTransaction,
-    batch: MutationBatch,
+    batchId: BatchId,
     streamToken: ProtoByteString
   ): PersistencePromise<void>;
 
@@ -119,7 +122,7 @@ export interface MutationQueue extends GarbageSource {
   /** Gets all mutation batches in the mutation queue. */
   // TODO(mikelehen): PERF: Current consumer only needs mutated keys; if we can
   // provide that cheaply, we should replace this.
-  getAllMutationBatches(
+  getPendingMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]>;
 
@@ -153,7 +156,7 @@ export interface MutationQueue extends GarbageSource {
    */
   // TODO(mcg): This should really return an enumerator
   // also for b/32992024, all backing stores should really index by document key
-  getAllMutationBatchesAffectingDocumentKey(
+  getPendingMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]>;
@@ -173,10 +176,12 @@ export interface MutationQueue extends GarbageSource {
    */
   // TODO(mikelehen): This should perhaps return an enumerator, though I'm not
   // sure we can avoid loading them all in memory.
-  getAllMutationBatchesAffectingQuery(
+  getPendingMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]>;
+
+  releaseMutationBatch(batch: MutationBatch): void;
 
   /**
    * Removes the given mutation batches from the queue. This is useful in two
@@ -187,12 +192,21 @@ export interface MutationQueue extends GarbageSource {
    *
    * In both cases, the array of mutations to remove must be a contiguous range
    * of batchIds. This is most easily accomplished by loading mutations with
-   * getAllMutationBatchesThroughBatchId()
+   * getAllMutationBatchesThroughBatchId().
+   *
+   * Even after this removal, `lookupMutationKeys()` can continue to be used to
+   * retrieve the list of a mutation's document keys.
    */
   removeMutationBatches(
     transaction: PersistenceTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<void>;
+
+  /** Returns the keys of the documents affected by the given mutation batches. */
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Performs a consistency check, examining the mutation queue for any
