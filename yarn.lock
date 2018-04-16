@@ -302,6 +302,18 @@
   version "0.0.32"
   resolved "https://registry.npmjs.org/@types/q/-/q-0.0.32.tgz#bd284e57c84f1325da702babfc82a5328190c0c5"
 
+"@types/react-native@0.55.2":
+  version "0.55.2"
+  resolved "https://registry.npmjs.org/@types/react-native/-/react-native-0.55.2.tgz#78e7e963eb1172eb715507e733b99821e4ce9072"
+  dependencies:
+    "@types/react" "*"
+
+"@types/react@*":
+  version "16.3.10"
+  resolved "https://registry.npmjs.org/@types/react/-/react-16.3.10.tgz#2f25eef83f7c7f6c51cea4c02660f727c75d3b33"
+  dependencies:
+    csstype "^2.2.0"
+
 "@types/selenium-webdriver@^2.53.35", "@types/selenium-webdriver@~2.53.39":
   version "2.53.43"
   resolved "https://registry.npmjs.org/@types/selenium-webdriver/-/selenium-webdriver-2.53.43.tgz#2de3d718819bc20165754c4a59afb7e9833f6707"
@@ -2431,6 +2443,10 @@ crypto-browserify@^3.0.0, crypto-browserify@^3.11.0, crypto-browserify@^3.11.1:
 crypto-random-string@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
+
+csstype@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/csstype/-/csstype-2.2.0.tgz#1656ef97553ac53b77090844a2531c6660ebd902"
 
 csv-streamify@^3.0.4:
   version "3.0.4"
