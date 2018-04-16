@@ -15,12 +15,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   createSubscribe,
   NextFn,
   Observer,
-  PartialObserver,
   Subscribe,
   Unsubscribe
 } from '@firebase/util';
@@ -32,23 +30,22 @@ import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import { MessageParameter, MessageType } from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
-export class WindowController extends ControllerInterface
-  implements FirebaseMessaging {
+export class WindowController extends ControllerInterface {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
   private manifestCheckPromise: Promise<void> | null = null;
 
-  private messageObserver: Observer<{}, Error> | null = null;
+  private messageObserver: Observer<object, Error> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
-  private tokenRefreshObserver: Observer<{}, Error> | null = null;
+  private tokenRefreshObserver: Observer<object, Error> | null = null;
 
-  private readonly onMessageInternal: Subscribe<{}> = createSubscribe(
+  private readonly onMessageInternal: Subscribe<object> = createSubscribe(
     observer => {
       this.messageObserver = observer;
     }
   );
 
-  private readonly onTokenRefreshInternal: Subscribe<{}> = createSubscribe(
+  private readonly onTokenRefreshInternal: Subscribe<object> = createSubscribe(
     observer => {
       this.tokenRefreshObserver = observer;
     }
@@ -221,7 +218,7 @@ export class WindowController extends ControllerInterface
    * @return The unsubscribe function for the observer.
    */
   onMessage(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
   ): Unsubscribe {
@@ -240,7 +237,7 @@ export class WindowController extends ControllerInterface
    * @return The unsubscribe function for the observer.
    */
   onTokenRefresh(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
   ): Unsubscribe {

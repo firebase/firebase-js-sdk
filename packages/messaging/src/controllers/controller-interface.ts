@@ -16,7 +16,8 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseServiceInternals } from '@firebase/app-types/private';
-import { NextFn, PartialObserver } from '@firebase/util';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { TokenDetails } from '../interfaces/token-details';
@@ -29,7 +30,7 @@ const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class ControllerInterface {
+export abstract class ControllerInterface implements FirebaseMessaging {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
   private readonly messagingSenderId: string;
@@ -274,7 +275,7 @@ export abstract class ControllerInterface {
   // The following methods should only be available in the window.
   //
 
-  requestPermission(): void {
+  requestPermission(): Promise<void> {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
@@ -287,18 +288,18 @@ export abstract class ControllerInterface {
   }
 
   onMessage(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
-  ): void {
+  ): Unsubscribe {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
-  ): void {
+  ): Unsubscribe {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
