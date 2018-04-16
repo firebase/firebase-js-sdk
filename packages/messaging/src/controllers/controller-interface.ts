@@ -20,11 +20,14 @@ import { FirebaseMessaging } from '@firebase/messaging-types';
 import { NextFn, Observer, Unsubscribe } from '@firebase/util';
 
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
+import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, errorFactory } from '../models/errors';
 import { IIDModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
+
+export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
@@ -307,8 +310,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
   // The following methods are used by the service worker only.
   //
 
-  // tslint:disable-next-line no-any Defined in child class.
-  setBackgroundMessageHandler(callback: any): void {
+  setBackgroundMessageHandler(callback: BgMessageHandler): void {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 

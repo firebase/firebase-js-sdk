@@ -29,14 +29,12 @@ import {
   MessageParameter,
   MessageType
 } from '../models/worker-page-message';
-import { ControllerInterface } from './controller-interface';
+import { BgMessageHandler, ControllerInterface } from './controller-interface';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
-
-export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
 
 export class SWController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
