@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-var firebase = require('./app');
-require('./auth');
-require('./database');
-require('./storage');
-
-// This dependency exists in React Native apps
-var AsyncStorage = require('react-native').AsyncStorage;
-
-firebase.INTERNAL.extendNamespace({
-  INTERNAL: {
-    reactNative: {
-      AsyncStorage: AsyncStorage
-    }
-  }
-});
-
-// Export the single instance of firebase
-module.exports = firebase;
+import '@firebase/polyfill';
+import firebase from '@firebase/app';
+export default firebase;
