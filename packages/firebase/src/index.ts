@@ -32,9 +32,9 @@ require('firebase/<PACKAGE>');
 NPM (ESM):
 import firebase from 'firebase/app';
 import 'firebase/<PACKAGE>';
-`)
+`);
 
-import firebase from "../app";
+import firebase from '../app';
 
 import '../auth';
 import '../database';

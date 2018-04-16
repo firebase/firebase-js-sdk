@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { resolve } from "path";
+import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
@@ -36,15 +36,15 @@ const pkgsByName = {
   firestore: firestorePkg,
   functions: functionsPkg,
   messaging: messagingPkg,
-  storage: storagePkg,
+  storage: storagePkg
 };
 
 const plugins = [
   typescript({
     typescript: require('typescript')
-  }), 
-  resolveModule(), 
-  commonjs(),
+  }),
+  resolveModule(),
+  commonjs()
 ];
 
 const external = Object.keys(pkg.dependencies || {});
@@ -60,7 +60,7 @@ const completeBuilds = [
     input: 'src/index.ts',
     output: [
       { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' },
+      { file: pkg.module, format: 'es' }
     ],
     plugins,
     external
@@ -82,7 +82,7 @@ const completeBuilds = [
     output: { file: pkg['react-native'], format: 'cjs' },
     plugins,
     external: [...external, 'react-native']
-  },
+  }
 ];
 
 /**
@@ -96,7 +96,7 @@ const appBuilds = [
     input: 'app/index.ts',
     output: [
       { file: resolve('app', appPkg.browser), format: 'cjs' },
-      { file: resolve('app', appPkg.module), format: 'es' },
+      { file: resolve('app', appPkg.module), format: 'es' }
     ],
     plugins,
     external
@@ -118,22 +118,28 @@ const appBuilds = [
     output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
     plugins,
     external: [...external, 'react-native']
-  },
+  }
 ];
 
-const components = ['auth', 'database', 'firestore', 'functions', 'messaging', 'storage'];
+const components = [
+  'auth',
+  'database',
+  'firestore',
+  'functions',
+  'messaging',
+  'storage'
+];
 const componentBuilds = components.map(component => {
   const pkg = pkgsByName[component];
   return {
     input: `${component}/index.ts`,
     output: [
       { file: resolve(component, pkg.main), format: 'cjs' },
-      { file: resolve(component, pkg.module), format: 'es' },
+      { file: resolve(component, pkg.module), format: 'es' }
     ],
     plugins,
     external
   };
 });
-
 
 export default [...completeBuilds, ...appBuilds, ...componentBuilds];

@@ -1,7 +1,7 @@
 import '@firebase/polyfill';
-import firebase from "@firebase/app";
-import { _FirebaseNamespace } from "@firebase/app-types/private";
-import { AsyncStorage } from "react-native";
+import firebase from '@firebase/app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { AsyncStorage } from 'react-native';
 
 const _firebase = firebase as _FirebaseNamespace;
 
