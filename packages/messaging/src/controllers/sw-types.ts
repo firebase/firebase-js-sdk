@@ -76,15 +76,6 @@ interface Clients {
   openWindow(url: string): Promise<WindowClient | null>;
 }
 
-interface NotificationOptions {
-  body?: string;
-  data?: any;
-  dir?: NotificationDirection;
-  icon?: string;
-  lang?: string;
-  tag?: string;
-}
-
 interface ExtendableEvent extends Event {
   waitUntil(f: Promise<any>): void;
 }

@@ -27,7 +27,11 @@ import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
 import { ERROR_CODES, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import { MessageParameter, MessageType } from '../models/worker-page-message';
+import {
+  InternalMessage,
+  MessageParameter,
+  MessageType
+} from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
 export class WindowController extends ControllerInterface {
@@ -363,7 +367,7 @@ export class WindowController extends ControllerInterface {
           return;
         }
 
-        const workerPageMessage = event.data;
+        const workerPageMessage: InternalMessage = event.data;
         switch (workerPageMessage[MessageParameter.TYPE_OF_MSG]) {
           case MessageType.PUSH_MSG_RECEIVED:
           case MessageType.NOTIFICATION_CLICKED:

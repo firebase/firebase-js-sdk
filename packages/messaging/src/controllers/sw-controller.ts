@@ -18,6 +18,10 @@ import './sw-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 
+import {
+  MessagePayload,
+  NotificationDetails
+} from '../interfaces/message-payload';
 import { ERROR_CODES, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
@@ -32,16 +36,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export type BgMessageHandler = (input: Payload) => Promise<void>;
-
-export interface NotificationDetails extends NotificationOptions {
-  title: string;
-  click_action?: string;
-}
-
-export interface Payload {
-  notification?: NotificationDetails;
-}
+export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
 
 export class SWController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
@@ -95,7 +90,7 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    let msgPayload: Payload;
+    let msgPayload: MessagePayload;
     try {
       msgPayload = event.data.json();
     } catch (err) {
@@ -173,7 +168,7 @@ export class SWController extends ControllerInterface {
 
     event.notification.close();
 
-    const msgPayload: Payload = event.notification.data[FCM_MSG];
+    const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
     if (!msgPayload.notification) {
       // Nothing to do.
       return;
@@ -213,7 +208,9 @@ export class SWController extends ControllerInterface {
 
   // Visible for testing
   // TODO: Make private
-  getNotificationData_(msgPayload: Payload): NotificationDetails | undefined {
+  getNotificationData_(
+    msgPayload: MessagePayload
+  ): NotificationDetails | undefined {
     if (!msgPayload) {
       return;
     }
@@ -222,12 +219,15 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    const notificationInformation = { ...msgPayload.notification };
+    const notificationInformation: NotificationDetails = {
+      ...msgPayload.notification
+    };
+
     // Put the message payload under FCM_MSG name so we can identify the
     // notification as being an FCM notification vs a notification from
     // somewhere else (i.e. normal web push or developer generated
     // notification).
-    notificationInformation['data'] = {
+    notificationInformation.data = {
       [FCM_MSG]: msgPayload
     };
 
@@ -327,7 +327,7 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  async sendMessageToWindowClients_(msgPayload: Payload): Promise<void> {
+  async sendMessageToWindowClients_(msgPayload: MessagePayload): Promise<void> {
     const clientList = await getClientList();
 
     const internalMsg = createNewMsg(MessageType.PUSH_MSG_RECEIVED, msgPayload);
@@ -376,7 +376,10 @@ function getClientList(): Promise<WindowClient[]> {
   }) as Promise<WindowClient[]>;
 }
 
-function createNewMsg(msgType: MessageType, msgData: Payload): InternalMessage {
+function createNewMsg(
+  msgType: MessageType,
+  msgData: MessagePayload
+): InternalMessage {
   return {
     [MessageParameter.TYPE_OF_MSG]: msgType,
     [MessageParameter.DATA]: msgData

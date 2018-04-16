@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-import { MessagePayload } from '../interfaces/message-payload';
-
-export enum MessageParameter {
-  TYPE_OF_MSG = 'firebase-messaging-msg-type',
-  DATA = 'firebase-messaging-msg-data'
+export interface NotificationDetails extends NotificationOptions {
+  title: string;
+  click_action?: string;
 }
 
-export enum MessageType {
-  PUSH_MSG_RECEIVED = 'push-msg-received',
-  NOTIFICATION_CLICKED = 'notification-clicked'
-}
-
-export interface InternalMessage {
-  [MessageParameter.TYPE_OF_MSG]: MessageType;
-  [MessageParameter.DATA]: MessagePayload;
+export interface MessagePayload {
+  notification?: NotificationDetails;
+  data?: object;
 }
