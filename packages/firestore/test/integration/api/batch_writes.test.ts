@@ -117,7 +117,7 @@ apiDescribe('Database batch writes', persistence => {
         const docB = collection.doc('b');
         const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
-          { includeQueryMetadataChanges: true },
+          { includeMetadataChanges: true },
           accumulator.storeEvent
         );
         return accumulator
@@ -163,7 +163,7 @@ apiDescribe('Database batch writes', persistence => {
         const docB = collection.doc('b');
         const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
-          { includeQueryMetadataChanges: true },
+          { includeMetadataChanges: true },
           accumulator.storeEvent
         );
         let batchCommitPromise: Promise<void>;
@@ -229,7 +229,7 @@ apiDescribe('Database batch writes', persistence => {
         const docB = collection.doc('b');
         const accumulator = new EventsAccumulator<firestore.QuerySnapshot>();
         const unsubscribe = collection.onSnapshot(
-          { includeQueryMetadataChanges: true },
+          { includeMetadataChanges: true },
           accumulator.storeEvent
         );
         return accumulator

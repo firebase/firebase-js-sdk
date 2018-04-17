@@ -84,11 +84,19 @@ export function apiDescribe(
   }
 }
 
-/** Converts a DocumentSet to an array with the data of each document */
+/** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
 ): firestore.DocumentData[] {
   return docSet.docs.map(d => d.data());
+}
+
+/** Converts the changes in a QuerySnapshot to an array with the data of each document. */
+export function toChangesArray(
+  docSet: firestore.QuerySnapshot,
+  options?: firestore.SnapshotListenOptions
+): firestore.DocumentData[] {
+  return docSet.docChanges(options).map(d => d.doc.data());
 }
 
 export function toDataMap(

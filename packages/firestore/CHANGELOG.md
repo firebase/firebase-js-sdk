@@ -1,4 +1,14 @@
 # Unreleased
+- [breaking] `QuerySnapshot.docChanges()` is now a method. Please make sure
+  to audit your code for all existing uses of the old property `.docChanges`
+  and to change them to method invocations.
+- [changed] Replaced `QueryListenOptions` and `DocumentListenOptions` with
+  `SnapshotListenOptions`. `SnapshotListenOptions` only exposes the single
+  property `includeMetadataChanges` to turn on metadata changes.
+- [changed] `QuerySnapshot.docChanges()` optionally takes
+  `SnapshotListenOptions`. By default, even when listening to a query with
+  `{ includeMetadataChanges:true }`, metadata-only document changes
+  are suppressed in `docChanges()`. 
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
   cause get() requests made while offline to be delayed by up to 10
   seconds (rather than returning from cache immediately).
