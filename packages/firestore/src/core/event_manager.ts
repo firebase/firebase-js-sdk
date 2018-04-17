@@ -143,11 +143,8 @@ export class EventManager {
 }
 
 export interface ListenOptions {
-  /** Raise events when only metadata of documents changes */
-  readonly includeDocumentMetadataChanges?: boolean;
-
-  /** Raise events when only metadata of the query changes */
-  readonly includeQueryMetadataChanges?: boolean;
+  /** Raise events even when only the metadata changes */
+  readonly includeMetadataChanges?: boolean;
 
   /**
    * Wait for a sync with the server when online, but still raise events while
@@ -188,25 +185,6 @@ export class QueryListener {
       snap.docChanges.length > 0 || snap.syncStateChanged,
       'We got a new snapshot with no changes?'
     );
-
-    if (!this.options.includeDocumentMetadataChanges) {
-      // Remove the metadata only changes.
-      const docChanges: DocumentViewChange[] = [];
-      for (const docChange of snap.docChanges) {
-        if (docChange.type !== ChangeType.Metadata) {
-          docChanges.push(docChange);
-        }
-      }
-      snap = new ViewSnapshot(
-        snap.query,
-        snap.docs,
-        snap.oldDocs,
-        docChanges,
-        snap.fromCache,
-        snap.hasPendingWrites,
-        snap.syncStateChanged
-      );
-    }
 
     if (!this.raisedInitialEvent) {
       if (this.shouldRaiseInitialEvent(snap, this.onlineState)) {
@@ -266,18 +244,19 @@ export class QueryListener {
   }
 
   private shouldRaiseEvent(snap: ViewSnapshot): boolean {
-    // We don't need to handle includeDocumentMetadataChanges here because
-    // the Metadata only changes have already been stripped out if needed.
-    // At this point the only changes we will see are the ones we should
-    // propagate.
-    if (snap.docChanges.length > 0) {
-      return true;
+    for (const docChange of snap.docChanges) {
+      if (
+        this.options.includeMetadataChanges ||
+        docChange.type !== ChangeType.Metadata
+      ) {
+        return true;
+      }
     }
 
     const hasPendingWritesChanged =
       this.snap && this.snap.hasPendingWrites !== snap.hasPendingWrites;
     if (snap.syncStateChanged || hasPendingWritesChanged) {
-      return this.options.includeQueryMetadataChanges === true;
+      return this.options.includeMetadataChanges === true;
     }
 
     // Generally we should have hit one of the cases above, but it's possible

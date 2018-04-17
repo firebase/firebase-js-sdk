@@ -20,7 +20,12 @@ import * as firestore from '@firebase/firestore-types';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
-import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
+import {
+  apiDescribe,
+  toChangesArray,
+  toDataArray,
+  withTestCollection
+} from '../util/helpers';
 import { Deferred } from '../../util/promise';
 
 const Timestamp = firebase.firestore.Timestamp;
@@ -188,7 +193,7 @@ apiDescribe('Queries', persistence => {
         .then(() => {
           unlisten1 = coll.onSnapshot(storeEvent.storeEvent);
           unlisten2 = coll.onSnapshot(
-            { includeDocumentMetadataChanges: true },
+            { includeMetadataChanges: true },
             storeEventFull.storeEvent
           );
           return storeEvent.awaitEvent();
@@ -329,8 +334,7 @@ apiDescribe('Queries', persistence => {
         const query2 = coll.where('filter', '==', true);
         unlisten2 = query2.onSnapshot(
           {
-            includeQueryMetadataChanges: true,
-            includeDocumentMetadataChanges: false
+            includeMetadataChanges: true
           },
           accum.storeEvent
         );
@@ -349,6 +353,44 @@ apiDescribe('Queries', persistence => {
         unlisten1();
         unlisten2();
       });
+    });
+  });
+
+  it('can listen for metadata changes', () => {
+    const initialDoc = {
+      foo: { a: 'b', v: 1 }
+    };
+    const modifiedDoc = {
+      foo: { a: 'b', v: 2 }
+    };
+    return withTestCollection(persistence, initialDoc, async coll => {
+      const accum = new EventsAccumulator<firestore.QuerySnapshot>();
+      const unlisten = coll.onSnapshot(
+        { includeMetadataChanges: true },
+        accum.storeEvent
+      );
+
+      await accum.awaitEvents(1).then(events => {
+        const results1 = events[0];
+        expect(toDataArray(results1)).to.deep.equal([initialDoc['foo']]);
+      });
+
+      coll.doc('foo').set(modifiedDoc['foo']);
+
+      await accum.awaitEvents(2).then(events => {
+        const results1 = events[0];
+        expect(toDataArray(results1)).to.deep.equal([modifiedDoc['foo']]);
+        expect(toChangesArray(results1)).to.deep.equal([modifiedDoc['foo']]);
+
+        const results2 = events[1];
+        expect(toDataArray(results2)).to.deep.equal([modifiedDoc['foo']]);
+        expect(toChangesArray(results2)).to.deep.equal([]);
+        expect(
+          toChangesArray(results2, { includeMetadataChanges: true })
+        ).to.deep.equal([modifiedDoc['foo']]);
+      });
+
+      unlisten();
     });
   });
 
@@ -441,7 +483,7 @@ apiDescribe('Queries', persistence => {
       const deferred = new Deferred<void>();
 
       const unregister = coll.onSnapshot(
-        { includeQueryMetadataChanges: true },
+        { includeMetadataChanges: true },
         snapshot => {
           if (!snapshot.empty && !snapshot.metadata.fromCache) {
             deferred.resolve();
@@ -463,7 +505,7 @@ apiDescribe('Queries', persistence => {
       const firestore = coll.firestore;
       const accum = new EventsAccumulator<firestore.QuerySnapshot>();
       const unregister = coll.onSnapshot(
-        { includeQueryMetadataChanges: true },
+        { includeMetadataChanges: true },
         accum.storeEvent
       );
 

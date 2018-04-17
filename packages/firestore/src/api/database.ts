@@ -877,7 +877,7 @@ export class DocumentReference implements firestore.DocumentReference {
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.DocumentListenOptions,
+    options: firestore.SnapshotListenOptions,
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe;
   onSnapshot(
@@ -886,7 +886,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.DocumentListenOptions,
+    options: firestore.SnapshotListenOptions,
     onNext: NextFn<firestore.DocumentSnapshot>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -899,7 +899,7 @@ export class DocumentReference implements firestore.DocumentReference {
       1,
       4
     );
-    let options: firestore.DocumentListenOptions = {
+    let options: firestore.SnapshotListenOptions = {
       includeMetadataChanges: false
     };
     let observer: PartialObserver<firestore.DocumentSnapshot>;
@@ -908,7 +908,7 @@ export class DocumentReference implements firestore.DocumentReference {
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as firestore.DocumentListenOptions;
+      options = args[currArg] as firestore.SnapshotListenOptions;
       validateOptionNames('DocumentReference.onSnapshot', options, [
         'includeMetadataChanges'
       ]);
@@ -922,8 +922,7 @@ export class DocumentReference implements firestore.DocumentReference {
     }
 
     const internalOptions = {
-      includeDocumentMetadataChanges: options.includeMetadataChanges,
-      includeQueryMetadataChanges: options.includeMetadataChanges
+      includeMetadataChanges: options.includeMetadataChanges
     };
 
     if (isPartialObserver(args[currArg])) {
@@ -1041,8 +1040,7 @@ export class DocumentReference implements firestore.DocumentReference {
   ): void {
     const unlisten = this.onSnapshotInternal(
       {
-        includeQueryMetadataChanges: true,
-        includeDocumentMetadataChanges: true,
+        includeMetadataChanges: true,
         waitForSyncWhenOnline: true
       },
       {
@@ -1566,7 +1564,7 @@ export class Query implements firestore.Query {
 
   onSnapshot(observer: PartialObserver<firestore.QuerySnapshot>): Unsubscribe;
   onSnapshot(
-    options: firestore.QueryListenOptions,
+    options: firestore.SnapshotListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe;
   onSnapshot(
@@ -1575,7 +1573,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.QueryListenOptions,
+    options: firestore.SnapshotListenOptions,
     onNext: NextFn<firestore.QuerySnapshot>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -1583,29 +1581,22 @@ export class Query implements firestore.Query {
 
   onSnapshot(...args: AnyJs[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
-    let options: firestore.QueryListenOptions = {};
+    let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as firestore.QueryListenOptions;
+      options = args[currArg] as firestore.SnapshotListenOptions;
       validateOptionNames('Query.onSnapshot', options, [
-        'includeQueryMetadataChanges',
-        'includeDocumentMetadataChanges'
+        'includeMetadataChanges'
       ]);
       validateNamedOptionalType(
         'Query.onSnapshot',
         'boolean',
-        'includeDocumentMetadataChanges',
-        options.includeDocumentMetadataChanges
-      );
-      validateNamedOptionalType(
-        'Query.onSnapshot',
-        'boolean',
-        'includeQueryMetadataChanges',
-        options.includeQueryMetadataChanges
+        'includeMetadataChanges',
+        options.includeMetadataChanges
       );
       currArg++;
     }
@@ -1692,8 +1683,7 @@ export class Query implements firestore.Query {
   ): void {
     const unlisten = this.onSnapshotInternal(
       {
-        includeDocumentMetadataChanges: false,
-        includeQueryMetadataChanges: true,
+        includeMetadataChanges: true,
         waitForSyncWhenOnline: true
       },
       {
@@ -1774,6 +1764,7 @@ export class Query implements firestore.Query {
 
 export class QuerySnapshot implements firestore.QuerySnapshot {
   private _cachedChanges: firestore.DocumentChange[] | null = null;
+  private _cachedChangesIncludeMetadataChanges: boolean | null = null;
 
   readonly metadata: firestore.SnapshotMetadata;
 
@@ -1817,13 +1808,35 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return new Query(this._originalQuery, this._firestore);
   }
 
-  get docChanges(): firestore.DocumentChange[] {
-    if (!this._cachedChanges) {
-      this._cachedChanges = changesFromSnapshot(
-        this._firestore,
-        this._snapshot
+  docChanges(
+    options?: firestore.SnapshotListenOptions
+  ): firestore.DocumentChange[] {
+    validateOptionNames('QuerySnapshot.docChanges', options, [
+      'includeMetadataChanges'
+    ]);
+    if (options) {
+      validateNamedOptionalType(
+        'QuerySnapshot.docChanges',
+        'boolean',
+        'includeMetadataChanges',
+        options.includeMetadataChanges
       );
     }
+
+    const includeMetadataChanges = options && options.includeMetadataChanges;
+
+    if (
+      !this._cachedChanges ||
+      this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
+    ) {
+      this._cachedChanges = changesFromSnapshot(
+        this._firestore,
+        includeMetadataChanges,
+        this._snapshot
+      );
+      this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
+    }
+
     return this._cachedChanges;
   }
 
@@ -1968,6 +1981,7 @@ function validateReference(
  */
 export function changesFromSnapshot(
   firestore: Firestore,
+  includeMetadataChanges: boolean,
   snapshot: ViewSnapshot
 ): firestore.DocumentChange[] {
   if (snapshot.oldDocs.isEmpty()) {
@@ -2002,26 +2016,30 @@ export function changesFromSnapshot(
     // A DocumentSet that is updated incrementally as changes are applied to use
     // to lookup the index of a document.
     let indexTracker = snapshot.oldDocs;
-    return snapshot.docChanges.map(change => {
-      const doc = new QueryDocumentSnapshot(
-        firestore,
-        change.doc.key,
-        change.doc,
-        snapshot.fromCache
-      );
-      let oldIndex = -1;
-      let newIndex = -1;
-      if (change.type !== ChangeType.Added) {
-        oldIndex = indexTracker.indexOf(change.doc.key);
-        assert(oldIndex >= 0, 'Index for document not found');
-        indexTracker = indexTracker.delete(change.doc.key);
-      }
-      if (change.type !== ChangeType.Removed) {
-        indexTracker = indexTracker.add(change.doc);
-        newIndex = indexTracker.indexOf(change.doc.key);
-      }
-      return { type: resultChangeType(change.type), doc, oldIndex, newIndex };
-    });
+    return snapshot.docChanges
+      .filter(
+        change => includeMetadataChanges || change.type !== ChangeType.Metadata
+      )
+      .map(change => {
+        const doc = new QueryDocumentSnapshot(
+          firestore,
+          change.doc.key,
+          change.doc,
+          snapshot.fromCache
+        );
+        let oldIndex = -1;
+        let newIndex = -1;
+        if (change.type !== ChangeType.Added) {
+          oldIndex = indexTracker.indexOf(change.doc.key);
+          assert(oldIndex >= 0, 'Index for document not found');
+          indexTracker = indexTracker.delete(change.doc.key);
+        }
+        if (change.type !== ChangeType.Removed) {
+          indexTracker = indexTracker.add(change.doc);
+          newIndex = indexTracker.indexOf(change.doc.key);
+        }
+        return { type: resultChangeType(change.type), doc, oldIndex, newIndex };
+      });
   }
 }
 
