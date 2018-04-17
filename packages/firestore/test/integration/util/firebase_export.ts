@@ -19,6 +19,7 @@
 // can replace this file reference with a reference to the minified sources
 // instead.
 
+// tslint:disable-next-line:no-implicit-dependencies
 import firebase from '@firebase/app';
 
 // tslint:disable-next-line:no-default-export

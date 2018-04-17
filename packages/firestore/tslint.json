@@ -34,6 +34,7 @@
     "no-debugger": true,
     "no-default-export": true,
     "no-duplicate-variable": true,
+    "no-implicit-dependencies": true,
     "no-inferrable-types": true,
     "no-namespace": [true, "allow-declarations"],
     "no-reference": true,
