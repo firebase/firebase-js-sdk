@@ -470,7 +470,7 @@ export class WriteBatch {
 /**
  * An options object that can be passed to `DocumentReference.onSnapshot()`,
  * `Query.onSnapshot()` and `QuerySnapshot.docChanges()` to control which
- * type of changes to include in the result set.
+ * types of changes to include in the result set.
  */
 export interface SnapshotListenOptions {
   /**
