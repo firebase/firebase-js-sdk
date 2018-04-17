@@ -31,17 +31,17 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
   const factoryMethod: FirebaseServiceFactory = app => {
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SWController(app);
+      if (isSWControllerSupported()) {
+        return new SWController(app);
+      }
     } else {
       // Assume we are in the window context.
-
-      // Check that the required API's are available
-      if (!isWindowControllerSupported()) {
-        throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
+      if (isWindowControllerSupported()) {
+        return new WindowController(app);
       }
-
-      return new WindowController(app);
     }
+
+    throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
   };
 
   const namespaceExports = {
@@ -74,7 +74,7 @@ declare module '@firebase/app-types' {
 }
 
 /**
- * Checks to see if the required API's are valid or not.
+ * Checks to see if the required APIs exist.
  */
 function isWindowControllerSupported(): boolean {
   return (
@@ -82,6 +82,18 @@ function isWindowControllerSupported(): boolean {
     'PushManager' in window &&
     'Notification' in window &&
     'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
+
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+function isSWControllerSupported(): boolean {
+  return (
+    'PushManager' in self &&
+    'Notification' in self &&
     ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
     PushSubscription.prototype.hasOwnProperty('getKey')
   );
