@@ -1,7 +1,7 @@
 # Unreleased
 - [breaking] `QuerySnapshot.docChanges()` is now a method. Please make sure
-  to audit your code for all existing uses of the old property `.docChanges`
-  and to change them to method invocations.
+  to audit your code for all existing usage of the old property `.docChanges`
+  and to change these to method invocations.
 - [changed] Replaced `QueryListenOptions` and `DocumentListenOptions` with
   `SnapshotListenOptions`. `SnapshotListenOptions` only exposes the single
   property `includeMetadataChanges` to turn on metadata changes.
