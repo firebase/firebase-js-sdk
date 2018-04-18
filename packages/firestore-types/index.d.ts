@@ -1075,11 +1075,10 @@ export class QuerySnapshot {
   readonly empty: boolean;
 
   /**
-   * An array of the documents that changed since the last snapshot. If this
-   * is the first snapshot, all documents will be in the list as added
-   * changes.
+   * Returns an array of the documents changes since the last snapshot. If this
+   * is the first snapshot, all documents will be in the list as added changes.
    *
-   * @paran options `SnapshotListenOptions` that control whether metadata-only
+   * @param options `SnapshotListenOptions` that control whether metadata-only
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
