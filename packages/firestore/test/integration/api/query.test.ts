@@ -24,8 +24,7 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
-  withTestCollection,
-  withTestDb
+  withTestCollection
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
