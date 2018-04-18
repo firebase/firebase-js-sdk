@@ -175,7 +175,7 @@ export function validateArrayElements<T>(
   typeDescription: string,
   argument: T[],
   validator: (T) => boolean
-) : void {
+): void {
   if (!(argument instanceof Array)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -202,7 +202,7 @@ export function validateOptionalArrayElements<T>(
   typeDescription: string,
   argument: T[] | undefined,
   validator: (T) => boolean
-) : void {
+): void {
   if (argument !== undefined) {
     validateArrayElements(
       functionName,
