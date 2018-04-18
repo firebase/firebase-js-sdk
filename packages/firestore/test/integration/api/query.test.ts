@@ -24,9 +24,11 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
-  withTestCollection
+  withTestCollection,
+  withTestDb
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
+import { querySnapshot } from '../../util/api_helpers';
 
 const Timestamp = firebase.firestore.Timestamp;
 
@@ -532,5 +534,12 @@ apiDescribe('Queries', persistence => {
           unregister();
         });
     });
+  });
+
+  it('throws custom error when using docChanges as property', () => {
+    const querySnap = querySnapshot('foo/bar', {}, {}, false, false, false);
+    expect(querySnap.docChanges).to.throw(
+      'QuerySnapshot.docChanges has been changed from a property into a method'
+    );
   });
 });

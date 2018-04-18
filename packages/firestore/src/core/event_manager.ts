@@ -186,6 +186,26 @@ export class QueryListener {
       'We got a new snapshot with no changes?'
     );
 
+    if (!this.options.includeMetadataChanges) {
+      // Remove the metadata only changes.
+      const docChanges: DocumentViewChange[] = [];
+      for (const docChange of snap.docChanges) {
+        if (docChange.type !== ChangeType.Metadata) {
+          docChanges.push(docChange);
+        }
+      }
+      snap = new ViewSnapshot(
+        snap.query,
+        snap.docs,
+        snap.oldDocs,
+        docChanges,
+        snap.fromCache,
+        snap.hasPendingWrites,
+        snap.syncStateChanged,
+        /* excludesMetadataChanges= */ true
+      );
+    }
+
     if (!this.raisedInitialEvent) {
       if (this.shouldRaiseInitialEvent(snap, this.onlineState)) {
         this.raiseInitialEvent(snap);
@@ -244,13 +264,12 @@ export class QueryListener {
   }
 
   private shouldRaiseEvent(snap: ViewSnapshot): boolean {
-    for (const docChange of snap.docChanges) {
-      if (
-        this.options.includeMetadataChanges ||
-        docChange.type !== ChangeType.Metadata
-      ) {
-        return true;
-      }
+    // We don't need to handle includeDocumentMetadataChanges here because
+    // the Metadata only changes have already been stripped out if needed.
+    // At this point the only changes we will see are the ones we should
+    // propagate.
+    if (snap.docChanges.length > 0) {
+      return true;
     }
 
     const hasPendingWritesChanged =
@@ -277,7 +296,8 @@ export class QueryListener {
       QueryListener.getInitialViewChanges(snap),
       snap.fromCache,
       snap.hasPendingWrites,
-      true
+      /* syncChangesState= */ true,
+      /* excludesMetadataChanges= */ false
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);

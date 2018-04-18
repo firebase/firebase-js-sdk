@@ -1813,6 +1813,20 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   docChanges(
     options?: firestore.SnapshotListenOptions
   ): firestore.DocumentChange[] {
+    // TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
+    // into a method. Because this is a runtime breaking change and somewhat subtle
+    // (both Array and Function have a .length, etc.), we'll replace the .length and
+    // @@iterator properties to throw a custom error message. In ~6 months we can
+    // delete the custom error as most folks will have hopefully migrated.
+    if (this === undefined) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'QuerySnapshot.docChanges has been changed from a property into a ' +
+          'method, so usages like "querySnapshot.docChanges" should become ' +
+          '"querySnapshot.docChanges()"'
+      );
+    }
+
     validateOptionNames('QuerySnapshot.docChanges', options, [
       'includeMetadataChanges'
     ]);
@@ -1826,6 +1840,14 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     }
 
     const includeMetadataChanges = options && options.includeMetadataChanges;
+
+    if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'To include metadata changes with your document changes, you must ' +
+          'also pass `includesMetadataChanges:true` to `onSnapshot().'
+      );
+    }
 
     if (
       !this._cachedChanges ||
