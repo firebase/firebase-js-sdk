@@ -23,7 +23,8 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDb,
-  withTestDoc
+  withTestDoc,
+  withTestDocAndInitialData
 } from '../util/helpers';
 import { query } from '../../util/api_helpers';
 
@@ -204,6 +205,35 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
         });
+    });
+  });
+
+  it("can't overspecify field mask using set", () => {
+    return withTestDoc(persistence, async docRef => {
+      expect(() => {
+        docRef.set(
+          { desc: 'NewDescription' },
+          { mergeFields: ['desc', 'owner'] }
+        );
+      }).to.throw(
+        "Field 'owner' is specified in your field mask but missing from your input data."
+      );
+    });
+  });
+
+  it("can't underspecify field mask using set", () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: 'NewDescription', owner: 'Sebastian' },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
     });
   });
 

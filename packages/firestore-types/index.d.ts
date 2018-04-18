@@ -483,7 +483,7 @@ export interface DocumentListenOptions {
  * An options object that configures the behavior of `set()` calls in
  * `DocumentReference`, `WriteBatch` and `Transaction`. These calls can be
  * configured to perform granular merges instead of overwriting the target
- * documents in their entirety by providing a `SetOptions` with `merge: true`.
+ * documents in their entirety.
  */
 export interface SetOptions {
   /**
@@ -492,6 +492,16 @@ export interface SetOptions {
    * untouched.
    */
   readonly merge?: boolean;
+
+  /**
+   * Changes the behavior of set() calls to only replace the specified field
+   * paths. Any field path that is not specified is ignored and remains
+   * untouched.
+   *
+   * <p>It is an error to pass a SetOptions object to a set() call that is
+   * missing a value for any of the fields specified here.
+   */
+  readonly mergeFields?: (string | FieldPath)[];
 }
 
 /**
