@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
@@ -24,9 +22,7 @@ import copy from 'rollup-plugin-copy-assets';
 const plugins = [
   typescript({
     typescript: require('typescript')
-  }),
-  resolve(),
-  commonjs()
+  })
 ];
 
 const external = Object.keys(
