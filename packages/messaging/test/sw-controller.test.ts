@@ -530,7 +530,7 @@ describe('Firebase Messaging > *SWController', () => {
         },
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: sandbox.spy(),
-        action: 'action1',
+        action: 'action1'
       };
       const swController = new SWController(app);
 
