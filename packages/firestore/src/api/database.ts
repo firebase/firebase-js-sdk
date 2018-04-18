@@ -1830,7 +1830,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-          'also pass "includeMetadataChanges:true" to `onSnapshot().'
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
