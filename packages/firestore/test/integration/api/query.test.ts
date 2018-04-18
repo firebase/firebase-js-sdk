@@ -185,20 +185,14 @@ apiDescribe('Queries', persistence => {
     return withTestCollection(persistence, testDocs, coll => {
       const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
       const storeEventFull = new EventsAccumulator<firestore.QuerySnapshot>();
-      let unlisten1: (() => void) | null = null;
-      let unlisten2: (() => void) | null = null;
-      return Promise.all([
-        coll.doc('a').set({ v: 'a' }),
-        coll.doc('b').set({ v: 'b' })
-      ])
-        .then(() => {
-          unlisten1 = coll.onSnapshot(storeEvent.storeEvent);
-          unlisten2 = coll.onSnapshot(
-            { includeMetadataChanges: true },
-            storeEventFull.storeEvent
-          );
-          return storeEvent.awaitEvent();
-        })
+      const unlisten1 = coll.onSnapshot(storeEvent.storeEvent);
+      const unlisten2 = coll.onSnapshot(
+        { includeMetadataChanges: true },
+        storeEventFull.storeEvent
+      );
+
+      return storeEvent
+        .awaitEvent()
         .then(querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
             { v: 'a' },
