@@ -46,28 +46,28 @@ describe('Firebase Messaging > Helpers', () => {
 
     it('converts back and forth', () => {
       // prettier-ignore
-      const array = new Uint8Array([
+      const a = new Uint8Array([
         4, 181, 98, 240, 48, 62, 75, 119, 193, 227, 154, 69, 250, 216, 53, 110,
         157, 120, 62, 76, 213, 249, 11, 62, 12, 19, 149, 36, 5, 82, 140, 37, 141,
         134, 132, 98, 87, 152, 175, 98, 53, 83, 196, 242, 202, 155, 19, 173, 157,
         216, 45, 147, 20, 12, 151, 160, 147, 159, 205, 219, 75, 133, 156, 129, 152
       ]);
-      const string =
+      const s =
         'BLVi8DA-S3fB45pF-tg1bp14PkzV-Qs-DBOVJAVSjCWNhoRi' +
         'V5ivYjVTxPLKmxOtndgtkxQMl6CTn83bS4WcgZg';
 
-      expect(arrayBufferToBase64(base64ToArrayBuffer(string))).to.equal(string);
+      expect(arrayBufferToBase64(base64ToArrayBuffer(s))).to.equal(s);
       expect(
         isArrayBufferEqual(
-          base64ToArrayBuffer(arrayBufferToBase64(array)).buffer,
-          array.buffer
+          base64ToArrayBuffer(arrayBufferToBase64(a)).buffer,
+          a.buffer
         )
       ).to.be.true;
     });
   });
 
   describe('isArrayBufferEqual', () => {
-    let buffer: ArrayBuffer;
+    let buffer: ArrayBufferLike;
 
     beforeEach(() => {
       buffer = new Uint8Array([1, 2, 3, 4, 5]).buffer;

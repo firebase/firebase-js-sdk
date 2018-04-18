@@ -20,6 +20,7 @@
     "member-access": [true, "no-public"],
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
+    "no-any": true,
     "no-arg": true,
     "no-conditional-assignment": true,
     "no-construct": true,
@@ -30,6 +31,7 @@
     "no-duplicate-variable": true,
     "no-invalid-this": true,
     "no-namespace": [true, "allow-declarations"],
+    "no-redundant-jsdoc": true,
     "no-reference": true,
     "no-return-await": true,
     "no-shadowed-variable": true,
@@ -47,6 +49,11 @@
     "radix": true,
     "triple-equals": [true, "allow-null-check"],
     "typedef": [true, "call-signature", "parameter", "member-variable-declaration"],
-    "use-isnan": true
+    "use-isnan": true,
+    "variable-name": [
+      true,
+      "check-format",
+      "ban-keywords"
+    ]
   }
 }

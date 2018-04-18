@@ -16,14 +16,16 @@
 
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
-import { makeFakeSubscription } from './make-fake-subscription';
+
 import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
+import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 
 const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 
