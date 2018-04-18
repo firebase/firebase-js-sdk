@@ -18,33 +18,26 @@ import './sw-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 
-import { ERROR_CODES } from '../models/errors';
+import {
+  MessagePayload,
+  NotificationDetails
+} from '../interfaces/message-payload';
+import { ERROR_CODES, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
   InternalMessage,
   MessageParameter,
   MessageType
 } from '../models/worker-page-message';
-import { ControllerInterface } from './controller-interface';
+import { BgMessageHandler, ControllerInterface } from './controller-interface';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export type BgMessageHandler = (input: Payload) => Promise<void>;
-
-export interface NotificationDetails extends NotificationOptions {
-  title: string;
-  click_action?: string;
-}
-
-export interface Payload {
-  notification?: NotificationDetails;
-}
-
 export class SWController extends ControllerInterface {
-  private bgMessageHandler_: BgMessageHandler | null = null;
+  private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {
     super(app);
@@ -95,7 +88,7 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    let msgPayload: Payload;
+    let msgPayload: MessagePayload;
     try {
       msgPayload = event.data.json();
     } catch (err) {
@@ -106,7 +99,7 @@ export class SWController extends ControllerInterface {
     const hasVisibleClients = await this.hasVisibleClients_();
     if (hasVisibleClients) {
       // Do not need to show a notification.
-      if (msgPayload.notification || this.bgMessageHandler_) {
+      if (msgPayload.notification || this.bgMessageHandler) {
         // Send to page
         return this.sendMessageToWindowClients_(msgPayload);
       }
@@ -118,8 +111,8 @@ export class SWController extends ControllerInterface {
       const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
       return reg.showNotification(notificationTitle, notificationDetails);
-    } else if (this.bgMessageHandler_) {
-      await this.bgMessageHandler_(msgPayload);
+    } else if (this.bgMessageHandler) {
+      await this.bgMessageHandler(msgPayload);
       return;
     }
   }
@@ -131,7 +124,7 @@ export class SWController extends ControllerInterface {
     try {
       registration = await this.getSWRegistration_();
     } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
+      throw errorFactory.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
         message: err
       });
     }
@@ -173,7 +166,7 @@ export class SWController extends ControllerInterface {
 
     event.notification.close();
 
-    const msgPayload: Payload = event.notification.data[FCM_MSG];
+    const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
     if (!msgPayload.notification) {
       // Nothing to do.
       return;
@@ -213,7 +206,9 @@ export class SWController extends ControllerInterface {
 
   // Visible for testing
   // TODO: Make private
-  getNotificationData_(msgPayload: Payload): NotificationDetails | undefined {
+  getNotificationData_(
+    msgPayload: MessagePayload
+  ): NotificationDetails | undefined {
     if (!msgPayload) {
       return;
     }
@@ -222,12 +217,15 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    const notificationInformation = { ...msgPayload.notification };
+    const notificationInformation: NotificationDetails = {
+      ...msgPayload.notification
+    };
+
     // Put the message payload under FCM_MSG name so we can identify the
     // notification as being an FCM notification vs a notification from
     // somewhere else (i.e. normal web push or developer generated
     // notification).
-    notificationInformation['data'] = {
+    notificationInformation.data = {
       [FCM_MSG]: msgPayload
     };
 
@@ -251,10 +249,10 @@ export class SWController extends ControllerInterface {
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
-      throw this.errorFactory_.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
+      throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
-    this.bgMessageHandler_ = callback;
+    this.bgMessageHandler = callback;
   }
 
   /**
@@ -299,7 +297,7 @@ export class SWController extends ControllerInterface {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
-      throw this.errorFactory_.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
+      throw errorFactory.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
     }
 
     client.postMessage(message);
@@ -327,7 +325,7 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  async sendMessageToWindowClients_(msgPayload: Payload): Promise<void> {
+  async sendMessageToWindowClients_(msgPayload: MessagePayload): Promise<void> {
     const clientList = await getClientList();
 
     const internalMsg = createNewMsg(MessageType.PUSH_MSG_RECEIVED, msgPayload);
@@ -354,7 +352,7 @@ export class SWController extends ControllerInterface {
   async getPublicVapidKey_(): Promise<Uint8Array> {
     const swReg = await this.getSWRegistration_();
     if (!swReg) {
-      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
     const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
@@ -376,7 +374,10 @@ function getClientList(): Promise<WindowClient[]> {
   }) as Promise<WindowClient[]>;
 }
 
-function createNewMsg(msgType: MessageType, msgData: Payload): InternalMessage {
+function createNewMsg(
+  msgType: MessageType,
+  msgData: MessagePayload
+): InternalMessage {
   return {
     [MessageParameter.TYPE_OF_MSG]: msgType,
     [MessageParameter.DATA]: msgData

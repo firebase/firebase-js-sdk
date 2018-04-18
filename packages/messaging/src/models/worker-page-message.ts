@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { MessagePayload } from '../interfaces/message-payload';
+
 export enum MessageParameter {
   TYPE_OF_MSG = 'firebase-messaging-msg-type',
   DATA = 'firebase-messaging-msg-data'
@@ -26,5 +28,5 @@ export enum MessageType {
 
 export interface InternalMessage {
   [MessageParameter.TYPE_OF_MSG]: MessageType;
-  [MessageParameter.DATA]: any; // tslint:disable-line no-any ¯\_(ツ)_/¯
+  [MessageParameter.DATA]: MessagePayload;
 }
