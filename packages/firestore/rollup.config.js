@@ -26,7 +26,7 @@ const plugins = [
   })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
@@ -47,7 +47,10 @@ export default [
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
       })
     ],
-    external: [...external, 'util', 'path']
+    external: id =>
+      [...deps, 'util', 'path'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   },
   /**
    * Browser Builds
@@ -59,6 +62,6 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

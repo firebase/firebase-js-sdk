@@ -32,9 +32,10 @@ const plugins = [
   })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
+
 export default [
   {
     input: 'index.ts',
@@ -43,7 +44,7 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.node.ts',
@@ -52,7 +53,7 @@ export default [
       format: 'cjs'
     },
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.rn.ts',
@@ -61,6 +62,9 @@ export default [
       format: 'cjs'
     },
     plugins,
-    external: [...external, 'react-native']
+    external: id =>
+      [...deps, 'react-native'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   }
 ];
