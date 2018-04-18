@@ -1811,23 +1811,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   docChanges(
     options?: firestore.SnapshotListenOptions
   ): firestore.DocumentChange[] {
-    // TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
-    // into a method. Because this is a runtime breaking change and somewhat subtle
-    // (both Array and Function have a .length, etc.), we'll replace the .length and
-    // @@iterator properties to throw a custom error message. In ~6 months we can
-    // delete the custom error as most folks will have hopefully migrated.
-    if (this === undefined) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'QuerySnapshot.docChanges has been changed from a property into a ' +
-          'method, so usages like "querySnapshot.docChanges" should become ' +
-          '"querySnapshot.docChanges()"'
-      );
-    }
-
     validateOptionNames('QuerySnapshot.docChanges', options, [
       'includeMetadataChanges'
     ]);
+
     if (options) {
       validateNamedOptionalType(
         'QuerySnapshot.docChanges',
@@ -1883,6 +1870,30 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       this.metadata.fromCache
     );
   }
+}
+
+// TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
+// into a method. Because this is a runtime breaking change and somewhat subtle
+// (both Array and Function have a .length, etc.), we'll replace the .length and
+// @@iterator properties to throw a custom error message. In ~6 months we can
+// delete the custom error as most folks will have hopefully migrated.
+function throwDocChangesMethodError(): never {
+  throw new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    'QuerySnapshot.docChanges has been changed from a property into a ' +
+      'method, so usages like "querySnapshot.docChanges" should become ' +
+      '"querySnapshot.docChanges()"'
+  );
+}
+
+Object.defineProperty(QuerySnapshot.prototype.docChanges, 'length', {
+  get: () => throwDocChangesMethodError()
+});
+
+if (typeof Symbol !== 'undefined') {
+  Object.defineProperty(QuerySnapshot.prototype.docChanges, Symbol.iterator, {
+    get: () => throwDocChangesMethodError()
+  });
 }
 
 export class CollectionReference extends Query

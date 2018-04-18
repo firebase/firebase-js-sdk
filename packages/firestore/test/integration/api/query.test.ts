@@ -206,11 +206,16 @@ apiDescribe('Queries', persistence => {
           ]);
           return storeEventFull.awaitEvent();
         })
-        .then(querySnap => {
+        .then(async querySnap => {
           expect(toDataArray(querySnap)).to.deep.equal([
             { v: 'a' },
             { v: 'b' }
           ]);
+          if (querySnap.metadata.fromCache) {
+            // We might receive an additional event if the first query snapshot
+            // was served from cache.
+            await storeEventFull.awaitEvent();
+          }
           return coll.doc('a').set({ v: 'a1' });
         })
         .then(() => {
@@ -537,8 +542,16 @@ apiDescribe('Queries', persistence => {
 
   it('throws custom error when using docChanges as property', () => {
     const querySnap = querySnapshot('foo/bar', {}, {}, false, false, false);
-    expect(querySnap.docChanges).to.throw(
-      'QuerySnapshot.docChanges has been changed from a property into a method'
-    );
+
+    const expectedError =
+      'QuerySnapshot.docChanges has been changed from a property into a method';
+
+    // tslint:disable-next-line:no-any We are testing invalid API usage.
+    const docChange = querySnap.docChanges as any;
+    expect(() => docChange.length).to.throw(expectedError);
+    expect(() => {
+      for (const _ of docChange) {
+      }
+    }).to.throw(expectedError);
   });
 });
