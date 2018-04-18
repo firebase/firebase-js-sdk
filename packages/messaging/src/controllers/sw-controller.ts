@@ -161,9 +161,13 @@ export class SWController extends ControllerInterface {
       return;
     }
 
+    if (event.action) {
+      // User clicked on an action button
+      return;
+    }
+
     // Prevent other listeners from receiving the event
     event.stopImmediatePropagation();
-
     event.notification.close();
 
     const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
