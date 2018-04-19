@@ -769,58 +769,54 @@ describeSpec('Writes:', [], () => {
     // });
   });
 
-  specTest(
-    'Write is rejected by primary client',
-    ['multi-client'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const localDoc = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
+  specTest('Write is rejected by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const localDoc = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
 
-      return client(0)
-        .userListens(query)
-        .watchAcksFull(query, 500)
-        .expectEvents(query, {})
-        .client(1)
-        .userListens(query)
-        .expectEvents(query, {
-          fromCache: true
-        })
-        .userSets('collection/a', { v: 1 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          fromCache: true,
-          added: [localDoc]
-        })
-        .client(0)
-        .drainQueue()
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          added: [localDoc]
-        })
-        .failWrite(
-          'collection/a',
-          new RpcError(Code.FAILED_PRECONDITION, 'failure'),
-          {
-            expectUserCallback: false
-          }
-        )
-        .expectEvents(query, {
-          removed: [localDoc]
-        })
-        .client(1)
-        .drainQueue()
-        .expectUserCallbacks({
-          rejected: ['collection/a']
-        })
-        .expectEvents(query, {
-          fromCache: true,
-          removed: [localDoc]
-        });
-    }
-  );
+    return client(0)
+      .userListens(query)
+      .watchAcksFull(query, 500)
+      .expectEvents(query, {})
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        fromCache: true
+      })
+      .userSets('collection/a', { v: 1 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        fromCache: true,
+        added: [localDoc]
+      })
+      .client(0)
+      .drainQueue()
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        added: [localDoc]
+      })
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .expectEvents(query, {
+        removed: [localDoc]
+      })
+      .client(1)
+      .drainQueue()
+      .expectUserCallbacks({
+        rejected: ['collection/a']
+      })
+      .expectEvents(query, {
+        fromCache: true,
+        removed: [localDoc]
+      });
+  });
 });
