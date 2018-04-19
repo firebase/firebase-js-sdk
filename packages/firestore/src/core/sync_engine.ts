@@ -437,11 +437,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
     } else if (batchState === 'acknowledged' || batchState === 'rejected') {
-      // NOTE: These methods are no-ops for batches that originated from other
-      // clients.
+      // NOTE: Both these methods are no-ops for batches that originated from
+      // other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
-      this.localStore.removeMutationKeys(batchId);
       this.processUserCallback(batchId, error ? error : null);
+
+      this.localStore.removeCachedMutationBatch(batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
     }

@@ -41,6 +41,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -57,6 +58,18 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * A write-through cache copy of the metadata describing the current queue.
    */
   private metadata: DbMutationQueue;
+
+  /**
+   * Caches the document keys for pending mutation batches. If the mutation
+   * has been removed from IndexedDb, the cached value may continue to
+   * be used to retrieve the batch's document keys. To remove a cached value
+   * locally, `removeCachedMutationKeys()` should be invoked.
+   *
+   * During multi-tab, this cache is used by secondary clients to replay
+   * mutations after they were acknowledged or rejected by the primary client.
+   */
+  // PORTING NOTE: Multi-tab only.
+  private documentKeyCache = {} as { [batchId: number]: DocumentKeySet };
 
   private garbageCollector: GarbageCollector | null = null;
 
@@ -220,6 +233,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
     const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
+    let keys = documentKeySet();
+    mutations.forEach(mutation => {
+      keys = keys.add(mutation.key);
+    });
+    this.documentKeyCache[dbBatch.batchId] = keys;
+
     return mutationsStore(transaction)
       .put(dbBatch)
       .next(() => {
@@ -254,6 +273,25 @@ export class IndexedDbMutationQueue implements MutationQueue {
         dbBatch =>
           dbBatch ? this.serializer.fromDbMutationBatch(dbBatch) : null
       );
+  }
+
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    if (this.documentKeyCache[batchId]) {
+      return PersistencePromise.resolve(this.documentKeyCache[batchId]);
+    } else {
+      return this.lookupMutationBatch(transaction, batchId).next(batch => {
+        if (batch) {
+          const keys = batch.keys();
+          this.documentKeyCache[batchId] = keys;
+          return keys;
+        } else {
+          return null;
+        }
+      });
+    }
   }
 
   getNextMutationBatchAfterBatchId(
@@ -468,6 +506,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           mutation.key.path,
           batch.batchId
         );
+        this.removeCachedMutationKeys(batch.batchId);
         promises.push(indexTxn.delete(indexKey));
         if (this.garbageCollector !== null) {
           this.garbageCollector.addPotentialGarbageKey(mutation.key);
@@ -475,6 +514,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
       }
     }
     return PersistencePromise.waitFor(promises);
+  }
+
+  removeCachedMutationKeys(batchId: BatchId): void {
+    delete this.documentKeyCache[batchId];
   }
 
   performConsistencyCheck(

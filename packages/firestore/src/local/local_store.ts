@@ -154,15 +154,6 @@ export class LocalStore {
   private targetIdGenerator = TargetIdGenerator.forLocalStore();
 
   /**
-   * Stores the document keys for local pending mutation batches. While
-   * primary clients will store all keys for all pending mutations, secondary
-   * clients will only store the keys for mutations that originated in these
-   * clients.
-   */
-  // PORTING NOTE: Multi-tab only.
-  private localMutationBatchKeys = {} as { [batchId: number]: DocumentKeySet };
-
-  /**
    * A heldBatchResult is a mutation batch result (from a write acknowledgement)
    * that arrived before the watch stream got notified of a snapshot that
    * includes the write. So we "hold" it until the watch stream catches up. It
@@ -332,7 +323,6 @@ export class LocalStore {
             // mutations on each document (instead of just the ones added) in
             // this batch.
             const keys = batch.keys();
-            this.insertMutationKeys(batch.batchId, keys);
             return this.localDocuments.getDocuments(txn, keys);
           })
           .next((changedDocuments: MaybeDocumentMap) => {
@@ -342,12 +332,6 @@ export class LocalStore {
     );
   }
 
-  /** Removes the stored keys of the specified mutation batch. */
-  // PORTING NOTE: Multi-tab only.
-  removeMutationKeys(batchId: BatchId): void {
-    delete this.localMutationBatchKeys[batchId];
-  }
-
   /** Returns the local view of the documents affected by a mutation batch. */
   // PORTING NOTE: Multi-tab only.
   lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
@@ -355,13 +339,15 @@ export class LocalStore {
       'Lookup mutation documents',
       false,
       txn => {
-        return this.lookupAndStoreMutationKeys(txn, batchId).next(keys => {
-          if (keys) {
-            return this.localDocuments.getDocuments(txn, keys);
-          } else {
-            return PersistencePromise.resolve(null);
-          }
-        });
+        return this.mutationQueue
+          .lookupMutationKeys(txn, batchId)
+          .next(keys => {
+            if (keys) {
+              return this.localDocuments.getDocuments(txn, keys);
+            } else {
+              return PersistencePromise.resolve(null);
+            }
+          });
       }
     );
   }
@@ -814,6 +800,11 @@ export class LocalStore {
     return this.persistence.getActiveClients();
   }
 
+  // PORTING NOTE: Multi-tab only.
+  removeCachedMutationBatch(batchId: BatchId) {
+    this.mutationQueue.removeCachedMutationKeys(batchId);
+  }
+
   private releaseHeldBatchResults(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer
@@ -888,7 +879,6 @@ export class LocalStore {
         const key = mutation.key;
         affectedDocs = affectedDocs.add(key);
       }
-      this.removeMutationKeys(batch.batchId);
     }
 
     return this.mutationQueue
@@ -934,41 +924,5 @@ export class LocalStore {
         });
     });
     return promiseChain;
-  }
-
-  /**
-   *  Stores the mutation keys associated with the given batch ID. The mutation
-   *  keys can later be retrieved via `lookupMutationDocuments`.
-   */
-  // PORTING NOTE: Multi-tab only.
-  private insertMutationKeys(batchId: BatchId, keys: DocumentKeySet): void {
-    this.localMutationBatchKeys[batchId] = keys;
-  }
-
-  /**
-   * Looks up mutation keys for the given batch ID. If the mutation is not
-   * known locally (e.g. when another client added it), this method looks up the
-   * mutation from persistence.
-   */
-  // PORTING NOTE: Multi-tab only.
-  private lookupAndStoreMutationKeys(
-    txn: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<DocumentKeySet | null> {
-    if (this.localMutationBatchKeys[batchId]) {
-      return PersistencePromise.resolve(this.localMutationBatchKeys[batchId]);
-    } else {
-      return this.mutationQueue
-        .lookupMutationBatch(txn, batchId)
-        .next(batch => {
-          if (batch) {
-            const keys = batch.keys();
-            this.insertMutationKeys(batchId, keys);
-            return keys;
-          } else {
-            return null;
-          }
-        });
-    }
   }
 }
