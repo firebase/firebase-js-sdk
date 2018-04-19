@@ -312,10 +312,12 @@ export class UserDataConverter {
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const updateData = this.parseData(input, context) as ObjectValue;
-    let fieldMask: FieldMask | null = null;
+    let fieldMask: FieldMask;
+    let fieldTransforms: FieldTransform[];
 
     if (!fieldPaths) {
       fieldMask = new FieldMask(context.fieldMask);
+      fieldTransforms = context.fieldTransforms;
     } else {
       const validatedFieldPaths = [];
 
@@ -340,14 +342,15 @@ export class UserDataConverter {
           );
         }
         validatedFieldPaths.push(fieldPath);
-
-        fieldMask = new FieldMask(validatedFieldPaths);
       }
+
+      fieldMask = new FieldMask(validatedFieldPaths);
+      fieldTransforms = context.fieldTransforms.filter(transform =>
+        fieldMask.covers(transform.field)
+      );
     }
     return new ParsedSetData(
-      updateData as ObjectValue,
-      fieldMask || new FieldMask(context.fieldMask),
-      context.fieldTransforms
+      updateData as ObjectValue, fieldMask, fieldTransforms
     );
   }
 

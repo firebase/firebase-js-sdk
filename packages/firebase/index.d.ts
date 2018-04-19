@@ -1,5 +1,3 @@
-import { FieldPath } from '../firestore-types/index';
-
 /**
  * Copyright 2017 Google Inc.
  *

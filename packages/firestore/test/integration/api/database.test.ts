@@ -208,7 +208,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it("can't overspecify field mask using set", () => {
+  it("can't specify a field mask for a missing field using set", () => {
     return withTestDoc(persistence, async docRef => {
       expect(() => {
         docRef.set(
@@ -221,7 +221,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it("can't underspecify field mask using set", () => {
+  it('can set a subset of fields using a field mask', () => {
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny', email: 'abc@xyz.com' }
@@ -231,6 +231,79 @@ apiDescribe('Database', persistence => {
       await docRef.set(
         { desc: 'NewDescription', owner: 'Sebastian' },
         { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it("doesn't apply field delete outside of mask", () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: firebase.firestore.FieldValue.delete(), owner: 'Sebastian' },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it("doesn't apply field transform outside of mask", () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        {
+          desc: firebase.firestore.FieldValue.serverTimestamp(),
+          owner: 'Sebastian'
+        },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it('can set an empty field mask', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = initialData;
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: 'NewDescription', owner: 'Sebastian' },
+        { mergeFields: [] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it('can specify fields multiple time in a field mask', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian', email: 'new@xyz.com' }
+    };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        {
+          desc: 'NewDescription',
+          owner: { name: 'Sebastian', email: 'new@xyz.com' }
+        },
+        { mergeFields: ['owner.name', 'owner', 'owner'] }
       );
       const result = await docRef.get();
       expect(result.data()).to.deep.equal(finalData);
