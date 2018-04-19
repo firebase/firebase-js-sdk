@@ -288,7 +288,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can specify fields multiple time in a field mask', () => {
+  it('can specify fields multiple times in a field mask', () => {
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny', email: 'abc@xyz.com' }
