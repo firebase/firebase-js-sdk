@@ -342,12 +342,9 @@ export class LocalStore {
     );
   }
 
-
   /** Removes the stored keys of the specified mutation batch. */
   // PORTING NOTE: Multi-tab only.
-  removeMutationKeys(
-      batchId: BatchId
-  ): void {
+  removeMutationKeys(batchId: BatchId): void {
     delete this.localMutationBatchKeys[batchId];
   }
 
@@ -944,10 +941,7 @@ export class LocalStore {
    *  keys can later be retrieved via `lookupMutationDocuments`.
    */
   // PORTING NOTE: Multi-tab only.
-  private insertMutationKeys(
-      batchId: BatchId,
-      keys: DocumentKeySet
-  ): void {
+  private insertMutationKeys(batchId: BatchId, keys: DocumentKeySet): void {
     this.localMutationBatchKeys[batchId] = keys;
   }
 
@@ -957,20 +951,24 @@ export class LocalStore {
    * mutation from persistence.
    */
   // PORTING NOTE: Multi-tab only.
-  private lookupAndStoreMutationKeys(txn: PersistenceTransaction
-      , batchId: BatchId): PersistencePromise<DocumentKeySet | null> {
+  private lookupAndStoreMutationKeys(
+    txn: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
     if (this.localMutationBatchKeys[batchId]) {
       return PersistencePromise.resolve(this.localMutationBatchKeys[batchId]);
     } else {
-      return this.mutationQueue.lookupMutationBatch(txn, batchId).next(batch => {
-        if (batch) {
-          const keys = batch.keys();
-          this.insertMutationKeys(batchId, keys);
-          return keys;
-        } else {
-          return null;
-        }
-      });
+      return this.mutationQueue
+        .lookupMutationBatch(txn, batchId)
+        .next(batch => {
+          if (batch) {
+            const keys = batch.keys();
+            this.insertMutationKeys(batchId, keys);
+            return keys;
+          } else {
+            return null;
+          }
+        });
     }
   }
 }
