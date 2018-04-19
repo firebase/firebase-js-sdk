@@ -534,6 +534,7 @@ export class RemoteStore {
    * typically called by SyncEngine after it has sent mutations to LocalStore.
    */
   async fillWritePipeline(): Promise<void> {
+    console.log('---- fillWritePipeline ----' );
     if (this.canWriteMutations()) {
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
