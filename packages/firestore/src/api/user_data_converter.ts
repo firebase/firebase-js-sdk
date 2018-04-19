@@ -350,7 +350,9 @@ export class UserDataConverter {
       );
     }
     return new ParsedSetData(
-      updateData as ObjectValue, fieldMask, fieldTransforms
+      updateData as ObjectValue,
+      fieldMask,
+      fieldTransforms
     );
   }
 
