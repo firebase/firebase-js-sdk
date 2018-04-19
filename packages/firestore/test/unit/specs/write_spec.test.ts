@@ -769,16 +769,19 @@ describeSpec('Writes:', [], () => {
     // });
   });
 
-  specTest('Write is rejected by primary client', ['exclusive', 'multi-client'], () => {
-    const query = Query.atPath(path('collection'));
-    const localDoc = doc(
+  specTest(
+    'Write is rejected by primary client',
+    ['exclusive', 'multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const localDoc = doc(
         'collection/a',
         0,
         { v: 1 },
         { hasLocalMutations: true }
-    );
+      );
 
-    return client(0)
+      return client(0)
         .userListens(query)
         .watchAcksFull(query, 500)
         .expectEvents(query, {})
@@ -799,9 +802,13 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [localDoc]
         })
-        .failWrite('collection/a', new RpcError(Code.FAILED_PRECONDITION, 'failure'), {
-          expectUserCallback: false
-        })
+        .failWrite(
+          'collection/a',
+          new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+          {
+            expectUserCallback: false
+          }
+        )
         .expectEvents(query, {
           removed: [localDoc]
         })
@@ -815,5 +822,6 @@ describeSpec('Writes:', [], () => {
           removed: [localDoc]
         })
         .drainQueue();
-  });
+    }
+  );
 });
