@@ -15,6 +15,8 @@
  */
 
 import * as grpc from 'grpc';
+import { resolve } from "path";
+import { firestore } from '../../test/util/api_helpers';
 
 /**
  * Loads the protocol buffer definitions for Firestore.
@@ -28,7 +30,7 @@ export function loadProtos(): grpc.GrpcObject {
     // to protobufjs 6.x
     convertFieldsToCamelCase: true
   };
-  const root = __dirname + '/../protos';
+  const root = resolve(__dirname, (process.env.FIRESTORE_PROTO_ROOT || '../protos'));
   const firestoreProtoFile = {
     root,
     file: 'google/firestore/v1beta1/firestore.proto'

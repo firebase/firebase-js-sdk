@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
+import resolveNode from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
+import replace from 'rollup-plugin-replace';
+import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
+import { dirname, resolve } from "path";
 
 const plugins = [
   typescript({
     typescript: require('typescript')
   }),
-  resolve(),
+  resolveNode(),
   commonjs()
 ];
 
@@ -35,22 +38,33 @@ export default [
   /**
    * Browser Builds
    */
-  {
-    input: 'index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
-    ],
-    plugins,
-    external
-  },
+  // {
+  //   input: 'index.ts',
+  //   output: [
+  //     { file: pkg.browser, format: 'cjs' },
+  //     { file: pkg.module, format: 'es' }
+  //   ],
+  //   plugins,
+  //   external
+  // },
   /**
    * Node.js Build
    */
   {
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs' }],
-    plugins,
-    external: [...external, 'util']
+    plugins: [
+      ...plugins, 
+      // Needed as we also use the *.proto files
+      copy({
+        assets: [
+          './src/protos'
+        ],
+      }),
+      replace({
+        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+      })
+    ],
+    external: [...external, 'util', 'path']
   }
 ];
