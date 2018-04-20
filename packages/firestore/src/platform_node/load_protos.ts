@@ -16,7 +16,6 @@
 
 import * as grpc from 'grpc';
 import { resolve } from 'path';
-import { firestore } from '../../test/util/api_helpers';
 
 /**
  * Loads the protocol buffer definitions for Firestore.
