@@ -801,7 +801,7 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  removeCachedMutationBatch(batchId: BatchId) {
+  removeCachedMutationBatch(batchId: BatchId) : void {
     this.mutationQueue.removeCachedMutationKeys(batchId);
   }
 
