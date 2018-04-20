@@ -33,7 +33,8 @@ export declare type FieldFilterOp =
   | 'LESS_THAN_OR_EQUAL'
   | 'GREATER_THAN'
   | 'GREATER_THAN_OR_EQUAL'
-  | 'EQUAL';
+  | 'EQUAL'
+  | 'ARRAY_CONTAINS';
 export interface IFieldFilterOpEnum {
   OPERATOR_UNSPECIFIED: FieldFilterOp;
   LESS_THAN: FieldFilterOp;
@@ -41,6 +42,7 @@ export interface IFieldFilterOpEnum {
   GREATER_THAN: FieldFilterOp;
   GREATER_THAN_OR_EQUAL: FieldFilterOp;
   EQUAL: FieldFilterOp;
+  ARRAY_CONTAINS: FieldFilterOp;
   values(): Array<FieldFilterOp>;
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
@@ -210,6 +212,8 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
   interface FieldTransform {
     fieldPath?: string;
     setToServerValue?: FieldTransformSetToServerValue;
+    appendMissingElements?: ArrayValue;
+    removeAllFromArray?: ArrayValue;
   }
   interface Filter {
     compositeFilter?: CompositeFilter;
