@@ -64,15 +64,6 @@ export interface IIndexFieldModeEnum {
   values(): Array<IndexFieldMode>;
 }
 export declare const IndexFieldModeEnum: IIndexFieldModeEnum;
-export declare type IndexOperationMetadataOperationType =
-  | 'OPERATION_TYPE_UNSPECIFIED'
-  | 'CREATING_INDEX';
-export interface IIndexOperationMetadataOperationTypeEnum {
-  OPERATION_TYPE_UNSPECIFIED: IndexOperationMetadataOperationType;
-  CREATING_INDEX: IndexOperationMetadataOperationType;
-  values(): Array<IndexOperationMetadataOperationType>;
-}
-export declare const IndexOperationMetadataOperationTypeEnum: IIndexOperationMetadataOperationTypeEnum;
 export declare type IndexState =
   | 'STATE_UNSPECIFIED'
   | 'CREATING'
@@ -235,14 +226,6 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
     fieldPath?: string;
     mode?: IndexFieldMode;
   }
-  interface IndexOperationMetadata {
-    startTime?: string;
-    endTime?: string;
-    index?: string;
-    operationType?: IndexOperationMetadataOperationType;
-    cancelled?: boolean;
-    documentProgress?: Progress;
-  }
   interface LatLng {
     latitude?: number;
     longitude?: number;
@@ -292,10 +275,6 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
   interface Precondition {
     exists?: boolean;
     updateTime?: string;
-  }
-  interface Progress {
-    workCompleted?: string;
-    workEstimated?: string;
   }
   interface Projection {
     fields?: Array<FieldReference>;
@@ -425,7 +404,6 @@ export declare type FieldTransform = firestoreV1beta1ApiClientInterfaces.FieldTr
 export declare type Filter = firestoreV1beta1ApiClientInterfaces.Filter;
 export declare type Index = firestoreV1beta1ApiClientInterfaces.Index;
 export declare type IndexField = firestoreV1beta1ApiClientInterfaces.IndexField;
-export declare type IndexOperationMetadata = firestoreV1beta1ApiClientInterfaces.IndexOperationMetadata;
 export declare type LatLng = firestoreV1beta1ApiClientInterfaces.LatLng;
 export declare type ListCollectionIdsRequest = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsRequest;
 export declare type ListCollectionIdsResponse = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsResponse;
@@ -437,7 +415,6 @@ export declare type MapValue = firestoreV1beta1ApiClientInterfaces.MapValue;
 export declare type Operation = firestoreV1beta1ApiClientInterfaces.Operation;
 export declare type Order = firestoreV1beta1ApiClientInterfaces.Order;
 export declare type Precondition = firestoreV1beta1ApiClientInterfaces.Precondition;
-export declare type Progress = firestoreV1beta1ApiClientInterfaces.Progress;
 export declare type Projection = firestoreV1beta1ApiClientInterfaces.Projection;
 export declare type QueryTarget = firestoreV1beta1ApiClientInterfaces.QueryTarget;
 export declare type ReadOnly = firestoreV1beta1ApiClientInterfaces.ReadOnly;
