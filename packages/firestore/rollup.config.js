@@ -20,7 +20,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
-import { dirname, resolve } from "path";
+import { dirname, resolve } from 'path';
 
 const plugins = [
   typescript({
@@ -54,12 +54,10 @@ export default [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs' }],
     plugins: [
-      ...plugins, 
+      ...plugins,
       // Needed as we also use the *.proto files
       copy({
-        assets: [
-          './src/protos'
-        ],
+        assets: ['./src/protos']
       }),
       replace({
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
