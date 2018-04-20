@@ -8817,6 +8817,12 @@ rollup-plugin-commonjs@9.1.0:
     resolve "^1.5.0"
     rollup-pluginutils "^2.0.1"
 
+rollup-plugin-copy-assets@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/rollup-plugin-copy-assets/-/rollup-plugin-copy-assets-1.0.0.tgz#05f081e702d3be5ab19596ea3a43dcaa049a8c9f"
+  dependencies:
+    fs-extra "^5.0.0"
+
 rollup-plugin-node-resolve@3.3.0:
   version "3.3.0"
   resolved "https://registry.npmjs.org/rollup-plugin-node-resolve/-/rollup-plugin-node-resolve-3.3.0.tgz#c26d110a36812cbefa7ce117cadcd3439aa1c713"
