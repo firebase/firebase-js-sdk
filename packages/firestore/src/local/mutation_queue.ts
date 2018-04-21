@@ -105,7 +105,9 @@ export interface MutationQueue extends GarbageSource {
 
   /**
    * Returns the document keys for the mutation batch with the given batchId.
-   * This method returns `null` if the mutation has been removed.
+   * For primary clients, this method returns `null` after
+   * `removeMutationBatches()` has been called. Secondary clients return a
+   * cached result until `removeCachedMutationKeys()` is invoked.
    *
    * Multi-Tab Note: This operation is safe to use from secondary clients.
    */
@@ -211,8 +213,8 @@ export interface MutationQueue extends GarbageSource {
    * called by secondary clients after they process mutation updates.
    *
    * Note that this method does not have to be called from primary clients as
-   * `acknowledgeBatch()` and `removeMutationBatches()` clear these cache
-   * entries as part of their invocation.
+   * the corresponding cache entries are cleared when an acknowledged or
+   * rejected batch is removed from the mutation queue.
    */
   // PORTING NOTE: Multi-tab only
   removeCachedMutationKeys(batchId: BatchId): void;

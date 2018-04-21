@@ -63,13 +63,15 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * Caches the document keys for pending mutation batches. If the mutation
    * has been removed from IndexedDb, the cached value may continue to
    * be used to retrieve the batch's document keys. To remove a cached value
-   * locally, `removeCachedMutationKeys()` should be invoked.
+   * locally, `removeCachedMutationKeys()` should be invoked either directly
+   * or through `removeMutationBatches()`.
    *
-   * During multi-tab, this cache is used by secondary clients to replay
-   * mutations after they were acknowledged or rejected by the primary client.
+   * After the primary client acknowledged or rejected a mutation during
+   * multi-tab, this cache is used by secondary clients to invalidate the local
+   * view of the documents that were previously affected by the mutation.
    */
   // PORTING NOTE: Multi-tab only.
-  private documentKeyCache = {} as { [batchId: number]: DocumentKeySet };
+  private documentKeysByBatchId = {} as { [batchId: number]: DocumentKeySet };
 
   private garbageCollector: GarbageCollector | null = null;
 
@@ -237,7 +239,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     mutations.forEach(mutation => {
       keys = keys.add(mutation.key);
     });
-    this.documentKeyCache[dbBatch.batchId] = keys;
+    this.documentKeysByBatchId[dbBatch.batchId] = keys;
 
     return mutationsStore(transaction)
       .put(dbBatch)
@@ -279,13 +281,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
-    if (this.documentKeyCache[batchId]) {
-      return PersistencePromise.resolve(this.documentKeyCache[batchId]);
+    if (this.documentKeysByBatchId[batchId]) {
+      return PersistencePromise.resolve(this.documentKeysByBatchId[batchId]);
     } else {
       return this.lookupMutationBatch(transaction, batchId).next(batch => {
         if (batch) {
           const keys = batch.keys();
-          this.documentKeyCache[batchId] = keys;
+          this.documentKeysByBatchId[batchId] = keys;
           return keys;
         } else {
           return null;
@@ -517,7 +519,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   removeCachedMutationKeys(batchId: BatchId): void {
-    delete this.documentKeyCache[batchId];
+    delete this.documentKeysByBatchId[batchId];
   }
 
   performConsistencyCheck(

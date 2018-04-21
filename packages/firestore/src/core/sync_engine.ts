@@ -427,6 +427,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const documents = await this.localStore.lookupMutationDocuments(batchId);
 
     if (documents === null) {
+      // A throttled tab may not have been able to cache the keys of affected
+      // documents before the mutation was removed from persistence. In this
+      // case, we cannot recompute our local views and instead ignore the
+      // update.
       log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
       return;
     }
@@ -442,7 +446,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
 
-      this.localStore.removeCachedMutationBatch(batchId);
+      this.localStore.removeCachedMutationBatchMetadata(batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
     }
