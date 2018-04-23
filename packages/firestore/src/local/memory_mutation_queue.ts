@@ -179,8 +179,10 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
     const mutationBatch = this.findMutationBatch(batchId);
-    assert(mutationBatch != null, "Failed to find local mutation batch.");
-    return PersistencePromise.resolve(!mutationBatch.isTombstone() ? mutationBatch.keys() : null);
+    assert(mutationBatch != null, 'Failed to find local mutation batch.');
+    return PersistencePromise.resolve(
+      !mutationBatch.isTombstone() ? mutationBatch.keys() : null
+    );
   }
 
   getNextMutationBatchAfterBatchId(
