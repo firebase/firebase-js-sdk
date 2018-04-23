@@ -41,7 +41,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { DocumentKeySet } from '../model/collections';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -232,14 +232,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const batchId = this.nextBatchId;
     this.nextBatchId++;
     const batch = new MutationBatch(batchId, localWriteTime, mutations);
-
     const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
-    let keys = documentKeySet();
-    mutations.forEach(mutation => {
-      keys = keys.add(mutation.key);
-    });
-    this.documentKeysByBatchId[dbBatch.batchId] = keys;
+    this.documentKeysByBatchId[dbBatch.batchId] = batch.keys();
 
     return mutationsStore(transaction)
       .put(dbBatch)
