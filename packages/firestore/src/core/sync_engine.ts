@@ -424,11 +424,19 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     error?: FirestoreError
   ): Promise<void> {
     this.assertSubscribed('applyBatchState()');
-    const mutationBatchResult = await this.localStore.lookupLocalWrite(batchId);
-    assert(
-      mutationBatchResult !== null,
-      'Unable to find mutation batch: ' + batchId
-    );
+    const documents = await this.localStore.lookupMutationDocuments(batchId);
+
+    if (documents === null) {
+      // A throttled tab may not have seen the mutation before it was completed
+      // and removed from the mutation queue, in which case we won't have cached
+      // the affected documents. In this case we can safely ignore the update
+      // since that means we didn't apply the mutation locally at all (if we
+      // had, we would have cached the affected documents), and so we will just
+      // see any resulting document changes via normal remote document updates
+      // as applicable.
+      log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      return;
+    }
 
     if (batchState === 'pending') {
       // If we are the primary client, we need to send this write to the
@@ -440,11 +448,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
+
+      this.localStore.removeCachedMutationBatchMetadata(batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
     }
 
-    await this.emitNewSnapsAndNotifyLocalStore(mutationBatchResult.changes);
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
   }
 
   applySuccessfulWrite(

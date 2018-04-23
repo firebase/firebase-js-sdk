@@ -24,6 +24,7 @@ import { MutationBatch } from '../model/mutation_batch';
 import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { DocumentKeySet } from '../model/collections';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue extends GarbageSource {
@@ -101,6 +102,19 @@ export interface MutationQueue extends GarbageSource {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
+
+  /**
+   * Returns the document keys for the mutation batch with the given batchId.
+   * For primary clients, this method returns `null` after
+   * `removeMutationBatches()` has been called. Secondary clients return a
+   * cached result until `removeCachedMutationKeys()` is invoked.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   */
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Gets the first unacknowledged mutation batch after the passed in batchId
@@ -193,6 +207,17 @@ export interface MutationQueue extends GarbageSource {
     transaction: PersistenceTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<void>;
+
+  /**
+   * Clears the cached keys for a mutation batch. This method should be
+   * called by secondary clients after they process mutation updates.
+   *
+   * Note that this method does not have to be called from primary clients as
+   * the corresponding cache entries are cleared when an acknowledged or
+   * rejected batch is removed from the mutation queue.
+   */
+  // PORTING NOTE: Multi-tab only
+  removeCachedMutationKeys(batchId: BatchId): void;
 
   /**
    * Performs a consistency check, examining the mutation queue for any

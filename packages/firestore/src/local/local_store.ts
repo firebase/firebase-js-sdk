@@ -332,26 +332,24 @@ export class LocalStore {
     );
   }
 
-  /** Returns the local view of all documents in a mutation batch. */
-  lookupLocalWrite(batchId: BatchId): Promise<LocalWriteResult | null> {
-    return this.persistence.runTransaction('Lookup batch', false, txn => {
-      let batch: MutationBatch;
-      return this.mutationQueue
-        .lookupMutationBatch(txn, batchId)
-        .next(promisedBatch => {
-          if (promisedBatch) {
-            batch = promisedBatch;
-            const keys = batch.keys();
-            return this.localDocuments
-              .getDocuments(txn, keys)
-              .next((changedDocuments: MaybeDocumentMap) => {
-                return { batchId: batch.batchId, changes: changedDocuments };
-              });
-          } else {
-            return PersistencePromise.resolve(null);
-          }
-        });
-    });
+  /** Returns the local view of the documents affected by a mutation batch. */
+  // PORTING NOTE: Multi-tab only.
+  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
+    return this.persistence.runTransaction(
+      'Lookup mutation documents',
+      false,
+      txn => {
+        return this.mutationQueue
+          .lookupMutationKeys(txn, batchId)
+          .next(keys => {
+            if (keys) {
+              return this.localDocuments.getDocuments(txn, keys);
+            } else {
+              return PersistencePromise.resolve(null);
+            }
+          });
+      }
+    );
   }
 
   /**
@@ -797,6 +795,16 @@ export class LocalStore {
     });
   }
 
+  // PORTING NOTE: Multi-tab only.
+  getActiveClients(): Promise<ClientId[]> {
+    return this.persistence.getActiveClients();
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  removeCachedMutationBatchMetadata(batchId: BatchId): void {
+    this.mutationQueue.removeCachedMutationKeys(batchId);
+  }
+
   private releaseHeldBatchResults(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer
@@ -916,9 +924,5 @@ export class LocalStore {
         });
     });
     return promiseChain;
-  }
-
-  getActiveClients(): Promise<ClientId[]> {
-    return this.persistence.getActiveClients();
   }
 }

@@ -30,6 +30,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { DocumentKeySet } from '../model/collections';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -171,6 +172,17 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return PersistencePromise.resolve(this.findMutationBatch(batchId));
+  }
+
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    const mutationBatch = this.findMutationBatch(batchId);
+    assert(mutationBatch != null, 'Failed to find local mutation batch.');
+    return PersistencePromise.resolve(
+      !mutationBatch.isTombstone() ? mutationBatch.keys() : null
+    );
   }
 
   getNextMutationBatchAfterBatchId(
@@ -375,6 +387,10 @@ export class MemoryMutationQueue implements MutationQueue {
     }
     this.batchesByDocumentKey = references;
     return PersistencePromise.resolve();
+  }
+
+  removeCachedMutationKeys(batchId: BatchId): void {
+    // No-op since the memory mutation queue does not maintain a separate cache.
   }
 
   setGarbageCollector(garbageCollector: GarbageCollector | null): void {
