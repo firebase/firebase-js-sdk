@@ -14,14 +14,6 @@
  * limitations under the License.
  */
 
-/**
- * FakeSubscription Constructor.
- */
-const fakeSubscription = ((() => {}) as any) as {
-  new (): PushSubscription;
-};
-fakeSubscription.prototype = PushSubscription.prototype;
-
 function stringToArrayBuffer(str: string): ArrayBuffer {
   // String char codes are 16 bits (See MDN).
   const arrayBuffer = new ArrayBuffer(str.length * 2);
@@ -38,6 +30,11 @@ function stringToArrayBuffer(str: string): ArrayBuffer {
  * @return Returns a fake subscription.
  */
 export function makeFakeSubscription(options: any = {}): PushSubscription {
+  const fakeSubscription = ((() => {}) as any) as {
+    new (): PushSubscription;
+  };
+  fakeSubscription.prototype = PushSubscription.prototype;
+
   const fakeSub = new fakeSubscription();
 
   // Set endpoint

@@ -23,6 +23,8 @@ import { ERROR_CODES } from '../src/models/errors';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
+import { describe } from './testing-utils/messaging-test-runner';
+
 const EXAMPLE_SENDER_ID = '1234567890';
 
 const app = makeFakeApp({

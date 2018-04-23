@@ -23,10 +23,12 @@ import { IIDModel } from '../src/models/iid-model';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
 
+import { describe } from './testing-utils/messaging-test-runner';
+
 const fcmSenderId = '1234567';
 const fcmToken = 'qwerty';
 const fcmPushSet = '7654321';
-const subscription = makeFakeSubscription();
+let subscription: PushSubscription;
 // prettier-ignore
 const appPubKey = new Uint8Array([
   255, 237, 107, 177, 171, 78, 84, 131, 221, 231, 87, 188, 22, 232, 71, 15
@@ -35,6 +37,11 @@ const appPubKey = new Uint8Array([
 describe('Firebase Messaging > IIDModel', () => {
   let sandbox: sinon.SinonSandbox;
   let globalIIDModel: IIDModel;
+
+  before(() => {
+    subscription = makeFakeSubscription();
+  });
+
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
     globalIIDModel = new IIDModel();
