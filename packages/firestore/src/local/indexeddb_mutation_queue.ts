@@ -66,8 +66,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * locally, `removeCachedMutationKeys()` should be invoked either directly
    * or through `removeMutationBatches()`.
    *
-   * After the primary client acknowledged or rejected a mutation during
-   * multi-tab, this cache is used by secondary clients to invalidate the local
+   * With multi-tab, when the primary client acknowledges or rejects a mutation,
+   * this cache is used by secondary clients to invalidate the local
    * view of the documents that were previously affected by the mutation.
    */
   // PORTING NOTE: Multi-tab only.

@@ -427,10 +427,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const documents = await this.localStore.lookupMutationDocuments(batchId);
 
     if (documents === null) {
-      // A throttled tab may not have been able to cache the keys of affected
-      // documents before the mutation was removed from persistence. In this
-      // case, we cannot recompute our local views and instead ignore the
-      // update.
+      // A throttled tab may not have seen the mutation before it was completed
+      // and removed from the mutation queue, in which case we won't have cached
+      // the affected documents. In this case we can safely ignore the update
+      // since that means we didn't apply the mutation locally at all (if we
+      // had, we would have cached the affected documents), and so we will just
+      // see any resulting document changes via normal remote document updates
+      // as applicable.
       log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
       return;
     }
