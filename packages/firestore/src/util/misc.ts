@@ -121,3 +121,12 @@ export function immediateSuccessor(s: string): string {
   // Return the input string, with an additional NUL byte appended.
   return s + '\0';
 }
+
+/**
+ * Detects whether we are running in a React Native app.
+ */
+export function isReactNative(): boolean {
+  return (
+    typeof navigator !== 'undefined' && navigator.product === 'ReactNative'
+  );
+}

@@ -36,6 +36,7 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
+import { isReactNative } from '../util/misc';
 
 const LOG_TAG = 'Connection';
 
@@ -201,10 +202,6 @@ export class WebChannelConnection implements Connection {
       // parameter.
       httpSessionIdParam: 'gsessionid',
       initMessageHeaders: {},
-      // Send our custom headers as a '$httpHeaders=' url param to avoid CORS
-      // preflight round-trip. This is formally defined here:
-      // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L40
-      httpHeadersOverwriteParam: '$httpHeaders',
       messageUrlParams: {
         // This param is used to improve routing and project isolation by the
         // backend and must be included in every request.
@@ -215,6 +212,19 @@ export class WebChannelConnection implements Connection {
       sendRawJson: true,
       supportsCrossDomainXhr: true
     };
+
+    // Send our custom headers as a '$httpHeaders=' url param to avoid CORS
+    // preflight round-trip. This is formally defined here:
+    // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L40
+    //
+    // For some unclear reason (see
+    // https://github.com/firebase/firebase-js-sdk/issues/703), this breaks
+    // ReactNative and so we exclude it, which just means ReactNative may be
+    // subject to an extra network roundtrip for CORS preflight.
+    if (!isReactNative()) {
+      request['httpHeadersOverwriteParam'] = '$httpHeaders';
+    }
+
     this.modifyHeadersForRequest(request.initMessageHeaders, token);
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
