@@ -292,8 +292,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   enablePersistence(): Promise<void> {
     if (this._firestoreClient) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+      return Promise.reject(
         'Firestore has already been started and persistence can no longer ' +
           'be enabled. You can only call enablePersistence() before calling ' +
           'any other methods on a Firestore object.'
