@@ -40,6 +40,8 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
+import { DocumentKey } from '../../../src/model/document_key';
+import { NoDocument } from '../../../src/model/document';
 
 type TargetMap = {
   [targetId: number]: QueryData;
@@ -459,5 +461,51 @@ describe('RemoteEvent', () => {
 
     const mapping1 = updateMapping([doc1, doc2], []);
     expectEqual(event.targetChanges[1].mapping, mapping1);
+  });
+
+  it('synthesizes deletes', () => {
+    const targets = listens(1, 2, 3);
+    const shouldSynthesize = new WatchTargetChange(
+      WatchTargetChangeState.Current, 
+      [1]
+    );
+    const wrongState = new WatchTargetChange(
+      WatchTargetChangeState.NoChange,
+      [2]
+    );
+    const hasDocument = new WatchTargetChange(
+      WatchTargetChangeState.Current,
+      [3]
+    );
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const docChange = new DocumentWatchChange([3], [], doc1.key, doc1);
+
+    const event = remoteEvent(
+      1, 
+      targets, 
+      noPendingResponses, 
+      shouldSynthesize, 
+      wrongState, 
+      hasDocument, 
+      docChange
+    );
+
+    const synthesized = DocumentKey.fromPathString('docs/2');
+    expect(event.documentUpdates.get(synthesized)).to.equal(null);
+
+    const limboTargetChange = event.targetChanges[1];
+    event.synthesizeDeleteForLimboTargetChange(limboTargetChange, synthesized);
+    const expected = deletedDoc('docs/2', event.snapshotVersion.toMicroseconds());
+    expectEqual(expected, event.documentUpdates.get(synthesized));
+    //expect(event.limboDocumentChanges.get(synthesized)).to.exist;
+
+    const notSynthesized = DocumentKey.fromPathString('docs/no1');
+    event.synthesizeDeleteForLimboTargetChange(event.targetChanges[2], notSynthesized);
+    expect(event.documentUpdates.get(notSynthesized)).to.not.exist;
+    //expect(event.limboDocumentChanges.get(notSynthesized)).to.not.exist;
+
+    event.synthesizeDeleteForLimboTargetChange(event.targetChanges[3], doc1.key);
+    expect(event.documentUpdates.get(doc1.key) instanceof NoDocument).to.be.false;
+    //expect(event.limboDocumentChanges.get(doc1.key)).to.not.exist;
   });
 });

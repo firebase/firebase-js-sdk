@@ -21,9 +21,10 @@ import {
   DocumentKeySet,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
+import { WatchTargetChange } from './watch_change';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -69,6 +70,43 @@ export class RemoteEvent {
       currentStatusUpdate: CurrentStatusUpdate.MarkNotCurrent,
       resumeToken: emptyByteString()
     };
+  }
+
+  synthesizeDeleteForLimboTargetChange(
+    targetChange: TargetChange, 
+    key: DocumentKey
+  ): void {
+    if (targetChange.currentStatusUpdate === CurrentStatusUpdate.MarkCurrent && 
+        !this.documentUpdates.get(key)) {
+      // When listening to a query the server responds with a snapshot
+      // containing documents matching the query and a current marker
+      // telling us we're now in sync. It's possible for these to arrive
+      // as separate remote events or as a single remote event.
+      // For a document query, there will be no documents sent in the
+      // response if the document doesn't exist.
+      //
+      // If the snapshot arrives separately from the current marker,
+      // we handle it normally and updateTrackedLimbos will resolve the
+      // limbo status of the document, removing it from limboDocumentRefs.
+      // This works because clients only initiate limbo resolution when
+      // a target is current and because all current targets are
+      // always at a consistent snapshot.
+      //
+      // However, if the document doesn't exist and the current marker
+      // arrives, the document is not present in the snapshot and our
+      // normal view handling would consider the document to remain in
+      // limbo indefinitely because there are no updates to the document.
+      // To avoid this, we specially handle this just this case here:
+      // synthesizing a delete.
+      //
+      // TODO(dimond): Ideally we would have an explicit lookup query
+      // instead resulting in an explicit delete message and we could
+      // remove this special logic.
+      this.documentUpdates = this.documentUpdates.insert(
+        key,
+        new NoDocument(key, this.snapshotVersion)
+      );
+    }
   }
 }
 
