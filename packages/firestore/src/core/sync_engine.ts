@@ -489,6 +489,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.processUserCallback(batchId, error);
 
     return this.localStore.rejectBatch(batchId).then(changes => {
+      this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
+      this.sharedClientState.removeLocalPendingMutation(batchId);
       return this.emitNewSnapsAndNotifyLocalStore(changes);
     });
   }
