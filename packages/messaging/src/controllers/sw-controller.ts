@@ -159,10 +159,10 @@ export class SWController extends ControllerInterface {
     ) {
       // Not an FCM notification, do nothing.
       return;
-    }
-
-    if (event.action) {
-      // User clicked on an action button
+    } else if (event.action) {
+      // User clicked on an action button.
+      // This will allow devs to act on action button clicks by using a custom
+      // onNotificationClick listener that they define.
       return;
     }
 
