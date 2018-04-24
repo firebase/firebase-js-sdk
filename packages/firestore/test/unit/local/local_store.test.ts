@@ -422,24 +422,30 @@ function genericLocalStoreTests(
   });
 
   it('handles Document -> SetMutation -> Ack ->  Document', () => {
-    return expectLocalStore()
-      .afterAllocatingQuery(Query.atPath(path('foo')))
-      .after(docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
-      .toReturnChanged(doc('foo/bar', 2, { it: 'base' }))
-      .toContain(doc('foo/bar', 2, { it: 'base' }))
-      .after(setMutation('foo/bar', { foo: 'bar' }))
-      .toReturnChanged(
-        doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
-      )
-      .toContain(doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterAcknowledgingMutation({ documentVersion: 3 })
-      // We haven't seen the remote event yet
-      .toReturnChanged()
-      .toContain(doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true }))
-      .after(docUpdateRemoteEvent(doc('foo/bar', 3, { it: 'changed' }), [2]))
-      .toReturnChanged(doc('foo/bar', 3, { it: 'changed' }))
-      .toContain(doc('foo/bar', 3, { it: 'changed' }))
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(Query.atPath(path('foo')))
+        .after(docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
+        .toReturnChanged(doc('foo/bar', 2, { it: 'base' }))
+        .toContain(doc('foo/bar', 2, { it: 'base' }))
+        .after(setMutation('foo/bar', { foo: 'bar' }))
+        .toReturnChanged(
+          doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
+        )
+        .toContain(
+          doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
+        )
+        .afterAcknowledgingMutation({ documentVersion: 3 })
+        // We haven't seen the remote event yet
+        .toReturnChanged()
+        .toContain(
+          doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
+        )
+        .after(docUpdateRemoteEvent(doc('foo/bar', 3, { it: 'changed' }), [2]))
+        .toReturnChanged(doc('foo/bar', 3, { it: 'changed' }))
+        .toContain(doc('foo/bar', 3, { it: 'changed' }))
+        .finish()
+    );
   });
 
   it('handles PatchMutation without prior document', () => {
@@ -478,11 +484,13 @@ function genericLocalStoreTests(
       )
       .afterAcknowledgingMutation({ documentVersion: 2 })
       .toReturnChanged()
-      .after(docUpdateRemoteEvent(doc('foo/bar', 2, {foo: 'bar', it: 'base'}), [2]))
+      .after(
+        docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar', it: 'base' }), [2])
+      )
       .toReturnChanged(
         doc(
-          'foo/bar', 
-          2, 
+          'foo/bar',
+          2,
           { foo: 'bar', it: 'base' },
           { hasLocalMutations: false }
         )
@@ -519,38 +527,42 @@ function genericLocalStoreTests(
 
   it('handles Document -> DeleteMutation -> Ack', () => {
     const query = Query.atPath(path('foo'));
-    return expectLocalStore()
-      .afterAllocatingQuery(query)
-      .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
-      .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
-      .toContain(doc('foo/bar', 1, { it: 'base' }))
-      .after(deleteMutation('foo/bar'))
-      .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 0))
-      // remove the mutation so only the mutation is pinning the doc
-      .afterReleasingQuery(query)
-      .afterAcknowledgingMutation({ documentVersion: 2 })
-      .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 0))
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
+        .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
+        .toContain(doc('foo/bar', 1, { it: 'base' }))
+        .after(deleteMutation('foo/bar'))
+        .toReturnRemoved('foo/bar')
+        .toContain(deletedDoc('foo/bar', 0))
+        // remove the mutation so only the mutation is pinning the doc
+        .afterReleasingQuery(query)
+        .afterAcknowledgingMutation({ documentVersion: 2 })
+        .toReturnRemoved('foo/bar')
+        .toContain(deletedDoc('foo/bar', 0))
+        .finish()
+    );
   });
 
   it('handles DeleteMutation -> Document -> Ack', () => {
     const query = Query.atPath(path('foo'));
-    return expectLocalStore()
-      .afterAllocatingQuery(query)
-      .after(deleteMutation('foo/bar'))
-      .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 0))
-      .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
-      .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 0))
-      // Don't need to keep doc pinned anymore
-      .afterReleasingQuery(query)
-      .afterAcknowledgingMutation({ documentVersion: 2 })
-      .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 0))
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .after(deleteMutation('foo/bar'))
+        .toReturnRemoved('foo/bar')
+        .toContain(deletedDoc('foo/bar', 0))
+        .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
+        .toReturnRemoved('foo/bar')
+        .toContain(deletedDoc('foo/bar', 0))
+        // Don't need to keep doc pinned anymore
+        .afterReleasingQuery(query)
+        .afterAcknowledgingMutation({ documentVersion: 2 })
+        .toReturnRemoved('foo/bar')
+        .toContain(deletedDoc('foo/bar', 0))
+        .finish()
+    );
   });
 
   it('handles Document -> NoDocument -> Document', () => {
@@ -683,66 +695,82 @@ function genericLocalStoreTests(
 
   it('collects garbage after acknowledged mutation', () => {
     const query = Query.atPath(path('foo'));
-    return expectLocalStore()
-      .afterAllocatingQuery(query)
-      .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
-      .after(patchMutation('foo/bar', { foo: 'bar' }))
-      // Release the query so that our target count goes back to 0 and we are considered up-to-date.
-      .afterReleasingQuery(query)
-      .after(setMutation('foo/bah', { foo: 'bah' }))
-      .after(deleteMutation('foo/baz'))
-      .afterGC()
-      .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
-      .toContain(doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true }))
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterAcknowledgingMutation({ documentVersion: 3 })
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toContain(doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true }))
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterAcknowledgingMutation({ documentVersion: 4 })
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toNotContain('foo/bah')
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterAcknowledgingMutation({ documentVersion: 5 })
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toNotContain('foo/bah')
-      .toNotContain('foo/baz')
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(patchMutation('foo/bar', { foo: 'bar' }))
+        // Release the query so that our target count goes back to 0 and we are considered up-to-date.
+        .afterReleasingQuery(query)
+        .after(setMutation('foo/bah', { foo: 'bah' }))
+        .after(deleteMutation('foo/baz'))
+        .afterGC()
+        .toContain(
+          doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
+        )
+        .toContain(
+          doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
+        )
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterAcknowledgingMutation({ documentVersion: 3 })
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toContain(
+          doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
+        )
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterAcknowledgingMutation({ documentVersion: 4 })
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toNotContain('foo/bah')
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterAcknowledgingMutation({ documentVersion: 5 })
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toNotContain('foo/bah')
+        .toNotContain('foo/baz')
+        .finish()
+    );
   });
 
   it('collects garbage after rejected mutation', () => {
     const query = Query.atPath(path('foo'));
-    return expectLocalStore()
-      .afterAllocatingQuery(query)
-      .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
-      .after(patchMutation('foo/bar', { foo: 'bar' }))
-      // Release the query so that our target count goes back to 0 and we are considered up-to-date.
-      .afterReleasingQuery(query)
-      .after(setMutation('foo/bah', { foo: 'bah' }))
-      .after(deleteMutation('foo/baz'))
-      .afterGC()
-      .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
-      .toContain(doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true }))
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterRejectingMutation() // patch mutation
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toContain(doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true }))
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterRejectingMutation() // set mutation
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toNotContain('foo/bah')
-      .toContain(deletedDoc('foo/baz', 0))
-      .afterRejectingMutation() // delete mutation
-      .afterGC()
-      .toNotContain('foo/bar')
-      .toNotContain('foo/bah')
-      .toNotContain('foo/baz')
-      .finish();
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(patchMutation('foo/bar', { foo: 'bar' }))
+        // Release the query so that our target count goes back to 0 and we are considered up-to-date.
+        .afterReleasingQuery(query)
+        .after(setMutation('foo/bah', { foo: 'bah' }))
+        .after(deleteMutation('foo/baz'))
+        .afterGC()
+        .toContain(
+          doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
+        )
+        .toContain(
+          doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
+        )
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterRejectingMutation() // patch mutation
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toContain(
+          doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
+        )
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterRejectingMutation() // set mutation
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toNotContain('foo/bah')
+        .toContain(deletedDoc('foo/baz', 0))
+        .afterRejectingMutation() // delete mutation
+        .afterGC()
+        .toNotContain('foo/bar')
+        .toNotContain('foo/bah')
+        .toNotContain('foo/baz')
+        .finish()
+    );
   });
 
   it('pins documents in the local view', () => {
