@@ -21,6 +21,7 @@ import { ERROR_CODES } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
+import { describe } from './testing-utils/messaging-test-runner';
 
 const EXAMPLE_SCOPE = '/example-scope';
 const EXAMPLE_VAPID_STRING =

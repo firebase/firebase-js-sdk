@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { WindowController } from '../../src/controllers/window-controller';
+import { isSupported } from '../../index';
 
 /** Runner for tests that require service worker functionality. */
-const runner = WindowController.isSupported_() ? describe : describe.skip;
+const runner = isSupported() ? describe : describe.skip;
 export { runner as describe };
