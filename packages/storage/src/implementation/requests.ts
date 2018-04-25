@@ -59,6 +59,22 @@ export function metadataHandler(
   return handler;
 }
 
+export function downloadUrlHandler(
+  authWrapper: AuthWrapper,
+  mappings: MetadataUtils.Mappings
+): (p1: XhrIo, p2: string) => string {
+  function handler(xhr: XhrIo, text: string): string | null {
+    let metadata = MetadataUtils.fromResourceString(
+      authWrapper,
+      text,
+      mappings
+    );
+    handlerCheck(metadata !== null);
+    return MetadataUtils.downloadUrlFromResourceString(metadata as Metadata, text);
+  }
+  return handler;
+}
+
 export function sharedErrorHandler(
   location: Location
 ): (p1: XhrIo, p2: FirebaseStorageError) => FirebaseStorageError {
@@ -123,6 +139,26 @@ export function getMetadata(
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }
+
+export function getDownloadUrl(
+  authWrapper: AuthWrapper,
+  location: Location,
+  mappings: MetadataUtils.Mappings
+): RequestInfo<string|null> {
+  let urlPart = location.fullServerUrl();
+  let url = UrlUtils.makeNormalUrl(urlPart);
+  let method = 'GET';
+  let timeout = authWrapper.maxOperationRetryTime();
+  let requestInfo = new RequestInfo(
+    url,
+    method,
+    downloadUrlHandler(authWrapper, mappings),
+    timeout
+  );
+  requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
 
 export function updateMetadata(
   authWrapper: AuthWrapper,
