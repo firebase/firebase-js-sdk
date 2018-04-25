@@ -71,13 +71,13 @@ export function addEqualityMatcher(): void {
             utils.flag(this, 'message', msg);
             const left = utils.flag(this, 'object');
 
-            chai.assert(
+            new chai.Assertion(left).assert(
               customDeepEqual(left, right),
               'expected #{act} to roughly deeply equal #{exp}',
               'expected #{act} to not roughly deeply equal #{exp}',
               left,
               right,
-              true
+              /*showDiff=*/ true
             );
           } else {
             originalFunction.apply(this, args);
