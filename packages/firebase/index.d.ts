@@ -112,7 +112,9 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
-  function functions(app?: firebase.app.App): firebase.functions.FirebaseFunctions;
+  function functions(
+    app?: firebase.app.App
+  ): firebase.functions.FirebaseFunctions;
 }
 
 declare namespace firebase.app {
