@@ -78,7 +78,7 @@ export class RemoteEvent {
    * skip doing the work to associate the document with the target because it has already been done.
    */
   filterUpdatesFromTargetChange(
-    targetChange: TargetChange, 
+    targetChange: TargetChange,
     existingDocuments: DocumentKeySet
   ): void {
     if (targetChange.mapping instanceof UpdateMapping) {
@@ -98,11 +98,13 @@ export class RemoteEvent {
    * Synthesize a delete change if necessary for the given limbo target.
    */
   synthesizeDeleteForLimboTargetChange(
-    targetChange: TargetChange, 
+    targetChange: TargetChange,
     key: DocumentKey
   ): void {
-    if (targetChange.currentStatusUpdate === CurrentStatusUpdate.MarkCurrent && 
-        !this.documentUpdates.get(key)) {
+    if (
+      targetChange.currentStatusUpdate === CurrentStatusUpdate.MarkCurrent &&
+      !this.documentUpdates.get(key)
+    ) {
       // When listening to a query the server responds with a snapshot
       // containing documents matching the query and a current marker
       // telling us we're now in sync. It's possible for these to arrive

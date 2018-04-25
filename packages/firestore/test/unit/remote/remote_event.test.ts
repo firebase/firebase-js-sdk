@@ -468,27 +468,25 @@ describe('RemoteEvent', () => {
   it('synthesizes deletes', () => {
     const targets = listens(1, 2, 3);
     const shouldSynthesize = new WatchTargetChange(
-      WatchTargetChangeState.Current, 
+      WatchTargetChangeState.Current,
       [1]
     );
-    const wrongState = new WatchTargetChange(
-      WatchTargetChangeState.NoChange,
-      [2]
-    );
-    const hasDocument = new WatchTargetChange(
-      WatchTargetChangeState.Current,
-      [3]
-    );
+    const wrongState = new WatchTargetChange(WatchTargetChangeState.NoChange, [
+      2
+    ]);
+    const hasDocument = new WatchTargetChange(WatchTargetChangeState.Current, [
+      3
+    ]);
     const doc1 = doc('docs/1', 1, { value: 1 });
     const docChange = new DocumentWatchChange([3], [], doc1.key, doc1);
 
     const event = remoteEvent(
-      1, 
-      targets, 
-      noPendingResponses, 
-      shouldSynthesize, 
-      wrongState, 
-      hasDocument, 
+      1,
+      targets,
+      noPendingResponses,
+      shouldSynthesize,
+      wrongState,
+      hasDocument,
       docChange
     );
 
@@ -497,35 +495,53 @@ describe('RemoteEvent', () => {
 
     const limboTargetChange = event.targetChanges[1];
     event.synthesizeDeleteForLimboTargetChange(limboTargetChange, synthesized);
-    const expected = deletedDoc('docs/2', event.snapshotVersion.toMicroseconds());
+    const expected = deletedDoc(
+      'docs/2',
+      event.snapshotVersion.toMicroseconds()
+    );
     expectEqual(expected, event.documentUpdates.get(synthesized));
 
     const notSynthesized = DocumentKey.fromPathString('docs/no1');
-    event.synthesizeDeleteForLimboTargetChange(event.targetChanges[2], notSynthesized);
+    event.synthesizeDeleteForLimboTargetChange(
+      event.targetChanges[2],
+      notSynthesized
+    );
     expect(event.documentUpdates.get(notSynthesized)).to.not.exist;
 
-    event.synthesizeDeleteForLimboTargetChange(event.targetChanges[3], doc1.key);
-    expect(event.documentUpdates.get(doc1.key) instanceof NoDocument).to.be.false;
+    event.synthesizeDeleteForLimboTargetChange(
+      event.targetChanges[3],
+      doc1.key
+    );
+    expect(event.documentUpdates.get(doc1.key) instanceof NoDocument).to.be
+      .false;
   });
 
   it('filters updates', () => {
-    const newDoc = doc('docs/new', 1, {key: 'value'});
-    const existingDoc = doc('docs/existing', 1, {some: 'data'});
+    const newDoc = doc('docs/new', 1, { key: 'value' });
+    const existingDoc = doc('docs/existing', 1, { some: 'data' });
     const newDocChange = new DocumentWatchChange([1], [], newDoc.key, newDoc);
 
-    const resetTargetChange = new WatchTargetChange(WatchTargetChangeState.Reset, [2]);
-    const existingDocChange = new DocumentWatchChange([1, 2], [], existingDoc.key, existingDoc);
+    const resetTargetChange = new WatchTargetChange(
+      WatchTargetChangeState.Reset,
+      [2]
+    );
+    const existingDocChange = new DocumentWatchChange(
+      [1, 2],
+      [],
+      existingDoc.key,
+      existingDoc
+    );
 
     const targets = listens(1, 2);
     const event = remoteEvent(
-      1, 
-      targets, 
+      1,
+      targets,
       noPendingResponses,
       newDocChange,
       resetTargetChange,
       existingDocChange
     );
-    
+
     const updateChange = event.targetChanges[1];
     expect(updateChange.mapping instanceof UpdateMapping).to.be.true;
     const update = updateChange.mapping as UpdateMapping;

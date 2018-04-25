@@ -305,9 +305,15 @@ export class SyncEngine implements RemoteSyncer {
         if (!limboKey) {
           const qv = this.queryViewsByTarget[targetId];
           assert(!!qv, 'Missing QueryView for non-limbo query: ' + targetId);
-          remoteEvent.filterUpdatesFromTargetChange(targetChange, qv.view.syncedDocuments);
+          remoteEvent.filterUpdatesFromTargetChange(
+            targetChange,
+            qv.view.syncedDocuments
+          );
         } else {
-          remoteEvent.synthesizeDeleteForLimboTargetChange(targetChange, limboKey);
+          remoteEvent.synthesizeDeleteForLimboTargetChange(
+            targetChange,
+            limboKey
+          );
         }
       }
     );
