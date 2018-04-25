@@ -98,12 +98,8 @@ export class SWController extends ControllerInterface {
 
     const hasVisibleClients = await this.hasVisibleClients_();
     if (hasVisibleClients) {
-      // Do not need to show a notification.
-      if (msgPayload.notification || this.bgMessageHandler) {
-        // Send to page
-        return this.sendMessageToWindowClients_(msgPayload);
-      }
-      return;
+      // App in foreground. Send to page.
+      return this.sendMessageToWindowClients_(msgPayload);
     }
 
     const notificationDetails = this.getNotificationData_(msgPayload);
