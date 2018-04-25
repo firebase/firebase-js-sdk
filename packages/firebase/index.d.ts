@@ -111,6 +111,8 @@ declare namespace firebase {
   function storage(app?: firebase.app.App): firebase.storage.Storage;
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
+
+  function functions(app?: firebase.app.App): firebase.functions.FirebaseFunctions;
 }
 
 declare namespace firebase.app {
@@ -123,6 +125,42 @@ declare namespace firebase.app {
     options: Object;
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
+    functions(): firebase.functions.FirebaseFunctions;
+  }
+}
+
+declare namespace firebase.functions {
+  export interface HttpsCallableResult {
+    readonly data: any;
+  }
+  export interface HttpsCallable {
+    (data?: any): Promise<HttpsCallableResult>;
+  }
+  export class FirebaseFunctions {
+    private constructor();
+    httpsCallable(name: string): HttpsCallable;
+  }
+  export type FunctionsErrorCode =
+    | 'ok'
+    | 'cancelled'
+    | 'unknown'
+    | 'invalid-argument'
+    | 'deadline-exceeded'
+    | 'not-found'
+    | 'already-exists'
+    | 'permission-denied'
+    | 'resource-exhausted'
+    | 'failed-precondition'
+    | 'aborted'
+    | 'out-of-range'
+    | 'unimplemented'
+    | 'internal'
+    | 'unavailable'
+    | 'data-loss'
+    | 'unauthenticated';
+  export interface HttpsError extends Error {
+    readonly code: FunctionsErrorCode;
+    readonly details?: any;
   }
 }
 
