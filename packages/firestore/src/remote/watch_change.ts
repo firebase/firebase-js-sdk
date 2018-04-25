@@ -16,8 +16,8 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
-import { QueryData } from '../local/query_data';
-import { maybeDocumentMap } from '../model/collections';
+import { QueryData, QueryPurpose } from '../local/query_data';
+import { maybeDocumentMap, documentKeySet } from '../model/collections';
 import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
@@ -125,6 +125,9 @@ export class WatchChangeAggregator {
   /** Whether this aggregator was frozen and can no longer be modified */
   private frozen = false;
 
+  /** Tracks which document updates are due only to limbo target resolution */
+  private limboDocuments = documentKeySet();
+
   /** Aggregates a watch change into the current state */
   add(watchChange: WatchChange): void {
     assert(!this.frozen, 'Trying to modify frozen WatchChangeAggregator.');
@@ -191,27 +194,62 @@ export class WatchChangeAggregator {
    *
    * This method is visible for testing.
    */
+  protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
+    const queryData = this.listenTargets[targetId];
+    return (queryData && !objUtils.contains(this.pendingTargetResponses, targetId)) ? queryData : null;
+  }
+
   protected isActiveTarget(targetId: TargetId): boolean {
-    return (
-      !objUtils.contains(this.pendingTargetResponses, targetId) &&
-      objUtils.contains(this.listenTargets, targetId)
-    );
+    return this.queryDataForActiveTarget(targetId) !== null;
+  }
+
+  private updateLimboDocuments(key: DocumentKey, queryData: QueryData, isOnlyLimbo: boolean): boolean {
+    if (!isOnlyLimbo) {
+      // It wasn't a limbo doc before, so it definitely isn't now.
+      return false;
+    }
+    if (!this.documentUpdates.get(key)) {
+      // We haven't seen the document update for this key yet.
+      if (queryData.purpose === QueryPurpose.LimboResolution) {
+        this.limboDocuments = this.limboDocuments.add(key);
+        return true;
+      } else {
+        // We haven't seen the document before, but this is a non-limbo target.
+        // Since we haven't seen it, we know it's not in our set of limbo docs.
+        // Return false to ensure that this key is marked as non-limbo.
+        return false;
+      }
+    } else if (queryData.purpose === QueryPurpose.LimboResolution) {
+      // We have only seen limbo targets so far for this document, and this is
+      // another limbo target.
+      return true;
+    } else {
+      // We haven't marked this as non-limbo yet, but this target is not a limbo
+      // target. Mark the key as non-limbo and make sure it isn't in our set.
+      this.limboDocuments = this.limboDocuments.delete(key);
+      return false;
+    }
   }
 
   private addDocumentChange(docChange: DocumentWatchChange): void {
     let relevant = false;
+    let isOnlyLimbo = true;
 
     for (const targetId of docChange.updatedTargetIds) {
-      if (this.isActiveTarget(targetId)) {
+      const queryData = this.queryDataForActiveTarget(targetId);
+      if (queryData) {
         const change = this.ensureTargetChange(targetId);
+        isOnlyLimbo = this.updateLimboDocuments(docChange.key, queryData, isOnlyLimbo);
         change.mapping.add(docChange.key);
         relevant = true;
       }
     }
 
     for (const targetId of docChange.removedTargetIds) {
-      if (this.isActiveTarget(targetId)) {
+      const queryData = this.queryDataForActiveTarget(targetId);
+      if (queryData) {
         const change = this.ensureTargetChange(targetId);
+        isOnlyLimbo = this.updateLimboDocuments(docChange.key, queryData, isOnlyLimbo);
         change.mapping.delete(docChange.key);
         relevant = true;
       }
