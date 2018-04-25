@@ -72,6 +72,31 @@ export class RemoteEvent {
     };
   }
 
+  /**
+   * Strips out mapping changes that aren't actually changes. That is, if the document already
+   * existed in the target, and is being added in the target, and this is not a reset, we can
+   * skip doing the work to associate the document with the target because it has already been done.
+   */
+  filterUpdatesFromTargetChange(
+    targetChange: TargetChange, 
+    existingDocuments: DocumentKeySet
+  ): void {
+    if (targetChange.mapping instanceof UpdateMapping) {
+      const update = targetChange.mapping;
+      const added = update.addedDocuments;
+      let result = added;
+      added.forEach(key => {
+        if (existingDocuments.has(key)) {
+          result = result.delete(key);
+        }
+      });
+      update.addedDocuments = result;
+    }
+  }
+
+  /**
+   * Synthesize a delete change if necessary for the given limbo target.
+   */
   synthesizeDeleteForLimboTargetChange(
     targetChange: TargetChange, 
     key: DocumentKey
