@@ -287,8 +287,8 @@ describe('SortedMap Tests', () => {
     expect(map.size).to.equal(0);
   });
 
-  // A little perf test for convenient benchmarking.
-  xit('Perf', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf', () => {
     for (let j = 0; j < 5; j++) {
       let map = new SortedMap(primitiveComparator);
       const start = new Date().getTime();
@@ -305,7 +305,8 @@ describe('SortedMap Tests', () => {
     }
   });
 
-  xit('Perf: Insertion and removal with various # of items.', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (map: SortedMap<number, number>, max: number) => {
       let next = 0;
       map.inorderTraversal((key: number, value: number) => {
@@ -348,7 +349,8 @@ describe('SortedMap Tests', () => {
     }
   });
 
-  xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (tree: { [key: number]: number }, max: number) => {
       const keys: number[] = [];
       obj.forEach(tree, k => keys.push(Number(k)));

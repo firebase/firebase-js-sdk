@@ -419,7 +419,8 @@ apiDescribe('Database', persistence => {
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
-  xdescribe('Listens are rejected remotely:', () => {
+  // tslint:disable-next-line:ban
+  describe.skip('Listens are rejected remotely:', () => {
     const queryForRejection = query('foo');
 
     it('will reject listens', () => {
