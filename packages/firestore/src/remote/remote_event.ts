@@ -142,6 +142,7 @@ export class RemoteEvent {
         key,
         new NoDocument(key, this.snapshotVersion)
       );
+      this.limboDocuments = this.limboDocuments.add(key);
     }
   }
 }

@@ -167,7 +167,8 @@ export class WatchChangeAggregator {
     return new RemoteEvent(
       this.snapshotVersion,
       targetChanges,
-      this.documentUpdates
+      this.documentUpdates,
+      this.limboDocuments
     );
   }
 
