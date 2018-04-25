@@ -366,7 +366,12 @@ export class SyncEngine implements RemoteSyncer {
         new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
       );
       const limboDocuments = documentKeySet().add(limboKey);
-      const event = new RemoteEvent(SnapshotVersion.MIN, {}, docMap, limboDocuments);
+      const event = new RemoteEvent(
+        SnapshotVersion.MIN,
+        {},
+        docMap,
+        limboDocuments
+      );
       return this.applyRemoteEvent(event);
     } else {
       const queryView = this.queryViewsByTarget[targetId];

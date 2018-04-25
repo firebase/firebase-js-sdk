@@ -197,14 +197,21 @@ export class WatchChangeAggregator {
    */
   protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
     const queryData = this.listenTargets[targetId];
-    return (queryData && !objUtils.contains(this.pendingTargetResponses, targetId)) ? queryData : null;
+    return queryData &&
+      !objUtils.contains(this.pendingTargetResponses, targetId)
+      ? queryData
+      : null;
   }
 
   protected isActiveTarget(targetId: TargetId): boolean {
     return this.queryDataForActiveTarget(targetId) !== null;
   }
 
-  private updateLimboDocuments(key: DocumentKey, queryData: QueryData, isOnlyLimbo: boolean): boolean {
+  private updateLimboDocuments(
+    key: DocumentKey,
+    queryData: QueryData,
+    isOnlyLimbo: boolean
+  ): boolean {
     if (!isOnlyLimbo) {
       // It wasn't a limbo doc before, so it definitely isn't now.
       return false;
@@ -240,7 +247,11 @@ export class WatchChangeAggregator {
       const queryData = this.queryDataForActiveTarget(targetId);
       if (queryData) {
         const change = this.ensureTargetChange(targetId);
-        isOnlyLimbo = this.updateLimboDocuments(docChange.key, queryData, isOnlyLimbo);
+        isOnlyLimbo = this.updateLimboDocuments(
+          docChange.key,
+          queryData,
+          isOnlyLimbo
+        );
         change.mapping.add(docChange.key);
         relevant = true;
       }
@@ -250,7 +261,11 @@ export class WatchChangeAggregator {
       const queryData = this.queryDataForActiveTarget(targetId);
       if (queryData) {
         const change = this.ensureTargetChange(targetId);
-        isOnlyLimbo = this.updateLimboDocuments(docChange.key, queryData, isOnlyLimbo);
+        isOnlyLimbo = this.updateLimboDocuments(
+          docChange.key,
+          queryData,
+          isOnlyLimbo
+        );
         change.mapping.delete(docChange.key);
         relevant = true;
       }

@@ -569,9 +569,9 @@ describe('RemoteEvent', () => {
 
   it('tracks limbo documents', () => {
     // Add 3 docs: 1 is limbo and non-limbo, 2 is limbo-only, 3 is non-limbo
-    const doc1 = doc('docs/1', 1, {key: 'value'});
-    const doc2 = doc('docs/2', 1, {key: 'value'});
-    const doc3 = doc('docs/3', 1, {key: 'value'});
+    const doc1 = doc('docs/1', 1, { key: 'value' });
+    const doc2 = doc('docs/2', 1, { key: 'value' });
+    const doc3 = doc('docs/3', 1, { key: 'value' });
 
     // Target 2 is a limbo target
 
@@ -579,11 +579,22 @@ describe('RemoteEvent', () => {
     const docChange2 = new DocumentWatchChange([2], [], doc2.key, doc2);
     const docChange3 = new DocumentWatchChange([1], [], doc3.key, doc3);
 
-    const targetsChange = new WatchTargetChange(WatchTargetChangeState.Current, [1, 2]);
+    const targetsChange = new WatchTargetChange(
+      WatchTargetChangeState.Current,
+      [1, 2]
+    );
     const targets = listens(1, 2);
     targets[2].purpose = QueryPurpose.LimboResolution;
 
-    const event = remoteEvent(1, targets, noPendingResponses, docChange1, docChange2, docChange3, targetsChange);
+    const event = remoteEvent(
+      1,
+      targets,
+      noPendingResponses,
+      docChange1,
+      docChange2,
+      docChange3,
+      targetsChange
+    );
     // Doc1 is in both limbo and non-limbo targets, therefore not tracked as limbo
     expect(event.limboDocuments.has(doc1.key)).to.be.false;
     // Doc2 is only in the limbo target, so is tracked as a limbo document
