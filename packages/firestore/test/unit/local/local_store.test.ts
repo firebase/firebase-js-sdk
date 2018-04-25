@@ -353,6 +353,7 @@ function genericLocalStoreTests(
         expectLocalStore()
           // Start a query so that acks must be held.
           .afterAllocatingQuery(Query.atPath(path('foo')))
+          .toReturnTargetId(2)
           .after(setMutation('foo/bar', { foo: 'bar' }))
           .toReturnChanged(
             doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
@@ -391,6 +392,7 @@ function genericLocalStoreTests(
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
       .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(deletedDoc('foo/bar', 2), [2]))
       .toReturnRemoved('foo/bar')
       .toContain(deletedDoc('foo/bar', 2))
@@ -409,6 +411,7 @@ function genericLocalStoreTests(
   it('handles SetMutation -> NoDocument', () => {
     return expectLocalStore()
       .afterAllocatingQuery(Query.atPath(path('foo')))
+      .toReturnTargetId(2)
       .after(setMutation('foo/bar', { foo: 'bar' }))
       .toReturnChanged(
         doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
@@ -425,6 +428,7 @@ function genericLocalStoreTests(
     return (
       expectLocalStore()
         .afterAllocatingQuery(Query.atPath(path('foo')))
+        .toReturnTargetId(2)
         .after(docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
         .toReturnChanged(doc('foo/bar', 2, { it: 'base' }))
         .toContain(doc('foo/bar', 2, { it: 'base' }))
@@ -465,6 +469,7 @@ function genericLocalStoreTests(
       .toReturnRemoved('foo/bar')
       .toNotContain('foo/bar')
       .afterAllocatingQuery(Query.atPath(path('foo')))
+      .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(
         doc(
@@ -508,6 +513,7 @@ function genericLocalStoreTests(
       .toReturnRemoved('foo/bar')
       .toNotContain('foo/bar')
       .afterAllocatingQuery(Query.atPath(path('foo')))
+      .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
       .toContain(doc('foo/bar', 1, { it: 'base' }))
@@ -530,6 +536,7 @@ function genericLocalStoreTests(
     return (
       expectLocalStore()
         .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
         .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
         .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
         .toContain(doc('foo/bar', 1, { it: 'base' }))
@@ -550,6 +557,7 @@ function genericLocalStoreTests(
     return (
       expectLocalStore()
         .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
         .after(deleteMutation('foo/bar'))
         .toReturnRemoved('foo/bar')
         .toContain(deletedDoc('foo/bar', 0))
@@ -568,6 +576,7 @@ function genericLocalStoreTests(
   it('handles Document -> NoDocument -> Document', () => {
     return expectLocalStore()
       .afterAllocatingQuery(Query.atPath(path('foo')))
+      .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(doc('foo/bar', 1, { it: 'base' }))
       .toContain(doc('foo/bar', 1, { it: 'base' }))
@@ -594,6 +603,7 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
       .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
       .toReturnChanged(
         doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true })
@@ -698,6 +708,7 @@ function genericLocalStoreTests(
     return (
       expectLocalStore()
         .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
         .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
@@ -738,6 +749,7 @@ function genericLocalStoreTests(
     return (
       expectLocalStore()
         .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
         .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
