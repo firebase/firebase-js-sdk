@@ -517,6 +517,28 @@ describe('Firebase Messaging > *SWController', () => {
       expect(event.stopImmediatePropagation.callCount).to.equal(0);
     });
 
+    it('should do nothing for action clicks', async () => {
+      const waitUntilSpy = sandbox.spy();
+      const event: any = {
+        notification: {
+          data: {
+            FCM_MSG: {
+              notification: {}
+            }
+          },
+          close: sandbox.spy()
+        },
+        waitUntil: waitUntilSpy,
+        stopImmediatePropagation: sandbox.spy(),
+        action: 'action1'
+      };
+      const swController = new SWController(app);
+
+      swController.onNotificationClick(event);
+
+      expect(event.stopImmediatePropagation.callCount).to.equal(0);
+    });
+
     it('should handle FCM notification without a notification data field', async () => {
       const waitUntilSpy = sandbox.spy();
       const event: any = {

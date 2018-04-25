@@ -159,11 +159,15 @@ export class SWController extends ControllerInterface {
     ) {
       // Not an FCM notification, do nothing.
       return;
+    } else if (event.action) {
+      // User clicked on an action button.
+      // This will allow devs to act on action button clicks by using a custom
+      // onNotificationClick listener that they define.
+      return;
     }
 
     // Prevent other listeners from receiving the event
     event.stopImmediatePropagation();
-
     event.notification.close();
 
     const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
