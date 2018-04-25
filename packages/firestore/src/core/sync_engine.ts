@@ -25,7 +25,7 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
-import { CurrentStatusUpdate, RemoteEvent } from '../remote/remote_event';
+import { RemoteEvent } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';

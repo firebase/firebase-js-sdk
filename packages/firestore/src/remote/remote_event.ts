@@ -24,7 +24,6 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
-import { WatchTargetChange } from './watch_change';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
