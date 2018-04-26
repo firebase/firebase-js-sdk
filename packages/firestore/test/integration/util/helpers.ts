@@ -185,7 +185,9 @@ export function withTestDbsSettings(
         dbs.reduce(
           (chain, db) =>
             chain.then(() =>
-              db.INTERNAL.delete.bind(this, { purgePersistenceWithDataLoss: true })
+              db.INTERNAL.delete.bind(this, {
+                purgePersistenceWithDataLoss: true
+              })
             ),
           Promise.resolve()
         )
