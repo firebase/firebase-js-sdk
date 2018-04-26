@@ -34,8 +34,9 @@ describe('EncodedResourcePath', () => {
     return;
   }
 
+  const dbName = 'resource-path-tests';
+
   beforeEach(() => {
-    const dbName = 'resource-path-tests';
     return SimpleDb.delete(dbName)
       .then(() => {
         return SimpleDb.openOrCreate(dbName, 1, db => {
@@ -51,6 +52,8 @@ describe('EncodedResourcePath', () => {
   afterEach(() => {
     db.close();
   });
+
+  after(() => SimpleDb.delete(dbName));
 
   it('encodes resource paths', async () => {
     await assertEncoded(sep, ResourcePath.EMPTY_PATH);

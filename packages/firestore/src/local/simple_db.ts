@@ -102,29 +102,31 @@ export class SimpleDb {
     // to return that persistence is not enabled for those browsers.
     // For tracking support of this feature, see here:
     // https://developer.microsoft.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport/
+    if (window.navigator) {
+      // Check the UA string to find out the browser.
+      const ua = window.navigator.userAgent;
 
-    // Check the UA string to find out the browser.
-    const ua = window.navigator.userAgent;
+      // IE 10
+      // ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
 
-    // IE 10
-    // ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
+      // IE 11
+      // ua = 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko';
 
-    // IE 11
-    // ua = 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko';
+      // Edge
+      // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,
+      // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
-    // Edge
-    // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,
-    // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
-
-    if (
-      ua.indexOf('MSIE ') > 0 ||
-      ua.indexOf('Trident/') > 0 ||
-      ua.indexOf('Edge/') > 0
-    ) {
-      return false;
-    } else {
-      return true;
+      if (
+          ua.indexOf('MSIE ') > 0 ||
+          ua.indexOf('Trident/') > 0 ||
+          ua.indexOf('Edge/') > 0
+      ) {
+        return false;
+      }
     }
+
+    return true;
+
   }
 
   constructor(private db: IDBDatabase) {}
