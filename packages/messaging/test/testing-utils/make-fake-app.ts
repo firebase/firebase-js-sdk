@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-export function isArrayBufferEqual(
-  a: ArrayBufferLike | undefined | null,
-  b: ArrayBufferLike | undefined | null
-): boolean {
-  if (a == null || b == null) {
-    return false;
-  }
+declare const window: { firebase: any };
 
-  if (a === b) {
-    return true;
-  }
+import { FirebaseApp } from '@firebase/app-types';
 
-  if (a.byteLength !== b.byteLength) {
-    return false;
-  }
-
-  const viewA = new DataView(a);
-  const viewB = new DataView(b);
-
-  for (let i = 0; i < a.byteLength; i++) {
-    if (viewA.getUint8(i) !== viewB.getUint8(i)) {
-      return false;
-    }
-  }
-
-  return true;
+export function makeFakeApp(options: object = {}): FirebaseApp {
+  window.firebase = window.firebase || {};
+  const app: any = {};
+  app.INTERNAL = window.firebase.INTERNAL;
+  app.options = options;
+  return app;
 }

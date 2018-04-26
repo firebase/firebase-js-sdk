@@ -15,10 +15,12 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
+
 import { ERROR_CODES, ERROR_MAP } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IIDModel } from '../src/models/iid-model';
-import { makeFakeSubscription } from './make-fake-subscription';
+
+import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
 
 const fcmSenderId = '1234567';

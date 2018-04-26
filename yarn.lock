@@ -2,6 +2,24 @@
 # yarn lockfile v1
 
 
+"@firebase/app-types@0.1.2":
+  version "0.1.2"
+  resolved "https://registry.npmjs.org/@firebase/app-types/-/app-types-0.1.2.tgz#a20cb346e3be374c0bdee6b102de0ea5e8e6fa27"
+
+"@firebase/app@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.npmjs.org/@firebase/app/-/app-0.1.10.tgz#fc80c62dbe4d601cad1495bc095309adb9074f85"
+  dependencies:
+    "@firebase/app-types" "0.1.2"
+    "@firebase/util" "0.1.10"
+    tslib "^1.9.0"
+
+"@firebase/util@0.1.10":
+  version "0.1.10"
+  resolved "https://registry.npmjs.org/@firebase/util/-/util-0.1.10.tgz#7898f6e36c8231c287c4024c313000df677b1363"
+  dependencies:
+    tslib "^1.9.0"
+
 "@google-cloud/common-grpc@^0.6.0":
   version "0.6.1"
   resolved "https://registry.npmjs.org/@google-cloud/common-grpc/-/common-grpc-0.6.1.tgz#629dfb90690f6a38263bbf16eb9740ea4cbcf9df"
@@ -256,7 +274,7 @@
   version "4.14.106"
   resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.106.tgz#6093e9a02aa567ddecfe9afadca89e53e5dce4dd"
 
-"@types/long@^3.0.32":
+"@types/long@3.0.32", "@types/long@^3.0.32":
   version "3.0.32"
   resolved "https://registry.npmjs.org/@types/long/-/long-3.0.32.tgz#f4e5af31e9e9b196d8e5fca8a5e2e20aa3d60b69"
 
@@ -283,6 +301,18 @@
 "@types/q@^0.0.32":
   version "0.0.32"
   resolved "https://registry.npmjs.org/@types/q/-/q-0.0.32.tgz#bd284e57c84f1325da702babfc82a5328190c0c5"
+
+"@types/react-native@0.55.2":
+  version "0.55.2"
+  resolved "https://registry.npmjs.org/@types/react-native/-/react-native-0.55.2.tgz#78e7e963eb1172eb715507e733b99821e4ce9072"
+  dependencies:
+    "@types/react" "*"
+
+"@types/react@*":
+  version "16.3.10"
+  resolved "https://registry.npmjs.org/@types/react/-/react-16.3.10.tgz#2f25eef83f7c7f6c51cea4c02660f727c75d3b33"
+  dependencies:
+    csstype "^2.2.0"
 
 "@types/selenium-webdriver@^2.53.35", "@types/selenium-webdriver@~2.53.39":
   version "2.53.43"
@@ -2414,6 +2444,10 @@ crypto-random-string@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
 
+csstype@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/csstype/-/csstype-2.2.0.tgz#1656ef97553ac53b77090844a2531c6660ebd902"
+
 csv-streamify@^3.0.4:
   version "3.0.4"
   resolved "https://registry.npmjs.org/csv-streamify/-/csv-streamify-3.0.4.tgz#4cb614c57e3f299cca17b63fdcb4ad167777f47a"
@@ -4474,16 +4508,7 @@ growl@1.10.3:
   version "1.10.3"
   resolved "https://registry.npmjs.org/growl/-/growl-1.10.3.tgz#1926ba90cf3edfe2adb4927f5880bc22c66c790f"
 
-grpc@1.9.1:
-  version "1.9.1"
-  resolved "https://registry.npmjs.org/grpc/-/grpc-1.9.1.tgz#18d7cfce153ebf952559e62dadbc8bbb85da1eac"
-  dependencies:
-    lodash "^4.15.0"
-    nan "^2.0.0"
-    node-pre-gyp "^0.6.39"
-    protobufjs "^5.0.0"
-
-grpc@^1.10.0:
+grpc@1.10.1, grpc@^1.10.0:
   version "1.10.1"
   resolved "https://registry.npmjs.org/grpc/-/grpc-1.10.1.tgz#90691404aeb769a98784924d08e8fd07c920b2da"
   dependencies:
@@ -6550,13 +6575,13 @@ lolex@^2.2.0, lolex@^2.3.2:
   version "2.3.2"
   resolved "https://registry.npmjs.org/lolex/-/lolex-2.3.2.tgz#85f9450425103bf9e7a60668ea25dc43274ca807"
 
+long@3.2.0, long@~3:
+  version "3.2.0"
+  resolved "https://registry.npmjs.org/long/-/long-3.2.0.tgz#d821b7138ca1cb581c172990ef14db200b5c474b"
+
 long@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/long/-/long-4.0.0.tgz#9a7b71cfb7d361a194ea555241c92f7468d5bf28"
-
-long@~3:
-  version "3.2.0"
-  resolved "https://registry.npmjs.org/long/-/long-3.2.0.tgz#d821b7138ca1cb581c172990ef14db200b5c474b"
 
 longest@^1.0.1:
   version "1.0.1"
@@ -7037,7 +7062,7 @@ mz@2.7.0:
     object-assign "^4.0.1"
     thenify-all "^1.0.0"
 
-nan@^2.0.0, nan@^2.10.0, nan@^2.3.0:
+nan@^2.10.0, nan@^2.3.0:
   version "2.10.0"
   resolved "https://registry.npmjs.org/nan/-/nan-2.10.0.tgz#96d0cd610ebd58d4b4de9cc0c6828cda99c7548f"
 

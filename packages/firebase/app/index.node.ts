@@ -14,30 +14,22 @@
  * limitations under the License.
  */
 
-export function isArrayBufferEqual(
-  a: ArrayBufferLike | undefined | null,
-  b: ArrayBufferLike | undefined | null
-): boolean {
-  if (a == null || b == null) {
-    return false;
-  }
+import '@firebase/polyfill';
+import firebase from '@firebase/app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import Storage from 'dom-storage';
+import { XMLHttpRequest } from 'xmlhttprequest';
 
-  if (a === b) {
-    return true;
-  }
+const _firebase = firebase as _FirebaseNamespace;
 
-  if (a.byteLength !== b.byteLength) {
-    return false;
-  }
-
-  const viewA = new DataView(a);
-  const viewB = new DataView(b);
-
-  for (let i = 0; i < a.byteLength; i++) {
-    if (viewA.getUint8(i) !== viewB.getUint8(i)) {
-      return false;
+_firebase.INTERNAL.extendNamespace({
+  INTERNAL: {
+    node: {
+      localStorage: new Storage(null, { strict: true }),
+      sessionStorage: new Storage(null, { strict: true }),
+      XMLHttpRequest
     }
   }
+});
 
-  return true;
-}
+export default firebase;

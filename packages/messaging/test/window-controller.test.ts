@@ -15,8 +15,9 @@
  */
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { makeFakeApp } from './make-fake-app';
-import { makeFakeSWReg } from './make-fake-sw-reg';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
@@ -163,11 +164,11 @@ describe('Firebase Messaging > *WindowController', () => {
     it('should reject if the requestPermission() is denied', () => {
       sandbox.stub(Notification as any, 'permission').value('denied');
       sandbox
-        .stub(Notification as any, 'requestPermission')
+        .stub(Notification, 'requestPermission')
         .returns(Promise.resolve('denied'));
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any).then(
+      return controller.requestPermission().then(
         () => {
           throw new Error('Expected an error.');
         },
@@ -180,11 +181,11 @@ describe('Firebase Messaging > *WindowController', () => {
     it('should reject if the requestPermission() is default', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
-        .stub(Notification as any, 'requestPermission')
+        .stub(Notification, 'requestPermission')
         .returns(Promise.resolve('default'));
 
       const controller = new WindowController(app);
-      return (controller.requestPermission() as any).then(
+      return controller.requestPermission().then(
         () => {
           throw new Error('Expected an error.');
         },
@@ -197,21 +198,21 @@ describe('Firebase Messaging > *WindowController', () => {
     it('should resolve if the requestPermission() is granted', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
-        .stub(Notification as any, 'requestPermission')
+        .stub(Notification, 'requestPermission')
         .returns(Promise.resolve('granted'));
 
       const controller = new WindowController(app);
-      return controller.requestPermission() as any;
+      return controller.requestPermission();
     });
 
     it('should resolve if the requestPermission() is granted using old callback API', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
-      sandbox.stub(Notification as any, 'requestPermission').callsFake(cb => {
+      sandbox.stub(Notification, 'requestPermission').callsFake(cb => {
         cb('granted');
       });
 
       const controller = new WindowController(app);
-      return controller.requestPermission() as any;
+      return controller.requestPermission();
     });
   });
 
@@ -252,13 +253,13 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = () => {};
 
       const controller = new WindowController(app);
-      sandbox.stub(controller as any, 'onMessage_');
+      const onMessageStub = sandbox.stub(controller as any, 'onMessage');
       controller.onMessage(nextFunc, errFunc, compFunc);
 
-      expect(controller['onMessage_']['callCount']).to.equal(1);
-      expect(controller['onMessage_']['args'][0][0]).to.equal(nextFunc);
-      expect(controller['onMessage_']['args'][0][1]).to.equal(errFunc);
-      expect(controller['onMessage_']['args'][0][2]).to.equal(compFunc);
+      expect(onMessageStub.callCount).to.equal(1);
+      expect(onMessageStub.args[0][0]).to.equal(nextFunc);
+      expect(onMessageStub.args[0][1]).to.equal(errFunc);
+      expect(onMessageStub.args[0][2]).to.equal(compFunc);
     });
   });
 
@@ -269,13 +270,16 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = () => {};
 
       const controller = new WindowController(app);
-      sandbox.stub(controller as any, 'onTokenRefresh_');
+      const onTokenRefreshStub = sandbox.stub(
+        controller as any,
+        'onTokenRefresh'
+      );
       controller.onTokenRefresh(nextFunc, errFunc, compFunc);
 
-      expect(controller['onTokenRefresh_']['callCount']).to.equal(1);
-      expect(controller['onTokenRefresh_']['args'][0][0]).to.equal(nextFunc);
-      expect(controller['onTokenRefresh_']['args'][0][1]).to.equal(errFunc);
-      expect(controller['onTokenRefresh_']['args'][0][2]).to.equal(compFunc);
+      expect(onTokenRefreshStub.callCount).to.equal(1);
+      expect(onTokenRefreshStub.args[0][0]).to.equal(nextFunc);
+      expect(onTokenRefreshStub.args[0][1]).to.equal(errFunc);
+      expect(onTokenRefreshStub.args[0][2]).to.equal(compFunc);
     });
   });
 
@@ -407,7 +411,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const callback = messageCallbackSpy.args[0][1];
 
       // Ensure it's not defined
-      controller['messageObserver_'] = null;
+      controller['messageObserver'] = null;
 
       callback({
         data: {
@@ -454,14 +458,14 @@ describe('Firebase Messaging > *WindowController', () => {
 
   describe('waitForRegistrationToActivate_', () => {
     it('should handle service worker lifecycle', () => {
-      let changeListener;
+      let changeListener = () => {};
       const swValue = {
         state: 'installing',
-        addEventListener: (eventName, cb) => {
+        addEventListener: (eventName: string, cb: () => void) => {
           expect(eventName).to.equal('statechange');
           changeListener = cb;
         },
-        removeEventListener: (eventName, cb) => {
+        removeEventListener: (eventName: string, cb: () => void) => {
           expect(eventName).to.equal('statechange');
           expect(cb).to.equal(changeListener);
         }

@@ -1,10 +1,13 @@
 {
   "name": "@firebase/polyfill",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",

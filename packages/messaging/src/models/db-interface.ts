@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
-
-import { ERROR_MAP } from './errors';
-
 export abstract class DBInterface {
   private dbPromise: Promise<IDBDatabase> | null = null;
 
   protected abstract readonly dbName: string;
   protected abstract readonly dbVersion: number;
   protected abstract readonly objectStoreName: string;
-
-  protected readonly errorFactory: ErrorFactory<string> = new ErrorFactory(
-    'messaging',
-    'Messaging',
-    ERROR_MAP
-  );
 
   /**
    * Database initialization.
