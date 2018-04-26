@@ -36,6 +36,10 @@ import {
 } from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
+interface ManifestContent {
+  gcm_sender_id: string;
+}
+
 export class WindowController extends ControllerInterface {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
@@ -75,10 +79,12 @@ export class WindowController extends ControllerInterface {
    * @return Returns a promise that resolves to an FCM token or null if
    * permission isn't granted.
    */
-  getToken(): Promise<string | null> {
-    return this.manifestCheck_().then(() => {
-      return super.getToken();
-    });
+  async getToken(): Promise<string | null> {
+    if (!this.manifestCheckPromise) {
+      this.manifestCheckPromise = this.manifestCheck_();
+    }
+    await this.manifestCheckPromise;
+    return super.getToken();
   }
 
   /**
@@ -89,41 +95,32 @@ export class WindowController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: make private
-  manifestCheck_(): Promise<void> {
-    if (this.manifestCheckPromise) {
-      return this.manifestCheckPromise;
-    }
-
+  async manifestCheck_(): Promise<void> {
     const manifestTag = document.querySelector<HTMLAnchorElement>(
       'link[rel="manifest"]'
     );
+
     if (!manifestTag) {
-      this.manifestCheckPromise = Promise.resolve();
-    } else {
-      this.manifestCheckPromise = fetch(manifestTag.href)
-        .then(response => {
-          return response.json();
-        })
-        .catch(() => {
-          // If the download or parsing fails allow check.
-          // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-        })
-        .then(manifestContent => {
-          if (!manifestContent) {
-            return;
-          }
-
-          if (!manifestContent['gcm_sender_id']) {
-            return;
-          }
-
-          if (manifestContent['gcm_sender_id'] !== '103953800507') {
-            throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
-          }
-        });
+      return;
     }
 
-    return this.manifestCheckPromise;
+    let manifestContent: ManifestContent;
+    try {
+      const response = await fetch(manifestTag.href);
+      manifestContent = await response.json();
+    } catch (e) {
+      // If the download or parsing fails allow check.
+      // We only want to error if we KNOW that the gcm_sender_id is incorrect.
+      return;
+    }
+
+    if (!manifestContent || !manifestContent.gcm_sender_id) {
+      return;
+    }
+
+    if (manifestContent.gcm_sender_id !== '103953800507') {
+      throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
+    }
   }
 
   /**
@@ -334,12 +331,12 @@ export class WindowController extends ControllerInterface {
    * This will return the default VAPID key or the uint8array version of the public VAPID key
    * provided by the developer.
    */
-  getPublicVapidKey_(): Promise<Uint8Array> {
+  async getPublicVapidKey_(): Promise<Uint8Array> {
     if (this.publicVapidKeyToUse) {
-      return Promise.resolve(this.publicVapidKeyToUse);
+      return this.publicVapidKeyToUse;
     }
 
-    return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
+    return DEFAULT_PUBLIC_VAPID_KEY;
   }
 
   /**
