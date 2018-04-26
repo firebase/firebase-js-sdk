@@ -425,7 +425,7 @@ abstract class TestRunner {
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.persistence.shutdown(true);
     await this.destroyPersistence();
   }
 

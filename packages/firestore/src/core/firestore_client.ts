@@ -335,7 +335,7 @@ export class FirestoreClient {
     });
   }
 
-  shutdown(): Promise<void> {
+  shutdown(options?: { purgePersistenceWithDataLoss?: boolean }): Promise<void> {
     return this.asyncQueue
       .enqueue(() => {
         this.credentials.removeUserChangeListener();
@@ -343,7 +343,9 @@ export class FirestoreClient {
       })
       .then(() => {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        return this.persistence.shutdown();
+        return this.persistence.shutdown(
+          options && options.purgePersistenceWithDataLoss
+        );
       });
   }
 
