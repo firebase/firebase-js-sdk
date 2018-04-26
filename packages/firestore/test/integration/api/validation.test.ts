@@ -277,8 +277,7 @@ apiDescribe('Validation:', persistence => {
 
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
-        `Query.onSnapshot(). Available options: ` +
-        `includeQueryMetadataChanges, includeDocumentMetadataChanges`
+        `Query.onSnapshot(). Available options: includeMetadataChanges`
     );
   });
 
