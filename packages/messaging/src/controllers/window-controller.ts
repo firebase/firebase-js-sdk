@@ -129,37 +129,18 @@ export class WindowController extends ControllerInterface {
    * @return Resolves if the permission was granted, otherwise rejects
    */
   async requestPermission(): Promise<void> {
-    if (
-      // TODO: Remove the cast when this issue is fixed:
-      // https://github.com/Microsoft/TypeScript/issues/14701
-      // tslint:disable-next-line no-any
-      ((Notification as any).permission as NotificationPermission) === 'granted'
-    ) {
+    if (this.getNotificationPermission_() === 'granted') {
       return;
     }
 
-    return new Promise<void>((resolve, reject) => {
-      const managePermissionResult = (result: NotificationPermission) => {
-        if (result === 'granted') {
-          return resolve();
-        } else if (result === 'denied') {
-          return reject(errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED));
-        } else {
-          return reject(errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT));
-        }
-      };
-
-      // The Notification.requestPermission API was changed to
-      // return a promise so now have to handle both in case
-      // browsers stop support callbacks for promised version
-      const permissionPromise = Notification.requestPermission(
-        managePermissionResult
-      );
-      if (permissionPromise) {
-        // Prefer the promise version as it's the future API.
-        permissionPromise.then(managePermissionResult);
-      }
-    });
+    const permissionResult = await Notification.requestPermission();
+    if (permissionResult === 'granted') {
+      return;
+    } else if (permissionResult === 'denied') {
+      throw errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED);
+    } else {
+      throw errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT);
+    }
   }
 
   /**

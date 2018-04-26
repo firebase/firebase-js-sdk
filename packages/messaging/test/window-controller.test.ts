@@ -206,16 +206,6 @@ describe('Firebase Messaging > *WindowController', () => {
       const controller = new WindowController(app);
       return controller.requestPermission();
     });
-
-    it('should resolve if the requestPermission() is granted using old callback API', () => {
-      sandbox.stub(Notification as any, 'permission').value('default');
-      sandbox.stub(Notification, 'requestPermission').callsFake(cb => {
-        cb('granted');
-      });
-
-      const controller = new WindowController(app);
-      return controller.requestPermission();
-    });
   });
 
   describe('useServiceWorker()', () => {
