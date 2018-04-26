@@ -335,7 +335,9 @@ export class FirestoreClient {
     });
   }
 
-  shutdown(options?: { purgePersistenceWithDataLoss?: boolean }): Promise<void> {
+  shutdown(options?: {
+    purgePersistenceWithDataLoss?: boolean;
+  }): Promise<void> {
     return this.asyncQueue
       .enqueue(() => {
         this.credentials.removeUserChangeListener();

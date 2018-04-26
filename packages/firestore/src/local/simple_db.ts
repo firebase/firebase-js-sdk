@@ -117,16 +117,15 @@ export class SimpleDb {
       // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
       if (
-          ua.indexOf('MSIE ') > 0 ||
-          ua.indexOf('Trident/') > 0 ||
-          ua.indexOf('Edge/') > 0
+        ua.indexOf('MSIE ') > 0 ||
+        ua.indexOf('Trident/') > 0 ||
+        ua.indexOf('Edge/') > 0
       ) {
         return false;
       }
     }
 
     return true;
-
   }
 
   constructor(private db: IDBDatabase) {}
