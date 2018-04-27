@@ -23,7 +23,10 @@ import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 
 // We need to check both `window` and `window.navigator` to make sure we are
 // not running in Node with IndexedDBShim.
-const describeFn = typeof window === 'object' && typeof window.navigator === 'object' ? describe : xdescribe;
+const describeFn =
+  typeof window === 'object' && typeof window.navigator === 'object'
+    ? describe
+    : xdescribe;
 
 describeFn('WebChannel', () => {
   describe('makeUrl', () => {
