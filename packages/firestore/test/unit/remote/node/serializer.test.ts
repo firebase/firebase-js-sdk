@@ -20,6 +20,7 @@ import * as Long from 'long';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
 import { GeoPoint } from '../../../../src/api/geo_point';
+import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
@@ -686,7 +687,10 @@ describe('Serializer', () => {
     });
 
     it('TransformMutation', () => {
-      const mutation = transformMutation('baz/quux', ['a', 'bar.baz']);
+      const mutation = transformMutation('baz/quux', {
+        a: FieldValue.serverTimestamp(),
+        'bar.baz': FieldValue.serverTimestamp()
+      });
       const proto = {
         transform: {
           document: s.toName(mutation.key),

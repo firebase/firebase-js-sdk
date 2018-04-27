@@ -67,11 +67,9 @@ import {
 } from '../../src/model/field_value';
 import {
   DeleteMutation,
-  FieldTransform,
   MutationResult,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
   TransformMutation
 } from '../../src/model/mutation';
@@ -89,7 +87,7 @@ import {
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { AnyJs, primitiveComparator } from '../../src/util/misc';
-import { forEach } from '../../src/util/obj';
+import { forEach, Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 
@@ -203,21 +201,18 @@ export function deleteMutation(keyStr: string): DeleteMutation {
   return new DeleteMutation(key(keyStr), Precondition.NONE);
 }
 
-// For now this only creates TransformMutations with server timestamps.
+/**
+ * Creates a TransformMutation by parsing any FieldValue sentinels in the
+ * provided data. The data is expected to use dotted-notation for nested fields
+ * (i.e. { "foo.bar": FieldValue.foo() } and must not contain any non-sentinel
+ * data.
+ */
 export function transformMutation(
   keyStr: string,
-  serverTimestampFields: string[]
+  data: Dict<AnyJs>
 ): TransformMutation {
-  return new TransformMutation(
-    key(keyStr),
-    serverTimestampFields.map(
-      field =>
-        new FieldTransform(
-          fromDotSeparatedString(field)._internalPath,
-          ServerTimestampTransform.instance
-        )
-    )
-  );
+  const result = dataConverter.parseUpdateData('transformMutation()', data);
+  return new TransformMutation(key(keyStr), result.fieldTransforms);
 }
 
 export function mutationResult(

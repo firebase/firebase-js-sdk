@@ -75,6 +75,30 @@ export class ServerTimestampTransform implements TransformOperation {
   }
 }
 
+/** Transforms an array value via a union operation. */
+export class ArrayUnionTransformOperation {
+  constructor(readonly elements: FieldValue[]) {}
+
+  isEqual(other: TransformOperation): boolean {
+    return (
+      other instanceof ArrayUnionTransformOperation &&
+      misc.arrayEquals(other.elements, this.elements)
+    );
+  }
+}
+
+/** Transforms an array value via a remove operation. */
+export class ArrayRemoveTransformOperation {
+  constructor(readonly elements: FieldValue[]) {}
+
+  isEqual(other: TransformOperation): boolean {
+    return (
+      other instanceof ArrayRemoveTransformOperation &&
+      misc.arrayEquals(other.elements, this.elements)
+    );
+  }
+}
+
 /** A field path and the TransformOperation to perform upon it. */
 export class FieldTransform {
   constructor(
@@ -604,7 +628,6 @@ export class TransformMutation extends Mutation {
 
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
-      const transform = fieldTransform.transform;
       const fieldPath = fieldTransform.field;
       if (transform instanceof ServerTimestampTransform) {
         data = data.set(fieldPath, transformResults[i]);
