@@ -16,11 +16,12 @@
 
 import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
+import * as os from 'os';
 
 // WARNING: The `indexeddbshim` installed via this module should only ever be
-// used during initial development. Do not use this code in your production apps
-// and always validate your changes via `yarn test:browser` (which uses a
-// browser-based IndexedDB implementation) before integrating with Firestore.
+// used during initial development. Always validate your changes via
+// `yarn test:browser` (which uses a browser-based IndexedDB implementation)
+// before integrating with Firestore.
 //
 // To use this code to run persistence-based tests in Node, include this module
 // and set the environment variable `USE_MOCK_PERSISTENCE` to `YES`.
@@ -30,9 +31,9 @@ const globalAny = global as any; // tslint:disable-line:no-any
 if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   registerIndexedDBShim(null, {
     checkOrigin: false,
-    deleteDatabaseFiles: true
+    deleteDatabaseFiles: true,
   });
-  globalAny.window = { indexedDB: globalAny.indexedDB };
+  globalAny.window = Object.assign(globalAny.window || {}, { indexedDB: globalAny.indexedDB });
 }
 
 // `deleteDatabaseFiles` does not reliable delete all SQLite files. Before
