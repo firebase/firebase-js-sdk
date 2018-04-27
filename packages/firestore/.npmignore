@@ -1,6 +1,7 @@
 # Directories not needed by end users
 /src
 test
+.idea
 
 # Files not needed by end users
 gulpfile.js
