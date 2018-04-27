@@ -82,18 +82,60 @@ var getAccountInfoResponseProviderData1 = null;
 var getAccountInfoResponseProviderData2 = null;
 // A sample JWT, along with its decoded contents.
 var idTokenGmail = {
-  jwt: 'HEADER.ew0KICAiaXNzIjogIkdJVGtpdCIsDQogICJleHAiOiAxMzI2NDM5' +
-    'MDQ0LA0KICAic3ViIjogIjY3OSIsDQogICJhdWQiOiAiMjA0MjQxNjMxNjg2IiwNCiAgImZl' +
-    'ZGVyYXRlZF9pZCI6ICJodHRwczovL3d3dy5nb29nbGUuY29tL2FjY291bnRzLzEyMzQ1Njc4' +
-    'OSIsDQogICJwcm92aWRlcl9pZCI6ICJnbWFpbC5jb20iLA0KICAiZW1haWwiOiAidGVzdDEy' +
-    'MzQ1NkBnbWFpbC5jb20iDQp9.SIGNATURE',
+  jwt: 'HEADER.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcHJvamVjdE' +
+       'lkIiwiYXV0aF90aW1lIjoxNTIyNzE1MzI1LCJzdWIiOiI2NzkiLCJhdWQiOiJwcm9qZWN' +
+       '0SWQiLCJpYXQiOjE1MjI3NzY4MDcsImV4cCI6MTUyMjc4MDU3NSwiZmVkZXJhdGVkX2lk' +
+       'IjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9hY2NvdW50cy8xMjM0NTY3ODkiLCJwcm92a' +
+       'WRlcl9pZCI6ImdtYWlsLmNvbSIsImVtYWlsIjoidGVzdDEyMzQ1NkBnbWFpbC5jb20iLC' +
+       'JmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxMjM0NTZAZ21haWw' +
+       'uY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.SIGNATURE',
   data: {
-    exp: 1326439044,
+    iss: 'https://securetoken.google.com/projectId',
+    auth_time: 1522715325,
     sub: '679',
-    aud: '204241631686',
+    aud: 'projectId',
+    iat: 1522776807,
+    exp: 1522780575,
     provider_id: 'gmail.com',
     email: 'test123456@gmail.com',
-    federated_id: 'https://www.google.com/accounts/123456789'
+    federated_id: 'https://www.google.com/accounts/123456789',
+    firebase: {
+      identities: {
+        email: [
+          'test123456@gmail.com'
+        ]
+      },
+      sign_in_provider: 'password'
+    }
+  }
+};
+var idTokenCustomClaims = {
+  jwt: 'HEADER.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcHJvamVjdE' +
+       'lkIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImF1ZCI6InByb2plY3RJZCI' +
+       'sImF1dGhfdGltZSI6MTUyMjcxNTMyNSwic3ViIjoibmVwMnV3TkNLNFBxanZvS2piMElu' +
+       'VkpIbEdpMSIsImlhdCI6MTUyMjc3NjgwNywiZXhwIjoxNTIyNzgwNTc1LCJlbWFpbCI6I' +
+       'nRlc3R1c2VyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZS' +
+       'I6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3R1c2VyQGdtYWlsLmNvbSJdfSwic2l' +
+       'nbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.SIGNATURE',
+  data: {
+    iss: 'https://securetoken.google.com/projectId',
+    name: 'John Doe',
+    admin: true,
+    aud: 'projectId',
+    auth_time: 1522715325,
+    sub: 'nep2uwNCK4PqjvoKjb0InVJHlGi1',
+    iat: 1522776807,
+    exp: 1522780575,
+    email: "testuser@gmail.com",
+    email_verified: true,
+    firebase: {
+      identities: {
+        email: [
+          'testuser@gmail.com'
+        ]
+      },
+      sign_in_provider: 'password'
+    }
   }
 };
 var stsTokenResponse = {
@@ -1177,6 +1219,213 @@ function testExtractLinkedAccounts_withoutEmail() {
   assertObjectEquals(
       expectedProviders,
       user.extractLinkedAccounts_(resp));
+}
+
+
+function testUser_getIdTokenResult() {
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  asyncTestCase.waitForSignals(1);
+  // Test with available token.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'getIdToken',
+      function(opt_forceRefresh) {
+        return goog.Promise.resolve(idTokenCustomClaims.jwt);
+      });
+  user.getIdTokenResult().then(function(idTokenResult) {
+    fireauth.common.testHelper.assertIdTokenResult(
+        idTokenResult,
+        idTokenCustomClaims.jwt,
+        1522780575,
+        1522715325,
+        1522776807,
+        'password',
+        idTokenCustomClaims.data);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_getIdTokenResult_forceRefresh() {
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  asyncTestCase.waitForSignals(1);
+  // Test with available token.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'getIdToken',
+      function(opt_forceRefresh) {
+        assertTrue(opt_forceRefresh);
+        return goog.Promise.resolve(idTokenCustomClaims.jwt);
+      });
+  user.getIdTokenResult(true).then(function(idTokenResult) {
+    fireauth.common.testHelper.assertIdTokenResult(
+        idTokenResult,
+        idTokenCustomClaims.jwt,
+        1522780575,
+        1522715325,
+        1522776807,
+        'password',
+        idTokenCustomClaims.data);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_getIdTokenResult_error() {
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  asyncTestCase.waitForSignals(1);
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'getIdToken',
+      function(opt_forceRefresh) {
+        return goog.Promise.reject(expectedError);
+      });
+  user.getIdTokenResult().thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_getIdTokenResult_invalidToken() {
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  asyncTestCase.waitForSignals(1);
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'getIdToken',
+      function(opt_forceRefresh) {
+        return goog.Promise.resolve('gegege.invalid.ggrgheh');
+      });
+  user.getIdTokenResult().thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
+            'An internal error occurred. The token obtained by Firebase '+
+            'appears to be malformed. Please retry the operation.'),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_getIdTokenResult_expiredToken_reauth() {
+  // Test when token is expired and user is reauthenticated.
+  // User should be validated after, even though user invalidation event is
+  // triggered.
+  var validTokenResponse = {
+    'idToken': expectedReauthenticateTokenResponse['idToken'],
+    'accessToken': expectedReauthenticateTokenResponse['idToken'],
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
+    'expiresIn': 3600
+  };
+  var credential = /** @type {!fireauth.AuthCredential} */ ({
+    matchIdTokenWithUid: function() {
+      stubs.replace(
+          fireauth.RpcHandler.prototype,
+          'getAccountInfoByIdToken',
+          function(idToken) {
+            return goog.Promise.resolve(getAccountInfoResponse);
+          });
+      return goog.Promise.resolve(expectedReauthenticateTokenResponse);
+    }
+  });
+  // Expected token expired error.
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.TOKEN_EXPIRED);
+  // Event trackers.
+  var stateChangeCounter = 0;
+  var authChangeCounter = 0;
+  var userInvalidateCounter = 0;
+  accountInfo['uid'] = '679';
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  // Track token changes.
+  goog.events.listen(
+      user, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        authChangeCounter++;
+      });
+  // Track user invalidation events.
+  goog.events.listen(
+      user, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidateCounter++;
+      });
+  // State change should be triggered.
+  user.addStateChangeListener(function(userTemp) {
+    stateChangeCounter++;
+    return goog.Promise.resolve();
+  });
+  asyncTestCase.waitForSignals(1);
+  // Stub token manager.
+  stubs.replace(
+      fireauth.StsTokenManager.prototype,
+      'getToken',
+      function(opt_forceRefresh) {
+        // Resolve if new refresh token provided.
+        if (this.getRefreshToken() == validTokenResponse['refreshToken']) {
+          return goog.Promise.resolve(validTokenResponse);
+        }
+        // Reject otherwise.
+        return goog.Promise.reject(expectedError);
+      });
+  // Confirm expected initial refresh token set on user.
+  assertEquals(tokenResponse['refreshToken'], user['refreshToken']);
+  // Call getIdToken, it should trigger the expected error and a state change
+  // event.
+  user.getIdTokenResult().thenCatch(function(error) {
+    // Refresh token nullified.
+    assertEquals(tokenResponse['refreshToken'], user['refreshToken']);
+    // Confirm expected error.
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    // No state change.
+    assertEquals(0, stateChangeCounter);
+    // No Auth change.
+    assertEquals(0, authChangeCounter);
+    // User invalidated change.
+    assertEquals(1, userInvalidateCounter);
+    // Call again, it should not trigger another state change or any other
+    // event.
+    user.getIdTokenResult().thenCatch(function(error) {
+      // Resolves with same error.
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      // No additional change.
+      assertEquals(0, stateChangeCounter);
+      assertEquals(0, authChangeCounter);
+      assertEquals(1, userInvalidateCounter);
+      // Assume user reauthenticated.
+      // This should resolve.
+      user.reauthenticateAndRetrieveDataWithCredential(credential)
+          .then(function(result) {
+            // Set via reauthentication.
+            assertEquals(
+                validTokenResponse['refreshToken'], user['refreshToken']);
+            // Auth token change triggered.
+            assertEquals(1, authChangeCounter);
+            // State change triggers, after reauthentication.
+            assertEquals(1, stateChangeCounter);
+            // Shouldn't trigger again.
+            assertEquals(1, userInvalidateCounter);
+            // This should return cached token set via reauthentication.
+            user.getIdTokenResult().then(function(idTokenResult) {
+              // Shouldn't trigger again.
+              assertEquals(1, authChangeCounter);
+              assertEquals(1, stateChangeCounter);
+              assertEquals(1, userInvalidateCounter);
+              // Refresh token should be updated along with ID token.
+              assertEquals(
+                  validTokenResponse['refreshToken'], user['refreshToken']);
+              fireauth.common.testHelper.assertIdTokenResult(
+                  idTokenResult,
+                  idTokenGmail.jwt,
+                  1522780575,
+                  1522715325,
+                  1522776807,
+                  'password',
+                  idTokenGmail.data);
+              asyncTestCase.signal();
+           });
+      });
+    });
+  });
 }
 
 

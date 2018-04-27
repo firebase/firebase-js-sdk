@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
-const karmaBase = require('../../config/karma.base');
+declare const window: { firebase: any };
 
-const files = [`dist/**/*`];
+import { FirebaseApp } from '@firebase/app-types';
 
-module.exports = function(config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files: files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+export function makeFakeApp(options: object = {}): FirebaseApp {
+  window.firebase = window.firebase || {};
+  const app: any = {};
+  app.INTERNAL = window.firebase.INTERNAL;
+  app.options = options;
+  return app;
+}

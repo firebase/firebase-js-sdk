@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
+export interface NotificationDetails extends NotificationOptions {
+  title: string;
+  click_action?: string;
+}
 
-export function makeFakeApp(options: object = {}): FirebaseApp {
-  window['firebase'] = window['firebase'] || {};
-  const app: any = {};
-  app.INTERNAL = window['firebase'].INTERNAL;
-  app.options = options;
-  return app as FirebaseApp;
+export interface MessagePayload {
+  notification?: NotificationDetails;
+  data?: object;
 }

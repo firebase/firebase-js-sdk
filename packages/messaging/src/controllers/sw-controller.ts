@@ -14,61 +14,60 @@
  * limitations under the License.
  */
 
+import './sw-types';
+
 import { FirebaseApp } from '@firebase/app-types';
 
-import { ERROR_CODES } from '../models/errors';
+import {
+  MessagePayload,
+  NotificationDetails
+} from '../interfaces/message-payload';
+import { ERROR_CODES, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import * as WorkerPageMessage from '../models/worker-page-message';
-import { ControllerInterface } from './controller-interface';
+import {
+  InternalMessage,
+  MessageParameter,
+  MessageType
+} from '../models/worker-page-message';
+import { BgMessageHandler, ControllerInterface } from './controller-interface';
+
+// Let TS know that this is a service worker
+declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export type BgMessageHandler = (input: any) => Promise<any>;
-
 export class SWController extends ControllerInterface {
-  private bgMessageHandler_: BgMessageHandler | null = null;
+  private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {
     super(app);
 
-    self.addEventListener(
-      'push',
-      (e: any) => {
-        this.onPush(e);
-      },
-      false
-    );
-    self.addEventListener(
-      'pushsubscriptionchange',
-      (e: any) => {
-        this.onSubChange(e);
-      },
-      false
-    );
-    self.addEventListener(
-      'notificationclick',
-      (e: any) => {
-        this.onNotificationClick(e);
-      },
-      false
-    );
+    self.addEventListener('push', e => {
+      this.onPush(e);
+    });
+    self.addEventListener('pushsubscriptionchange', e => {
+      this.onSubChange(e);
+    });
+    self.addEventListener('notificationclick', e => {
+      this.onNotificationClick(e);
+    });
   }
 
   // Visible for testing
   // TODO: Make private
-  onPush(event: any): void {
+  onPush(event: PushEvent): void {
     event.waitUntil(this.onPush_(event));
   }
 
   // Visible for testing
   // TODO: Make private
-  onSubChange(event: any): void {
+  onSubChange(event: PushSubscriptionChangeEvent): void {
     event.waitUntil(this.onSubChange_(event));
   }
 
   // Visible for testing
   // TODO: Make private
-  onNotificationClick(event: any): void {
+  onNotificationClick(event: NotificationEvent): void {
     event.waitUntil(this.onNotificationClick_(event));
   }
 
@@ -84,8 +83,12 @@ export class SWController extends ControllerInterface {
    * If there is no notification data in the payload then no notification will be
    * shown.
    */
-  private async onPush_(event: any): Promise<void> {
-    let msgPayload: any;
+  private async onPush_(event: PushEvent): Promise<void> {
+    if (!event.data) {
+      return;
+    }
+
+    let msgPayload: MessagePayload;
     try {
       msgPayload = event.data.json();
     } catch (err) {
@@ -96,7 +99,7 @@ export class SWController extends ControllerInterface {
     const hasVisibleClients = await this.hasVisibleClients_();
     if (hasVisibleClients) {
       // Do not need to show a notification.
-      if (msgPayload.notification || this.bgMessageHandler_) {
+      if (msgPayload.notification || this.bgMessageHandler) {
         // Send to page
         return this.sendMessageToWindowClients_(msgPayload);
       }
@@ -105,20 +108,23 @@ export class SWController extends ControllerInterface {
 
     const notificationDetails = this.getNotificationData_(msgPayload);
     if (notificationDetails) {
-      const notificationTitle = (notificationDetails as any).title || '';
+      const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
       return reg.showNotification(notificationTitle, notificationDetails);
-    } else if (this.bgMessageHandler_) {
-      return this.bgMessageHandler_(msgPayload);
+    } else if (this.bgMessageHandler) {
+      await this.bgMessageHandler(msgPayload);
+      return;
     }
   }
 
-  private async onSubChange_(event: any): Promise<void> {
+  private async onSubChange_(
+    event: PushSubscriptionChangeEvent
+  ): Promise<void> {
     let registration: ServiceWorkerRegistration;
     try {
       registration = await this.getSWRegistration_();
     } catch (err) {
-      throw this.errorFactory_.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
+      throw errorFactory.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
         message: err
       });
     }
@@ -140,12 +146,12 @@ export class SWController extends ControllerInterface {
       }
 
       // Attempt to delete the token if we know it's bad
-      await this.deleteToken(tokenDetails['fcmToken']);
+      await this.deleteToken(tokenDetails.fcmToken);
       throw err;
     }
   }
 
-  private async onNotificationClick_(event: any): Promise<void> {
+  private async onNotificationClick_(event: NotificationEvent): Promise<void> {
     if (
       !event.notification ||
       !event.notification.data ||
@@ -153,20 +159,24 @@ export class SWController extends ControllerInterface {
     ) {
       // Not an FCM notification, do nothing.
       return;
+    } else if (event.action) {
+      // User clicked on an action button.
+      // This will allow devs to act on action button clicks by using a custom
+      // onNotificationClick listener that they define.
+      return;
     }
 
     // Prevent other listeners from receiving the event
     event.stopImmediatePropagation();
-
     event.notification.close();
 
-    const msgPayload = event.notification.data[FCM_MSG];
-    if (!msgPayload['notification']) {
+    const msgPayload: MessagePayload = event.notification.data[FCM_MSG];
+    if (!msgPayload.notification) {
       // Nothing to do.
       return;
     }
 
-    const clickAction = msgPayload['notification']['click_action'];
+    const clickAction = msgPayload.notification.click_action;
     if (!clickAction) {
       // Nothing to do.
       return;
@@ -175,7 +185,7 @@ export class SWController extends ControllerInterface {
     let windowClient = await this.getWindowClient_(clickAction);
     if (!windowClient) {
       // Unable to find window client so need to open one.
-      windowClient = await (self as any).clients.openWindow(clickAction);
+      windowClient = await self.clients.openWindow(clickAction);
     } else {
       windowClient = await windowClient.focus();
     }
@@ -186,10 +196,10 @@ export class SWController extends ControllerInterface {
     }
 
     // Delete notification data from payload before sending to the page.
-    delete msgPayload['notification'];
+    delete msgPayload.notification;
 
-    const internalMsg = WorkerPageMessage.createNewMsg(
-      WorkerPageMessage.TYPES_OF_MSG.NOTIFICATION_CLICKED,
+    const internalMsg = createNewMsg(
+      MessageType.NOTIFICATION_CLICKED,
       msgPayload
     );
 
@@ -200,7 +210,9 @@ export class SWController extends ControllerInterface {
 
   // Visible for testing
   // TODO: Make private
-  getNotificationData_(msgPayload: any): NotificationOptions | undefined {
+  getNotificationData_(
+    msgPayload: MessagePayload
+  ): NotificationDetails | undefined {
     if (!msgPayload) {
       return;
     }
@@ -209,12 +221,15 @@ export class SWController extends ControllerInterface {
       return;
     }
 
-    const notificationInformation = { ...msgPayload.notification };
+    const notificationInformation: NotificationDetails = {
+      ...msgPayload.notification
+    };
+
     // Put the message payload under FCM_MSG name so we can identify the
     // notification as being an FCM notification vs a notification from
     // somewhere else (i.e. normal web push or developer generated
     // notification).
-    notificationInformation['data'] = {
+    notificationInformation.data = {
       [FCM_MSG]: msgPayload
     };
 
@@ -238,10 +253,10 @@ export class SWController extends ControllerInterface {
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
-      throw this.errorFactory_.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
+      throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
-    this.bgMessageHandler_ = callback;
+    this.bgMessageHandler = callback;
   }
 
   /**
@@ -250,16 +265,16 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  async getWindowClient_(url: string): Promise<any> {
+  async getWindowClient_(url: string): Promise<WindowClient | null> {
     // Use URL to normalize the URL when comparing to windowClients.
     // This at least handles whether to include trailing slashes or not
-    const parsedURL = new URL(url, (self as any).location).href;
+    const parsedURL = new URL(url, self.location.href).href;
 
     const clientList = await getClientList();
 
-    let suitableClient = null;
+    let suitableClient: WindowClient | null = null;
     for (let i = 0; i < clientList.length; i++) {
-      const parsedClientUrl = new URL(clientList[i].url, (self as any).location)
+      const parsedClientUrl = new URL(clientList[i].url, self.location.href)
         .href;
       if (parsedClientUrl === parsedURL) {
         suitableClient = clientList[i];
@@ -279,11 +294,14 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  async attemptToMessageClient_(client: any, message: any): Promise<void> {
+  async attemptToMessageClient_(
+    client: WindowClient,
+    message: InternalMessage
+  ): Promise<void> {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
-      throw this.errorFactory_.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
+      throw errorFactory.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
     }
 
     client.postMessage(message);
@@ -299,7 +317,7 @@ export class SWController extends ControllerInterface {
     const clientList = await getClientList();
 
     return clientList.some(
-      (client: any) => client.visibilityState === 'visible'
+      (client: WindowClient) => client.visibilityState === 'visible'
     );
   }
 
@@ -311,16 +329,13 @@ export class SWController extends ControllerInterface {
    */
   // Visible for testing
   // TODO: Make private
-  async sendMessageToWindowClients_(msgPayload: any): Promise<void> {
+  async sendMessageToWindowClients_(msgPayload: MessagePayload): Promise<void> {
     const clientList = await getClientList();
 
-    const internalMsg = WorkerPageMessage.createNewMsg(
-      WorkerPageMessage.TYPES_OF_MSG.PUSH_MSG_RECEIVED,
-      msgPayload
-    );
+    const internalMsg = createNewMsg(MessageType.PUSH_MSG_RECEIVED, msgPayload);
 
     await Promise.all(
-      clientList.map((client: any) =>
+      clientList.map(client =>
         this.attemptToMessageClient_(client, internalMsg)
       )
     );
@@ -331,7 +346,7 @@ export class SWController extends ControllerInterface {
    * @return he service worker registration to be used for the push service.
    */
   async getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    return (self as any).registration;
+    return self.registration;
   }
 
   /**
@@ -341,7 +356,7 @@ export class SWController extends ControllerInterface {
   async getPublicVapidKey_(): Promise<Uint8Array> {
     const swReg = await this.getSWRegistration_();
     if (!swReg) {
-      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
     const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
@@ -355,9 +370,20 @@ export class SWController extends ControllerInterface {
   }
 }
 
-function getClientList(): Promise<any[]> {
-  return (self as any).clients.matchAll({
+function getClientList(): Promise<WindowClient[]> {
+  return self.clients.matchAll({
     type: 'window',
     includeUncontrolled: true
-  });
+    // TS doesn't know that "type: 'window'" means it'll return WindowClient[]
+  }) as Promise<WindowClient[]>;
+}
+
+function createNewMsg(
+  msgType: MessageType,
+  msgData: MessagePayload
+): InternalMessage {
+  return {
+    [MessageParameter.TYPE_OF_MSG]: msgType,
+    [MessageParameter.DATA]: msgData
+  };
 }

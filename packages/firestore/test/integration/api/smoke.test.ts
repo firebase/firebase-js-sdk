@@ -141,7 +141,8 @@ apiDescribe('Smoke Test', persistence => {
 
   // TODO (b/33691136): temporarily disable failed test
   // This broken because it requires a composite index on filter,sort
-  xit('can query by field and use order by', () => {
+  // tslint:disable-next-line:ban
+  it.skip('can query by field and use order by', () => {
     const testDocs = {
       '1': { sort: 1, filter: true, key: '1' },
       '2': { sort: 2, filter: true, key: '2' },

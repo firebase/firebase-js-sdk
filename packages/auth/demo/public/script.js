@@ -839,6 +839,38 @@ function getIdToken(forceRefresh) {
 
 
 /**
+ * Gets or refreshes the ID token result.
+ * @param {boolean} forceRefresh Whether to force the refresh of the token
+ *     or not
+ */
+function getIdTokenResult(forceRefresh) {
+  if (activeUser() == null) {
+    alertError('No user logged in.');
+    return;
+  }
+  activeUser().getIdTokenResult(forceRefresh).then(function(idTokenResult) {
+    alertSuccess(JSON.stringify(idTokenResult));
+  }, onAuthError);
+}
+
+
+/**
+ * Triggers the retrieval of the ID token result.
+ */
+function onGetIdTokenResult() {
+  getIdTokenResult(false);
+}
+
+
+/**
+ * Triggers the refresh of the ID token result.
+ */
+function onRefreshTokenResult() {
+  getIdTokenResult(true);
+}
+
+
+/**
  * Triggers the retrieval of the ID token.
  */
 function onGetIdToken() {
@@ -1271,8 +1303,10 @@ function initApp(){
     auth.onIdTokenChanged(function(user) {
       refreshUserData();
       if (user) {
-        user.getIdToken(false).then(
-          log,
+        user.getIdTokenResult(false).then(
+          function(idTokenResult) {
+            log(JSON.stringify(idTokenResult));
+          },
           function() {
             log('No token.');
           }
@@ -1382,6 +1416,8 @@ function initApp(){
 
   $('#send-email-verification').click(onSendEmailVerification);
   $('#confirm-email-verification').click(onApplyActionCode);
+  $('#get-token-result').click(onGetIdTokenResult);
+  $('#refresh-token-result').click(onRefreshTokenResult);
   $('#get-token').click(onGetIdToken);
   $('#refresh-token').click(onRefreshToken);
   $('#get-token-worker').click(onGetCurrentUserDataFromWebWorker);

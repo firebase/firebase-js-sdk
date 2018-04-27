@@ -106,6 +106,32 @@ var tokenPhone = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLm' +
     '5lIg0KICB9DQp9.SIGNATURE';
 
 
+// "iss": "https://securetoken.google.com/projectId",
+// "name": "John Doe",
+// "admin": true,
+// "aud": "projectId",
+// "auth_time": 1522715325,
+// "sub": "nep2uwNCK4PqjvoKjb0InVJHlGi1",
+// "iat": 1522776807,
+// "exp": 1522780575,
+// "email": "testuser@gmail.com",
+// "email_verified": true,
+// "firebase": {
+//   "identities": {
+//     "email": [
+//       "testuser@gmail.com"
+//     ]
+//   },
+//   "sign_in_provider": "password"
+var tokenCustomClaim = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
+    'b20vcHJvamVjdElkIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImF1ZCI6InBy' +
+    'b2plY3RJZCIsImF1dGhfdGltZSI6MTUyMjcxNTMyNSwic3ViIjoibmVwMnV3TkNLNFBxanZv' +
+    'S2piMEluVkpIbEdpMSIsImlhdCI6MTUyMjc3NjgwNywiZXhwIjoxNTIyNzgwNTc1LCJlbWFp' +
+    'bCI6InRlc3R1c2VyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFz' +
+    'ZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3R1c2VyQGdtYWlsLmNvbSJdfSwic2ln' +
+    'bl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.SIGNATURE';
+
+
 /**
  * Asserts the values in the token provided.
  * @param {!fireauth.IdToken} token The ID token to assert.
@@ -239,4 +265,61 @@ function testParse_phoneAndFirebaseProviderId() {
       false,
       '+11234567890');
   assertEquals('https://securetoken.google.com/projectId', token.getIssuer());
+}
+
+
+function testParseIdTokenClaims_invalid() {
+  assertNull(fireauth.IdToken.parseIdTokenClaims('gegege.invalid.ggrgheh'));
+}
+
+
+function testParseIdTokenClaims_null() {
+  assertNull(fireauth.IdToken.parseIdTokenClaims(null));
+}
+
+
+function testParseIdTokenClaims() {
+  var tokenJSON = fireauth.IdToken.parseIdTokenClaims(
+      tokenGoogleWithFederatedId);
+  assertObjectEquals(
+      {
+        'iss': 'https://identitytoolkit.google.com/',
+        'aud': '12345678.apps.googleusercontent.com',
+        'iat': 1441246088,
+        'exp': 2442455688,
+        'sub': '1458474',
+        'email': 'testuser@gmail.com',
+        'provider_id': 'google.com',
+        'verified': true,
+        'display_name': 'John Doe',
+        'photo_url': 'https://lh5.googleusercontent.com/1458474/photo.jpg'
+      },
+      tokenJSON);
+}
+
+
+function testParseIdTokenClaims_customClaims() {
+  var tokenJSON = fireauth.IdToken.parseIdTokenClaims(tokenCustomClaim);
+  assertObjectEquals(
+      {
+        'iss': 'https://securetoken.google.com/projectId',
+        'name': 'John Doe',
+        'admin': true,
+        'aud': 'projectId',
+        'auth_time': 1522715325,
+        'sub': 'nep2uwNCK4PqjvoKjb0InVJHlGi1',
+        'iat': 1522776807,
+        'exp': 1522780575,
+        'email': "testuser@gmail.com",
+        'email_verified': true,
+        'firebase': {
+          'identities': {
+            'email': [
+              'testuser@gmail.com'
+            ]
+          },
+          'sign_in_provider': 'password'
+        }
+      },
+      tokenJSON);
 }

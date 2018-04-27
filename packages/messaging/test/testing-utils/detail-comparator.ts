@@ -20,35 +20,35 @@ import { TokenDetails } from '../../src/interfaces/token-details';
 
 /** Compares the input details and the saved ones  */
 export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
-  const subscription = {
-    endpoint: input.endpoint,
-    auth: input.auth,
-    p256dh: input.p256dh
-  };
+  assert.deepEqual(Object.keys(input), Object.keys(saved));
 
-  for (const key of Object.keys(subscription)) {
-    assert.equal(
-      isArrayBufferEqual(saved[key], subscription[key]),
-      true,
-      `${key} does not match`
-    );
-  }
-
-  for (const key of Object.keys(saved)) {
-    if (Object.keys(subscription).indexOf(key) !== -1) {
-      return;
-    }
-
-    if (key === 'createTime') {
-      assert.equal(saved[key], Date.now(), `${key} does not match`);
-    } else if (key === 'vapidKey') {
-      assert.equal(
-        isArrayBufferEqual(saved[key].buffer, input[key].buffer),
-        true,
-        `${key} does not match`
-      );
-    } else {
-      assert.equal(saved[key], input[key], `${key} does not match`);
+  for (const key of Object.keys(input)) {
+    switch (key) {
+      case 'auth':
+      case 'p256dh':
+        compareArrayBuffer(input[key], saved[key], key);
+        break;
+      case 'vapidKey':
+        compareArrayBuffer(input[key].buffer, saved[key].buffer, key);
+        break;
+      default:
+        compare((input as any)[key], (saved as any)[key], key);
     }
   }
+}
+
+function compareArrayBuffer(
+  a: ArrayBufferLike,
+  b: ArrayBufferLike,
+  key: string
+): void {
+  assert.equal(isArrayBufferEqual(a, b), true, message(key));
+}
+
+function compare(a: {}, b: {}, key: string): void {
+  assert.equal(a, b, message(key));
+}
+
+function message(key: string): string {
+  return `${key} does not match`;
 }

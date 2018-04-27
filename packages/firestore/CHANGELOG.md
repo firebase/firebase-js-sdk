@@ -10,6 +10,10 @@
   `FirestoreSettings` to `true`. Note that the current behavior
   (`DocumentSnapshot`s returning JS Date objects) will be removed in a future
   release. `Timestamp` supports higher precision than JS Date.
+- [feature] Added ability to control whether DocumentReference.get() and
+  Query.get() should fetch from server only, (by passing { source: 'server' }),
+  cache only (by passing { source: 'cache' }), or attempt server and fall back
+  to the cache (which was the only option previously, and is now the default).
 
 # 0.3.6
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could

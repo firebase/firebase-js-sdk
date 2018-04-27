@@ -21,7 +21,7 @@ export interface TokenDetails {
   fcmSenderId: string;
   fcmPushSet: string;
   endpoint: string;
-  auth: ArrayBuffer;
-  p256dh: ArrayBuffer;
+  auth: ArrayBufferLike;
+  p256dh: ArrayBufferLike;
   createTime: number;
 }

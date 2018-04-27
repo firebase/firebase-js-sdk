@@ -221,6 +221,10 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'delete',
         args: []
       },
+      getIdTokenResult: {
+        name: 'getIdTokenResult',
+        args: [fireauth.args.bool('opt_forceRefresh', true)]
+      },
       getIdToken: {
         name: 'getIdToken',
         args: [fireauth.args.bool('opt_forceRefresh', true)]

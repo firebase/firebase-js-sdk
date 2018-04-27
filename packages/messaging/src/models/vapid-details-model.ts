@@ -16,7 +16,7 @@
 
 import { VapidDetails } from '../interfaces/vapid-details';
 import { DBInterface } from './db-interface';
-import { ERROR_CODES } from './errors';
+import { ERROR_CODES, errorFactory } from './errors';
 
 const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;
 
@@ -36,7 +36,7 @@ export class VapidDetailsModel extends DBInterface {
    */
   async getVapidFromSWScope(swScope: string): Promise<Uint8Array | undefined> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
+      throw errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
     const result = await this.get<VapidDetails>(swScope);
@@ -48,11 +48,11 @@ export class VapidDetailsModel extends DBInterface {
    */
   async saveVapidDetails(swScope: string, vapidKey: Uint8Array): Promise<void> {
     if (typeof swScope !== 'string' || swScope.length === 0) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
+      throw errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
     if (vapidKey === null || vapidKey.length !== UNCOMPRESSED_PUBLIC_KEY_SIZE) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
+      throw errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
     }
 
     const details: VapidDetails = {
@@ -71,7 +71,7 @@ export class VapidDetailsModel extends DBInterface {
   async deleteVapidDetails(swScope: string): Promise<Uint8Array> {
     const vapidKey = await this.getVapidFromSWScope(swScope);
     if (!vapidKey) {
-      throw this.errorFactory.create(ERROR_CODES.DELETE_SCOPE_NOT_FOUND);
+      throw errorFactory.create(ERROR_CODES.DELETE_SCOPE_NOT_FOUND);
     }
 
     await this.delete(swScope);
