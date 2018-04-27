@@ -4991,7 +4991,7 @@ indent-string@^3.0.0:
   version "3.2.0"
   resolved "https://registry.npmjs.org/indent-string/-/indent-string-3.2.0.tgz#4a5fd6d27cc332f37e5419a504dbb837105c9289"
 
-indexeddbshim@^3.6.1:
+indexeddbshim@3.6.1:
   version "3.6.1"
   resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-3.6.1.tgz#a0eff29ebfd4b46b5c914dd32e2306d8bc7dd8fe"
   dependencies:
@@ -9891,9 +9891,9 @@ symbol-observable@^0.2.2:
   version "0.2.4"
   resolved "https://registry.npmjs.org/symbol-observable/-/symbol-observable-0.2.4.tgz#95a83db26186d6af7e7a18dbd9760a2f86d08f40"
 
-"sync-promise@https://github.com/brettz9/sync-promise#full-sync-missing-promise-features":
+"sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
   version "1.0.1"
-  resolved "https://github.com/brettz9/sync-promise#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
+  resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 syntax-error@^1.1.1:
   version "1.4.0"
@@ -10920,9 +10920,9 @@ websocket-extensions@>=0.1.1:
   version "0.1.3"
   resolved "https://registry.npmjs.org/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
 
-"websql@https://github.com/brettz9/node-websql#configurable":
+"websql@git+https://github.com/brettz9/node-websql.git#configurable":
   version "0.4.4"
-  resolved "https://github.com/brettz9/node-websql#c9828a34c92eced64858fc19151ec099fd60e8dd"
+  resolved "git+https://github.com/brettz9/node-websql.git#c9828a34c92eced64858fc19151ec099fd60e8dd"
   dependencies:
     argsarray "^0.0.1"
     immediate "^3.2.2"

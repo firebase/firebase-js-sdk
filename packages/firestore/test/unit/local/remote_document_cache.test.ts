@@ -49,7 +49,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     });
   });
 
-  afterEach(() => persistence.shutdown(true));
+  afterEach(() => persistence.shutdown(/* deleteData= */true));
 
   genericRemoteDocumentCacheTests();
 });
