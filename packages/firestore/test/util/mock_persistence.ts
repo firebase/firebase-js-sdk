@@ -16,6 +16,7 @@
 
 import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
+import * as nodeCleanup from 'node-cleanup';
 
 // WARNING: The `indexeddbshim` installed via this module should only ever be
 // used during initial development. Always validate your changes via
@@ -46,7 +47,7 @@ fs.readdirSync('.').forEach(file => {
   existingFiles.add(file);
 });
 
-process.on('exit', () => {
+nodeCleanup(() => {
   fs.readdirSync('.').forEach(file => {
     if (file.endsWith('.sqlite') && !existingFiles.has(file)) {
       fs.unlinkSync(file);
