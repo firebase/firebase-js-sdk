@@ -510,11 +510,10 @@ describe('RemoteEvent', () => {
     expect(event.documentUpdates.get(notSynthesized)).to.not.exist;
 
     const hasDocumentChange = event.targetChanges[3];
-    event.synthesizeDeleteForLimboTargetChange(
-      hasDocumentChange,
-      doc1.key
+    event.synthesizeDeleteForLimboTargetChange(hasDocumentChange, doc1.key);
+    expect(event.documentUpdates.get(doc1.key)).to.not.be.instanceof(
+      NoDocument
     );
-    expect(event.documentUpdates.get(doc1.key)).to.not.be.instanceof(NoDocument);
   });
 
   it('filters updates', () => {
