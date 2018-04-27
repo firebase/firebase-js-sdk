@@ -31,9 +31,11 @@ const globalAny = global as any; // tslint:disable-line:no-any
 if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   registerIndexedDBShim(null, {
     checkOrigin: false,
-    deleteDatabaseFiles: true,
+    deleteDatabaseFiles: true
   });
-  globalAny.window = Object.assign(globalAny.window || {}, { indexedDB: globalAny.indexedDB });
+  globalAny.window = Object.assign(globalAny.window || {}, {
+    indexedDB: globalAny.indexedDB
+  });
 }
 
 // `deleteDatabaseFiles` does not reliable delete all SQLite files. Before
