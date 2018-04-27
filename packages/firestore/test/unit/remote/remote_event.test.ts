@@ -491,7 +491,7 @@ describe('RemoteEvent', () => {
     );
 
     const synthesized = DocumentKey.fromPathString('docs/2');
-    expect(event.documentUpdates.get(synthesized)).to.equal(null);
+    expect(event.documentUpdates.get(synthesized)).to.be.null;
 
     const limboTargetChange = event.targetChanges[1];
     event.synthesizeDeleteForLimboTargetChange(limboTargetChange, synthesized);
@@ -499,21 +499,22 @@ describe('RemoteEvent', () => {
       'docs/2',
       event.snapshotVersion.toMicroseconds()
     );
-    expectEqual(expected, event.documentUpdates.get(synthesized));
+    expectEqual(event.documentUpdates.get(synthesized), expected);
 
     const notSynthesized = DocumentKey.fromPathString('docs/no1');
+    const wrongStateChange = event.targetChanges[2];
     event.synthesizeDeleteForLimboTargetChange(
-      event.targetChanges[2],
+      wrongStateChange,
       notSynthesized
     );
     expect(event.documentUpdates.get(notSynthesized)).to.not.exist;
 
+    const hasDocumentChange = event.targetChanges[3];
     event.synthesizeDeleteForLimboTargetChange(
-      event.targetChanges[3],
+      hasDocumentChange,
       doc1.key
     );
-    expect(event.documentUpdates.get(doc1.key) instanceof NoDocument).to.be
-      .false;
+    expect(event.documentUpdates.get(doc1.key)).to.not.be.instanceof(NoDocument);
   });
 
   it('filters updates', () => {
@@ -543,7 +544,7 @@ describe('RemoteEvent', () => {
     );
 
     const updateChange = event.targetChanges[1];
-    expect(updateChange.mapping instanceof UpdateMapping).to.be.true;
+    expect(updateChange.mapping).to.be.instanceof(UpdateMapping);
     const update = updateChange.mapping as UpdateMapping;
     expect(update.addedDocuments.has(existingDoc.key)).to.be.true;
 
@@ -553,7 +554,7 @@ describe('RemoteEvent', () => {
     expect(update.addedDocuments.has(newDoc.key)).to.be.true;
 
     const resetChange = event.targetChanges[2];
-    expect(resetChange.mapping instanceof ResetMapping).to.be.true;
+    expect(resetChange.mapping).to.be.instanceof(ResetMapping);
     const reset = resetChange.mapping as ResetMapping;
     expect(reset.documents.has(existingDoc.key)).to.be.true;
 

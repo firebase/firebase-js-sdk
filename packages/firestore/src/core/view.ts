@@ -96,6 +96,10 @@ export class View {
     this.documentSet = new DocumentSet(query.docComparator.bind(query));
   }
 
+  /**
+   * The set of remote documents that the server has told us belongs to the target associated with
+   * this view.
+   */
   get syncedDocuments(): DocumentKeySet {
     return this._syncedDocuments;
   }
