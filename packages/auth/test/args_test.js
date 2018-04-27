@@ -17,6 +17,7 @@
 goog.provide('fireauth.argsTest');
 
 goog.require('fireauth.Auth');
+goog.require('fireauth.AuthUser');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.PhoneAuthProvider');
@@ -32,6 +33,17 @@ var app = firebase.initializeApp({
   apiKey: 'myApiKey'
 });
 var auth = new fireauth.Auth(app);
+var tokenResponse = {
+  'idToken': 'accessToken',
+  'refreshToken': 'refreshToken',
+  'expiresIn': 3600
+};
+var user = new fireauth.AuthUser(
+    {
+      apiKey: 'myApiKey',
+      appName: 'appId'
+    },
+    tokenResponse);
 
 
 function testValidate_valid_noArgs() {
@@ -427,6 +439,31 @@ function testValidate_firebaseAuth_invalid() {
   });
   assertEquals('myFunc failed: First argument "auth" must be an instance of ' +
       'Firebase Auth.', error.message);
+}
+
+
+function testValidate_firebaseUser_valid() {
+  fireauth.args.validate('myFunc', [
+    fireauth.args.firebaseUser()
+  ], [user]);
+}
+
+
+function testValidate_firebaseUser_valid_optional() {
+  fireauth.args.validate('myFunc', [
+    fireauth.args.firebaseUser(true)
+  ], []);
+}
+
+
+function testValidate_firebaseUser_invalid() {
+  var error = assertThrows(function() {
+    fireauth.args.validate('myFunc', [
+      fireauth.args.firebaseUser()
+    ], [{'some': 'thing'}]);
+  });
+  assertEquals('myFunc failed: First argument "user" must be an instance of ' +
+      'Firebase User.', error.message);
 }
 
 

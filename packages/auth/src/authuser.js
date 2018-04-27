@@ -440,6 +440,14 @@ fireauth.AuthUser.prototype.getAuth_ = function() {
 
 
 /**
+ * @return {string} The user's API key.
+ */
+fireauth.AuthUser.prototype.getApiKey = function() {
+  return this.apiKey_;
+};
+
+
+/**
  * Used to initialize the current user's proactive token refresher utility.
  * @return {!fireauth.ProactiveRefresh} The user's proactive token refresh
  *     utility.
@@ -859,7 +867,7 @@ fireauth.AuthUser.prototype.copy = function(userToCopy) {
   goog.array.forEach(userToCopy['providerData'], function(userInfo) {
     self.addProviderData(userInfo);
   });
-  this.stsTokenManager_ = userToCopy.getStsTokenManager();
+  this.stsTokenManager_.copy(userToCopy.getStsTokenManager());
   fireauth.object.setReadonlyProperty(
       this, 'refreshToken', this.stsTokenManager_.getRefreshToken());
 };
@@ -2325,4 +2333,39 @@ fireauth.AuthUser.initializeFromIdTokenResponse = function(appOptions,
   return user.reload().then(function() {
     return user;
   });
+};
+
+
+/**
+ * Returns an AuthUser copy of the provided user using the provided parameters
+ * without making any network request.
+ * @param {!fireauth.AuthUser} user The user to be copied.
+ * @param {?Object=} opt_appOptions The application options.
+ * @param {?fireauth.storage.RedirectUserManager=}
+ *     opt_redirectStorageManager The utility used to store and delete a user on
+ *     link with redirect.
+ * @param {?Array<string>=} opt_frameworks The list of frameworks to log on the
+ *     user on initialization.
+ * @return {!fireauth.AuthUser}
+ */
+fireauth.AuthUser.copyUser = function(user, opt_appOptions,
+    opt_redirectStorageManager, opt_frameworks) {
+  var appOptions = opt_appOptions || {
+    'apiKey': user.apiKey_,
+    'authDomain': user.authDomain_,
+    'appName': user.appName_
+  };
+  var newUser = new fireauth.AuthUser(
+      appOptions, user.getStsTokenManager().toServerResponse());
+  // If redirect storage manager provided, set it.
+  if (opt_redirectStorageManager) {
+    newUser.setRedirectStorageManager(opt_redirectStorageManager);
+  }
+  // If frameworks provided, set it.
+  if (opt_frameworks) {
+    newUser.setFramework(opt_frameworks);
+  }
+  // Copy remaining properties.
+  newUser.copy(user);
+  return newUser;
 };

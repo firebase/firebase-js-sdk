@@ -405,18 +405,7 @@ function simulateWhitelistedOrigin() {
  * @param {!fireauth.AuthUser} actual
  */
 function assertUserEquals(expected, actual) {
-  var expectedObj = expected.toPlainObject();
-  var actualObj = actual.toPlainObject();
-  var delta = expectedObj['stsTokenManager']['expirationTime'] -
-      actualObj['stsTokenManager']['expirationTime'];
-  // Confirm expiration times are close enough.
-  // The conversion back and forth from and to plain object, could result in
-  // some negligible difference.
-  assertTrue(Math.abs(delta) <= 1000);
-  // Overwrite expiration times.
-  expectedObj['stsTokenManager']['expirationTime'] = 0;
-  actualObj['stsTokenManager']['expirationTime'] = 0;
-  assertObjectEquals(expectedObj, actualObj);
+  fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(expected, actual);
 }
 
 
@@ -3228,6 +3217,326 @@ function testAuth_syncAuthChanges_newSignOut() {
       }
       asyncTestCase.signal();
     });
+  });
+}
+
+
+function testAuth_updateCurrentUser_sameApiKey() {
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(6);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      auth1.getStorageKey());
+  auth1.languageCode = 'fr';
+  auth1.logFramework('firebaseui');
+  var userChanges = 0;
+  var tokenChanges = 0;
+  // Token changed handler should be triggered twice. Once on initialization,
+  // the other one after updating current user.
+  auth1.onIdTokenChanged(function(user) {
+    if (user) {
+      assertEquals(1, tokenChanges);
+      assertUserEquals(user1, auth1['currentUser']);
+      var manager = fireauth.AuthEventManager.getManager(
+          config3['authDomain'], config3['apiKey'], app1.name);
+      // Auth and current user should be subscribed.
+      assertTrue(manager.isSubscribed(auth1));
+      assertTrue(manager.isSubscribed(auth1['currentUser']));
+      asyncTestCase.signal();
+      // Confirm new user saved in storage.
+      currentUserStorageManager.getCurrentUser().then(function(currentUser) {
+        assertUserEquals(user1, currentUser);
+        asyncTestCase.signal();
+      });
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, tokenChanges);
+      asyncTestCase.signal();
+    }
+    tokenChanges++;
+  });
+  // Auth state changed handler should be triggered twice. Once on
+  // initialization, the other one after updating current user.
+  auth1.onAuthStateChanged(function(currentUser) {
+    if (currentUser) {
+      assertEquals(1, userChanges);
+      assertUserEquals(user1, currentUser);
+      asyncTestCase.signal();
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, userChanges);
+      asyncTestCase.signal();
+    }
+    userChanges++;
+  });
+  auth1.updateCurrentUser(user1).then(function() {
+    assertUserEquals(user1, auth1['currentUser']);
+    assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
+    auth1.logFramework('angularfire');
+    assertArrayEquals(
+        ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
+    assertEquals('fr', auth1['currentUser'].getLanguageCode());
+    auth1.languageCode = 'de';
+    assertEquals('de', auth1['currentUser'].getLanguageCode());
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_updateCurrentUser_sameUser() {
+  // Tests the case that user is saved in storage initially and to update
+  // current user whose uid is same as the previous signed in user's. Auth state
+  // changed listener should not be triggered in this case. But user attributes
+  // should be updated in storage. Token changed listener should be triggered
+  // twice.
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(3);
+  var accountInfo1 = {
+    'uid': '1234',
+    'email': 'user1@example.com',
+    'displayName': 'John Smith',
+    'emailVerified': false
+  };
+  var accountInfo2 = {
+    'uid': '1234',
+    'email': 'user2@example.com',
+    'displayName': 'Jane Doe',
+    'emailVerified': false
+  };
+  // The existing user.
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo1);
+  // The user to be updated to Auth instance with the same UID as user1.
+  var user2 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo2);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      fireauth.util.createStorageKey(config3['apiKey'], appId1));
+  // Save test user. This will be loaded on Auth init.
+  currentUserStorageManager.setCurrentUser(user1).then(function() {
+    app1 = firebase.initializeApp(config3, appId1);
+    auth1 = app1.auth();
+    var userChanges = 0;
+    var tokenChanges = 0;
+    // Token changed listener should be triggered twice, once with original
+    // user, the second time with updated user.
+    auth1.onIdTokenChanged(function(user) {
+      tokenChanges++;
+      if (tokenChanges == 1) {
+        // Triggered with original user.
+        assertUserEquals(user1, user);
+        asyncTestCase.signal();
+      } else if (tokenChanges == 2) {
+        // Triggered with updated user.
+        assertUserEquals(user2, user);
+        asyncTestCase.signal();
+      } else {
+        fail('Token changed listener should only be triggered twice!');
+      }
+
+    });
+    // Auth state listener should only be triggered once with original user.
+    auth1.onAuthStateChanged(function(user) {
+      userChanges++;
+      if (user) {
+        // The listener should be triggered once with the original user.
+        assertEquals(1, userChanges);
+        assertUserEquals(user1, auth1['currentUser']);
+        var originUserRef = auth1['currentUser'];
+        var manager = fireauth.AuthEventManager.getManager(
+            config3['authDomain'], config3['apiKey'], app1.name);
+        // Auth and current user should be subscribed.
+        assertTrue(manager.isSubscribed(auth1));
+        assertTrue(manager.isSubscribed(auth1['currentUser']));
+        // Confirm original user saved in storage.
+        currentUserStorageManager.getCurrentUser().then(function(currentUser) {
+          assertUserEquals(user1, currentUser);
+          // Update current user.
+          auth1.updateCurrentUser(user2).then(function() {
+            // Current user reference should remain the same.
+            assertEquals(originUserRef, auth1['currentUser']);
+            // User attribute should be updated.
+            assertUserEquals(user2, auth1['currentUser']);
+            currentUserStorageManager.getCurrentUser()
+                .then(function(currentUser) {
+                  assertUserEquals(user2, currentUser);
+                  asyncTestCase.signal();
+                });
+          });
+        });
+      } else {
+        fail('Auth state changed listener should not be triggered with null!');
+      }
+    });
+  });
+}
+
+
+function testAuth_updateCurrentUser_differentApiKey() {
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'reload',
+      goog.testing.recordFunction(function() {
+        return goog.Promise.resolve();
+      }));
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(6);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      auth1.getStorageKey());
+  var configWithDifferentApikey = {
+    'apiKey': 'API_KEY2',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId2'
+  };
+  var user1 = new fireauth.AuthUser(
+      configWithDifferentApikey, expectedTokenResponse, accountInfo);
+  auth1.languageCode = 'fr';
+  auth1.logFramework('firebaseui');
+  var userChanges = 0;
+  var tokenChanges = 0;
+  // Token changed handler should be triggered twice. Once on initialization,
+  // the other one after updating current user.
+  auth1.onIdTokenChanged(function(user) {
+    if (user) {
+      assertEquals(1, tokenChanges);
+      fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+          user1, auth1['currentUser'], 'API_KEY2', 'API_KEY');
+      var manager = fireauth.AuthEventManager.getManager(
+          config3['authDomain'], config3['apiKey'], app1.name);
+      // Auth and current user should be subscribed.
+      assertTrue(manager.isSubscribed(auth1));
+      assertTrue(manager.isSubscribed(auth1['currentUser']));
+      asyncTestCase.signal();
+      // Confirm new user saved in storage.
+      currentUserStorageManager.getCurrentUser().then(function(currentUser) {
+        fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+            user1, currentUser, 'API_KEY2', 'API_KEY');
+        asyncTestCase.signal();
+      });
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, tokenChanges);
+      asyncTestCase.signal();
+    }
+    tokenChanges++;
+  });
+  // Auth state changed handler should be triggered twice. Once on
+  // initialization, the other one after updating current user.
+  auth1.onAuthStateChanged(function(currentUser) {
+    if (currentUser) {
+      assertEquals(1, userChanges);
+      fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+          user1, currentUser, 'API_KEY2', 'API_KEY');
+      asyncTestCase.signal();
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, userChanges);
+      asyncTestCase.signal();
+    }
+    userChanges++;
+  });
+  auth1.updateCurrentUser(user1).then(function() {
+    // If ApiKey is differnt, user needs to be reloaded.
+    assertEquals(1, fireauth.AuthUser.prototype.reload.getCallCount());
+    fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+        user1, auth1['currentUser'], 'API_KEY2', 'API_KEY');
+    assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
+    auth1.logFramework('angularfire');
+    assertArrayEquals(
+        ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
+    assertEquals('fr', auth1['currentUser'].getLanguageCode());
+    auth1.languageCode = 'de';
+    assertEquals('de', auth1['currentUser'].getLanguageCode());
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_updateCurrentUser_differentApiKey_invalidTokenError() {
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INVALID_AUTH);
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'reload',
+      goog.testing.recordFunction(function() {
+        return goog.Promise.reject(expectedError);
+      }));
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  var configWithDifferentApikey = {
+    'apiKey': 'API_KEY2',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId2'
+  };
+  auth1.onIdTokenChanged(function(user) {
+    if (user) {
+      fail('ID Token changed listener should not be triggered!');
+    } else {
+      // Verifies the listener is triggered initiallly.
+      asyncTestCase.signal();
+    }
+  });
+  var user1 = new fireauth.AuthUser(
+      configWithDifferentApikey, expectedTokenResponse, accountInfo);
+  auth1.updateCurrentUser(user1).thenCatch(function(err) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+    assertNull(auth1['currentUser']);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_updateCurrentUser_differentApiKey_tokenExpiresError() {
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.TOKEN_EXPIRED);
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'reload',
+      goog.testing.recordFunction(function() {
+        return goog.Promise.reject(expectedError);
+      }));
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(2);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  var configWithDifferentApikey = {
+    'apiKey': 'API_KEY2',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId2'
+  };
+  auth1.onIdTokenChanged(function(user) {
+    if (user) {
+      fail('ID Token changed listener should not be triggered!');
+    } else {
+      // Verifies the listener is triggered initiallly.
+      asyncTestCase.signal();
+    }
+  });
+  var user1 = new fireauth.AuthUser(
+      configWithDifferentApikey, expectedTokenResponse, accountInfo);
+  auth1.updateCurrentUser(user1).thenCatch(function(err) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+    assertNull(auth1['currentUser']);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_updateCurrentUser_nullUserError() {
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.NULL_USER);
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.updateCurrentUser(null).thenCatch(function(err) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+    asyncTestCase.signal();
   });
 }
 
