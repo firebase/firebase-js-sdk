@@ -7156,6 +7156,10 @@ nise@^1.2.0:
     path-to-regexp "^1.7.0"
     text-encoding "^0.6.4"
 
+node-cleanup@2.1.2:
+  version "2.1.2"
+  resolved "https://registry.npmjs.org/node-cleanup/-/node-cleanup-2.1.2.tgz#7ac19abd297e09a7f72a71545d951b517e4dde2c"
+
 node-fetch@2.1.2:
   version "2.1.2"
   resolved "https://registry.npmjs.org/node-fetch/-/node-fetch-2.1.2.tgz#ab884e8e7e57e38a944753cec706f788d1768bb5"
@@ -9891,9 +9895,9 @@ symbol-observable@^0.2.2:
   version "0.2.4"
   resolved "https://registry.npmjs.org/symbol-observable/-/symbol-observable-0.2.4.tgz#95a83db26186d6af7e7a18dbd9760a2f86d08f40"
 
-"sync-promise@git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features":
+"sync-promise@https://github.com/brettz9/sync-promise#full-sync-missing-promise-features":
   version "1.0.1"
-  resolved "git+https://github.com/brettz9/sync-promise.git#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
+  resolved "https://github.com/brettz9/sync-promise#25845a49a00aa2d2c985a5149b97c86a1fcdc75a"
 
 syntax-error@^1.1.1:
   version "1.4.0"
@@ -10920,9 +10924,9 @@ websocket-extensions@>=0.1.1:
   version "0.1.3"
   resolved "https://registry.npmjs.org/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
 
-"websql@git+https://github.com/brettz9/node-websql.git#configurable":
+"websql@https://github.com/brettz9/node-websql#configurable":
   version "0.4.4"
-  resolved "git+https://github.com/brettz9/node-websql.git#c9828a34c92eced64858fc19151ec099fd60e8dd"
+  resolved "https://github.com/brettz9/node-websql#c9828a34c92eced64858fc19151ec099fd60e8dd"
   dependencies:
     argsarray "^0.0.1"
     immediate "^3.2.2"

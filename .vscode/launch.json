@@ -26,6 +26,27 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Firestore Unit Tests (Node / Persistence)",
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "args": [
+        "--require", "ts-node/register/type-check",
+        "--require", "index.node.ts",
+        "--require", "test/util/mock_persistence.ts",
+        "--timeout", "5000",
+        "test/{,!(browser|integration)/**/}*.test.ts",
+        "--exit"
+      ],
+      "env": {
+        "USE_MOCK_PERSISTENCE": "YES",
+        "TS_NODE_CACHE": "NO"
+      },
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Firestore Integration Tests (Node)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",
@@ -37,6 +58,27 @@
         "--exit"
       ],
       "env": {
+        "TS_NODE_CACHE": "NO"
+      },
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Firestore Integration Tests (Node / Persistence)",
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "args": [
+        "--require", "ts-node/register/type-check",
+        "--require", "index.node.ts",
+        "--require", "test/util/mock_persistence.ts",
+        "--timeout", "5000",
+        "test/{,!(browser|unit)/**/}*.test.ts",
+        "--exit"
+      ],
+      "env": {
+        "USE_MOCK_PERSISTENCE": "YES",
         "TS_NODE_CACHE": "NO"
       },
       "sourceMaps": true,
