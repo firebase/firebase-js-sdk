@@ -131,7 +131,7 @@ function genericMutationQueueTests(): void {
     return mutationQueue.start();
   });
 
-  afterEach(() => persistence.shutdown(true));
+  afterEach(() => persistence.shutdown(/* deleteData= */true));
 
   it('can count batches', async () => {
     expect(await mutationQueue.countBatches()).to.equal(0);

@@ -295,7 +295,7 @@ function genericLocalStoreTests(
     });
   });
 
-  afterEach(() => persistence.shutdown(true));
+  afterEach(() => persistence.shutdown(/* deleteData= */true));
 
   /**
    * Restarts the local store using the NoOpGarbageCollector instead of the

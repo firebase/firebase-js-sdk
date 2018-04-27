@@ -54,7 +54,7 @@ describe('RemoteDocumentChangeBuffer', () => {
     });
   });
 
-  afterEach(() => persistence.shutdown(true));
+  afterEach(() => persistence.shutdown(/* deleteData= */true));
 
   it('can read unchanged entry', async () => {
     const maybeDoc = await buffer.getEntry(key('coll/a'));
