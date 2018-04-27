@@ -730,6 +730,51 @@ fireauth.Auth.prototype.getRedirectResult = function() {
 
 
 /**
+ * Asynchronously sets the provided user as currentUser on the current Auth
+ * instance.
+ * @param {?fireauth.AuthUser} user The user to be copied to Auth instance.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.Auth.prototype.updateCurrentUser = function(user) {
+  if (!user) {
+    return goog.Promise.reject(new fireauth.AuthError(
+        fireauth.authenum.Error.NULL_USER));
+  }
+  var self = this;
+  var options = {};
+  options['apiKey'] = this.app_().options['apiKey'];
+  options['authDomain'] = this.app_().options['authDomain'];
+  options['appName'] = this.app_().name;
+  var newUser = fireauth.AuthUser.copyUser(user, options,
+      self.redirectUserStorageManager_, self.getFramework());
+  return this.registerPendingPromise_(
+      this.redirectStateIsReady_.then(function() {
+        if (self.app_().options['apiKey'] != user.getApiKey()) {
+          // Throws auth/invalid-user-token if user doesn't belong to app.
+          // Throws auth/user-token-expired if token expires.
+          return newUser.reload();
+        }
+      }).then(function() {
+        if (self.currentUser_() && user['uid'] == self.currentUser_()['uid']) {
+          // Same user signed in. Update user data and notify Auth listeners.
+          // No need to resubscribe to user events.
+          // TODO: Check if the user to copy is older than current user and skip
+          // the copy logic in that case.
+          self.currentUser_().copy(user);
+          return self.handleUserStateChange_(user);
+        }
+        self.setCurrentUser_(newUser);
+        // Enable popup and redirect events.
+        newUser.enablePopupRedirect();
+        // Save user changes.
+        return self.handleUserStateChange_(newUser);
+      }).then(function(user) {
+        self.notifyAuthListeners_();
+      }));
+};
+
+
+/**
  * Completes the headless sign in with the server response containing the STS
  * access and refresh tokens, and sets the Auth user as current user while
  * setting all listeners to it and saving it to storage.

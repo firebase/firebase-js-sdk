@@ -179,6 +179,34 @@ fireauth.StsTokenManager.prototype.parseServerResponse = function(response) {
 
 
 /**
+ * Converts STS token manager instance to server response object.
+ * @return {!Object}
+ */
+fireauth.StsTokenManager.prototype.toServerResponse = function() {
+  var stsTokenManagerResponse = {};
+  stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.ID_TOKEN] =
+      this.accessToken_;
+  // Refresh token could be expired.
+  stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN] =
+      this.getRefreshToken();
+  stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.EXPIRES_IN] =
+      (this.getExpirationTime() - goog.now()) / 1000;
+  return stsTokenManagerResponse;
+};
+
+
+/**
+ * Copies IdToken, refreshToken and expirationTime from tokenManagerToCopy.
+ * @param {!fireauth.StsTokenManager} tokenManagerToCopy
+ */
+fireauth.StsTokenManager.prototype.copy = function(tokenManagerToCopy) {
+  this.accessToken_ = tokenManagerToCopy.accessToken_;
+  this.refreshToken_ = tokenManagerToCopy.refreshToken_;
+  this.expirationTime_ = tokenManagerToCopy.expirationTime_;
+};
+
+
+/**
  * @param {number|string} offset The offset to add to the current time, in
  *     seconds.
  * @return {number} The timestamp corresponding to the current time plus offset.
