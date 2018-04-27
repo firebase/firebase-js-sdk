@@ -16,12 +16,18 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
+import * as array from '../util/array';
 import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 
 import { Document, MaybeDocument, NoDocument } from './document';
 import { DocumentKey } from './document_key';
-import { FieldValue, ObjectValue, ServerTimestampValue } from './field_value';
+import {
+  FieldValue,
+  ObjectValue,
+  ServerTimestampValue,
+  ArrayValue
+} from './field_value';
 import { FieldPath } from './path';
 
 /**
@@ -514,7 +520,6 @@ export class TransformMutation extends Mutation {
       mutationResult.transformResults != null,
       'Transform results missing for TransformMutation.'
     );
-    const transformResults = mutationResult.transformResults!;
 
     // TODO(mcg): Relax enforcement of this precondition
     //
@@ -527,6 +532,10 @@ export class TransformMutation extends Mutation {
     }
 
     const doc = this.requireDocument(maybeDoc);
+    const transformResults = this.serverTransformResults(
+      maybeDoc,
+      mutationResult.transformResults!
+    );
     const newData = this.transformObject(doc.data, transformResults);
     return new Document(this.key, doc.version, newData, {
       hasLocalMutations: false
@@ -585,6 +594,58 @@ export class TransformMutation extends Mutation {
 
   /**
    * Creates a list of "transform results" (a transform result is a field value
+   * representing the result of applying a transform) for use after a
+   * TransformMutation has been acknowledged by the server.
+   *
+   * @param baseDoc The document prior to applying this mutation batch.
+   * @param serverTransformResults The transform results received by the server.
+   * @return The transform results list.
+   */
+  private serverTransformResults(
+    baseDoc: MaybeDocument | null,
+    serverTransformResults: FieldValue[]
+  ): FieldValue[] {
+    const transformResults = [] as FieldValue[];
+    assert(
+      this.fieldTransforms.length === serverTransformResults.length,
+      `server transform result count (${serverTransformResults.length}) ` +
+        `should match field transform count (${this.fieldTransforms.length})`
+    );
+
+    for (let i = 0; i < serverTransformResults.length; i++) {
+      const fieldTransform = this.fieldTransforms[i];
+      const transform = fieldTransform.transform;
+      let previousValue: FieldValue = null;
+      if (baseDoc instanceof Document) {
+        previousValue = baseDoc.field(fieldTransform.field) || null;
+      }
+
+      let transformResult: FieldValue = null;
+      // The server just sends null as the transform result for array union /
+      // remove operations, so we have to calculate a result the same as we do
+      // for local applications.
+      if (transform instanceof ArrayUnionTransformOperation) {
+        transformResult = this.arrayUnionTransformResult(
+          transform,
+          previousValue
+        );
+      } else if (transform instanceof ArrayRemoveTransformOperation) {
+        transformResult = this.arrayRemoveTransformResult(
+          transform,
+          previousValue
+        );
+      } else {
+        // Just use the server-supplied result.
+        transformResult = serverTransformResults[i];
+      }
+
+      transformResults.push(transformResult);
+    }
+    return transformResults;
+  }
+
+  /**
+   * Creates a list of "transform results" (a transform result is a field value
    * representing the result of applying a transform) for use when applying a
    * TransformMutation locally.
    *
@@ -600,21 +661,81 @@ export class TransformMutation extends Mutation {
     const transformResults = [] as FieldValue[];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
+
+      let previousValue: FieldValue = null;
+      if (baseDoc instanceof Document) {
+        previousValue = baseDoc.field(fieldTransform.field) || null;
+      }
+
+      let transformResult: FieldValue = null;
       if (transform instanceof ServerTimestampTransform) {
-        let previousValue: FieldValue | null = null;
-
-        if (baseDoc instanceof Document) {
-          previousValue = baseDoc.field(fieldTransform.field) || null;
-        }
-
-        transformResults.push(
-          new ServerTimestampValue(localWriteTime, previousValue)
+        transformResult = new ServerTimestampValue(
+          localWriteTime,
+          previousValue
+        );
+      } else if (transform instanceof ArrayUnionTransformOperation) {
+        transformResult = this.arrayUnionTransformResult(
+          transform,
+          previousValue
+        );
+      } else if (transform instanceof ArrayRemoveTransformOperation) {
+        transformResult = this.arrayRemoveTransformResult(
+          transform,
+          previousValue
         );
       } else {
         return fail('Encountered unknown transform: ' + transform);
       }
+
+      transformResults.push(transformResult);
     }
     return transformResults;
+  }
+
+  /**
+   * Transforms the provided `previousValue` via the provided `arrayUnion`. Used
+   * for both local application and after server acknowledgement.
+   */
+  private arrayUnionTransformResult(
+    arrayUnion: ArrayUnionTransformOperation,
+    previousValue: FieldValue | null
+  ): FieldValue {
+    const result = this.coercedFieldValuesArray(previousValue);
+    for (const element of arrayUnion.elements) {
+      if (!array.includesEqualElement(result, element)) {
+        result.push(element);
+      }
+    }
+    return new ArrayValue(result);
+  }
+
+  /**
+   * Transforms the provided `previousValue` via the provided `arrayRemove`.
+   * Used for both local application and after server acknowledgement.
+   */
+  private arrayRemoveTransformResult(
+    arrayRemove: ArrayRemoveTransformOperation,
+    previousValue: FieldValue | null
+  ): FieldValue {
+    let result = this.coercedFieldValuesArray(previousValue);
+    for (const element of arrayRemove.elements) {
+      result = array.removeEqualElements(result, element);
+    }
+    return new ArrayValue(result);
+  }
+
+  /**
+   * Inspects the provided value, returning a mutable copy of the internal array
+   * if it's an ArrayValue and an empty mutable array if it's null or any other
+   * type of FieldValue.
+   */
+  private coercedFieldValuesArray(value: FieldValue | null): FieldValue[] {
+    if (value instanceof ArrayValue) {
+      return value.internalValue.slice();
+    } else {
+      // coerce to empty array.
+      return [];
+    }
   }
 
   private transformObject(
@@ -629,11 +750,7 @@ export class TransformMutation extends Mutation {
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const fieldPath = fieldTransform.field;
-      if (transform instanceof ServerTimestampTransform) {
-        data = data.set(fieldPath, transformResults[i]);
-      } else {
-        return fail('Encountered unknown transform: ' + transform);
-      }
+      data = data.set(fieldPath, transformResults[i]);
     }
     return data;
   }

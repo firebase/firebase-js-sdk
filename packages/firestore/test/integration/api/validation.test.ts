@@ -620,12 +620,16 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(persistence, 'reject invalid elements', db => {
       const doc = db.collection('test').doc();
-      expect(() => doc.set({x: FieldValue._arrayUnion(1, new TestClass('foo'))})).to.throw(
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, new TestClass('foo')) })
+      ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
 
-      expect(() => doc.set({x: FieldValue._arrayRemove(1, new TestClass('foo'))})).to.throw(
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, new TestClass('foo')) })
+      ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
@@ -634,12 +638,16 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'reject arrays', db => {
       const doc = db.collection('test').doc();
       // This would result in a directly nested array which is not supported.
-      expect(() => doc.set({x: FieldValue._arrayUnion(1, ['nested'])})).to.throw(
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, ['nested']) })
+      ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Nested arrays are not supported'
       );
 
-      expect(() => doc.set({x: FieldValue._arrayRemove(1, ['nested'])})).to.throw(
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, ['nested']) })
+      ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Nested arrays are not supported'
       );
