@@ -964,18 +964,6 @@ fireauth.AuthUser.prototype.getIdToken = function(opt_forceRefresh) {
 
 
 /**
- * This operation resolves with the Firebase ID token. It has been deprecated in
- * favor of getIdToken.
- * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
- * @return {!goog.Promise<string>} A Promise that resolves with the ID token.
- */
-fireauth.AuthUser.prototype.getToken = function(opt_forceRefresh) {
-  fireauth.deprecation.log(fireauth.deprecation.Deprecations.USER_GET_TOKEN);
-  return this.getIdToken(opt_forceRefresh);
-};
-
-
-/**
  * Checks if the error corresponds to a user invalidation action.
  * @param {*} error The error returned by a user operation.
  * @return {boolean} Whether the user is invalidated based on the error
@@ -1163,12 +1151,15 @@ fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential =
 
 /**
  * Reauthenticates a user using a fresh credential, to be used before operations
- * such as updatePassword that require tokens from recent login attempts.
+ * such as updatePassword that require tokens from recent login attempts. It has
+ * been deprecated in favor of reauthenticateAndRetrieveDataWithCredential.
  * @param {!fireauth.AuthCredential} credential
  * @return {!goog.Promise<void>}
  */
 fireauth.AuthUser.prototype.reauthenticateWithCredential =
     function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL);
   // Get reauthenticateAndRetrieveDataWithCredential result and return void.
   return this.reauthenticateAndRetrieveDataWithCredential(credential)
       .then(function(result) {
@@ -1239,12 +1230,15 @@ fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential =
 
 
 /**
- * Links a provider to the current user.
+ * Links a provider to the current user. It has been deprecated in favor of
+ * linkAndRetrieveDataWithCredential.
  * @param {!fireauth.AuthCredential} credential The credential from the Auth
  *     provider.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
 fireauth.AuthUser.prototype.linkWithCredential = function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL);
   // Get linkAndRetrieveDataWithCredential result and return the user only.
   return this.linkAndRetrieveDataWithCredential(credential)
       .then(function(result) {
