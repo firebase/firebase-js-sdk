@@ -16,7 +16,6 @@
 
 import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
-import * as os from 'os';
 
 // WARNING: The `indexeddbshim` installed via this module should only ever be
 // used during initial development. Always validate your changes via
