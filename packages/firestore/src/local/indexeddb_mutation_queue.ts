@@ -190,7 +190,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     );
 
     this.metadata.lastAcknowledgedBatchId = batchId;
-    this.metadata.lastStreamToken = validateStreamToken(streamToken);
+    this.metadata.lastStreamToken = convertStreamToken(streamToken);
 
     return mutationQueuesStore(transaction).put(this.metadata);
   }
@@ -205,7 +205,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    this.metadata.lastStreamToken = validateStreamToken(streamToken);
+    this.metadata.lastStreamToken = convertStreamToken(streamToken);
     return mutationQueuesStore(transaction).put(this.metadata);
   }
 
@@ -544,12 +544,17 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 }
 
-function validateStreamToken(token: ProtoByteString): string {
-  assert(
-    typeof token === 'string',
-    'Persisting non-string stream token not supported.'
-  );
-  return token as string;
+function convertStreamToken(token: ProtoByteString): string {
+  if (token instanceof Uint8Array) {
+    // TODO(b/78771403): Convert tokens to strings during deserialization
+    assert(
+      process.env.USE_MOCK_PERSISTENCE === 'YES',
+      'Persisting non-string stream tokens is only supported with mock persistence .'
+    );
+    return token.toString();
+  } else {
+    return token;
+  }
 }
 
 /**

@@ -143,13 +143,16 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  shutdown(): Promise<void> {
+  shutdown(deleteData?: boolean): Promise<void> {
     assert(this.started, 'IndexedDbPersistence shutdown without start!');
     this.started = false;
     this.detachWindowUnloadHook();
     this.stopOwnerLeaseRefreshes();
     return this.releaseOwnerLease().then(() => {
       this.simpleDb.close();
+      if (deleteData) {
+        return SimpleDb.delete(this.dbName);
+      }
     });
   }
 
@@ -350,19 +353,29 @@ export class IndexedDbPersistence implements Persistence {
    * a synchronous API and so can be used reliably from an unload handler.
    */
   private attachWindowUnloadHook(): void {
-    this.windowUnloadHandler = () => {
-      // Record that we're zombied.
-      this.setZombiedOwnerId(this.ownerId);
+    if (
+      typeof window === 'object' &&
+      typeof window.addEventListener === 'function'
+    ) {
+      this.windowUnloadHandler = () => {
+        // Record that we're zombied.
+        this.setZombiedOwnerId(this.ownerId);
 
-      // Attempt graceful shutdown (including releasing our owner lease), but
-      // there's no guarantee it will complete.
-      this.shutdown();
-    };
-    window.addEventListener('unload', this.windowUnloadHandler);
+        // Attempt graceful shutdown (including releasing our owner lease), but
+        // there's no guarantee it will complete.
+        this.shutdown();
+      };
+      window.addEventListener('unload', this.windowUnloadHandler);
+    }
   }
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
+      assert(
+        typeof window === 'object' &&
+          typeof window.removeEventListener === 'function',
+        "Expected 'window.removeEventListener' to be a function"
+      );
       window.removeEventListener('unload', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
