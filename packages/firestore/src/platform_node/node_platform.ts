@@ -33,7 +33,13 @@ export class NodePlatform implements Platform {
 
   readonly document = null;
 
-  readonly window = null;
+  get window(): Window | null {
+    if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      return window;
+    }
+
+    return null;
+  }
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     const protos = loadProtos();

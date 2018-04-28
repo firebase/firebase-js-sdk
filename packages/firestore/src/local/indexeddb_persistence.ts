@@ -115,7 +115,7 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  private readonly document: Document;
+  private readonly document: Document | null;
   private readonly window: Window;
 
   private simpleDb: SimpleDb;
@@ -170,10 +170,7 @@ export class IndexedDbPersistence implements Persistence {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     this.started = true;
 
-    assert(
-      this.window !== null && this.document !== null,
-      "Expected 'window' and 'document' to be defined"
-    );
+    assert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
@@ -299,15 +296,10 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-<<<<<<< HEAD
-  shutdown(): Promise<void> {
+  shutdown(deleteData?: boolean): Promise<void> {
     if (!this.started) {
       return Promise.resolve();
     }
-=======
-  shutdown(deleteData?: boolean): Promise<void> {
-    assert(this.started, 'IndexedDbPersistence shutdown without start!');
->>>>>>> master
     this.started = false;
     this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
@@ -461,21 +453,31 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private attachVisibilityHandler(): void {
-    this.documentVisibilityHandler = () => {
-      this.queue.enqueue<DbOwner | void>(() => {
-        this.inForeground = this.document.visibilityState === 'visible';
-        return this.updateClientMetadataAndTryBecomePrimary();
-      });
-    };
+    if (
+      this.document !== null &&
+      typeof this.document.addEventListener === 'function'
+    ) {
+      this.documentVisibilityHandler = () => {
+        this.queue.enqueue<DbOwner | void>(() => {
+          this.inForeground = this.document.visibilityState === 'visible';
+          return this.updateClientMetadataAndTryBecomePrimary();
+        });
+      };
 
-    this.document.addEventListener(
-      'visibilitychange',
-      this.documentVisibilityHandler
-    );
+      this.document.addEventListener(
+        'visibilitychange',
+        this.documentVisibilityHandler
+      );
+    }
   }
 
   private detachVisibilityHandler(): void {
     if (this.documentVisibilityHandler) {
+      assert(
+        this.document !== null &&
+          typeof this.document.addEventListener === 'function',
+        "Expected 'document.addEventListener' to be a function"
+      );
       this.document.removeEventListener(
         'visibilitychange',
         this.documentVisibilityHandler
@@ -494,51 +496,32 @@ export class IndexedDbPersistence implements Persistence {
    * a synchronous API and so can be used reliably from an unload handler.
    */
   private attachWindowUnloadHook(): void {
-<<<<<<< HEAD
-    this.windowUnloadHandler = () => {
-      // Note: In theory, this should be scheduled on the AsyncQueue since it
-      // accesses internal state. We execute this code directly during shutdown
-      // to make sure it gets a chance to run.
-      if (this.isPrimary) {
-        this.setZombiedClientId(this.clientId);
-      }
-      this.queue.enqueue(() => {
-        // Attempt graceful shutdown (including releasing our owner lease), but
-        // there's no guarantee it will complete.
-        return this.shutdown();
-      });
-    };
-    this.window.addEventListener('unload', this.windowUnloadHandler);
-=======
-    if (
-      typeof window === 'object' &&
-      typeof window.addEventListener === 'function'
-    ) {
+    if (typeof this.window.addEventListener === 'function') {
       this.windowUnloadHandler = () => {
-        // Record that we're zombied.
-        this.setZombiedOwnerId(this.ownerId);
+        // Note: In theory, this should be scheduled on the AsyncQueue since it
+        // accesses internal state. We execute this code directly during shutdown
+        // to make sure it gets a chance to run.
+        if (this.isPrimary) {
+          this.setZombiedClientId(this.clientId);
+        }
 
-        // Attempt graceful shutdown (including releasing our owner lease), but
-        // there's no guarantee it will complete.
-        this.shutdown();
+        this.queue.enqueue(() => {
+          // Attempt graceful shutdown (including releasing our owner lease), but
+          // there's no guarantee it will complete.
+          return this.shutdown();
+        });
       };
-      window.addEventListener('unload', this.windowUnloadHandler);
+      this.window.addEventListener('unload', this.windowUnloadHandler);
     }
->>>>>>> master
   }
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
-<<<<<<< HEAD
-      this.window.removeEventListener('unload', this.windowUnloadHandler);
-=======
       assert(
-        typeof window === 'object' &&
-          typeof window.removeEventListener === 'function',
+        typeof this.window.removeEventListener === 'function',
         "Expected 'window.removeEventListener' to be a function"
       );
-      window.removeEventListener('unload', this.windowUnloadHandler);
->>>>>>> master
+      this.window.removeEventListener('unload', this.windowUnloadHandler);
       this.windowUnloadHandler = null;
     }
   }
@@ -549,8 +532,8 @@ export class IndexedDbPersistence implements Persistence {
    * record exists.
    */
   private getZombiedClientId(): ClientId | null {
-    try {
-      const zombiedClientId = window.localStorage.getItem(
+    if (this.window.localStorage) {
+      const zombiedClientId = this.window.localStorage.getItem(
         this.zombiedClientLocalStorageKey()
       );
       log.debug(
@@ -559,9 +542,9 @@ export class IndexedDbPersistence implements Persistence {
         zombiedClientId
       );
       return zombiedClientId;
-    } catch (e) {
+    } else {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to get zombie client id.', e);
+      log.debug(LOG_TAG, 'Failed to get zombied client id.');
       return null;
     }
   }
@@ -573,9 +556,11 @@ export class IndexedDbPersistence implements Persistence {
   private setZombiedClientId(zombiedClientId: ClientId | null): void {
     try {
       if (zombiedClientId === null) {
-        window.localStorage.removeItem(this.zombiedClientLocalStorageKey());
+        this.window.localStorage.removeItem(
+          this.zombiedClientLocalStorageKey()
+        );
       } else {
-        window.localStorage.setItem(
+        this.window.localStorage.setItem(
           this.zombiedClientLocalStorageKey(),
           zombiedClientId
         );

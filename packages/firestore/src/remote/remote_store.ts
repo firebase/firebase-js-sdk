@@ -538,13 +538,17 @@ export class RemoteStore {
       return this.localStore
         .nextMutationBatch(this.lastBatchSeen)
         .then(batch => {
-          if (batch === null) {
-            if (this.pendingWrites.length === 0) {
-              this.writeStream.markIdle();
+          // Verify that we are still connected, since we might have gotten
+          // shutdown while reading new mutation batches.
+          if (this.canWriteMutations()) {
+            if (batch === null) {
+              if (this.pendingWrites.length === 0) {
+                this.writeStream.markIdle();
+              }
+            } else {
+              this.commit(batch);
+              return this.fillWritePipeline();
             }
-          } else {
-            this.commit(batch);
-            return this.fillWritePipeline();
           }
         });
     }

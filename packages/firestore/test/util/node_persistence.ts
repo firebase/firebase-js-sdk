@@ -36,6 +36,14 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   globalAny.window = Object.assign(globalAny.window || {}, {
     indexedDB: globalAny.indexedDB
   });
+
+  // We need to define the `Event` type as it is used in Node to send events to
+  // WebStorage when using both the IndexedDB mock and the WebStorage mock.
+  class Event {
+    constructor(typeArg: string, eventInitDict?: EventInit) {}
+  }
+
+  globalAny.Event = Event;
 }
 
 // `deleteDatabaseFiles` does not reliable delete all SQLite files. Before

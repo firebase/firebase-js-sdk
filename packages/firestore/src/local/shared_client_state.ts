@@ -428,7 +428,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     private readonly localClientId: ClientId,
     initialUser: User
   ) {
-    if (!WebStorageSharedClientState.isAvailable()) {
+    if (!WebStorageSharedClientState.isAvailable(this.platform)) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
         'LocalStorage is not available on this platform.'
@@ -457,8 +457,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   /** Returns 'true' if LocalStorage is available in the current environment. */
-  static isAvailable(): boolean {
-    return typeof window !== 'undefined' && window.localStorage != null;
+  static isAvailable(platform: Platform): boolean {
+    return platform.window && platform.window.localStorage != null;
   }
 
   // TOOD(multitab): Register the mutations that are already pending at client

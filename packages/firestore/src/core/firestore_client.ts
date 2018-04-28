@@ -270,13 +270,18 @@ export class FirestoreClient {
         this.asyncQueue,
         serializer
       );
-      this.sharedClientState = new WebStorageSharedClientState(
-        this.asyncQueue,
-        this.platform,
-        storagePrefix,
-        this.clientId,
-        user
-      );
+      if (WebStorageSharedClientState.isAvailable(this.platform)) {
+        this.sharedClientState = new WebStorageSharedClientState(
+          this.asyncQueue,
+          this.platform,
+          storagePrefix,
+          this.clientId,
+          user
+        );
+      } else {
+        debug(LOG_TAG, 'Starting Persistence in non multi-tab mode');
+        this.sharedClientState = new MemorySharedClientState();
+      }
       return this.persistence.start();
     });
   }
@@ -372,36 +377,23 @@ export class FirestoreClient {
     });
   }
 
-<<<<<<< HEAD
-  shutdown(): Promise<void> {
+  shutdown(options?: {
+    purgePersistenceWithDataLoss?: boolean;
+  }): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
       await this.syncEngine.shutdown();
       await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
-      await this.persistence.shutdown();
+      await this.persistence.shutdown(
+        options && options.purgePersistenceWithDataLoss
+      );
 
       // `removeUserChangeListener` must be called after shutting down the
       // RemoteStore as it will prevent the RemoteStore from retrieving
       // auth tokens.
       this.credentials.removeUserChangeListener();
     });
-=======
-  shutdown(options?: {
-    purgePersistenceWithDataLoss?: boolean;
-  }): Promise<void> {
-    return this.asyncQueue
-      .enqueue(() => {
-        this.credentials.removeUserChangeListener();
-        return this.remoteStore.shutdown();
-      })
-      .then(() => {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        return this.persistence.shutdown(
-          options && options.purgePersistenceWithDataLoss
-        );
-      });
->>>>>>> master
   }
 
   listen(

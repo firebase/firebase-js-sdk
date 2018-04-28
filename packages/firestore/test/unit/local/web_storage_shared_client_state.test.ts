@@ -35,6 +35,7 @@ import {
 } from './persistence_test_helpers';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { fail } from '../../../src/util/assert';
+import { PlatformSupport } from '../../../src/platform/platform';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -110,7 +111,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 }
 
 describe('WebStorageSharedClientState', () => {
-  if (!WebStorageSharedClientState.isAvailable()) {
+  if (!WebStorageSharedClientState.isAvailable(PlatformSupport.getPlatform())) {
     console.warn(
       'No LocalStorage. Skipping WebStorageSharedClientState tests.'
     );
