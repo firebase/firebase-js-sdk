@@ -483,6 +483,7 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
+<<<<<<< HEAD
     if (this.started) {
       await this.doShutdown();
     }
@@ -497,6 +498,23 @@ abstract class TestRunner {
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
+=======
+    await this.remoteStore.shutdown();
+    await this.persistence.shutdown(/* deleteData= */ true);
+    await this.destroyPersistence();
+  }
+
+  run(steps: SpecStep[]): Promise<void> {
+    // tslint:disable-next-line:no-console
+    console.log('Running spec: ' + this.name);
+    return sequence(steps, async step => {
+      await this.doStep(step);
+      await this.queue.drain();
+      this.validateStepExpectations(step.expect!);
+      this.validateStateExpectations(step.stateExpect!);
+      this.eventList = [];
+    });
+>>>>>>> master
   }
 
   private doStep(step: SpecStep): Promise<void> {

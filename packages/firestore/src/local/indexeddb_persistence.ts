@@ -299,16 +299,24 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
+<<<<<<< HEAD
   shutdown(): Promise<void> {
     if (!this.started) {
       return Promise.resolve();
     }
+=======
+  shutdown(deleteData?: boolean): Promise<void> {
+    assert(this.started, 'IndexedDbPersistence shutdown without start!');
+>>>>>>> master
     this.started = false;
     this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     return this.releasePrimaryLeaseIfHeld().then(() => {
       this.simpleDb.close();
+      if (deleteData) {
+        return SimpleDb.delete(this.dbName);
+      }
     });
   }
 
@@ -486,6 +494,7 @@ export class IndexedDbPersistence implements Persistence {
    * a synchronous API and so can be used reliably from an unload handler.
    */
   private attachWindowUnloadHook(): void {
+<<<<<<< HEAD
     this.windowUnloadHandler = () => {
       // Note: In theory, this should be scheduled on the AsyncQueue since it
       // accesses internal state. We execute this code directly during shutdown
@@ -500,11 +509,36 @@ export class IndexedDbPersistence implements Persistence {
       });
     };
     this.window.addEventListener('unload', this.windowUnloadHandler);
+=======
+    if (
+      typeof window === 'object' &&
+      typeof window.addEventListener === 'function'
+    ) {
+      this.windowUnloadHandler = () => {
+        // Record that we're zombied.
+        this.setZombiedOwnerId(this.ownerId);
+
+        // Attempt graceful shutdown (including releasing our owner lease), but
+        // there's no guarantee it will complete.
+        this.shutdown();
+      };
+      window.addEventListener('unload', this.windowUnloadHandler);
+    }
+>>>>>>> master
   }
 
   private detachWindowUnloadHook(): void {
     if (this.windowUnloadHandler) {
+<<<<<<< HEAD
       this.window.removeEventListener('unload', this.windowUnloadHandler);
+=======
+      assert(
+        typeof window === 'object' &&
+          typeof window.removeEventListener === 'function',
+        "Expected 'window.removeEventListener' to be a function"
+      );
+      window.removeEventListener('unload', this.windowUnloadHandler);
+>>>>>>> master
       this.windowUnloadHandler = null;
     }
   }

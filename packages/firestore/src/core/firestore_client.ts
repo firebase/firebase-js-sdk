@@ -372,6 +372,7 @@ export class FirestoreClient {
     });
   }
 
+<<<<<<< HEAD
   shutdown(): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
@@ -385,6 +386,22 @@ export class FirestoreClient {
       // auth tokens.
       this.credentials.removeUserChangeListener();
     });
+=======
+  shutdown(options?: {
+    purgePersistenceWithDataLoss?: boolean;
+  }): Promise<void> {
+    return this.asyncQueue
+      .enqueue(() => {
+        this.credentials.removeUserChangeListener();
+        return this.remoteStore.shutdown();
+      })
+      .then(() => {
+        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+        return this.persistence.shutdown(
+          options && options.purgePersistenceWithDataLoss
+        );
+      });
+>>>>>>> master
   }
 
   listen(
