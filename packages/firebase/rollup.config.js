@@ -40,14 +40,19 @@ const pkgsByName = {
 };
 
 const plugins = [
+  resolveModule(),
   typescript({
     typescript: require('typescript')
   }),
-  resolveModule(),
   commonjs()
 ];
 
 const external = Object.keys(pkg.dependencies || {});
+
+/**
+ * Global UMD Build
+ */
+const GLOBAL_NAME = 'firebase';
 
 /**
  * Complete Package Builds
@@ -118,6 +123,22 @@ const appBuilds = [
     output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
     plugins,
     external: [...external, 'react-native']
+  },
+  /**
+   * App UMD Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: {
+      file: 'firebase-app.js',
+      sourcemap: true,
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [
+      ...plugins,
+      uglify()
+    ]
   }
 ];
 
@@ -131,15 +152,50 @@ const components = [
 ];
 const componentBuilds = components.map(component => {
   const pkg = pkgsByName[component];
-  return {
-    input: `${component}/index.ts`,
-    output: [
-      { file: resolve(component, pkg.main), format: 'cjs' },
-      { file: resolve(component, pkg.module), format: 'es' }
-    ],
-    plugins,
-    external
-  };
-});
+  return [
+    {
+      input: `${component}/index.ts`,
+      output: [
+        { file: resolve(component, pkg.main), format: 'cjs' },
+        { file: resolve(component, pkg.module), format: 'es' }
+      ],
+      plugins,
+      external
+    },
+    {
+      input: `${component}/index.ts`,
+      output: {
+        file: `firebase-${component}.js`,
+        format: 'iife',
+        sourcemap: true,
+        extend: true,
+        name: GLOBAL_NAME,
+        globals: {
+          '@firebase/app': GLOBAL_NAME
+        },
+        intro: `try  {`,
+        outro: `} catch(err) {
+              console.error(err);
+              throw new Error(
+                'Cannot instantiate firebase-${component} - ' +
+                'be sure to load firebase-app.js first.'
+              );
+            }`
+      },
+      plugins: [
+        resolveModule(),
+        typescript({
+          typescript: require('typescript'),
+          tsconfigOverride: { compilerOptions: { declaration: false } }
+        }),
+        commonjs(),
+        uglify()
+      ],
+      external: [
+        '@firebase/app'
+      ]
+    },
+  ];
+}).reduce((a, b) => a.concat(b), []);
 
 export default [...completeBuilds, ...appBuilds, ...componentBuilds];
