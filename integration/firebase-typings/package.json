@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "test": "tsc index.ts --outDir dist"
+    "test": "tsc index.ts --outDir dist --skipLibCheck"
   },
   "dependencies": {
     "firebase": "4.13.1"
