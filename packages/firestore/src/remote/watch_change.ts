@@ -192,8 +192,6 @@ export class WatchChangeAggregator {
    * so to know if a target is active, there must be no pending acks we're
    * waiting for and it must be in the current list of targets that the client
    * cares about.
-   *
-   * This method is visible for testing.
    */
   protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
     const queryData = this.listenTargets[targetId];
@@ -203,6 +201,12 @@ export class WatchChangeAggregator {
       : null;
   }
 
+  /**
+   * Defers to queryForActiveTarget to determine if the given targetId 
+   * corresponds to an active target.
+   * 
+   * This method is visible for testing.
+   */
   protected isActiveTarget(targetId: TargetId): boolean {
     return this.queryDataForActiveTarget(targetId) !== null;
   }
