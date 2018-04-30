@@ -202,9 +202,9 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Defers to queryForActiveTarget to determine if the given targetId 
+   * Defers to queryForActiveTarget to determine if the given targetId
    * corresponds to an active target.
-   * 
+   *
    * This method is visible for testing.
    */
   protected isActiveTarget(targetId: TargetId): boolean {
