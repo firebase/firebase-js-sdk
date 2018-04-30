@@ -589,7 +589,7 @@ function convertStreamToken(token: ProtoByteString): string {
     // TODO(b/78771403): Convert tokens to strings during deserialization
     assert(
       process.env.USE_MOCK_PERSISTENCE === 'YES',
-      'Persisting non-string stream tokens is only supported with mock persistence .'
+      'Persisting non-string stream tokens is only supported with mock persistence.'
     );
     return token.toString();
   } else {
