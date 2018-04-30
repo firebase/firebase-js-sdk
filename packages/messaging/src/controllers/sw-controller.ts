@@ -110,6 +110,20 @@ export class SWController extends ControllerInterface {
     if (notificationDetails) {
       const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
+
+      // TODO: Remove casts to any and redundant type declarations when this
+      // PR lands: https://github.com/Microsoft/TSJS-lib-generator/pull/438
+      // tslint:disable no-any
+      const actions: object[] = (notificationDetails as any).actions;
+      const maxActions: number | undefined = (Notification as any).maxActions;
+      // tslint:enable no-any
+      if (actions && maxActions && actions.length > maxActions) {
+        console.warn(
+          `This browser only supports ${maxActions} actions.` +
+            `The remaining actions will not be displayed.`
+        );
+      }
+
       return reg.showNotification(notificationTitle, notificationDetails);
     } else if (this.bgMessageHandler) {
       await this.bgMessageHandler(msgPayload);

@@ -75,8 +75,13 @@ export interface Persistence {
    */
   start(): Promise<void>;
 
-  /** Releases any resources held during eager shutdown. */
-  shutdown(): Promise<void>;
+  /**
+   * Releases any resources held during eager shutdown.
+   *
+   * @param deleteData Whether to delete the persisted data. This causes
+   * irrecoverable data loss and should only be used to delete test data.
+   */
+  shutdown(deleteData?: boolean): Promise<void>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the

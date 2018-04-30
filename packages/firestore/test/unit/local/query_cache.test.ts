@@ -60,9 +60,7 @@ describe('IndexedDbQueryCache', () => {
     });
   });
 
-  afterEach(() => {
-    return persistence.shutdown();
-  });
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   genericQueryCacheTests();
 });

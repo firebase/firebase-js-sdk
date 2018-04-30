@@ -132,11 +132,19 @@ export class LocalSerializer {
     } else {
       queryProto = this.remoteSerializer.toQueryTarget(queryData.query);
     }
-    assert(
-      typeof queryData.resumeToken === 'string',
-      'Persisting non-string resume token not supported.'
-    );
-    const resumeToken = queryData.resumeToken as string;
+
+    let resumeToken: string;
+
+    if (queryData.resumeToken instanceof Uint8Array) {
+      // TODO(b/78771403): Convert tokens to strings during deserialization
+      assert(
+        process.env.USE_MOCK_PERSISTENCE === 'YES',
+        'Persisting non-string stream tokens is only supported with mock persistence .'
+      );
+      resumeToken = queryData.resumeToken.toString();
+    } else {
+      resumeToken = queryData.resumeToken;
+    }
 
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(
