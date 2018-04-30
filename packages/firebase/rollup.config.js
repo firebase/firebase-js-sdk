@@ -50,47 +50,6 @@ const plugins = [
 const external = Object.keys(pkg.dependencies || {});
 
 /**
-<<<<<<< HEAD
- * Complete Package Builds
- */
-const completeBuilds = [
-  /**
-   * App Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
-    ],
-    plugins,
-    external
-  },
-  /**
-   * App Node.js Builds
-   */
-  {
-    input: 'src/index.node.ts',
-    output: { file: pkg.main, format: 'cjs' },
-    plugins,
-    external
-  },
-  /**
-   * App React Native Builds
-   */
-  {
-    input: 'src/index.rn.ts',
-    output: { file: pkg['react-native'], format: 'cjs' },
-    plugins,
-    external: [...external, 'react-native']
-  }
-];
-
-/**
- * Individual Component Builds
- */
-const appBuilds = [
-=======
  * Global UMD Build
  */
 const GLOBAL_NAME = 'firebase';
@@ -99,22 +58,14 @@ const GLOBAL_NAME = 'firebase';
  * Complete Package Builds
  */
 const completeBuilds = [
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
   /**
    * App Browser Builds
    */
   {
-<<<<<<< HEAD
-    input: 'app/index.ts',
-    output: [
-      { file: resolve('app', appPkg.browser), format: 'cjs' },
-      { file: resolve('app', appPkg.module), format: 'es' }
-=======
     input: 'src/index.ts',
     output: [
       { file: pkg.browser, format: 'cjs' },
       { file: pkg.module, format: 'es' }
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
     ],
     plugins,
     external
@@ -123,13 +74,8 @@ const completeBuilds = [
    * App Node.js Builds
    */
   {
-<<<<<<< HEAD
-    input: 'app/index.node.ts',
-    output: { file: resolve('app', appPkg.main), format: 'cjs' },
-=======
     input: 'src/index.node.ts',
     output: { file: pkg.main, format: 'cjs' },
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
     plugins,
     external
   },
@@ -137,20 +83,13 @@ const completeBuilds = [
    * App React Native Builds
    */
   {
-<<<<<<< HEAD
-    input: 'app/index.rn.ts',
-    output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
-=======
     input: 'src/index.rn.ts',
     output: { file: pkg['react-native'], format: 'cjs' },
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
     plugins,
     external: [...external, 'react-native']
   }
 ];
 
-<<<<<<< HEAD
-=======
 /**
  * Individual Component Builds
  */
@@ -200,7 +139,6 @@ const appBuilds = [
   }
 ];
 
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
 const components = [
   'auth',
   'database',
@@ -209,20 +147,6 @@ const components = [
   'messaging',
   'storage'
 ];
-<<<<<<< HEAD
-const componentBuilds = components.map(component => {
-  const pkg = pkgsByName[component];
-  return {
-    input: `${component}/index.ts`,
-    output: [
-      { file: resolve(component, pkg.main), format: 'cjs' },
-      { file: resolve(component, pkg.module), format: 'es' }
-    ],
-    plugins,
-    external
-  };
-});
-=======
 const componentBuilds = components
   .map(component => {
     const pkg = pkgsByName[component];
@@ -262,6 +186,5 @@ const componentBuilds = components
     ];
   })
   .reduce((a, b) => a.concat(b), []);
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
 
 export default [...completeBuilds, ...appBuilds, ...componentBuilds];
