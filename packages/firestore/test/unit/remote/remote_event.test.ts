@@ -466,29 +466,13 @@ describe('RemoteEvent', () => {
   });
 
   it('synthesizes deletes', () => {
-    const targets = listens(1, 2, 3);
+    const targets = listens(1);
     const shouldSynthesize = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [1]
     );
-    const wrongState = new WatchTargetChange(WatchTargetChangeState.NoChange, [
-      2
-    ]);
-    const hasDocument = new WatchTargetChange(WatchTargetChangeState.Current, [
-      3
-    ]);
-    const doc1 = doc('docs/1', 1, { value: 1 });
-    const docChange = new DocumentWatchChange([3], [], doc1.key, doc1);
 
-    const event = remoteEvent(
-      1,
-      targets,
-      noPendingResponses,
-      shouldSynthesize,
-      wrongState,
-      hasDocument,
-      docChange
-    );
+    const event = remoteEvent(1, targets, noPendingResponses, shouldSynthesize);
 
     const synthesized = DocumentKey.fromPathString('docs/2');
     expect(event.documentUpdates.get(synthesized)).to.be.null;
@@ -500,6 +484,14 @@ describe('RemoteEvent', () => {
       event.snapshotVersion.toMicroseconds()
     );
     expectEqual(event.documentUpdates.get(synthesized), expected);
+  });
+
+  it("doesn't synthesize deletes in the wrong state", () => {
+    const wrongState = new WatchTargetChange(WatchTargetChangeState.NoChange, [
+      2
+    ]);
+    const targets = listens(2);
+    const event = remoteEvent(1, targets, noPendingResponses, wrongState);
 
     const notSynthesized = DocumentKey.fromPathString('docs/no1');
     const wrongStateChange = event.targetChanges[2];
@@ -508,6 +500,22 @@ describe('RemoteEvent', () => {
       notSynthesized
     );
     expect(event.documentUpdates.get(notSynthesized)).to.not.exist;
+  });
+
+  it("doesn't synthesize deletes with existing document", () => {
+    const hasDocument = new WatchTargetChange(WatchTargetChangeState.Current, [
+      3
+    ]);
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const docChange = new DocumentWatchChange([3], [], doc1.key, doc1);
+    const targets = listens(3);
+    const event = remoteEvent(
+      1,
+      targets,
+      noPendingResponses,
+      hasDocument,
+      docChange
+    );
 
     const hasDocumentChange = event.targetChanges[3];
     event.synthesizeDeleteForLimboTargetChange(hasDocumentChange, doc1.key);
@@ -517,49 +525,73 @@ describe('RemoteEvent', () => {
   });
 
   it('filters updates', () => {
+    const updateTargetId = 1;
     const newDoc = doc('docs/new', 1, { key: 'value' });
     const existingDoc = doc('docs/existing', 1, { some: 'data' });
-    const newDocChange = new DocumentWatchChange([1], [], newDoc.key, newDoc);
-
-    const resetTargetChange = new WatchTargetChange(
-      WatchTargetChangeState.Reset,
-      [2]
+    const newDocChange = new DocumentWatchChange(
+      [updateTargetId],
+      [],
+      newDoc.key,
+      newDoc
     );
+
     const existingDocChange = new DocumentWatchChange(
-      [1, 2],
+      [updateTargetId],
       [],
       existingDoc.key,
       existingDoc
     );
 
-    const updateChangeId = 1;
-    const resetChangeId = 2;
-    const targets = listens(updateChangeId, resetChangeId);
+    const targets = listens(updateTargetId);
     const event = remoteEvent(
       1,
       targets,
       noPendingResponses,
       newDocChange,
-      resetTargetChange,
       existingDocChange
     );
 
-    const updateChange = event.targetChanges[updateChangeId];
+    const updateChange = event.targetChanges[updateTargetId];
     expect(updateChange.mapping).to.be.instanceof(UpdateMapping);
     const update = updateChange.mapping as UpdateMapping;
     expect(update.addedDocuments.has(existingDoc.key)).to.be.true;
 
     const existingKeys = documentKeySet().add(existingDoc.key);
-    event.filterUpdatesFromTargetChange(updateChangeId, existingKeys);
+    update.filterUpdates(existingKeys);
     expect(update.addedDocuments.has(existingDoc.key)).to.be.false;
     expect(update.addedDocuments.has(newDoc.key)).to.be.true;
+  });
 
-    const resetChange = event.targetChanges[resetChangeId];
+  it("doesn't filter resets", () => {
+    const resetTargetId = 2;
+    const resetTargetChange = new WatchTargetChange(
+      WatchTargetChangeState.Reset,
+      [resetTargetId]
+    );
+    const existingDoc = doc('docs/existing', 1, { some: 'data' });
+    const existingDocChange = new DocumentWatchChange(
+      [resetTargetId],
+      [],
+      existingDoc.key,
+      existingDoc
+    );
+
+    const targets = listens(resetTargetId);
+    const event = remoteEvent(
+      1,
+      targets,
+      noPendingResponses,
+      resetTargetChange,
+      existingDocChange
+    );
+
+    const resetChange = event.targetChanges[resetTargetId];
     expect(resetChange.mapping).to.be.instanceof(ResetMapping);
     const reset = resetChange.mapping as ResetMapping;
     expect(reset.documents.has(existingDoc.key)).to.be.true;
 
-    event.filterUpdatesFromTargetChange(resetChangeId, existingKeys);
+    const existingKeys = documentKeySet().add(existingDoc.key);
+    reset.filterUpdates(existingKeys);
     // document is still there, as reset mappings don't get filtered
     expect(reset.documents.has(existingDoc.key)).to.be.true;
   });
