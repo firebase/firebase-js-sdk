@@ -107,9 +107,7 @@ describe('Firebase Messaging > *SWController', () => {
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
-          json: () => {
-            return {};
-          }
+          json: () => ({})
         }
       } as any);
 
@@ -131,11 +129,9 @@ describe('Firebase Messaging > *SWController', () => {
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
-          json: () => {
-            return {
-              notification: {}
-            };
-          }
+          json: () => ({
+            notification: {}
+          })
         }
       } as any);
 
@@ -158,9 +154,7 @@ describe('Firebase Messaging > *SWController', () => {
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
-          json: () => {
-            return {};
-          }
+          json: () => ({})
         }
       } as any);
 
@@ -185,11 +179,9 @@ describe('Firebase Messaging > *SWController', () => {
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
-          json: () => {
-            return {
-              notification: {}
-            };
-          }
+          json: () => ({
+            notification: {}
+          })
         }
       } as any);
 
@@ -206,6 +198,106 @@ describe('Firebase Messaging > *SWController', () => {
     });
 
     it('should generate notification with options and show notification if no visible clients', async () => {
+      const registration = makeFakeSWReg();
+      sandbox.stub(self, 'registration').value(registration);
+
+      const waitUntilSpy = sandbox.spy();
+      sandbox
+        .stub(SWController.prototype, 'hasVisibleClients_')
+        .callsFake(async () => false);
+      const showNotificationSpy = sandbox.spy(registration, 'showNotification');
+
+      const notificationData = {
+        title: 'test-title',
+        body: 'test-body',
+        icon: '/images/test-icon.png'
+      };
+
+      const swController = new SWController(app);
+      swController.onPush({
+        waitUntil: waitUntilSpy,
+        data: {
+          json: () => ({
+            notification: notificationData
+          })
+        }
+      } as any);
+
+      await waitUntilSpy.getCall(0).args[0];
+      expect(showNotificationSpy.callCount).to.equal(1);
+      expect(showNotificationSpy.args[0][0]).to.equal(notificationData.title);
+      expect(showNotificationSpy.args[0][1]).to.deep.equal({
+        title: notificationData.title,
+        body: notificationData.body,
+        icon: notificationData.icon,
+        data: {
+          FCM_MSG: {
+            notification: notificationData
+          }
+        }
+      });
+    });
+
+    it('displays a warning if there are too many actions in the message', async () => {
+      const registration = makeFakeSWReg();
+      sandbox.stub(self, 'registration').value(registration);
+
+      const waitUntilSpy = sandbox.spy();
+      sandbox
+        .stub(SWController.prototype, 'hasVisibleClients_')
+        .callsFake(async () => false);
+      sandbox.spy(registration, 'showNotification');
+
+      // TODO: Remove cast
+      sandbox.stub(Notification as any, 'maxActions').value(2);
+
+      const consoleWarnStub = sandbox.stub(console, 'warn');
+
+      const notificationData = {
+        title: 'test-title',
+        body: 'test-body',
+        actions: [
+          {
+            action: 'action1',
+            title: 'Action 1'
+          },
+          {
+            action: 'action2',
+            title: 'Action 2'
+          },
+          {
+            action: 'action3',
+            title: 'Action 3'
+          },
+          {
+            action: 'action4',
+            title: 'Action 4'
+          }
+        ]
+      };
+
+      const swController = new SWController(app);
+      swController.onPush({
+        waitUntil: waitUntilSpy,
+        data: {
+          json: () => {
+            return {
+              notification: notificationData
+            };
+          }
+        }
+      } as any);
+
+      await waitUntilSpy.getCall(0).args[0];
+
+      expect(consoleWarnStub.callCount).to.equal(1);
+      expect(consoleWarnStub.getCall(0).args[0]).to.equal(
+        `This browser only supports 2 actions.` +
+          `The remaining actions will not be displayed.`
+      );
+    });
+
+    it('should fall back to background message handler otherwise', async () => {
       const registration = makeFakeSWReg();
       sandbox.stub(self, 'registration').value(registration);
 
@@ -230,51 +322,8 @@ describe('Firebase Messaging > *SWController', () => {
       } as any);
 
       await waitUntilSpy.getCall(0).args[0];
-      expect(bgMessageHandlerSpy['callCount']).to.equal(1);
-      expect(bgMessageHandlerSpy['args'][0][0]).to.equal(payloadData);
-    });
-
-    it('should fall back to background message handler otherwise', async () => {
-      const registration = makeFakeSWReg();
-      sandbox.stub(self, 'registration').value(registration);
-
-      const waitUntilSpy = sandbox.spy();
-      sandbox
-        .stub(SWController.prototype, 'hasVisibleClients_')
-        .callsFake(async () => false);
-      const showNotificationSpy = sandbox.spy(registration, 'showNotification');
-
-      const notificationData = {
-        title: 'test-title',
-        body: 'test-body',
-        icon: '/images/test-icon.png'
-      };
-
-      const swController = new SWController(app);
-      swController.onPush({
-        waitUntil: waitUntilSpy,
-        data: {
-          json: () => {
-            return {
-              notification: notificationData
-            };
-          }
-        }
-      } as any);
-
-      await waitUntilSpy.getCall(0).args[0];
-      expect(showNotificationSpy.callCount).to.equal(1);
-      expect(showNotificationSpy.args[0][0]).to.equal(notificationData.title);
-      expect(showNotificationSpy.args[0][1]).to.deep.equal({
-        title: notificationData.title,
-        body: notificationData.body,
-        icon: notificationData.icon,
-        data: {
-          FCM_MSG: {
-            notification: notificationData
-          }
-        }
-      });
+      expect(bgMessageHandlerSpy.callCount).to.equal(1);
+      expect(bgMessageHandlerSpy.args[0][0]).to.equal(payloadData);
     });
 
     it('should do nothing if no background message handler and no notification', async () => {

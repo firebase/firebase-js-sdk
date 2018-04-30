@@ -91,9 +91,17 @@ export class View {
   constructor(
     private query: Query,
     /** Documents included in the remote target */
-    private syncedDocuments: DocumentKeySet
+    private _syncedDocuments: DocumentKeySet
   ) {
     this.documentSet = new DocumentSet(query.docComparator.bind(query));
+  }
+
+  /**
+   * The set of remote documents that the server has told us belongs to the target associated with
+   * this view.
+   */
+  get syncedDocuments(): DocumentKeySet {
+    return this._syncedDocuments;
   }
 
   /**
@@ -299,7 +307,7 @@ export class View {
    */
   private shouldBeInLimbo(key: DocumentKey): boolean {
     // If the remote end says it's part of this query, it's not in limbo.
-    if (this.syncedDocuments.has(key)) {
+    if (this._syncedDocuments.has(key)) {
       return false;
     }
     // The local store doesn't think it's a result, so it shouldn't be in limbo.
@@ -325,10 +333,10 @@ export class View {
     if (targetChange) {
       const targetMapping = targetChange.mapping;
       if (targetMapping instanceof ResetMapping) {
-        this.syncedDocuments = targetMapping.documents;
+        this._syncedDocuments = targetMapping.documents;
       } else if (targetMapping instanceof UpdateMapping) {
-        this.syncedDocuments = targetMapping.applyToKeySet(
-          this.syncedDocuments
+        this._syncedDocuments = targetMapping.applyToKeySet(
+          this._syncedDocuments
         );
       }
 
