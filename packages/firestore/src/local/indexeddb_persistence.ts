@@ -544,7 +544,7 @@ export class IndexedDbPersistence implements Persistence {
       return zombiedClientId;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.debug(LOG_TAG, 'Failed to get zombied client id.', e);
+      log.error(LOG_TAG, 'Failed to get zombied client id.', e);
       return null;
     }
   }
