@@ -59,6 +59,7 @@ import {
   WebStorageSharedClientState
 } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
+import {assert} from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -279,7 +280,11 @@ export class FirestoreClient {
           user
         );
       } else {
-        debug(LOG_TAG, 'Starting Persistence in non multi-tab mode');
+        assert(
+            process.env.USE_MOCK_PERSISTENCE === 'YES',
+            'IndexedDB persistence is only available in browsers that support WebStorage.'
+        );
+        debug(LOG_TAG, 'Starting Persistence in test-only non multi-tab mode');
         this.sharedClientState = new MemorySharedClientState();
       }
       return this.persistence.start();
