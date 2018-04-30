@@ -4,9 +4,7 @@
     <node-options />
     <working-directory>$PROJECT_DIR$</working-directory>
     <pass-parent-env>true</pass-parent-env>
-    <envs>
-      <env name="USE_MOCK_PERSISTENCE" value="YES" />
-    </envs>
+    <envs></envs>
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
