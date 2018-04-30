@@ -282,8 +282,8 @@ export class FirestoreClient {
       } else {
         if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
           throw new FirestoreError(
-              Code.UNIMPLEMENTED,
-              'IndexedDB persistence is only available on platforms that support LocalStorage.'
+            Code.UNIMPLEMENTED,
+            'IndexedDB persistence is only available on platforms that support LocalStorage.'
           );
         }
         debug(LOG_TAG, 'Starting Persistence in test-only non multi-tab mode');
