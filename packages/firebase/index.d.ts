@@ -112,9 +112,7 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
-  function functions(
-    app?: firebase.app.App
-  ): firebase.functions.FirebaseFunctions;
+  function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
 declare namespace firebase.app {
@@ -127,7 +125,7 @@ declare namespace firebase.app {
     options: Object;
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    functions(): firebase.functions.FirebaseFunctions;
+    functions(): firebase.functions.Functions;
   }
 }
 
@@ -138,11 +136,11 @@ declare namespace firebase.functions {
   export interface HttpsCallable {
     (data?: any): Promise<HttpsCallableResult>;
   }
-  export class FirebaseFunctions {
+  export class Functions {
     private constructor();
     httpsCallable(name: string): HttpsCallable;
   }
-  export type FunctionsErrorCode =
+  export type ErrorStatus =
     | 'ok'
     | 'cancelled'
     | 'unknown'
@@ -161,7 +159,7 @@ declare namespace firebase.functions {
     | 'data-loss'
     | 'unauthenticated';
   export interface HttpsError extends Error {
-    readonly code: FunctionsErrorCode;
+    readonly code: ErrorStatus;
     readonly details?: any;
   }
 }
@@ -1974,7 +1972,7 @@ declare namespace firebase.firestore {
    * - 'unauthenticated': The request does not have valid authentication
    *   credentials for the operation.
    */
-  export type FirestoreErrorCode =
+  export type ErrorStatus =
     | 'cancelled'
     | 'unknown'
     | 'invalid-argument'
@@ -1995,7 +1993,7 @@ declare namespace firebase.firestore {
   /** An error returned by a Firestore operation. */
   // TODO(b/63008957): FirestoreError should extend firebase.FirebaseError
   export interface FirestoreError {
-    code: FirestoreErrorCode;
+    code: ErrorStatus;
     message: string;
     name: string;
     stack?: string;
