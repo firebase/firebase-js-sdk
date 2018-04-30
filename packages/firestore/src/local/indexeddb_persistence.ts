@@ -535,20 +535,23 @@ export class IndexedDbPersistence implements Persistence {
     try {
       if (this.window.localStorage) {
         const zombiedClientId = this.window.localStorage.getItem(
-            this.zombiedClientLocalStorageKey()
+          this.zombiedClientLocalStorageKey()
         );
         log.debug(
-            LOG_TAG,
-            'Zombied clientId from LocalStorage:',
-            zombiedClientId
+          LOG_TAG,
+          'Zombied clientId from LocalStorage:',
+          zombiedClientId
         );
         return zombiedClientId;
       } else {
-        log.debug(LOG_TAG, 'Failed to get zombied client id. LocalStorage is not available.');
+        log.debug(
+          LOG_TAG,
+          'Failed to get zombied client id. LocalStorage is not available.'
+        );
       }
     } catch (e) {
-        // Gracefully handle if LocalStorage isn't available / working.
-        log.debug(LOG_TAG, 'Failed to get zombied client id.', e);
+      // Gracefully handle if LocalStorage isn't available / working.
+      log.debug(LOG_TAG, 'Failed to get zombied client id.', e);
     }
 
     return null;

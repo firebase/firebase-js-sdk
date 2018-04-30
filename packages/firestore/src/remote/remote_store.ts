@@ -546,7 +546,6 @@ export class RemoteStore {
             this.commit(batch);
             return this.fillWritePipeline();
           }
-
         });
     }
   }
