@@ -42,7 +42,7 @@ const pkgsByName = {
 const plugins = [
   resolveModule(),
   typescript({
-    typescript: require('typescript'),
+    typescript: require('typescript')
   }),
   commonjs()
 ];
@@ -135,10 +135,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [
-      ...plugins,
-      uglify()
-    ]
+    plugins: [...plugins, uglify()]
   }
 ];
 
@@ -150,47 +147,44 @@ const components = [
   'messaging',
   'storage'
 ];
-const componentBuilds = components.map(component => {
-  const pkg = pkgsByName[component];
-  return [
-    {
-      input: `${component}/index.ts`,
-      output: [
-        { file: resolve(component, pkg.main), format: 'cjs' },
-        { file: resolve(component, pkg.module), format: 'es' }
-      ],
-      plugins,
-      external
-    },
-    {
-      input: `${component}/index.ts`,
-      output: {
-        file: `firebase-${component}.js`,
-        format: 'iife',
-        sourcemap: true,
-        extend: true,
-        name: GLOBAL_NAME,
-        globals: {
-          '@firebase/app': GLOBAL_NAME
-        },
-        intro: `try  {`,
-        outro: `} catch(err) {
+const componentBuilds = components
+  .map(component => {
+    const pkg = pkgsByName[component];
+    return [
+      {
+        input: `${component}/index.ts`,
+        output: [
+          { file: resolve(component, pkg.main), format: 'cjs' },
+          { file: resolve(component, pkg.module), format: 'es' }
+        ],
+        plugins,
+        external
+      },
+      {
+        input: `${component}/index.ts`,
+        output: {
+          file: `firebase-${component}.js`,
+          format: 'iife',
+          sourcemap: true,
+          extend: true,
+          name: GLOBAL_NAME,
+          globals: {
+            '@firebase/app': GLOBAL_NAME
+          },
+          intro: `try  {`,
+          outro: `} catch(err) {
               console.error(err);
               throw new Error(
                 'Cannot instantiate firebase-${component} - ' +
                 'be sure to load firebase-app.js first.'
               );
             }`
-      },
-      plugins: [
-        ...plugins,
-        uglify()
-      ],
-      external: [
-        '@firebase/app'
-      ]
-    },
-  ];
-}).reduce((a, b) => a.concat(b), []);
+        },
+        plugins: [...plugins, uglify()],
+        external: ['@firebase/app']
+      }
+    ];
+  })
+  .reduce((a, b) => a.concat(b), []);
 
 export default [...completeBuilds, ...appBuilds, ...componentBuilds];
