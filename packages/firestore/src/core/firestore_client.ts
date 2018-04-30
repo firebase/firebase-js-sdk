@@ -59,7 +59,6 @@ import {
   WebStorageSharedClientState
 } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
-import { assert } from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
 
