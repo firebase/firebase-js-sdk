@@ -8,7 +8,7 @@
       <env name="USE_MOCK_PERSISTENCE" value="YES" />
     </envs>
     <ui>bdd</ui>
-    <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts --require test/util/mock_persistence.ts</extra-mocha-options>
+    <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts --require test/util/node_persistence.ts</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
     <test-pattern>test/unit/{,!(browser)/**/}*.test.ts</test-pattern>
     <method />
