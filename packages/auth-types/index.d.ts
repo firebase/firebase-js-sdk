@@ -300,6 +300,7 @@ export class FirebaseAuth {
   signInWithPopup(provider: AuthProvider): Promise<any>;
   signInWithRedirect(provider: AuthProvider): Promise<any>;
   signOut(): Promise<any>;
+  updateCurrentUser(user: User | null): Promise<any>;
   useDeviceLanguage(): any;
   verifyPasswordResetCode(code: string): Promise<any>;
 }
