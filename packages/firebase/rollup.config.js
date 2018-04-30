@@ -42,7 +42,7 @@ const pkgsByName = {
 const plugins = [
   resolveModule(),
   typescript({
-    typescript: require('typescript')
+    typescript: require('typescript'),
   }),
   commonjs()
 ];
@@ -183,13 +183,7 @@ const componentBuilds = components.map(component => {
             }`
       },
       plugins: [
-        resolveModule(),
-        typescript({
-          typescript: require('typescript'),
-          verbosity: 3,
-          tsconfigOverride: { compilerOptions: { declaration: false } }
-        }),
-        commonjs(),
+        ...plugins,
         uglify()
       ],
       external: [
