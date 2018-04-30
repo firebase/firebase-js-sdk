@@ -82,7 +82,10 @@ export class RemoteEvent {
     existingDocuments: DocumentKeySet
   ): void {
     const targetChange = this.targetChanges[targetId];
-    assert(!!targetChange, 'Trying to filter updates from unknown target: ' + targetId);
+    assert(
+      !!targetChange,
+      'Trying to filter updates from unknown target: ' + targetId
+    );
     if (targetChange.mapping instanceof UpdateMapping) {
       const update = targetChange.mapping;
       const added = update.addedDocuments;
