@@ -17,7 +17,13 @@
 import '@firebase/polyfill';
 import firebase from '@firebase/app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { AsyncStorage } from 'react-native';
+
+/**
+ * To avoid having to include the @types/react-native package, which breaks
+ * some of our tests because of duplicate symbols, we are using require syntax
+ * here
+ */
+const { AsyncStorage } = require('react-native');
 
 const _firebase = firebase as _FirebaseNamespace;
 
