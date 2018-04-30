@@ -857,7 +857,10 @@ abstract class TestRunner {
     await this.syncEngine.shutdown();
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
-    await this.persistence.shutdown();
+    // We don't delete the persisted data here since multi-clients may still
+    // be accessing it. Instead, we manually remove it at the end of the
+    // test run.
+    await this.persistence.shutdown(/* deleteData= */ false);
     this.started = false;
   }
 
@@ -1262,6 +1265,10 @@ class MockWindow {
     return this.storageArea;
   }
 
+  get indexedDB(): IDBFactory {
+    return window.indexedDB;
+  }
+
   addEventListener(type: string, listener: EventListener): void {
     switch (type) {
       case 'storage':
@@ -1297,12 +1304,8 @@ class TestPlatform implements Platform {
     private readonly basePlatform: Platform,
     private readonly mockStorage: SharedMockStorage
   ) {
-    if (this.basePlatform.document) {
-      this.mockDocument = new MockDocument();
-    }
-    if (this.basePlatform.window) {
-      this.mockWindow = new MockWindow(this.mockStorage);
-    }
+    this.mockDocument = new MockDocument();
+    this.mockWindow = new MockWindow(this.mockStorage);
   }
 
   get document(): Document | null {

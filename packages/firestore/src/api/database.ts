@@ -429,9 +429,11 @@ follow these steps, YOUR APP MAY BREAK.`);
   }
 
   INTERNAL = {
-    delete: async (): Promise<void> => {
+    delete: async (options?: {
+      purgePersistenceWithDataLoss?: boolean;
+    }): Promise<void> => {
       if (this._firestoreClient) {
-        return this._firestoreClient.shutdown();
+        return this._firestoreClient.shutdown(options);
       }
     }
   };

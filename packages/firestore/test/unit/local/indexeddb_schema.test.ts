@@ -89,6 +89,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
   it('can install schema version 1', () => {
     return withDb(1, async db => {
       expect(db.version).to.equal(1);
