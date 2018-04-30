@@ -7,6 +7,8 @@
       {"name": ["it", "only"]},
       {"name": ["describe", "skip"]},
       {"name": ["describe", "only"]},
+      {"name": ["xit"]},
+      {"name": ["xdescribe"]},
       {"name": "parseInt", "message": "tsstyle#type-coercion"},
       {"name": "parseFloat", "message": "tsstyle#type-coercion"},
       {"name": "Array", "message": "tsstyle#array-constructor"}

@@ -40,16 +40,17 @@ const pkgsByName = {
 };
 
 const plugins = [
+  resolveModule(),
   typescript({
     typescript: require('typescript')
   }),
-  resolveModule(),
   commonjs()
 ];
 
 const external = Object.keys(pkg.dependencies || {});
 
 /**
+<<<<<<< HEAD
  * Complete Package Builds
  */
 const completeBuilds = [
@@ -89,6 +90,71 @@ const completeBuilds = [
  * Individual Component Builds
  */
 const appBuilds = [
+=======
+ * Global UMD Build
+ */
+const GLOBAL_NAME = 'firebase';
+
+/**
+ * Complete Package Builds
+ */
+const completeBuilds = [
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
+  /**
+   * App Browser Builds
+   */
+  {
+<<<<<<< HEAD
+    input: 'app/index.ts',
+    output: [
+      { file: resolve('app', appPkg.browser), format: 'cjs' },
+      { file: resolve('app', appPkg.module), format: 'es' }
+=======
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.browser, format: 'cjs' },
+      { file: pkg.module, format: 'es' }
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
+    ],
+    plugins,
+    external
+  },
+  /**
+   * App Node.js Builds
+   */
+  {
+<<<<<<< HEAD
+    input: 'app/index.node.ts',
+    output: { file: resolve('app', appPkg.main), format: 'cjs' },
+=======
+    input: 'src/index.node.ts',
+    output: { file: pkg.main, format: 'cjs' },
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
+    plugins,
+    external
+  },
+  /**
+   * App React Native Builds
+   */
+  {
+<<<<<<< HEAD
+    input: 'app/index.rn.ts',
+    output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
+=======
+    input: 'src/index.rn.ts',
+    output: { file: pkg['react-native'], format: 'cjs' },
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
+    plugins,
+    external: [...external, 'react-native']
+  }
+];
+
+<<<<<<< HEAD
+=======
+/**
+ * Individual Component Builds
+ */
+const appBuilds = [
   /**
    * App Browser Builds
    */
@@ -118,9 +184,23 @@ const appBuilds = [
     output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
     plugins,
     external: [...external, 'react-native']
+  },
+  /**
+   * App UMD Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: {
+      file: 'firebase-app.js',
+      sourcemap: true,
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()]
   }
 ];
 
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
 const components = [
   'auth',
   'database',
@@ -129,6 +209,7 @@ const components = [
   'messaging',
   'storage'
 ];
+<<<<<<< HEAD
 const componentBuilds = components.map(component => {
   const pkg = pkgsByName[component];
   return {
@@ -141,5 +222,46 @@ const componentBuilds = components.map(component => {
     external
   };
 });
+=======
+const componentBuilds = components
+  .map(component => {
+    const pkg = pkgsByName[component];
+    return [
+      {
+        input: `${component}/index.ts`,
+        output: [
+          { file: resolve(component, pkg.main), format: 'cjs' },
+          { file: resolve(component, pkg.module), format: 'es' }
+        ],
+        plugins,
+        external
+      },
+      {
+        input: `${component}/index.ts`,
+        output: {
+          file: `firebase-${component}.js`,
+          format: 'iife',
+          sourcemap: true,
+          extend: true,
+          name: GLOBAL_NAME,
+          globals: {
+            '@firebase/app': GLOBAL_NAME
+          },
+          intro: `try  {`,
+          outro: `} catch(err) {
+              console.error(err);
+              throw new Error(
+                'Cannot instantiate firebase-${component} - ' +
+                'be sure to load firebase-app.js first.'
+              );
+            }`
+        },
+        plugins: [...plugins, uglify()],
+        external: ['@firebase/app']
+      }
+    ];
+  })
+  .reduce((a, b) => a.concat(b), []);
+>>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
 
 export default [...completeBuilds, ...appBuilds, ...componentBuilds];

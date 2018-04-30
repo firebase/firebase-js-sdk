@@ -103,6 +103,13 @@ export class SimpleDb {
     // For tracking support of this feature, see here:
     // https://developer.microsoft.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport/
 
+    // If we are running in Node using the IndexedDBShim, `window` is defined,
+    // but `window.navigator` is not. In this case, we support IndexedDB and
+    // return `true`.
+    if (window.navigator === undefined) {
+      return process.env.USE_MOCK_PERSISTENCE === 'YES';
+    }
+
     // Check the UA string to find out the browser.
     const ua = window.navigator.userAgent;
 

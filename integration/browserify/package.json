@@ -7,7 +7,7 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "4.13.0"
+    "firebase": "4.13.1"
   },
   "devDependencies": {
     "browserify": "16.2.0",

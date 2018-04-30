@@ -474,7 +474,7 @@ export class WriteBatch {
  */
 export interface SnapshotListenOptions {
   /**
-   * Include a change even if only the metadata of the query or a document
+   * Include a change even if only the metadata of the query or of a document
    * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
