@@ -68,9 +68,9 @@ apiDescribe('Server Timestamps', persistence => {
 
   /** Waits for a latency compensated local snapshot. */
   function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    return accumulator.awaitEvent().then(remoteSnap => {
-      if (remoteSnap.metadata.hasPendingWrites) {
-        return remoteSnap;
+    return accumulator.awaitEvent().then(snapshot => {
+      if (snapshot.metadata.hasPendingWrites) {
+        return snapshot;
       } else {
         return waitForLocalEvent();
       }
@@ -96,9 +96,9 @@ apiDescribe('Server Timestamps', persistence => {
 
   /** Waits for a snapshot that has no pending writes */
   function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
-    return accumulator.awaitEvent().then(remoteSnap => {
-      if (!remoteSnap.metadata.hasPendingWrites) {
-        return remoteSnap;
+    return accumulator.awaitEvent().then(snapshot => {
+      if (!snapshot.metadata.hasPendingWrites) {
+        return snapshot;
       } else {
         return waitForRemoteEvent();
       }
