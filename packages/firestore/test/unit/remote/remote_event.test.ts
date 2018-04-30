@@ -532,7 +532,9 @@ describe('RemoteEvent', () => {
       existingDoc
     );
 
-    const targets = listens(1, 2);
+    const updateChangeId = 1;
+    const resetChangeId = 2;
+    const targets = listens(updateChangeId, resetChangeId);
     const event = remoteEvent(
       1,
       targets,
@@ -542,22 +544,22 @@ describe('RemoteEvent', () => {
       existingDocChange
     );
 
-    const updateChange = event.targetChanges[1];
+    const updateChange = event.targetChanges[updateChangeId];
     expect(updateChange.mapping).to.be.instanceof(UpdateMapping);
     const update = updateChange.mapping as UpdateMapping;
     expect(update.addedDocuments.has(existingDoc.key)).to.be.true;
 
     const existingKeys = documentKeySet().add(existingDoc.key);
-    event.filterUpdatesFromTargetChange(updateChange, existingKeys);
+    event.filterUpdatesFromTargetChange(updateChangeId, existingKeys);
     expect(update.addedDocuments.has(existingDoc.key)).to.be.false;
     expect(update.addedDocuments.has(newDoc.key)).to.be.true;
 
-    const resetChange = event.targetChanges[2];
+    const resetChange = event.targetChanges[resetChangeId];
     expect(resetChange.mapping).to.be.instanceof(ResetMapping);
     const reset = resetChange.mapping as ResetMapping;
     expect(reset.documents.has(existingDoc.key)).to.be.true;
 
-    event.filterUpdatesFromTargetChange(resetChange, existingKeys);
+    event.filterUpdatesFromTargetChange(resetChangeId, existingKeys);
     // document is still there, as reset mappings don't get filtered
     expect(reset.documents.has(existingDoc.key)).to.be.true;
   });

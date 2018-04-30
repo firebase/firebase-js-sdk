@@ -24,6 +24,7 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
+import { assert } from '../util/assert';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -77,9 +78,11 @@ export class RemoteEvent {
    * skip doing the work to associate the document with the target because it has already been done.
    */
   filterUpdatesFromTargetChange(
-    targetChange: TargetChange,
+    targetId: TargetId,
     existingDocuments: DocumentKeySet
   ): void {
+    const targetChange = this.targetChanges[targetId];
+    assert(!!targetChange, 'Trying to filter updates from unknown target: ' + targetId);
     if (targetChange.mapping instanceof UpdateMapping) {
       const update = targetChange.mapping;
       const added = update.addedDocuments;

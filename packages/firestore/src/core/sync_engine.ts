@@ -306,7 +306,7 @@ export class SyncEngine implements RemoteSyncer {
           const qv = this.queryViewsByTarget[targetId];
           assert(!!qv, 'Missing QueryView for non-limbo query: ' + targetId);
           remoteEvent.filterUpdatesFromTargetChange(
-            targetChange,
+            targetId,
             qv.view.syncedDocuments
           );
         } else {
