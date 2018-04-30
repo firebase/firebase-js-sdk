@@ -35,6 +35,7 @@
     "@firebase/messaging": "0.2.4",
     "@firebase/polyfill": "0.3.1",
     "@firebase/storage": "0.1.9",
+    "@types/react-native": "0.55.2",    
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
   },

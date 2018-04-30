@@ -50,7 +50,6 @@ describe('Firebase Messaging > *SWController', () => {
     //
     // Casting to any is needed because TS also thinks that we're in a SW
     // context and considers these properties readonly.
-
     (self as any).clients = 'This is a placeholder for sinon to overwrite.';
     (self as any).registration =
       'This is a placeholder for sinon to overwrite.';
@@ -921,9 +920,7 @@ describe('Firebase Messaging > *SWController', () => {
       expect(onSubChangeStub.args[0][0]).to.equal(pushEvent);
 
       // sandbox.stub(swController, 'onNotificationClick');
-
       // const notificaitonClick = new Event('notificationclick');
-
       // self.dispatchEvent(notificaitonClick);
     });
 
