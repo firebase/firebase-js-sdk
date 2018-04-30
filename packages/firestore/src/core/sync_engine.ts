@@ -25,7 +25,7 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
-import { CurrentStatusUpdate, RemoteEvent } from '../remote/remote_event';
+import { RemoteEvent } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
@@ -296,43 +296,23 @@ export class SyncEngine implements RemoteSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
-    // Make sure limbo documents are deleted if there were no results
+    // Make sure limbo documents are deleted if there were no results.
+    // Filter out document additions to targets that they already belong to.
     objUtils.forEachNumber(
       remoteEvent.targetChanges,
       (targetId, targetChange) => {
         const limboKey = this.limboKeysByTarget[targetId];
-        if (
-          limboKey &&
-          targetChange.currentStatusUpdate ===
-            CurrentStatusUpdate.MarkCurrent &&
-          !remoteEvent.documentUpdates.get(limboKey)
-        ) {
-          // When listening to a query the server responds with a snapshot
-          // containing documents matching the query and a current marker
-          // telling us we're now in sync. It's possible for these to arrive
-          // as separate remote events or as a single remote event.
-          // For a document query, there will be no documents sent in the
-          // response if the document doesn't exist.
-          //
-          // If the snapshot arrives separately from the current marker,
-          // we handle it normally and updateTrackedLimbos will resolve the
-          // limbo status of the document, removing it from limboDocumentRefs.
-          // This works because clients only initiate limbo resolution when
-          // a target is current and because all current targets are
-          // always at a consistent snapshot.
-          //
-          // However, if the document doesn't exist and the current marker
-          // arrives, the document is not present in the snapshot and our
-          // normal view handling would consider the document to remain in
-          // limbo indefinitely because there are no updates to the document.
-          // To avoid this, we specially handle this just this case here:
-          // synthesizing a delete.
-          //
-          // TODO(dimond): Ideally we would have an explicit lookup query
-          // instead resulting in an explicit delete message and we could
-          // remove this special logic.
-          remoteEvent.addDocumentUpdate(
-            new NoDocument(limboKey, remoteEvent.snapshotVersion)
+        if (!limboKey) {
+          const qv = this.queryViewsByTarget[targetId];
+          assert(!!qv, 'Missing QueryView for non-limbo query: ' + targetId);
+          remoteEvent.filterUpdatesFromTargetChange(
+            targetId,
+            qv.view.syncedDocuments
+          );
+        } else {
+          remoteEvent.synthesizeDeleteForLimboTargetChange(
+            targetChange,
+            limboKey
           );
         }
       }
