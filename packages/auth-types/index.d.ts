@@ -22,7 +22,6 @@ export interface User extends UserInfo {
   emailVerified: boolean;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   getIdToken(forceRefresh?: boolean): Promise<any>;
-  getToken(forceRefresh?: boolean): Promise<any>;
   isAnonymous: boolean;
   linkAndRetrieveDataWithCredential(credential: AuthCredential): Promise<any>;
   linkWithCredential(credential: AuthCredential): Promise<any>;

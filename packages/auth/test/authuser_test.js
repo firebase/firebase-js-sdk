@@ -2753,6 +2753,11 @@ function testReauthenticateWithCredential_success() {
   // Test that reauthenticateWithCredential calls
   // reauthenticateAndRetrieveDataWithCredential underneath and returns void, on
   // success.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   // Stub reauthenticateAndRetrieveDataWithCredential and confirm promise
   // resolves with void.
   stubs.replace(
@@ -2778,6 +2783,13 @@ function testReauthenticateWithCredential_success() {
         assertUndefined(response);
         asyncTestCase.signal();
       });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -2785,6 +2797,11 @@ function testReauthenticateWithCredential_error() {
   // Test that reauthenticateWithCredential calls
   // reauthenticateAndRetrieveDataWithCredential underneath and funnels any
   // underlying error thrown.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
       'reauthenticateAndRetrieveDataWithCredential',
@@ -2804,6 +2821,13 @@ function testReauthenticateWithCredential_error() {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -2911,6 +2935,11 @@ function testReauthenticateAndRetrieveDataWithCredential_fail() {
 function testLinkWithCredential_success() {
   // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
   // underneath and returns the user only, on success.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   // Stub linkAndRetrieveDataWithCredential and confirm same response is used
   // for linkWithCredential with only the user returned.
   stubs.replace(
@@ -2935,12 +2964,24 @@ function testLinkWithCredential_success() {
     assertEquals(user, response);
     asyncTestCase.signal();
   });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
 function testLinkWithCredential_error() {
   // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
   // underneath and funnels any underlying error thrown.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
       'linkAndRetrieveDataWithCredential',
@@ -2959,6 +3000,13 @@ function testLinkWithCredential_error() {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -10227,75 +10275,6 @@ function testReauthenticateWithPhoneNumber_error_noAuthInstance() {
             error);
         asyncTestCase.signal();
       });
-}
-
-
-function testGetToken_error() {
-  // Test that getToken calls getIdToken underneath and funnels any underlying
-  // error thrown.
-  stubs.replace(
-      fireauth.AuthUser.prototype,
-      'getIdToken',
-      function(opt_refreshToken) {
-        assertFalse(opt_refreshToken);
-        return goog.Promise.reject(expectedError);
-      });
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  asyncTestCase.waitForSignals(1);
-  // Expected error.
-  var expectedError = new fireauth.AuthError(
-      fireauth.authenum.Error.INTERNAL_ERROR);
-  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  user.getToken(false).thenCatch(function(error) {
-    // Confirm expected error.
-    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
-  });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.USER_GET_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testGetToken_success() {
-  // Test that getToken calls getIdToken underneath and returns the same result
-  // on success.
-  // Stub getIdToken and confirm same response is used for getToken.
-  stubs.replace(
-      fireauth.AuthUser.prototype,
-      'getIdToken',
-      function(opt_refreshToken) {
-        assertTrue(opt_refreshToken);
-        return goog.Promise.resolve(expectedIdToken);
-      });
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  asyncTestCase.waitForSignals(1);
-  var expectedIdToken = 'NEW_ID_TOKEN';
-  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  user.getToken(true).then(function(idToken) {
-    // Confirm expected ID token.
-    assertEquals(expectedIdToken, idToken);
-    asyncTestCase.signal();
-  });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.USER_GET_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
