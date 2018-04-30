@@ -280,10 +280,12 @@ export class FirestoreClient {
           user
         );
       } else {
-        assert(
-          process.env.USE_MOCK_PERSISTENCE === 'YES',
-          'IndexedDB persistence is only available in browsers that support LocalStorage.'
-        );
+        if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
+          throw new FirestoreError(
+              Code.UNIMPLEMENTED,
+              'IndexedDB persistence is only available on platforms that support LocalStorage.'
+          );
+        }
         debug(LOG_TAG, 'Starting Persistence in test-only non multi-tab mode');
         this.sharedClientState = new MemorySharedClientState();
       }
