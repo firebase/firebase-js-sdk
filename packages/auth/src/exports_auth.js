@@ -229,10 +229,6 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'getIdToken',
         args: [fireauth.args.bool('opt_forceRefresh', true)]
       },
-      getToken: {
-        name: 'getToken',
-        args: [fireauth.args.bool('opt_forceRefresh', true)]
-      },
       linkAndRetrieveDataWithCredential: {
         name: 'linkAndRetrieveDataWithCredential',
         args: [fireauth.args.authCredential()]
