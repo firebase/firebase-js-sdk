@@ -186,6 +186,7 @@ const componentBuilds = components.map(component => {
         resolveModule(),
         typescript({
           typescript: require('typescript'),
+          verbosity: 3,
           tsconfigOverride: { compilerOptions: { declaration: false } }
         }),
         commonjs(),
