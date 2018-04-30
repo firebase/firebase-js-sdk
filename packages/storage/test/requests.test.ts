@@ -102,7 +102,12 @@ describe('Firebase Storage > Requests', () => {
     serverResourceString,
     mappings
   );
-  const downloadUrlFromServerResource = 'https://firebasestorage.googleapis.com/v0/b/' + normalBucket + '/o/' + encodeURIComponent(serverResource.name) + '?alt=media&token=a';
+  const downloadUrlFromServerResource =
+    'https://firebasestorage.googleapis.com/v0/b/' +
+    normalBucket +
+    '/o/' +
+    encodeURIComponent(serverResource.name) +
+    '?alt=media&token=a';
 
   function uploadMetadataString(name: string): string {
     return JSON.stringify({
@@ -199,7 +204,11 @@ describe('Firebase Storage > Requests', () => {
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
-      const requestInfo = requests.getDownloadUrl(authWrapper, location, mappings);
+      const requestInfo = requests.getDownloadUrl(
+        authWrapper,
+        location,
+        mappings
+      );
       assertObjectIncludes(
         {
           url: normalUrl(url),

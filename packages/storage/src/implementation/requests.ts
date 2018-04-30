@@ -70,7 +70,10 @@ export function downloadUrlHandler(
       mappings
     );
     handlerCheck(metadata !== null);
-    return MetadataUtils.downloadUrlFromResourceString(metadata as Metadata, text);
+    return MetadataUtils.downloadUrlFromResourceString(
+      metadata as Metadata,
+      text
+    );
   }
   return handler;
 }
@@ -144,7 +147,7 @@ export function getDownloadUrl(
   authWrapper: AuthWrapper,
   location: Location,
   mappings: MetadataUtils.Mappings
-): RequestInfo<string|null> {
+): RequestInfo<string | null> {
   let urlPart = location.fullServerUrl();
   let url = UrlUtils.makeNormalUrl(urlPart);
   let method = 'GET';
@@ -158,7 +161,6 @@ export function getDownloadUrl(
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }
-
 
 export function updateMetadata(
   authWrapper: AuthWrapper,

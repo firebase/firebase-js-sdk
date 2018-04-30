@@ -258,12 +258,15 @@ export class Reference {
         self.location,
         self.mappings()
       );
-      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise().then(function(url) {
-        if (url === null) {
-          throw errorsExports.noDownloadURL();
-        }
-        return url;
-      });
+      return self.authWrapper
+        .makeRequest(requestInfo, authToken)
+        .getPromise()
+        .then(function(url) {
+          if (url === null) {
+            throw errorsExports.noDownloadURL();
+          }
+          return url;
+        });
     });
   }
 
