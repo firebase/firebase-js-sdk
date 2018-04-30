@@ -50,7 +50,6 @@ describe('Firebase Messaging > *SWController', () => {
     //
     // Casting to any is needed because TS also thinks that we're in a SW
     // context and considers these properties readonly.
-
     (self as any).clients = 'This is a placeholder for sinon to overwrite.';
     (self as any).registration =
       'This is a placeholder for sinon to overwrite.';
@@ -139,8 +138,6 @@ describe('Firebase Messaging > *SWController', () => {
       expect(stub.callCount).to.equal(1);
     });
 
-<<<<<<< HEAD
-=======
     it('should send to window if a bgMessageHandler is defined', async () => {
       const waitUntilSpy = sandbox.spy();
       const stub = sandbox.stub(
@@ -164,7 +161,6 @@ describe('Firebase Messaging > *SWController', () => {
       expect(stub.callCount).to.equal(1);
     });
 
->>>>>>> fbec674d067935b46ed324f675bd20864c3df98b
     it('should generate notification without options and show notification if no visible clients', async () => {
       const registration = makeFakeSWReg();
       sandbox.stub(self, 'registration').value(registration);
@@ -924,9 +920,7 @@ describe('Firebase Messaging > *SWController', () => {
       expect(onSubChangeStub.args[0][0]).to.equal(pushEvent);
 
       // sandbox.stub(swController, 'onNotificationClick');
-
       // const notificaitonClick = new Event('notificationclick');
-
       // self.dispatchEvent(notificaitonClick);
     });
 
