@@ -77,7 +77,7 @@ const completeBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify()],
+    plugins: [...plugins, uglify()]
   },
   /**
    * App Node.js Builds
