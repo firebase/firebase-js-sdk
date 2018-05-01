@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-var firebase = require('@firebase/app').default;
-require('./auth');
-require('./database');
-require('@firebase/polyfill');
+import '@firebase/polyfill';
+import firebase from '@firebase/app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 
-var Storage = require('dom-storage');
-var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+/**
+ * To avoid having to include the @types/react-native package, which breaks
+ * some of our tests because of duplicate symbols, we are using require syntax
+ * here
+ */
+const { AsyncStorage } = require('react-native');
 
-firebase.INTERNAL.extendNamespace({
+const _firebase = firebase as _FirebaseNamespace;
+
+_firebase.INTERNAL.extendNamespace({
   INTERNAL: {
-    node: {
-      localStorage: new Storage(null, { strict: true }),
-      sessionStorage: new Storage(null, { strict: true }),
-      XMLHttpRequest: XMLHttpRequest
+    reactNative: {
+      AsyncStorage
     }
   }
 });
 
-module.exports = firebase;
+export default firebase;

@@ -34,7 +34,6 @@ type Metadata = {
   contentEncoding: string | undefined;
   contentLanguage: string | undefined;
   contentType: string | undefined;
-  downloadURLs: string[] | undefined;
   downloadTokens: string[] | undefined;
   customMetadata: { [key: string]: string } | undefined;
   ref: Reference | undefined;

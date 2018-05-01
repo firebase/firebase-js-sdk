@@ -260,6 +260,23 @@ function testGetKeyDiff() {
   var i = {'key1': null, 'key2': null, 'key3': {}};
   var j = {'key1': null, 'key2': null, 'key3': null};
   assertArrayEquals(['key3'], fireauth.util.getKeyDiff(i, j));
+  // Verifies that if value is array, elements of the array should be
+  // compared by value rather than by reference.
+  var k = {'key1': {'c': 3, 'd': 4}, 'key2': [{'a': 1, 'b': 2}]};
+  var l = {'key1': {'c': 3, 'd': 4}, 'key2': [{'a': 1, 'b': 2}]};
+  assertArrayEquals(
+      [],
+      fireauth.util.getKeyDiff(k, l));
+  var m = {'key1': [{'a': [{'c': 1}], 'b': 2}]};
+  var n = {'key1': [{'a': [{'c': 1}], 'b': 2}]};
+  assertArrayEquals(
+      [],
+      fireauth.util.getKeyDiff(m, n));
+  var o = {'key1': [{'a': 1, 'b': 2}, {'c': 3, 'd': 4}]};
+  var p = {'key1': [{'c': 3, 'd': 4}, {'a': 1, 'b': 2}]};
+  assertArrayEquals(
+      ['key1'],
+      fireauth.util.getKeyDiff(o, p));
 }
 
 
@@ -477,6 +494,14 @@ function testCreateStorageKey() {
   assertEquals(
       'apiKey:appName',
       fireauth.util.createStorageKey('apiKey', 'appName'));
+}
+
+
+function testGenerateRandomAlphaNumericString() {
+  // Confirm generated string has expected length.
+  for (var i = 0; i < 10; i++) {
+    assertEquals(i, fireauth.util.generateRandomAlphaNumericString(i).length);
+  }
 }
 
 

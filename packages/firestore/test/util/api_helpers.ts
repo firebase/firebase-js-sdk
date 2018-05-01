@@ -118,7 +118,8 @@ export function querySnapshot(
     documentChanges,
     fromCache,
     hasPendingWrites,
-    syncStateChanged
+    syncStateChanged,
+    /* excludesMetadataChanges= */ false
   );
   return new QuerySnapshot(FIRESTORE, query, viewSnapshot);
 }

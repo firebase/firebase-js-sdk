@@ -162,6 +162,7 @@ fireauth.authenum.Error = {
   MODULE_DESTROYED: 'app-deleted',
   NEED_CONFIRMATION: 'account-exists-with-different-credential',
   NETWORK_REQUEST_FAILED: 'network-request-failed',
+  NULL_USER: 'null-user',
   NO_AUTH_EVENT: 'no-auth-event',
   NO_SUCH_PROVIDER: 'no-such-provider',
   OPERATION_NOT_ALLOWED: 'operation-not-allowed',
@@ -338,6 +339,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.NO_AUTH_EVENT] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.NO_SUCH_PROVIDER] =
     'User was not linked to an account with the given provider.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.NULL_USER] =
+    'A null user object was provided as the argument for an operation which ' +
+    'requires a non-null user object.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.OPERATION_NOT_ALLOWED] =
     'The given sign-in provider is disabled for this Firebase project. ' +
     'Enable it in the Firebase console, under the sign-in method tab of the ' +

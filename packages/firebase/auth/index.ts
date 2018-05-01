@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-require('@firebase/messaging');
+import '@firebase/auth';

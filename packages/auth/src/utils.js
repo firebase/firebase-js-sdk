@@ -145,6 +145,7 @@ fireauth.util.replaceCurrentUrl = function(url, opt_window, opt_bypassCheck) {
 
 
 /**
+ * Deep comparison of two objects.
  * @param {!Object} a The first object.
  * @param {!Object} b The second object.
  * @return {!Array<string>} The list of keys that are different between both
@@ -157,10 +158,6 @@ fireauth.util.getKeyDiff = function(a, b) {
       diff.push(k);
     } else if (typeof a[k] != typeof b[k]) {
       diff.push(k);
-    } else if (goog.isArray(a[k])) {
-      if (!goog.object.equals(a[k], b[k])) {
-        diff.push(k);
-      }
     } else if (typeof a[k] == 'object' && a[k] != null && b[k] != null) {
       if (fireauth.util.getKeyDiff(
           a[k], b[k]).length > 0) {
@@ -707,6 +704,25 @@ fireauth.util.createStorageKey = function(apiKey, appName) {
 /** @return {string} a long random character string. */
 fireauth.util.generateRandomString = function() {
   return Math.floor(Math.random() * 1000000000).toString();
+};
+
+
+/**
+ * Generates a random alpha numeric string.
+ * @param {number} numOfChars The number of random characters within the string.
+ * @return {string} A string with a specific number of random characters.
+ */
+fireauth.util.generateRandomAlphaNumericString = function(numOfChars) {
+  var chars = [];
+  var allowedChars =
+      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  while (numOfChars > 0) {
+    chars.push(
+        allowedChars.charAt(
+            Math.floor(Math.random() * allowedChars.length)));
+    numOfChars--;
+  }
+  return chars.join('');
 };
 
 

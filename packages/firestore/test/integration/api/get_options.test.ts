@@ -45,7 +45,7 @@ apiDescribe('GetOptions', persistence => {
       return colRef.get().then(qrySnap => {
         expect(qrySnap.metadata.fromCache).to.be.false;
         expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-        expect(qrySnap.docChanges.length).to.equal(3);
+        expect(qrySnap.docChanges().length).to.equal(3);
         expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
       });
     });
@@ -94,7 +94,7 @@ apiDescribe('GetOptions', persistence => {
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.true;
           const docsData = toDataMap(qrySnap);
-          expect(qrySnap.docChanges.length).to.equal(4);
+          expect(qrySnap.docChanges().length).to.equal(4);
           expect(docsData).to.deep.equal({
             doc1: { key1: 'value1' },
             doc2: { key2: 'value2', key2b: 'value2b' },
@@ -139,7 +139,7 @@ apiDescribe('GetOptions', persistence => {
         .then(qrySnap => {
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-          expect(qrySnap.docChanges.length).to.equal(3);
+          expect(qrySnap.docChanges().length).to.equal(3);
           expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
         });
     });
@@ -189,7 +189,7 @@ apiDescribe('GetOptions', persistence => {
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.true;
           const docsData = toDataMap(qrySnap);
-          expect(qrySnap.docChanges.length).to.equal(4);
+          expect(qrySnap.docChanges().length).to.equal(4);
           expect(docsData).to.deep.equal({
             doc1: { key1: 'value1' },
             doc2: { key2: 'value2', key2b: 'value2b' },
@@ -222,7 +222,7 @@ apiDescribe('GetOptions', persistence => {
       return colRef.get({ source: 'server' }).then(qrySnap => {
         expect(qrySnap.metadata.fromCache).to.be.false;
         expect(qrySnap.metadata.hasPendingWrites).to.be.false;
-        expect(qrySnap.docChanges.length).to.equal(3);
+        expect(qrySnap.docChanges().length).to.equal(3);
         expect(toDataMap(qrySnap)).to.deep.equal(initialDocs);
       });
     });
@@ -362,7 +362,7 @@ apiDescribe('GetOptions', persistence => {
             expect(qrySnap.metadata.fromCache).to.be.true;
             expect(qrySnap.metadata.hasPendingWrites).to.be.true;
             const docsData = toDataMap(qrySnap);
-            expect(qrySnap.docChanges.length).to.equal(4);
+            expect(qrySnap.docChanges().length).to.equal(4);
             expect(docsData).to.deep.equal({
               doc1: { key1: 'value1' },
               doc2: { key2: 'value2', key2b: 'value2b' },
@@ -375,7 +375,7 @@ apiDescribe('GetOptions', persistence => {
             expect(qrySnap.metadata.fromCache).to.be.true;
             expect(qrySnap.metadata.hasPendingWrites).to.be.true;
             const docsData = toDataMap(qrySnap);
-            expect(qrySnap.docChanges.length).to.equal(4);
+            expect(qrySnap.docChanges().length).to.equal(4);
             expect(docsData).to.deep.equal({
               doc1: { key1: 'value1' },
               doc2: { key2: 'value2', key2b: 'value2b' },
@@ -409,7 +409,7 @@ apiDescribe('GetOptions', persistence => {
       return colRef.get().then(qrySnap => {
         //expect(qrySnap.count).to.equal(0);
         expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges.length).to.equal(0);
+        expect(qrySnap.docChanges().length).to.equal(0);
         expect(qrySnap.metadata.fromCache).to.be.false;
         expect(qrySnap.metadata.hasPendingWrites).to.be.false;
       });
@@ -437,7 +437,7 @@ apiDescribe('GetOptions', persistence => {
         .then(() => colRef.get())
         .then(qrySnap => {
           expect(qrySnap.empty).to.be.true;
-          expect(qrySnap.docChanges.length).to.equal(0);
+          expect(qrySnap.docChanges().length).to.equal(0);
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.false;
         });
@@ -462,7 +462,7 @@ apiDescribe('GetOptions', persistence => {
     return withTestCollection(persistence, {}, colRef => {
       return colRef.get({ source: 'cache' }).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges.length).to.equal(0);
+        expect(qrySnap.docChanges().length).to.equal(0);
         expect(qrySnap.metadata.fromCache).to.be.true;
         expect(qrySnap.metadata.hasPendingWrites).to.be.false;
       });
@@ -495,7 +495,7 @@ apiDescribe('GetOptions', persistence => {
         .then(() => colRef.get({ source: 'cache' }))
         .then(qrySnap => {
           expect(qrySnap.empty).to.be.true;
-          expect(qrySnap.docChanges.length).to.equal(0);
+          expect(qrySnap.docChanges().length).to.equal(0);
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.false;
         });
@@ -516,7 +516,7 @@ apiDescribe('GetOptions', persistence => {
     return withTestCollection(persistence, {}, colRef => {
       return colRef.get({ source: 'server' }).then(qrySnap => {
         expect(qrySnap.empty).to.be.true;
-        expect(qrySnap.docChanges.length).to.equal(0);
+        expect(qrySnap.docChanges().length).to.equal(0);
         expect(qrySnap.metadata.fromCache).to.be.false;
         expect(qrySnap.metadata.hasPendingWrites).to.be.false;
       });

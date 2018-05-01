@@ -14,5 +14,4 @@
  * limitations under the License.
  */
 
-require('@firebase/polyfill');
-module.exports = require('@firebase/app').default;
+import '@firebase/firestore';

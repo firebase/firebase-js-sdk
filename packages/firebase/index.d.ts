@@ -499,7 +499,6 @@ declare namespace firebase.database {
     key: string | null;
     onDisconnect(): firebase.database.OnDisconnect;
     parent: firebase.database.Reference | null;
-    path: string;
     push(
       value?: any,
       onComplete?: (a: Error | null) => any
@@ -1138,13 +1137,14 @@ declare namespace firebase.firestore {
   }
 
   /**
-   * Options for use with `DocumentReference.onSnapshot()` to control the
-   * behavior of the snapshot listener.
+   * An options object that can be passed to `DocumentReference.onSnapshot()`,
+   * `Query.onSnapshot()` and `QuerySnapshot.docChanges()` to control which
+   * types of changes to include in the result set.
    */
-  export interface DocumentListenOptions {
+  export interface SnapshotListenOptions {
     /**
-     * Raise an event even if only metadata of the document changed. Default is
-     * false.
+     * Include a change even if only the metadata of the query or of a document
+     * changed. Default is false.
      */
     readonly includeMetadataChanges?: boolean;
   }
@@ -1330,7 +1330,7 @@ declare namespace firebase.firestore {
       complete?: () => void;
     }): () => void;
     onSnapshot(
-      options: DocumentListenOptions,
+      options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: DocumentSnapshot) => void;
         error?: (error: Error) => void;
@@ -1343,7 +1343,7 @@ declare namespace firebase.firestore {
       onCompletion?: () => void
     ): () => void;
     onSnapshot(
-      options: DocumentListenOptions,
+      options: SnapshotListenOptions,
       onNext: (snapshot: DocumentSnapshot) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
@@ -1512,25 +1512,6 @@ declare namespace firebase.firestore {
    * strings '<', '<=', '==', '>=', and '>'.
    */
   export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
-
-  /**
-   * Options for use with `Query.onSnapshot() to control the behavior of the
-   * snapshot listener.
-   */
-  export interface QueryListenOptions {
-    /**
-     * Raise an event even if only metadata changes (i.e. one of the
-     * `QuerySnapshot.metadata` properties). Default is false.
-     */
-    readonly includeQueryMetadataChanges?: boolean;
-
-    /**
-     * Raise an event even if only metadata of a document in the query results
-     * changes (i.e. one of the `DocumentSnapshot.metadata` properties on one of
-     * the documents). Default is false.
-     */
-    readonly includeDocumentMetadataChanges?: boolean;
-  }
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1716,7 +1697,7 @@ declare namespace firebase.firestore {
       complete?: () => void;
     }): () => void;
     onSnapshot(
-      options: QueryListenOptions,
+      options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: QuerySnapshot) => void;
         error?: (error: Error) => void;
@@ -1729,7 +1710,7 @@ declare namespace firebase.firestore {
       onCompletion?: () => void
     ): () => void;
     onSnapshot(
-      options: QueryListenOptions,
+      options: SnapshotListenOptions,
       onNext: (snapshot: QuerySnapshot) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
@@ -1756,12 +1737,6 @@ declare namespace firebase.firestore {
      * modifications.
      */
     readonly metadata: SnapshotMetadata;
-    /**
-     * An array of the documents that changed since the last snapshot. If this
-     * is the first snapshot, all documents will be in the list as added
-     * changes.
-     */
-    readonly docChanges: DocumentChange[];
 
     /** An array of all the documents in the QuerySnapshot. */
     readonly docs: QueryDocumentSnapshot[];
@@ -1771,6 +1746,16 @@ declare namespace firebase.firestore {
 
     /** True if there are no documents in the QuerySnapshot. */
     readonly empty: boolean;
+
+    /**
+     * Returns an array of the documents changes since the last snapshot. If this
+     * is the first snapshot, all documents will be in the list as added changes.
+     *
+     * @param options `SnapshotListenOptions` that control whether metadata-only
+     * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
+     * snapshot events.
+     */
+    docChanges(options?: SnapshotListenOptions): DocumentChange[];
 
     /**
      * Enumerates all of the documents in the QuerySnapshot.

@@ -29,6 +29,7 @@ goog.require('fireauth.AuthEvent');
 goog.require('fireauth.AuthEventHandler');
 goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
+goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.EmailAuthProvider');
@@ -36,6 +37,7 @@ goog.require('fireauth.RpcHandler');
 goog.require('fireauth.UserEventType');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
+goog.require('fireauth.deprecation');
 goog.require('fireauth.idp');
 goog.require('fireauth.iframeclient.IfcHandler');
 goog.require('fireauth.object');
@@ -63,6 +65,9 @@ goog.require('goog.object');
 fireauth.Auth = function(app) {
   /** @private {boolean} Whether this instance is deleted. */
   this.deleted_ = false;
+  /** The Auth instance's settings object. */
+  fireauth.object.setReadonlyProperty(
+      this, 'settings', new fireauth.AuthSettings());
   /** Auth's corresponding App. */
   fireauth.object.setReadonlyProperty(this, 'app', app);
   // Initialize RPC handler.
@@ -730,6 +735,51 @@ fireauth.Auth.prototype.getRedirectResult = function() {
 
 
 /**
+ * Asynchronously sets the provided user as currentUser on the current Auth
+ * instance.
+ * @param {?fireauth.AuthUser} user The user to be copied to Auth instance.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.Auth.prototype.updateCurrentUser = function(user) {
+  if (!user) {
+    return goog.Promise.reject(new fireauth.AuthError(
+        fireauth.authenum.Error.NULL_USER));
+  }
+  var self = this;
+  var options = {};
+  options['apiKey'] = this.app_().options['apiKey'];
+  options['authDomain'] = this.app_().options['authDomain'];
+  options['appName'] = this.app_().name;
+  var newUser = fireauth.AuthUser.copyUser(user, options,
+      self.redirectUserStorageManager_, self.getFramework());
+  return this.registerPendingPromise_(
+      this.redirectStateIsReady_.then(function() {
+        if (self.app_().options['apiKey'] != user.getApiKey()) {
+          // Throws auth/invalid-user-token if user doesn't belong to app.
+          // Throws auth/user-token-expired if token expires.
+          return newUser.reload();
+        }
+      }).then(function() {
+        if (self.currentUser_() && user['uid'] == self.currentUser_()['uid']) {
+          // Same user signed in. Update user data and notify Auth listeners.
+          // No need to resubscribe to user events.
+          // TODO: Check if the user to copy is older than current user and skip
+          // the copy logic in that case.
+          self.currentUser_().copy(user);
+          return self.handleUserStateChange_(user);
+        }
+        self.setCurrentUser_(newUser);
+        // Enable popup and redirect events.
+        newUser.enablePopupRedirect();
+        // Save user changes.
+        return self.handleUserStateChange_(newUser);
+      }).then(function(user) {
+        self.notifyAuthListeners_();
+      }));
+};
+
+
+/**
  * Completes the headless sign in with the server response containing the STS
  * access and refresh tokens, and sets the Auth user as current user while
  * setting all listeners to it and saving it to storage.
@@ -1354,26 +1404,12 @@ fireauth.Auth.prototype.getIdTokenInternal = function(opt_forceRefresh) {
 
 
 /**
- * Signs in a user asynchronously using a custom token.
- * @param {string} token The custom token to sign in with.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.Auth.prototype.signInWithCustomToken = function(token) {
-  // Get signInAndRetrieveDataWithCustomToken result and return the user only.
-  return this.signInAndRetrieveDataWithCustomToken(token)
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
  * Signs in a user asynchronously using a custom token and returns any
  * additional user info data or credentials returned form the backend.
  * @param {string} token The custom token to sign in with.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(token) {
+fireauth.Auth.prototype.signInWithCustomToken = function(token) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
   // errors like web storage unsupported are detected, fail before RPC, instead
@@ -1394,13 +1430,43 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(token) {
 
 
 /**
+ * Signs in a user asynchronously using a custom token and returns any
+ * additional user info data or credentials returned form the backend. It has
+ * been deprecated in favor of signInWithCustomToken.
+ * @param {string} token The custom token to sign in with.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(token) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CUSTOM_TOKEN);
+  return this.signInWithCustomToken(token);
+};
+
+
+/**
+ * Sign in using an email and password and returns any additional user info
+ * data or credentials returned form the backend. It has been deprecated in
+ * favor of signInWithEmailAndPassword.
+ * @param {string} email The email to sign in with.
+ * @param {string} password The password to sign in with.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword =
+    function(email, password) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.SIGN_IN_WITH_EMAIL_AND_PASSWORD);
+  return this.signInWithEmailAndPassword(email, password);
+};
+
+
+/**
  * Sign in using an email and password and returns any additional user info
  * data or credentials returned form the backend.
  * @param {string} email The email to sign in with.
  * @param {string} password The password to sign in with.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword =
+fireauth.Auth.prototype.signInWithEmailAndPassword =
     function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
@@ -1414,47 +1480,13 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword =
 
 
 /**
- * Sign in using an email and password.
- * @param {string} email The email to sign in with.
- * @param {string} password The password to sign in with.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.Auth.prototype.signInWithEmailAndPassword =
-    function(email, password) {
-  // Get signInAndRetrieveDataWithEmailAndPassword result and return
-  // the user only.
-  return this.signInAndRetrieveDataWithEmailAndPassword(email, password)
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
- * Create a new email and password account.
- * @param {string} email The email to sign up with.
- * @param {string} password The password to sign up with.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.Auth.prototype.createUserWithEmailAndPassword =
-    function(email, password) {
-  // Get createUserAndRetrieveDataWithEmailAndPassword result and return
-  // the user only.
-  return this.createUserAndRetrieveDataWithEmailAndPassword(email, password)
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
  * Creates a new email and password account and returns any additional user
  * info data or credentials returned form the backend.
  * @param {string} email The email to sign up with.
  * @param {string} password The password to sign up with.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword =
+fireauth.Auth.prototype.createUserWithEmailAndPassword =
     function(email, password) {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
@@ -1468,11 +1500,30 @@ fireauth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword =
 
 
 /**
- * Logs into Firebase with the given 3rd party credentials.
+ * Creates a new email and password account and returns any additional user
+ * info data or credentials returned form the backend. It has been deprecated
+ * in favor of createUserWithEmailAndPassword.
+ * @param {string} email The email to sign up with.
+ * @param {string} password The password to sign up with.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword =
+    function(email, password) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.CREATE_USER_WITH_EMAIL_AND_PASSWORD);
+  return this.createUserWithEmailAndPassword(email, password);
+};
+
+
+/**
+ * Logs into Firebase with the given 3rd party credentials. It has been
+ * deprecated in favor of signInAndRetrieveDataWithCredential.
  * @param {!fireauth.AuthCredential} credential The auth credential.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
 fireauth.Auth.prototype.signInWithCredential = function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CREDENTIAL);
   // Get signInAndRetrieveDataWithCredential result and return the user only.
   return this.signInAndRetrieveDataWithCredential(credential)
       .then(function(result) {
@@ -1504,24 +1555,11 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
 
 
 /**
- * Signs in a user anonymously.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.Auth.prototype.signInAnonymously = function() {
-  // Get signInAnonymouslyAndRetrieveData result and return the user only.
-  return this.signInAnonymouslyAndRetrieveData()
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
  * Signs in a user anonymously and returns any additional user info data or
  * credentials returned form the backend.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {
+fireauth.Auth.prototype.signInAnonymously = function() {
   var self = this;
   // Wait for the redirect state to be determined before proceeding. If critical
   // errors like web storage unsupported are detected, fail before RPC, instead
@@ -1563,6 +1601,19 @@ fireauth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {
           });
     }
   });
+};
+
+
+/**
+ * Signs in a user anonymously and returns any additional user info data or
+ * credentials returned form the backend. It has been deprecated in favor of
+ * signInWithAnonymously.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.SIGN_IN_ANONYMOUSLY);
+  return this.signInAnonymously();
 };
 
 
@@ -1813,10 +1864,13 @@ fireauth.Auth.prototype.registerPendingPromise_ = function(p) {
 
 /**
  * Gets the list of IDPs that can be used to log in for the given email address.
+ * It has been deprecated in favor of fetchSignInMethodsForEmail.
  * @param {string} email The email address.
  * @return {!goog.Promise<!Array<!fireauth.idp.ProviderId>>}
  */
 fireauth.Auth.prototype.fetchProvidersForEmail = function(email) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.FETCH_PROVIDERS_FOR_EMAIL);
   return /** @type {!goog.Promise<!Array<!fireauth.idp.ProviderId>>} */ (
       this.registerPendingPromise_(
       this.getRpcHandler().fetchProvidersForIdentifier(email)
