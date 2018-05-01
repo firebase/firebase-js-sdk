@@ -24,6 +24,7 @@ goog.provide('fireauth.args.Argument');
 
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthError');
+goog.require('fireauth.AuthUser');
 goog.require('fireauth.authenum.Error');
 
 
@@ -360,6 +361,25 @@ fireauth.args.firebaseAuth = function(opt_optional) {
     validator: /** @type {function(!fireauth.Auth) : boolean} */ (
         function(auth) {
           return !!(auth && auth instanceof fireauth.Auth);
+        })
+  });
+};
+
+
+/**
+ * Specifies an instance of Firebase User.
+ * @param {?boolean=} opt_optional Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.firebaseUser = function(opt_optional) {
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: 'user',
+    typeLabel: 'an instance of Firebase User',
+    optional: !!opt_optional,
+    validator: /** @type {function(!fireauth.AuthUser) : boolean} */ (
+        function(user) {
+          return !!(user && user instanceof fireauth.AuthUser);
         })
   });
 };

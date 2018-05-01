@@ -175,6 +175,15 @@ fireauth.exportlib.exportPrototypeMethods(
         name: 'signInWithRedirect',
         args: [fireauth.args.authProvider()]
       },
+      updateCurrentUser: {
+        name: 'updateCurrentUser',
+        args: [
+          fireauth.args.or(
+            fireauth.args.firebaseUser(),
+            fireauth.args.null(),
+            'user')
+        ]
+      },
       signOut: {
         name: 'signOut',
         args: []
