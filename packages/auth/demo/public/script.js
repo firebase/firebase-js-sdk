@@ -1302,6 +1302,18 @@ function onCopyLastUser() {
 }
 
 
+/** Applies selected auth settings change. */
+function onApplyAuthSettingsChange() {
+  try {
+    auth.settings.appVerificationDisabledForTesting =
+        $("input[name=enable-app-verification]:checked").val() == 'No';
+    alertSuccess('Auth settings changed');
+  } catch (error) {
+    alertError('Error: ' + error.code);
+  }
+}
+
+
 /**
  * Initiates the application by setting event listeners on the various buttons.
  */
@@ -1483,6 +1495,8 @@ function initApp(){
   $('#run-service-worker-tests').click(onRunServiceWorkTests);
   $('#copy-active-user').click(onCopyActiveUser);
   $('#copy-last-user').click(onCopyLastUser);
+
+  $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);
 }
 
 $(initApp);

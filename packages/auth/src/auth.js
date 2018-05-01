@@ -29,6 +29,7 @@ goog.require('fireauth.AuthEvent');
 goog.require('fireauth.AuthEventHandler');
 goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
+goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.EmailAuthProvider');
@@ -64,6 +65,9 @@ goog.require('goog.object');
 fireauth.Auth = function(app) {
   /** @private {boolean} Whether this instance is deleted. */
   this.deleted_ = false;
+  /** The Auth instance's settings object. */
+  fireauth.object.setReadonlyProperty(
+      this, 'settings', new fireauth.AuthSettings());
   /** Auth's corresponding App. */
   fireauth.object.setReadonlyProperty(this, 'app', app);
   // Initialize RPC handler.

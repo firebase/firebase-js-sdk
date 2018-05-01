@@ -238,6 +238,10 @@ export interface OAuthCredential extends AuthCredential {
   secret?: string;
 }
 
+export interface AuthSettings {
+  appVerificationDisabledForTesting: boolean;
+}
+
 export class FirebaseAuth {
   private constructor();
 
@@ -262,6 +266,7 @@ export class FirebaseAuth {
   isSignInWithEmailLink(emailLink: string): boolean;
   getRedirectResult(): Promise<any>;
   languageCode: string | null;
+  settings: AuthSettings;
   onAuthStateChanged(
     nextOrObserver: Observer<any, any> | ((a: User | null) => any),
     error?: (a: Error) => any,

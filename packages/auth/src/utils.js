@@ -708,6 +708,25 @@ fireauth.util.generateRandomString = function() {
 
 
 /**
+ * Generates a random alpha numeric string.
+ * @param {number} numOfChars The number of random characters within the string.
+ * @return {string} A string with a specific number of random characters.
+ */
+fireauth.util.generateRandomAlphaNumericString = function(numOfChars) {
+  var chars = [];
+  var allowedChars =
+      '1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  while (numOfChars > 0) {
+    chars.push(
+        allowedChars.charAt(
+            Math.floor(Math.random() * allowedChars.length)));
+    numOfChars--;
+  }
+  return chars.join('');
+};
+
+
+/**
  * Enums for Browser name.
  * @enum {string}
  */

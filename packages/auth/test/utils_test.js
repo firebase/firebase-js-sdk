@@ -497,6 +497,14 @@ function testCreateStorageKey() {
 }
 
 
+function testGenerateRandomAlphaNumericString() {
+  // Confirm generated string has expected length.
+  for (var i = 0; i < 10; i++) {
+    assertEquals(i, fireauth.util.generateRandomAlphaNumericString(i).length);
+  }
+}
+
+
 function testGetEnvironment_browser() {
   assertEquals(fireauth.util.Env.BROWSER,
       fireauth.util.getEnvironment('Gecko'));
