@@ -161,6 +161,24 @@
 
           <div class="tab-content">
             <div class="tab-pane active" id="auth-section">
+              <!-- Development mode APIs -->
+              <div class="group">Development mode APIs</div>
+              <form class="form form-bordered no-submit">
+                <div class="btn-group radio-block" id="enable-app-verification-selection"
+                     data-toggle="buttons">
+                  <label class="btn btn-primary active">
+                    <input type="radio" name="enable-app-verification" value="Yes"
+                           autocomplete="off" checked> Enable App Verification
+                  </label>
+                  <label class="btn btn-primary">
+                    <input type="radio" name="enable-app-verification" value="No"
+                           autocomplete="off"> Disable App Verification
+                  </label>
+                </div>
+                <button class="btn btn-block btn-primary"
+                        id="apply-auth-settings-change">Apply settings change</button>
+              </form>
+              
               <!-- Worker tests -->
               <div class="group">Web Worker Testing</div>
               <form class="form form-bordered no-submit">

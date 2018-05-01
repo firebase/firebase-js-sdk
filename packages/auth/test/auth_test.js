@@ -27,6 +27,7 @@ goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthErrorWithCredential');
 goog.require('fireauth.AuthEvent');
 goog.require('fireauth.AuthEventManager');
+goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
@@ -551,6 +552,30 @@ function testCurrentUser() {
       config3, expectedTokenResponse, accountInfo);
   auth1.setCurrentUser_(user);
   assertUserEquals(user, auth1['currentUser']);
+}
+
+
+function testAuthSettings() {
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+
+  assertTrue(auth1['settings'] instanceof fireauth.AuthSettings);
+  assertFalse(auth1['settings']['appVerificationDisabledForTesting']);
+  auth1['settings']['appVerificationDisabledForTesting'] = true;
+  assertTrue(auth1['settings']['appVerificationDisabledForTesting']);
+  // Confirm validation is applied.
+  var error = assertThrows(function() {
+    auth1['settings']['appVerificationDisabledForTesting'] = 'invalid';
+  });
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.ARGUMENT_ERROR,
+      'appVerificationDisabledForTesting failed: ' +
+      '"appVerificationDisabledForTesting" must be a boolean.');
+  fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+
+  // Confirm settings is a read-only property.
+  auth1['settings'] = null;
+  assertTrue(auth1['settings'] instanceof fireauth.AuthSettings);
 }
 
 
