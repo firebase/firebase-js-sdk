@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
+
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
@@ -297,7 +299,11 @@ export class UserDataConverter {
   }
 
   /** Parse document data from a set() call with '{merge:true}'. */
-  parseMergeData(methodName: string, input: AnyJs): ParsedSetData {
+  parseMergeData(
+    methodName: string,
+    input: AnyJs,
+    fieldPaths?: Array<string | firestore.FieldPath>
+  ): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.MergeSet,
       methodName,
@@ -305,12 +311,48 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const updateData = this.parseData(input, context);
-    const fieldMask = new FieldMask(context.fieldMask);
+    const updateData = this.parseData(input, context) as ObjectValue;
+    let fieldMask: FieldMask;
+    let fieldTransforms: FieldTransform[];
+
+    if (!fieldPaths) {
+      fieldMask = new FieldMask(context.fieldMask);
+      fieldTransforms = context.fieldTransforms;
+    } else {
+      const validatedFieldPaths = [];
+
+      for (const stringOrFieldPath of fieldPaths) {
+        let fieldPath;
+
+        if (stringOrFieldPath instanceof ExternalFieldPath) {
+          fieldPath = stringOrFieldPath as ExternalFieldPath;
+        } else if (typeof stringOrFieldPath === 'string') {
+          fieldPath = fieldPathFromDotSeparatedString(
+            methodName,
+            stringOrFieldPath
+          );
+        } else {
+          fail('Expected stringOrFieldPath to be a string or a FieldPath');
+        }
+
+        if (!updateData.contains(fieldPath)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
+          );
+        }
+        validatedFieldPaths.push(fieldPath);
+      }
+
+      fieldMask = new FieldMask(validatedFieldPaths);
+      fieldTransforms = context.fieldTransforms.filter(transform =>
+        fieldMask.covers(transform.field)
+      );
+    }
     return new ParsedSetData(
       updateData as ObjectValue,
       fieldMask,
-      context.fieldTransforms
+      fieldTransforms
     );
   }
 

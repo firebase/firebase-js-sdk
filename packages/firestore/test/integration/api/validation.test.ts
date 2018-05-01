@@ -303,6 +303,28 @@ apiDescribe('Validation:', persistence => {
       });
   });
 
+  validationIt(persistence, 'Merge options are validated', db => {
+    const docRef = db.collection('test').doc();
+
+    expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+    );
+    expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+    );
+    expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
+      'Function DocumentReference.set() requires its merge option to be of type boolean, but it was: "foo"'
+    );
+    expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
+      'Function DocumentReference.set() requires its mergeFields option to be an array, but it was: "foo"'
+    );
+    expect(() =>
+      docRef.set({}, { mergeFields: ['foo', false as any] })
+    ).to.throw(
+      'Function DocumentReference.set() requires all mergeFields elements to be a string or a FieldPath, but the value at index 1 was: false'
+    );
+  });
+
   describe('Writes', () => {
     /** Class used to verify custom classes can't be used in writes. */
     class TestClass {

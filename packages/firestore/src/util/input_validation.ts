@@ -169,6 +169,51 @@ export function validateNamedOptionalType(
   }
 }
 
+export function validateArrayElements<T>(
+  functionName: string,
+  optionName: string,
+  typeDescription: string,
+  argument: T[],
+  validator: (T) => boolean
+): void {
+  if (!(argument instanceof Array)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() requires its ${optionName} ` +
+        `option to be an array, but it was: ${valueDescription(argument)}`
+    );
+  }
+
+  for (let i = 0; i < argument.length; ++i) {
+    if (!validator(argument[i])) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Function ${functionName}() requires all ${optionName} ` +
+          `elements to be ${typeDescription}, but the value at index ${i} ` +
+          `was: ${valueDescription(argument[i])}`
+      );
+    }
+  }
+}
+
+export function validateOptionalArrayElements<T>(
+  functionName: string,
+  optionName: string,
+  typeDescription: string,
+  argument: T[] | undefined,
+  validator: (T) => boolean
+): void {
+  if (argument !== undefined) {
+    validateArrayElements(
+      functionName,
+      optionName,
+      typeDescription,
+      argument,
+      validator
+    );
+  }
+}
+
 /**
  * Validates that the provided named option equals one of the expected values.
  */

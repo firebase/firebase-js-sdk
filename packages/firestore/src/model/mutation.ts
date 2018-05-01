@@ -39,6 +39,22 @@ export class FieldMask {
     // TODO(dimond): validation of FieldMask
   }
 
+  /**
+   * Verifies that `fieldPath` is included by at least one field in this field
+   * mask.
+   *
+   * This is an O(n) operation, where `n` is the size of the field mask.
+   */
+  covers(fieldPath: FieldPath): boolean {
+    for (const fieldMaskPath of this.fields) {
+      if (fieldMaskPath.isPrefixOf(fieldPath)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   isEqual(other: FieldMask): boolean {
     return misc.arrayEquals(this.fields, other.fields);
   }
