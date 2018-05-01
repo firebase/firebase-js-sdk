@@ -1972,7 +1972,7 @@ declare namespace firebase.firestore {
    * - 'unauthenticated': The request does not have valid authentication
    *   credentials for the operation.
    */
-  export type ErrorStatus =
+  export type FirestoreErrorCode =
     | 'cancelled'
     | 'unknown'
     | 'invalid-argument'
@@ -1993,7 +1993,7 @@ declare namespace firebase.firestore {
   /** An error returned by a Firestore operation. */
   // TODO(b/63008957): FirestoreError should extend firebase.FirebaseError
   export interface FirestoreError {
-    code: ErrorStatus;
+    code: FirestoreErrorCode;
     message: string;
     name: string;
     stack?: string;
