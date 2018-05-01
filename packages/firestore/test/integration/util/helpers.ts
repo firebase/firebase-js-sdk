@@ -184,7 +184,7 @@ export function withTestDbsSettings(
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
           (chain, db) =>
-            chain.then(() =>
+            chain.then(
               db.INTERNAL.delete.bind(this, {
                 purgePersistenceWithDataLoss: true
               })
