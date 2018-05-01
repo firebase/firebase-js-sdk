@@ -24,7 +24,6 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
-import { assert } from '../util/assert';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -77,33 +76,6 @@ export class RemoteEvent {
   }
 
   /**
-   * Strips out mapping changes that aren't actually changes. That is, if the document already
-   * existed in the target, and is being added in the target, and this is not a reset, we can
-   * skip doing the work to associate the document with the target because it has already been done.
-   */
-  filterUpdatesFromTargetChange(
-    targetId: TargetId,
-    existingDocuments: DocumentKeySet
-  ): void {
-    const targetChange = this.targetChanges[targetId];
-    assert(
-      !!targetChange,
-      'Trying to filter updates from unknown target: ' + targetId
-    );
-    if (targetChange.mapping instanceof UpdateMapping) {
-      const update = targetChange.mapping;
-      const added = update.addedDocuments;
-      let result = added;
-      added.forEach(key => {
-        if (existingDocuments.has(key)) {
-          result = result.delete(key);
-        }
-      });
-      update.addedDocuments = result;
-    }
-  }
-
-  /**
    * Synthesize a delete change if necessary for the given limbo target.
    */
   synthesizeDeleteForLimboTargetChange(
@@ -132,7 +104,7 @@ export class RemoteEvent {
       // arrives, the document is not present in the snapshot and our
       // normal view handling would consider the document to remain in
       // limbo indefinitely because there are no updates to the document.
-      // To avoid this, we specially handle this just this case here:
+      // To avoid this, we specially handle this case here:
       // synthesizing a delete.
       //
       // TODO(dimond): Ideally we would have an explicit lookup query
@@ -217,6 +189,10 @@ export class ResetMapping {
   isEqual(other: ResetMapping): boolean {
     return other !== null && this.docs.isEqual(other.docs);
   }
+
+  filterUpdates(existingKeys: DocumentKeySet): void {
+    // No-op. Resets don't get filtered.
+  }
 }
 
 export class UpdateMapping {
@@ -246,5 +222,20 @@ export class UpdateMapping {
       this.addedDocuments.isEqual(other.addedDocuments) &&
       this.removedDocuments.isEqual(other.removedDocuments)
     );
+  }
+
+  /**
+   * Strips out mapping changes that aren't actually changes. That is, if the document already
+   * existed in the target, and is being added in the target, and this is not a reset, we can
+   * skip doing the work to associate the document with the target because it has already been done.
+   */
+  filterUpdates(existingKeys: DocumentKeySet): void {
+    let results = this.addedDocuments;
+    this.addedDocuments.forEach(docKey => {
+      if (existingKeys.has(docKey)) {
+        results = results.delete(docKey);
+      }
+    });
+    this.addedDocuments = results;
   }
 }
