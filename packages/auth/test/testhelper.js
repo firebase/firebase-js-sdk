@@ -188,6 +188,44 @@ fireauth.common.testHelper.assertIdTokenResult = function (
 
 
 /**
+ * Asserts that two users with differnt API keys are equivalent. Plain
+ * assertObjectEquals may not work as the expiration time may sometimes be off
+ * by a second. This takes that into account. The different App names and API
+ * keys will be ignored.
+ * @param {!fireauth.AuthUser} expected
+ * @param {!fireauth.AuthUser} actual
+ * @param {string=} opt_expectedApikey
+ * @param {string=} opt_actualApikey
+ */
+fireauth.common.testHelper.assertUserEqualsInWithDiffApikey = function(
+    expected, actual, opt_expectedApikey, opt_actualApikey) {
+  var expectedObj = expected.toPlainObject();
+  var actualObj = actual.toPlainObject();
+  if (opt_expectedApikey && opt_actualApikey) {
+    assertEquals(opt_expectedApikey, expectedObj['apiKey']);
+    assertEquals(opt_actualApikey, actualObj['apiKey']);
+    // Overwrite ApiKeys.
+    expectedObj['apiKey'] = '';
+    actualObj['apiKey'] = '';
+    expectedObj['stsTokenManager']['apiKey'] = '';
+    actualObj['stsTokenManager']['apiKey'] = '';
+  }
+  var delta = expectedObj['stsTokenManager']['expirationTime'] -
+      actualObj['stsTokenManager']['expirationTime'];
+  // Confirm expiration times are close enough.
+  // The conversion back and forth from and to plain object, could result in
+  // some negligible difference.
+  assertTrue(Math.abs(delta) <= 1000);
+  // Overwrite expiration times and app names.
+  expectedObj['stsTokenManager']['expirationTime'] = 0;
+  actualObj['stsTokenManager']['expirationTime'] = 0;
+  expectedObj['appName'] = '';
+  actualObj['appName'] = '';
+  assertObjectEquals(expectedObj, actualObj);
+};
+
+
+/**
  * Installs different persistent/temporary storage using the provided mocks.
  * @param {!goog.testing.PropertyReplacer} stub The property replacer.
  * @param {!fireauth.storage.Storage} mockLocalStorage The mock storage

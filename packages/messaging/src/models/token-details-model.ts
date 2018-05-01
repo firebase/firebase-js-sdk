@@ -18,7 +18,7 @@ import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DBInterface } from './db-interface';
-import { ERROR_CODES } from './errors';
+import { ERROR_CODES, errorFactory } from './errors';
 
 export class TokenDetailsModel extends DBInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
@@ -90,82 +90,16 @@ export class TokenDetailsModel extends DBInterface {
   }
 
   /**
-   * This method takes an object and will check for known arguments and
-   * validate the input.
-   * @return Promise that resolves if input is valid, rejects otherwise.
-   */
-  private validateInputs(input: Partial<TokenDetails>): void {
-    if (input.fcmToken) {
-      if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
-      }
-    }
-
-    if (input.swScope) {
-      if (typeof input.swScope !== 'string' || input.swScope.length === 0) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
-      }
-    }
-
-    if (input.vapidKey) {
-      if (
-        !(input.vapidKey instanceof Uint8Array) ||
-        input.vapidKey.length !== 65
-      ) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
-      }
-    }
-
-    if (input.endpoint) {
-      if (typeof input.endpoint !== 'string' || input.endpoint.length === 0) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
-      }
-    }
-
-    if (input.auth) {
-      if (!(input.auth instanceof ArrayBuffer)) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
-      }
-    }
-
-    if (input.p256dh) {
-      if (!(input.p256dh instanceof ArrayBuffer)) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
-      }
-    }
-
-    if (input.fcmSenderId) {
-      if (
-        typeof input.fcmSenderId !== 'string' ||
-        input.fcmSenderId.length === 0
-      ) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
-      }
-    }
-
-    if (input.fcmPushSet) {
-      if (
-        typeof input.fcmPushSet !== 'string' ||
-        input.fcmPushSet.length === 0
-      ) {
-        throw this.errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
-      }
-    }
-  }
-
-  /**
    * Given a token, this method will look up the details in indexedDB.
-   * @param {string} fcmToken
-   * @return {Promise<TokenDetails>} The details associated with that token.
    */
   async getTokenDetailsFromToken(
     fcmToken: string
   ): Promise<TokenDetails | undefined> {
     if (!fcmToken) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
+      throw errorFactory.create(ERROR_CODES.BAD_TOKEN);
     }
 
-    this.validateInputs({ fcmToken });
+    validateInputs({ fcmToken });
 
     return this.getIndex<TokenDetails>('fcmToken', fcmToken);
   }
@@ -179,10 +113,10 @@ export class TokenDetailsModel extends DBInterface {
     swScope: string
   ): Promise<TokenDetails | undefined> {
     if (!swScope) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
+      throw errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
-    this.validateInputs({ swScope });
+    validateInputs({ swScope });
 
     return this.get<TokenDetails>(swScope);
   }
@@ -193,30 +127,30 @@ export class TokenDetailsModel extends DBInterface {
    */
   async saveTokenDetails(tokenDetails: TokenDetails): Promise<void> {
     if (!tokenDetails.swScope) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SCOPE);
+      throw errorFactory.create(ERROR_CODES.BAD_SCOPE);
     }
 
     if (!tokenDetails.vapidKey) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
+      throw errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
     }
 
     if (!tokenDetails.endpoint || !tokenDetails.auth || !tokenDetails.p256dh) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+      throw errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
     }
 
     if (!tokenDetails.fcmSenderId) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
+      throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
     if (!tokenDetails.fcmToken) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_TOKEN);
+      throw errorFactory.create(ERROR_CODES.BAD_TOKEN);
     }
 
     if (!tokenDetails.fcmPushSet) {
-      throw this.errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
+      throw errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
     }
 
-    this.validateInputs(tokenDetails);
+    validateInputs(tokenDetails);
 
     return this.put(tokenDetails);
   }
@@ -232,16 +166,77 @@ export class TokenDetailsModel extends DBInterface {
   async deleteToken(token: string): Promise<TokenDetails> {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
-        this.errorFactory.create(ERROR_CODES.INVALID_DELETE_TOKEN)
+        errorFactory.create(ERROR_CODES.INVALID_DELETE_TOKEN)
       );
     }
 
     const details = await this.getTokenDetailsFromToken(token);
     if (!details) {
-      throw this.errorFactory.create(ERROR_CODES.DELETE_TOKEN_NOT_FOUND);
+      throw errorFactory.create(ERROR_CODES.DELETE_TOKEN_NOT_FOUND);
     }
 
     await this.delete(details.swScope);
     return details;
+  }
+}
+
+/**
+ * This method takes an object and will check for known arguments and
+ * validate the input.
+ * @return Promise that resolves if input is valid, rejects otherwise.
+ */
+function validateInputs(input: Partial<TokenDetails>): void {
+  if (input.fcmToken) {
+    if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
+      throw errorFactory.create(ERROR_CODES.BAD_TOKEN);
+    }
+  }
+
+  if (input.swScope) {
+    if (typeof input.swScope !== 'string' || input.swScope.length === 0) {
+      throw errorFactory.create(ERROR_CODES.BAD_SCOPE);
+    }
+  }
+
+  if (input.vapidKey) {
+    if (
+      !(input.vapidKey instanceof Uint8Array) ||
+      input.vapidKey.length !== 65
+    ) {
+      throw errorFactory.create(ERROR_CODES.BAD_VAPID_KEY);
+    }
+  }
+
+  if (input.endpoint) {
+    if (typeof input.endpoint !== 'string' || input.endpoint.length === 0) {
+      throw errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+    }
+  }
+
+  if (input.auth) {
+    if (!(input.auth instanceof ArrayBuffer)) {
+      throw errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+    }
+  }
+
+  if (input.p256dh) {
+    if (!(input.p256dh instanceof ArrayBuffer)) {
+      throw errorFactory.create(ERROR_CODES.BAD_SUBSCRIPTION);
+    }
+  }
+
+  if (input.fcmSenderId) {
+    if (
+      typeof input.fcmSenderId !== 'string' ||
+      input.fcmSenderId.length === 0
+    ) {
+      throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
+    }
+  }
+
+  if (input.fcmPushSet) {
+    if (typeof input.fcmPushSet !== 'string' || input.fcmPushSet.length === 0) {
+      throw errorFactory.create(ERROR_CODES.BAD_PUSH_SET);
+    }
   }
 }

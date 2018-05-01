@@ -14,46 +14,140 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
+import { resolve } from 'path';
+import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import typescript from 'rollup-plugin-typescript2';
 import uglify from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
-const plugins = [resolve(), commonjs(), uglify()];
+import appPkg from './app/package.json';
+import authPkg from './auth/package.json';
+import databasePkg from './database/package.json';
+import firestorePkg from './firestore/package.json';
+import functionsPkg from './functions/package.json';
+import messagingPkg from './messaging/package.json';
+import storagePkg from './storage/package.json';
 
+const pkgsByName = {
+  app: appPkg,
+  auth: authPkg,
+  database: databasePkg,
+  firestore: firestorePkg,
+  functions: functionsPkg,
+  messaging: messagingPkg,
+  storage: storagePkg
+};
+
+const plugins = [
+  resolveModule(),
+  typescript({
+    typescript: require('typescript')
+  }),
+  commonjs()
+];
+
+const external = Object.keys(pkg.dependencies || {});
+
+/**
+ * Global UMD Build
+ */
 const GLOBAL_NAME = 'firebase';
 
 /**
- * This is the firebase/app level config
+ * Complete Package Builds
  */
-const appConfig = {
-  input: 'app/index.js',
-  output: {
-    file: 'firebase-app.js',
-    sourcemap: true,
-    format: 'umd',
-    name: GLOBAL_NAME
+const completeBuilds = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: 'src/index.module.ts',
+    output: [
+      { file: pkg.browser, format: 'cjs' },
+      { file: pkg.module, format: 'es' }
+    ],
+    plugins,
+    external
   },
-  plugins
-};
+  {
+    input: 'src/index.cdn.ts',
+    output: {
+      file: 'firebase.js',
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()]
+  },
+  /**
+   * App Node.js Builds
+   */
+  {
+    input: 'src/index.node.ts',
+    output: { file: pkg.main, format: 'cjs' },
+    plugins,
+    external
+  },
+  /**
+   * App React Native Builds
+   */
+  {
+    input: 'src/index.rn.ts',
+    output: { file: pkg['react-native'], format: 'cjs' },
+    plugins,
+    external: [...external, 'react-native']
+  }
+];
 
 /**
- * This is the top level `firebase` config
+ * Individual Component Builds
  */
-const firebaseJsConfig = {
-  input: 'index.js',
-  output: {
-    file: 'firebase.js',
-    sourcemap: true,
-    format: 'umd',
-    name: GLOBAL_NAME
+const appBuilds = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: [
+      { file: resolve('app', appPkg.browser), format: 'cjs' },
+      { file: resolve('app', appPkg.module), format: 'es' }
+    ],
+    plugins,
+    external
   },
-  plugins
-};
+  /**
+   * App Node.js Builds
+   */
+  {
+    input: 'app/index.node.ts',
+    output: { file: resolve('app', appPkg.main), format: 'cjs' },
+    plugins,
+    external
+  },
+  /**
+   * App React Native Builds
+   */
+  {
+    input: 'app/index.rn.ts',
+    output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
+    plugins,
+    external: [...external, 'react-native']
+  },
+  /**
+   * App UMD Builds
+   */
+  {
+    input: 'app/index.ts',
+    output: {
+      file: 'firebase-app.js',
+      sourcemap: true,
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()]
+  }
+];
 
-/**
- * All of these configs are built to extend the top two configs
- */
 const components = [
   'auth',
   'database',
@@ -62,29 +156,44 @@ const components = [
   'messaging',
   'storage'
 ];
-
-const componentsConfig = components.map(component => ({
-  input: `${component}/index.js`,
-  output: {
-    file: `firebase-${component}.js`,
-    format: 'iife',
-    sourcemap: true,
-    extend: true,
-    name: GLOBAL_NAME,
-    globals: {
-      '@firebase/app': GLOBAL_NAME
-    },
-    intro: `try  {`,
-    outro: `} catch(err) {
+const componentBuilds = components
+  .map(component => {
+    const pkg = pkgsByName[component];
+    return [
+      {
+        input: `${component}/index.ts`,
+        output: [
+          { file: resolve(component, pkg.main), format: 'cjs' },
+          { file: resolve(component, pkg.module), format: 'es' }
+        ],
+        plugins,
+        external
+      },
+      {
+        input: `${component}/index.ts`,
+        output: {
+          file: `firebase-${component}.js`,
+          format: 'iife',
+          sourcemap: true,
+          extend: true,
+          name: GLOBAL_NAME,
+          globals: {
+            '@firebase/app': GLOBAL_NAME
+          },
+          intro: `try  {`,
+          outro: `} catch(err) {
               console.error(err);
               throw new Error(
                 'Cannot instantiate firebase-${component} - ' +
                 'be sure to load firebase-app.js first.'
               );
             }`
-  },
-  plugins,
-  external: ['@firebase/app']
-}));
+        },
+        plugins: [...plugins, uglify()],
+        external: ['@firebase/app']
+      }
+    ];
+  })
+  .reduce((a, b) => a.concat(b), []);
 
-export default [appConfig, ...componentsConfig, firebaseJsConfig];
+export default [...completeBuilds, ...appBuilds, ...componentBuilds];

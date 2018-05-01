@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as sinon from 'sinon';
 
-const FakeRegistration = () => {};
-FakeRegistration.prototype = ServiceWorkerRegistration.prototype;
+const fakeRegistration = ((() => {}) as any) as {
+  new (): ServiceWorkerRegistration;
+};
+fakeRegistration.prototype = ServiceWorkerRegistration.prototype;
 
 export function makeFakeSWReg(
   selectedState?: string,
   desiredValue?: object
 ): ServiceWorkerRegistration {
-  const fakeReg = new FakeRegistration();
+  const fakeReg: ServiceWorkerRegistration = new fakeRegistration();
   // No need to use a sandbox to stub this object as it should be a used
   // once per test.
   sinon.stub(fakeReg, 'scope').value('/injected-scope');
@@ -37,7 +40,7 @@ export function makeFakeSWReg(
     });
   });
 
-  fakeReg['showNotification'] = () => {};
+  fakeReg.showNotification = async () => {};
 
   return fakeReg;
 }

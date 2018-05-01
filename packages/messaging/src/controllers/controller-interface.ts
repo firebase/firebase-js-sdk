@@ -15,49 +15,53 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { ErrorFactory, NextFn, PartialObserver } from '@firebase/util';
+import { FirebaseServiceInternals } from '@firebase/app-types/private';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
+import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
-import { ERROR_CODES, ERROR_MAP } from '../models/errors';
+import { ERROR_CODES, errorFactory } from '../models/errors';
 import { IIDModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
+
+export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class ControllerInterface {
+export abstract class ControllerInterface implements FirebaseMessaging {
   app: FirebaseApp;
-  INTERNAL: any;
-  protected errorFactory_: ErrorFactory<string>;
-  private readonly messagingSenderId_: string;
-  private readonly tokenDetailsModel_: TokenDetailsModel;
-  private readonly vapidDetailsModel_: VapidDetailsModel;
-  private readonly iidModel_: IIDModel;
+  INTERNAL: FirebaseServiceInternals;
+  private readonly messagingSenderId: string;
+  private readonly tokenDetailsModel: TokenDetailsModel;
+  private readonly vapidDetailsModel: VapidDetailsModel;
+  private readonly iidModel: IIDModel;
 
   /**
    * An interface of the Messaging Service API
    */
   constructor(app: FirebaseApp) {
-    this.errorFactory_ = new ErrorFactory('messaging', 'Messaging', ERROR_MAP);
-
     if (
       !app.options[SENDER_ID_OPTION_NAME] ||
       typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
     ) {
-      throw this.errorFactory_.create(ERROR_CODES.BAD_SENDER_ID);
+      throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId_ = app.options[SENDER_ID_OPTION_NAME]!;
+    this.messagingSenderId = app.options[SENDER_ID_OPTION_NAME]!;
 
-    this.tokenDetailsModel_ = new TokenDetailsModel();
-    this.vapidDetailsModel_ = new VapidDetailsModel();
-    this.iidModel_ = new IIDModel();
+    this.tokenDetailsModel = new TokenDetailsModel();
+    this.vapidDetailsModel = new VapidDetailsModel();
+    this.iidModel = new IIDModel();
 
     this.app = app;
-    this.INTERNAL = {};
-    this.INTERNAL.delete = () => this.delete();
+    this.INTERNAL = {
+      delete: () => this.delete()
+    };
   }
 
   /**
@@ -69,7 +73,7 @@ export abstract class ControllerInterface {
     if (currentPermission !== 'granted') {
       if (currentPermission === 'denied') {
         return Promise.reject(
-          this.errorFactory_.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
+          errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
         );
       }
 
@@ -85,7 +89,7 @@ export abstract class ControllerInterface {
       swReg,
       publicVapidKey
     );
-    const tokenDetails = await this.tokenDetailsModel_.getTokenDetailsFromSWScope(
+    const tokenDetails = await this.tokenDetailsModel.getTokenDetailsFromSWScope(
       swReg.scope
     );
 
@@ -149,8 +153,8 @@ export abstract class ControllerInterface {
     tokenDetails: TokenDetails
   ): Promise<string> {
     try {
-      const updatedToken = await this.iidModel_.updateToken(
-        this.messagingSenderId_,
+      const updatedToken = await this.iidModel.updateToken(
+        this.messagingSenderId,
         tokenDetails.fcmToken,
         tokenDetails.fcmPushSet,
         pushSubscription,
@@ -160,7 +164,7 @@ export abstract class ControllerInterface {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        fcmSenderId: this.messagingSenderId_,
+        fcmSenderId: this.messagingSenderId,
         fcmToken: updatedToken,
         fcmPushSet: tokenDetails.fcmPushSet,
         createTime: Date.now(),
@@ -169,8 +173,8 @@ export abstract class ControllerInterface {
         p256dh: pushSubscription.getKey('p256dh')!
       };
 
-      await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-      await this.vapidDetailsModel_.saveVapidDetails(
+      await this.tokenDetailsModel.saveTokenDetails(allDetails);
+      await this.vapidDetailsModel.saveVapidDetails(
         swReg.scope,
         publicVapidKey
       );
@@ -186,15 +190,15 @@ export abstract class ControllerInterface {
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const tokenDetails = await this.iidModel_.getToken(
-      this.messagingSenderId_,
+    const tokenDetails = await this.iidModel.getToken(
+      this.messagingSenderId,
       pushSubscription,
       publicVapidKey
     );
     const allDetails: TokenDetails = {
       swScope: swReg.scope,
       vapidKey: publicVapidKey,
-      fcmSenderId: this.messagingSenderId_,
+      fcmSenderId: this.messagingSenderId,
       fcmToken: tokenDetails.token,
       fcmPushSet: tokenDetails.pushSet,
       createTime: Date.now(),
@@ -202,8 +206,8 @@ export abstract class ControllerInterface {
       auth: pushSubscription.getKey('auth')!,
       p256dh: pushSubscription.getKey('p256dh')!
     };
-    await this.tokenDetailsModel_.saveTokenDetails(allDetails);
-    await this.vapidDetailsModel_.saveVapidDetails(swReg.scope, publicVapidKey);
+    await this.tokenDetailsModel.saveTokenDetails(allDetails);
+    await this.vapidDetailsModel.saveVapidDetails(swReg.scope, publicVapidKey);
     return tokenDetails.token;
   }
 
@@ -235,8 +239,8 @@ export abstract class ControllerInterface {
    * push subscription.
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
-    const details = await this.tokenDetailsModel_.deleteToken(token);
-    await this.iidModel_.deleteToken(
+    const details = await this.tokenDetailsModel.deleteToken(token);
+    await this.iidModel.deleteToken(
       details.fcmSenderId,
       details.fcmToken,
       details.fcmPushSet
@@ -274,40 +278,40 @@ export abstract class ControllerInterface {
   // The following methods should only be available in the window.
   //
 
-  requestPermission(): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+  requestPermission(): Promise<void> {
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   useServiceWorker(registration: ServiceWorkerRegistration): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   usePublicVapidKey(b64PublicKey: string): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onMessage(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
-  ): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+  ): Unsubscribe {
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
-  ): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+  ): Unsubscribe {
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   //
   // The following methods are used by the service worker only.
   //
 
-  setBackgroundMessageHandler(callback: (a: any) => any): void {
-    throw this.errorFactory_.create(ERROR_CODES.AVAILABLE_IN_SW);
+  setBackgroundMessageHandler(callback: BgMessageHandler): void {
+    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_SW);
   }
 
   //
@@ -319,10 +323,10 @@ export abstract class ControllerInterface {
    * This method is required to adhere to the Firebase interface.
    * It closes any currently open indexdb database connections.
    */
-  delete(): Promise<[void, void]> {
-    return Promise.all([
-      this.tokenDetailsModel_.closeDatabase(),
-      this.vapidDetailsModel_.closeDatabase()
+  async delete(): Promise<void> {
+    await Promise.all([
+      this.tokenDetailsModel.closeDatabase(),
+      this.vapidDetailsModel.closeDatabase()
     ]);
   }
 
@@ -330,22 +334,24 @@ export abstract class ControllerInterface {
    * Returns the current Notification Permission state.
    */
   getNotificationPermission_(): NotificationPermission {
+    // TODO: Remove the cast when this issue is fixed:
+    // https://github.com/Microsoft/TypeScript/issues/14701
+    // tslint:disable-next-line no-any
     return (Notification as any).permission;
   }
 
   getTokenDetailsModel(): TokenDetailsModel {
-    return this.tokenDetailsModel_;
+    return this.tokenDetailsModel;
   }
 
   getVapidDetailsModel(): VapidDetailsModel {
-    return this.vapidDetailsModel_;
+    return this.vapidDetailsModel;
   }
 
-  /**
-   * @protected
-   */
+  // Visible for testing
+  // TODO: make protected
   getIIDModel(): IIDModel {
-    return this.iidModel_;
+    return this.iidModel;
   }
 }
 

@@ -15,37 +15,43 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   createSubscribe,
   NextFn,
   Observer,
-  PartialObserver,
   Subscribe,
   Unsubscribe
 } from '@firebase/util';
 
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
-import { ERROR_CODES } from '../models/errors';
+import { ERROR_CODES, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
-import { MessageParameter, MessageType } from '../models/worker-page-message';
+import {
+  InternalMessage,
+  MessageParameter,
+  MessageType
+} from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
-export class WindowController extends ControllerInterface
-  implements FirebaseMessaging {
-  private registrationToUse_: ServiceWorkerRegistration | null = null;
-  private publicVapidKeyToUse_: Uint8Array | null = null;
-  private manifestCheckPromise_: Promise<void> | null = null;
-  private messageObserver_: Observer<{}, Error> | null = null;
-  private readonly onMessage_: Subscribe<{}> = createSubscribe(observer => {
-    this.messageObserver_ = observer;
-  });
+export class WindowController extends ControllerInterface {
+  private registrationToUse: ServiceWorkerRegistration | null = null;
+  private publicVapidKeyToUse: Uint8Array | null = null;
+  private manifestCheckPromise: Promise<void> | null = null;
+
+  private messageObserver: Observer<object, Error> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
-  private tokenRefreshObserver_: Observer<{}, Error> | null = null;
-  private readonly onTokenRefresh_: Subscribe<{}> = createSubscribe(
+  private tokenRefreshObserver: Observer<object, Error> | null = null;
+
+  private readonly onMessageInternal: Subscribe<object> = createSubscribe(
     observer => {
-      this.tokenRefreshObserver_ = observer;
+      this.messageObserver = observer;
+    }
+  );
+
+  private readonly onTokenRefreshInternal: Subscribe<object> = createSubscribe(
+    observer => {
+      this.tokenRefreshObserver = observer;
     }
   );
 
@@ -71,7 +77,7 @@ export class WindowController extends ControllerInterface
     // Check that the required API's are available
     if (!this.isSupported_()) {
       return Promise.reject(
-        this.errorFactory_.create(ERROR_CODES.UNSUPPORTED_BROWSER)
+        errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER)
       );
     }
 
@@ -83,22 +89,23 @@ export class WindowController extends ControllerInterface
   /**
    * The method checks that a manifest is defined and has the correct GCM
    * sender ID.
-   * @private
-   * @return {Promise} Returns a promise that resolves if the manifest matches
+   * @return Returns a promise that resolves if the manifest matches
    * our required sender ID
    */
+  // Visible for testing
+  // TODO: make private
   manifestCheck_(): Promise<void> {
-    if (this.manifestCheckPromise_) {
-      return this.manifestCheckPromise_;
+    if (this.manifestCheckPromise) {
+      return this.manifestCheckPromise;
     }
 
     const manifestTag = document.querySelector<HTMLAnchorElement>(
       'link[rel="manifest"]'
     );
     if (!manifestTag) {
-      this.manifestCheckPromise_ = Promise.resolve();
+      this.manifestCheckPromise = Promise.resolve();
     } else {
-      this.manifestCheckPromise_ = fetch(manifestTag.href)
+      this.manifestCheckPromise = fetch(manifestTag.href)
         .then(response => {
           return response.json();
         })
@@ -116,14 +123,12 @@ export class WindowController extends ControllerInterface
           }
 
           if (manifestContent['gcm_sender_id'] !== '103953800507') {
-            throw this.errorFactory_.create(
-              ERROR_CODES.INCORRECT_GCM_SENDER_ID
-            );
+            throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
           }
         });
     }
 
-    return this.manifestCheckPromise_;
+    return this.manifestCheckPromise;
   }
 
   /**
@@ -133,6 +138,9 @@ export class WindowController extends ControllerInterface
    */
   async requestPermission(): Promise<void> {
     if (
+      // TODO: Remove the cast when this issue is fixed:
+      // https://github.com/Microsoft/TypeScript/issues/14701
+      // tslint:disable-next-line no-any
       ((Notification as any).permission as NotificationPermission) === 'granted'
     ) {
       return;
@@ -143,13 +151,9 @@ export class WindowController extends ControllerInterface
         if (result === 'granted') {
           return resolve();
         } else if (result === 'denied') {
-          return reject(
-            this.errorFactory_.create(ERROR_CODES.PERMISSION_BLOCKED)
-          );
+          return reject(errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED));
         } else {
-          return reject(
-            this.errorFactory_.create(ERROR_CODES.PERMISSION_DEFAULT)
-          );
+          return reject(errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT));
         }
       };
 
@@ -175,14 +179,14 @@ export class WindowController extends ControllerInterface
    */
   useServiceWorker(registration: ServiceWorkerRegistration): void {
     if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw this.errorFactory_.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
     }
 
-    if (this.registrationToUse_ != null) {
-      throw this.errorFactory_.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
+    if (this.registrationToUse != null) {
+      throw errorFactory.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
     }
 
-    this.registrationToUse_ = registration;
+    this.registrationToUse = registration;
   }
 
   /**
@@ -193,22 +197,20 @@ export class WindowController extends ControllerInterface
    */
   usePublicVapidKey(publicKey: string): void {
     if (typeof publicKey !== 'string') {
-      throw this.errorFactory_.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
+      throw errorFactory.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
     }
 
-    if (this.publicVapidKeyToUse_ != null) {
-      throw this.errorFactory_.create(
-        ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN
-      );
+    if (this.publicVapidKeyToUse != null) {
+      throw errorFactory.create(ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
     if (parsedKey.length !== 65) {
-      throw this.errorFactory_.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
+      throw errorFactory.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
     }
 
-    this.publicVapidKeyToUse_ = parsedKey;
+    this.publicVapidKeyToUse = parsedKey;
   }
 
   /**
@@ -220,14 +222,14 @@ export class WindowController extends ControllerInterface
    * @return The unsubscribe function for the observer.
    */
   onMessage(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
-      return this.onMessage_(nextOrObserver, error, completed);
+      return this.onMessageInternal(nextOrObserver, error, completed);
     } else {
-      return this.onMessage_(nextOrObserver);
+      return this.onMessageInternal(nextOrObserver);
     }
   }
 
@@ -239,14 +241,14 @@ export class WindowController extends ControllerInterface
    * @return The unsubscribe function for the observer.
    */
   onTokenRefresh(
-    nextOrObserver: NextFn<{}> | PartialObserver<{}>,
+    nextOrObserver: NextFn<object> | Observer<object, Error>,
     error?: (e: Error) => void,
     completed?: () => void
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
-      return this.onTokenRefresh_(nextOrObserver, error, completed);
+      return this.onTokenRefreshInternal(nextOrObserver, error, completed);
     } else {
-      return this.onTokenRefresh_(nextOrObserver);
+      return this.onTokenRefreshInternal(nextOrObserver);
     }
   }
 
@@ -267,7 +269,7 @@ export class WindowController extends ControllerInterface
     return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
         // This is a rare scenario but has occured in firefox
-        reject(this.errorFactory_.create(ERROR_CODES.NO_SW_IN_REG));
+        reject(errorFactory.create(ERROR_CODES.NO_SW_IN_REG));
         return;
       }
       // Because the Promise function is called on next tick there is a
@@ -278,7 +280,7 @@ export class WindowController extends ControllerInterface
       }
 
       if (serviceWorker.state === 'redundant') {
-        reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
+        reject(errorFactory.create(ERROR_CODES.SW_REG_REDUNDANT));
         return;
       }
 
@@ -286,7 +288,7 @@ export class WindowController extends ControllerInterface
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
-          reject(this.errorFactory_.create(ERROR_CODES.SW_REG_REDUNDANT));
+          reject(errorFactory.create(ERROR_CODES.SW_REG_REDUNDANT));
         } else {
           // Return early and wait to next state change
           return;
@@ -302,29 +304,26 @@ export class WindowController extends ControllerInterface
    * @return The service worker registration to be used for the push service.
    */
   getSWRegistration_(): Promise<ServiceWorkerRegistration> {
-    if (this.registrationToUse_) {
-      return this.waitForRegistrationToActivate_(this.registrationToUse_);
+    if (this.registrationToUse) {
+      return this.waitForRegistrationToActivate_(this.registrationToUse);
     }
 
     // Make the registration null so we know useServiceWorker will not
-    // use a new service worker as registrationToUse_ is no longer undefined
-    this.registrationToUse_ = null;
+    // use a new service worker as registrationToUse is no longer undefined
+    this.registrationToUse = null;
 
-    return (navigator as any).serviceWorker
+    return navigator.serviceWorker
       .register(DEFAULT_SW_PATH, {
         scope: DEFAULT_SW_SCOPE
       })
       .catch((err: Error) => {
-        throw this.errorFactory_.create(
-          ERROR_CODES.FAILED_DEFAULT_REGISTRATION,
-          {
-            browserErrorMessage: err.message
-          }
-        );
+        throw errorFactory.create(ERROR_CODES.FAILED_DEFAULT_REGISTRATION, {
+          browserErrorMessage: err.message
+        });
       })
       .then((registration: ServiceWorkerRegistration) => {
         return this.waitForRegistrationToActivate_(registration).then(() => {
-          this.registrationToUse_ = registration;
+          this.registrationToUse = registration;
 
           // We update after activation due to an issue with Firefox v49 where
           // a race condition occassionally causes the service work to not
@@ -341,8 +340,8 @@ export class WindowController extends ControllerInterface
    * provided by the developer.
    */
   getPublicVapidKey_(): Promise<Uint8Array> {
-    if (this.publicVapidKeyToUse_) {
-      return Promise.resolve(this.publicVapidKeyToUse_);
+    if (this.publicVapidKeyToUse) {
+      return Promise.resolve(this.publicVapidKeyToUse);
     }
 
     return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
@@ -368,13 +367,13 @@ export class WindowController extends ControllerInterface
           return;
         }
 
-        const workerPageMessage = event.data;
+        const workerPageMessage: InternalMessage = event.data;
         switch (workerPageMessage[MessageParameter.TYPE_OF_MSG]) {
           case MessageType.PUSH_MSG_RECEIVED:
           case MessageType.NOTIFICATION_CLICKED:
             const pushMessage = workerPageMessage[MessageParameter.DATA];
-            if (this.messageObserver_) {
-              this.messageObserver_.next(pushMessage);
+            if (this.messageObserver) {
+              this.messageObserver.next(pushMessage);
             }
             break;
           default:

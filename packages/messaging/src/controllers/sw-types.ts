@@ -22,6 +22,8 @@
  * project, we have to manually declare the web worker types we need.
  */
 
+// tslint:disable no-any These types are from TS.
+
 // Not the whole interface, just the parts we're currently using.
 // If TS claims that something does not exist on this, feel free to add it.
 interface ServiceWorkerGlobalScope {
@@ -72,15 +74,6 @@ interface Clients {
   get(id: string): Promise<any>;
   matchAll(options?: ClientQueryOptions): Promise<Client[]>;
   openWindow(url: string): Promise<WindowClient | null>;
-}
-
-interface NotificationOptions {
-  body?: string;
-  data?: any;
-  dir?: NotificationDirection;
-  icon?: string;
-  lang?: string;
-  tag?: string;
 }
 
 interface ExtendableEvent extends Event {

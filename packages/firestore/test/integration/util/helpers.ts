@@ -45,11 +45,11 @@ function getDefaultSettings(): firestore.Settings {
 export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
-function isBrowser(): boolean {
-  return typeof window !== 'undefined';
-}
-
 function isIeOrEdge(): boolean {
+  if (!window.navigator) {
+    return false;
+  }
+
   const ua = window.navigator.userAgent;
   return (
     ua.indexOf('MSIE ') > 0 ||
@@ -59,7 +59,11 @@ function isIeOrEdge(): boolean {
 }
 
 export function isPersistenceAvailable(): boolean {
-  return isBrowser() && !isIeOrEdge();
+  return (
+    typeof window === 'object' &&
+    typeof window.indexedDB === 'object' &&
+    !isIeOrEdge()
+  );
 }
 
 /**
@@ -80,11 +84,19 @@ export function apiDescribe(
   }
 }
 
-/** Converts a DocumentSet to an array with the data of each document */
+/** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
 ): firestore.DocumentData[] {
   return docSet.docs.map(d => d.data());
+}
+
+/** Converts the changes in a QuerySnapshot to an array with the data of each document. */
+export function toChangesArray(
+  docSet: firestore.QuerySnapshot,
+  options?: firestore.SnapshotListenOptions
+): firestore.DocumentData[] {
+  return docSet.docChanges(options).map(d => d.doc.data());
 }
 
 export function toDataMap(
@@ -179,7 +191,12 @@ export function withTestDbsSettings(
     const cleanup = () => {
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
-          (chain, db) => chain.then(() => db.INTERNAL.delete()),
+          (chain, db) =>
+            chain.then(
+              db.INTERNAL.delete.bind(this, {
+                purgePersistenceWithDataLoss: true
+              })
+            ),
           Promise.resolve()
         )
       );

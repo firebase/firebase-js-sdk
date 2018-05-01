@@ -14,12 +14,4 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-
-export function makeFakeApp(options: object = {}): FirebaseApp {
-  window['firebase'] = window['firebase'] || {};
-  const app: any = {};
-  app.INTERNAL = window['firebase'].INTERNAL;
-  app.options = options;
-  return app as FirebaseApp;
-}
+import '@firebase/firestore';

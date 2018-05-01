@@ -554,6 +554,119 @@ function testUser() {
   assertEquals('1234', user.getRedirectEventId());
   user.setRedirectEventId('5678');
   assertEquals('5678', user.getRedirectEventId());
+
+  // Test ApiKey getter.
+  assertEquals('apiKey1', user.getApiKey());
+}
+
+
+function testUser_copyUser() {
+  config1['authDomain'] = 'subdomain.firebaseapp.com';
+  config2['authDomain'] = 'subdomain.firebaseapp.com';
+  asyncTestCase.waitForSignals(1);
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  user.addProviderData(providerData1);
+  user.addProviderData(providerData2);
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      goog.testing.recordFunction(function(idToken) {
+        return goog.Promise.resolve(getAccountInfoResponse);
+      }));
+  var expectedEventId = '1234';
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // An event ID should be generated.
+        return expectedEventId;
+      });
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config2['apiKey'], config2['appName']));
+  var frameworks = ['firebaseui', 'angularfire'];
+
+  fireauth.AuthEventManager.ENABLED = true;
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualMode,
+          actualProvider,
+          actualEventId) {
+            assertEquals(
+                fireauth.AuthEvent.Type.LINK_VIA_REDIRECT, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.unloadsOnRedirect().$returns(false);
+  mockControl.$replayAll();
+
+  var copiedUser = fireauth.AuthUser.copyUser(
+      user, config2, storageManager, frameworks);
+  // Verifies that user is not reloaded on copying.
+  assertEquals(
+      0, fireauth.RpcHandler.prototype.getAccountInfoByIdToken.getCallCount());
+  fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+      user, copiedUser, config1['apiKey'], config2['apiKey']);
+  assertFalse(copiedUser['isAnonymous']);
+  // Confirm frameworks set on created user.
+  assertArrayEquals(frameworks, copiedUser.getFramework());
+
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  expectedProvider.addScope('scope1');
+  expectedProvider.addScope('scope2');
+  copiedUser.enablePopupRedirect();
+  copiedUser.linkWithRedirect(expectedProvider).then(function() {
+    assertEquals(1,
+        fireauth.RpcHandler.prototype.getAccountInfoByIdToken.getCallCount());
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, copiedUser.getRedirectEventId());
+    // Redirect user should be saved in storage with correct redirect event ID.
+    storageManager.getRedirectUser().then(function(user) {
+      assertEquals(expectedEventId, user.getRedirectEventId());
+      assertObjectEquals(copiedUser.toPlainObject(), user.toPlainObject());
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testUser_copyUser_defaultConfig() {
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  user.addProviderData(providerData1);
+  user.addProviderData(providerData2);
+
+  var copiedUser = fireauth.AuthUser.copyUser(user);
+  assertObjectEquals(copiedUser.toPlainObject(), user.toPlainObject());
+  assertNull(user.getPopupEventId());
+  assertNull(user.getRedirectEventId());
+}
+
+function testUser_copyUser_expiredToken() {
+  // Mock the expired token by giving a negative expiresIn time offset.
+  tokenResponse['expiresIn'] = -3600;
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'requestStsToken',
+      function(data) {
+        // Copying user should not trigger token refresh even if the token
+        // expires.
+        fail('The token should not be refreshed!');
+      });
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  var copiedUser = fireauth.AuthUser.copyUser(user);
+  assertObjectEquals(copiedUser.toPlainObject(), user.toPlainObject());
 }
 
 
@@ -2753,6 +2866,11 @@ function testReauthenticateWithCredential_success() {
   // Test that reauthenticateWithCredential calls
   // reauthenticateAndRetrieveDataWithCredential underneath and returns void, on
   // success.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   // Stub reauthenticateAndRetrieveDataWithCredential and confirm promise
   // resolves with void.
   stubs.replace(
@@ -2778,6 +2896,13 @@ function testReauthenticateWithCredential_success() {
         assertUndefined(response);
         asyncTestCase.signal();
       });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -2785,6 +2910,11 @@ function testReauthenticateWithCredential_error() {
   // Test that reauthenticateWithCredential calls
   // reauthenticateAndRetrieveDataWithCredential underneath and funnels any
   // underlying error thrown.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
       'reauthenticateAndRetrieveDataWithCredential',
@@ -2804,6 +2934,13 @@ function testReauthenticateWithCredential_error() {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -2911,6 +3048,11 @@ function testReauthenticateAndRetrieveDataWithCredential_fail() {
 function testLinkWithCredential_success() {
   // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
   // underneath and returns the user only, on success.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   // Stub linkAndRetrieveDataWithCredential and confirm same response is used
   // for linkWithCredential with only the user returned.
   stubs.replace(
@@ -2935,12 +3077,24 @@ function testLinkWithCredential_success() {
     assertEquals(user, response);
     asyncTestCase.signal();
   });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
 function testLinkWithCredential_error() {
   // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
   // underneath and funnels any underlying error thrown.
+  // Record deprecation warning calls.
+  stubs.replace(
+      fireauth.deprecation,
+      'log',
+      goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
       'linkAndRetrieveDataWithCredential',
@@ -2959,6 +3113,13 @@ function testLinkWithCredential_error() {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
+  // Confirm warning shown.
+  /** @suppress {missingRequire} */
+  assertEquals(1, fireauth.deprecation.log.getCallCount());
+  /** @suppress {missingRequire} */
+  assertEquals(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL,
+      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 
@@ -10227,75 +10388,6 @@ function testReauthenticateWithPhoneNumber_error_noAuthInstance() {
             error);
         asyncTestCase.signal();
       });
-}
-
-
-function testGetToken_error() {
-  // Test that getToken calls getIdToken underneath and funnels any underlying
-  // error thrown.
-  stubs.replace(
-      fireauth.AuthUser.prototype,
-      'getIdToken',
-      function(opt_refreshToken) {
-        assertFalse(opt_refreshToken);
-        return goog.Promise.reject(expectedError);
-      });
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  asyncTestCase.waitForSignals(1);
-  // Expected error.
-  var expectedError = new fireauth.AuthError(
-      fireauth.authenum.Error.INTERNAL_ERROR);
-  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  user.getToken(false).thenCatch(function(error) {
-    // Confirm expected error.
-    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
-  });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.USER_GET_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testGetToken_success() {
-  // Test that getToken calls getIdToken underneath and returns the same result
-  // on success.
-  // Stub getIdToken and confirm same response is used for getToken.
-  stubs.replace(
-      fireauth.AuthUser.prototype,
-      'getIdToken',
-      function(opt_refreshToken) {
-        assertTrue(opt_refreshToken);
-        return goog.Promise.resolve(expectedIdToken);
-      });
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  asyncTestCase.waitForSignals(1);
-  var expectedIdToken = 'NEW_ID_TOKEN';
-  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  user.getToken(true).then(function(idToken) {
-    // Confirm expected ID token.
-    assertEquals(expectedIdToken, idToken);
-    asyncTestCase.signal();
-  });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.USER_GET_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
 }
 
 

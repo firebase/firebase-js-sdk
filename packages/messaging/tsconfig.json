@@ -3,7 +3,12 @@
   "compilerOptions": {
     "outDir": "dist",
     "strict": true,
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "lib": [
+      "dom",
+      "es2017"
+    ]
   },
   "exclude": [
     "dist/**/*"

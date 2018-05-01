@@ -425,7 +425,7 @@ abstract class TestRunner {
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.persistence.shutdown(/* deleteData= */ true);
     await this.destroyPersistence();
   }
 
@@ -493,8 +493,7 @@ abstract class TestRunner {
     const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
-      includeDocumentMetadataChanges: true,
-      includeQueryMetadataChanges: true,
+      includeMetadataChanges: true,
       waitForSyncWhenOnline: false
     };
     const queryListener = new QueryListener(query, aggregator, options);

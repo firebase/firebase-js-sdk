@@ -15,11 +15,12 @@
  */
 
 import { assert } from 'chai';
-import { makeFakeApp } from './make-fake-app';
 
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ERROR_CODES } from '../src/models/errors';
+
+import { makeFakeApp } from './testing-utils/make-fake-app';
 
 describe('Firebase Messaging > new *Controller()', () => {
   it('should handle bad input', () => {
