@@ -15,9 +15,9 @@
  */
 
 console.warn(`
-It looks like you're using the development build of the Firebase JS SDk.
+It looks like you're using the development build of the Firebase JS SDK.
 When deploying Firebase apps to production, it is advisable to only import
-the individaul pieces of the SDK that you are actually using in your code.
+the individual SDK components you intend to use.
 
 These are available for both NPM and CDN environments in the following manner
 (replace <PACKAGE> with the name of a component - i.e. auth, database, etc):
