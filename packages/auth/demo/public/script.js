@@ -20,6 +20,8 @@
 
 var app = null;
 var auth = null;
+var tempApp = null;
+var tempAuth = null;
 var currentTab = null;
 var lastUser = null;
 var applicationVerifier = null;
@@ -1279,6 +1281,39 @@ function onRunServiceWorkTests() {
 }
 
 
+/** Copy current user of auth to tempAuth. */
+function onCopyActiveUser() {
+  tempAuth.updateCurrentUser(activeUser()).then(function() {
+    alertSuccess('Copied active user to temp Auth');
+  }, function(error) {
+    alertError('Error: ' + error.code);
+  });
+}
+
+
+/** Copy last user to auth. */
+function onCopyLastUser() {
+  // If last user is null, NULL_USER error will be thrown.
+  auth.updateCurrentUser(lastUser).then(function() {
+    alertSuccess('Copied last user to Auth');
+  }, function(error) {
+    alertError('Error: ' + error.code);
+  });
+}
+
+
+/** Applies selected auth settings change. */
+function onApplyAuthSettingsChange() {
+  try {
+    auth.settings.appVerificationDisabledForTesting =
+        $("input[name=enable-app-verification]:checked").val() == 'No';
+    alertSuccess('Auth settings changed');
+  } catch (error) {
+    alertError('Error: ' + error.code);
+  }
+}
+
+
 /**
  * Initiates the application by setting event listeners on the various buttons.
  */
@@ -1286,6 +1321,12 @@ function initApp(){
   log('Initializing app...');
   app = firebase.initializeApp(config);
   auth = app.auth();
+
+  tempApp = firebase.initializeApp({
+    'apiKey': config['apiKey'],
+    'authDomain': config['authDomain']
+  }, auth['app']['name'] + '-temp');
+  tempAuth = tempApp.auth();
 
   // Listen to reCAPTCHA config togglers.
   initRecaptchaToggle(function(size) {
@@ -1326,6 +1367,15 @@ function initApp(){
       }
       // Check Database Auth access.
       checkDatabaseAuthAccess();
+    });
+  }
+
+  if (tempAuth.onAuthStateChanged) {
+    tempAuth.onAuthStateChanged(function(user) {
+      if (user) {
+        log('user state change on temp Auth detect: ' + JSON.stringify(user));
+        alertSuccess('user state change on temp Auth detect: ' + user.uid);
+      }
     });
   }
 
@@ -1443,6 +1493,10 @@ function initApp(){
 
   $('#run-web-worker-tests').click(onRunWebWorkTests);
   $('#run-service-worker-tests').click(onRunServiceWorkTests);
+  $('#copy-active-user').click(onCopyActiveUser);
+  $('#copy-last-user').click(onCopyLastUser);
+
+  $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);
 }
 
 $(initApp);

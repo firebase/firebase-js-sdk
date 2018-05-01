@@ -250,7 +250,7 @@ describe('QueryListener', () => {
 
     const filteredListener = queryListener(query, filteredEvents);
     const fullListener = queryListener(query, fullEvents, [], {
-      includeQueryMetadataChanges: true
+      includeMetadataChanges: true
     });
 
     const view = new View(query, documentKeySet());
@@ -273,7 +273,7 @@ describe('QueryListener', () => {
     expect(fullEvents).to.deep.equal([snap1, snap2, snap3]);
   });
 
-  it('raises document metadata events only when specified', () => {
+  it('raises metadata events only when specified', () => {
     const filteredEvents: ViewSnapshot[] = [];
     const fullEvents: ViewSnapshot[] = [];
     const query = Query.atPath(path('rooms'));
@@ -289,7 +289,7 @@ describe('QueryListener', () => {
 
     const filteredListener = queryListener(query, filteredEvents);
     const fullListener = queryListener(query, fullEvents, [], {
-      includeDocumentMetadataChanges: true
+      includeMetadataChanges: true
     });
 
     const view = new View(query, documentKeySet());
@@ -320,55 +320,9 @@ describe('QueryListener', () => {
     expect(fullEvents[1].docChanges).to.deep.equal([change3]);
   });
 
-  it('raises query metadata events only when hasPendingWrites on the query changes', () => {
-    const fullEvents: ViewSnapshot[] = [];
-    const query = Query.atPath(path('rooms'));
-    const doc1 = doc(
-      'rooms/Eros',
-      1,
-      { name: 'Eros' },
-      { hasLocalMutations: true }
-    );
-    const doc2 = doc(
-      'rooms/Hades',
-      2,
-      { name: 'Hades' },
-      { hasLocalMutations: true }
-    );
-    const doc1prime = doc('rooms/Eros', 1, { name: 'Eros' });
-    const doc2prime = doc('rooms/Hades', 2, { name: 'Hades' });
-    const doc3 = doc('rooms/Other', 3, { name: 'Other' });
-
-    const fullListener = queryListener(query, fullEvents, [], {
-      includeQueryMetadataChanges: true
-    });
-
-    const view = new View(query, documentKeySet());
-    const snap1 = applyDocChanges(view, doc1, doc2).snapshot!;
-    const snap2 = applyDocChanges(view, doc1prime).snapshot!;
-    const snap3 = applyDocChanges(view, doc3).snapshot!;
-    const snap4 = applyDocChanges(view, doc2prime).snapshot!;
-
-    fullListener.onViewSnapshot(snap1);
-    fullListener.onViewSnapshot(snap2); // Emits no events
-    fullListener.onViewSnapshot(snap3);
-    fullListener.onViewSnapshot(snap4); // Metadata change event.
-
-    const expectedSnap4 = {
-      query: snap4.query,
-      docs: snap4.docs,
-      oldDocs: snap3.docs,
-      docChanges: [],
-      fromCache: snap4.fromCache,
-      syncStateChanged: snap4.syncStateChanged,
-      hasPendingWrites: false
-    };
-    expect(fullEvents).to.deep.equal([snap1, snap3, expectedSnap4]);
-  });
-
   it(
     'Metadata-only document changes are filtered out when ' +
-      'includeDocumentMetadataChanges is false',
+      'includeMetadataChanges is false',
     () => {
       const filteredEvents: ViewSnapshot[] = [];
       const query = Query.atPath(path('rooms'));

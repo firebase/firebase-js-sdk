@@ -14,4 +14,11 @@
  * limitations under the License.
  */
 
-require('@firebase/firestore');
+import firebase from '../app';
+
+import '../auth';
+import '../database';
+import '../firestore';
+import '../functions';
+
+export default firebase;

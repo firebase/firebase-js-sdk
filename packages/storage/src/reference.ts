@@ -251,13 +251,22 @@ export class Reference {
   getDownloadURL(): Promise<string> {
     args.validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
-    return this.getMetadata().then(function(metadata) {
-      let url = (metadata['downloadURLs'] as string[])[0];
-      if (type.isDef(url)) {
-        return url;
-      } else {
-        throw errorsExports.noDownloadURL();
-      }
+    let self = this;
+    return this.authWrapper.getAuthToken().then(function(authToken) {
+      let requestInfo = requests.getDownloadUrl(
+        self.authWrapper,
+        self.location,
+        self.mappings()
+      );
+      return self.authWrapper
+        .makeRequest(requestInfo, authToken)
+        .getPromise()
+        .then(function(url) {
+          if (url === null) {
+            throw errorsExports.noDownloadURL();
+          }
+          return url;
+        });
     });
   }
 

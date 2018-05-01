@@ -93,7 +93,7 @@ describe('Firebase Messaging > *SWController', () => {
       } as any);
     });
 
-    it('should not do anything if window is in focus', async () => {
+    it('should send data payload to window if window is in focus', async () => {
       const waitUntilSpy = sandbox.spy();
       const stub = sandbox.stub(
         SWController.prototype,
@@ -112,10 +112,10 @@ describe('Firebase Messaging > *SWController', () => {
       } as any);
 
       await waitUntilSpy.getCall(0).args[0];
-      expect(stub.callCount).to.equal(0);
+      expect(stub.callCount).to.equal(1);
     });
 
-    it('should send to window if a notification payload', async () => {
+    it('should send notification payload to window if window is in focus', async () => {
       const waitUntilSpy = sandbox.spy();
       const stub = sandbox.stub(
         SWController.prototype,

@@ -23,6 +23,8 @@ goog.provide('fireauth.BaseRecaptchaVerifier');
 goog.provide('fireauth.RecaptchaVerifier');
 
 goog.require('fireauth.AuthError');
+goog.require('fireauth.RecaptchaMockLoader');
+goog.require('fireauth.RecaptchaRealLoader');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
@@ -31,9 +33,6 @@ goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.array');
 goog.require('goog.dom');
-goog.require('goog.html.TrustedResourceUrl');
-goog.require('goog.net.jsloader');
-goog.require('goog.string.Const');
 
 
 /**
@@ -53,10 +52,13 @@ goog.require('goog.string.Const');
  * @param {?Object=} opt_rpcHandlerConfig The optional RPC handler
  *     configuration, typically passed when different Auth endpoints are to be
  *     used.
+ * @param {boolean=} opt_isTestingMode Whether the reCAPTCHA is to be rendered
+ *     in testing mode.
  * @constructor
  */
 fireauth.BaseRecaptchaVerifier = function(apiKey, container, opt_parameters,
-    opt_getLanguageCode, opt_clientVersion, opt_rpcHandlerConfig) {
+    opt_getLanguageCode, opt_clientVersion, opt_rpcHandlerConfig,
+    opt_isTestingMode) {
   // Set the type readonly property needed for full implementation of the
   // firebase.auth.ApplicationVerifier interface.
   fireauth.object.setReadonlyProperty(this, 'type', 'recaptcha');
@@ -72,6 +74,16 @@ fireauth.BaseRecaptchaVerifier = function(apiKey, container, opt_parameters,
   this.destroyed_ = false;
   /** @private {!Element|string} The reCAPTCHA container. */
   this.container_ = container;
+  /**
+   * @private {?fireauth.grecaptcha} The reCAPTCHA client library namespace.
+   */
+  this.grecaptcha_ = null;
+  /**
+   * @const @private {!fireauth.RecaptchaLoader} The grecaptcha loader.
+   */
+  this.recaptchaLoader_ = !!opt_isTestingMode ?
+      fireauth.RecaptchaMockLoader.getInstance() :
+      fireauth.RecaptchaRealLoader.getInstance();
   // If no parameters passed, use default settings.
   // Currently, visible recaptcha is the default setting as invisible reCAPTCHA
   // is not yet supported by the backend.
@@ -120,7 +132,7 @@ fireauth.BaseRecaptchaVerifier = function(apiKey, container, opt_parameters,
       opt_rpcHandlerConfig || null,
       opt_clientVersion || null);
   /**
-   * @private {!function():?string} Current language code getter.
+   * @private {function():?string} Current language code getter.
    */
   this.getLanguageCode_ = opt_getLanguageCode || function() {return null;};
   var self = this;
@@ -197,7 +209,7 @@ fireauth.BaseRecaptchaVerifier.prototype.dispatchEvent_ = function(token) {
 
 /**
  * Add a reCAPTCHA token change listener.
- * @param {!function(?string)} listener The token listener to add.
+ * @param {function(?string)} listener The token listener to add.
  * @private
  */
 fireauth.BaseRecaptchaVerifier.prototype.addTokenChangeListener_ =
@@ -208,7 +220,7 @@ fireauth.BaseRecaptchaVerifier.prototype.addTokenChangeListener_ =
 
 /**
  * Remove a reCAPTCHA token change listener.
- * @param {!function(?string)} listener The token listener to remove.
+ * @param {function(?string)} listener The token listener to remove.
  * @private
  */
 fireauth.BaseRecaptchaVerifier.prototype.removeTokenChangeListener_ =
@@ -278,10 +290,10 @@ fireauth.BaseRecaptchaVerifier.prototype.isReady_ = function() {
       .then(function() {
         // Load external reCAPTCHA dependencies if not already there, taking
         // into account the current language code.
-        return fireauth.BaseRecaptchaVerifier.Loader.getInstance()
-            .loadRecaptchaDeps(self.getLanguageCode_());
+        return self.recaptchaLoader_.loadRecaptchaDeps(self.getLanguageCode_());
       })
-      .then(function() {
+      .then(function(grecaptcha) {
+        self.grecaptcha_ = grecaptcha;
         // Load Firebase project's reCAPTCHA configuration.
         return self.rpcHandler_.getRecaptchaParam();
       })
@@ -323,7 +335,7 @@ fireauth.BaseRecaptchaVerifier.prototype.render = function() {
         outerContainer.appendChild(container);
       }
       // If not initialized, initialize reCAPTCHA and return its widget ID.
-      self.widgetId_ = grecaptcha.render(container, self.parameters_);
+      self.widgetId_ = self.grecaptcha_.render(container, self.parameters_);
     }
     return self.widgetId_;
   }));
@@ -344,7 +356,7 @@ fireauth.BaseRecaptchaVerifier.prototype.verify = function() {
   return this.registerPendingPromise_(this.render().then(function(widgetId) {
     return new goog.Promise(function(resolve, reject) {
       // Get current reCAPTCHA token.
-      var recaptchaToken = grecaptcha.getResponse(widgetId);
+      var recaptchaToken = self.grecaptcha_.getResponse(widgetId);
       if (recaptchaToken) {
         // Unexpired token already available. Resolve pending promise with that
         // token.
@@ -367,7 +379,7 @@ fireauth.BaseRecaptchaVerifier.prototype.verify = function() {
           // Execute invisible reCAPTCHA to force a challenge.
           // This should do nothing if already triggered either by developer or
           // by a button click.
-          grecaptcha.execute(/** @type {number} */ (self.widgetId_));
+          self.grecaptcha_.execute(/** @type {number} */ (self.widgetId_));
         }
       }
     });
@@ -381,7 +393,7 @@ fireauth.BaseRecaptchaVerifier.prototype.verify = function() {
 fireauth.BaseRecaptchaVerifier.prototype.reset = function() {
   this.checkIfDestroyed_();
   if (this.widgetId_ !== null) {
-    grecaptcha.reset(this.widgetId_);
+    this.grecaptcha_.reset(this.widgetId_);
   }
 };
 
@@ -406,7 +418,7 @@ fireauth.BaseRecaptchaVerifier.prototype.clear = function() {
   this.checkIfDestroyed_();
   this.destroyed_ = true;
   // Decrement reCAPTCHA instance counter.
-  fireauth.BaseRecaptchaVerifier.Loader.getInstance().clearSingleRecaptcha();
+  this.recaptchaLoader_.clearSingleRecaptcha();
   // Cancel all pending promises.
   for (var i = 0; i < this.pendingPromises_.length; i++) {
     this.pendingPromises_[i].cancel(
@@ -415,141 +427,6 @@ fireauth.BaseRecaptchaVerifier.prototype.clear = function() {
   if (!this.isInvisible_) {
     goog.dom.removeChildren(goog.dom.getElement(this.container_));
   }
-};
-
-
-/** @private @const {!goog.string.Const} The reCAPTCHA javascript source URL. */
-fireauth.BaseRecaptchaVerifier.RECAPTCHA_SRC_ = goog.string.Const.from(
-    'https://www.google.com/recaptcha/api.js?onload=%{onload}&render=explicit' +
-    '&hl=%{hl}');
-
-
-/**
- * Utility to help load reCAPTCHA dependencies for specified languages.
- * @constructor
- */
-fireauth.BaseRecaptchaVerifier.Loader = function() {
-  /**
-   * @private {number} The reCAPTCHA instance counter. This is used to track the
-   *     number of reCAPTCHAs rendered on the page. This is needed to allow
-   *     localization of the reCAPTCHA. Localization is applied by loading the
-   *     grecaptcha SDK with the hl field provided. However, this will break
-   *     existing reCAPTCHAs. So we should only support i18n when there are no
-   *     other widgets rendered on this screen. If the developer is already
-   *     using reCAPTCHA in another context, we will disable localization so we
-   *     don't accidentally break existing reCAPTCHA widgets.
-   */
-  this.counter_ = goog.global['grecaptcha'] ? Infinity : 0;
-  /** @private {?string} The current reCAPTCHA language code. */
-  this.hl_ = null;
-  /** @private {string} The reCAPTCHA callback name. */
-  this.cbName_ = '__rcb' + Math.floor(Math.random() * 1000000).toString();
-};
-
-
-/**
- * The default timeout delay (units in milliseconds) for requests loading
- * the external reCAPTCHA dependencies.
- * @const {!fireauth.util.Delay}
- * @private
- */
-fireauth.BaseRecaptchaVerifier.Loader.DEFAULT_DEPENDENCY_TIMEOUT_ =
-    new fireauth.util.Delay(30000, 60000);
-
-
-/**
- * Loads the grecaptcha client library if it is not loaded and returns a promise
- * that resolves on success. If the right conditions are available, will reload
- * the dependencies for a specified language code.
- * @param {?string} hl The reCAPTCHA language code.
- * @return {!goog.Promise} A promise that resolves when grecaptcha is loaded.
- */
-fireauth.BaseRecaptchaVerifier.Loader.prototype.loadRecaptchaDeps =
-    function(hl) {
-  var self = this;
-  return new goog.Promise(function(resolve, reject) {
-    var timer = setTimeout(function() {
-      reject(new fireauth.AuthError(
-          fireauth.authenum.Error.NETWORK_REQUEST_FAILED));
-    }, fireauth.BaseRecaptchaVerifier.Loader.DEFAULT_DEPENDENCY_TIMEOUT_.get());
-    // Load grecaptcha SDK if not already loaded or language changed since last
-    // load and no other rendered reCAPTCHA is visible,
-    if (!goog.global['grecaptcha'] || (hl !== self.hl_ && !self.counter_)) {
-      // reCAPTCHA saves the onload function and applies it on subsequent
-      // reloads. This means that the callback name has to remain the same.
-      goog.global[self.cbName_] = function() {
-        if (!goog.global['grecaptcha']) {
-          clearTimeout(timer);
-          // This should not happen.
-          reject(new fireauth.AuthError(
-              fireauth.authenum.Error.INTERNAL_ERROR));
-        } else {
-          // Update the current language code.
-          self.hl_ = hl;
-          var render = goog.global['grecaptcha']['render'];
-          // Wrap grecaptcha.render to keep track of rendered grecaptcha. This
-          // helps detect if the developer rendered a non
-          // firebase.auth.RecaptchaVerifier reCAPTCHA.
-          goog.global['grecaptcha']['render'] =
-              function(container, parameters) {
-            var widgetId = render(container, parameters);
-            // Increment only after render succeeds, in case an error is thrown
-            // during rendering.
-            self.counter_++;
-            return widgetId;
-          };
-          clearTimeout(timer);
-          resolve();
-        }
-        delete goog.global[self.cbName_];
-      };
-      // Construct reCAPTCHA URL and on load, run the temporary function.
-      var url = goog.html.TrustedResourceUrl.format(
-          fireauth.BaseRecaptchaVerifier.RECAPTCHA_SRC_,
-          {'onload': self.cbName_, 'hl': hl || ''});
-      // TODO: eventually, replace all dependencies on goog.net.jsloader.
-      goog.Promise.resolve(goog.net.jsloader.safeLoad(url))
-          .thenCatch(function(error) {
-            clearTimeout(timer);
-            // In case library fails to load, typically due to a network error,
-            // reset cached loader to null to force a refresh on a retrial.
-            reject(new fireauth.AuthError(
-                fireauth.authenum.Error.INTERNAL_ERROR,
-                'Unable to load external reCAPTCHA dependencies!'));
-          });
-    } else {
-      clearTimeout(timer);
-      resolve();
-    }
-  });
-};
-
-
-/** Decrements the reCAPTCHA instance counter. */
-fireauth.BaseRecaptchaVerifier.Loader.prototype.clearSingleRecaptcha =
-    function() {
-  this.counter_--;
-};
-
-
-/**
- * @private {?fireauth.BaseRecaptchaVerifier.Loader} The singleton instance for
- *     reCAPTCHA dependency loader.
- */
-fireauth.BaseRecaptchaVerifier.Loader.instance_ = null;
-
-
-/**
- * @return {!fireauth.BaseRecaptchaVerifier.Loader} The singleton reCAPTCHA
- *     dependency loader instance.
- */
-fireauth.BaseRecaptchaVerifier.Loader.getInstance = function() {
-  // Check if there is an existing instance. Otherwise create one and cache it.
-  if (!fireauth.BaseRecaptchaVerifier.Loader.instance_) {
-    fireauth.BaseRecaptchaVerifier.Loader.instance_ =
-        new fireauth.BaseRecaptchaVerifier.Loader();
-  }
-  return fireauth.BaseRecaptchaVerifier.Loader.instance_;
 };
 
 
@@ -567,6 +444,7 @@ fireauth.BaseRecaptchaVerifier.Loader.getInstance = function() {
  * @extends {fireauth.BaseRecaptchaVerifier}
  */
 fireauth.RecaptchaVerifier = function(container, opt_parameters, opt_app) {
+  var isTestingMode = false;
   var apiKey;
   try {
     /** @private {!firebase.app.App} The corresponding Firebase app instance. */
@@ -607,6 +485,12 @@ fireauth.RecaptchaVerifier = function(container, opt_parameters, opt_app) {
   } catch (e) {
     // Do nothing.
   }
+  try {
+    isTestingMode =
+        this.app_['auth']()['settings']['appVerificationDisabledForTesting'];
+  } catch (e) {
+    // Do nothing.
+  }
   // Get the client version based on the Firebase JS version.
   var clientFullVersion = firebase.SDK_VERSION ?
       fireauth.util.getClientVersion(
@@ -618,6 +502,7 @@ fireauth.RecaptchaVerifier = function(container, opt_parameters, opt_app) {
   // version and the current client configuration endpoints.
   fireauth.RecaptchaVerifier.base(this, 'constructor', apiKey,
       container, opt_parameters, getLanguageCode, clientFullVersion,
-      fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint));
+      fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
+      isTestingMode);
 };
 goog.inherits(fireauth.RecaptchaVerifier, fireauth.BaseRecaptchaVerifier);

@@ -270,7 +270,8 @@ export class View {
         changes,
         newSyncState === SyncState.Local,
         !docChanges.mutatedKeys.isEmpty(),
-        syncStateChanged
+        syncStateChanged,
+        /* excludesMetadataChanges= */ false
       );
       return {
         snapshot: snap,

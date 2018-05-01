@@ -22,9 +22,10 @@
     "dev": "rollup -c -w",
     "prepare": "npm run build"
   },
-  "main": "index.node.js",
-  "browser": "index.js",
-  "react-native": "index.react-native.js",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
     "@firebase/app": "0.2.0",
     "@firebase/auth": "0.4.2",
@@ -41,7 +42,9 @@
     "rollup": "0.57.1",
     "rollup-plugin-commonjs": "9.1.0",
     "rollup-plugin-node-resolve": "3.3.0",
-    "rollup-plugin-uglify": "3.0.0"
+    "rollup-plugin-typescript2": "0.12.0",
+    "rollup-plugin-uglify": "3.0.0",
+    "typescript": "2.8.1"    
   },
-  "typings": "index.d.ts"
+  "typings": "dist/index.d.ts"
 }
