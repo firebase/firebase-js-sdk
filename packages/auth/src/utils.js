@@ -145,6 +145,7 @@ fireauth.util.replaceCurrentUrl = function(url, opt_window, opt_bypassCheck) {
 
 
 /**
+ * Deep comparison of two objects.
  * @param {!Object} a The first object.
  * @param {!Object} b The second object.
  * @return {!Array<string>} The list of keys that are different between both
@@ -157,10 +158,6 @@ fireauth.util.getKeyDiff = function(a, b) {
       diff.push(k);
     } else if (typeof a[k] != typeof b[k]) {
       diff.push(k);
-    } else if (goog.isArray(a[k])) {
-      if (!goog.object.equals(a[k], b[k])) {
-        diff.push(k);
-      }
     } else if (typeof a[k] == 'object' && a[k] != null && b[k] != null) {
       if (fireauth.util.getKeyDiff(
           a[k], b[k]).length > 0) {
