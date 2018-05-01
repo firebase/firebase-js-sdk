@@ -62,13 +62,22 @@ const completeBuilds = [
    * App Browser Builds
    */
   {
-    input: 'src/index.ts',
+    input: 'src/index.module.ts',
     output: [
       { file: pkg.browser, format: 'cjs' },
       { file: pkg.module, format: 'es' }
     ],
     plugins,
     external
+  },
+  {
+    input: 'src/index.cdn.ts',
+    output: {
+      file: 'firebase.js',
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()],
   },
   /**
    * App Node.js Builds

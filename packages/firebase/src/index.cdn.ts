@@ -19,19 +19,10 @@ It looks like you're using the development build of the Firebase JS SDK.
 When deploying Firebase apps to production, it is advisable to only import
 the individual SDK components you intend to use.
 
-These are available for both NPM and CDN environments in the following manner
+For the CDN builds, these are available in the following manner
 (replace <PACKAGE> with the name of a component - i.e. auth, database, etc):
 
-CDN:
 https://www.gstatic.com/firebasejs/5.0.0/firebase-<PACKAGE>.js
-
-NPM (CJS):
-const firebase = require('firebase/app');
-require('firebase/<PACKAGE>');
-
-NPM (ESM):
-import firebase from 'firebase/app';
-import 'firebase/<PACKAGE>';
 `);
 
 import firebase from '../app';
