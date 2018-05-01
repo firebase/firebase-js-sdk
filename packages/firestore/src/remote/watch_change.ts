@@ -212,11 +212,12 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Updates limbo document tracking for a given target-document mapping change. If the target is a
-   * limbo target, and the change for the document has only seen limbo targets so far, and we are not
-   * already tracking a change for this document, then consider this document a limbo document update.
-   * Otherwise, ensure that we don't consider this document a limbo document. Returns true if the
-   * change still has only seen limbo resolution changes.
+   * Updates limbo document tracking for a given target-document mapping change.
+   * If the target is a limbo target, and the change for the document has only
+   * seen limbo targets so far, and we are not already tracking a change for
+   * this document, then consider this document a limbo document update.
+   * Otherwise, ensure that we don't consider this document a limbo document. 
+   * Returns true if the change still has only seen limbo resolution changes.
    */
   private updateLimboDocuments(
     key: DocumentKey,
