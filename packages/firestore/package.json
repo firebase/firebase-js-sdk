@@ -13,7 +13,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register/type-check --require index.node.ts --retries 5 --timeout 5000 --exit",
-    "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register/type-check --require index.node.ts --require test/util/mock_persistence.ts --retries 5 --timeout 5000 --exit",
+    "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register/type-check --require index.node.ts --require test/util/node_persistence.ts --retries 5 --timeout 5000 --exit",
     "prepare": "npm run build"
   },
   "main": "dist/index.node.cjs.js",
