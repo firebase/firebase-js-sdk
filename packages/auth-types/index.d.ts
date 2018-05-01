@@ -238,7 +238,7 @@ export interface OAuthCredential extends AuthCredential {
   secret?: string;
 }
 
-export class AuthSettings {
+export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
 }
 
