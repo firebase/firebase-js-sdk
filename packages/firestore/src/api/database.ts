@@ -63,7 +63,8 @@ import {
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
-  valueDescription
+  valueDescription,
+  validateOptionalArrayElements
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
@@ -568,9 +569,14 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    const parsed = options.merge
-      ? this._firestore._dataConverter.parseMergeData('Transaction.set', value)
-      : this._firestore._dataConverter.parseSetData('Transaction.set', value);
+    const parsed =
+      options.merge || options.mergeFields
+        ? this._firestore._dataConverter.parseMergeData(
+            'Transaction.set',
+            value,
+            options.mergeFields
+          )
+        : this._firestore._dataConverter.parseSetData('Transaction.set', value);
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -658,9 +664,14 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    const parsed = options.merge
-      ? this._firestore._dataConverter.parseMergeData('WriteBatch.set', value)
-      : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
+    const parsed =
+      options.merge || options.mergeFields
+        ? this._firestore._dataConverter.parseMergeData(
+            'WriteBatch.set',
+            value,
+            options.mergeFields
+          )
+        : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.NONE)
     );
@@ -817,15 +828,17 @@ export class DocumentReference implements firestore.DocumentReference {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
 
-    const parsed = options.merge
-      ? this.firestore._dataConverter.parseMergeData(
-          'DocumentReference.set',
-          value
-        )
-      : this.firestore._dataConverter.parseSetData(
-          'DocumentReference.set',
-          value
-        );
+    const parsed =
+      options.merge || options.mergeFields
+        ? this.firestore._dataConverter.parseMergeData(
+            'DocumentReference.set',
+            value,
+            options.mergeFields
+          )
+        : this.firestore._dataConverter.parseSetData(
+            'DocumentReference.set',
+            value
+          );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
     );
@@ -1968,8 +1981,24 @@ function validateSetOptions(
     };
   }
 
-  validateOptionNames(methodName, options, ['merge']);
+  validateOptionNames(methodName, options, ['merge', 'mergeFields']);
   validateNamedOptionalType(methodName, 'boolean', 'merge', options.merge);
+  validateOptionalArrayElements(
+    methodName,
+    'mergeFields',
+    'a string or a FieldPath',
+    options.mergeFields,
+    element =>
+      typeof element === 'string' || element instanceof ExternalFieldPath
+  );
+
+  if (options.mergeFields !== undefined && options.merge !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+    );
+  }
+
   return options;
 }
 
