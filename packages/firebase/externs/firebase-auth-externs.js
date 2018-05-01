@@ -2044,9 +2044,9 @@ firebase.auth.IdTokenResult.prototype.claims;
 firebase.auth.AuthSettings = function() {};
 
 /**
- * The property to enable/disable app verification for phone authentication
- * testing on the corresponding Firebase Auth instance. This property needs to
- * be set before rendering a reCAPTCHA app verifier. When this is disabled, a
+ * When set, this property disables app verification for the purpose of testing
+ * phone authentication. For this property to take effect, it needs to be set
+ * before rendering a reCAPTCHA app verifier. When this is disabled, a
  * mock reCAPTCHA is rendered instead. This is useful for manual testing during
  * development or for automated integration tests.
  *
