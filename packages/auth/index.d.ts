@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-import "@firebase/auth-types";
+export * from "@firebase/auth-types";
