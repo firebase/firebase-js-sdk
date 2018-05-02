@@ -40,7 +40,6 @@ declare namespace firebase {
       forceRefresh?: boolean
     ): Promise<firebase.auth.IdTokenResult>;
     getIdToken(forceRefresh?: boolean): Promise<any>;
-    getToken(forceRefresh?: boolean): Promise<any>;
     isAnonymous: boolean;
     linkAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
@@ -190,6 +189,10 @@ declare namespace firebase.auth {
     verify(): Promise<any>;
   }
 
+  interface AuthSettings {
+    appVerificationDisabledForTesting: boolean;
+  }
+
   interface Auth {
     app: firebase.app.App;
     applyActionCode(code: string): Promise<any>;
@@ -209,6 +212,7 @@ declare namespace firebase.auth {
     isSignInWithEmailLink(emailLink: string): boolean;
     getRedirectResult(): Promise<any>;
     languageCode: string | null;
+    settings: firebase.auth.AuthSettings;
     onAuthStateChanged(
       nextOrObserver:
         | firebase.Observer<any, any>
@@ -255,6 +259,7 @@ declare namespace firebase.auth {
     signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
     signOut(): Promise<any>;
+    updateCurrentUser(user: firebase.User | null): Promise<any>;
     useDeviceLanguage(): any;
     verifyPasswordResetCode(code: string): Promise<any>;
   }
