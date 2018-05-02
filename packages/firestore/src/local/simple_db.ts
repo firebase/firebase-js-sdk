@@ -104,6 +104,7 @@ export class SimpleDb {
     // https://developer.microsoft.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport/
 
     // Check the UA string to find out the browser.
+    // TODO(mikelehen): Move this logic into packages/util/environment.ts
     const ua = window.navigator.userAgent;
 
     // IE 10

@@ -22,6 +22,8 @@ import {
   createWebChannelTransport
 } from '@firebase/webchannel-wrapper';
 
+import { isReactNative } from '@firebase/util';
+
 import { Token } from '../api/credentials';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { SDK_VERSION } from '../core/version';
@@ -36,7 +38,6 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
-import { isReactNative } from '../util/misc';
 
 const LOG_TAG = 'Connection';
 
@@ -213,19 +214,29 @@ export class WebChannelConnection implements Connection {
       supportsCrossDomainXhr: true
     };
 
-    // Send our custom headers as a '$httpHeaders=' url param to avoid CORS
-    // preflight round-trip. This is formally defined here:
-    // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L40
+    this.modifyHeadersForRequest(request.initMessageHeaders, token);
+
+    // Sending the custom headers we just added to request.initMessageHeaders
+    // (Authorization, etc.) will trigger the browser to make a CORS preflight
+    // request because the XHR will no longer meet the criteria for a "simple"
+    // CORS request:
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Simple_requests
     //
-    // For some unclear reason (see
+    // Therefore to avoid the CORS preflight request (an extra network
+    // roundtrip), we use the httpHeadersOverwriteParam option to specify that
+    // the headers should instead be encoded into a special "$httpHeaders" query
+    // parameter, which is recognized by the webchannel backend. This is
+    // formally defined here:
+    // https://github.com/google/closure-library/blob/b0e1815b13fb92a46d7c9b3c30de5d6a396a3245/closure/goog/net/rpc/httpcors.js#L32
+    //
+    // But for some unclear reason (see
     // https://github.com/firebase/firebase-js-sdk/issues/703), this breaks
     // ReactNative and so we exclude it, which just means ReactNative may be
-    // subject to an extra network roundtrip for CORS preflight.
+    // subject to the extra network roundtrip for CORS preflight.
     if (!isReactNative()) {
       request['httpHeadersOverwriteParam'] = '$httpHeaders';
     }
 
-    this.modifyHeadersForRequest(request.initMessageHeaders, token);
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
     // tslint:disable-next-line:no-any Because listen isn't defined on it.
