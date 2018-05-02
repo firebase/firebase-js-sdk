@@ -798,6 +798,31 @@ describe('Firebase Messaging > *SWController', () => {
         undefined
       );
     });
+
+    it('adds message payload to data.FCM_MSG without replacing user defined data', () => {
+      const swController = new SWController(app);
+      const msgPayload = {
+        notification: {
+          title: 'Hello World',
+          body: 'Notification Body',
+          data: {
+            userDefinedData: 'canBeAnything'
+          }
+        },
+        data: {
+          randomData: 'randomString'
+        }
+      };
+
+      expect(swController.getNotificationData_(msgPayload)).to.deep.equal({
+        title: 'Hello World',
+        body: 'Notification Body',
+        data: {
+          userDefinedData: 'canBeAnything',
+          FCM_MSG: msgPayload
+        }
+      });
+    });
   });
 
   describe('attemptToMessageClient_', () => {
