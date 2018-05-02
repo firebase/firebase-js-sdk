@@ -18,9 +18,7 @@ import { expect } from 'chai';
 import { sandbox, SinonSandbox, SinonStub } from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 
 import { MessagingServiceFactory, registerMessaging } from '../index';
 import { ERROR_CODES } from '../src/models/errors';
