@@ -26,23 +26,27 @@ import { ERROR_CODES, errorFactory } from './src/models/errors';
 
 import * as types from '@firebase/messaging-types';
 
+export interface MessagingServiceFactory extends FirebaseServiceFactory {
+  isSupported?(): boolean;
+}
+
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
-  const factoryMethod: FirebaseServiceFactory = app => {
-    if (self && 'ServiceWorkerGlobalScope' in self) {
-      // Running in ServiceWorker context
-      if (isSWControllerSupported()) {
-        return new SWController(app);
-      }
-    } else {
-      // Assume we are in the window context.
-      if (isWindowControllerSupported()) {
-        return new WindowController(app);
-      }
+
+  const factoryMethod: MessagingServiceFactory = app => {
+    if (!isSupported()) {
+      throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
     }
 
-    throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
+    if (self && 'ServiceWorkerGlobalScope' in self) {
+      // Running in ServiceWorker context
+      return new SWController(app);
+    } else {
+      // Assume we are in the window context.
+      return new WindowController(app);
+    }
   };
+  factoryMethod.isSupported = isSupported;
 
   const namespaceExports = {
     // no-inline
@@ -70,6 +74,16 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     messaging?(): types.FirebaseMessaging;
+  }
+}
+
+function isSupported(): boolean {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return isSWControllerSupported();
+  } else {
+    // Assume we are in the window context.
+    return isWindowControllerSupported();
   }
 }
 
