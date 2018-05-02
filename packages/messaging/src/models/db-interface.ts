@@ -82,7 +82,7 @@ export abstract class DBInterface {
    */
   private async createTransaction<T>(
     runRequest: (objectStore: IDBObjectStore) => IDBRequest,
-    mode?: 'readonly' | 'readwrite'
+    mode: 'readonly' | 'readwrite' = 'readonly'
   ): Promise<T> {
     const db = await this.getDb();
     const transaction = db.transaction(this.objectStoreName, mode);
