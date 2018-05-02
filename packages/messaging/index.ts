@@ -17,14 +17,14 @@
 import firebase from '@firebase/app';
 import {
   _FirebaseNamespace,
+  FirebaseService,
   FirebaseServiceFactory
 } from '@firebase/app-types/private';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 
 import { SWController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
 import { ERROR_CODES, errorFactory } from './src/models/errors';
-
-import * as types from '@firebase/messaging-types';
 
 export interface MessagingServiceFactory extends FirebaseServiceFactory {
   isSupported?(): boolean;
@@ -33,6 +33,8 @@ export interface MessagingServiceFactory extends FirebaseServiceFactory {
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
+  let messagingController: FirebaseService | null;
+
   const factoryMethod: MessagingServiceFactory = app => {
     if (!isSupported()) {
       throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
@@ -40,16 +42,21 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SWController(app);
+      if (messagingController == null) {
+        messagingController = new SWController(app);
+      }
     } else {
       // Assume we are in the window context.
-      return new WindowController(app);
+      if (messagingController == null) {
+        messagingController = new WindowController(app);
+      }
     }
+
+    return messagingController;
   };
   factoryMethod.isSupported = isSupported;
 
   const namespaceExports = {
-    // no-inline
     Messaging: WindowController
   };
 
@@ -68,12 +75,12 @@ registerMessaging(firebase as _FirebaseNamespace);
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     messaging?: {
-      (app?: FirebaseApp): types.FirebaseMessaging;
-      Messaging: typeof types.FirebaseMessaging;
+      (app?: FirebaseApp): FirebaseMessaging;
+      Messaging: typeof FirebaseMessaging;
     };
   }
   interface FirebaseApp {
-    messaging?(): types.FirebaseMessaging;
+    messaging?(): FirebaseMessaging;
   }
 }
 

@@ -63,6 +63,10 @@ describe('Firebase Messaging > registerMessaging', () => {
       });
     });
 
+    it('always returns the same object', () => {
+      expect(factoryMethod(fakeApp)).to.equal(factoryMethod(fakeApp));
+    });
+
     describe('isSupported', () => {
       it('is a static method on factoryMethod', () => {
         expect(factoryMethod.isSupported).to.be.a('function');
