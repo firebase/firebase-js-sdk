@@ -240,6 +240,7 @@ export class SWController extends ControllerInterface {
     // somewhere else (i.e. normal web push or developer generated
     // notification).
     notificationInformation.data = {
+      ...msgPayload.notification.data,
       [FCM_MSG]: msgPayload
     };
 
