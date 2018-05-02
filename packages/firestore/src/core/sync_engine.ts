@@ -20,7 +20,7 @@ import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
-import { MaybeDocumentMap } from '../model/collections';
+import { MaybeDocumentMap, documentKeySet } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -362,7 +362,13 @@ export class SyncEngine implements RemoteSyncer {
         limboKey,
         new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
       );
-      const event = new RemoteEvent(SnapshotVersion.MIN, {}, docMap);
+      const limboDocuments = documentKeySet().add(limboKey);
+      const event = new RemoteEvent(
+        SnapshotVersion.MIN,
+        {},
+        docMap,
+        limboDocuments
+      );
       return this.applyRemoteEvent(event);
     } else {
       const queryView = this.queryViewsByTarget[targetId];
