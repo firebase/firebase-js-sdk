@@ -123,7 +123,7 @@ module.exports = function(config) {
 
     port: 9876,
 
-    retryLimit: 3,
+    retryLimit: 0,
 
     // concurrency: 10,
 
@@ -131,7 +131,10 @@ module.exports = function(config) {
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
-      startConnect: true
+      startConnect: true,
+      connectOptions: {
+        noSslBumpDomains: 'all'
+      }
     }
   });
 
