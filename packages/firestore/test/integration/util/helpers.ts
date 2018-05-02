@@ -288,3 +288,6 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);
 }
+
+// TODO(array-features): Expose 'array-contains' publicly.
+export const arrayContainsOp = 'array-contains' as firestore.WhereFilterOp;
