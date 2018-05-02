@@ -111,6 +111,7 @@ export class SimpleDb {
     }
 
     // Check the UA string to find out the browser.
+    // TODO(mikelehen): Move this logic into packages/util/environment.ts
     const ua = window.navigator.userAgent;
 
     // IE 10
