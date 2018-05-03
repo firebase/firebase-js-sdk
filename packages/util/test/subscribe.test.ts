@@ -40,7 +40,7 @@ describe('createSubscribe', function() {
 
   it('Creation', done => {
     let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
+      (observer: Observer<number>) => {
         observer.next(123);
       }
     );
@@ -55,7 +55,7 @@ describe('createSubscribe', function() {
   it('Logging observer error to console', done => {
     let uncatchableError = new Error('uncatchable');
     let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
+      (observer: Observer<number>) => {
         observer.next(123);
         observer.complete();
       }
@@ -145,7 +145,7 @@ describe('createSubscribe', function() {
 
   it('Delayed value', done => {
     let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
+      (observer: Observer<number>) => {
         setTimeout(() => observer.next(123), 10);
       }
     );
@@ -161,7 +161,7 @@ describe('createSubscribe', function() {
     // but since it is called asynchronously, our only option is
     // to emit that Error and terminate the Subscribe.
     let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
+      (observer: Observer<number>) => {
         throw new Error('Executor throws');
       }
     );
@@ -246,7 +246,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
   let id: any;
 
   return createSubscribe<number>(
-    (observer: Observer<number, Error>) => {
+    (observer: Observer<number>) => {
       let i = 1;
       id = setInterval(() => {
         observer.next(i++);
@@ -259,7 +259,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
         }
       }, ms);
     },
-    (observer: Observer<number, Error>) => {
+    (observer: Observer<number>) => {
       clearInterval(id);
       id = undefined;
     }
