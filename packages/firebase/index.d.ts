@@ -119,7 +119,7 @@ declare namespace firebase.app {
     auth(): firebase.auth.Auth;
     database(): firebase.database.Database;
     delete(): Promise<any>;
-    messaging(): firebase.messaging.Messaging;
+    messaging: firebase.messaging.MessagingFactory;
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
