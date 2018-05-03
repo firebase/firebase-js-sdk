@@ -25,9 +25,7 @@ import {
 import {
   Mutation,
   MutationResult,
-  Precondition,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
+  Precondition
 } from '../../../src/model/mutation';
 import {
   DELETE_SENTINEL,
@@ -47,6 +45,10 @@ import {
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Dict } from '../../../src/util/obj';
 import { AnyJs } from '../../../src/util/misc';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation
+} from '../../../src/model/transform_operation';
 
 describe('Mutation', () => {
   addEqualityMatcher();

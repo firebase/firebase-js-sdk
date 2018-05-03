@@ -38,11 +38,8 @@ import {
   Mutation,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
-  TransformMutation,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
+  TransformMutation
 } from '../model/mutation';
 import { FieldPath } from '../model/path';
 import { assert, fail } from '../util/assert';
@@ -67,6 +64,11 @@ import {
   ArrayRemoveFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
+import {
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

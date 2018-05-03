@@ -44,12 +44,8 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
-  TransformMutation,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation,
-  TransformOperation
+  TransformMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
@@ -68,6 +64,12 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { ApiClientObjectMap } from '../protos/firestore_proto_api';
+import {
+  TransformOperation,
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};

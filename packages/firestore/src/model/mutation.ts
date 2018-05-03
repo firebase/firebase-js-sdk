@@ -16,18 +16,18 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import * as misc from '../util/misc';
 
 import { Document, MaybeDocument, NoDocument } from './document';
 import { DocumentKey } from './document_key';
-import {
-  FieldValue,
-  ObjectValue,
-  ServerTimestampValue,
-  ArrayValue
-} from './field_value';
+import { FieldValue, ObjectValue } from './field_value';
 import { FieldPath } from './path';
+import {
+  TransformOperation,
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation
+} from './transform_operation';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -62,45 +62,6 @@ export class FieldMask {
 
   isEqual(other: FieldMask): boolean {
     return misc.arrayEquals(this.fields, other.fields);
-  }
-}
-
-/** Represents a transform within a TransformMutation. */
-export interface TransformOperation {
-  isEqual(other: TransformOperation): boolean;
-}
-
-/** Transforms a value into a server-generated timestamp. */
-export class ServerTimestampTransform implements TransformOperation {
-  private constructor() {}
-  static instance = new ServerTimestampTransform();
-
-  isEqual(other: TransformOperation): boolean {
-    return other instanceof ServerTimestampTransform;
-  }
-}
-
-/** Transforms an array value via a union operation. */
-export class ArrayUnionTransformOperation implements TransformOperation {
-  constructor(readonly elements: FieldValue[]) {}
-
-  isEqual(other: TransformOperation): boolean {
-    return (
-      other instanceof ArrayUnionTransformOperation &&
-      misc.arrayEquals(other.elements, this.elements)
-    );
-  }
-}
-
-/** Transforms an array value via a remove operation. */
-export class ArrayRemoveTransformOperation implements TransformOperation {
-  constructor(readonly elements: FieldValue[]) {}
-
-  isEqual(other: TransformOperation): boolean {
-    return (
-      other instanceof ArrayRemoveTransformOperation &&
-      misc.arrayEquals(other.elements, this.elements)
-    );
   }
 }
 
@@ -619,26 +580,18 @@ export class TransformMutation extends Mutation {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }
 
-      let transformResult: FieldValue = null;
       // The server just sends null as the transform result for array union /
       // remove operations, so we have to calculate a result the same as we do
       // for local applications.
-      if (transform instanceof ArrayUnionTransformOperation) {
-        transformResult = this.arrayUnionTransformResult(
-          transform,
-          previousValue
-        );
-      } else if (transform instanceof ArrayRemoveTransformOperation) {
-        transformResult = this.arrayRemoveTransformResult(
-          transform,
-          previousValue
-        );
+      if (
+        transform instanceof ArrayUnionTransformOperation ||
+        transform instanceof ArrayRemoveTransformOperation
+      ) {
+        transformResults.push(transform.transform(previousValue));
       } else {
         // Just use the server-supplied result.
-        transformResult = serverTransformResults[i];
+        transformResults.push(serverTransformResults[i]);
       }
-
-      transformResults.push(transformResult);
     }
     return transformResults;
   }
@@ -666,75 +619,9 @@ export class TransformMutation extends Mutation {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }
 
-      let transformResult: FieldValue = null;
-      if (transform instanceof ServerTimestampTransform) {
-        transformResult = new ServerTimestampValue(
-          localWriteTime,
-          previousValue
-        );
-      } else if (transform instanceof ArrayUnionTransformOperation) {
-        transformResult = this.arrayUnionTransformResult(
-          transform,
-          previousValue
-        );
-      } else if (transform instanceof ArrayRemoveTransformOperation) {
-        transformResult = this.arrayRemoveTransformResult(
-          transform,
-          previousValue
-        );
-      } else {
-        return fail('Encountered unknown transform: ' + transform);
-      }
-
-      transformResults.push(transformResult);
+      transformResults.push(transform.transform(previousValue, localWriteTime));
     }
     return transformResults;
-  }
-
-  /**
-   * Transforms the provided `previousValue` via the provided `arrayUnion`. Used
-   * for both local application and after server acknowledgement.
-   */
-  private arrayUnionTransformResult(
-    arrayUnion: ArrayUnionTransformOperation,
-    previousValue: FieldValue | null
-  ): FieldValue {
-    const result = this.coercedFieldValuesArray(previousValue);
-    for (const toUnion of arrayUnion.elements) {
-      if (!result.find(element => element.isEqual(toUnion))) {
-        result.push(toUnion);
-      }
-    }
-    return new ArrayValue(result);
-  }
-
-  /**
-   * Transforms the provided `previousValue` via the provided `arrayRemove`.
-   * Used for both local application and after server acknowledgement.
-   */
-  private arrayRemoveTransformResult(
-    arrayRemove: ArrayRemoveTransformOperation,
-    previousValue: FieldValue | null
-  ): FieldValue {
-    let result = this.coercedFieldValuesArray(previousValue);
-    for (const toRemove of arrayRemove.elements) {
-      result = result.filter(element => !element.isEqual(toRemove));
-    }
-    return new ArrayValue(result);
-  }
-
-  /**
-   * Inspects the provided value, returning a mutable copy of the internal array
-   * if it's an ArrayValue and an empty mutable array if it's null or any other
-   * type of FieldValue.
-   */
-  private coercedFieldValuesArray(value: FieldValue | null): FieldValue[] {
-    if (value instanceof ArrayValue) {
-      return value.internalValue.slice();
-    } else {
-      // coerce to empty array.
-      return [];
-    }
   }
 
   private transformObject(
