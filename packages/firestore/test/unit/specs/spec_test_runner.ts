@@ -509,8 +509,12 @@ abstract class TestRunner {
 
     // Skip the backoff that may have been triggered by a previous call to
     // `watchStreamCloses()`.
-    if (this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)) {
-      await this.queue.runDelayedOperationsEarly(TimerId.ListenStreamConnectionBackoff);
+    if (
+      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
+    ) {
+      await this.queue.runDelayedOperationsEarly(
+        TimerId.ListenStreamConnectionBackoff
+      );
     }
 
     // Open should always have happened after a listen

@@ -84,7 +84,7 @@ describeSpec('Offline:', [], () => {
           .watchStreamCloses(Code.UNAVAILABLE)
           // Suppose sometime later we listen again, it should take two failures
           // before we get cached data.
-         .userListens(query)
+          .userListens(query)
           .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query, {
