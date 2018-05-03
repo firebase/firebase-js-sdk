@@ -506,6 +506,17 @@ abstract class TestRunner {
         'targetId assigned to listen'
       );
     });
+
+    // Skip the backoff that may have been triggered by a previous call to
+    // `watchStreamCloses()`.
+    if (
+      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
+    ) {
+      await this.queue.runDelayedOperationsEarly(
+        TimerId.ListenStreamConnectionBackoff
+      );
+    }
+
     // Open should always have happened after a listen
     await this.connection.waitForWatchOpen();
   }
@@ -534,7 +545,7 @@ abstract class TestRunner {
     return this.doMutations([deleteMutation(key)]);
   }
 
-  private doMutations(mutations: Mutation[]): Promise<void> {
+  private async doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
     return this.queue.enqueue(() => {
