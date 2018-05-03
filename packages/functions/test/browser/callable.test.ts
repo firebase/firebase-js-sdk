@@ -68,10 +68,16 @@ describe('Firebase Functions > Call', () => {
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
+    if (!('serviceWorker' in navigator)) {
+      // Current platform does not support messaging, skip test.
+      return;
+    }
+
     // Stub out the messaging method get an instance id token.
-    const messaging = (firebase as any).messaging(app);
-    const stub = sinon.stub(messaging, 'getToken');
-    stub.returns(Promise.resolve('iid'));
+    const messaging = firebase.messaging(app);
+    const stub = sinon
+      .stub(messaging, 'getToken')
+      .returns(Promise.resolve('iid'));
 
     const func = functions.httpsCallable('instanceIdTest');
     const result = await func({});
