@@ -27,7 +27,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import { includesEqualElement } from '../util/array';
 
 export class Query {
   static atPath(path: ResourcePath): Query {
@@ -455,7 +454,8 @@ export class RelationFilter implements Filter {
     if (this.op === RelationOp.ARRAY_CONTAINS) {
       return (
         value instanceof ArrayValue &&
-        includesEqualElement(value.internalValue, this.value)
+        value.internalValue.find(element => element.isEqual(this.value)) !==
+          undefined
       );
     } else {
       // Only compare types with matching backend order (such as double and int).
