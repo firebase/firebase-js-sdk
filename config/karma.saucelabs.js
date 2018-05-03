@@ -119,13 +119,31 @@ module.exports = function(config) {
 
     customLaunchers: sauceLabsBrowsers,
 
-    reporters: ['spec', 'saucelabs'],
+    reporters: ['spec', 'summary', 'saucelabs'],
 
     port: 9876,
 
     retryLimit: 0,
 
     // concurrency: 10,
+
+    browserConsoleLogOptions: { terminal: false },
+
+    specReporter: {
+      maxLogLines: 5,
+      suppressErrorSummary: true,
+      suppressFailed: false,
+      suppressPassed: true,
+      suppressSkipped: true,
+      showSpecTiming: true,
+      failFast: false
+    },
+
+    summaryReporter: {
+      show: 'failed',
+      specLength: 80,
+      overviewColumn: false
+    },
 
     sauceLabs: {
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
