@@ -1,5 +1,3 @@
-import { Equatable } from './misc';
-
 /**
  * Copyright 2017 Google Inc.
  *
@@ -24,31 +22,6 @@ export function includes<T>(array: T[], value: T): boolean {
     if (array[i] === value) return true;
   }
   return false;
-}
-
-export function includesEqualElement<T extends Equatable<T>>(
-  array: T[],
-  value: T
-): boolean {
-  for (const element of array) {
-    if (element.isEqual(value)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-export function removeEqualElements<T extends Equatable<T>>(
-  array: T[],
-  value: T
-): T[] {
-  const result = [] as T[];
-  for (const element of array) {
-    if (!element.isEqual(value)) {
-      result.push(element);
-    }
-  }
-  return result;
 }
 
 /**

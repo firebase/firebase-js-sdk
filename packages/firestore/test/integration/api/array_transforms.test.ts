@@ -43,44 +43,24 @@ apiDescribe.skip('Array Transforms:', persistence => {
 
   // Listener registration for a listener maintained during the course of the
   // test.
-  let listenerRegistration: () => void;
-
-  /** Waits for a latency compensated local snapshot. */
-  async function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    const snapshot = await accumulator.awaitEvent();
-    if (snapshot.metadata.hasPendingWrites) {
-      return snapshot;
-    } else {
-      return waitForLocalEvent();
-    }
-  }
-
-  /** Waits for a snapshot that has no pending writes */
-  async function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
-    const snapshot = await accumulator.awaitEvent();
-    if (!snapshot.metadata.hasPendingWrites) {
-      return snapshot;
-    } else {
-      return waitForRemoteEvent();
-    }
-  }
+  let unsubscribe: () => void;
 
   /** Writes some initialData and consumes the events generated. */
   async function writeInitialData(
     initialData: firestore.DocumentData
   ): Promise<void> {
     await docRef.set(initialData);
-    await waitForLocalEvent();
-    const snapshot = await waitForRemoteEvent();
+    await accumulator.awaitLocalEvent();
+    const snapshot = await accumulator.awaitRemoteEvent();
     expect(snapshot.data()).to.deep.equal(initialData);
   }
 
   async function expectLocalAndRemoteEvent(
     expected: firestore.DocumentData
   ): Promise<void> {
-    const localSnap = await waitForLocalEvent();
+    const localSnap = await accumulator.awaitLocalEvent();
     expect(localSnap.data()).to.deep.equal(expected);
-    const remoteSnap = await waitForRemoteEvent();
+    const remoteSnap = await accumulator.awaitRemoteEvent();
     expect(remoteSnap.data()).to.deep.equal(expected);
   }
 
@@ -92,16 +72,16 @@ apiDescribe.skip('Array Transforms:', persistence => {
     await withTestDoc(persistence, async doc => {
       docRef = doc;
       accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      listenerRegistration = docRef.onSnapshot(
+      unsubscribe = docRef.onSnapshot(
         { includeMetadataChanges: true },
         accumulator.storeEvent
       );
 
       // wait for initial null snapshot to avoid potential races.
-      const snapshot = await waitForRemoteEvent();
+      const snapshot = await accumulator.awaitRemoteEvent();
       expect(snapshot.exists).to.be.false;
       await test();
-      listenerRegistration();
+      unsubscribe();
     });
   }
 

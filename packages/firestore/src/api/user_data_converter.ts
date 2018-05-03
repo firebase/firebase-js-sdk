@@ -671,9 +671,7 @@ export class UserDataConverter {
     methodName: string,
     elements: AnyJs[]
   ): FieldValue[] {
-    const parsedElements = [] as FieldValue[];
-    for (let i = 0; i < elements.length; i++) {
-      const element = elements[i];
+    return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
       // being unioned or removed are not considered writes since they cannot
       // contain any FieldValue sentinels, etc.
@@ -682,13 +680,8 @@ export class UserDataConverter {
         methodName,
         FieldPath.EMPTY_PATH
       );
-      const parsedElement = this.parseData(
-        element,
-        context.childContextForArray(i)
-      );
-      parsedElements.push(parsedElement);
-    }
-    return parsedElements;
+      return this.parseData(element, context.childContextForArray(i));
+    });
   }
 }
 

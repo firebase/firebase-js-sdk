@@ -16,7 +16,6 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import * as array from '../util/array';
 import { assert, fail } from '../util/assert';
 import * as misc from '../util/misc';
 
@@ -82,7 +81,7 @@ export class ServerTimestampTransform implements TransformOperation {
 }
 
 /** Transforms an array value via a union operation. */
-export class ArrayUnionTransformOperation {
+export class ArrayUnionTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
   isEqual(other: TransformOperation): boolean {
@@ -94,7 +93,7 @@ export class ArrayUnionTransformOperation {
 }
 
 /** Transforms an array value via a remove operation. */
-export class ArrayRemoveTransformOperation {
+export class ArrayRemoveTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
   isEqual(other: TransformOperation): boolean {
@@ -701,9 +700,9 @@ export class TransformMutation extends Mutation {
     previousValue: FieldValue | null
   ): FieldValue {
     const result = this.coercedFieldValuesArray(previousValue);
-    for (const element of arrayUnion.elements) {
-      if (!array.includesEqualElement(result, element)) {
-        result.push(element);
+    for (const toUnion of arrayUnion.elements) {
+      if (!result.find(element => element.isEqual(toUnion))) {
+        result.push(toUnion);
       }
     }
     return new ArrayValue(result);
@@ -718,8 +717,8 @@ export class TransformMutation extends Mutation {
     previousValue: FieldValue | null
   ): FieldValue {
     let result = this.coercedFieldValuesArray(previousValue);
-    for (const element of arrayRemove.elements) {
-      result = array.removeEqualElements(result, element);
+    for (const toRemove of arrayRemove.elements) {
+      result = result.filter(element => !element.isEqual(toRemove));
     }
     return new ArrayValue(result);
   }
