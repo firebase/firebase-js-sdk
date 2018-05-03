@@ -74,13 +74,6 @@ export class WindowController extends ControllerInterface {
    * permission isn't granted.
    */
   getToken(): Promise<string | null> {
-    // Check that the required API's are available
-    if (!this.isSupported_()) {
-      return Promise.reject(
-        errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER)
-      );
-    }
-
     return this.manifestCheck_().then(() => {
       return super.getToken();
     });
@@ -355,10 +348,6 @@ export class WindowController extends ControllerInterface {
   // Visible for testing
   // TODO: Make private
   setupSWMessageListener_(): void {
-    if (!('serviceWorker' in navigator)) {
-      return;
-    }
-
     navigator.serviceWorker.addEventListener(
       'message',
       event => {
@@ -382,23 +371,6 @@ export class WindowController extends ControllerInterface {
         }
       },
       false
-    );
-  }
-
-  /**
-   * Checks to see if the required API's are valid or not.
-   * @return Returns true if the desired APIs are available.
-   */
-  // Visible for testing
-  // TODO: Make private
-  isSupported_(): boolean {
-    return (
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window &&
-      'fetch' in window &&
-      ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
-      PushSubscription.prototype.hasOwnProperty('getKey')
     );
   }
 }

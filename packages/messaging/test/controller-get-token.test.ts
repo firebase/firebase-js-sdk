@@ -130,22 +130,6 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
     return cleanUp();
   });
 
-  it('should throw on unsupported browsers', () => {
-    sandbox
-      .stub(WindowController.prototype, 'isSupported_')
-      .callsFake(() => false);
-
-    const messagingService = new WindowController(app);
-    return messagingService.getToken().then(
-      () => {
-        throw new Error('Expected getToken to throw ');
-      },
-      err => {
-        assert.equal('messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER, err.code);
-      }
-    );
-  });
-
   it('should handle a failure to get registration', () => {
     sandbox
       .stub(ControllerInterface.prototype, 'getNotificationPermission_')
