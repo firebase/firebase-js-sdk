@@ -1901,9 +1901,17 @@ function throwDocChangesMethodError(): never {
   );
 }
 
-Object.defineProperty(QuerySnapshot.prototype.docChanges, 'length', {
-  get: () => throwDocChangesMethodError()
-});
+/**
+ * This is technically overwriting the `Function.prototype.length` property of
+ * `docChanges`. On IE11, the property is improperly defined with
+ * `{ configurable: false }` which causes this line to throw. Wrap in a
+ * try-catch to ensure that we still have a functional SDK.
+ */
+try {
+  Object.defineProperty(QuerySnapshot.prototype.docChanges, 'length', {
+    get: () => throwDocChangesMethodError()
+  });
+} catch (err) {} // Ignore this failure intentionally
 
 if (typeof Symbol !== 'undefined') {
   Object.defineProperty(QuerySnapshot.prototype.docChanges, Symbol.iterator, {
