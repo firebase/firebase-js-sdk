@@ -65,9 +65,9 @@ export function initializeTestApp(options: any): admin.app.App {
 }
 
 export type LoadDatabaseRulesOptions = {
-  databaseName: String,
-  rules: String,
-  rulesPath: fs.PathLike,
+  databaseName: String;
+  rules: String;
+  rulesPath: fs.PathLike;
 };
 export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
   if (!options.databaseName) {
@@ -78,21 +78,20 @@ export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
     if (!fs.existsSync(options.rulesPath)) {
       throw new Error('Could not find file: ' + options.rulesPath);
     }
-    options.rules = fs.readFileSync(options.rulesPath).toString("utf8");
+    options.rules = fs.readFileSync(options.rulesPath).toString('utf8');
   }
   if (!options.rules) {
     throw new Error('must provide either rules or rulesPath');
   }
 
-    request({
-      uri: DBURL + '/.settings/rules.json?ns=' + options.databaseName,
-      method: 'PUT',
-      headers: { Authorization: 'Bearer owner' },
-      body: options.rules,
-    })
-    .catch(function(err) {
-      throw new Error('could not load rules: ' + err);
-    });
+  request({
+    uri: DBURL + '/.settings/rules.json?ns=' + options.databaseName,
+    method: 'PUT',
+    headers: { Authorization: 'Bearer owner' },
+    body: options.rules
+  }).catch(function(err) {
+    throw new Error('could not load rules: ' + err);
+  });
 }
 
 export function assertFails(pr: Promise<any>): any {
