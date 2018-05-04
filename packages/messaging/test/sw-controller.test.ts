@@ -241,6 +241,11 @@ describe('Firebase Messaging > *SWController', () => {
     });
 
     it('displays a warning if there are too many actions in the message', async () => {
+      if (!('maxActions' in Notification)) {
+        // Browser does not support maxActions, skip test
+        return;
+      }
+
       const registration = makeFakeSWReg();
       sandbox.stub(self, 'registration').value(registration);
 
