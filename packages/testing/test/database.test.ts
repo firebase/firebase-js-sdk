@@ -90,7 +90,7 @@ describe('Testing Module Tests', function() {
     );
     expect(
       firebase.loadDatabaseRules.bind(null, { databaseName: 'foo' })
-    ).to.throw(/rulesPath not specified/);
+    ).to.throw(/must provide either rules or rulesPath/);
     expect(
       firebase.loadDatabaseRules.bind(null, {
         rulesPath: '/path/does/not/exist/file.json'
