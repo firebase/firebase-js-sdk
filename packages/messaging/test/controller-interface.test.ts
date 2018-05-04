@@ -29,6 +29,8 @@ import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
+import { describe } from './testing-utils/messaging-test-runner';
+
 const controllersToTest = [WindowController, SWController];
 
 /**

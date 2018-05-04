@@ -15,9 +15,12 @@
  */
 
 import { expect } from 'chai';
+
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
+
+import { describe } from './testing-utils/messaging-test-runner';
 
 describe('Firebase Messaging > Helpers', () => {
   describe('Array Buffer - Base64 conversion', () => {

@@ -26,6 +26,7 @@ import { ERROR_CODES } from '../src/models/errors';
 import { SWController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { makeFakeApp } from './testing-utils/make-fake-app';
+import { describe } from './testing-utils/messaging-test-runner';
 
 describe('Firebase Messaging > registerMessaging', () => {
   let sinonSandbox: SinonSandbox;

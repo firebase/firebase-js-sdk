@@ -16,15 +16,15 @@
 
 import * as sinon from 'sinon';
 
-const fakeRegistration = ((() => {}) as any) as {
-  new (): ServiceWorkerRegistration;
-};
-fakeRegistration.prototype = ServiceWorkerRegistration.prototype;
-
 export function makeFakeSWReg(
   selectedState?: string,
   desiredValue?: object
 ): ServiceWorkerRegistration {
+  const fakeRegistration = ((() => {}) as any) as {
+    new (): ServiceWorkerRegistration;
+  };
+  fakeRegistration.prototype = ServiceWorkerRegistration.prototype;
+
   const fakeReg: ServiceWorkerRegistration = new fakeRegistration();
   // No need to use a sandbox to stub this object as it should be a used
   // once per test.
