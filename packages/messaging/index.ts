@@ -77,7 +77,7 @@ declare module '@firebase/app-types' {
   }
 }
 
-function isSupported(): boolean {
+export function isSupported(): boolean {
   if (self && 'ServiceWorkerGlobalScope' in self) {
     // Running in ServiceWorker context
     return isSWControllerSupported();
