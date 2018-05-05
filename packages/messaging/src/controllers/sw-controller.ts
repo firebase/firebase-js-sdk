@@ -263,7 +263,10 @@ export class SWController extends ControllerInterface {
    * and a notification must be shown. The callback will be given the data from
    * the push message.
    */
-  setBackgroundMessageHandler(callback: BgMessageHandler, handlerMode?: boolean): void {
+  setBackgroundMessageHandler(
+    callback: BgMessageHandler,
+    handlerMode?: boolean
+  ): void {
     if (!callback || typeof callback !== 'function') {
       throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
