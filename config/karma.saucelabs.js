@@ -20,12 +20,7 @@ const path = require('path');
 const karmaBase = require('./karma.base');
 
 /** Tests in these packages are excluded due to flakiness or long run time. */
-const excluded = [
-  'packages/database/*',
-  'packages/firestore/*',
-  'integration/firestore/*',
-  'integration/messaging/*'
-];
+const excluded = ['integration/firestore/*', 'integration/messaging/*'];
 
 /**
  * Gets a list of file patterns for test, defined individually
@@ -126,6 +121,16 @@ module.exports = function(config) {
     retryLimit: 0,
 
     // concurrency: 10,
+
+    client: {
+      mocha: {
+        timeout: 20000,
+        retries: 3,
+        grep:
+          'Crawler Support|local timestamp|raises error event|handles failures',
+        invert: true
+      }
+    },
 
     browserConsoleLogOptions: { terminal: false },
 
