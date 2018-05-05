@@ -32,7 +32,7 @@ export class FirebaseMessaging {
     completed?: () => void
   ): Unsubscribe;
   requestPermission(): Promise<void>;
-  setBackgroundMessageHandler(callback: (a: object) => Promise<void>): void;
+  setBackgroundMessageHandler(callback: (a: object) => Promise<void>, handlerMode: boolean): void;
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
 }

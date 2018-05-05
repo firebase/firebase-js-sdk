@@ -38,6 +38,7 @@ const FCM_MSG = 'FCM_MSG';
 
 export class SWController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
+  private bgMessageHandlerMode: boolean = false;
 
   constructor(app: FirebaseApp) {
     super(app);
@@ -103,7 +104,7 @@ export class SWController extends ControllerInterface {
     }
 
     const notificationDetails = this.getNotificationData_(msgPayload);
-    if (notificationDetails) {
+    if (notificationDetails && !this.bgMessageHandlerMode) {
       const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
 
@@ -262,12 +263,13 @@ export class SWController extends ControllerInterface {
    * and a notification must be shown. The callback will be given the data from
    * the push message.
    */
-  setBackgroundMessageHandler(callback: BgMessageHandler): void {
+  setBackgroundMessageHandler(callback: BgMessageHandler, handlerMode?: boolean): void {
     if (!callback || typeof callback !== 'function') {
       throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
     this.bgMessageHandler = callback;
+    this.bgMessageHandlerMode = handlerMode || false;
   }
 
   /**
