@@ -17,12 +17,26 @@
 import { FieldValue, ServerTimestampValue, ArrayValue } from './field_value';
 import { Timestamp } from '../api/timestamp';
 import * as misc from '../util/misc';
-import { assert } from '../util/assert';
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {
-  /** Transforms the provided `previousValue`. */
-  transform(previousValue: FieldValue, localWriteTime?: Timestamp): FieldValue;
+  /**
+   * Computes the local transform result against the provided `previousValue`,
+   * optionally using the provided localWriteTime.
+   */
+  applyToLocalView(
+    previousValue: FieldValue,
+    localWriteTime: Timestamp
+  ): FieldValue;
+
+  /**
+   * Computes a final transform result after the transform has been acknowledged
+   * by the server, potentially using the server-provided transformResult.
+   */
+  applyToRemoteDocument(
+    previousValue: FieldValue,
+    transformResult: FieldValue
+  ): FieldValue;
 
   isEqual(other: TransformOperation): boolean;
 }
@@ -32,12 +46,18 @@ export class ServerTimestampTransform implements TransformOperation {
   private constructor() {}
   static instance = new ServerTimestampTransform();
 
-  transform(previousValue: FieldValue, localWriteTime?: Timestamp): FieldValue {
-    assert(
-      localWriteTime !== undefined,
-      'ServerTimestampTransform.transform() requires localWriteTime.'
-    );
+  applyToLocalView(
+    previousValue: FieldValue,
+    localWriteTime: Timestamp
+  ): FieldValue {
     return new ServerTimestampValue(localWriteTime!, previousValue);
+  }
+
+  applyToRemoteDocument(
+    previousValue: FieldValue,
+    transformResult: FieldValue
+  ): FieldValue {
+    return transformResult;
   }
 
   isEqual(other: TransformOperation): boolean {
@@ -49,7 +69,24 @@ export class ServerTimestampTransform implements TransformOperation {
 export class ArrayUnionTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
-  transform(previousValue: FieldValue, localWriteTime?: Timestamp): FieldValue {
+  applyToLocalView(
+    previousValue: FieldValue,
+    localWriteTime: Timestamp
+  ): FieldValue {
+    return this.apply(previousValue);
+  }
+
+  applyToRemoteDocument(
+    previousValue: FieldValue,
+    transformResult: FieldValue
+  ): FieldValue {
+    // The server just sends null as the transform result for array operations,
+    // so we have to calculate a result the same as we do for local
+    // applications.
+    return this.apply(previousValue);
+  }
+
+  private apply(previousValue: FieldValue): FieldValue {
     const result = coercedFieldValuesArray(previousValue);
     for (const toUnion of this.elements) {
       if (!result.find(element => element.isEqual(toUnion))) {
@@ -71,7 +108,24 @@ export class ArrayUnionTransformOperation implements TransformOperation {
 export class ArrayRemoveTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
-  transform(previousValue: FieldValue, localWriteTime?: Timestamp): FieldValue {
+  applyToLocalView(
+    previousValue: FieldValue,
+    localWriteTime: Timestamp
+  ): FieldValue {
+    return this.apply(previousValue);
+  }
+
+  applyToRemoteDocument(
+    previousValue: FieldValue,
+    transformResult: FieldValue
+  ): FieldValue {
+    // The server just sends null as the transform result for array operations,
+    // so we have to calculate a result the same as we do for local
+    // applications.
+    return this.apply(previousValue);
+  }
+
+  private apply(previousValue: FieldValue): FieldValue {
     let result = coercedFieldValuesArray(previousValue);
     for (const toRemove of this.elements) {
       result = result.filter(element => !element.isEqual(toRemove));

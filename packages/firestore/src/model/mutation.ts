@@ -23,11 +23,7 @@ import { Document, MaybeDocument, NoDocument } from './document';
 import { DocumentKey } from './document_key';
 import { FieldValue, ObjectValue } from './field_value';
 import { FieldPath } from './path';
-import {
-  TransformOperation,
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
-} from './transform_operation';
+import { TransformOperation } from './transform_operation';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -579,19 +575,12 @@ export class TransformMutation extends Mutation {
       if (baseDoc instanceof Document) {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }
-
-      // The server just sends null as the transform result for array union /
-      // remove operations, so we have to calculate a result the same as we do
-      // for local applications.
-      if (
-        transform instanceof ArrayUnionTransformOperation ||
-        transform instanceof ArrayRemoveTransformOperation
-      ) {
-        transformResults.push(transform.transform(previousValue));
-      } else {
-        // Just use the server-supplied result.
-        transformResults.push(serverTransformResults[i]);
-      }
+      transformResults.push(
+        transform.applyToRemoteDocument(
+          previousValue,
+          serverTransformResults[i]
+        )
+      );
     }
     return transformResults;
   }
@@ -619,7 +608,9 @@ export class TransformMutation extends Mutation {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }
 
-      transformResults.push(transform.transform(previousValue, localWriteTime));
+      transformResults.push(
+        transform.applyToLocalView(previousValue, localWriteTime)
+      );
     }
     return transformResults;
   }
