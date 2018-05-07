@@ -99,14 +99,13 @@ describe('Testing Module Tests', function() {
   });
 
   it('loadDatabaseRules() throws on file not found', function() {
-    const options = {
-    };
-    expect(firebase.loadDatabaseRules.bind(null, {
-      databaseName: 'foo',
-      rulesPath: '/path/does/not/exist/file.json'
-    })).to.throw(
-      /Could not find file/
-    );
+    const options = {};
+    expect(
+      firebase.loadDatabaseRules.bind(null, {
+        databaseName: 'foo',
+        rulesPath: '/path/does/not/exist/file.json'
+      })
+    ).to.throw(/Could not find file/);
   });
 
   it('apps() returns all created apps', async function() {
