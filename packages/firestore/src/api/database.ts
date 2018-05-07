@@ -1287,7 +1287,7 @@ export class Query implements firestore.Query {
       if (relationOp === RelationOp.ARRAY_CONTAINS) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          "Invalid Query. You can't do array-contains queries on " +
+          "Invalid Query. You can't perform array-contains queries on " +
             'FieldPath.documentId() since document IDs are not arrays.'
         );
       }

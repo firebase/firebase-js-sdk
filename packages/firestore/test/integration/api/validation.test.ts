@@ -788,7 +788,7 @@ apiDescribe('Validation:', persistence => {
             1
           )
         ).to.throw(
-          "Invalid Query. You can't do array-contains queries on " +
+          "Invalid Query. You can't perform array-contains queries on " +
             'FieldPath.documentId() since document IDs are not arrays.'
         );
       }
