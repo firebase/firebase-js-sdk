@@ -4991,9 +4991,9 @@ indent-string@^3.0.0:
   version "3.2.0"
   resolved "https://registry.npmjs.org/indent-string/-/indent-string-3.2.0.tgz#4a5fd6d27cc332f37e5419a504dbb837105c9289"
 
-indexeddbshim@3.6.1:
-  version "3.6.1"
-  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-3.6.1.tgz#a0eff29ebfd4b46b5c914dd32e2306d8bc7dd8fe"
+indexeddbshim@3.6.2:
+  version "3.6.2"
+  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-3.6.2.tgz#281fe257595e96fec242f00639f4ce66855cda32"
   dependencies:
     babel-polyfill "6.26.0"
     eventtargeter "0.4.0"
@@ -7159,10 +7159,6 @@ nise@^1.2.0:
     lolex "^2.3.2"
     path-to-regexp "^1.7.0"
     text-encoding "^0.6.4"
-
-node-cleanup@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.npmjs.org/node-cleanup/-/node-cleanup-2.1.2.tgz#7ac19abd297e09a7f72a71545d951b517e4dde2c"
 
 node-fetch@2.1.2:
   version "2.1.2"

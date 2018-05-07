@@ -16,7 +16,7 @@
 
 import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
-import * as nodeCleanup from 'node-cleanup';
+import * as os from 'os';
 
 // WARNING: The `indexeddbshim` installed via this module should only ever be
 // used during initial development. Always validate your changes via
@@ -28,29 +28,15 @@ import * as nodeCleanup from 'node-cleanup';
 
 const globalAny = global as any; // tslint:disable-line:no-any
 
+const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
+
 if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   registerIndexedDBShim(null, {
     checkOrigin: false,
+    databaseBasePath: dbDir,
     deleteDatabaseFiles: true
   });
   globalAny.window = Object.assign(globalAny.window || {}, {
     indexedDB: globalAny.indexedDB
   });
 }
-
-// `deleteDatabaseFiles` does not reliable delete all SQLite files. Before
-// we exit the Node process, we attempt to delete all lingering "*.sqllite"
-// files.
-const existingFiles = new Set<string>();
-
-fs.readdirSync('.').forEach(file => {
-  existingFiles.add(file);
-});
-
-nodeCleanup(() => {
-  fs.readdirSync('.').forEach(file => {
-    if (file.endsWith('.sqlite') && !existingFiles.has(file)) {
-      fs.unlinkSync(file);
-    }
-  });
-});

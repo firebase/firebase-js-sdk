@@ -1,4 +1,0 @@
-# Tests running with node persistence will temporarily generate .sqlite files
-# in the packages/firestore directory.
-*.sqlite
-*.sqlite-journal
