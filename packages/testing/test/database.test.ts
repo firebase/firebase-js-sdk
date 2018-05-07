@@ -96,20 +96,15 @@ describe('Testing Module Tests', function() {
         rulesPath: '/path/does/not/exist/file.json'
       })
     ).to.throw(/databaseName not specified/);
-    expect(
-      firebase.loadDatabaseRules.bind(null, {
-        databaseName: 'foo',
-        rulesPath: '/path/does/not/exist/file.json'
-      })
-    ).to.throw(/Could not find file/);
   });
 
   it('loadDatabaseRules() throws on file not found', function() {
     const options = {
+    };
+    expect(firebase.loadDatabaseRules.bind(null, {
       databaseName: 'foo',
       rulesPath: '/path/does/not/exist/file.json'
-    };
-    expect(firebase.loadDatabaseRules.bind(null, options)).to.throw(
+    })).to.throw(
       /Could not find file/
     );
   });
