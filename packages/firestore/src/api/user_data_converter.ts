@@ -38,7 +38,6 @@ import {
   Mutation,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
   TransformMutation
 } from '../model/mutation';
@@ -60,9 +59,16 @@ import {
 import {
   DeleteFieldValueImpl,
   FieldValueImpl,
-  ServerTimestampFieldValueImpl
+  ServerTimestampFieldValueImpl,
+  ArrayUnionFieldValueImpl,
+  ArrayRemoveFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
+import {
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -118,7 +124,11 @@ enum UserDataSource {
   Set,
   Update,
   MergeSet,
-  QueryValue // from a where clause or cursor bound
+  /**
+   * Indicates the source is a where clause, cursor bound, arrayUnion()
+   * element, etc. Of note, isWrite(source) will return false.
+   */
+  Argument
 }
 
 function isWrite(dataSource: UserDataSource): boolean {
@@ -127,7 +137,7 @@ function isWrite(dataSource: UserDataSource): boolean {
     case UserDataSource.MergeSet: // fall through
     case UserDataSource.Update:
       return true;
-    case UserDataSource.QueryValue:
+    case UserDataSource.Argument:
       return false;
     default:
       throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
@@ -449,7 +459,7 @@ export class UserDataConverter {
    */
   parseQueryValue(methodName: string, input: AnyJs): FieldValue {
     const context = new ParseContext(
-      UserDataSource.QueryValue,
+      UserDataSource.Argument,
       methodName,
       FieldPath.EMPTY_PATH
     );
@@ -486,6 +496,14 @@ export class UserDataConverter {
     if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
       return this.parseObject(input as Dict<AnyJs>, context);
+    } else if (input instanceof FieldValueImpl) {
+      // FieldValues usually parse into transforms (except FieldValue.delete())
+      // in which case we do not want to include this field in our parsed data
+      // (as doing so will overwrite the field directly prior to the transform
+      // trying to transform it). So we don't add this location to
+      // context.fieldMask and we return null as our parsing result.
+      this.parseSentinelFieldValue(input, context);
+      return null;
     } else {
       // If context.path is null we are inside an array and we don't support
       // field mask paths more granular than the top-level array.
@@ -500,11 +518,6 @@ export class UserDataConverter {
           throw context.createError('Nested arrays are not supported');
         }
         return this.parseArray(input as AnyJs[], context);
-      } else if (input instanceof FieldValueImpl) {
-        // parseSentinelFieldValue() may add a FieldTransform, but we return
-        // null since nothing should be included in the actual parsed data.
-        this.parseSentinelFieldValue(input, context);
-        return null;
       } else {
         return this.parseScalarValue(input, context);
       }
@@ -555,18 +568,20 @@ export class UserDataConverter {
     // Sentinels are only supported with writes, and not within arrays.
     if (!isWrite(context.dataSource)) {
       throw context.createError(
-        `${value.methodName} can only be used with update() and set()`
+        `${value.methodName}() can only be used with update() and set()`
       );
     }
     if (context.path === null) {
       throw context.createError(
-        `${value.methodName} is not currently supported inside arrays`
+        `${value.methodName}() is not currently supported inside arrays`
       );
     }
 
     if (value instanceof DeleteFieldValueImpl) {
       if (context.dataSource === UserDataSource.MergeSet) {
-        // No transform to add for a delete, so we do nothing.
+        // No transform to add for a delete, but we need to add it to our
+        // fieldMask so it gets deleted.
+        context.fieldMask.push(context.path);
       } else if (context.dataSource === UserDataSource.Update) {
         assert(
           context.path.length > 0,
@@ -587,6 +602,24 @@ export class UserDataConverter {
     } else if (value instanceof ServerTimestampFieldValueImpl) {
       context.fieldTransforms.push(
         new FieldTransform(context.path, ServerTimestampTransform.instance)
+      );
+    } else if (value instanceof ArrayUnionFieldValueImpl) {
+      const parsedElements = this.parseArrayTransformElements(
+        value.methodName,
+        value._elements
+      );
+      const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, arrayUnion)
+      );
+    } else if (value instanceof ArrayRemoveFieldValueImpl) {
+      const parsedElements = this.parseArrayTransformElements(
+        value.methodName,
+        value._elements
+      );
+      const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, arrayRemove)
       );
     } else {
       fail('Unknown FieldValue type: ' + value);
@@ -634,6 +667,23 @@ export class UserDataConverter {
         `Unsupported field value: ${valueDescription(value)}`
       );
     }
+  }
+
+  private parseArrayTransformElements(
+    methodName: string,
+    elements: AnyJs[]
+  ): FieldValue[] {
+    return elements.map((element, i) => {
+      // Although array transforms are used with writes, the actual elements
+      // being unioned or removed are not considered writes since they cannot
+      // contain any FieldValue sentinels, etc.
+      const context = new ParseContext(
+        UserDataSource.Argument,
+        methodName,
+        FieldPath.EMPTY_PATH
+      );
+      return this.parseData(element, context.childContextForArray(i));
+    });
   }
 }
 

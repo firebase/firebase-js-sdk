@@ -92,6 +92,11 @@ const validationIt: ValidationIt = Object.assign(
   }
 );
 
+/** Class used to verify custom classes can't be used in writes. */
+class TestClass {
+  constructor(readonly property: string) {}
+}
+
 // NOTE: The JS SDK does extensive validation of argument counts, types, etc.
 // since it is an untyped language. These tests are not exhaustive as that would
 // be extremely tedious, but we do try to hit every error template at least
@@ -326,11 +331,6 @@ apiDescribe('Validation:', persistence => {
   });
 
   describe('Writes', () => {
-    /** Class used to verify custom classes can't be used in writes. */
-    class TestClass {
-      constructor(readonly property: string) {}
-    }
-
     validationIt(persistence, 'must be objects.', db => {
       // PORTING NOTE: The error for firebase.firestore.FieldValue.delete()
       // is different for minified builds, so omit testing it specifically.
@@ -593,6 +593,66 @@ apiDescribe('Validation:', persistence => {
       return Promise.all(promises);
     }
   );
+
+  describe('Array transforms', () => {
+    // TODO(array-features): Remove "as any"
+    // tslint:disable-next-line:variable-name Type alias can be capitalized.
+    const FieldValue = firebase.firestore.FieldValue as any;
+
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue._arrayUnion(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayUnion() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue._arrayRemove(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayRemove() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid elements', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, new TestClass('foo')) })
+      ).to.throw(
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
+      );
+
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, new TestClass('foo')) })
+      ).to.throw(
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
+      );
+    });
+
+    validationIt(persistence, 'reject arrays', db => {
+      const doc = db.collection('test').doc();
+      // This would result in a directly nested array which is not supported.
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, ['nested']) })
+      ).to.throw(
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Nested arrays are not supported'
+      );
+
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, ['nested']) })
+      ).to.throw(
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Nested arrays are not supported'
+      );
+    });
+  });
 
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {

@@ -44,7 +44,6 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
   TransformMutation
 } from '../model/mutation';
@@ -65,6 +64,12 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { ApiClientObjectMap } from '../protos/firestore_proto_api';
+import {
+  TransformOperation,
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -906,23 +911,56 @@ export class JsonProtoSerializer {
   }
 
   private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {
-    assert(
-      fieldTransform.transform instanceof ServerTimestampTransform,
-      'Unknown transform: ' + fieldTransform.transform
-    );
-    return {
-      fieldPath: fieldTransform.field.canonicalString(),
-      setToServerValue: 'REQUEST_TIME'
-    };
+    const transform = fieldTransform.transform;
+    if (transform instanceof ServerTimestampTransform) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        setToServerValue: 'REQUEST_TIME'
+      };
+    } else if (transform instanceof ArrayUnionTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        appendMissingElements: {
+          values: transform.elements.map(v => this.toValue(v))
+        }
+      };
+    } else if (transform instanceof ArrayRemoveTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        removeAllFromArray: {
+          values: transform.elements.map(v => this.toValue(v))
+        }
+      };
+    } else {
+      fail('Unknown transform: ' + fieldTransform.transform);
+    }
   }
 
   private fromFieldTransform(proto: api.FieldTransform): FieldTransform {
-    assert(
-      proto.setToServerValue! === 'REQUEST_TIME',
-      'Unknown transform proto: ' + JSON.stringify(proto)
-    );
+    // tslint:disable-next-line:no-any We need to match generated Proto types.
+    const type = (proto as any)['transform_type'];
+    let transform: TransformOperation | null = null;
+    if (hasTag(proto, type, 'setToServerValue')) {
+      assert(
+        proto.setToServerValue === 'REQUEST_TIME',
+        'Unknown server value transform proto: ' + JSON.stringify(proto)
+      );
+      transform = ServerTimestampTransform.instance;
+    } else if (hasTag(proto, type, 'appendMissingElements')) {
+      const values = proto.appendMissingElements!.values || [];
+      transform = new ArrayUnionTransformOperation(
+        values.map(v => this.fromValue(v))
+      );
+    } else if (hasTag(proto, type, 'removeAllFromArray')) {
+      const values = proto.removeAllFromArray!.values || [];
+      transform = new ArrayRemoveTransformOperation(
+        values.map(v => this.fromValue(v))
+      );
+    } else {
+      fail('Unknown transform proto: ' + JSON.stringify(proto));
+    }
     const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
-    return new FieldTransform(fieldPath, ServerTimestampTransform.instance);
+    return new FieldTransform(fieldPath, transform);
   }
 
   toDocumentsTarget(query: Query): api.DocumentsTarget {

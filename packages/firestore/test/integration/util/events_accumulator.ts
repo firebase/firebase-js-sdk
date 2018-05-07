@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
 import { Deferred } from '@firebase/util';
 import { expect } from 'chai';
 
@@ -21,7 +22,9 @@ import { expect } from 'chai';
  * A helper object that can accumulate an arbitrary amount of events and resolve
  * a promise when expected number has been emitted.
  */
-export class EventsAccumulator<T> {
+export class EventsAccumulator<
+  T extends firestore.DocumentSnapshot | firestore.QuerySnapshot
+> {
   private events: T[] = [];
   private waitingFor: number;
   private deferred: Deferred<T[]> | null = null;
@@ -42,6 +45,35 @@ export class EventsAccumulator<T> {
 
   awaitEvent(): Promise<T> {
     return this.awaitEvents(1).then(events => events[0]);
+  }
+
+  /** Waits for a latency compensated local snapshot. */
+  async awaitLocalEvent(): Promise<T> {
+    const snapshot = await this.awaitEvent();
+    if (snapshot.metadata.hasPendingWrites) {
+      return snapshot;
+    } else {
+      return await this.awaitLocalEvent();
+    }
+  }
+
+  /** Waits for multiple latency compensated local snapshot. */
+  async awaitLocalEvents(count: number): Promise<T[]> {
+    const results = [] as T[];
+    for (let i = 0; i < count; i++) {
+      results.push(await this.awaitLocalEvent());
+    }
+    return results;
+  }
+
+  /** Waits for a snapshot that has no pending writes */
+  async awaitRemoteEvent(): Promise<T> {
+    const snapshot = await this.awaitEvent();
+    if (!snapshot.metadata.hasPendingWrites) {
+      return snapshot;
+    } else {
+      return await this.awaitLocalEvent();
+    }
   }
 
   assertNoAdditionalEvents(): Promise<void> {
