@@ -85,6 +85,7 @@ const OPERATORS = (() => {
   ops[RelationOp.GREATER_THAN.name] = 'GREATER_THAN';
   ops[RelationOp.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
   ops[RelationOp.EQUAL.name] = 'EQUAL';
+  ops[RelationOp.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
   return ops;
 })();
 
@@ -1192,6 +1193,8 @@ export class JsonProtoSerializer {
         return RelationOp.LESS_THAN;
       case 'LESS_THAN_OR_EQUAL':
         return RelationOp.LESS_THAN_OR_EQUAL;
+      case 'ARRAY_CONTAINS':
+        return RelationOp.ARRAY_CONTAINS;
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified relation');
       default:

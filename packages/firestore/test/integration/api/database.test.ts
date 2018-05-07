@@ -21,6 +21,7 @@ import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  arrayContainsOp,
   withTestCollection,
   withTestDb,
   withTestDoc,
@@ -426,6 +427,14 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('inequality and array-contains on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', arrayContainsOp, 'cat')
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
@@ -446,6 +455,20 @@ apiDescribe('Database', persistence => {
             .orderBy('x')
             .where('x', '>', 32)
             .orderBy('y')
+        ).not.to.throw();
+      });
+    });
+
+    it('equality different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() => coll.orderBy('x').where('y', '==', 'cat')).not.to.throw();
+      });
+    });
+
+    it('array-contains different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', arrayContainsOp, 'cat')
         ).not.to.throw();
       });
     });

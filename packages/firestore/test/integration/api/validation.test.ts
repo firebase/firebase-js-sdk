@@ -24,7 +24,8 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  arrayContainsOp
 } from '../util/helpers';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -667,15 +668,28 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    validationIt(persistence, 'with null or NaN inequalities fail', db => {
-      const collection = db.collection('test');
-      expect(() => collection.where('a', '>', null)).to.throw(
-        'Invalid query. You can only perform equals comparisons on ' + 'null.'
-      );
-      expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-        'Invalid query. You can only perform equals comparisons on NaN.'
-      );
-    });
+    validationIt(
+      persistence,
+      'with null or NaN non-equality filters fail',
+      db => {
+        const collection = db.collection('test');
+        expect(() => collection.where('a', '>', null)).to.throw(
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+        expect(() => collection.where('a', arrayContainsOp, null)).to.throw(
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+
+        expect(() => collection.where('a', '>', Number.NaN)).to.throw(
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+        expect(() =>
+          collection.where('a', arrayContainsOp, Number.NaN)
+        ).to.throw(
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+      }
+    );
 
     it('cannot be created from documents missing sort values', () => {
       const testDocs = {
@@ -825,6 +839,17 @@ apiDescribe('Validation:', persistence => {
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
             'FieldPath.documentId(), but it was: 1.'
+        );
+
+        expect(() =>
+          collection.where(
+            firebase.firestore.FieldPath.documentId(),
+            arrayContainsOp,
+            1
+          )
+        ).to.throw(
+          "Invalid Query. You can't perform array-contains queries on " +
+            'FieldPath.documentId() since document IDs are not arrays.'
         );
       }
     );

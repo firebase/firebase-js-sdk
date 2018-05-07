@@ -1282,7 +1282,15 @@ export class Query implements firestore.Query {
     validateDefined('Query.where', 3, value);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
+    const relationOp = RelationOp.fromString(opStr);
     if (fieldPath.isKeyField()) {
+      if (relationOp === RelationOp.ARRAY_CONTAINS) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "Invalid Query. You can't perform array-contains queries on " +
+            'FieldPath.documentId() since document IDs are not arrays.'
+        );
+      }
       if (typeof value === 'string') {
         if (value.indexOf('/') !== -1) {
           // TODO(dimond): Allow slashes once ancestor queries are supported
@@ -1325,11 +1333,7 @@ export class Query implements firestore.Query {
         value
       );
     }
-    const filter = fieldFilter(
-      fieldPath,
-      RelationOp.fromString(opStr),
-      fieldValue
-    );
+    const filter = fieldFilter(fieldPath, relationOp, fieldValue);
     this.validateNewFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }
