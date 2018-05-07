@@ -16,6 +16,7 @@
 
 import { expect } from 'chai';
 import { Timestamp } from '../../../src/api/timestamp';
+import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import {
   ServerTimestampValue,
@@ -38,9 +39,16 @@ import {
   setMutation,
   transformMutation,
   version,
+  wrap,
   wrapObject
 } from '../../util/helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { Dict } from '../../../src/util/obj';
+import { AnyJs } from '../../../src/util/misc';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation
+} from '../../../src/model/transform_operation';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -170,11 +178,13 @@ describe('Mutation', () => {
     expect(patchedDoc).to.deep.equal(baseDoc);
   });
 
-  it('can apply local transforms to documents', () => {
+  it('can apply local serverTimestamp transforms to documents', () => {
     const docData = { foo: { bar: 'bar-value' }, baz: 'baz-value' };
 
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', ['foo.bar']);
+    const transform = transformMutation('collection/key', {
+      'foo.bar': FieldValue.serverTimestamp()
+    });
 
     const transformedDoc = transform.applyToLocalView(
       baseDoc,
@@ -194,11 +204,172 @@ describe('Mutation', () => {
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
 
-  it('can apply server-acked transforms to documents', () => {
+  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // we don't have unit tests for it currently. We could consider removing this
+  // test once we have integration tests.
+  it('can create arrayUnion() transform.', () => {
+    const transform = transformMutation('collection/key', {
+      foo: FieldValue._arrayUnion('tag'),
+      'bar.baz': FieldValue._arrayUnion(true, { nested: { a: [1, 2] } })
+    });
+    expect(transform.fieldTransforms.length).to.equal(2);
+
+    const first = transform.fieldTransforms[0];
+    expect(first.field).to.deep.equal(field('foo'));
+    expect(first.transform).to.deep.equal(
+      new ArrayUnionTransformOperation([wrap('tag')])
+    );
+
+    const second = transform.fieldTransforms[1];
+    expect(second.field).to.deep.equal(field('bar.baz'));
+    expect(second.transform).to.deep.equal(
+      new ArrayUnionTransformOperation([
+        wrap(true),
+        wrap({ nested: { a: [1, 2] } })
+      ])
+    );
+  });
+
+  // NOTE: This is more a test of UserDataConverter code than Mutation code but
+  // we don't have unit tests for it currently. We could consider removing this
+  // test once we have integration tests.
+  it('can create arrayRemove() transform.', () => {
+    const transform = transformMutation('collection/key', {
+      foo: FieldValue._arrayRemove('tag')
+    });
+    expect(transform.fieldTransforms.length).to.equal(1);
+
+    const first = transform.fieldTransforms[0];
+    expect(first.field).to.deep.equal(field('foo'));
+    expect(first.transform).to.deep.equal(
+      new ArrayRemoveTransformOperation([wrap('tag')])
+    );
+  });
+
+  it('can apply local arrayUnion transform to missing field', () => {
+    const baseDoc = {};
+    const transform = { missing: FieldValue._arrayUnion(1, 2) };
+    const expected = { missing: [1, 2] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform to non-array field', () => {
+    const baseDoc = { 'non-array': 42 };
+    const transform = { 'non-array': FieldValue._arrayUnion(1, 2) };
+    const expected = { 'non-array': [1, 2] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with non-existing elements', () => {
+    const baseDoc = { array: [1, 3] };
+    const transform = { array: FieldValue._arrayUnion(2, 4) };
+    const expected = { array: [1, 3, 2, 4] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with existing elements', () => {
+    const baseDoc = { array: [1, 3] };
+    const transform = { array: FieldValue._arrayUnion(1, 3) };
+    const expected = { array: [1, 3] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with duplicate existing elements', () => {
+    // Duplicate entries in your existing array should be preserved.
+    const baseDoc = { array: [1, 2, 2, 3] };
+    const transform = { array: FieldValue._arrayUnion(2) };
+    const expected = { array: [1, 2, 2, 3] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with duplicate union elements', () => {
+    // Duplicate entries in your union array should only be added once.
+    const baseDoc = { array: [1, 3] };
+    const transform = { array: FieldValue._arrayUnion(2, 2) };
+    const expected = { array: [1, 3, 2] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with non-primitive elements', () => {
+    // Union nested object values (one existing, one not).
+    const baseDoc = { array: [1, { a: 'b' }] };
+    const transform = { array: FieldValue._arrayUnion({ a: 'b' }, { c: 'd' }) };
+    const expected = { array: [1, { a: 'b' }, { c: 'd' }] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayUnion transform with partially-overlapping elements', () => {
+    // Union objects that partially overlap an existing object.
+    const baseDoc = { array: [1, { a: 'b', c: 'd' }] };
+    const transform = { array: FieldValue._arrayUnion({ a: 'b' }, { c: 'd' }) };
+    const expected = { array: [1, { a: 'b', c: 'd' }, { a: 'b' }, { c: 'd' }] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayRemove transform to missing field', () => {
+    const baseDoc = {};
+    const transform = { missing: FieldValue._arrayRemove(1, 2) };
+    const expected = { missing: [] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayRemove transform to non-array field', () => {
+    const baseDoc = { 'non-array': 42 };
+    const transform = { 'non-array': FieldValue._arrayRemove(1, 2) };
+    const expected = { 'non-array': [] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayRemove transform with non-existing elements', () => {
+    const baseDoc = { array: [1, 3] };
+    const transform = { array: FieldValue._arrayRemove(2, 4) };
+    const expected = { array: [1, 3] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayRemove transform with existing elements', () => {
+    const baseDoc = { array: [1, 2, 3, 4] };
+    const transform = { array: FieldValue._arrayRemove(1, 3) };
+    const expected = { array: [2, 4] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply local arrayRemove transform with non-primitive elements', () => {
+    // Remove nested object values (one existing, one not).
+    const baseDoc = { array: [1, { a: 'b' }] };
+    const transform = {
+      array: FieldValue._arrayRemove({ a: 'b' }, { c: 'd' })
+    };
+    const expected = { array: [1] };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  function verifyTransform(
+    baseData: Dict<AnyJs>,
+    transformData: Dict<AnyJs>,
+    expectedData: Dict<AnyJs>
+  ): void {
+    const baseDoc = doc('collection/key', 0, baseData);
+    const transform = transformMutation('collection/key', transformData);
+    const transformedDoc = transform.applyToLocalView(
+      baseDoc,
+      baseDoc,
+      timestamp
+    );
+
+    const expectedDoc = doc('collection/key', 0, expectedData, {
+      hasLocalMutations: true
+    });
+    expect(transformedDoc).to.deep.equal(expectedDoc);
+  }
+
+  it('can apply server-acked serverTimestamp transform to documents', () => {
     const docData = { foo: { bar: 'bar-value' }, baz: 'baz-value' };
 
     const baseDoc = doc('collection/key', 0, docData);
-    const transform = transformMutation('collection/key', ['foo.bar']);
+    const transform = transformMutation('collection/key', {
+      'foo.bar': FieldValue.serverTimestamp()
+    });
 
     const mutationResult = new MutationResult(version(1), [
       new TimestampValue(timestamp)
@@ -213,6 +384,31 @@ describe('Mutation', () => {
         'collection/key',
         0,
         { foo: { bar: timestamp.toDate() }, baz: 'baz-value' },
+        { hasLocalMutations: false }
+      )
+    );
+  });
+
+  it('can apply server-acked array transforms to documents', () => {
+    const docData = { array1: [1, 2], array2: ['a', 'b'] };
+    const baseDoc = doc('collection/key', 0, docData);
+    const transform = transformMutation('collection/key', {
+      array1: FieldValue._arrayUnion(2, 3),
+      array2: FieldValue._arrayRemove('a', 'c')
+    });
+
+    // Server just sends null transform results for array operations.
+    const mutationResult = new MutationResult(version(1), [null, null]);
+    const transformedDoc = transform.applyToRemoteDocument(
+      baseDoc,
+      mutationResult
+    );
+
+    expect(transformedDoc).to.deep.equal(
+      doc(
+        'collection/key',
+        0,
+        { array1: [1, 2, 3], array2: ['b'] },
         { hasLocalMutations: false }
       )
     );
@@ -274,7 +470,7 @@ describe('Mutation', () => {
 
     const set = setMutation('collection/key', {});
     const patch = patchMutation('collection/key', {});
-    const transform = transformMutation('collection/key', []);
+    const transform = transformMutation('collection/key', {});
     const deleter = deleteMutation('collection/key');
 
     const mutationResult = new MutationResult(

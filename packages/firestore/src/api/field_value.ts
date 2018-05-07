@@ -17,6 +17,8 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { makeConstructorPrivate } from '../util/api';
+import { validateAtLeastNumberOfArgs } from '../util/input_validation';
+import { AnyJs } from '../util/misc';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API,
@@ -34,6 +36,22 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return ServerTimestampFieldValueImpl.instance;
   }
 
+  // TODO(array-features): Expose this once backend support lands.
+  static _arrayUnion(...elements: AnyJs[]): FieldValueImpl {
+    validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
+    // NOTE: We don't actually parse the data until it's used in set() or
+    // update() since we need access to the Firestore instance.
+    return new ArrayUnionFieldValueImpl(elements);
+  }
+
+  // TODO(array-features): Expose this once backend support lands.
+  static _arrayRemove(...elements: AnyJs[]): FieldValueImpl {
+    validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
+    // NOTE: We don't actually parse the data until it's used in set() or
+    // update() since we need access to the Firestore instance.
+    return new ArrayRemoveFieldValueImpl(elements);
+  }
+
   isEqual(other: FieldValueImpl): boolean {
     return this === other;
   }
@@ -41,7 +59,7 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
 
 export class DeleteFieldValueImpl extends FieldValueImpl {
   private constructor() {
-    super('FieldValue.delete()');
+    super('FieldValue.delete');
   }
   /** Singleton instance. */
   static instance = new DeleteFieldValueImpl();
@@ -49,10 +67,22 @@ export class DeleteFieldValueImpl extends FieldValueImpl {
 
 export class ServerTimestampFieldValueImpl extends FieldValueImpl {
   private constructor() {
-    super('FieldValue.serverTimestamp()');
+    super('FieldValue.serverTimestamp');
   }
   /** Singleton instance. */
   static instance = new ServerTimestampFieldValueImpl();
+}
+
+export class ArrayUnionFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _elements: AnyJs[]) {
+    super('FieldValue.arrayUnion');
+  }
+}
+
+export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _elements: AnyJs[]) {
+    super('FieldValue.arrayRemove');
+  }
 }
 
 // Public instance that disallows construction at runtime. This constructor is

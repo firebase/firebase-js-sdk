@@ -16,13 +16,14 @@
 
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import * as misc from '../util/misc';
 
 import { Document, MaybeDocument, NoDocument } from './document';
 import { DocumentKey } from './document_key';
-import { FieldValue, ObjectValue, ServerTimestampValue } from './field_value';
+import { FieldValue, ObjectValue } from './field_value';
 import { FieldPath } from './path';
+import { TransformOperation } from './transform_operation';
 
 /**
  * Provides a set of fields that can be used to partially patch a document.
@@ -57,21 +58,6 @@ export class FieldMask {
 
   isEqual(other: FieldMask): boolean {
     return misc.arrayEquals(this.fields, other.fields);
-  }
-}
-
-/** Represents a transform within a TransformMutation. */
-export interface TransformOperation {
-  isEqual(other: TransformOperation): boolean;
-}
-
-/** Transforms a value into a server-generated timestamp. */
-export class ServerTimestampTransform implements TransformOperation {
-  private constructor() {}
-  static instance = new ServerTimestampTransform();
-
-  isEqual(other: TransformOperation): boolean {
-    return other instanceof ServerTimestampTransform;
   }
 }
 
@@ -490,7 +476,6 @@ export class TransformMutation extends Mutation {
       mutationResult.transformResults != null,
       'Transform results missing for TransformMutation.'
     );
-    const transformResults = mutationResult.transformResults!;
 
     // TODO(mcg): Relax enforcement of this precondition
     //
@@ -503,6 +488,10 @@ export class TransformMutation extends Mutation {
     }
 
     const doc = this.requireDocument(maybeDoc);
+    const transformResults = this.serverTransformResults(
+      maybeDoc,
+      mutationResult.transformResults!
+    );
     const newData = this.transformObject(doc.data, transformResults);
     return new Document(this.key, doc.version, newData, {
       hasLocalMutations: false
@@ -561,6 +550,43 @@ export class TransformMutation extends Mutation {
 
   /**
    * Creates a list of "transform results" (a transform result is a field value
+   * representing the result of applying a transform) for use after a
+   * TransformMutation has been acknowledged by the server.
+   *
+   * @param baseDoc The document prior to applying this mutation batch.
+   * @param serverTransformResults The transform results received by the server.
+   * @return The transform results list.
+   */
+  private serverTransformResults(
+    baseDoc: MaybeDocument | null,
+    serverTransformResults: FieldValue[]
+  ): FieldValue[] {
+    const transformResults = [] as FieldValue[];
+    assert(
+      this.fieldTransforms.length === serverTransformResults.length,
+      `server transform result count (${serverTransformResults.length}) ` +
+        `should match field transform count (${this.fieldTransforms.length})`
+    );
+
+    for (let i = 0; i < serverTransformResults.length; i++) {
+      const fieldTransform = this.fieldTransforms[i];
+      const transform = fieldTransform.transform;
+      let previousValue: FieldValue = null;
+      if (baseDoc instanceof Document) {
+        previousValue = baseDoc.field(fieldTransform.field) || null;
+      }
+      transformResults.push(
+        transform.applyToRemoteDocument(
+          previousValue,
+          serverTransformResults[i]
+        )
+      );
+    }
+    return transformResults;
+  }
+
+  /**
+   * Creates a list of "transform results" (a transform result is a field value
    * representing the result of applying a transform) for use when applying a
    * TransformMutation locally.
    *
@@ -576,19 +602,15 @@ export class TransformMutation extends Mutation {
     const transformResults = [] as FieldValue[];
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
-      if (transform instanceof ServerTimestampTransform) {
-        let previousValue: FieldValue | null = null;
 
-        if (baseDoc instanceof Document) {
-          previousValue = baseDoc.field(fieldTransform.field) || null;
-        }
-
-        transformResults.push(
-          new ServerTimestampValue(localWriteTime, previousValue)
-        );
-      } else {
-        return fail('Encountered unknown transform: ' + transform);
+      let previousValue: FieldValue = null;
+      if (baseDoc instanceof Document) {
+        previousValue = baseDoc.field(fieldTransform.field) || null;
       }
+
+      transformResults.push(
+        transform.applyToLocalView(previousValue, localWriteTime)
+      );
     }
     return transformResults;
   }
@@ -604,13 +626,8 @@ export class TransformMutation extends Mutation {
 
     for (let i = 0; i < this.fieldTransforms.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
-      const transform = fieldTransform.transform;
       const fieldPath = fieldTransform.field;
-      if (transform instanceof ServerTimestampTransform) {
-        data = data.set(fieldPath, transformResults[i]);
-      } else {
-        return fail('Encountered unknown transform: ' + transform);
-      }
+      data = data.set(fieldPath, transformResults[i]);
     }
     return data;
   }

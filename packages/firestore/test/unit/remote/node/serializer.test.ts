@@ -20,6 +20,7 @@ import * as Long from 'long';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
 import { GeoPoint } from '../../../../src/api/geo_point';
+import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
@@ -685,14 +686,43 @@ describe('Serializer', () => {
       verifyMutation(mutation, proto);
     });
 
-    it('TransformMutation', () => {
-      const mutation = transformMutation('baz/quux', ['a', 'bar.baz']);
+    it('TransformMutation (ServerTimestamp transform)', () => {
+      const mutation = transformMutation('baz/quux', {
+        a: FieldValue.serverTimestamp(),
+        'bar.baz': FieldValue.serverTimestamp()
+      });
       const proto = {
         transform: {
           document: s.toName(mutation.key),
           fieldTransforms: [
             { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
             { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
+          ]
+        },
+        currentDocument: { exists: true }
+      };
+      verifyMutation(mutation, proto);
+    });
+
+    it('TransformMutation (Array transforms)', () => {
+      const mutation = transformMutation('docs/1', {
+        a: FieldValue._arrayUnion('a', 2),
+        'bar.baz': FieldValue._arrayRemove({ x: 1 })
+      });
+      const proto: api.Write = {
+        transform: {
+          document: s.toName(mutation.key),
+          fieldTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [s.toValue(wrap('a')), s.toValue(wrap(2))]
+              }
+            },
+            {
+              fieldPath: 'bar.baz',
+              removeAllFromArray: { values: [s.toValue(wrap({ x: 1 }))] }
+            }
           ]
         },
         currentDocument: { exists: true }

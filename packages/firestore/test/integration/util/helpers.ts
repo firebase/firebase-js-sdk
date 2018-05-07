@@ -70,7 +70,12 @@ export function isPersistenceAvailable(): boolean {
  * A wrapper around Jasmine's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
  */
-export function apiDescribe(
+export const apiDescribe = apiDescribeInternal.bind(null, describe);
+apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+
+function apiDescribeInternal(
+  describeFn: Mocha.IContextDefinition,
   message: string,
   testSuite: (persistence: boolean) => void
 ): void {
@@ -80,7 +85,7 @@ export function apiDescribe(
   }
 
   for (const enabled of persistenceModes) {
-    describe(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
   }
 }
 
