@@ -20,7 +20,8 @@ import {
   DoubleValue,
   FieldValue,
   NullValue,
-  RefValue
+  RefValue,
+  ArrayValue
 } from '../model/field_value';
 import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
@@ -391,6 +392,7 @@ export class RelationOp {
   static EQUAL = new RelationOp('==');
   static GREATER_THAN = new RelationOp('>');
   static GREATER_THAN_OR_EQUAL = new RelationOp('>=');
+  static ARRAY_CONTAINS = new RelationOp('array-contains');
 
   static fromString(op: string): RelationOp {
     switch (op) {
@@ -404,6 +406,8 @@ export class RelationOp {
         return RelationOp.GREATER_THAN_OR_EQUAL;
       case '>':
         return RelationOp.GREATER_THAN;
+      case 'array-contains':
+        return RelationOp.ARRAY_CONTAINS;
       default:
         return fail('Unknown relation: ' + op);
     }
@@ -433,6 +437,10 @@ export class RelationFilter implements Filter {
         this.value instanceof RefValue,
         'Comparing on key, but filter value not a RefValue'
       );
+      assert(
+        this.op !== RelationOp.ARRAY_CONTAINS,
+        "array-contains queries don't make sense on document keys."
+      );
       const refValue = this.value as RefValue;
       const comparison = DocumentKey.comparator(doc.key, refValue.key);
       return this.matchesComparison(comparison);
@@ -443,11 +451,19 @@ export class RelationFilter implements Filter {
   }
 
   private matchesValue(value: FieldValue): boolean {
-    // Only compare types with matching backend order (such as double and int).
-    if (this.value.typeOrder !== value.typeOrder) {
-      return false;
+    if (this.op === RelationOp.ARRAY_CONTAINS) {
+      return (
+        value instanceof ArrayValue &&
+        value.internalValue.find(element => element.isEqual(this.value)) !==
+          undefined
+      );
+    } else {
+      // Only compare types with matching backend order (such as double and int).
+      return (
+        this.value.typeOrder === value.typeOrder &&
+        this.matchesComparison(value.compareTo(this.value))
+      );
     }
-    return this.matchesComparison(value.compareTo(this.value));
   }
 
   private matchesComparison(comparison: number): boolean {
@@ -468,7 +484,9 @@ export class RelationFilter implements Filter {
   }
 
   isInequality(): boolean {
-    return this.op !== RelationOp.EQUAL;
+    return (
+      this.op !== RelationOp.EQUAL && this.op !== RelationOp.ARRAY_CONTAINS
+    );
   }
 
   canonicalId(): string {

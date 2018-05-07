@@ -826,6 +826,19 @@ describe('Serializer', () => {
       });
       expect(s.fromRelationFilter(actual)).to.deep.equal(input);
     });
+
+    it('converts array-contains', () => {
+      const input = filter('field', 'array-contains', 42);
+      const actual = s.toRelationFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: 'field' },
+          op: 'ARRAY_CONTAINS',
+          value: { integerValue: '42' }
+        }
+      });
+      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+    });
   });
 
   describe('to/from UnaryFilter', () => {
@@ -968,7 +981,8 @@ describe('Serializer', () => {
         .addFilter(filter('prop', '<', 42))
         .addFilter(filter('name', '==', 'dimond'))
         .addFilter(filter('nan', '==', NaN))
-        .addFilter(filter('null', '==', null));
+        .addFilter(filter('null', '==', null))
+        .addFilter(filter('tags', 'array-contains', 'pending'));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1003,6 +1017,13 @@ describe('Serializer', () => {
                     unaryFilter: {
                       field: { fieldPath: 'null' },
                       op: 'IS_NULL'
+                    }
+                  },
+                  {
+                    fieldFilter: {
+                      field: { fieldPath: 'tags' },
+                      op: 'ARRAY_CONTAINS',
+                      value: { stringValue: 'pending' }
                     }
                   }
                 ]
