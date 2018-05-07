@@ -1917,7 +1917,7 @@ firebase.auth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {};
  *   }
  * });
  *
- * @return {!firebase.Promise<!firebase.Promise<!firebase.auth.UserCredential>}
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.auth.Auth.prototype.signInAnonymously = function() {};
 
