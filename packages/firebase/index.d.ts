@@ -15,7 +15,7 @@
  */
 declare namespace firebase {
   type NextFn<T> = (value: T) => void;
-  type ErrorFn = (error: Error) => void;
+  type ErrorFn<E = Error> = (error: E) => void;
   type CompleteFn = () => void;
 
   interface FirebaseError {
@@ -25,9 +25,9 @@ declare namespace firebase {
     stack?: string;
   }
 
-  interface Observer<T> {
+  interface Observer<T, E = Error> {
     next: NextFn<T>;
-    error: ErrorFn;
+    error: ErrorFn<E>;
     complete: CompleteFn;
   }
 
