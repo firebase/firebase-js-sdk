@@ -268,12 +268,12 @@ export class FirebaseAuth {
   languageCode: string | null;
   settings: AuthSettings;
   onAuthStateChanged(
-    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
+    nextOrObserver: Observer<any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
   onIdTokenChanged(
-    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
+    nextOrObserver: Observer<any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
