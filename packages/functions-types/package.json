@@ -5,7 +5,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "test": "echo 'Types package, skipping tests'"
+    "test": "tsc"
   },
   "files": [
     "index.d.ts"
@@ -16,5 +16,8 @@
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "typescript": "2.8.1"
   }
 }
