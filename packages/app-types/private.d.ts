@@ -127,8 +127,8 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
      * events can be sent to single Observer to be fanned out automatically.
      */
     createSubscribe<T>(
-      executor: (observer: Observer<T, Error>) => void,
-      onNoObservers?: (observer: Observer<T, Error>) => void
+      executor: (observer: Observer<T>) => void,
+      onNoObservers?: (observer: Observer<T>) => void
     ): Subscribe<T>;
 
     /**
