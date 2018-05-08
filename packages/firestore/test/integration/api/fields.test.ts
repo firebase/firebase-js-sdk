@@ -18,15 +18,21 @@ import { expect } from 'chai';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  DEFAULT_SETTINGS,
   toDataArray,
   withTestCollection,
+  withTestCollectionSettings,
   withTestDoc
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore.FieldPath;
+const Timestamp = firebase.firestore.Timestamp;
+
+// tslint:disable-next-line:no-any Allow custom types for testing.
+type AnyTestData = any;
 
 apiDescribe('Nested Fields', persistence => {
-  const testData = (n?: number): any => {
+  const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
       name: 'room ' + n,
@@ -231,7 +237,7 @@ apiDescribe('Nested Fields', persistence => {
 // Datastore currently prohibits having nested fields and fields with dots in
 // the same entity, so I'm separating them.
 apiDescribe('Fields with special characters', persistence => {
-  const testData = (n?: number): any => {
+  const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
       field: 'field ' + n,
@@ -331,6 +337,96 @@ apiDescribe('Fields with special characters', persistence => {
         .then(() => coll.orderBy('field\\slash').get())
         .then(results => {
           expect(toDataArray(results)).to.deep.equal(expected);
+        });
+    });
+  });
+});
+
+apiDescribe('Timestamp Fields in snapshots', persistence => {
+  // tslint:disable-next-line:no-any Figure out how to pass in the Timestamp type
+  const testDataWithTimestamps = (ts: any): AnyTestData => {
+    return { timestamp: ts, nested: { timestamp2: ts } };
+  };
+
+  it('are returned as native dates if timestampsInSnapshots is not set', () => {
+    const settings = { ...DEFAULT_SETTINGS };
+    settings['timestampsInSnapshots'] = false;
+
+    const timestamp = new Timestamp(100, 123456789);
+    const testDocs = { a: testDataWithTimestamps(timestamp) };
+    return withTestCollectionSettings(persistence, settings, testDocs, coll => {
+      return coll
+        .doc('a')
+        .get()
+        .then(docSnap => {
+          expect(docSnap.get('timestamp'))
+            .to.be.a('date')
+            .that.deep.equals(timestamp.toDate());
+          expect(docSnap.data()['timestamp'])
+            .to.be.a('date')
+            .that.deep.equals(timestamp.toDate());
+
+          expect(docSnap.get('nested.timestamp2'))
+            .to.be.a('date')
+            .that.deep.equals(timestamp.toDate());
+          expect(docSnap.data()['nested']['timestamp2'])
+            .to.be.a('date')
+            .that.deep.equals(timestamp.toDate());
+        });
+    });
+  });
+
+  it('are returned as Timestamps', () => {
+    expect(DEFAULT_SETTINGS['timestampsInSnapshots']).to.equal(true);
+
+    const timestamp = new Timestamp(100, 123456000);
+    // Timestamps are currently truncated to microseconds after being written to
+    // the database, so a truncated version of the timestamp is needed for
+    // comparisons.
+    const truncatedTimestamp = new Timestamp(
+      timestamp.seconds,
+      Math.floor(timestamp.nanoseconds / 1000) * 1000
+    );
+
+    return withTestDoc(persistence, doc => {
+      return doc
+        .set(testDataWithTimestamps(timestamp))
+        .then(() => doc.get())
+        .then(docSnap => {
+          expect(docSnap.get('timestamp'))
+            .to.be.an.instanceof(Timestamp)
+            .that.deep.equals(truncatedTimestamp);
+          expect(docSnap.data()['timestamp'])
+            .to.be.an.instanceof(Timestamp)
+            .that.deep.equals(truncatedTimestamp);
+
+          expect(docSnap.get('nested.timestamp2'))
+            .to.be.an.instanceof(Timestamp)
+            .that.deep.equals(truncatedTimestamp);
+          expect(docSnap.data()['nested']['timestamp2'])
+            .to.be.an.instanceof(Timestamp)
+            .that.deep.equals(truncatedTimestamp);
+        });
+    });
+  });
+
+  it('timestampsInSnapshots affects server timestamps', () => {
+    const settings = { ...DEFAULT_SETTINGS };
+    settings['timestampsInSnapshots'] = false;
+    const testDocs = {
+      a: { timestamp: firebase.firestore.FieldValue.serverTimestamp() }
+    };
+
+    return withTestCollectionSettings(persistence, settings, testDocs, coll => {
+      return coll
+        .doc('a')
+        .get()
+        .then(docSnap => {
+          expect(
+            docSnap.get('timestamp', {
+              serverTimestamps: 'estimate'
+            })
+          ).to.be.an.instanceof(Date);
         });
     });
   });

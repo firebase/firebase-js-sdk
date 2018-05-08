@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
 import { BatchId, ProtoByteString } from '../core/types';
 import {
   documentKeySet,
@@ -172,7 +172,7 @@ export class MutationBatchResult {
     commitVersion: SnapshotVersion,
     results: MutationResult[],
     streamToken: ProtoByteString
-  ) {
+  ): MutationBatchResult {
     assert(
       batch.mutations.length === results.length,
       'Mutations sent ' +

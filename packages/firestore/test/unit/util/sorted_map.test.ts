@@ -19,7 +19,7 @@ import { primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { LLRBNode, SortedMap } from '../../../src/util/sorted_map';
 
-function shuffle(arr: number[]) {
+function shuffle(arr: number[]): void {
   for (let i = arr.length - 1; i > 0; i--) {
     // Choose a random array index in [0, i] (inclusive with i).
     const j = Math.floor(Math.random() * (i + 1));
@@ -287,8 +287,8 @@ describe('SortedMap Tests', () => {
     expect(map.size).to.equal(0);
   });
 
-  // A little perf test for convenient benchmarking.
-  xit('Perf', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf', () => {
     for (let j = 0; j < 5; j++) {
       let map = new SortedMap(primitiveComparator);
       const start = new Date().getTime();
@@ -300,11 +300,13 @@ describe('SortedMap Tests', () => {
         map = map.remove(i);
       }
       const end = new Date().getTime();
+      // tslint:disable-next-line:no-console
       console.log(end - start);
     }
   });
 
-  xit('Perf: Insertion and removal with various # of items.', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (map: SortedMap<number, number>, max: number) => {
       let next = 0;
       map.inorderTraversal((key: number, value: number) => {
@@ -342,14 +344,16 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
+      // tslint:disable-next-line:no-console
       console.log(N + ': ' + elapsed);
     }
   });
 
-  xit('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (tree: { [key: number]: number }, max: number) => {
       const keys: number[] = [];
-      obj.forEach(tree, k => keys.push(parseInt(k, 10)));
+      obj.forEach(tree, k => keys.push(Number(k)));
 
       keys.sort();
       expect(keys.length).to.equal(max);
@@ -382,6 +386,7 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
+      // tslint:disable-next-line:no-console
       console.log(N + ': ' + elapsed);
     }
   });

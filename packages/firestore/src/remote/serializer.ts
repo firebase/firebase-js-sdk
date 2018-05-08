@@ -17,6 +17,7 @@
 import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
+import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import {
   Bound,
@@ -30,7 +31,6 @@ import {
   RelationOp
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Timestamp } from '../core/timestamp';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -44,7 +44,6 @@ import {
   MutationResult,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
   TransformMutation
 } from '../model/mutation';
@@ -65,6 +64,12 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 import { ApiClientObjectMap } from '../protos/firestore_proto_api';
+import {
+  TransformOperation,
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -80,10 +85,14 @@ const OPERATORS = (() => {
   ops[RelationOp.GREATER_THAN.name] = 'GREATER_THAN';
   ops[RelationOp.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
   ops[RelationOp.EQUAL.name] = 'EQUAL';
+  ops[RelationOp.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
   return ops;
 })();
 
-function assertPresent(value: AnyJs, description: string) {
+// A RegExp matching ISO 8601 UTC timestamps with optional fraction.
+const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
+
+function assertPresent(value: AnyJs, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -197,7 +206,7 @@ export class JsonProtoSerializer {
   private toTimestamp(timestamp: Timestamp): string {
     return {
       seconds: timestamp.seconds,
-      nanos: timestamp.nanos
+      nanos: timestamp.nanoseconds
       // tslint:disable-next-line:no-any
     } as any;
   }
@@ -210,7 +219,7 @@ export class JsonProtoSerializer {
       // TODO(b/37282237): Use strings for Proto3 timestamps
       // assert(this.options.useProto3Json,
       //   'The timestamp string format requires Proto3.');
-      return Timestamp.fromISOString(date);
+      return this.fromIso8601String(date);
     } else {
       assert(!!date, 'Cannot deserialize null or undefined timestamp.');
       // TODO(b/37282237): Use strings for Proto3 timestamps
@@ -220,6 +229,28 @@ export class JsonProtoSerializer {
       const nanos = date.nanos || 0;
       return new Timestamp(seconds, nanos);
     }
+  }
+
+  private fromIso8601String(utc: string): Timestamp {
+    // The date string can have higher precision (nanos) than the Date class
+    // (millis), so we do some custom parsing here.
+
+    // Parse the nanos right out of the string.
+    let nanos = 0;
+    const fraction = ISO_REG_EXP.exec(utc);
+    assert(!!fraction, 'invalid timestamp: ' + utc);
+    if (fraction![1]) {
+      // Pad the fraction out to 9 digits (nanos).
+      let nanoStr = fraction![1];
+      nanoStr = (nanoStr + '000000000').substr(0, 9);
+      nanos = Number(nanoStr);
+    }
+
+    // Parse the date to get the seconds.
+    const date = new Date(utc);
+    const seconds = Math.floor(date.getTime() / 1000);
+
+    return new Timestamp(seconds, nanos);
   }
 
   /**
@@ -881,23 +912,56 @@ export class JsonProtoSerializer {
   }
 
   private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {
-    assert(
-      fieldTransform.transform instanceof ServerTimestampTransform,
-      'Unknown transform: ' + fieldTransform.transform
-    );
-    return {
-      fieldPath: fieldTransform.field.canonicalString(),
-      setToServerValue: 'REQUEST_TIME'
-    };
+    const transform = fieldTransform.transform;
+    if (transform instanceof ServerTimestampTransform) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        setToServerValue: 'REQUEST_TIME'
+      };
+    } else if (transform instanceof ArrayUnionTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        appendMissingElements: {
+          values: transform.elements.map(v => this.toValue(v))
+        }
+      };
+    } else if (transform instanceof ArrayRemoveTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        removeAllFromArray: {
+          values: transform.elements.map(v => this.toValue(v))
+        }
+      };
+    } else {
+      fail('Unknown transform: ' + fieldTransform.transform);
+    }
   }
 
   private fromFieldTransform(proto: api.FieldTransform): FieldTransform {
-    assert(
-      proto.setToServerValue! === 'REQUEST_TIME',
-      'Unknown transform proto: ' + JSON.stringify(proto)
-    );
+    // tslint:disable-next-line:no-any We need to match generated Proto types.
+    const type = (proto as any)['transform_type'];
+    let transform: TransformOperation | null = null;
+    if (hasTag(proto, type, 'setToServerValue')) {
+      assert(
+        proto.setToServerValue === 'REQUEST_TIME',
+        'Unknown server value transform proto: ' + JSON.stringify(proto)
+      );
+      transform = ServerTimestampTransform.instance;
+    } else if (hasTag(proto, type, 'appendMissingElements')) {
+      const values = proto.appendMissingElements!.values || [];
+      transform = new ArrayUnionTransformOperation(
+        values.map(v => this.fromValue(v))
+      );
+    } else if (hasTag(proto, type, 'removeAllFromArray')) {
+      const values = proto.removeAllFromArray!.values || [];
+      transform = new ArrayRemoveTransformOperation(
+        values.map(v => this.fromValue(v))
+      );
+    } else {
+      fail('Unknown transform proto: ' + JSON.stringify(proto));
+    }
     const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
-    return new FieldTransform(fieldPath, ServerTimestampTransform.instance);
+    return new FieldTransform(fieldPath, transform);
   }
 
   toDocumentsTarget(query: Query): api.DocumentsTarget {
@@ -1065,8 +1129,8 @@ export class JsonProtoSerializer {
     } else if (filter.fieldFilter !== undefined) {
       return [this.fromRelationFilter(filter)];
     } else if (filter.compositeFilter !== undefined) {
-      return filter.compositeFilter.filters!
-        .map(f => this.fromFilter(f))
+      return filter.compositeFilter
+        .filters!.map(f => this.fromFilter(f))
         .reduce((accum, current) => accum.concat(current));
     } else {
       return fail('Unknown filter: ' + JSON.stringify(filter));
@@ -1129,6 +1193,8 @@ export class JsonProtoSerializer {
         return RelationOp.LESS_THAN;
       case 'LESS_THAN_OR_EQUAL':
         return RelationOp.LESS_THAN_OR_EQUAL;
+      case 'ARRAY_CONTAINS':
+        return RelationOp.ARRAY_CONTAINS;
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified relation');
       default:

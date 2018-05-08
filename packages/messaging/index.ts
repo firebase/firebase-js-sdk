@@ -13,23 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-import WindowController from './src/controllers/window-controller';
-import SWController from './src/controllers/sw-controller';
-import { firebase } from '@firebase/app';
+import firebase from '@firebase/app';
+import {
+  _FirebaseNamespace,
+  FirebaseServiceFactory
+} from '@firebase/app-types/private';
+
+import { SWController } from './src/controllers/sw-controller';
+import { WindowController } from './src/controllers/window-controller';
+import { ERROR_CODES, errorFactory } from './src/models/errors';
+
 import * as types from '@firebase/messaging-types';
 
-export function registerMessaging(instance) {
+export interface MessagingServiceFactory extends FirebaseServiceFactory {
+  isSupported?(): boolean;
+}
+
+export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
-  const factoryMethod = app => {
-    if (self && 'ServiceWorkerGlobalScope' in self) {
-      return new SWController(app);
+
+  const factoryMethod: MessagingServiceFactory = app => {
+    if (!isSupported()) {
+      throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
     }
 
-    // Assume we are in the window context.
-    return new WindowController(app);
+    if (self && 'ServiceWorkerGlobalScope' in self) {
+      // Running in ServiceWorker context
+      return new SWController(app);
+    } else {
+      // Assume we are in the window context.
+      return new WindowController(app);
+    }
   };
+  factoryMethod.isSupported = isSupported;
 
   const namespaceExports = {
     // no-inline
@@ -43,7 +60,7 @@ export function registerMessaging(instance) {
   );
 }
 
-registerMessaging(firebase);
+registerMessaging(firebase as _FirebaseNamespace);
 
 /**
  * Define extension behavior of `registerMessaging`
@@ -58,4 +75,40 @@ declare module '@firebase/app-types' {
   interface FirebaseApp {
     messaging?(): types.FirebaseMessaging;
   }
+}
+
+export function isSupported(): boolean {
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return isSWControllerSupported();
+  } else {
+    // Assume we are in the window context.
+    return isWindowControllerSupported();
+  }
+}
+
+/**
+ * Checks to see if the required APIs exist.
+ */
+function isWindowControllerSupported(): boolean {
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    'fetch' in window &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
+}
+
+/**
+ * Checks to see if the required APIs exist within SW Context.
+ */
+function isSWControllerSupported(): boolean {
+  return (
+    'PushManager' in self &&
+    'Notification' in self &&
+    ServiceWorkerRegistration.prototype.hasOwnProperty('showNotification') &&
+    PushSubscription.prototype.hasOwnProperty('getKey')
+  );
 }

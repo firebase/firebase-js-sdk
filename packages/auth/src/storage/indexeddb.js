@@ -94,7 +94,7 @@ fireauth.storage.IndexedDB = function(
   /** @private {!IDBFactory} The indexedDB factory object. */
   this.indexedDB_ = /** @type {!IDBFactory} */ (
       opt_indexedDB || goog.global.indexedDB);
-  /** @protected {string} The storage type identifier. */
+  /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.INDEXEDDB;
 };
 
@@ -168,6 +168,25 @@ fireauth.storage.IndexedDB.getFireauthManager = function() {
 };
 
 
+/**
+ * Delete the indexedDB database.
+ * @return {!goog.Promise<!IDBDatabase>} A promise that resolves on successful
+ *     database deletion.
+ * @private
+ */
+fireauth.storage.IndexedDB.prototype.deleteDb_ = function() {
+  var self = this;
+  return new goog.Promise(function(resolve, reject) {
+    var request = self.indexedDB_.deleteDatabase(self.dbName_);
+    request.onsuccess = function(event) {
+      resolve();
+    };
+    request.onerror = function(event) {
+      reject(new Error(event.target.error));
+    };
+  });
+};
+
 
 /**
  * Initializes The indexedDB database, creates it if not already created and
@@ -180,7 +199,11 @@ fireauth.storage.IndexedDB.prototype.initializeDb_ = function() {
   return new goog.Promise(function(resolve, reject) {
     var request = self.indexedDB_.open(self.dbName_, self.version_);
     request.onerror = function(event) {
-      reject(new Error(event.target.errorCode));
+      // Suppress this from surfacing to browser console.
+      try {
+        event.preventDefault();
+      } catch (e) {}
+      reject(new Error(event.target.error));
     };
     request.onupgradeneeded = function(event) {
       var db = event.target.result;
@@ -196,7 +219,24 @@ fireauth.storage.IndexedDB.prototype.initializeDb_ = function() {
     };
     request.onsuccess = function(event) {
       var db = event.target.result;
-      resolve(db);
+      // Strange bug that occurs in Firefox when multiple tabs are opened at the
+      // same time. The only way to recover seems to be deleting the database
+      // and re-initializing it.
+      // https://github.com/firebase/firebase-js-sdk/issues/634
+      if (!db.objectStoreNames.contains(self.objectStoreName_)) {
+        self.deleteDb_()
+            .then(function() {
+              return self.initializeDb_();
+            })
+            .then(function(newDb) {
+              resolve(newDb);
+            })
+            .thenCatch(function(e) {
+              reject(e);
+            });
+      } else {
+        resolve(db);
+      }
     };
   });
 };

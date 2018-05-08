@@ -65,7 +65,7 @@ let writeJSONFile: ((json: string) => void) | null = null;
  * If you call this function before your describeSpec, then the spec test will
  * be written using the given function instead of running as a normal test.
  */
-export function setSpecJSONHandler(writer: (json: string) => void) {
+export function setSpecJSONHandler(writer: (json: string) => void): void {
   writeJSONFile = writer;
 }
 
@@ -82,7 +82,7 @@ export function specTest(
   name: string,
   tags: string[],
   builder: () => SpecBuilder
-) {
+): void {
   // Union in the tags for the describeSpec().
   tags = tags.concat(describeTags);
   for (const tag of tags) {
@@ -146,18 +146,19 @@ export function describeSpec(
   name: string,
   tags: string[],
   builder: () => void
-) {
+): void {
   describeTags = tags;
   describeName = name;
 
   if (!writeJSONFile) {
-    return describe(name, () => {
+    describe(name, () => {
       addEqualityMatcher();
       return builder();
     });
+  } else {
+    specsInThisTest = {};
+    builder();
+    const output = JSON.stringify(specsInThisTest, null, 2);
+    writeJSONFile(output);
   }
-  specsInThisTest = {};
-  builder();
-  const output = JSON.stringify(specsInThisTest, null, 2);
-  writeJSONFile(output);
 }

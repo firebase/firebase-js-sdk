@@ -39,11 +39,9 @@ describe('createSubscribe', function() {
   });
 
   it('Creation', done => {
-    let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
-        observer.next(123);
-      }
-    );
+    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+      observer.next(123);
+    });
 
     let unsub = subscribe((value: number) => {
       unsub();
@@ -54,12 +52,10 @@ describe('createSubscribe', function() {
 
   it('Logging observer error to console', done => {
     let uncatchableError = new Error('uncatchable');
-    let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
-        observer.next(123);
-        observer.complete();
-      }
-    );
+    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+      observer.next(123);
+      observer.complete();
+    });
 
     subscribe({
       next(value) {
@@ -144,11 +140,9 @@ describe('createSubscribe', function() {
   });
 
   it('Delayed value', done => {
-    let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
-        setTimeout(() => observer.next(123), 10);
-      }
-    );
+    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+      setTimeout(() => observer.next(123), 10);
+    });
 
     subscribe((value: number) => {
       assert.equal(value, 123);
@@ -160,11 +154,9 @@ describe('createSubscribe', function() {
     // It's an application error to throw an exception in the executor -
     // but since it is called asynchronously, our only option is
     // to emit that Error and terminate the Subscribe.
-    let subscribe = createSubscribe<number>(
-      (observer: Observer<number, Error>) => {
-        throw new Error('Executor throws');
-      }
-    );
+    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+      throw new Error('Executor throws');
+    });
     subscribe({
       error(e) {
         assert.equal(e.message, 'Executor throws');
@@ -246,7 +238,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
   let id: any;
 
   return createSubscribe<number>(
-    (observer: Observer<number, Error>) => {
+    (observer: Observer<number>) => {
       let i = 1;
       id = setInterval(() => {
         observer.next(i++);
@@ -259,7 +251,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
         }
       }, ms);
     },
-    (observer: Observer<number, Error>) => {
+    (observer: Observer<number>) => {
       clearInterval(id);
       id = undefined;
     }

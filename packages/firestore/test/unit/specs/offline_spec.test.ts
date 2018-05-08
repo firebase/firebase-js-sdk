@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
@@ -120,7 +119,6 @@ describeSpec('Offline:', [], () => {
   specTest('Queries with limbo documents handle going offline.', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
-    const docB = doc('collection/b', 1005, { key: 'b' });
     const limboQuery = Query.atPath(docA.key.path);
     return (
       spec()
@@ -181,4 +179,47 @@ describeSpec('Offline:', [], () => {
         })
     );
   });
+
+  specTest(
+    'New queries return immediately with fromCache=true when offline due to ' +
+      'stream failures.',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection2'));
+      return (
+        spec()
+          .userListens(query1)
+          // 2 Failures should mark the client offline and trigger an empty
+          // fromCache event.
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .expectEvents(query1, { fromCache: true })
+
+          // A new query should immediately return from cache.
+          .userListens(query2)
+          .expectEvents(query2, { fromCache: true })
+      );
+    }
+  );
+
+  specTest(
+    'New queries return immediately with fromCache=true when offline due to ' +
+      'OnlineState timeout.',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection2'));
+      return (
+        spec()
+          .userListens(query1)
+          .runTimer(TimerId.OnlineStateTimeout)
+          .expectEvents(query1, { fromCache: true })
+
+          // A new query should immediately return from cache.
+          .userListens(query2)
+          .expectEvents(query2, { fromCache: true })
+      );
+    }
+  );
 });

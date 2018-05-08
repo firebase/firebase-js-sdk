@@ -1,7 +1,14 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitAny": true,
+    "lib": [
+      "dom",
+      "es2017"
+    ]
   },
   "exclude": [
     "dist/**/*"

@@ -416,13 +416,6 @@ fireauth.RpcHandler.prototype.sendXhr_ = function(
     opt_data,
     opt_headers,
     opt_timeout) {
-  // Offline, fail quickly instead of waiting for request to timeout.
-  if (!fireauth.util.isOnline()) {
-    if (opt_callback) {
-      opt_callback(null);
-    }
-    return;
-  }
   var sendXhr;
   if (fireauth.util.supportsCors() || fireauth.util.isWorker()) {
     // If supports CORS use goog.net.XhrIo.
@@ -1803,8 +1796,9 @@ fireauth.RpcHandler.validateApplyActionCodeRequest_ = function(request) {
 fireauth.RpcHandler.validateCheckActionCodeResponse_ = function(response) {
   // If the code is invalid, usually a clear error would be returned.
   // In this case, something unexpected happened.
-  // Both fields are required.
-  if (!response['email'] || !response['requestType']) {
+  // Email could be empty only if the request type is EMAIL_SIGNIN.
+  var operation = response['requestType'];
+  if (!operation || (!response['email'] && operation != 'EMAIL_SIGNIN')) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };

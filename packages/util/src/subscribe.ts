@@ -17,23 +17,18 @@ export type NextFn<T> = (value: T) => void;
 export type ErrorFn = (error: Error) => void;
 export type CompleteFn = () => void;
 
-export interface Observer<V, E> {
+export interface Observer<T> {
   // Called once for each value in a stream of values.
-  next(value: V | null): any;
+  next: NextFn<T>;
 
   // A stream terminates by a single call to EITHER error() or complete().
-  error(error: E): any;
+  error: ErrorFn;
 
   // No events will be sent to next() once complete() is called.
-  complete(): any;
+  complete: CompleteFn;
 }
 
-// Allow for any of the Observer methods to be undefined.
-export interface PartialObserver<T> {
-  next?: NextFn<T>;
-  error?: ErrorFn;
-  complete?: CompleteFn;
-}
+export type PartialObserver<T> = Partial<Observer<T>>;
 
 // TODO: Support also Unsubscribe.unsubscribe?
 export type Unsubscribe = () => void;
@@ -52,7 +47,7 @@ export interface Observable<T> {
   subscribe: Subscribe<T>;
 }
 
-export type Executor<T> = (observer: Observer<T, Error>) => void;
+export type Executor<T> = (observer: Observer<T>) => void;
 
 /**
  * Helper to make a Subscribe function (just like Promise helps make a
@@ -74,8 +69,8 @@ export function createSubscribe<T>(
  * Implement fan-out for any number of Observers attached via a subscribe
  * function.
  */
-class ObserverProxy<T> implements Observer<T, Error> {
-  private observers: Array<Observer<T, Error>> | undefined = [];
+class ObserverProxy<T> implements Observer<T> {
+  private observers: Array<Observer<T>> | undefined = [];
   private unsubscribes: Unsubscribe[] = [];
   private onNoObservers: Executor<T> | undefined;
   private observerCount = 0;
@@ -104,20 +99,20 @@ class ObserverProxy<T> implements Observer<T, Error> {
   }
 
   next(value: T) {
-    this.forEachObserver((observer: Observer<T, Error>) => {
+    this.forEachObserver((observer: Observer<T>) => {
       observer.next(value);
     });
   }
 
   error(error: Error) {
-    this.forEachObserver((observer: Observer<T, Error>) => {
+    this.forEachObserver((observer: Observer<T>) => {
       observer.error(error);
     });
     this.close(error);
   }
 
   complete() {
-    this.forEachObserver((observer: Observer<T, Error>) => {
+    this.forEachObserver((observer: Observer<T>) => {
       observer.complete();
     });
     this.close();
@@ -134,7 +129,7 @@ class ObserverProxy<T> implements Observer<T, Error> {
     error?: ErrorFn,
     complete?: CompleteFn
   ): Unsubscribe {
-    let observer: Observer<T, Error>;
+    let observer: Observer<T>;
 
     if (
       nextOrObserver === undefined &&
@@ -146,13 +141,13 @@ class ObserverProxy<T> implements Observer<T, Error> {
 
     // Assemble an Observer object when passed as callback functions.
     if (implementsAnyMethods(nextOrObserver, ['next', 'error', 'complete'])) {
-      observer = nextOrObserver as Observer<T, Error>;
+      observer = nextOrObserver as Observer<T>;
     } else {
       observer = {
         next: (nextOrObserver as any) as NextFn<T>,
         error: error,
         complete: complete
-      } as Observer<T, Error>;
+      } as Observer<T>;
     }
 
     if (observer.next === undefined) {
@@ -185,7 +180,7 @@ class ObserverProxy<T> implements Observer<T, Error> {
       });
     }
 
-    this.observers!.push(observer as Observer<T, Error>);
+    this.observers!.push(observer as Observer<T>);
 
     return unsub;
   }
@@ -205,7 +200,7 @@ class ObserverProxy<T> implements Observer<T, Error> {
     }
   }
 
-  private forEachObserver(fn: (observer: Observer<T, Error>) => void): void {
+  private forEachObserver(fn: (observer: Observer<T>) => void): void {
     if (this.finalized) {
       // Already closed by previous event....just eat the additional values.
       return;
@@ -221,7 +216,7 @@ class ObserverProxy<T> implements Observer<T, Error> {
   // Call the Observer via one of it's callback function. We are careful to
   // confirm that the observe has not been unsubscribed since this asynchronous
   // function had been queued.
-  private sendOne(i: number, fn: (observer: Observer<T, Error>) => void): void {
+  private sendOne(i: number, fn: (observer: Observer<T>) => void): void {
     // Execute the callback asynchronously
     this.task.then(() => {
       if (this.observers !== undefined && this.observers[i] !== undefined) {

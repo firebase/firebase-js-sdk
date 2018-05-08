@@ -36,6 +36,7 @@ goog.require('fireauth.AuthEventHandler');
 goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.ConfirmationResult');
+goog.require('fireauth.IdTokenResult');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.ProactiveRefresh');
 goog.require('fireauth.RpcHandler');
@@ -435,6 +436,14 @@ fireauth.AuthUser.prototype.getAuth_ = function() {
         'No firebase.auth.Auth instance is available for the Firebase App ' +
         '\'' + this.appName_ + '\'!');
   }
+};
+
+
+/**
+ * @return {string} The user's API key.
+ */
+fireauth.AuthUser.prototype.getApiKey = function() {
+  return this.apiKey_;
 };
 
 
@@ -858,7 +867,7 @@ fireauth.AuthUser.prototype.copy = function(userToCopy) {
   goog.array.forEach(userToCopy['providerData'], function(userInfo) {
     self.addProviderData(userInfo);
   });
-  this.stsTokenManager_ = userToCopy.getStsTokenManager();
+  this.stsTokenManager_.copy(userToCopy.getStsTokenManager());
   fireauth.object.setReadonlyProperty(
       this, 'refreshToken', this.stsTokenManager_.getRefreshToken());
 };
@@ -922,6 +931,20 @@ fireauth.AuthUser.prototype.reloadWithoutSaving_ = function() {
 
 
 /**
+ * This operation resolves with the Firebase ID token result which contains
+ * the entire payload claims.
+ * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
+ * @return {!goog.Promise<!fireauth.IdTokenResult>} A Promise that resolves with
+ *     the ID token result.
+ */
+fireauth.AuthUser.prototype.getIdTokenResult = function(opt_forceRefresh) {
+  return this.getIdToken(opt_forceRefresh).then(function(idToken) {
+    return new fireauth.IdTokenResult(idToken);
+  });
+};
+
+
+/**
  * This operation resolves with the Firebase ID token.
  * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
  * @return {!goog.Promise<string>} A Promise that resolves with the ID token.
@@ -945,18 +968,6 @@ fireauth.AuthUser.prototype.getIdToken = function(opt_forceRefresh) {
     self.updateProperty('refreshToken', response['refreshToken']);
     return response['accessToken'];
   }));
-};
-
-
-/**
- * This operation resolves with the Firebase ID token. It has been deprecated in
- * favor of getIdToken.
- * @param {boolean=} opt_forceRefresh Whether to force refresh token exchange.
- * @return {!goog.Promise<string>} A Promise that resolves with the ID token.
- */
-fireauth.AuthUser.prototype.getToken = function(opt_forceRefresh) {
-  fireauth.deprecation.log(fireauth.deprecation.Deprecations.USER_GET_TOKEN);
-  return this.getIdToken(opt_forceRefresh);
 };
 
 
@@ -1148,12 +1159,15 @@ fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential =
 
 /**
  * Reauthenticates a user using a fresh credential, to be used before operations
- * such as updatePassword that require tokens from recent login attempts.
+ * such as updatePassword that require tokens from recent login attempts. It has
+ * been deprecated in favor of reauthenticateAndRetrieveDataWithCredential.
  * @param {!fireauth.AuthCredential} credential
  * @return {!goog.Promise<void>}
  */
 fireauth.AuthUser.prototype.reauthenticateWithCredential =
     function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL);
   // Get reauthenticateAndRetrieveDataWithCredential result and return void.
   return this.reauthenticateAndRetrieveDataWithCredential(credential)
       .then(function(result) {
@@ -1224,12 +1238,15 @@ fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential =
 
 
 /**
- * Links a provider to the current user.
+ * Links a provider to the current user. It has been deprecated in favor of
+ * linkAndRetrieveDataWithCredential.
  * @param {!fireauth.AuthCredential} credential The credential from the Auth
  *     provider.
  * @return {!goog.Promise<!fireauth.AuthUser>}
  */
 fireauth.AuthUser.prototype.linkWithCredential = function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL);
   // Get linkAndRetrieveDataWithCredential result and return the user only.
   return this.linkAndRetrieveDataWithCredential(credential)
       .then(function(result) {
@@ -2310,4 +2327,39 @@ fireauth.AuthUser.initializeFromIdTokenResponse = function(appOptions,
   return user.reload().then(function() {
     return user;
   });
+};
+
+
+/**
+ * Returns an AuthUser copy of the provided user using the provided parameters
+ * without making any network request.
+ * @param {!fireauth.AuthUser} user The user to be copied.
+ * @param {?Object=} opt_appOptions The application options.
+ * @param {?fireauth.storage.RedirectUserManager=}
+ *     opt_redirectStorageManager The utility used to store and delete a user on
+ *     link with redirect.
+ * @param {?Array<string>=} opt_frameworks The list of frameworks to log on the
+ *     user on initialization.
+ * @return {!fireauth.AuthUser}
+ */
+fireauth.AuthUser.copyUser = function(user, opt_appOptions,
+    opt_redirectStorageManager, opt_frameworks) {
+  var appOptions = opt_appOptions || {
+    'apiKey': user.apiKey_,
+    'authDomain': user.authDomain_,
+    'appName': user.appName_
+  };
+  var newUser = new fireauth.AuthUser(
+      appOptions, user.getStsTokenManager().toServerResponse());
+  // If redirect storage manager provided, set it.
+  if (opt_redirectStorageManager) {
+    newUser.setRedirectStorageManager(opt_redirectStorageManager);
+  }
+  // If frameworks provided, set it.
+  if (opt_frameworks) {
+    newUser.setFramework(opt_frameworks);
+  }
+  // Copy remaining properties.
+  newUser.copy(user);
+  return newUser;
 };

@@ -50,7 +50,7 @@ export class DocumentChangeSet {
 
   constructor() {}
 
-  track(change: DocumentViewChange) {
+  track(change: DocumentViewChange): void {
     const key = change.doc.key;
     const oldChange = this.changeMap.get(key);
     if (!oldChange) {
@@ -145,7 +145,8 @@ export class ViewSnapshot {
     readonly docChanges: DocumentViewChange[],
     readonly fromCache: boolean,
     readonly hasPendingWrites: boolean,
-    readonly syncStateChanged: boolean
+    readonly syncStateChanged: boolean,
+    readonly excludesMetadataChanges: boolean
   ) {}
 
   isEqual(other: ViewSnapshot): boolean {

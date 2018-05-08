@@ -22,6 +22,7 @@
 goog.provide('fireauth.common.testHelper');
 
 goog.require('fireauth.storage.Factory');
+goog.require('fireauth.util');
 goog.require('goog.Promise');
 
 goog.setTestOnly('fireauth.common.testHelper');
@@ -154,6 +155,73 @@ fireauth.common.testHelper.assertUserStorage =
   }
   // Wait for all checks to complete before resolving.
   return goog.Promise.all(promises);
+};
+
+
+/**
+ * @param {!fireauth.IdTokenResult} idTokenResult The ID token result to assert.
+ * @param {?string} token The expected token string.
+ * @param {?number} expirationTime The expected expiration time in seconds.
+ * @param {?number} authTime The expected auth time in seconds.
+ * @param {?number} issuedAtTime The expected issued time in seconds.
+ * @param {?string} signInProvider The expected sign-in provider.
+ * @param {!Object} claims The expected payload claims .
+ */
+fireauth.common.testHelper.assertIdTokenResult = function (
+    idTokenResult,
+    token,
+    expirationTime,
+    authTime,
+    issuedAtTime,
+    signInProvider,
+    claims) {
+  assertEquals(token, idTokenResult['token']);
+  assertEquals(fireauth.util.utcTimestampToDateString(expirationTime * 1000),
+      idTokenResult['expirationTime']);
+  assertEquals(fireauth.util.utcTimestampToDateString(authTime * 1000),
+      idTokenResult['authTime']);
+  assertEquals(fireauth.util.utcTimestampToDateString(issuedAtTime * 1000),
+      idTokenResult['issuedAtTime']);
+  assertEquals(signInProvider, idTokenResult['signInProvider']);
+  assertObjectEquals(claims, idTokenResult['claims']);
+};
+
+
+/**
+ * Asserts that two users with differnt API keys are equivalent. Plain
+ * assertObjectEquals may not work as the expiration time may sometimes be off
+ * by a second. This takes that into account. The different App names and API
+ * keys will be ignored.
+ * @param {!fireauth.AuthUser} expected
+ * @param {!fireauth.AuthUser} actual
+ * @param {string=} opt_expectedApikey
+ * @param {string=} opt_actualApikey
+ */
+fireauth.common.testHelper.assertUserEqualsInWithDiffApikey = function(
+    expected, actual, opt_expectedApikey, opt_actualApikey) {
+  var expectedObj = expected.toPlainObject();
+  var actualObj = actual.toPlainObject();
+  if (opt_expectedApikey && opt_actualApikey) {
+    assertEquals(opt_expectedApikey, expectedObj['apiKey']);
+    assertEquals(opt_actualApikey, actualObj['apiKey']);
+    // Overwrite ApiKeys.
+    expectedObj['apiKey'] = '';
+    actualObj['apiKey'] = '';
+    expectedObj['stsTokenManager']['apiKey'] = '';
+    actualObj['stsTokenManager']['apiKey'] = '';
+  }
+  var delta = expectedObj['stsTokenManager']['expirationTime'] -
+      actualObj['stsTokenManager']['expirationTime'];
+  // Confirm expiration times are close enough.
+  // The conversion back and forth from and to plain object, could result in
+  // some negligible difference.
+  assertTrue(Math.abs(delta) <= 1000);
+  // Overwrite expiration times and app names.
+  expectedObj['stsTokenManager']['expirationTime'] = 0;
+  actualObj['stsTokenManager']['expirationTime'] = 0;
+  expectedObj['appName'] = '';
+  actualObj['appName'] = '';
+  assertObjectEquals(expectedObj, actualObj);
 };
 
 

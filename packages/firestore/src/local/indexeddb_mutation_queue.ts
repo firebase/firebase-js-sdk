@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
-import { Timestamp } from '../core/timestamp';
 import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -74,7 +74,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * @param user The user for which to create a mutation queue.
    * @param serializer The serializer to use when persisting to IndexedDb.
    */
-  static forUser(user: User, serializer: LocalSerializer) {
+  static forUser(
+    user: User,
+    serializer: LocalSerializer
+  ): IndexedDbMutationQueue {
     // TODO(mcg): Figure out what constraints there are on userIDs
     // In particular, are there any reserved characters? are empty ids allowed?
     // For the moment store these together in the same mutations table assuming
@@ -187,7 +190,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     );
 
     this.metadata.lastAcknowledgedBatchId = batchId;
-    this.metadata.lastStreamToken = validateStreamToken(streamToken);
+    this.metadata.lastStreamToken = convertStreamToken(streamToken);
 
     return mutationQueuesStore(transaction).put(this.metadata);
   }
@@ -202,7 +205,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    this.metadata.lastStreamToken = validateStreamToken(streamToken);
+    this.metadata.lastStreamToken = convertStreamToken(streamToken);
     return mutationQueuesStore(transaction).put(this.metadata);
   }
 
@@ -227,9 +230,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
             mutation.key.path,
             batchId
           );
-          documentMutationsStore(transaction).put(
-            indexKey,
-            DbDocumentMutation.PLACEHOLDER
+          promises.push(
+            documentMutationsStore(transaction).put(
+              indexKey,
+              DbDocumentMutation.PLACEHOLDER
+            )
           );
         }
         return PersistencePromise.waitFor(promises);
@@ -539,12 +544,17 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 }
 
-function validateStreamToken(token: ProtoByteString): string {
-  assert(
-    typeof token === 'string',
-    'Persisting non-string stream token not supported.'
-  );
-  return token as string;
+function convertStreamToken(token: ProtoByteString): string {
+  if (token instanceof Uint8Array) {
+    // TODO(b/78771403): Convert tokens to strings during deserialization
+    assert(
+      process.env.USE_MOCK_PERSISTENCE === 'YES',
+      'Persisting non-string stream tokens is only supported with mock persistence .'
+    );
+    return token.toString();
+  } else {
+    return token;
+  }
 }
 
 /**

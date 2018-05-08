@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 import * as api from '../../../src/protos/firestore_proto_api';
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import {
@@ -133,11 +133,11 @@ class MockConnection implements Connection {
     this.activeTargets = [];
   }
 
-  invokeRPC(rpcName: string, request: any): Promise<any> {
+  invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC(rpcName: string, request: any): Promise<any> {
+  invokeStreamingRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
@@ -167,25 +167,28 @@ class MockConnection implements Connection {
     this.resetAndCloseWriteStream(err);
   }
 
-  private resetAndCloseWriteStream(err?: FirestoreError) {
+  private resetAndCloseWriteStream(err?: FirestoreError): void {
     this.writeSendBarriers = [];
     this.earlyWrites = [];
     this.writeStream!.callOnClose(err);
     this.writeStream = null;
   }
 
-  failWatchStream(err?: FirestoreError) {
+  failWatchStream(err?: FirestoreError): void {
     this.resetAndCloseWatchStream(err);
   }
 
-  private resetAndCloseWatchStream(err?: FirestoreError) {
+  private resetAndCloseWatchStream(err?: FirestoreError): void {
     this.activeTargets = {};
     this.watchOpen = new Deferred<void>();
     this.watchStream!.callOnClose(err);
     this.watchStream = null;
   }
 
-  openStream(rpcName: string): Stream<any, any> {
+  openStream<Req, Resp>(
+    rpcName: string,
+    token: Token | null
+  ): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
         throw new Error('write stream opened twice');
@@ -238,7 +241,8 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      return writeStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
@@ -271,7 +275,8 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      return this.watchStream;
+      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      return this.watchStream as any;
     }
   }
 }
@@ -420,11 +425,12 @@ abstract class TestRunner {
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown();
+    await this.persistence.shutdown(/* deleteData= */ true);
     await this.destroyPersistence();
   }
 
   run(steps: SpecStep[]): Promise<void> {
+    // tslint:disable-next-line:no-console
     console.log('Running spec: ' + this.name);
     return sequence(steps, async step => {
       await this.doStep(step);
@@ -487,8 +493,7 @@ abstract class TestRunner {
     const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
-      includeDocumentMetadataChanges: true,
-      includeQueryMetadataChanges: true,
+      includeMetadataChanges: true,
       waitForSyncWhenOnline: false
     };
     const queryListener = new QueryListener(query, aggregator, options);
@@ -501,6 +506,17 @@ abstract class TestRunner {
         'targetId assigned to listen'
       );
     });
+
+    // Skip the backoff that may have been triggered by a previous call to
+    // `watchStreamCloses()`.
+    if (
+      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
+    ) {
+      await this.queue.runDelayedOperationsEarly(
+        TimerId.ListenStreamConnectionBackoff
+      );
+    }
+
     // Open should always have happened after a listen
     await this.connection.waitForWatchOpen();
   }
@@ -529,7 +545,7 @@ abstract class TestRunner {
     return this.doMutations([deleteMutation(key)]);
   }
 
-  private doMutations(mutations: Mutation[]): Promise<void> {
+  private async doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
     return this.queue.enqueue(() => {
@@ -854,7 +870,7 @@ abstract class TestRunner {
     this.validateActiveTargets();
   }
 
-  private validateLimboDocs() {
+  private validateLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
@@ -877,7 +893,7 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets() {
+  private validateActiveTargets(): void {
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);
     obj.forEachNumber(this.expectedActiveTargets, (targetId, expected) => {
       expect(obj.contains(actualTargets, targetId)).to.equal(

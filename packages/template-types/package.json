@@ -11,14 +11,14 @@
   "files": [
     "index.d.ts"
   ],
-  "devDependencies": {
-    "typescript": "^2.7.2"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/template-types"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "devDependencies": {
+    "typescript": "2.8.1"
   }
 }

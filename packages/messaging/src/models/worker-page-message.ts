@@ -13,32 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-'use strict';
 
-// These fields are strings to prevent closure from thinking goog.getMsg
-// should be used to initialise the values
-const PARAMS = {
-  TYPE_OF_MSG: 'firebase-messaging-msg-type',
-  DATA: 'firebase-messaging-msg-data'
-};
+import { MessagePayload } from '../interfaces/message-payload';
 
-// This value isn't using the TYPE_OF_MSG short hand as closure
-// expects the variable to be defined via goog.getMsg
-const msgType = {
-  PUSH_MSG_RECEIVED: 'push-msg-received',
-  NOTIFICATION_CLICKED: 'notification-clicked'
-};
+export enum MessageParameter {
+  TYPE_OF_MSG = 'firebase-messaging-msg-type',
+  DATA = 'firebase-messaging-msg-data'
+}
 
-const createNewMsg = (msgType, msgData) => {
-  const message = {
-    [PARAMS.TYPE_OF_MSG]: msgType,
-    [PARAMS.DATA]: msgData
-  };
-  return message;
-};
+export enum MessageType {
+  PUSH_MSG_RECEIVED = 'push-msg-received',
+  NOTIFICATION_CLICKED = 'notification-clicked'
+}
 
-export default {
-  PARAMS,
-  TYPES_OF_MSG: msgType,
-  createNewMsg
-};
+export interface InternalMessage {
+  [MessageParameter.TYPE_OF_MSG]: MessageType;
+  [MessageParameter.DATA]: MessagePayload;
+}

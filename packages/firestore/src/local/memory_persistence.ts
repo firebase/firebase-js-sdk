@@ -53,7 +53,7 @@ export class MemoryPersistence implements Persistence {
     this.started = true;
   }
 
-  async shutdown(): Promise<void> {
+  async shutdown(deleteData?: boolean): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     assert(this.started, 'MemoryPersistence shutdown without start!');
     this.started = false;

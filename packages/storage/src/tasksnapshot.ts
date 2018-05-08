@@ -28,17 +28,4 @@ export class UploadTaskSnapshot {
     readonly task: UploadTask,
     readonly ref: Reference
   ) {}
-
-  get downloadURL(): string | null {
-    if (this.metadata !== null) {
-      let urls = this.metadata['downloadURLs'];
-      if (urls != null && urls[0] != null) {
-        return urls[0];
-      } else {
-        return null;
-      }
-    } else {
-      return null;
-    }
-  }
 }

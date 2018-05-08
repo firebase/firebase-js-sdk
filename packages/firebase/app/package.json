@@ -1,0 +1,8 @@
+{
+  "name": "firebase/app",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "react-native": "dist/index.rn.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/app/index.d.ts"
+}

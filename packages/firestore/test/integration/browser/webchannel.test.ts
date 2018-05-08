@@ -21,7 +21,13 @@ import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { DEFAULT_PROJECT_ID } from '../util/helpers';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 
-const describeFn = typeof window !== 'undefined' ? describe : xdescribe;
+// We need to check both `window` and `window.navigator` to make sure we are
+// not running in Node with IndexedDBShim.
+const describeFn =
+  typeof window === 'object' && typeof window.navigator === 'object'
+    ? describe
+    : xdescribe;
+
 describeFn('WebChannel', () => {
   describe('makeUrl', () => {
     const info = new DatabaseInfo(

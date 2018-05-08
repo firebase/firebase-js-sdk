@@ -120,7 +120,7 @@ describe('IndexedDbMutationQueue', () => {
  * Defines the set of tests to run against both mutation queue
  * implementations.
  */
-function genericMutationQueueTests() {
+function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
   beforeEach(() => {
@@ -131,9 +131,7 @@ function genericMutationQueueTests() {
     return mutationQueue.start();
   });
 
-  afterEach(() => {
-    return persistence.shutdown();
-  });
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   it('can count batches', async () => {
     expect(await mutationQueue.countBatches()).to.equal(0);

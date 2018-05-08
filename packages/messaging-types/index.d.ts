@@ -15,24 +15,32 @@
  */
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
-import { Observer, Unsubscribe } from '@firebase/util';
+import {
+  Observer,
+  Unsubscribe,
+  NextFn,
+  ErrorFn,
+  CompleteFn
+} from '@firebase/util';
 
 export class FirebaseMessaging {
   private constructor();
-  deleteToken(token: string): Promise<any> | null;
-  getToken(): Promise<any> | null;
+  deleteToken(token: string): Promise<boolean>;
+  getToken(): Promise<string | null>;
   onMessage(
-    nextOrObserver: Observer<any, any> | ((a: Object) => any),
-    onError?: (error: any) => any,
-    onComplete?: () => any
+    nextOrObserver: NextFn<any> | Observer<any>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe;
   onTokenRefresh(
-    nextOrObserver: Observer<any, any> | ((a: Object) => any),
-    onError?: (error: any) => any,
-    onComplete?: () => any
+    nextOrObserver: NextFn<any> | Observer<any>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe;
-  requestPermission(): Promise<any> | null;
-  setBackgroundMessageHandler(callback: (a: Object) => any): any;
-  useServiceWorker(registration: any): any;
+  requestPermission(): Promise<void>;
+  setBackgroundMessageHandler(
+    callback: (payload: any) => Promise<any> | void
+  ): void;
+  useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
 }

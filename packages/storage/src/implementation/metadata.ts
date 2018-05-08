@@ -104,36 +104,6 @@ export function getMappings(): Mappings {
   mappings.push(new Mapping('contentLanguage', null, true));
   mappings.push(new Mapping('contentType', null, true));
   mappings.push(new Mapping('metadata', 'customMetadata', true));
-
-  /**
-   * Transforms a comma-separated string of tokens into a list of download
-   * URLs.
-   */
-  function xformTokens(metadata: Metadata, tokens: any): string[] {
-    let valid = type.isString(tokens) && tokens.length > 0;
-    if (!valid) {
-      // This can happen if objects are uploaded through GCS and retrieved
-      // through list, so we don't want to throw an Error.
-      return [];
-    }
-    let encode = encodeURIComponent;
-    let tokensList = tokens.split(',');
-    let urls = tokensList.map(function(token: string) {
-      let bucket: string = metadata['bucket'] as string;
-      let path: string = metadata['fullPath'] as string;
-      let urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-      let base = UrlUtils.makeDownloadUrl(urlPart);
-      let queryString = UrlUtils.makeQueryString({
-        alt: 'media',
-        token: token
-      });
-      return base + queryString;
-    });
-    return urls;
-  }
-  mappings.push(
-    new Mapping('downloadTokens', 'downloadURLs', false, xformTokens)
-  );
   mappings_ = mappings;
   return mappings_;
 }
@@ -175,6 +145,39 @@ export function fromResourceString(
   }
   let resource = obj as Metadata;
   return fromResource(authWrapper, resource, mappings);
+}
+
+export function downloadUrlFromResourceString(
+  metadata: Metadata,
+  resourceString: string
+): string | null {
+  let obj = json.jsonObjectOrNull(resourceString);
+  if (obj === null) {
+    return null;
+  }
+  if (!type.isString(obj['downloadTokens'])) {
+    // This can happen if objects are uploaded through GCS and retrieved
+    // through list, so we don't want to throw an Error.
+    return null;
+  }
+  let tokens: string = obj['downloadTokens'] as string;
+  if (tokens.length === 0) {
+    return null;
+  }
+  let encode = encodeURIComponent;
+  let tokensList = tokens.split(',');
+  let urls = tokensList.map(function(token: string): string {
+    let bucket: string = metadata['bucket'] as string;
+    let path: string = metadata['fullPath'] as string;
+    let urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
+    let base = UrlUtils.makeDownloadUrl(urlPart);
+    let queryString = UrlUtils.makeQueryString({
+      alt: 'media',
+      token: token
+    });
+    return base + queryString;
+  });
+  return urls[0];
 }
 
 export function toResourceString(

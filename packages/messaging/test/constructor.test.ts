@@ -15,14 +15,16 @@
  */
 
 import { assert } from 'chai';
-import makeFakeApp from './make-fake-app';
 
-import Errors from '../src/models/errors';
-import WindowController from '../src/controllers/window-controller';
-import SWController from '../src/controllers/sw-controller';
+import { SWController } from '../src/controllers/sw-controller';
+import { WindowController } from '../src/controllers/window-controller';
+import { ERROR_CODES } from '../src/models/errors';
 
-describe('Firebase Messaging > new *Controller()', function() {
-  it('should handle bad input', function() {
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { describe } from './testing-utils/messaging-test-runner';
+
+describe('Firebase Messaging > new *Controller()', () => {
+  it('should handle bad input', () => {
     const badInputs = [
       makeFakeApp(),
       makeFakeApp({
@@ -51,11 +53,11 @@ describe('Firebase Messaging > new *Controller()', function() {
       } catch (err) {
         caughtError = err;
       }
-      assert.equal('messaging/' + Errors.codes.BAD_SENDER_ID, caughtError.code);
+      assert.equal('messaging/' + ERROR_CODES.BAD_SENDER_ID, caughtError.code);
     });
   });
 
-  it('should be able to handle good input', function() {
+  it('should be able to handle good input', () => {
     const app = makeFakeApp({
       messagingSenderId: '1234567890'
     });

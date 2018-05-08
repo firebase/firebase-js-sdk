@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "4.12.0",
+  "version": "5.0.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -18,37 +18,33 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "dev": "run-p watch:compiler watch:server",
-    "watch:compiler": "gulp watch",
-    "watch:server": "webpack-dev-server --config webpack.dev.js --colors",
-    "prepare": "gulp build"
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "prepare": "npm run build"
   },
-  "main": "index.node.js",
-  "browser": "index.js",
-  "react-native": "index.react-native.js",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.1.10",
-    "@firebase/auth": "0.4.0",
-    "@firebase/database": "0.2.1",
-    "@firebase/firestore": "0.3.6",
-    "@firebase/functions": "0.1.0",
-    "@firebase/messaging": "0.2.2",
-    "@firebase/polyfill": "0.3.0",
-    "@firebase/storage": "0.1.8",
-    "dom-storage": "^2.0.2",
-    "xmlhttprequest": "^1.8.0"
+    "@firebase/app": "0.3.0",
+    "@firebase/auth": "0.5.1",
+    "@firebase/database": "0.3.0",
+    "@firebase/firestore": "0.5.1",
+    "@firebase/functions": "0.2.1",
+    "@firebase/messaging": "0.3.1",
+    "@firebase/polyfill": "0.3.1",
+    "@firebase/storage": "0.2.1",
+    "dom-storage": "2.1.0",
+    "xmlhttprequest": "1.8.0"
   },
   "devDependencies": {
-    "compression-webpack-plugin": "^1.1.7",
-    "git-rev-sync": "^1.10.0",
-    "gulp": "^4.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-sourcemaps": "^2.6.4",
-    "npm-run-all": "^4.1.1",
-    "webpack": "^3.11.0",
-    "webpack-dev-server": "^2.11.1",
-    "webpack-stream": "^4.0.2",
-    "wrapper-webpack-plugin": "^1.0.0"
+    "rollup": "0.57.1",
+    "rollup-plugin-commonjs": "9.1.0",
+    "rollup-plugin-node-resolve": "3.3.0",
+    "rollup-plugin-typescript2": "0.12.0",
+    "rollup-plugin-uglify": "3.0.0",
+    "typescript": "2.8.1"
   },
-  "typings": "index.d.ts"
+  "typings": "dist/index.d.ts"
 }

@@ -32,6 +32,7 @@ goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.json');
 goog.require('goog.net.CorsXmlHttpFactory');
+goog.require('goog.net.EventType');
 goog.require('goog.net.FetchXmlHttpFactory');
 goog.require('goog.net.XhrIo');
 goog.require('goog.net.XhrLike');
@@ -558,6 +559,156 @@ function testSendFirebaseBackendRequest_timeout() {
 }
 
 
+function testSendFirebaseBackendRequest_offline_falseAlert() {
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var expectedResponse = [
+    'google.com',
+    'myauthprovider.com'
+  ];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'authUri': 'https://accounts.google.com/o/oauth2/auth?foo=bar',
+    'providerId': 'google.com',
+    'allProviders': [
+      'google.com',
+      'myauthprovider.com'
+    ],
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'MY_SESSION_ID'
+  };
+  var identifier = 'MY_ID';
+  stubs.reset();
+  // Simulate browser supports CORS.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Simulate expected URL returned for current URL.
+  stubs.replace(
+      fireauth.util,
+      'getCurrentUrl',
+      function() {
+        return CURRENT_URL;
+      });
+  // Simulate false alert navigator.onLine.
+  stubs.replace(
+      fireauth.util,
+      'isOnline',
+      function() {return false;});
+  // Overwrite XHR IO send to simulate a 4999ms delay before the response.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'send',
+      function(url, httpMethod, data, headers) {
+        assertEquals(
+             'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+             'createAuthUri?key=apiKey',
+             url);
+        assertEquals('POST', httpMethod);
+        assertEquals(goog.json.serialize(request), data);
+        assertObjectEquals(
+            fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_, headers);
+        clock.tick(4999);
+        this.dispatchEvent(goog.net.EventType.COMPLETE);
+      });
+  // Simulate expected response returned.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'getResponseText',
+      function() {
+        return JSON.stringify(serverResponse);
+      });
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL
+  };
+  rpcHandler.fetchProvidersForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testSendFirebaseBackendRequest_offline_slowResponse() {
+  // Install mock clock.
+  clock = new goog.testing.MockClock(true);
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'authUri': 'https://accounts.google.com/o/oauth2/auth?foo=bar',
+    'providerId': 'google.com',
+    'allProviders': [
+      'google.com',
+      'myauthprovider.com'
+    ],
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'MY_SESSION_ID'
+  };
+  var identifier = 'MY_ID';
+  stubs.reset();
+  // Simulate browser supports CORS.
+  stubs.replace(
+      fireauth.util,
+      'supportsCors',
+      function() {return true;});
+  // Simulate expected URL returned for current URL.
+  stubs.replace(
+      fireauth.util,
+      'getCurrentUrl',
+      function() {
+        return CURRENT_URL;
+      });
+  // Simulate false alert navigator.onLine.
+  stubs.replace(
+      fireauth.util,
+      'isOnline',
+      function() {return false;});
+  // Overwrite XHR IO send to simulate a 5000mx delay before the response.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'send',
+      function(url, httpMethod, data, headers) {
+        assertEquals(
+             'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+             'createAuthUri?key=apiKey',
+             url);
+        assertEquals('POST', httpMethod);
+        assertEquals(goog.json.serialize(request), data);
+        assertObjectEquals(
+            fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_, headers);
+        clock.tick(5000);
+        this.dispatchEvent(goog.net.EventType.COMPLETE);
+      });
+  // Simulate expected response returned.
+  stubs.replace(
+      goog.net.XhrIo.prototype,
+      'getResponseText',
+      function() {
+        return JSON.stringify(serverResponse);
+      });
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL
+  };
+  // Expected timeout error even though the request was eventually returned.
+  var timeoutError = new fireauth.AuthError(
+      fireauth.authenum.Error.NETWORK_REQUEST_FAILED);
+  rpcHandler.fetchProvidersForIdentifier(identifier)
+      .thenCatch(function(actualError) {
+        // Timeout error should have been returned.
+        fireauth.common.testHelper.assertErrorEquals(timeoutError, actualError);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testSendFirebaseBackendRequest_offline() {
   // Test network timeout error for offline Firebase backend request.
   asyncTestCase.waitForSignals(1);
@@ -581,6 +732,8 @@ function testSendFirebaseBackendRequest_offline() {
         fireauth.common.testHelper.assertErrorEquals(timeoutError, error);
         asyncTestCase.signal();
       });
+  // Simulate short timeout when navigator.onLine is false.
+  clock.tick(5000);
 }
 
 
@@ -640,6 +793,8 @@ function testSendStsTokenBackendRequest_offline() {
     fireauth.common.testHelper.assertErrorEquals(timeoutError, error);
     asyncTestCase.signal();
   });
+  // Simulate short timeout when navigator.onLine is false.
+  clock.tick(5000);
 }
 
 
@@ -4131,6 +4286,34 @@ function testCheckActionCode_success() {
     'email': 'user@example.com',
     'newEmail': 'fake@example.com',
     'requestType': 'PASSWORD_RESET'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPass' +
+      'word?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.checkActionCode(code).then(
+      function(info) {
+        assertObjectEquals(expectedResponse, info);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful checkActionCode RPC call for email sign-in.
+ */
+function testCheckActionCode_emailSignIn_success() {
+  var code = 'EMAIL_SIGNIN_CODE';
+  // Email field is empty for EMAIL_SIGNIN.
+  var expectedResponse = {
+    'requestType': 'EMAIL_SIGNIN'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(

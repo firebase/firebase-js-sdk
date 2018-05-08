@@ -1,4 +1,38 @@
 # Unreleased
+- [changed] Merged the `includeQueryMetadataChanges` and
+  `includeDocumentMetadataChanges` options passed to `Query.onSnapshot()` into
+  a single `includeMetadataChanges` option.
+- [changed] `QuerySnapshot.docChanges()` is now a method that optionally takes
+  an `includeMetadataChanges` option. By default, even when listening to a query
+  with `{ includeMetadataChanges:true }`, metadata-only document changes are
+  suppressed in `docChanges()`.
+- [feature] Added new `{ mergeFields: (string|FieldPath)[] }` option to `set()`
+  which allows merging of a reduced subset of fields.
+
+# 0.4.1
+- [fixed] Fixed a regression in Firebase JS release 4.13.0 regarding the
+  loading of proto files, causing Node.JS support to break.
+
+# 0.4.0
+- [feature] Added a new `Timestamp` class to represent timestamp fields,
+  currently supporting up to microsecond precision. It can be passed to API
+  methods anywhere a JS Date object is currently accepted. To make
+  `DocumentSnapshot`s read timestamp fields back as `Timestamp`s instead of
+  Dates, you can set the newly added flag `timestampsInSnapshots` in
+  `FirestoreSettings` to `true`. Note that the current behavior
+  (`DocumentSnapshot`s returning JS Date objects) will be removed in a future
+  release. `Timestamp` supports higher precision than JS Date.
+- [feature] Added ability to control whether DocumentReference.get() and
+  Query.get() should fetch from server only, (by passing { source: 'server' }),
+  cache only (by passing { source: 'cache' }), or attempt server and fall back
+  to the cache (which was the only option previously, and is now the default).
+
+# 0.3.7
+- [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
+  cause get() requests made while offline to be delayed by up to 10
+  seconds (rather than returning from cache immediately).
+
+# 0.3.6
 - [fixed] Fixed a regression in the Firebase JS release 4.11.0 that could
   cause a crash if a user signs out while the client is offline, resulting in
   an error of "Attempted to schedule multiple operations with timer id

@@ -35,6 +35,26 @@ export interface Settings {
   host?: string;
   /** Whether to use SSL when connecting. */
   ssl?: boolean;
+
+  /**
+   * Enables the use of `Timestamp`s for timestamp fields in
+   * `DocumentSnapshot`s.
+   *
+   * Currently, Firestore returns timestamp fields as `Date` but `Date` only
+   * supports millisecond precision, which leads to truncation and causes
+   * unexpected behavior when using a timestamp from a snapshot as a part
+   * of a subsequent query.
+   *
+   * Setting `timestampsInSnapshots` to true will cause Firestore to return
+   * `Timestamp` values instead of `Date` avoiding this kind of problem. To make
+   * this work you must also change any code that uses `Date` to use `Timestamp`
+   * instead.
+   *
+   * NOTE: in the future `timestampsInSnapshots: true` will become the
+   * default and this option will be removed so you should change your code to
+   * use Timestamp now and opt-in to this new behavior as soon as you can.
+   */
+  timestampsInSnapshots?: boolean;
 }
 
 export type LogLevel = 'debug' | 'error' | 'silent';
@@ -170,6 +190,86 @@ export class GeoPoint {
    * @return true if this `GeoPoint` is equal to the provided one.
    */
   isEqual(other: GeoPoint): boolean;
+}
+
+/**
+ * A Timestamp represents a point in time independent of any time zone or
+ * calendar, represented as seconds and fractions of seconds at nanosecond
+ * resolution in UTC Epoch time. It is encoded using the Proleptic Gregorian
+ * Calendar which extends the Gregorian calendar backwards to year one. It is
+ * encoded assuming all minutes are 60 seconds long, i.e. leap seconds are
+ * "smeared" so that no leap second table is needed for interpretation. Range is
+ * from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.
+ *
+ * @see https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto
+ */
+export class Timestamp {
+  /**
+   * Creates a new timestamp with the current date, with millisecond precision.
+   *
+   * @return a new timestamp representing the current date.
+   */
+  static now(): Timestamp;
+
+  /**
+   * Creates a new timestamp from the given date.
+   *
+   * @param date The date to initialize the `Timestamp` from.
+   * @return A new `Timestamp` representing the same point in time as the given
+   *     date.
+   */
+  static fromDate(date: Date): Timestamp;
+
+  /**
+   * Creates a new timestamp from the given number of milliseconds.
+   *
+   * @param milliseconds Number of milliseconds since Unix epoch
+   *     1970-01-01T00:00:00Z.
+   * @return A new `Timestamp` representing the same point in time as the given
+   *     number of milliseconds.
+   */
+  static fromMillis(milliseconds: number): Timestamp;
+
+  /**
+   * Creates a new timestamp.
+   *
+   * @param seconds The number of seconds of UTC time since Unix epoch
+   *     1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+   *     9999-12-31T23:59:59Z inclusive.
+   * @param nanoseconds The non-negative fractions of a second at nanosecond
+   *     resolution. Negative second values with fractions must still have
+   *     non-negative nanoseconds values that count forward in time. Must be
+   *     from 0 to 999,999,999 inclusive.
+   */
+  constructor(seconds: number, nanoseconds: number);
+
+  readonly seconds: number;
+  readonly nanoseconds: number;
+
+  /**
+   * Returns a new `Date` corresponding to this timestamp. This may lose
+   * precision.
+   *
+   * @return JavaScript `Date` object representing the same point in time as
+   *     this `Timestamp`, with millisecond precision.
+   */
+  toDate(): Date;
+
+  /**
+   * Returns the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+   *
+   * @return The point in time corresponding to this timestamp, represented as
+   *     the number of milliseconds since Unix epoch 1970-01-01T00:00:00Z.
+   */
+  toMillis(): number;
+
+  /**
+   * Returns true if this `Timestamp` is equal to the provided one.
+   *
+   * @param other The `Timestamp` to compare against.
+   * @return true if this `Timestamp` is equal to the provided one.
+   */
+  isEqual(other: Timestamp): boolean;
 }
 
 /**
@@ -368,13 +468,14 @@ export class WriteBatch {
 }
 
 /**
- * Options for use with `DocumentReference.onSnapshot()` to control the
- * behavior of the snapshot listener.
+ * An options object that can be passed to `DocumentReference.onSnapshot()`,
+ * `Query.onSnapshot()` and `QuerySnapshot.docChanges()` to control which
+ * types of changes to include in the result set.
  */
-export interface DocumentListenOptions {
+export interface SnapshotListenOptions {
   /**
-   * Raise an event even if only metadata of the document changed. Default is
-   * false.
+   * Include a change even if only the metadata of the query or of a document
+   * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
 }
@@ -383,7 +484,7 @@ export interface DocumentListenOptions {
  * An options object that configures the behavior of `set()` calls in
  * `DocumentReference`, `WriteBatch` and `Transaction`. These calls can be
  * configured to perform granular merges instead of overwriting the target
- * documents in their entirety by providing a `SetOptions` with `merge: true`.
+ * documents in their entirety.
  */
 export interface SetOptions {
   /**
@@ -392,6 +493,47 @@ export interface SetOptions {
    * untouched.
    */
   readonly merge?: boolean;
+
+  /**
+   * Changes the behavior of set() calls to only replace the specified field
+   * paths. Any field path that is not specified is ignored and remains
+   * untouched.
+   *
+   * <p>It is an error to pass a SetOptions object to a set() call that is
+   * missing a value for any of the fields specified here.
+   */
+  readonly mergeFields?: (string | FieldPath)[];
+}
+
+/**
+ * An options object that configures the behavior of `get()` calls on
+ * `DocumentReference` and `Query`. By providing a `GetOptions` object, these
+ * methods can be configured to fetch results only from the server, only from
+ * the local cache or attempt to fetch results from the server and fall back to
+ * the cache (which is the default).
+ */
+export interface GetOptions {
+  /**
+   * Describes whether we should get from server or cache.
+   *
+   * Setting to 'default' (or not setting at all), causes Firestore to try to
+   * retrieve an up-to-date (server-retrieved) snapshot, but fall back to
+   * returning cached data if the server can't be reached.
+   *
+   * Setting to 'server' causes Firestore to avoid the cache, generating an
+   * error if the server cannot be reached. Note that the cache will still be
+   * updated if the server request succeeds. Also note that latency-compensation
+   * still takes effect, so any pending write operations will be visible in the
+   * returned data (merged into the server-provided data).
+   *
+   * Setting to 'cache' causes Firestore to immediately return a value from the
+   * cache, ignoring the server completely (implying that the returned value
+   * may be stale with respect to the value on the server.) If there is no data
+   * in the cache to satisfy the `get()` call, `DocumentReference.get()` will
+   * return an error and `QuerySnapshot.get()` will return an empty
+   * `QuerySnapshot` with no documents.
+   */
+  readonly source?: 'default' | 'server' | 'cache';
 }
 
 /**
@@ -495,14 +637,16 @@ export class DocumentReference {
   /**
    * Reads the document referred to by this `DocumentReference`.
    *
-   * Note: get() attempts to provide up-to-date data when possible by waiting
-   * for data from the server, but it may return cached data or fail if you
-   * are offline and the server cannot be reached.
+   * Note: By default, get() attempts to provide up-to-date data when possible
+   * by waiting for data from the server, but it may return cached data or fail
+   * if you are offline and the server cannot be reached. This behavior can be
+   * altered via the `GetOptions` parameter.
    *
+   * @param options An object to configure the get behavior.
    * @return A Promise resolved with a DocumentSnapshot containing the
    * current document contents.
    */
-  get(): Promise<DocumentSnapshot>;
+  get(options?: GetOptions): Promise<DocumentSnapshot>;
 
   /**
    * Attaches a listener for DocumentSnapshot events. You may either pass
@@ -527,7 +671,7 @@ export class DocumentReference {
     complete?: () => void;
   }): () => void;
   onSnapshot(
-    options: DocumentListenOptions,
+    options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: DocumentSnapshot) => void;
       error?: (error: Error) => void;
@@ -540,7 +684,7 @@ export class DocumentReference {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
-    options: DocumentListenOptions,
+    options: SnapshotListenOptions,
     onNext: (snapshot: DocumentSnapshot) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
@@ -652,8 +796,8 @@ export class DocumentSnapshot {
    *
    * @param fieldPath The path (e.g. 'foo' or 'foo.bar') to a specific field.
    * @param options An options object to configure how the field is retrieved
-   * from the snapshot (e.g. the desired behavior for server timestamps that have
-   * not yet been set to their final value).
+   * from the snapshot (e.g. the desired behavior for server timestamps that
+   * have not yet been set to their final value).
    * @return The data at the specified field location or undefined if no such
    * field exists in the document.
    */
@@ -708,26 +852,8 @@ export type OrderByDirection = 'desc' | 'asc';
  * Filter conditions in a `Query.where()` clause are specified using the
  * strings '<', '<=', '==', '>=', and '>'.
  */
+// TODO(array-features): Add 'array-contains' once backend support lands.
 export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
-
-/**
- * Options for use with `Query.onSnapshot() to control the behavior of the
- * snapshot listener.
- */
-export interface QueryListenOptions {
-  /**
-   * Raise an event even if only metadata changes (i.e. one of the
-   * `QuerySnapshot.metadata` properties). Default is false.
-   */
-  readonly includeQueryMetadataChanges?: boolean;
-
-  /**
-   * Raise an event even if only metadata of a document in the query results
-   * changes (i.e. one of the `DocumentSnapshot.metadata` properties on one of
-   * the documents). Default is false.
-   */
-  readonly includeDocumentMetadataChanges?: boolean;
-}
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
@@ -876,9 +1002,15 @@ export class Query {
   /**
    * Executes the query and returns the results as a QuerySnapshot.
    *
+   * Note: By default, get() attempts to provide up-to-date data when possible
+   * by waiting for data from the server, but it may return cached data or fail
+   * if you are offline and the server cannot be reached. This behavior can be
+   * altered via the `GetOptions` parameter.
+   *
+   * @param options An object to configure the get behavior.
    * @return A Promise that will be resolved with the results of the Query.
    */
-  get(): Promise<QuerySnapshot>;
+  get(options?: GetOptions): Promise<QuerySnapshot>;
 
   /**
    * Attaches a listener for QuerySnapshot events. You may either pass
@@ -903,7 +1035,7 @@ export class Query {
     complete?: () => void;
   }): () => void;
   onSnapshot(
-    options: QueryListenOptions,
+    options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: QuerySnapshot) => void;
       error?: (error: Error) => void;
@@ -916,7 +1048,7 @@ export class Query {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
-    options: QueryListenOptions,
+    options: SnapshotListenOptions,
     onNext: (snapshot: QuerySnapshot) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
@@ -943,12 +1075,6 @@ export class QuerySnapshot {
    * modifications.
    */
   readonly metadata: SnapshotMetadata;
-  /**
-   * An array of the documents that changed since the last snapshot. If this
-   * is the first snapshot, all documents will be in the list as added
-   * changes.
-   */
-  readonly docChanges: DocumentChange[];
 
   /** An array of all the documents in the QuerySnapshot. */
   readonly docs: QueryDocumentSnapshot[];
@@ -958,6 +1084,16 @@ export class QuerySnapshot {
 
   /** True if there are no documents in the QuerySnapshot. */
   readonly empty: boolean;
+
+  /**
+   * Returns an array of the documents changes since the last snapshot. If this
+   * is the first snapshot, all documents will be in the list as added changes.
+   *
+   * @param options `SnapshotListenOptions` that control whether metadata-only
+   * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
+   * snapshot events.
+   */
+  docChanges(options?: SnapshotListenOptions): DocumentChange[];
 
   /**
    * Enumerates all of the documents in the QuerySnapshot.
@@ -1081,6 +1217,33 @@ export class FieldValue {
    * Returns a sentinel for use with update() to mark a field for deletion.
    */
   static delete(): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to union the given elements with any array value that already
+   * exists on the server. Each specified element that doesn't already exist in
+   * the array will be added to the end. If the field being modified is not
+   * already an array it will be overwritten with an array containing exactly
+   * the specified elements.
+   *
+   * @param elements The elements to union into the array.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  // TODO(array-features): Expose this once backend support lands.
+  //static arrayUnion(...elements: any[]): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to remove the given elements from any array value that already
+   * exists on the server. All instances of each element specified will be
+   * removed from the array. If the field being modified is not already an
+   * array it will be overwritten with an empty array.
+   *
+   * @param elements The elements to remove from the array.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  // TODO(array-features): Expose this once backend support lands.
+  //static arrayRemove(...elements: any[]): FieldValue;
 
   /**
    * Returns true if this `FieldValue` is equal to the provided one.

@@ -91,7 +91,6 @@ export interface Reference extends Query {
   key: string | null;
   onDisconnect(): OnDisconnect;
   parent: Reference | null;
-  path: string;
   push(value?: any, onComplete?: (a: Error | null) => any): ThenableReference;
   remove(onComplete?: (a: Error | null) => any): Promise<any>;
   root: Reference;

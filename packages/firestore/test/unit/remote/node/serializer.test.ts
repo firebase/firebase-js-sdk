@@ -20,6 +20,8 @@ import * as Long from 'long';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
 import { GeoPoint } from '../../../../src/api/geo_point';
+import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
+import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
@@ -29,7 +31,6 @@ import {
   RelationOp
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
-import { Timestamp } from '../../../../src/core/timestamp';
 import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
@@ -477,14 +478,29 @@ describe('Serializer', () => {
     });
 
     it('converts TimestampValue from string', () => {
-      const examples = ['2016-01-02T10:20:50.850Z', '2016-06-17T10:50:15.000Z'];
-      for (const example of examples) {
-        const date = new Date(example);
-        const proto = { timestampValue: example };
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.TimestampValue(Timestamp.fromDate(date))
-        );
-      }
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+      );
     });
 
     it('converts GeoPointValue', () => {
@@ -585,8 +601,8 @@ describe('Serializer', () => {
   describe('toDocumentMask', () => {
     addEqualityMatcher();
 
-    // TODO(b/34988481): Implement correct escaping.
-    xit('converts a weird path', () => {
+    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
       const mask = new FieldMask([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
@@ -599,8 +615,8 @@ describe('Serializer', () => {
   describe('fromDocumentMask', () => {
     addEqualityMatcher();
 
-    // TODO(b/34988481): Implement correct escaping.
-    xit('converts a weird path', () => {
+    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    it.skip('converts a weird path', () => {
       const expected = new FieldMask([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
@@ -623,7 +639,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs) {
+    function verifyMutation(mutation: Mutation, proto: AnyJs): void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);
@@ -670,14 +686,43 @@ describe('Serializer', () => {
       verifyMutation(mutation, proto);
     });
 
-    it('TransformMutation', () => {
-      const mutation = transformMutation('baz/quux', ['a', 'bar.baz']);
+    it('TransformMutation (ServerTimestamp transform)', () => {
+      const mutation = transformMutation('baz/quux', {
+        a: FieldValue.serverTimestamp(),
+        'bar.baz': FieldValue.serverTimestamp()
+      });
       const proto = {
         transform: {
           document: s.toName(mutation.key),
           fieldTransforms: [
             { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
             { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
+          ]
+        },
+        currentDocument: { exists: true }
+      };
+      verifyMutation(mutation, proto);
+    });
+
+    it('TransformMutation (Array transforms)', () => {
+      const mutation = transformMutation('docs/1', {
+        a: FieldValue._arrayUnion('a', 2),
+        'bar.baz': FieldValue._arrayRemove({ x: 1 })
+      });
+      const proto: api.Write = {
+        transform: {
+          document: s.toName(mutation.key),
+          fieldTransforms: [
+            {
+              fieldPath: 'a',
+              appendMissingElements: {
+                values: [s.toValue(wrap('a')), s.toValue(wrap(2))]
+              }
+            },
+            {
+              fieldPath: 'bar.baz',
+              removeAllFromArray: { values: [s.toValue(wrap({ x: 1 }))] }
+            }
           ]
         },
         currentDocument: { exists: true }
@@ -777,6 +822,19 @@ describe('Serializer', () => {
           field: { fieldPath: 'field' },
           op: 'GREATER_THAN_OR_EQUAL',
           value: { doubleValue: 1e100 }
+        }
+      });
+      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+    });
+
+    it('converts array-contains', () => {
+      const input = filter('field', 'array-contains', 42);
+      const actual = s.toRelationFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: 'field' },
+          op: 'ARRAY_CONTAINS',
+          value: { integerValue: '42' }
         }
       });
       expect(s.fromRelationFilter(actual)).to.deep.equal(input);
@@ -923,7 +981,8 @@ describe('Serializer', () => {
         .addFilter(filter('prop', '<', 42))
         .addFilter(filter('name', '==', 'dimond'))
         .addFilter(filter('nan', '==', NaN))
-        .addFilter(filter('null', '==', null));
+        .addFilter(filter('null', '==', null))
+        .addFilter(filter('tags', 'array-contains', 'pending'));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -958,6 +1017,13 @@ describe('Serializer', () => {
                     unaryFilter: {
                       field: { fieldPath: 'null' },
                       op: 'IS_NULL'
+                    }
+                  },
+                  {
+                    fieldFilter: {
+                      field: { fieldPath: 'tags' },
+                      op: 'ARRAY_CONTAINS',
+                      value: { stringValue: 'pending' }
                     }
                   }
                 ]

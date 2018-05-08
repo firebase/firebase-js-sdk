@@ -59,8 +59,8 @@ function withDb(
     });
 }
 
-function getAllObjectStores(db: IDBDatabase): String[] {
-  const objectStores: String[] = [];
+function getAllObjectStores(db: IDBDatabase): string[] {
+  const objectStores: string[] = [];
   for (let i = 0; i < db.objectStoreNames.length; ++i) {
     objectStores.push(db.objectStoreNames.item(i));
   }
@@ -86,6 +86,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   }
 
   beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
   it('can install schema version 1', () => {
     return withDb(1, db => {

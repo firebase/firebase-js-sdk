@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import * as firestore from '@firebase/firestore-types';
+
+import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
-import { Timestamp } from '../core/timestamp';
 import { DocumentKey } from '../model/document_key';
 import { FieldValue, ObjectValue } from '../model/field_value';
 import {
@@ -36,7 +38,6 @@ import {
   Mutation,
   PatchMutation,
   Precondition,
-  ServerTimestampTransform,
   SetMutation,
   TransformMutation
 } from '../model/mutation';
@@ -58,9 +59,16 @@ import {
 import {
   DeleteFieldValueImpl,
   FieldValueImpl,
-  ServerTimestampFieldValueImpl
+  ServerTimestampFieldValueImpl,
+  ArrayUnionFieldValueImpl,
+  ArrayRemoveFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
+import {
+  ServerTimestampTransform,
+  ArrayUnionTransformOperation,
+  ArrayRemoveTransformOperation
+} from '../model/transform_operation';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -116,16 +124,20 @@ enum UserDataSource {
   Set,
   Update,
   MergeSet,
-  QueryValue // from a where clause or cursor bound
+  /**
+   * Indicates the source is a where clause, cursor bound, arrayUnion()
+   * element, etc. Of note, isWrite(source) will return false.
+   */
+  Argument
 }
 
-function isWrite(dataSource: UserDataSource) {
+function isWrite(dataSource: UserDataSource): boolean {
   switch (dataSource) {
     case UserDataSource.Set: // fall through
     case UserDataSource.MergeSet: // fall through
     case UserDataSource.Update:
       return true;
-    case UserDataSource.QueryValue:
+    case UserDataSource.Argument:
       return false;
     default:
       throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
@@ -230,7 +242,7 @@ class ParseContext {
     );
   }
 
-  private validatePath() {
+  private validatePath(): void {
     // TODO(b/34871131): Remove null check once we have proper paths for fields
     // within arrays.
     if (this.path === null) {
@@ -241,7 +253,7 @@ class ParseContext {
     }
   }
 
-  private validatePathSegment(segment: string) {
+  private validatePathSegment(segment: string): void {
     if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
       throw this.createError('Document fields cannot begin and end with __');
     }
@@ -297,7 +309,11 @@ export class UserDataConverter {
   }
 
   /** Parse document data from a set() call with '{merge:true}'. */
-  parseMergeData(methodName: string, input: AnyJs): ParsedSetData {
+  parseMergeData(
+    methodName: string,
+    input: AnyJs,
+    fieldPaths?: Array<string | firestore.FieldPath>
+  ): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.MergeSet,
       methodName,
@@ -305,12 +321,48 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const updateData = this.parseData(input, context);
-    const fieldMask = new FieldMask(context.fieldMask);
+    const updateData = this.parseData(input, context) as ObjectValue;
+    let fieldMask: FieldMask;
+    let fieldTransforms: FieldTransform[];
+
+    if (!fieldPaths) {
+      fieldMask = new FieldMask(context.fieldMask);
+      fieldTransforms = context.fieldTransforms;
+    } else {
+      const validatedFieldPaths = [];
+
+      for (const stringOrFieldPath of fieldPaths) {
+        let fieldPath;
+
+        if (stringOrFieldPath instanceof ExternalFieldPath) {
+          fieldPath = stringOrFieldPath as ExternalFieldPath;
+        } else if (typeof stringOrFieldPath === 'string') {
+          fieldPath = fieldPathFromDotSeparatedString(
+            methodName,
+            stringOrFieldPath
+          );
+        } else {
+          fail('Expected stringOrFieldPath to be a string or a FieldPath');
+        }
+
+        if (!updateData.contains(fieldPath)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
+          );
+        }
+        validatedFieldPaths.push(fieldPath);
+      }
+
+      fieldMask = new FieldMask(validatedFieldPaths);
+      fieldTransforms = context.fieldTransforms.filter(transform =>
+        fieldMask.covers(transform.field)
+      );
+    }
     return new ParsedSetData(
       updateData as ObjectValue,
       fieldMask,
-      context.fieldTransforms
+      fieldTransforms
     );
   }
 
@@ -407,7 +459,7 @@ export class UserDataConverter {
    */
   parseQueryValue(methodName: string, input: AnyJs): FieldValue {
     const context = new ParseContext(
-      UserDataSource.QueryValue,
+      UserDataSource.Argument,
       methodName,
       FieldPath.EMPTY_PATH
     );
@@ -441,29 +493,49 @@ export class UserDataConverter {
    */
   private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
-    if (input instanceof Array) {
-      // TODO(b/34871131): Include the path containing the array in the error
-      // message.
-      if (context.arrayElement) {
-        throw context.createError('Nested arrays are not supported');
-      }
-      // If context.path is null we are already inside an array and we don't
-      // support field mask paths more granular than the top-level array.
-      if (context.path) {
-        context.fieldMask.push(context.path);
-      }
-      return this.parseArray(input as AnyJs[], context);
-    } else if (looksLikeJsonObject(input)) {
+    if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
       return this.parseObject(input as Dict<AnyJs>, context);
+    } else if (input instanceof FieldValueImpl) {
+      // FieldValues usually parse into transforms (except FieldValue.delete())
+      // in which case we do not want to include this field in our parsed data
+      // (as doing so will overwrite the field directly prior to the transform
+      // trying to transform it). So we don't add this location to
+      // context.fieldMask and we return null as our parsing result.
+      this.parseSentinelFieldValue(input, context);
+      return null;
     } else {
-      // If context.path is null, we are inside an array and we should have
-      // already added the root of the array to the field mask.
+      // If context.path is null we are inside an array and we don't support
+      // field mask paths more granular than the top-level array.
       if (context.path) {
         context.fieldMask.push(context.path);
       }
-      return this.parseScalarValue(input, context);
+
+      if (input instanceof Array) {
+        // TODO(b/34871131): Include the path containing the array in the error
+        // message.
+        if (context.arrayElement) {
+          throw context.createError('Nested arrays are not supported');
+        }
+        return this.parseArray(input as AnyJs[], context);
+      } else {
+        return this.parseScalarValue(input, context);
+      }
     }
+  }
+
+  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
+    let result = new SortedMap<string, FieldValue>(primitiveComparator);
+    objUtils.forEach(obj, (key: string, val: AnyJs) => {
+      const parsedValue = this.parseData(
+        val,
+        context.childContextForField(key)
+      );
+      if (parsedValue != null) {
+        result = result.insert(key, parsedValue);
+      }
+    });
+    return new ObjectValue(result);
   }
 
   private parseArray(array: AnyJs[], context: ParseContext): FieldValue {
@@ -485,30 +557,81 @@ export class UserDataConverter {
     return new ArrayValue(result);
   }
 
-  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
-    let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
+  /**
+   * "Parses" the provided FieldValueImpl, adding any necessary transforms to
+   * context.fieldTransforms.
+   */
+  private parseSentinelFieldValue(
+    value: FieldValueImpl,
+    context: ParseContext
+  ): void {
+    // Sentinels are only supported with writes, and not within arrays.
+    if (!isWrite(context.dataSource)) {
+      throw context.createError(
+        `${value.methodName}() can only be used with update() and set()`
       );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
+    }
+    if (context.path === null) {
+      throw context.createError(
+        `${value.methodName}() is not currently supported inside arrays`
+      );
+    }
+
+    if (value instanceof DeleteFieldValueImpl) {
+      if (context.dataSource === UserDataSource.MergeSet) {
+        // No transform to add for a delete, but we need to add it to our
+        // fieldMask so it gets deleted.
+        context.fieldMask.push(context.path);
+      } else if (context.dataSource === UserDataSource.Update) {
+        assert(
+          context.path.length > 0,
+          'FieldValue.delete() at the top level should have already' +
+            ' been handled.'
+        );
+        throw context.createError(
+          'FieldValue.delete() can only appear at the top level ' +
+            'of your update data'
+        );
+      } else {
+        // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
+        throw context.createError(
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
+            '{merge:true}'
+        );
       }
-    });
-    return new ObjectValue(result);
+    } else if (value instanceof ServerTimestampFieldValueImpl) {
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, ServerTimestampTransform.instance)
+      );
+    } else if (value instanceof ArrayUnionFieldValueImpl) {
+      const parsedElements = this.parseArrayTransformElements(
+        value.methodName,
+        value._elements
+      );
+      const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, arrayUnion)
+      );
+    } else if (value instanceof ArrayRemoveFieldValueImpl) {
+      const parsedElements = this.parseArrayTransformElements(
+        value.methodName,
+        value._elements
+      );
+      const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, arrayRemove)
+      );
+    } else {
+      fail('Unknown FieldValue type: ' + value);
+    }
   }
 
   /**
-   * Helper to parse a scalar value (i.e. not an Object or Array)
+   * Helper to parse a scalar value (i.e. not an Object, Array, or FieldValue)
    *
-   * @return The parsed value, or null if the value was a FieldValue sentinel
-   * that should not be included in the resulting parsed data.
+   * @return The parsed value
    */
-  private parseScalarValue(
-    value: AnyJs,
-    context: ParseContext
-  ): FieldValue | null {
+  private parseScalarValue(value: AnyJs, context: ParseContext): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
@@ -523,59 +646,44 @@ export class UserDataConverter {
       return new StringValue(value);
     } else if (value instanceof Date) {
       return new TimestampValue(Timestamp.fromDate(value));
+    } else if (value instanceof Timestamp) {
+      // Firestore backend truncates precision down to microseconds. To ensure
+      // offline mode works the same with regards to truncation, perform the
+      // truncation immediately without waiting for the backend to do that.
+      return new TimestampValue(
+        new Timestamp(
+          value.seconds,
+          Math.floor(value.nanoseconds / 1000) * 1000
+        )
+      );
     } else if (value instanceof GeoPoint) {
       return new GeoPointValue(value);
     } else if (value instanceof Blob) {
       return new BlobValue(value);
     } else if (value instanceof DocumentKeyReference) {
       return new RefValue(value.databaseId, value.key);
-    } else if (value instanceof FieldValueImpl) {
-      if (value instanceof DeleteFieldValueImpl) {
-        if (context.dataSource === UserDataSource.MergeSet) {
-          return null;
-        } else if (context.dataSource === UserDataSource.Update) {
-          assert(
-            context.path == null || context.path.length > 0,
-            'FieldValue.delete() at the top level should have already' +
-              ' been handled.'
-          );
-          throw context.createError(
-            'FieldValue.delete() can only appear at the top level ' +
-              'of your update data'
-          );
-        } else {
-          // We shouldn't encounter delete sentinels for queries or non-merge set() calls.
-          throw context.createError(
-            'FieldValue.delete() can only be used with update() and set() with {merge:true}'
-          );
-        }
-      } else if (value instanceof ServerTimestampFieldValueImpl) {
-        if (!isWrite(context.dataSource)) {
-          throw context.createError(
-            'FieldValue.serverTimestamp() can only be used with set()' +
-              ' and update()'
-          );
-        }
-        if (context.path === null) {
-          throw context.createError(
-            'FieldValue.serverTimestamp() is not currently' +
-              ' supported inside arrays'
-          );
-        }
-        context.fieldTransforms.push(
-          new FieldTransform(context.path, ServerTimestampTransform.instance)
-        );
-
-        // Return null so this value is omitted from the parsed result.
-        return null;
-      } else {
-        return fail('Unknown FieldValue type: ' + value);
-      }
     } else {
       throw context.createError(
         `Unsupported field value: ${valueDescription(value)}`
       );
     }
+  }
+
+  private parseArrayTransformElements(
+    methodName: string,
+    elements: AnyJs[]
+  ): FieldValue[] {
+    return elements.map((element, i) => {
+      // Although array transforms are used with writes, the actual elements
+      // being unioned or removed are not considered writes since they cannot
+      // contain any FieldValue sentinels, etc.
+      const context = new ParseContext(
+        UserDataSource.Argument,
+        methodName,
+        FieldPath.EMPTY_PATH
+      );
+      return this.parseData(element, context.childContextForArray(i));
+    });
   }
 }
 
@@ -592,6 +700,7 @@ function looksLikeJsonObject(input: AnyJs): boolean {
     input !== null &&
     !(input instanceof Array) &&
     !(input instanceof Date) &&
+    !(input instanceof Timestamp) &&
     !(input instanceof GeoPoint) &&
     !(input instanceof Blob) &&
     !(input instanceof DocumentKeyReference) &&
@@ -603,7 +712,7 @@ function validatePlainObject(
   message: string,
   context: ParseContext,
   input: AnyJs
-) {
+): void {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
     const description = valueDescription(input);
     if (description === 'an object') {

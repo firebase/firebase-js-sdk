@@ -143,11 +143,8 @@ export class EventManager {
 }
 
 export interface ListenOptions {
-  /** Raise events when only metadata of documents changes */
-  readonly includeDocumentMetadataChanges?: boolean;
-
-  /** Raise events when only metadata of the query changes */
-  readonly includeQueryMetadataChanges?: boolean;
+  /** Raise events even when only the metadata changes */
+  readonly includeMetadataChanges?: boolean;
 
   /**
    * Wait for a sync with the server when online, but still raise events while
@@ -189,7 +186,7 @@ export class QueryListener {
       'We got a new snapshot with no changes?'
     );
 
-    if (!this.options.includeDocumentMetadataChanges) {
+    if (!this.options.includeMetadataChanges) {
       // Remove the metadata only changes.
       const docChanges: DocumentViewChange[] = [];
       for (const docChange of snap.docChanges) {
@@ -204,7 +201,8 @@ export class QueryListener {
         docChanges,
         snap.fromCache,
         snap.hasPendingWrites,
-        snap.syncStateChanged
+        snap.syncStateChanged,
+        /* excludesMetadataChanges= */ true
       );
     }
 
@@ -277,7 +275,7 @@ export class QueryListener {
     const hasPendingWritesChanged =
       this.snap && this.snap.hasPendingWrites !== snap.hasPendingWrites;
     if (snap.syncStateChanged || hasPendingWritesChanged) {
-      return this.options.includeQueryMetadataChanges === true;
+      return this.options.includeMetadataChanges === true;
     }
 
     // Generally we should have hit one of the cases above, but it's possible
@@ -298,7 +296,8 @@ export class QueryListener {
       QueryListener.getInitialViewChanges(snap),
       snap.fromCache,
       snap.hasPendingWrites,
-      true
+      /* syncChangesState= */ true,
+      /* excludesMetadataChanges= */ false
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);

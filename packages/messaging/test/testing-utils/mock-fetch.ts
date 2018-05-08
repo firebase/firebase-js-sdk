@@ -13,34 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const fetchMock = {
-  jsonOk: function(body: string): Promise<Response> {
-    var mockResponse = new (window as any).Response(body, {
+
+export const fetchMock = {
+  async jsonOk(body: string): Promise<Response> {
+    const mockResponse = new (window as any).Response(body, {
       status: 200,
       headers: {
         'Content-type': 'application/json'
       }
     });
-    return Promise.resolve(mockResponse);
+    return mockResponse;
   },
-  jsonError: function(status: number, msg: string): Promise<Response> {
+  async jsonError(status: number, msg: string): Promise<Response> {
     const errorMsg = { error: { message: msg } };
-    var mockResponse = new (window as any).Response(JSON.stringify(errorMsg), {
-      status: status,
-      headers: {
-        'Content-type': 'application/json'
+    const mockResponse = new (window as any).Response(
+      JSON.stringify(errorMsg),
+      {
+        status: status,
+        headers: {
+          'Content-type': 'application/json'
+        }
       }
-    });
-    return Promise.resolve(mockResponse);
+    );
+    return mockResponse;
   },
-  htmlError: function(status: number, msg: string): Promise<Response> {
-    var mockResponse = new (window as any).Response(msg, {
+  async htmlError(status: number, msg: string): Promise<Response> {
+    const mockResponse = new (window as any).Response(msg, {
       status: status,
       headers: {
         'Content-type': 'text/html'
       }
     });
-    return Promise.resolve(mockResponse);
+    return mockResponse;
   }
 };
-export { fetchMock };

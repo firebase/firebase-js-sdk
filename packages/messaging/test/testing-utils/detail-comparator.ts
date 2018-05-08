@@ -13,48 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import arrayBufferToBase64 from '../../src/helpers/array-buffer-to-base64';
-import { assert } from 'chai';
 
-/** Token details that are fed to the database */
-export declare interface InputDetails {
-  swScope: string;
-  vapidKey: Uint8Array;
-  subscription: PushSubscription;
-  fcmSenderId: string;
-  fcmToken: string;
-  fcmPushSet: string;
-}
+import { assert } from 'chai';
+import { isArrayBufferEqual } from '../../src/helpers/is-array-buffer-equal';
+import { TokenDetails } from '../../src/interfaces/token-details';
 
 /** Compares the input details and the saved ones  */
-export function compareDetails(
-  input: InputDetails,
-  saved: Object,
-  now: number
+export function compareDetails(input: TokenDetails, saved: TokenDetails): void {
+  assert.deepEqual(Object.keys(input), Object.keys(saved));
+
+  for (const key of Object.keys(input)) {
+    switch (key) {
+      case 'auth':
+      case 'p256dh':
+        compareArrayBuffer(input[key], saved[key], key);
+        break;
+      case 'vapidKey':
+        compareArrayBuffer(input[key].buffer, saved[key].buffer, key);
+        break;
+      default:
+        compare((input as any)[key], (saved as any)[key], key);
+    }
+  }
+}
+
+function compareArrayBuffer(
+  a: ArrayBufferLike,
+  b: ArrayBufferLike,
+  key: string
 ): void {
-  const subscriptionKeys = ['endpoint', 'auth', 'p256dh'];
-  const subscriptionValues = {
-    endpoint: input.subscription.endpoint,
-    auth: arrayBufferToBase64(input.subscription.getKey('auth')),
-    p256dh: arrayBufferToBase64(input.subscription.getKey('p256dh'))
-  };
+  assert.equal(isArrayBufferEqual(a, b), true, message(key));
+}
 
-  subscriptionKeys.forEach(keyName => {
-    assert.equal(saved[keyName], subscriptionValues[keyName]);
-  });
+function compare(a: {}, b: {}, key: string): void {
+  assert.equal(a, b, message(key));
+}
 
-  Object.keys(saved).forEach(keyName => {
-    if (subscriptionKeys.indexOf(keyName) !== -1) {
-      return;
-    }
-
-    if (keyName === 'createTime') {
-      assert.equal(saved[keyName], now);
-    } else if (keyName === 'vapidKey') {
-      assert.equal(saved[keyName], arrayBufferToBase64(input[keyName]));
-    } else {
-      assert.equal(saved[keyName], input[keyName]);
-    }
-    return true;
-  });
+function message(key: string): string {
+  return `${key} does not match`;
 }

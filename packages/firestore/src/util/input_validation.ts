@@ -169,6 +169,51 @@ export function validateNamedOptionalType(
   }
 }
 
+export function validateArrayElements<T>(
+  functionName: string,
+  optionName: string,
+  typeDescription: string,
+  argument: T[],
+  validator: (T) => boolean
+): void {
+  if (!(argument instanceof Array)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() requires its ${optionName} ` +
+        `option to be an array, but it was: ${valueDescription(argument)}`
+    );
+  }
+
+  for (let i = 0; i < argument.length; ++i) {
+    if (!validator(argument[i])) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Function ${functionName}() requires all ${optionName} ` +
+          `elements to be ${typeDescription}, but the value at index ${i} ` +
+          `was: ${valueDescription(argument[i])}`
+      );
+    }
+  }
+}
+
+export function validateOptionalArrayElements<T>(
+  functionName: string,
+  optionName: string,
+  typeDescription: string,
+  argument: T[] | undefined,
+  validator: (T) => boolean
+): void {
+  if (argument !== undefined) {
+    validateArrayElements(
+      functionName,
+      optionName,
+      typeDescription,
+      argument,
+      validator
+    );
+  }
+}
+
 /**
  * Validates that the provided named option equals one of the expected values.
  */
@@ -240,7 +285,7 @@ function validateType(
  * Returns true iff it's a non-null object without a custom prototype
  * (i.e. excludes Array, Date, etc.).
  */
-export function isPlainObject(input: AnyJs) {
+export function isPlainObject(input: AnyJs): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -249,7 +294,7 @@ export function isPlainObject(input: AnyJs) {
 }
 
 /** Returns a string describing the type / value of the provided input. */
-export function valueDescription(input: AnyJs) {
+export function valueDescription(input: AnyJs): string {
   if (input === undefined) {
     return 'undefined';
   } else if (input === null) {
@@ -314,7 +359,7 @@ export function validateOptionNames(
   functionName: string,
   options: object,
   optionNames: string[]
-) {
+): void {
   obj.forEach(options as obj.Dict<AnyJs>, (key, _) => {
     if (optionNames.indexOf(key) < 0) {
       throw new FirestoreError(
@@ -346,7 +391,7 @@ export function invalidClassError(
 }
 
 /** Converts a number to its english word representation */
-function ordinal(num: number) {
+function ordinal(num: number): string {
   switch (num) {
     case 1:
       return 'first';
@@ -362,6 +407,6 @@ function ordinal(num: number) {
 /**
  * Formats the given word as plural conditionally given the preceding number.
  */
-function formatPlural(num: number, str: string) {
+function formatPlural(num: number, str: string): string {
   return `${num} ${str}` + (num === 1 ? '' : 's');
 }

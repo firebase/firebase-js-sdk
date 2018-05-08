@@ -24,27 +24,78 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  arrayContainsOp
 } from '../util/helpers';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
+interface ValidationIt {
+  (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ): void;
+  skip: (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => void;
+  only: (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => void;
+}
+
 // Since most of our tests are "synchronous" but require a Firestore instance,
 // we have a helper wrapper around it() and withTestDb() to optimize for that.
-function validationIt(
-  persistence: boolean,
-  message: string,
-  testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
-) {
-  it(message, () => {
-    return withTestDb(persistence, async db => {
-      const maybePromise = testFunction(db);
-      if (maybePromise) {
-        return maybePromise;
-      }
+const validationIt: ValidationIt = Object.assign(
+  (
+    persistence: boolean,
+    message: string,
+    testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+  ) => {
+    it(message, () => {
+      return withTestDb(persistence, async db => {
+        const maybePromise = testFunction(db);
+        if (maybePromise) {
+          return maybePromise;
+        }
+      });
     });
-  });
+  },
+  {
+    skip(
+      persistence: boolean,
+      message: string,
+      _: (db: firestore.FirebaseFirestore) => void | Promise<any>
+    ): void {
+      // tslint:disable-next-line:ban
+      it.skip(message, () => {});
+    },
+    only(
+      persistence: boolean,
+      message: string,
+      testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
+    ): void {
+      // tslint:disable-next-line:ban
+      it.only(message, () => {
+        return withTestDb(persistence, async db => {
+          const maybePromise = testFunction(db);
+          if (maybePromise) {
+            return maybePromise;
+          }
+        });
+      });
+    }
+  }
+);
+
+/** Class used to verify custom classes can't be used in writes. */
+class TestClass {
+  constructor(readonly property: string) {}
 }
 
 // NOTE: The JS SDK does extensive validation of argument counts, types, etc.
@@ -232,8 +283,7 @@ apiDescribe('Validation:', persistence => {
 
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
-        `Query.onSnapshot(). Available options: ` +
-        `includeQueryMetadataChanges, includeDocumentMetadataChanges`
+        `Query.onSnapshot(). Available options: includeMetadataChanges`
     );
   });
 
@@ -259,12 +309,29 @@ apiDescribe('Validation:', persistence => {
       });
   });
 
-  describe('Writes', () => {
-    /** Class used to verify custom classes can't be used in writes. */
-    class TestClass {
-      constructor(public readonly property: string) {}
-    }
+  validationIt(persistence, 'Merge options are validated', db => {
+    const docRef = db.collection('test').doc();
 
+    expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+    );
+    expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+    );
+    expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
+      'Function DocumentReference.set() requires its merge option to be of type boolean, but it was: "foo"'
+    );
+    expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
+      'Function DocumentReference.set() requires its mergeFields option to be an array, but it was: "foo"'
+    );
+    expect(() =>
+      docRef.set({}, { mergeFields: ['foo', false as any] })
+    ).to.throw(
+      'Function DocumentReference.set() requires all mergeFields elements to be a string or a FieldPath, but the value at index 1 was: false'
+    );
+  });
+
+  describe('Writes', () => {
     validationIt(persistence, 'must be objects.', db => {
       // PORTING NOTE: The error for firebase.firestore.FieldValue.delete()
       // is different for minified builds, so omit testing it specifically.
@@ -437,7 +504,8 @@ apiDescribe('Validation:', persistence => {
         return expectSetToFail(
           db,
           { foo: firebase.firestore.FieldValue.delete() },
-          'FieldValue.delete() can only be used with update() and set() with {merge:true} (found in field foo)'
+          'FieldValue.delete() cannot be used with set() unless you pass ' +
+            '{merge:true} (found in field foo)'
         );
       }
     );
@@ -527,6 +595,66 @@ apiDescribe('Validation:', persistence => {
     }
   );
 
+  describe('Array transforms', () => {
+    // TODO(array-features): Remove "as any"
+    // tslint:disable-next-line:variable-name Type alias can be capitalized.
+    const FieldValue = firebase.firestore.FieldValue as any;
+
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue._arrayUnion(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayUnion() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue._arrayRemove(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.arrayRemove() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid elements', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, new TestClass('foo')) })
+      ).to.throw(
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
+      );
+
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, new TestClass('foo')) })
+      ).to.throw(
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Unsupported field value: a custom TestClass object'
+      );
+    });
+
+    validationIt(persistence, 'reject arrays', db => {
+      const doc = db.collection('test').doc();
+      // This would result in a directly nested array which is not supported.
+      expect(() =>
+        doc.set({ x: FieldValue._arrayUnion(1, ['nested']) })
+      ).to.throw(
+        'Function FieldValue.arrayUnion() called with invalid data. ' +
+          'Nested arrays are not supported'
+      );
+
+      expect(() =>
+        doc.set({ x: FieldValue._arrayRemove(1, ['nested']) })
+      ).to.throw(
+        'Function FieldValue.arrayRemove() called with invalid data. ' +
+          'Nested arrays are not supported'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
@@ -540,15 +668,28 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    validationIt(persistence, 'with null or NaN inequalities fail', db => {
-      const collection = db.collection('test');
-      expect(() => collection.where('a', '>', null)).to.throw(
-        'Invalid query. You can only perform equals comparisons on ' + 'null.'
-      );
-      expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-        'Invalid query. You can only perform equals comparisons on NaN.'
-      );
-    });
+    validationIt(
+      persistence,
+      'with null or NaN non-equality filters fail',
+      db => {
+        const collection = db.collection('test');
+        expect(() => collection.where('a', '>', null)).to.throw(
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+        expect(() => collection.where('a', arrayContainsOp, null)).to.throw(
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+
+        expect(() => collection.where('a', '>', Number.NaN)).to.throw(
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+        expect(() =>
+          collection.where('a', arrayContainsOp, Number.NaN)
+        ).to.throw(
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+      }
+    );
 
     it('cannot be created from documents missing sort values', () => {
       const testDocs = {
@@ -698,6 +839,17 @@ apiDescribe('Validation:', persistence => {
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
             'FieldPath.documentId(), but it was: 1.'
+        );
+
+        expect(() =>
+          collection.where(
+            firebase.firestore.FieldPath.documentId(),
+            arrayContainsOp,
+            1
+          )
+        ).to.throw(
+          "Invalid Query. You can't perform array-contains queries on " +
+            'FieldPath.documentId() since document IDs are not arrays.'
         );
       }
     );
