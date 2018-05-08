@@ -33,7 +33,8 @@ import { IIDModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
-export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
+// tslint:disable-next-line no-any User can return any type of promise.
+export type BgMessageHandler = (payload: MessagePayload) => Promise<any> | void;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
