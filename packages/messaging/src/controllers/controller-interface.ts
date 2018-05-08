@@ -17,7 +17,13 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseServiceInternals } from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
-import { NextFn, Observer, Unsubscribe } from '@firebase/util';
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Unsubscribe
+} from '@firebase/util';
 
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { MessagePayload } from '../interfaces/message-payload';
@@ -291,17 +297,17 @@ export abstract class ControllerInterface implements FirebaseMessaging {
   }
 
   onMessage(
-    nextOrObserver: NextFn<object> | Observer<object, Error>,
-    error?: (e: Error) => void,
-    completed?: () => void
+    nextOrObserver: NextFn<object> | Observer<object>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
-    nextOrObserver: NextFn<object> | Observer<object, Error>,
-    error?: (e: Error) => void,
-    completed?: () => void
+    nextOrObserver: NextFn<object> | Observer<object>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
   }

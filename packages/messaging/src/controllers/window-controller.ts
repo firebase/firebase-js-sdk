@@ -16,7 +16,9 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import {
+  CompleteFn,
   createSubscribe,
+  ErrorFn,
   NextFn,
   Observer,
   Subscribe,
@@ -39,9 +41,9 @@ export class WindowController extends ControllerInterface {
   private publicVapidKeyToUse: Uint8Array | null = null;
   private manifestCheckPromise: Promise<void> | null = null;
 
-  private messageObserver: Observer<object, Error> | null = null;
+  private messageObserver: Observer<object> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
-  private tokenRefreshObserver: Observer<object, Error> | null = null;
+  private tokenRefreshObserver: Observer<object> | null = null;
 
   private readonly onMessageInternal: Subscribe<object> = createSubscribe(
     observer => {
@@ -215,9 +217,9 @@ export class WindowController extends ControllerInterface {
    * @return The unsubscribe function for the observer.
    */
   onMessage(
-    nextOrObserver: NextFn<object> | Observer<object, Error>,
-    error?: (e: Error) => void,
-    completed?: () => void
+    nextOrObserver: NextFn<object> | Observer<object>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
       return this.onMessageInternal(nextOrObserver, error, completed);
@@ -234,9 +236,9 @@ export class WindowController extends ControllerInterface {
    * @return The unsubscribe function for the observer.
    */
   onTokenRefresh(
-    nextOrObserver: NextFn<object> | Observer<object, Error>,
-    error?: (e: Error) => void,
-    completed?: () => void
+    nextOrObserver: NextFn<object> | Observer<object>,
+    error?: ErrorFn,
+    completed?: CompleteFn
   ): Unsubscribe {
     if (typeof nextOrObserver === 'function') {
       return this.onTokenRefreshInternal(nextOrObserver, error, completed);
