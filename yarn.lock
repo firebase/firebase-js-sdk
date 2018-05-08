@@ -14,11 +14,31 @@
     "@firebase/util" "0.1.10"
     tslib "^1.9.0"
 
+"@firebase/database-types@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/@firebase/database-types/-/database-types-0.2.1.tgz#f83a6d03af5f8c93276ceb89e1f31e4664c9df1b"
+
+"@firebase/database@^0.2.0":
+  version "0.2.2"
+  resolved "https://registry.npmjs.org/@firebase/database/-/database-0.2.2.tgz#a8a0709644d7f281b400e983c71c8c65fba90c70"
+  dependencies:
+    "@firebase/database-types" "0.2.1"
+    "@firebase/logger" "0.1.1"
+    "@firebase/util" "0.1.11"
+    faye-websocket "0.11.1"
+    tslib "1.9.0"
+
 "@firebase/util@0.1.10":
   version "0.1.10"
   resolved "https://registry.npmjs.org/@firebase/util/-/util-0.1.10.tgz#7898f6e36c8231c287c4024c313000df677b1363"
   dependencies:
     tslib "^1.9.0"
+
+"@firebase/util@0.1.11":
+  version "0.1.11"
+  resolved "https://registry.npmjs.org/@firebase/util/-/util-0.1.11.tgz#9990dff53930aa9fcae31494ebe8de5c5b8e815c"
+  dependencies:
+    tslib "1.9.0"
 
 "@google-cloud/common-grpc@^0.6.0":
   version "0.6.1"
