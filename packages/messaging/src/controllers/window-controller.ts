@@ -81,46 +81,10 @@ export class WindowController extends ControllerInterface {
    */
   async getToken(): Promise<string | null> {
     if (!this.manifestCheckPromise) {
-      this.manifestCheckPromise = this.manifestCheck_();
+      this.manifestCheckPromise = manifestCheck();
     }
     await this.manifestCheckPromise;
     return super.getToken();
-  }
-
-  /**
-   * The method checks that a manifest is defined and has the correct GCM
-   * sender ID.
-   * @return Returns a promise that resolves if the manifest matches
-   * our required sender ID
-   */
-  // Visible for testing
-  // TODO: make private
-  async manifestCheck_(): Promise<void> {
-    const manifestTag = document.querySelector<HTMLAnchorElement>(
-      'link[rel="manifest"]'
-    );
-
-    if (!manifestTag) {
-      return;
-    }
-
-    let manifestContent: ManifestContent;
-    try {
-      const response = await fetch(manifestTag.href);
-      manifestContent = await response.json();
-    } catch (e) {
-      // If the download or parsing fails allow check.
-      // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-      return;
-    }
-
-    if (!manifestContent || !manifestContent.gcm_sender_id) {
-      return;
-    }
-
-    if (manifestContent.gcm_sender_id !== '103953800507') {
-      throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
-    }
   }
 
   /**
@@ -352,5 +316,40 @@ export class WindowController extends ControllerInterface {
       },
       false
     );
+  }
+}
+
+/**
+ * The method checks that a manifest is defined and has the correct GCM
+ * sender ID.
+ * @return Returns a promise that resolves if the manifest matches
+ * our required sender ID
+ */
+// Exported for testing
+export async function manifestCheck(): Promise<void> {
+  const manifestTag = document.querySelector<HTMLAnchorElement>(
+    'link[rel="manifest"]'
+  );
+
+  if (!manifestTag) {
+    return;
+  }
+
+  let manifestContent: ManifestContent;
+  try {
+    const response = await fetch(manifestTag.href);
+    manifestContent = await response.json();
+  } catch (e) {
+    // If the download or parsing fails allow check.
+    // We only want to error if we KNOW that the gcm_sender_id is incorrect.
+    return;
+  }
+
+  if (!manifestContent || !manifestContent.gcm_sender_id) {
+    return;
+  }
+
+  if (manifestContent.gcm_sender_id !== '103953800507') {
+    throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
   }
 }
