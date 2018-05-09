@@ -19,7 +19,10 @@ import * as sinon from 'sinon';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
-import { WindowController } from '../src/controllers/window-controller';
+import {
+  manifestCheck,
+  WindowController
+} from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
@@ -46,15 +49,14 @@ describe('Firebase Messaging > *WindowController', () => {
     return cleanup();
   });
 
-  describe('manifestCheck_()', () => {
+  describe('manifestCheck()', () => {
     it("should resolve when the tag isn't defined", () => {
       sandbox
         .stub(document, 'querySelector')
         .withArgs('link[rel="manifest"]')
         .returns(null);
 
-      const controller = new WindowController(app);
-      return controller.manifestCheck_();
+      return manifestCheck();
     });
 
     it('should fetch the manifest if defined and resolve when no gcm_sender_id', () => {
@@ -76,8 +78,7 @@ describe('Firebase Messaging > *WindowController', () => {
           })
         );
 
-      const controller = new WindowController(app);
-      return controller.manifestCheck_();
+      return manifestCheck();
     });
 
     it('should fetch the manifest if defined and resolve with expected gcm_sender_id', () => {
@@ -101,8 +102,7 @@ describe('Firebase Messaging > *WindowController', () => {
           })
         );
 
-      const controller = new WindowController(app);
-      return controller.manifestCheck_();
+      return manifestCheck();
     });
 
     it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', () => {
@@ -126,8 +126,7 @@ describe('Firebase Messaging > *WindowController', () => {
           })
         );
 
-      const controller = new WindowController(app);
-      return controller.manifestCheck_().then(
+      return manifestCheck().then(
         () => {
           throw new Error('Expected error to be thrown.');
         },
@@ -150,8 +149,7 @@ describe('Firebase Messaging > *WindowController', () => {
         .withArgs('https://firebase.io/messaging/example')
         .returns(Promise.reject(new Error('Injected Failure.')));
 
-      const controller = new WindowController(app);
-      return controller.manifestCheck_();
+      return manifestCheck();
     });
   });
 
@@ -202,16 +200,6 @@ describe('Firebase Messaging > *WindowController', () => {
       sandbox
         .stub(Notification, 'requestPermission')
         .returns(Promise.resolve('granted'));
-
-      const controller = new WindowController(app);
-      return controller.requestPermission();
-    });
-
-    it('should resolve if the requestPermission() is granted using old callback API', () => {
-      sandbox.stub(Notification as any, 'permission').value('default');
-      sandbox.stub(Notification, 'requestPermission').callsFake(cb => {
-        cb('granted');
-      });
 
       const controller = new WindowController(app);
       return controller.requestPermission();
