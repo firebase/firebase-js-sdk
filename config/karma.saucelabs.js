@@ -18,6 +18,7 @@ const glob = require('glob');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
+const mochaBase = require('./mocha.base');
 
 /** Tests in these packages are excluded due to flakiness or long run time. */
 const excluded = ['integration/firestore/*', 'integration/messaging/*'];
@@ -123,20 +124,22 @@ module.exports = function(config) {
     // concurrency: 10,
 
     client: {
-      mocha: {
-        timeout: 20000,
-        retries: 3,
+      mocha: Object.assign({}, mochaBase, {
+        // TODO(b/78474429, b/78473696): The tests matched by this regex
+        // are currently failing in the saucelabs cross-browser tests. They
+        // are disabled until we have a chance to investigate / fix them.
         grep:
-          'Crawler Support|local timestamp|raises error event|handles failures',
+          'Crawler Support' +
+          '|Transaction Tests server values: local timestamp should eventually \\(but not immediately\\) match the server with txns' +
+          '|QueryListener raises error event' +
+          '|AsyncQueue handles failures',
         invert: true
-      }
+      })
     },
-
-    browserConsoleLogOptions: { terminal: false },
 
     specReporter: {
       maxLogLines: 5,
-      suppressErrorSummary: true,
+      suppressErrorSummary: false,
       suppressFailed: false,
       suppressPassed: true,
       suppressSkipped: true,
@@ -156,6 +159,13 @@ module.exports = function(config) {
       accessKey: process.env.SAUCE_ACCESS_KEY,
       startConnect: true,
       connectOptions: {
+        // Realtime Database uses WebSockets to connect to firebaseio.com
+        // so we have to set noSslBumpDomains. Theoretically SSL Bumping
+        // only needs to be disabled for 'firebaseio.com'. However, we are
+        // seeing much longer test time with that configuration, so leave
+        // it as 'all' for now.
+        // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
+        // for more details.
         noSslBumpDomains: 'all'
       }
     }
