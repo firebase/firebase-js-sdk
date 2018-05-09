@@ -38,7 +38,9 @@ export class FirebaseMessaging {
     completed?: CompleteFn
   ): Unsubscribe;
   requestPermission(): Promise<void>;
-  setBackgroundMessageHandler(callback: (a: any) => Promise<void>): void;
+  setBackgroundMessageHandler(
+    callback: (payload: any) => Promise<any> | void
+  ): void;
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
 }

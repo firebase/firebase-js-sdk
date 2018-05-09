@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 declare namespace firebase {
+  type NextFn<T> = (value: T) => void;
+  type ErrorFn<E = Error> = (error: E) => void;
   type CompleteFn = () => void;
 
   interface FirebaseError {
@@ -23,10 +25,10 @@ declare namespace firebase {
     stack?: string;
   }
 
-  interface Observer<V, E> {
-    complete(): any;
-    error(error: E): any;
-    next(value: V | null): any;
+  interface Observer<T, E = Error> {
+    next: NextFn<T>;
+    error: ErrorFn<E>;
+    complete: CompleteFn;
   }
 
   var SDK_VERSION: string;
@@ -215,14 +217,14 @@ declare namespace firebase.auth {
     settings: firebase.auth.AuthSettings;
     onAuthStateChanged(
       nextOrObserver:
-        | firebase.Observer<any, any>
+        | firebase.Observer<any>
         | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
     onIdTokenChanged(
       nextOrObserver:
-        | firebase.Observer<any, any>
+        | firebase.Observer<any>
         | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
@@ -553,17 +555,23 @@ declare namespace firebase.messaging {
   }
 
   interface Messaging {
-    deleteToken(token: string): Promise<any> | null;
-    getToken(): Promise<any> | null;
+    deleteToken(token: string): Promise<boolean>;
+    getToken(): Promise<string | null>;
     onMessage(
-      nextOrObserver: firebase.Observer<any, any> | ((a: Object) => any)
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
     onTokenRefresh(
-      nextOrObserver: firebase.Observer<any, any> | ((a: Object) => any)
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
-    requestPermission(): Promise<any> | null;
-    setBackgroundMessageHandler(callback: (a: Object) => any): any;
-    useServiceWorker(registration: any): any;
+    requestPermission(): Promise<void>;
+    setBackgroundMessageHandler(
+      callback: (payload: any) => Promise<any> | void
+    ): void;
+    useServiceWorker(registration: ServiceWorkerRegistration): void;
     usePublicVapidKey(b64PublicKey: string): void;
   }
 }
@@ -662,10 +670,7 @@ declare namespace firebase.storage {
     catch(onRejected: (a: Error) => any): Promise<any>;
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?:
-        | firebase.Observer<any, any>
-        | null
-        | ((a: Object) => any),
+      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;

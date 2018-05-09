@@ -33,7 +33,8 @@ import { IIDModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
-export type BgMessageHandler = (input: MessagePayload) => Promise<void>;
+// tslint:disable-next-line no-any User can return any type of promise.
+export type BgMessageHandler = (payload: MessagePayload) => Promise<any> | void;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
@@ -76,15 +77,11 @@ export abstract class ControllerInterface implements FirebaseMessaging {
   async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
-    if (currentPermission !== 'granted') {
-      if (currentPermission === 'denied') {
-        return Promise.reject(
-          errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
-        );
-      }
-
+    if (currentPermission === 'denied') {
+      throw errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED);
+    } else if (currentPermission !== 'granted') {
       // We must wait for permission to be granted
-      return Promise.resolve(null);
+      return null;
     }
 
     const swReg = await this.getSWRegistration_();
@@ -222,7 +219,6 @@ export abstract class ControllerInterface implements FirebaseMessaging {
    * unsubscribes the token from FCM  and then unregisters the push
    * subscription if it exists. It returns a promise that indicates
    * whether or not the unsubscribe request was processed successfully.
-   * @export
    */
   async deleteToken(token: string): Promise<boolean> {
     // Delete the token details from the database.
@@ -370,6 +366,7 @@ function isTokenStillValid(
   tokenDetails: TokenDetails
 ): boolean {
   if (
+    !tokenDetails.vapidKey ||
     !isArrayBufferEqual(publicVapidKey.buffer, tokenDetails.vapidKey.buffer)
   ) {
     return false;
