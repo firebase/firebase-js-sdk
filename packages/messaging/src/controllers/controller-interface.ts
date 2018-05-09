@@ -371,6 +371,7 @@ function isTokenStillValid(
   tokenDetails: TokenDetails
 ): boolean {
   if (
+    !tokenDetails.vapidKey ||
     !isArrayBufferEqual(publicVapidKey.buffer, tokenDetails.vapidKey.buffer)
   ) {
     return false;
