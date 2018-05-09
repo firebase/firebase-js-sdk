@@ -36,6 +36,10 @@ import {
 } from '../models/worker-page-message';
 import { ControllerInterface } from './controller-interface';
 
+interface ManifestContent {
+  gcm_sender_id: string;
+}
+
 export class WindowController extends ControllerInterface {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
@@ -75,55 +79,12 @@ export class WindowController extends ControllerInterface {
    * @return Returns a promise that resolves to an FCM token or null if
    * permission isn't granted.
    */
-  getToken(): Promise<string | null> {
-    return this.manifestCheck_().then(() => {
-      return super.getToken();
-    });
-  }
-
-  /**
-   * The method checks that a manifest is defined and has the correct GCM
-   * sender ID.
-   * @return Returns a promise that resolves if the manifest matches
-   * our required sender ID
-   */
-  // Visible for testing
-  // TODO: make private
-  manifestCheck_(): Promise<void> {
-    if (this.manifestCheckPromise) {
-      return this.manifestCheckPromise;
+  async getToken(): Promise<string | null> {
+    if (!this.manifestCheckPromise) {
+      this.manifestCheckPromise = manifestCheck();
     }
-
-    const manifestTag = document.querySelector<HTMLAnchorElement>(
-      'link[rel="manifest"]'
-    );
-    if (!manifestTag) {
-      this.manifestCheckPromise = Promise.resolve();
-    } else {
-      this.manifestCheckPromise = fetch(manifestTag.href)
-        .then(response => {
-          return response.json();
-        })
-        .catch(() => {
-          // If the download or parsing fails allow check.
-          // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-        })
-        .then(manifestContent => {
-          if (!manifestContent) {
-            return;
-          }
-
-          if (!manifestContent['gcm_sender_id']) {
-            return;
-          }
-
-          if (manifestContent['gcm_sender_id'] !== '103953800507') {
-            throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
-          }
-        });
-    }
-
-    return this.manifestCheckPromise;
+    await this.manifestCheckPromise;
+    return super.getToken();
   }
 
   /**
@@ -132,37 +93,18 @@ export class WindowController extends ControllerInterface {
    * @return Resolves if the permission was granted, otherwise rejects
    */
   async requestPermission(): Promise<void> {
-    if (
-      // TODO: Remove the cast when this issue is fixed:
-      // https://github.com/Microsoft/TypeScript/issues/14701
-      // tslint:disable-next-line no-any
-      ((Notification as any).permission as NotificationPermission) === 'granted'
-    ) {
+    if (this.getNotificationPermission_() === 'granted') {
       return;
     }
 
-    return new Promise<void>((resolve, reject) => {
-      const managePermissionResult = (result: NotificationPermission) => {
-        if (result === 'granted') {
-          return resolve();
-        } else if (result === 'denied') {
-          return reject(errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED));
-        } else {
-          return reject(errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT));
-        }
-      };
-
-      // The Notification.requestPermission API was changed to
-      // return a promise so now have to handle both in case
-      // browsers stop support callbacks for promised version
-      const permissionPromise = Notification.requestPermission(
-        managePermissionResult
-      );
-      if (permissionPromise) {
-        // Prefer the promise version as it's the future API.
-        permissionPromise.then(managePermissionResult);
-      }
-    });
+    const permissionResult = await Notification.requestPermission();
+    if (permissionResult === 'granted') {
+      return;
+    } else if (permissionResult === 'denied') {
+      throw errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED);
+    } else {
+      throw errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT);
+    }
   }
 
   /**
@@ -334,12 +276,12 @@ export class WindowController extends ControllerInterface {
    * This will return the default VAPID key or the uint8array version of the public VAPID key
    * provided by the developer.
    */
-  getPublicVapidKey_(): Promise<Uint8Array> {
+  async getPublicVapidKey_(): Promise<Uint8Array> {
     if (this.publicVapidKeyToUse) {
-      return Promise.resolve(this.publicVapidKeyToUse);
+      return this.publicVapidKeyToUse;
     }
 
-    return Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY);
+    return DEFAULT_PUBLIC_VAPID_KEY;
   }
 
   /**
@@ -374,5 +316,40 @@ export class WindowController extends ControllerInterface {
       },
       false
     );
+  }
+}
+
+/**
+ * The method checks that a manifest is defined and has the correct GCM
+ * sender ID.
+ * @return Returns a promise that resolves if the manifest matches
+ * our required sender ID
+ */
+// Exported for testing
+export async function manifestCheck(): Promise<void> {
+  const manifestTag = document.querySelector<HTMLAnchorElement>(
+    'link[rel="manifest"]'
+  );
+
+  if (!manifestTag) {
+    return;
+  }
+
+  let manifestContent: ManifestContent;
+  try {
+    const response = await fetch(manifestTag.href);
+    manifestContent = await response.json();
+  } catch (e) {
+    // If the download or parsing fails allow check.
+    // We only want to error if we KNOW that the gcm_sender_id is incorrect.
+    return;
+  }
+
+  if (!manifestContent || !manifestContent.gcm_sender_id) {
+    return;
+  }
+
+  if (manifestContent.gcm_sender_id !== '103953800507') {
+    throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
   }
 }
