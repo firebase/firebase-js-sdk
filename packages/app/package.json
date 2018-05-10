@@ -3,8 +3,10 @@
   "version": "0.3.0",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.node.cjs.js",
+  "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "react-native": "dist/index.rn.cjs.js",
   "files": [
     "dist"
   ],
@@ -21,7 +23,9 @@
   "dependencies": {
     "@firebase/app-types": "0.3.0",
     "@firebase/util": "0.2.0",
-    "tslib": "1.9.0"
+    "tslib": "1.9.0",
+    "dom-storage": "2.1.0",
+    "xmlhttprequest": "1.8.0"
   },
   "devDependencies": {
     "@types/chai": "4.1.2",

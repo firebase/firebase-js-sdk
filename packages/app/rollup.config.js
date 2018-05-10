@@ -39,12 +39,32 @@ const plugins = [
 const external = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
-export default {
-  input: 'index.ts',
-  output: [
-    { file: pkg.main, format: 'cjs' },
-    { file: pkg.module, format: 'es' }
-  ],
-  plugins,
-  external
-};
+export default [
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.browser, format: 'cjs' },
+      { file: pkg.module, format: 'es' }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: 'index.node.ts',
+    output: {
+      file: pkg.main,
+      format: 'cjs'
+    },
+    plugins,
+    external
+  },
+  {
+    input: 'index.rn.ts',
+    output: {
+      file: pkg['react-native'],
+      format: 'cjs'
+    },
+    plugins,
+    external: [...external, 'react-native']
+  }
+];
