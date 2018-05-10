@@ -20,7 +20,6 @@ packages/storage-types  @sphippen
 
 # Messaging Code
 packages/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
-packages/messaging-types  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 integration/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 
 # Auth Code

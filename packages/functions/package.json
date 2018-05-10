@@ -64,7 +64,6 @@
   "typings": "dist/index.d.ts",
   "dependencies": {
     "@firebase/functions-types": "0.1.2",
-    "@firebase/messaging-types": "0.2.2",
     "isomorphic-fetch": "2.2.1"
   },
   "nyc": {

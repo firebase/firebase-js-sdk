@@ -14,31 +14,32 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
-  Observer,
-  Unsubscribe,
-  NextFn,
+  CompleteFn,
   ErrorFn,
-  CompleteFn
+  NextFn,
+  Observer,
+  Unsubscribe
 } from '@firebase/util';
 
-export class FirebaseMessaging {
-  private constructor();
+export interface FirebaseMessaging {
   deleteToken(token: string): Promise<boolean>;
   getToken(): Promise<string | null>;
   onMessage(
+    // tslint:disable-next-line no-any The message payload can be anything.
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
   onTokenRefresh(
+    // tslint:disable-next-line no-any Not implemented yet.
     nextOrObserver: NextFn<any> | Observer<any>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;
   requestPermission(): Promise<void>;
   setBackgroundMessageHandler(
+    // tslint:disable no-any The message payload can be anything.
     callback: (payload: any) => Promise<any> | void
   ): void;
   useServiceWorker(registration: ServiceWorkerRegistration): void;
