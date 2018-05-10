@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 
 /**
  * Verifying the namespace types are properly exposed from the `firebase`
