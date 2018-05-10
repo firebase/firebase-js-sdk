@@ -25,7 +25,9 @@ import {
   withAlternateTestDb,
   withTestCollection,
   withTestDb,
-  arrayContainsOp, withTestDoc, withTestDocAndInitialData
+  arrayContainsOp,
+  withTestDoc,
+  withTestDocAndInitialData
 } from '../util/helpers';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -561,17 +563,17 @@ apiDescribe('Validation:', persistence => {
   );
 
   validationIt(persistence, 'Field paths must not have empty segments', db => {
-   return withTestDocAndInitialData(persistence, {}, docRef => {
-     const badFieldPaths = ['', 'foo..baz', '.foo', 'foo.'];
-     const promises = [];
-     for (const fieldPath of badFieldPaths) {
-       const reason =
-           `Invalid field path (${fieldPath}). Paths must not be ` +
-           `empty, begin with '.', end with '.', or contain '..'`;
-       promises.push(expectFieldPathToFail(docRef, fieldPath, reason));
-     }
-     return Promise.all(promises).then(() => {});
-   });
+    return withTestDocAndInitialData(persistence, {}, docRef => {
+      const badFieldPaths = ['', 'foo..baz', '.foo', 'foo.'];
+      const promises = [];
+      for (const fieldPath of badFieldPaths) {
+        const reason =
+          `Invalid field path (${fieldPath}). Paths must not be ` +
+          `empty, begin with '.', end with '.', or contain '..'`;
+        promises.push(expectFieldPathToFail(docRef, fieldPath, reason));
+      }
+      return Promise.all(promises).then(() => {});
+    });
   });
 
   validationIt(
@@ -950,25 +952,25 @@ function expectFieldPathToFail(
 ): Promise<void> {
   // Get an arbitrary snapshot we can use for testing.
   return docRef.get().then(snapshot => {
-      // Snapshot paths.
-      expect(() => snapshot.get(path)).to.throw(
-        'Function DocumentSnapshot.get() called with invalid data. ' + reason
-      );
+    // Snapshot paths.
+    expect(() => snapshot.get(path)).to.throw(
+      'Function DocumentSnapshot.get() called with invalid data. ' + reason
+    );
 
-      // Query filter / order fields.
-      const coll = docRef.collection('test-collection');
-      // <=, etc omitted for brevity since the code path is trivially
-      // shared.
-      expect(() => coll.where(path, '==', 1)).to.throw(
-        'Function Query.where() called with invalid data. ' + reason
-      );
-      expect(() => coll.orderBy(path)).to.throw(
-        'Function Query.orderBy() called with invalid data. ' + reason
-      );
+    // Query filter / order fields.
+    const coll = docRef.collection('test-collection');
+    // <=, etc omitted for brevity since the code path is trivially
+    // shared.
+    expect(() => coll.where(path, '==', 1)).to.throw(
+      'Function Query.where() called with invalid data. ' + reason
+    );
+    expect(() => coll.orderBy(path)).to.throw(
+      'Function Query.orderBy() called with invalid data. ' + reason
+    );
 
-      // Update paths.
-      const data = {} as { [field: string]: number };
-      data[path] = 1;
-      return expectUpdateToFail(docRef.firestore, data, reason);
-    });
+    // Update paths.
+    const data = {} as { [field: string]: number };
+    data[path] = 1;
+    return expectUpdateToFail(docRef.firestore, data, reason);
+  });
 }
