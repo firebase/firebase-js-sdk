@@ -97,7 +97,6 @@ export class RemoteStore {
 
   private onlineStateTracker: OnlineStateTracker;
 
-
   constructor(
     /**
      * The local store, used to fill the write pipeline with outbound
@@ -257,8 +256,8 @@ export class RemoteStore {
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
     this.watchChangeAggregator = new WatchChangeAggregator(
-        targetId => this.listenTargets[targetId] || null,
-        targetId => this.syncEngine.getDocuments(targetId)
+      targetId => this.listenTargets[targetId] || null,
+      targetId => this.syncEngine.getDocuments(targetId)
     );
 
     this.onlineStateTracker.handleWatchStreamStart();
