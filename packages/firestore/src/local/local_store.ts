@@ -34,13 +34,8 @@ import {
   MutationBatch,
   MutationBatchResult
 } from '../model/mutation_batch';
-import {
-  RemoteEvent,
-  ResetMapping,
-  TargetChange,
-  UpdateMapping
-} from '../remote/remote_event';
-import { assert, fail } from '../util/assert';
+import { RemoteEvent, TargetChange } from '../remote/remote_event';
+import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
@@ -437,37 +432,17 @@ export class LocalStore {
           let queryData = this.targetIds[targetId];
           if (!queryData) return;
 
-          const mapping: UpdateMapping | ResetMapping = change.mapping;
-          if (mapping) {
-            // First make sure that all references are deleted
-            if (mapping instanceof ResetMapping) {
-              promises.push(
-                this.queryCache
-                  .removeMatchingKeysForTargetId(txn, targetId)
-                  .next(() => {
-                    return this.queryCache.addMatchingKeys(
-                      txn,
-                      mapping.documents,
-                      targetId
-                    );
-                  })
-              );
-            } else if (mapping instanceof UpdateMapping) {
-              promises.push(
-                this.queryCache
-                  .removeMatchingKeys(txn, mapping.removedDocuments, targetId)
-                  .next(() => {
-                    return this.queryCache.addMatchingKeys(
-                      txn,
-                      mapping.addedDocuments,
-                      targetId
-                    );
-                  })
-              );
-            } else {
-              return fail('Unknown mapping type: ' + JSON.stringify(mapping));
-            }
-          }
+          promises.push(
+            this.queryCache
+              .removeMatchingKeys(txn, change.removedDocuments, targetId)
+              .next(() => {
+                return this.queryCache.addMatchingKeys(
+                  txn,
+                  change.addedDocuments,
+                  targetId
+                );
+              })
+          );
 
           // Update the resume token if the change includes one. Don't clear
           // any preexisting value.

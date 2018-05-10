@@ -17,8 +17,8 @@
 import { BatchId, TargetId } from '../core/types';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
-
 import { RemoteEvent } from './remote_event';
+import { DocumentKeySet } from '../model/collections';
 
 /**
  * A interface that describes the actions the RemoteStore needs to perform on
@@ -57,4 +57,9 @@ export interface RemoteSyncer {
    * snapshots with the reverted value.
    */
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void>;
+
+  /**
+   * Returns the current set of documents assigned to the target's view.
+   */
+  getDocuments(targetId: TargetId): DocumentKeySet;
 }

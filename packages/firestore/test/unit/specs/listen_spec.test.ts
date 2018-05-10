@@ -261,4 +261,21 @@ describeSpec('Listens:', [], () => {
       .watchAcksFull(query, 2000, docB)
       .expectEvents(query, { added: [docB] });
   });
+
+  specTest('Ignores update from inactive target', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { added: [docA] })
+      .userUnlistens(query)
+      .watchSends({ affects: [query] }, docB)
+      .watchSnapshots(2000)
+      .watchRemoves(query)
+      .userListens(query, 'resume-token-1000')
+      .expectEvents(query, { added: [docA], fromCache: true });
+  });
 });
