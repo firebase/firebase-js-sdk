@@ -28,7 +28,7 @@ export interface DataSnapshot<T = any> {
   numChildren(): number;
   ref: Reference;
   toJSON(): Object | null;
-  val(): T;
+  val(): T | null;
 }
 
 export class FirebaseDatabase {
