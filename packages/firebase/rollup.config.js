@@ -85,7 +85,16 @@ const completeBuilds = [
   {
     input: 'src/index.node.ts',
     output: { file: pkg.main, format: 'cjs' },
-    plugins,
+    plugins: [
+      resolveModule({
+        module: false,
+        jsnext: false
+      }),
+      typescript({
+        typescript: require('typescript')
+      }),
+      commonjs()
+    ],
     external
   },
   /**
@@ -121,7 +130,16 @@ const appBuilds = [
   {
     input: 'app/index.node.ts',
     output: { file: resolve('app', appPkg.main), format: 'cjs' },
-    plugins,
+    plugins: [
+      resolveModule({
+        module: false,
+        jsnext: false
+      }),
+      typescript({
+        typescript: require('typescript')
+      }),
+      commonjs()
+    ],
     external
   },
   /**
