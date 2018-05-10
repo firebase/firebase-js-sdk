@@ -336,7 +336,10 @@ export class RemoteStore {
       if (watchChange instanceof DocumentWatchChange) {
         this.watchChangeAggregator.addDocumentChange(watchChange);
       } else {
-        assert(watchChange instanceof WatchTargetChange, 'Expected watchChange to be an instance of WatchTargetChange');
+        assert(
+          watchChange instanceof WatchTargetChange,
+          'Expected watchChange to be an instance of WatchTargetChange'
+        );
         this.watchChangeAggregator.addTargetChange(watchChange);
       }
 
@@ -429,7 +432,7 @@ export class RemoteStore {
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
-        snapshotVersion
+      snapshotVersion
     );
 
     // Update in-memory resume tokens. LocalStore will update the
