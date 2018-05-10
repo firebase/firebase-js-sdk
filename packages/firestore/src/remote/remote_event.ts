@@ -69,12 +69,18 @@ export interface TargetChange {
    */
   readonly resumeToken: ProtoByteString;
 
-  /** The set of documents that were newly assigned to this target as part of this remote event. */
+  /**
+   * The set of documents that were newly assigned to this target as part of
+   * this remote event. */
   readonly addedDocuments: DocumentKeySet;
 
-  /** The set of documents that were already assigned to this target but received an update during this remote event. */
+  /**
+   * The set of documents that were already assigned to this target but received
+   * an update during this remote event. */
   readonly modifiedDocuments: DocumentKeySet;
 
-  /** The set of documents that were removed from this target as part of this remote event.. */
+  /**
+   * The set of documents that were removed from this target as part of this
+   * remote event. */
   readonly removedDocuments: DocumentKeySet;
 }

@@ -99,8 +99,7 @@ export class RemoteStore {
 
   constructor(
     /**
-     * The local store, used to fill the write pipeline with outbound
-     * mutation.
+     * The local store, used to fill the write pipeline with outbound mutations.
      */
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
@@ -255,6 +254,7 @@ export class RemoteStore {
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
+
     this.watchChangeAggregator = new WatchChangeAggregator(
       targetId => this.listenTargets[targetId] || null,
       targetId => this.syncEngine.getDocuments(targetId)
@@ -336,7 +336,7 @@ export class RemoteStore {
       if (watchChange instanceof DocumentWatchChange) {
         this.watchChangeAggregator.addDocumentChange(watchChange);
       } else {
-        assert(watchChange instanceof WatchTargetChange, 'fff');
+        assert(watchChange instanceof WatchTargetChange, 'Expected watchChange to be an instance of WatchTargetChange');
         this.watchChangeAggregator.addTargetChange(watchChange);
       }
 
@@ -349,35 +349,6 @@ export class RemoteStore {
         await this.raiseWatchSnapshot(snapshotVersion);
       }
     }
-  }
-
-  /**
-   * Takes a batch of changes from the Datastore, repackages them as a
-   * RemoteEvent, and passes that on to the listener, which is typically the
-   * SyncEngine.
-   */
-  private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
-      snapshotVersion
-    );
-
-    // Update in-memory resume tokens. LocalStore will update the
-    // persistent view of these when applying the completed RemoteEvent.
-    objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
-      if (change.resumeToken.length > 0) {
-        const queryData = this.listenTargets[targetId];
-        // A watched target might have been removed already.
-        if (queryData) {
-          this.listenTargets[targetId] = queryData.update({
-            resumeToken: change.resumeToken,
-            snapshotVersion: change.snapshotVersion
-          });
-        }
-      }
-    });
-
-    // Finally handle remote event
-    return this.syncEngine.applyRemoteEvent(remoteEvent);
   }
 
   // Handle existence filters and existence filter mismatches.
@@ -449,6 +420,35 @@ export class RemoteStore {
         this.sendWatchRequest(requestQueryData);
       }
     }
+  }
+
+  /**
+   * Takes a batch of changes from the Datastore, repackages them as a
+   * RemoteEvent, and passes that on to the listener, which is typically the
+   * SyncEngine.
+   */
+  private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
+    const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
+        snapshotVersion
+    );
+
+    // Update in-memory resume tokens. LocalStore will update the
+    // persistent view of these when applying the completed RemoteEvent.
+    objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
+      if (change.resumeToken.length > 0) {
+        const queryData = this.listenTargets[targetId];
+        // A watched target might have been removed already.
+        if (queryData) {
+          this.listenTargets[targetId] = queryData.update({
+            resumeToken: change.resumeToken,
+            snapshotVersion: change.snapshotVersion
+          });
+        }
+      }
+    });
+
+    // Finally handle remote event
+    return this.syncEngine.applyRemoteEvent(remoteEvent);
   }
 
   /** Handles an error on a target */

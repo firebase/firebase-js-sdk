@@ -125,8 +125,11 @@ interface TargetState {
  */
 export class WatchChangeAggregator {
   /**
-   * @param queryDataCallback A callback that returns the QueryData for active queries. Returns 'null' if the query is no longer active (e.g. the user stopped listening).
-   * @param existingKeysCallback A callback that returns the set of document keys that were assigned to the target at the last raised snapshot.
+   * @param queryDataCallback A callback that returns the QueryData for active
+   * queries. Returns 'null' if the query is no longer active (e.g. the user
+   * stopped listening).
+   * @param existingKeysCallback A callback that returns the set of document
+   * keys that were assigned to the target at the last raised snapshot.
    */
   constructor(
     private queryDataCallback: (targetId: TargetId) => QueryData | null,
@@ -136,13 +139,15 @@ export class WatchChangeAggregator {
   /** The internal state of all tracked targets. */
   private targetStates: { [targetId: number]: TargetState } = {};
 
-  /** Keeps track of the document to update since the last raised snapshot. */
+  /** Keeps track of the documents to update since the last raised snapshot. */
   private documentUpdates = maybeDocumentMap();
 
   /** A mapping of document keys to their set of target IDs. */
   private documentTargetMapping = documentTargetMap();
 
-  /** Processes and adds the DocumentWatchChange to the current set of changes. */
+  /**
+   * Processes and adds the DocumentWatchChange to the current set of changes.
+   */
   addDocumentChange(docChange: DocumentWatchChange): void {
     for (const targetId of docChange.updatedTargetIds) {
       if (docChange.newDoc instanceof Document) {
@@ -224,12 +229,11 @@ export class WatchChangeAggregator {
 
   /**
    * Converts the currently accumulated state into a remote event at the
-   * provided snapshot version.
+   * provided snapshot version. Resets the accumulated changes before returning.
    */
   createRemoteEvent(snapshotVersion: SnapshotVersion): RemoteEvent {
     const targetChanges: { [targetId: number]: TargetChange } = {};
 
-    // Remove all the non-active targets from the remote event.
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
       if (this.isActiveTarget(targetId)) {
         const queryData = this.queryDataCallback(targetId);
@@ -257,12 +261,8 @@ export class WatchChangeAggregator {
         } else if (targetState.current && queryData.query.isDocumentQuery()) {
           // Document queries for document that don't exist produce no results.
           // To update our local cache, we synthesize a document delete. This
-          // resolves the limbo status of the document, removing it from
+          // resolves the limbo state of the document, removing it from
           // limboDocumentRefs.
-          //
-          // This works because clients only initiate limbo resolution when
-          // a target is current and because all current targets are
-          // always at a consistent snapshot.
           //
           // TODO(dimond): Ideally we would have an explicit lookup query
           // instead resulting in an explicit delete message and we could
@@ -326,7 +326,7 @@ export class WatchChangeAggregator {
 
   /**
    * Adds the provided document to the internal list of document updates and
-   * its document key to the target's mapping.
+   * its document key to the given target's mapping.
    */
   // Visible for testing.
   addDocument(targetId: TargetId, document: MaybeDocument): void {
@@ -356,7 +356,7 @@ export class WatchChangeAggregator {
    * Removes the provided document from the internal list of document updates and
    * removes its target mapping. If the document exists and we know that is was
    * removed (rather than modified to no longer match a query), a 'NoDocument'
-   * should be provided to remove the document data.
+   * should be provided to also remove the document data.
    */
   removeDocument(
     targetId: TargetId,
@@ -376,8 +376,8 @@ export class WatchChangeAggregator {
       );
       if (removedDocument) {
         // We only synthesize a delete for known snapshot versions. This
-        // allows us to not affect the global state of updated documents during
-        // a target reset (which should only bring a single target back to an
+        // allows us to not affect the global state of documents during a target
+        // reset (which should only bring a single target back to an
         // unknown snapshot version).
         this.documentUpdates = this.documentUpdates.insert(
           key,
@@ -395,9 +395,9 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Returns the current count of documents in the targets. This includes both
+   * Returns the current count of documents in the target. This includes both
    * the number of documents that the LocalStore considers to be part of the
-   * target as well as all accumulated changes.
+   * target as well as any accumulated changes.
    */
   getCurrentSize(targetId: TargetId): number {
     const targetState = this.ensureTargetState(targetId);
@@ -457,7 +457,9 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Verifies that the user is still interested in this target (by calling `queryDataCallback()`) and that we are not waiting for pending ADDs from watch.
+   * Verifies that the user is still interested in this target (by calling
+   * `queryDataCallback()`) and that we are not waiting for pending ADDs
+   * from watch.
    */
   protected isActiveTarget(targetId: TargetId): boolean {
     const targetState = this.ensureTargetState(targetId);
@@ -470,14 +472,14 @@ export class WatchChangeAggregator {
 
   /**
    * Resets the initial state of a Watch target to its initial state (e.g. sets
-   * current to false, clears the resume token and removes its target mapping
-   * from any document).
+   * 'current' to false, clears the resume token and removes its target mapping
+   * from all documents).
    */
   private resetTarget(targetId: TargetId): void {
     delete this.targetStates[targetId];
 
-    // Synthesize deletes for any documents currently mapped to this target.
-    // These deletes will be part of the initial snapshot if Watch does not
+    // Trigger removal for any documents currently mapped to this target.
+    // These removals will be part of the initial snapshot if Watch does not
     // resend these documents.
     const existingKeys = this.existingKeysCallback(targetId);
     existingKeys.forEach(key => {
