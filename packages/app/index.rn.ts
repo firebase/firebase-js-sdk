@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import '@firebase/polyfill';
-import firebase from '@firebase/app';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { createFirebaseNamespace } from './src/firebaseApp';
 
 /**
  * To avoid having to include the @types/react-native package, which breaks
@@ -25,7 +25,7 @@ import { _FirebaseNamespace } from '@firebase/app-types/private';
  */
 const { AsyncStorage } = require('react-native');
 
-const _firebase = firebase as _FirebaseNamespace;
+const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 
 _firebase.INTERNAL.extendNamespace({
   INTERNAL: {
@@ -34,5 +34,7 @@ _firebase.INTERNAL.extendNamespace({
     }
   }
 });
+
+export const firebase = _firebase as FirebaseNamespace;
 
 export default firebase;
