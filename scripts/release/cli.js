@@ -207,7 +207,7 @@ const { argv } = require('yargs');
     /**
      * Release new versions to NPM
      */
-    await publishToNpm(updates, releaseType);
+    await publishToNpm(updates, releaseType, argv.canary ? 'canary': 'default');
 
     /**
      * If this wasn't a production release there
