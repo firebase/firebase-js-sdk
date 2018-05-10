@@ -195,16 +195,14 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {});
 
       messagingService = new serviceClass(app);
-      return messagingService
-        .deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
-        .then(
-          () => {
-            throw new Error('Expected this to reject');
-          },
-          err => {
-            assert.equal(errorMsg, err.message);
-          }
-        );
+      return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
+        () => {
+          throw new Error('Expected this to reject');
+        },
+        err => {
+          assert.equal(errorMsg, err.message);
+        }
+      );
     });
 
     it(`should handle error on deleteToken ${serviceClass.name}`, () => {
@@ -231,16 +229,14 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       });
 
       messagingService = new serviceClass(app);
-      return messagingService
-        .deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken)
-        .then(
-          () => {
-            throw new Error('Expected this to reject');
-          },
-          err => {
-            assert.equal(errorMsg, err.message);
-          }
-        );
+      return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
+        () => {
+          throw new Error('Expected this to reject');
+        },
+        err => {
+          assert.equal(errorMsg, err.message);
+        }
+      );
     });
 
     it(`should delete with valid unsubscribe ${serviceClass.name}`, () => {
