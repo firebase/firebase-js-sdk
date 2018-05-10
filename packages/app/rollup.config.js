@@ -52,7 +52,7 @@ export default [
   {
     input: 'index.node.ts',
     output: {
-      file: pkg.main, 
+      file: pkg.main,
       format: 'cjs'
     },
     plugins,
