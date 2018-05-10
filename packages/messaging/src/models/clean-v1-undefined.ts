@@ -26,7 +26,7 @@
  * underlying tokens.
  */
 
-import { IIDModel } from '../models/iid-model';
+import { IidModel } from '../models/iid-model';
 
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
@@ -41,7 +41,7 @@ function handleDb(db: IDBDatabase): void {
   const transaction = db.transaction(OLD_OBJECT_STORE_NAME);
   const objectStore = transaction.objectStore(OLD_OBJECT_STORE_NAME);
 
-  const iidModel = new IIDModel();
+  const iidModel = new IidModel();
 
   const openCursorRequest: IDBRequest = objectStore.openCursor();
   openCursorRequest.onerror = event => {
