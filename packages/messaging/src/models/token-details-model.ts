@@ -17,10 +17,10 @@
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
-import { DBInterface } from './db-interface';
+import { DbInterface } from './db-interface';
 import { ERROR_CODES, errorFactory } from './errors';
 
-export class TokenDetailsModel extends DBInterface {
+export class TokenDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
   protected readonly dbVersion: number = 3;
   protected readonly objectStoreName: string = 'fcm_token_object_Store';

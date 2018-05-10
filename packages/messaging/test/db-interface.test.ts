@@ -16,7 +16,7 @@
 
 import { expect } from 'chai';
 
-import { DBInterface } from '../src/models/db-interface';
+import { DbInterface } from '../src/models/db-interface';
 
 import { deleteDatabase } from './testing-utils/db-helper';
 import { describe } from './testing-utils/messaging-test-runner';
@@ -32,7 +32,7 @@ const DIFFERENT_VALUE = {
   otherValue: 'different-other-value'
 };
 
-class MockDbInterface extends DBInterface {
+class MockDbInterface extends DbInterface {
   readonly dbName: string = 'test-db';
   readonly dbVersion: number = 1;
   readonly objectStoreName: string = 'test-obj-store';
@@ -51,7 +51,7 @@ class MockDbInterface extends DBInterface {
   }
 }
 
-describe('DBInterface', () => {
+describe('DbInterface', () => {
   let dbInterface: MockDbInterface;
 
   beforeEach(() => {
