@@ -6,7 +6,7 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "5.0.1"
+    "firebase": "5.0.2"
   },
   "devDependencies": {
     "@types/chai": "4.1.2",

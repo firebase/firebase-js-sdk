@@ -1,4 +1,6 @@
 # Unreleased
+
+# 0.5.0
 - [changed] Merged the `includeQueryMetadataChanges` and
   `includeDocumentMetadataChanges` options passed to `Query.onSnapshot()` into
   a single `includeMetadataChanges` option.
