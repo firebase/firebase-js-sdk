@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export abstract class DBInterface {
+export abstract class DbInterface {
   private dbPromise: Promise<IDBDatabase> | null = null;
 
   protected abstract readonly dbName: string;

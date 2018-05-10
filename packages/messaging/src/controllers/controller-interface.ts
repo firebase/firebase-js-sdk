@@ -29,7 +29,7 @@ import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, errorFactory } from '../models/errors';
-import { IIDModel } from '../models/iid-model';
+import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
@@ -46,7 +46,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
   private readonly messagingSenderId: string;
   private readonly tokenDetailsModel: TokenDetailsModel;
   private readonly vapidDetailsModel: VapidDetailsModel;
-  private readonly iidModel: IIDModel;
+  private readonly iidModel: IidModel;
 
   /**
    * An interface of the Messaging Service API
@@ -63,7 +63,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
 
     this.tokenDetailsModel = new TokenDetailsModel();
     this.vapidDetailsModel = new VapidDetailsModel();
-    this.iidModel = new IIDModel();
+    this.iidModel = new IidModel();
 
     this.app = app;
     this.INTERNAL = {
@@ -352,7 +352,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
 
   // Visible for testing
   // TODO: make protected
-  getIIDModel(): IIDModel {
+  getIidModel(): IidModel {
     return this.iidModel;
   }
 }
