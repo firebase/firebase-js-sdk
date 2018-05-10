@@ -63,9 +63,7 @@ Promise.resolve(userToken || cachedToken)
         }
       ]);
 
-      const {
-        projectId: { id }
-      } = response;
+      const { projectId: { id } } = response;
 
       return id;
     })();
