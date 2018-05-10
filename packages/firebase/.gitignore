@@ -2,4 +2,3 @@
 /firebase*.map
 /firebase*.gz
 /firebase*.tgz
-*/*.d.ts
