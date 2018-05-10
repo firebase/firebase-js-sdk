@@ -21,7 +21,9 @@ import * as firebase from 'firebase';
  * package
  */
 let app: firebase.app.App;
+let auth: firebase.auth.Auth;
 let database: firebase.database.Database;
 let firestore: firebase.firestore.Firestore;
+let functions: firebase.functions.Functions;
 let messaging: firebase.messaging.Messaging;
 let storage: firebase.storage.Storage;
