@@ -19,10 +19,10 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { ControllerInterface } from '../src/controllers/controller-interface';
-import { SWController } from '../src/controllers/sw-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IIDModel } from '../src/models/iid-model';
+import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
@@ -31,7 +31,7 @@ import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 import { describe } from './testing-utils/messaging-test-runner';
 
-const controllersToTest = [WindowController, SWController];
+const controllersToTest = [WindowController, SwController];
 
 /**
  * As ControllerInterface is an abstract class, we need a concrete
@@ -244,11 +244,11 @@ describe('Firebase Messaging > *ControllerInterface', () => {
     });
   });
 
-  describe('getIIDModel', () => {
-    it('should return an instance of IIDModel', () => {
+  describe('getIidModel', () => {
+    it('should return an instance of IidModel', () => {
       const controller = new MockControllerInterface(app);
-      const result = controller.getIIDModel();
-      expect(result).to.be.instanceof(IIDModel);
+      const result = controller.getIidModel();
+      expect(result).to.be.instanceof(IidModel);
     });
   });
 });

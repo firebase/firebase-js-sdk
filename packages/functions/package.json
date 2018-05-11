@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -63,8 +63,8 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/functions-types": "0.1.1",
-    "@firebase/messaging-types": "0.2.1",
+    "@firebase/functions-types": "0.1.2",
+    "@firebase/messaging-types": "0.2.2",
     "isomorphic-fetch": "2.2.1"
   },
   "nyc": {

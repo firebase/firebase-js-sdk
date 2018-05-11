@@ -15,12 +15,12 @@
  */
 
 import { VapidDetails } from '../interfaces/vapid-details';
-import { DBInterface } from './db-interface';
+import { DbInterface } from './db-interface';
 import { ERROR_CODES, errorFactory } from './errors';
 
 const UNCOMPRESSED_PUBLIC_KEY_SIZE = 65;
 
-export class VapidDetailsModel extends DBInterface {
+export class VapidDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_vapid_details_db';
   protected readonly dbVersion: number = 1;
   protected readonly objectStoreName: string = 'fcm_vapid_object_Store';
