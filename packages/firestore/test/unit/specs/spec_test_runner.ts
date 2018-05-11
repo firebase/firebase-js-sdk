@@ -77,6 +77,7 @@ import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  deletedDoc,
   deleteMutation,
   doc,
   filter,
@@ -644,7 +645,13 @@ abstract class TestRunner {
         );
       });
     } else if (watchEntity.doc) {
-      const d = doc(watchEntity.doc[0], watchEntity.doc[1], watchEntity.doc[2]);
+      let d;
+      if (watchEntity.doc[2]) {
+        d = doc(watchEntity.doc[0], watchEntity.doc[1], watchEntity.doc[2]);
+      } else {
+        d = deletedDoc(watchEntity.doc[0], watchEntity.doc[1]);
+      }
+
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1247,15 +1254,14 @@ export interface SpecQuery {
 
 /**
  * [<key>, <version>, <value>, <doc-options> (optional), ...]
- * Represents a document.
+ * Represents a document. <value> is null for deleted documents.
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [string, SpecSnapshotVersion, JsonObject<AnyJs>];
+export type SpecDocument = [string, SpecSnapshotVersion, JsonObject<AnyJs>|null];
 
 export interface SpecExpectation {
-  /** If a query is a string, that's treated as a query for a path. */
-  query: string | SpecQuery;
+  query: SpecQuery;
   errorCode?: number;
   fromCache?: boolean;
   hasPendingWrites?: boolean;

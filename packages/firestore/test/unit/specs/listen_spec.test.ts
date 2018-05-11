@@ -16,7 +16,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { doc, filter, path } from '../../util/helpers';
+import {deletedDoc, doc, filter, path} from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -77,6 +77,19 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest('Does not raise event for initial document delete', [], () => {
+    const query = Query.atPath(path('collection'));
+    const missingDoc = deletedDoc('collection/a', 1000);
+    return spec()
+        .userListens(query)
+        .watchAcks(query)
+        .watchSends({removed:[query]}, missingDoc)
+        .watchSnapshots(1000)
+        .watchCurrents(query, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(query, { fromCache:false })
+  });
 
   specTest(
     'Will process removals without waiting for a consistent snapshot',
@@ -277,5 +290,25 @@ describeSpec('Listens:', [], () => {
       .watchRemoves(query)
       .userListens(query, 'resume-token-1000')
       .expectEvents(query, { added: [docA], fromCache: true });
+  });
+
+  specTest('Does not synthesize deletes for previously acked documents', [], () => {
+    const query = Query.atPath(path('collection/a'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    return spec()
+        .withGCEnabled(false)
+        .userListens(query)
+        .watchAcks(query)
+        .watchSends({affects:[query]}, docA)
+        .watchSnapshots(1000)
+        .expectEvents(query, { added: [docA], fromCache:true })
+        .watchCurrents(query, 'resume-token-2000')
+        .watchSnapshots(2000)
+        // The snapshot is empty, but we have received 'docA' in a previous
+        // snapshot and don't synthesize a document delete.
+        .expectEvents(query, { fromCache:false })
+        .userUnlistens(query)
+        .userListens(query, 'resume-token-2000')
+        .expectEvents(query, { added: [docA], fromCache:true })
   });
 });

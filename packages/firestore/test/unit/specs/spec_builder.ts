@@ -17,7 +17,7 @@
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
-import { Document, NoDocument } from '../../../src/model/document';
+import {Document, MaybeDocument, NoDocument} from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { mapRpcCodeFromCode } from '../../../src/remote/rpc_error';
@@ -412,7 +412,7 @@ export class SpecBuilder {
 
   watchSends(
     targets: { affects?: Query[]; removed?: Query[] },
-    ...docs: Document[]
+    ...docs: MaybeDocument[]
   ): SpecBuilder {
     this.nextStep();
     const affects =
@@ -614,15 +614,20 @@ export class SpecBuilder {
     return spec;
   }
 
-  private static docToSpec(doc: Document): SpecDocument {
+  private static docToSpec(doc: MaybeDocument): SpecDocument {
+    const data = doc instanceof Document ? doc.data.value() : null;
+    const localMutations = doc instanceof Document ? doc.hasLocalMutations : false;
+
     const spec: SpecDocument = [
       SpecBuilder.keyToSpec(doc.key),
       doc.version.toMicroseconds(),
-      doc.data.value()
+      data
     ];
-    if (doc.hasLocalMutations) {
+
+    if (localMutations) {
       spec.push('local');
     }
+
     return spec;
   }
 
