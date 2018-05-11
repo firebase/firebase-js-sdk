@@ -20,7 +20,7 @@ import {
   FirebaseServiceFactory
 } from '@firebase/app-types/private';
 
-import { SWController } from './src/controllers/sw-controller';
+import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
 import { ERROR_CODES, errorFactory } from './src/models/errors';
 
@@ -40,7 +40,7 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SWController(app);
+      return new SwController(app);
     } else {
       // Assume we are in the window context.
       return new WindowController(app);

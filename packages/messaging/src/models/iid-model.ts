@@ -18,29 +18,21 @@ import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { ERROR_CODES, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
-// tslint:disable interface-name TSLint thinks I in IID is an interface prefix.
-//
-// TODO: Fix abbreviations in variable and class names to match Google
-// TypeScript style guide, which follows the Java style guide:
-// https://google.github.io/styleguide/javaguide.html#s5.3-camel-case
-//
-// In this case, IIDDetails should be IidDetails.
-export interface IIDDetails {
+export interface IidDetails {
   token: string;
   pushSet: string;
 }
-// tslint:enable interface-name
 
-interface ApiResponse extends Partial<IIDDetails> {
+interface ApiResponse extends Partial<IidDetails> {
   error?: { message: string };
 }
 
-export class IIDModel {
+export class IidModel {
   async getToken(
     senderId: string,
     subscription: PushSubscription,
     publicVapidKey: Uint8Array
-  ): Promise<IIDDetails> {
+  ): Promise<IidDetails> {
     const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
     const auth = arrayBufferToBase64(subscription.getKey('auth')!);
 

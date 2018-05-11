@@ -36,7 +36,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export class SWController extends ControllerInterface {
+export class SwController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {

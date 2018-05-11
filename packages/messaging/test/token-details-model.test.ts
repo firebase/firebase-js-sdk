@@ -33,14 +33,14 @@ const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 
 describe('Firebase Messaging > TokenDetailsModel', () => {
   let clock: sinon.SinonFakeTimers;
-  let globalTokenModel: TokenDetailsModel;
+  let tokenDetailsModel: TokenDetailsModel;
   let exampleInput: TokenDetails;
   let fakeSubscription: PushSubscription;
 
   beforeEach(() => {
     clock = sinon.useFakeTimers();
 
-    globalTokenModel = new TokenDetailsModel();
+    tokenDetailsModel = new TokenDetailsModel();
 
     fakeSubscription = makeFakeSubscription();
     exampleInput = {
@@ -60,7 +60,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
   });
 
   afterEach(async () => {
-    await globalTokenModel.closeDatabase();
+    await tokenDetailsModel.closeDatabase();
     await deleteDatabase('fcm_token_details_db');
 
     clock.restore();
@@ -91,7 +91,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
       await oldDBTokenDetailsModel.closeDatabase();
 
       // Get the same token using DB v3
-      const tokenDetails = await globalTokenModel.get<TokenDetails>(
+      const tokenDetails = await tokenDetailsModel.get<TokenDetails>(
         exampleInput.swScope
       );
 
@@ -103,9 +103,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
   describe('saveToken', () => {
     it('should throw on bad input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.swScope = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -120,9 +120,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad vapid key input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.vapidKey = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -137,9 +137,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad endpoint input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.endpoint = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -154,9 +154,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad auth input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.auth = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -171,9 +171,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad p256dh input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.p256dh = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -188,9 +188,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad send id input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.fcmSenderId = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -205,9 +205,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad token input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.fcmToken = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -222,9 +222,9 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad pushSet input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        globalTokenModel = new TokenDetailsModel();
+        tokenDetailsModel = new TokenDetailsModel();
         exampleInput.fcmPushSet = badInput;
-        return globalTokenModel.saveTokenDetails(exampleInput).then(
+        return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -238,15 +238,15 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should save valid details', () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.saveTokenDetails(exampleInput);
+      tokenDetailsModel = new TokenDetailsModel();
+      return tokenDetailsModel.saveTokenDetails(exampleInput);
     });
   });
 
   describe('getTokenDetailsFromToken', () => {
     for (const badInput of BAD_INPUTS) {
       it(`should throw on bad scope input ${JSON.stringify(badInput)}`, () => {
-        return globalTokenModel.getTokenDetailsFromSWScope(badInput).then(
+        return tokenDetailsModel.getTokenDetailsFromSWScope(badInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -259,7 +259,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     for (const badInput of BAD_INPUTS) {
       it(`should throw on bad FCM Token input: '${badInput}'`, () => {
-        return globalTokenModel.getTokenDetailsFromToken(badInput).then(
+        return tokenDetailsModel.getTokenDetailsFromToken(badInput).then(
           () => {
             throw new Error('Expected promise to reject');
           },
@@ -271,14 +271,14 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     }
 
     it('should get from scope', () => {
-      return globalTokenModel
+      return tokenDetailsModel
         .getTokenDetailsFromSWScope(exampleInput.swScope)
         .then(details => {
           assert.notExists(details);
-          return globalTokenModel.saveTokenDetails(exampleInput);
+          return tokenDetailsModel.saveTokenDetails(exampleInput);
         })
         .then(() => {
-          return globalTokenModel.getTokenDetailsFromSWScope(
+          return tokenDetailsModel.getTokenDetailsFromSWScope(
             exampleInput.swScope
           );
         })
@@ -289,14 +289,14 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should get from token', () => {
-      return globalTokenModel
+      return tokenDetailsModel
         .getTokenDetailsFromToken(exampleInput.fcmToken)
         .then(details => {
           assert.notExists(details);
-          return globalTokenModel.saveTokenDetails(exampleInput);
+          return tokenDetailsModel.saveTokenDetails(exampleInput);
         })
         .then(() => {
-          return globalTokenModel.getTokenDetailsFromToken(
+          return tokenDetailsModel.getTokenDetailsFromToken(
             exampleInput.fcmToken
           );
         })
@@ -309,8 +309,8 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
   describe('deleteToken', () => {
     it('should handle no input', () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.deleteToken(undefined as any).then(
+      tokenDetailsModel = new TokenDetailsModel();
+      return tokenDetailsModel.deleteToken(undefined as any).then(
         () => {
           throw new Error('Expected this to throw an error due to no token');
         },
@@ -324,8 +324,8 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should handle empty string', () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.deleteToken('').then(
+      tokenDetailsModel = new TokenDetailsModel();
+      return tokenDetailsModel.deleteToken('').then(
         () => {
           throw new Error('Expected this to throw an error due to no token');
         },
@@ -339,15 +339,15 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should delete current token', () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel
+      tokenDetailsModel = new TokenDetailsModel();
+      return tokenDetailsModel
         .saveTokenDetails(exampleInput)
         .then(() => {
-          return globalTokenModel.deleteToken(exampleInput.fcmToken);
+          return tokenDetailsModel.deleteToken(exampleInput.fcmToken);
         })
         .then(details => {
           compareDetails(exampleInput, details);
-          return globalTokenModel.getTokenDetailsFromToken(
+          return tokenDetailsModel.getTokenDetailsFromToken(
             exampleInput.fcmToken
           );
         })
@@ -357,8 +357,8 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should handle deleting a non-existant token', () => {
-      globalTokenModel = new TokenDetailsModel();
-      return globalTokenModel.deleteToken('bad-token').then(
+      tokenDetailsModel = new TokenDetailsModel();
+      return tokenDetailsModel.deleteToken('bad-token').then(
         () => {
           throw new Error('Expected this delete to throw and error.');
         },
