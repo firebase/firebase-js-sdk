@@ -19,9 +19,9 @@ packages/storage  @sphippen
 packages/storage-types  @sphippen
 
 # Messaging Code
-packages/messaging  @gauntface @pinarx @mmermerkaya
-packages/messaging-types  @gauntface @pinarx @mmermerkaya
-integration/messaging  @gauntface @pinarx @mmermerkaya
+packages/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
+packages/messaging-types  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
+integration/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 
 # Auth Code
 packages/auth  @bojeil-google @wti806
