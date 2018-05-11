@@ -1258,7 +1258,11 @@ export interface SpecQuery {
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [string, SpecSnapshotVersion, JsonObject<AnyJs>|null];
+export type SpecDocument = [
+  string,
+  SpecSnapshotVersion,
+  JsonObject<AnyJs> | null
+];
 
 export interface SpecExpectation {
   query: SpecQuery;

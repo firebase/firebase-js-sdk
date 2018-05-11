@@ -17,7 +17,11 @@
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
-import {Document, MaybeDocument, NoDocument} from '../../../src/model/document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument
+} from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { mapRpcCodeFromCode } from '../../../src/remote/rpc_error';
@@ -616,7 +620,8 @@ export class SpecBuilder {
 
   private static docToSpec(doc: MaybeDocument): SpecDocument {
     const data = doc instanceof Document ? doc.data.value() : null;
-    const localMutations = doc instanceof Document ? doc.hasLocalMutations : false;
+    const localMutations =
+      doc instanceof Document ? doc.hasLocalMutations : false;
 
     const spec: SpecDocument = [
       SpecBuilder.keyToSpec(doc.key),

@@ -270,17 +270,15 @@ export class WatchChangeAggregator {
           // remove this special logic.
           const key = new DocumentKey(queryData.query.path);
           if (!this.hasSyncedDocument(targetId, key)) {
-              this.documentUpdates = this.documentUpdates.insert(key,
-                  new NoDocument(
-                      key,
-                      snapshotVersion
-                  )
-              );
+            this.documentUpdates = this.documentUpdates.insert(
+              key,
+              new NoDocument(key, snapshotVersion)
+            );
 
-              // While we don't add the document to a target, we potentially
-              // need to mark it as a resolved limbo key. This requires us
-              // to add the document to the list of document target mappings.
-              this.ensureDocumentTargetMapping(key);
+            // While we don't add the document to a target, we potentially
+            // need to mark it as a resolved limbo key. This requires us
+            // to add the document to the list of document target mappings.
+            this.ensureDocumentTargetMapping(key);
           }
         }
 
@@ -458,7 +456,10 @@ export class WatchChangeAggregator {
 
     if (!targetMapping) {
       targetMapping = new SortedSet<TargetId>(primitiveComparator);
-      this.documentTargetMapping = this.documentTargetMapping.insert(key, targetMapping);
+      this.documentTargetMapping = this.documentTargetMapping.insert(
+        key,
+        targetMapping
+      );
     }
 
     return targetMapping;
