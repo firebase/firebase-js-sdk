@@ -149,6 +149,16 @@ export function key(path: string): DocumentKey {
   return new DocumentKey(new ResourcePath(splitPath(path, '/')));
 }
 
+export function keys(
+  ...documents: Array<MaybeDocument | string>
+): DocumentKeySet {
+  let keys = documentKeySet();
+  for (const doc of documents) {
+    keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
+  }
+  return keys;
+}
+
 export function path(path: string): ResourcePath {
   return new ResourcePath(splitPath(path, '/'));
 }

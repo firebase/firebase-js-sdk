@@ -29,7 +29,7 @@ import {
   deletedDoc,
   doc,
   expectEqual,
-  key,
+  keys,
   queryData,
   resumeTokenForSnapshot,
   size,
@@ -38,7 +38,6 @@ import {
 } from '../../util/helpers';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { SnapshotOptions } from '../../../src/api/database';
 
 type TargetMap = {
   [targetId: number]: QueryData;
@@ -170,7 +169,7 @@ describe('RemoteEvent', () => {
       existingDoc
     );
     const change2 = new DocumentWatchChange([1, 4], [2, 6], newDoc.key, newDoc);
-    const existingKeys = documentKeySet().add(existingDoc.key);
+    const existingKeys = keys(existingDoc);
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
@@ -246,7 +245,7 @@ describe('RemoteEvent', () => {
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
-      outstandingResponses: { 1: 1 },
+      outstandingResponses,
       changes: [change1, change2]
     });
 
@@ -279,7 +278,7 @@ describe('RemoteEvent', () => {
     const event = createRemoteEvent({
       snapshotVersion: 3,
       targets,
-      existingKeys: documentKeySet().add(doc1.key),
+      existingKeys: keys(doc1),
       changes: [change1, change2, change3, change4, change5]
     });
 
@@ -332,7 +331,7 @@ describe('RemoteEvent', () => {
     const event = createRemoteEvent({
       snapshotVersion: 3,
       targets,
-      existingKeys: documentKeySet().add(key('docs/1')),
+      existingKeys: keys('docs/1'),
       changes: [change1, change2]
     });
 
@@ -391,7 +390,7 @@ describe('RemoteEvent', () => {
       snapshotVersion: 3,
       targets,
       outstandingResponses,
-      existingKeys: documentKeySet().add(doc2.key),
+      existingKeys: keys(doc2),
       changes: [change1, change2, change3, change4, change5, change6]
     });
 
@@ -493,14 +492,10 @@ describe('RemoteEvent', () => {
     const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
     const change2 = new DocumentWatchChange([1], [], doc2.key, doc2);
 
-    const existingKeys = documentKeySet()
-      .add(doc1.key)
-      .add(doc2.key);
-
     const aggregator = createAggregator({
       snapshotVersion: 3,
       targets,
-      existingKeys,
+      existingKeys: keys(doc1, doc2),
       changes: [change1, change2]
     });
 
@@ -598,7 +593,7 @@ describe('RemoteEvent', () => {
     const event = createRemoteEvent({
       snapshotVersion: 1,
       targets,
-      existingKeys: documentKeySet().add(existingDoc.key),
+      existingKeys: keys(existingDoc),
       changes: [newDocChange, existingDocChange]
     });
 
