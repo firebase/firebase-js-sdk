@@ -646,12 +646,14 @@ abstract class TestRunner {
       });
     } else if (watchEntity.doc) {
       const [key, version, data] = watchEntity.doc;
-      const document = data ? doc(key, version, data) : deletedDoc(key, version);
+      const document = data
+        ? doc(key, version, data)
+        : deletedDoc(key, version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-          document.key,
-          document
+        document.key,
+        document
       );
       return this.doWatchEvent(change, watchSnapshot);
     } else if (watchEntity.key) {
@@ -659,7 +661,7 @@ abstract class TestRunner {
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-          documentKey,
+        documentKey,
         null
       );
       return this.doWatchEvent(change, watchSnapshot);
