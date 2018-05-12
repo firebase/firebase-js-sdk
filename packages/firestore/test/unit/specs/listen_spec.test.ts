@@ -84,6 +84,9 @@ describeSpec('Listens:', [], () => {
     return spec()
       .userListens(query)
       .watchAcks(query)
+      // To indicate the document doesn't exist, watch sends a DocumentDelete
+      // message as if the document previously existed and now is being
+      // deleted/removed from the target.
       .watchSends({ removed: [query] }, missingDoc)
       .watchSnapshots(1000)
       .watchCurrents(query, 'resume-token-2000')
