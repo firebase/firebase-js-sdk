@@ -111,7 +111,7 @@ describe('RemoteEvent', () => {
     }
 
     const aggregator = new WatchChangeAggregator(
-      targetId => options.targets ? options.targets[targetId] : null,
+      targetId => (options.targets ? options.targets[targetId] : null),
       () => options.existingKeys || documentKeySet()
     );
 
