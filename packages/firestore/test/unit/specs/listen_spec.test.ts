@@ -81,14 +81,19 @@ describeSpec('Listens:', [], () => {
   specTest('Does not raise event for initial document delete', [], () => {
     const query = Query.atPath(path('collection'));
     const missingDoc = deletedDoc('collection/a', 1000);
-    return spec()
-      .userListens(query)
-      .watchAcks(query)
-      .watchSends({ removed: [query] }, missingDoc)
-      .watchSnapshots(1000)
-      .watchCurrents(query, 'resume-token-2000')
-      .watchSnapshots(2000)
-      .expectEvents(query, { fromCache: false });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcks(query)
+        // To indicate the document doesn't exist, watch sends a DocumentDelete
+        // message as if the document previously existed and now is being
+        // deleted/removed from the target.
+        .watchSends({ removed: [query] }, missingDoc)
+        .watchSnapshots(1000)
+        .watchCurrents(query, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(query, { fromCache: false })
+    );
   });
 
   specTest(

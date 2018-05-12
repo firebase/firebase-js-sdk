@@ -632,12 +632,12 @@ abstract class TestRunner {
         'Exactly one of `doc` or `docs` needs to be set'
       );
       let count = 0;
-      return sequence(watchEntity.docs, (d: SpecDocument) => {
+      return sequence(watchEntity.docs, (specDocument: SpecDocument) => {
         count++;
         const isLast = count === watchEntity.docs!.length;
         return this.doWatchEntity(
           {
-            doc: d,
+            doc: specDocument,
             targets: watchEntity.targets,
             removedTargets: watchEntity.removedTargets
           },
@@ -645,26 +645,23 @@ abstract class TestRunner {
         );
       });
     } else if (watchEntity.doc) {
-      let d;
-      if (watchEntity.doc[2]) {
-        d = doc(watchEntity.doc[0], watchEntity.doc[1], watchEntity.doc[2]);
-      } else {
-        d = deletedDoc(watchEntity.doc[0], watchEntity.doc[1]);
-      }
-
+      const [key, version, data] = watchEntity.doc;
+      const document = data
+        ? doc(key, version, data)
+        : deletedDoc(key, version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        d.key,
-        d
+        document.key,
+        document
       );
       return this.doWatchEvent(change, watchSnapshot);
     } else if (watchEntity.key) {
-      const k = key(watchEntity.key);
+      const documentKey = key(watchEntity.key);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        k,
+        documentKey,
         null
       );
       return this.doWatchEvent(change, watchSnapshot);
