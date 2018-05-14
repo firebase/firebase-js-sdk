@@ -23,7 +23,6 @@ const karmaBase = require('./karma.base');
 const excluded = [
   'packages/database/*',
   'packages/firestore/*',
-  'packages/messaging/*',
   'integration/firestore/*',
   'integration/messaging/*'
 ];

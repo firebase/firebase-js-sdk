@@ -49,7 +49,7 @@ apiDescribe('Server Timestamps', persistence => {
 
   // Listener registration for a listener maintained during the course of the
   // test.
-  let listenerRegistration: () => void;
+  let unsubscribe: () => void;
 
   // Returns the expected data, with an arbitrary timestamp substituted in.
   function expectedDataWithTimestamp(timestamp: object | null): AnyTestData {
@@ -64,45 +64,6 @@ apiDescribe('Server Timestamps', persistence => {
       .then(initialDataSnap => {
         expect(initialDataSnap.data()).to.deep.equal(initialData);
       });
-  }
-
-  /** Waits for a latency compensated local snapshot. */
-  function waitForLocalEvent(): Promise<firestore.DocumentSnapshot> {
-    return accumulator.awaitEvent().then(remoteSnap => {
-      if (remoteSnap.metadata.hasPendingWrites) {
-        return remoteSnap;
-      } else {
-        return waitForLocalEvent();
-      }
-    });
-  }
-
-  /** Waits for `count` latency compensated local snapshots. */
-  function waitForLocalEvents(
-    count: number
-  ): Promise<firestore.DocumentSnapshot[]> {
-    const snapshots: firestore.DocumentSnapshot[] = [];
-    let promise = Promise.resolve(snapshots);
-
-    while (count--) {
-      promise = promise.then(() => waitForLocalEvent()).then(localSnap => {
-        snapshots.push(localSnap);
-        return snapshots;
-      });
-    }
-
-    return promise;
-  }
-
-  /** Waits for a snapshot that has no pending writes */
-  function waitForRemoteEvent(): Promise<firestore.DocumentSnapshot> {
-    return accumulator.awaitEvent().then(remoteSnap => {
-      if (!remoteSnap.metadata.hasPendingWrites) {
-        return remoteSnap;
-      } else {
-        return waitForRemoteEvent();
-      }
-    });
   }
 
   /** Verifies a snapshot containing setData but with resolved server timestamps. */
@@ -169,7 +130,7 @@ apiDescribe('Server Timestamps', persistence => {
       docRef = doc;
 
       accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      listenerRegistration = docRef.onSnapshot(accumulator.storeEvent);
+      unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
 
       // wait for initial null snapshot to avoid potential races.
       return accumulator
@@ -179,7 +140,7 @@ apiDescribe('Server Timestamps', persistence => {
         })
         .then(() => test())
         .then(() => {
-          listenerRegistration();
+          unsubscribe();
         });
     });
   }
@@ -188,9 +149,9 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return docRef
         .set(setData)
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreNull(snapshot))
-        .then(waitForRemoteEvent)
+        .then(() => accumulator.awaitRemoteEvent())
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -199,9 +160,9 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreNull(snapshot))
-        .then(waitForRemoteEvent)
+        .then(() => accumulator.awaitRemoteEvent())
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -212,7 +173,7 @@ apiDescribe('Server Timestamps', persistence => {
         .runTransaction(async txn => {
           txn.set(docRef, setData);
         })
-        .then(waitForRemoteEvent)
+        .then(() => accumulator.awaitRemoteEvent())
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -225,7 +186,7 @@ apiDescribe('Server Timestamps', persistence => {
             txn.update(docRef, updateData);
           })
         )
-        .then(waitForRemoteEvent)
+        .then(() => accumulator.awaitRemoteEvent())
         .then(snapshot => verifyTimestampsAreResolved(snapshot));
     });
   });
@@ -234,7 +195,7 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsAreEstimates(snapshot));
     });
   });
@@ -245,14 +206,14 @@ apiDescribe('Server Timestamps', persistence => {
     return withTestSetup(() => {
       return writeInitialData()
         .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => verifyTimestampsUsePreviousValue(snapshot, null))
-        .then(waitForRemoteEvent)
+        .then(() => accumulator.awaitRemoteEvent())
         .then(snapshot => {
           previousSnapshot = snapshot;
         })
         .then(() => docRef.update(updateData))
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot =>
           verifyTimestampsUsePreviousValue(snapshot, previousSnapshot)
         );
@@ -266,7 +227,7 @@ apiDescribe('Server Timestamps', persistence => {
           // Change field 'a' from a number type to a server timestamp.
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
         )
-        .then(waitForLocalEvent)
+        .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => {
           // Verify that we can still obtain the number.
           expect(snapshot.get('a', { serverTimestamps: 'previous' })).to.equal(
@@ -284,7 +245,7 @@ apiDescribe('Server Timestamps', persistence => {
           // We set up two consecutive writes with server timestamps.
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
-          return waitForLocalEvents(2);
+          return accumulator.awaitLocalEvents(2);
         })
         .then(snapshots => {
           // Both snapshot use the initial value (42) as the previous value.
@@ -307,7 +268,7 @@ apiDescribe('Server Timestamps', persistence => {
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
           docRef.update('a', 1337);
           docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
-          return waitForLocalEvents(3);
+          return accumulator.awaitLocalEvents(3);
         })
         .then(snapshots => {
           // The first snapshot uses the initial value (42) as the previous value.

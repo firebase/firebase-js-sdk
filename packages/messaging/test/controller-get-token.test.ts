@@ -16,99 +16,40 @@
 import { assert, expect } from 'chai';
 import * as sinon from 'sinon';
 
+import { FirebaseApp } from '@firebase/app-types';
+
 import { ControllerInterface } from '../src/controllers/controller-interface';
-import { SWController } from '../src/controllers/sw-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IIDModel } from '../src/models/iid-model';
+import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
+import { describe } from './testing-utils/messaging-test-runner';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 describe('Firebase Messaging > *Controller.getToken()', () => {
-  const sandbox = sinon.sandbox.create();
-  const now = Date.now();
-  const expiredDate = now - ONE_DAY * 8; // 8 days ago
-  const FAKE_SUBSCRIPTION = makeFakeSubscription();
+  const servicesToTest = [WindowController, SwController];
+  const vapidSetupToTest = ['default', 'custom'];
 
-  const EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
-  const EXAMPLE_SENDER_ID = '1234567890';
-  const CUSTOM_VAPID_KEY = base64ToArrayBuffer(
-    'BDd3_hVL9fZi9Ybo2UUzA284WG5FZR30_95YeZJsiApwXK' +
-      'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo'
-  );
-  const ENDPOINT = FAKE_SUBSCRIPTION.endpoint;
-  const AUTH = FAKE_SUBSCRIPTION.getKey('auth')!;
-  const P256DH = FAKE_SUBSCRIPTION.getKey('p256dh')!;
-
-  const EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID: TokenDetails = {
-    swScope: '/example-scope',
-    vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
-    endpoint: ENDPOINT,
-    auth: AUTH,
-    p256dh: P256DH,
-    fcmSenderId: EXAMPLE_SENDER_ID,
-    fcmToken: 'qwerty1',
-    fcmPushSet: '87654321',
-    createTime: now
-  };
-  const EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID: TokenDetails = {
-    swScope: '/example-scope',
-    vapidKey: CUSTOM_VAPID_KEY,
-    endpoint: ENDPOINT,
-    auth: AUTH,
-    p256dh: P256DH,
-    fcmSenderId: EXAMPLE_SENDER_ID,
-    fcmToken: 'qwerty2',
-    fcmPushSet: '7654321',
-    createTime: now
-  };
-  const EXAMPLE_EXPIRED_TOKEN_DETAILS: TokenDetails = {
-    swScope: '/example-scope',
-    vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
-    endpoint: ENDPOINT,
-    auth: AUTH,
-    p256dh: P256DH,
-    fcmSenderId: EXAMPLE_SENDER_ID,
-    fcmToken: 'qwerty3',
-    fcmPushSet: '654321',
-    createTime: expiredDate
-  };
-
-  const customVAPIDSetup = {
-    name: 'custom',
-    details: EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID
-  };
-  const defaultVAPIDSetup = {
-    name: 'default',
-    details: EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID
-  };
-
-  const app = makeFakeApp({
-    messagingSenderId: EXAMPLE_SENDER_ID
-  });
-
-  const servicesToTest = [WindowController, SWController];
-  const vapidSetupToTest = [defaultVAPIDSetup, customVAPIDSetup];
-
-  const mockGetReg = (fakeReg: Promise<ServiceWorkerRegistration>) => {
+  function mockGetReg(fakeReg: Promise<ServiceWorkerRegistration>): void {
     servicesToTest.forEach(serviceClass => {
       sandbox
         .stub(serviceClass.prototype, 'getSWRegistration_')
         .callsFake(() => fakeReg);
     });
-  };
+  }
 
-  const generateFakeReg = () => {
+  function generateFakeReg(): Promise<ServiceWorkerRegistration> {
     const registration = makeFakeSWReg();
     Object.defineProperty(registration, 'pushManager', {
       value: {
@@ -116,34 +57,86 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       }
     });
     return Promise.resolve(registration);
-  };
+  }
 
-  const cleanUp = () => {
-    sandbox.restore();
-  };
+  let sandbox: sinon.SinonSandbox;
+
+  let now: number;
+  let expiredDate: number;
+
+  let EXAMPLE_FCM_TOKEN: string;
+  let EXAMPLE_SENDER_ID: string;
+  let CUSTOM_VAPID_KEY: Uint8Array;
+  let ENDPOINT: string;
+  let AUTH: ArrayBuffer;
+  let P256DH: ArrayBuffer;
+
+  let EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID: TokenDetails;
+  let EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID: TokenDetails;
+  let EXAMPLE_EXPIRED_TOKEN_DETAILS: TokenDetails;
+
+  let app: FirebaseApp;
 
   beforeEach(() => {
-    return cleanUp();
-  });
+    now = Date.now();
+    expiredDate = now - ONE_DAY * 8; // 8 days ago
 
-  after(() => {
-    return cleanUp();
-  });
+    sandbox = sinon.sandbox.create();
+    sandbox.useFakeTimers(now);
 
-  it('should throw on unsupported browsers', () => {
-    sandbox
-      .stub(WindowController.prototype, 'isSupported_')
-      .callsFake(() => false);
+    const FAKE_SUBSCRIPTION = makeFakeSubscription();
 
-    const messagingService = new WindowController(app);
-    return messagingService.getToken().then(
-      () => {
-        throw new Error('Expected getToken to throw ');
-      },
-      err => {
-        assert.equal('messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER, err.code);
-      }
+    EXAMPLE_FCM_TOKEN = 'ExampleFCMToken1337';
+    EXAMPLE_SENDER_ID = '1234567890';
+    CUSTOM_VAPID_KEY = base64ToArrayBuffer(
+      'BDd3_hVL9fZi9Ybo2UUzA284WG5FZR30_95YeZJsiApwXK' +
+        'pNcF1rRPF3foIiBHXRdJI2Qhumhf6_LFTeZaNndIo'
     );
+    ENDPOINT = FAKE_SUBSCRIPTION.endpoint;
+    AUTH = FAKE_SUBSCRIPTION.getKey('auth')!;
+    P256DH = FAKE_SUBSCRIPTION.getKey('p256dh')!;
+
+    EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID = {
+      swScope: '/example-scope',
+      vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
+      endpoint: ENDPOINT,
+      auth: AUTH,
+      p256dh: P256DH,
+      fcmSenderId: EXAMPLE_SENDER_ID,
+      fcmToken: 'qwerty1',
+      fcmPushSet: '87654321',
+      createTime: now
+    };
+    EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID = {
+      swScope: '/example-scope',
+      vapidKey: CUSTOM_VAPID_KEY,
+      endpoint: ENDPOINT,
+      auth: AUTH,
+      p256dh: P256DH,
+      fcmSenderId: EXAMPLE_SENDER_ID,
+      fcmToken: 'qwerty2',
+      fcmPushSet: '7654321',
+      createTime: now
+    };
+    EXAMPLE_EXPIRED_TOKEN_DETAILS = {
+      swScope: '/example-scope',
+      vapidKey: DEFAULT_PUBLIC_VAPID_KEY,
+      endpoint: ENDPOINT,
+      auth: AUTH,
+      p256dh: P256DH,
+      fcmSenderId: EXAMPLE_SENDER_ID,
+      fcmToken: 'qwerty3',
+      fcmPushSet: '654321',
+      createTime: expiredDate
+    };
+
+    app = makeFakeApp({
+      messagingSenderId: EXAMPLE_SENDER_ID
+    });
+  });
+
+  afterEach(() => {
+    sandbox.restore();
   });
 
   it('should handle a failure to get registration', () => {
@@ -215,9 +208,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   servicesToTest.forEach(serviceClass => {
     vapidSetupToTest.forEach(vapidSetup => {
-      it(`should get saved token in ${serviceClass.name} for ${
-        vapidSetup.name
-      } VAPID setup`, () => {
+      it(`should get saved token in ${
+        serviceClass.name
+      } for ${vapidSetup} VAPID setup`, () => {
         const regPromise = generateFakeReg();
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -227,9 +220,12 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(subscription));
 
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
-        if (vapidSetup.name === 'custom') {
+        let details = EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID;
+        if (vapidSetup === 'custom') {
           vapidKeyToUse = CUSTOM_VAPID_KEY;
+          details = EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID;
         }
+
         sandbox
           .stub(serviceClass.prototype, 'getPublicVapidKey_')
           .callsFake(() => Promise.resolve(vapidKeyToUse));
@@ -240,11 +236,11 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         sandbox
           .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-          .callsFake(() => Promise.resolve(vapidSetup.details));
+          .callsFake(() => Promise.resolve(details));
 
         const serviceInstance = new serviceClass(app);
         return serviceInstance.getToken().then(token => {
-          assert.equal(vapidSetup.details.fcmToken, token);
+          assert.equal(details.fcmToken, token);
         });
       });
     });
@@ -301,7 +297,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(() => Promise.resolve(subscription));
 
       sandbox
-        .stub(IIDModel.prototype, 'updateToken')
+        .stub(IidModel.prototype, 'updateToken')
         .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
 
       sandbox
@@ -321,9 +317,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   servicesToTest.forEach(serviceClass => {
     vapidSetupToTest.forEach(vapidSetup => {
-      it(`should get a new token in ${serviceClass.name} for ${
-        vapidSetup.name
-      } VAPID setup`, async () => {
+      it(`should get a new token in ${
+        serviceClass.name
+      } for ${vapidSetup} VAPID setup`, async () => {
         const regPromise = generateFakeReg();
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -342,9 +338,12 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(subscription));
 
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
-        if (vapidSetup.name === 'custom') {
+        let details = EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID;
+        if (vapidSetup === 'custom') {
           vapidKeyToUse = CUSTOM_VAPID_KEY;
+          details = EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID;
         }
+
         sandbox
           .stub(serviceClass.prototype, 'getPublicVapidKey_')
           .callsFake(() => Promise.resolve(vapidKeyToUse));
@@ -354,7 +353,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(async () => {});
 
         sandbox
-          .stub(IIDModel.prototype, 'getToken')
+          .stub(IidModel.prototype, 'getToken')
           .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
         sandbox
@@ -381,7 +380,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         assert.equal(vapidModelArgs[0], registration.scope);
 
         assert.equal(tokenModelArgs[0].swScope, registration.scope);
-        assert.equal(tokenModelArgs[0].vapidKey, vapidSetup.details.vapidKey);
+        assert.equal(tokenModelArgs[0].vapidKey, details.vapidKey);
 
         assert.equal(tokenModelArgs[0].endpoint, ENDPOINT);
         assert.equal(isArrayBufferEqual(tokenModelArgs[0].auth, AUTH), true);
@@ -412,11 +411,13 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .stub(ControllerInterface.prototype, 'getNotificationPermission_')
           .callsFake(() => 'granted');
 
-        const existingTokenDetails = vapidSetup.details;
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
-        if (vapidSetup.name === 'custom') {
+        let details = EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID;
+        if (vapidSetup === 'custom') {
           vapidKeyToUse = CUSTOM_VAPID_KEY;
+          details = EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID;
         }
+
         sandbox
           .stub(serviceClass.prototype, 'getPublicVapidKey_')
           .callsFake(() => Promise.resolve(vapidKeyToUse));
@@ -430,10 +431,10 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           pushSet: 'new-pushSet'
         };
         sandbox
-          .stub(IIDModel.prototype, 'getToken')
+          .stub(IidModel.prototype, 'getToken')
           .callsFake(() => Promise.resolve(GET_TOKEN_RESPONSE));
         sandbox
-          .stub(IIDModel.prototype, 'deleteToken')
+          .stub(IidModel.prototype, 'deleteToken')
           .callsFake(async () => {});
 
         const registration = generateFakeReg();
@@ -447,8 +448,8 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         const newPS = makeFakeSubscription(options);
 
         deleteTokenStub.callsFake(token => {
-          assert.equal(token, existingTokenDetails.fcmToken);
-          return Promise.resolve(existingTokenDetails);
+          assert.equal(token, details.fcmToken);
+          return Promise.resolve(details);
         });
         // The push subscription has changed since we saved the token.
         sandbox
@@ -456,7 +457,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(newPS));
         sandbox
           .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-          .callsFake(() => Promise.resolve(existingTokenDetails));
+          .callsFake(() => Promise.resolve(details));
 
         const serviceInstance = new serviceClass(app);
         return serviceInstance.getToken().then(token => {
@@ -540,10 +541,10 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         return Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
       });
 
-      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
+      sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {});
 
       sandbox
-        .stub(IIDModel.prototype, 'getToken')
+        .stub(IidModel.prototype, 'getToken')
         .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
       const customVAPIDToken = await serviceInstance.getToken();
@@ -590,7 +591,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(async () => {});
 
       sandbox
-        .stub(IIDModel.prototype, 'updateToken')
+        .stub(IidModel.prototype, 'updateToken')
         .callsFake(() => Promise.reject(new Error(errorMsg)));
 
       const deleteTokenStub = sandbox.stub(
@@ -602,7 +603,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
       });
 
-      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
+      sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {});
 
       const serviceInstance = new serviceClass(app);
       try {

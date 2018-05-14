@@ -44,7 +44,11 @@ export class RemoteEvent {
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
      */
-    public documentUpdates: MaybeDocumentMap
+    public documentUpdates: MaybeDocumentMap,
+    /**
+     * A set of which document updates are due only to limbo resolution targets.
+     */
+    public limboDocuments: DocumentKeySet
   ) {}
 
   addDocumentUpdate(doc: MaybeDocument): void {
@@ -110,6 +114,7 @@ export class RemoteEvent {
         key,
         new NoDocument(key, this.snapshotVersion)
       );
+      this.limboDocuments = this.limboDocuments.add(key);
     }
   }
 }

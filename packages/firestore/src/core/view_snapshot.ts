@@ -145,7 +145,8 @@ export class ViewSnapshot {
     readonly docChanges: DocumentViewChange[],
     readonly fromCache: boolean,
     readonly hasPendingWrites: boolean,
-    readonly syncStateChanged: boolean
+    readonly syncStateChanged: boolean,
+    readonly excludesMetadataChanges: boolean
   ) {}
 
   isEqual(other: ViewSnapshot): boolean {

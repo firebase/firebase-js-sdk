@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-var firebase = require('./app');
-require('./auth');
-require('./database');
-require('./storage');
+import { FirebaseNamespace } from '@firebase/app-types';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { createFirebaseNamespace } from './src/firebaseApp';
 
-// This dependency exists in React Native apps
-var AsyncStorage = require('react-native').AsyncStorage;
+/**
+ * To avoid having to include the @types/react-native package, which breaks
+ * some of our tests because of duplicate symbols, we are using require syntax
+ * here
+ */
+const { AsyncStorage } = require('react-native');
 
-firebase.INTERNAL.extendNamespace({
+const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
+
+_firebase.INTERNAL.extendNamespace({
   INTERNAL: {
     reactNative: {
-      AsyncStorage: AsyncStorage
+      AsyncStorage
     }
   }
 });
 
-// Export the single instance of firebase
-module.exports = firebase;
+export const firebase = _firebase as FirebaseNamespace;
+
+export default firebase;

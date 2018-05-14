@@ -36,7 +36,7 @@ declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export class SWController extends ControllerInterface {
+export class SwController extends ControllerInterface {
   private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {
@@ -98,12 +98,8 @@ export class SWController extends ControllerInterface {
 
     const hasVisibleClients = await this.hasVisibleClients_();
     if (hasVisibleClients) {
-      // Do not need to show a notification.
-      if (msgPayload.notification || this.bgMessageHandler) {
-        // Send to page
-        return this.sendMessageToWindowClients_(msgPayload);
-      }
-      return;
+      // App in foreground. Send to page.
+      return this.sendMessageToWindowClients_(msgPayload);
     }
 
     const notificationDetails = this.getNotificationData_(msgPayload);
@@ -244,6 +240,7 @@ export class SWController extends ControllerInterface {
     // somewhere else (i.e. normal web push or developer generated
     // notification).
     notificationInformation.data = {
+      ...msgPayload.notification.data,
       [FCM_MSG]: msgPayload
     };
 

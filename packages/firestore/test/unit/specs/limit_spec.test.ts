@@ -55,6 +55,7 @@ describeSpec('Limits:', [], () => {
         })
         .watchResets(query)
         .watchSends({ affects: [query] }, doc2, doc3)
+        .watchCurrents(query, 'resume-token-' + 2000)
         .watchSnapshots(2000)
         .expectLimboDocs(doc1.key)
         // Limbo document causes query to be "inconsistent"
@@ -161,6 +162,7 @@ describeSpec('Limits:', [], () => {
          * D, since they are results for query2. query2 is just a hack to make
          * sure that C and D are in the local cache.
          */
+        .watchCurrents(query1, 'resume-token-' + 2000)
         .watchSnapshots(2000)
         .expectLimboDocs(docA.key, docB.key)
         // Limbo document causes query to be "inconsistent"

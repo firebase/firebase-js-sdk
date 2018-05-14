@@ -70,7 +70,12 @@ export function isPersistenceAvailable(): boolean {
  * A wrapper around Jasmine's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
  */
-export function apiDescribe(
+export const apiDescribe = apiDescribeInternal.bind(null, describe);
+apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+
+function apiDescribeInternal(
+  describeFn: Mocha.IContextDefinition,
   message: string,
   testSuite: (persistence: boolean) => void
 ): void {
@@ -80,15 +85,23 @@ export function apiDescribe(
   }
 
   for (const enabled of persistenceModes) {
-    describe(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+    describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
   }
 }
 
-/** Converts a DocumentSet to an array with the data of each document */
+/** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
 ): firestore.DocumentData[] {
   return docSet.docs.map(d => d.data());
+}
+
+/** Converts the changes in a QuerySnapshot to an array with the data of each document. */
+export function toChangesArray(
+  docSet: firestore.QuerySnapshot,
+  options?: firestore.SnapshotListenOptions
+): firestore.DocumentData[] {
+  return docSet.docChanges(options).map(d => d.doc.data());
 }
 
 export function toDataMap(
@@ -184,7 +197,7 @@ export function withTestDbsSettings(
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
           (chain, db) =>
-            chain.then(() =>
+            chain.then(
               db.INTERNAL.delete.bind(this, {
                 purgePersistenceWithDataLoss: true
               })
@@ -280,3 +293,8 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);
 }
+
+// TODO(array-features): This exists just so we don't have to do the cast
+// repeatedly. Once we Expose 'array-contains' publicly we can remove it and
+// just use 'array-contains' in all the tests.
+export const arrayContainsOp = 'array-contains' as firestore.WhereFilterOp;

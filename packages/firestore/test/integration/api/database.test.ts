@@ -21,9 +21,11 @@ import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  arrayContainsOp,
   withTestCollection,
   withTestDb,
-  withTestDoc
+  withTestDoc,
+  withTestDocAndInitialData
 } from '../util/helpers';
 import { query } from '../../util/api_helpers';
 
@@ -207,6 +209,108 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it("can't specify a field mask for a missing field using set", () => {
+    return withTestDoc(persistence, async docRef => {
+      expect(() => {
+        docRef.set(
+          { desc: 'NewDescription' },
+          { mergeFields: ['desc', 'owner'] }
+        );
+      }).to.throw(
+        "Field 'owner' is specified in your field mask but missing from your input data."
+      );
+    });
+  });
+
+  it('can set a subset of fields using a field mask', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: 'NewDescription', owner: 'Sebastian' },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it("doesn't apply field delete outside of mask", () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: firebase.firestore.FieldValue.delete(), owner: 'Sebastian' },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it("doesn't apply field transform outside of mask", () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = { desc: 'Description', owner: 'Sebastian' };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        {
+          desc: firebase.firestore.FieldValue.serverTimestamp(),
+          owner: 'Sebastian'
+        },
+        { mergeFields: ['owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it('can set an empty field mask', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = initialData;
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        { desc: 'NewDescription', owner: 'Sebastian' },
+        { mergeFields: [] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
+  it('can specify fields multiple times in a field mask', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny', email: 'abc@xyz.com' }
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian', email: 'new@xyz.com' }
+    };
+    return withTestDocAndInitialData(persistence, initialData, async docRef => {
+      await docRef.set(
+        {
+          desc: 'NewDescription',
+          owner: { name: 'Sebastian', email: 'new@xyz.com' }
+        },
+        { mergeFields: ['owner.name', 'owner', 'owner'] }
+      );
+      const result = await docRef.get();
+      expect(result.data()).to.deep.equal(finalData);
+    });
+  });
+
   it('cannot update nonexistent document', () => {
     return withTestDoc(persistence, doc => {
       return doc
@@ -323,6 +427,14 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('inequality and array-contains on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', arrayContainsOp, 'cat')
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
@@ -343,6 +455,20 @@ apiDescribe('Database', persistence => {
             .orderBy('x')
             .where('x', '>', 32)
             .orderBy('y')
+        ).not.to.throw();
+      });
+    });
+
+    it('equality different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() => coll.orderBy('x').where('y', '==', 'cat')).not.to.throw();
+      });
+    });
+
+    it('array-contains different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', arrayContainsOp, 'cat')
         ).not.to.throw();
       });
     });

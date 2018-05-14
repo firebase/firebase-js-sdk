@@ -266,22 +266,17 @@ apiDescribe('Cursors', persistence => {
   });
 
   it('can accept Timestamps in where clause', () => {
-    const timestamp = Timestamp.now();
-    const seconds = timestamp.seconds;
-    // Timestamp is only truncated after being written to the database. Since
-    // it's not being written before use here, perform truncation manually.
-    const micros = timestamp.nanoseconds / 1000;
     const testDocs = {
-      a: { timestamp: makeTimestamp(seconds, micros + 2) },
-      b: { timestamp: makeTimestamp(seconds, micros - 1) },
-      c: { timestamp: makeTimestamp(seconds, micros + 3) },
-      d: { timestamp: makeTimestamp(seconds, micros) },
-      e: { timestamp: makeTimestamp(seconds, micros + 1) }
+      a: { timestamp: makeTimestamp(100, 7) },
+      b: { timestamp: makeTimestamp(100, 4) },
+      c: { timestamp: makeTimestamp(100, 8) },
+      d: { timestamp: makeTimestamp(100, 5) },
+      e: { timestamp: makeTimestamp(100, 6) }
     };
     return withTestCollection(persistence, testDocs, coll => {
       return coll
-        .where('timestamp', '>=', makeTimestamp(seconds, micros))
-        .where('timestamp', '<', makeTimestamp(seconds, micros + 3))
+        .where('timestamp', '>=', makeTimestamp(100, 5))
+        .where('timestamp', '<', makeTimestamp(100, 8))
         .get()
         .then(docs => {
           expect(toIds(docs)).to.deep.equal(['d', 'e', 'a']);

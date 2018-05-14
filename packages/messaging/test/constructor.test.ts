@@ -16,11 +16,12 @@
 
 import { assert } from 'chai';
 
-import { SWController } from '../src/controllers/sw-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ERROR_CODES } from '../src/models/errors';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
+import { describe } from './testing-utils/messaging-test-runner';
 
 describe('Firebase Messaging > new *Controller()', () => {
   it('should handle bad input', () => {
@@ -43,7 +44,7 @@ describe('Firebase Messaging > new *Controller()', () => {
       let caughtError;
       try {
         new WindowController(badInput);
-        new SWController(badInput);
+        new SwController(badInput);
 
         console.warn(
           'Bad Input should have thrown: ',
@@ -61,6 +62,6 @@ describe('Firebase Messaging > new *Controller()', () => {
       messagingSenderId: '1234567890'
     });
     new WindowController(app);
-    new SWController(app);
+    new SwController(app);
   });
 });

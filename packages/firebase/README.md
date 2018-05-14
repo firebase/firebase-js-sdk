@@ -167,16 +167,16 @@ var app = firebase.initializeApp({ ... });
 
 Firebase Storage is not included in the server side Firebase npm module.
 Instead, you can use the
-[`gcloud` Node.js client](https://googlecloudplatform.github.io/gcloud-node).
+[`google-cloud` Node.js client](https://github.com/GoogleCloudPlatform/google-cloud-node).
 
 ```
-$ npm install --save gcloud
+$ npm install --save google-cloud
 ```
 
 In your code, you can access your Storage bucket using:
 
 ```
-var gcloud = require('gcloud')({ ... });
+var gcloud = require('google-cloud')({ ... });
 var gcs = gcloud.storage();
 var bucket = gcs.bucket('<your-firebase-storage-bucket>');
 ...

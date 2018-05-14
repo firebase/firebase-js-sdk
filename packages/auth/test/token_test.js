@@ -122,7 +122,7 @@ function testStsTokenManager_gettersSetters() {
 }
 
 
-function testParseServerResponse() {
+function testStsTokenManager_parseServerResponse() {
   var serverResponse = {
     'idToken': 'myStsAccessToken',
     'refreshToken': 'myStsRefreshToken',
@@ -132,6 +132,55 @@ function testParseServerResponse() {
   assertEquals('myStsAccessToken', accessToken);
   assertEquals('myStsRefreshToken', token.getRefreshToken());
   assertEquals(now + 3600 * 1000, token.getExpirationTime());
+}
+
+
+function testStsTokenManager_toServerResponse() {
+  var expirationTime = goog.now() + 3600 * 1000;
+  token.setRefreshToken('refreshToken');
+  token.setAccessToken('accessToken', expirationTime);
+  assertObjectEquals(
+      {
+        'refreshToken': 'refreshToken',
+        'idToken': 'accessToken',
+        'expiresIn': 3600
+      },
+      token.toServerResponse());
+}
+
+
+function testStsTokenManager_copy() {
+  var expirationTime = goog.now() + 3600 * 1000;
+  token.setRefreshToken('refreshToken');
+  token.setAccessToken('accessToken', expirationTime);
+  // Injects a new RPC handler with differnt API key.
+  var rpcHandlerWithDiffApiKey = new fireauth.RpcHandler(
+      'apiKey2',
+      {
+        'tokenEndpoint': 'https://securetoken.googleapis.com/v1/token',
+        'tokenTimeout': 10000,
+        'tokenHeaders': {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+  var tokenToCopy = new fireauth.StsTokenManager(rpcHandlerWithDiffApiKey);
+  var serverResponse = {
+    'idToken': 'newAccessToken',
+    'refreshToken': 'newRefreshToken',
+    'expiresIn': '4800'
+  };
+  var newExpirationTime = goog.now() + 4800 * 1000;
+  tokenToCopy.parseServerResponse(serverResponse);
+  token.copy(tokenToCopy);
+  assertObjectEquals(
+      {
+        // ApiKey should remain the same.
+        'apiKey': 'apiKey',
+        'refreshToken': 'newRefreshToken',
+        'accessToken': 'newAccessToken',
+        'expirationTime': newExpirationTime
+      },
+      token.toPlainObject());
 }
 
 

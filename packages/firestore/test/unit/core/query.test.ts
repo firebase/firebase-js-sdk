@@ -86,6 +86,51 @@ describe('Query', () => {
     expect(query2.matches(doc5)).to.equal(false);
   });
 
+  it('matches array-contains filters', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('array', 'array-contains', 42)
+    );
+
+    // not an array
+    let document = doc('collection/1', 0, { array: 1 });
+    expect(query.matches(document)).to.be.false;
+
+    // empty array.
+    document = doc('collection/1', 0, { array: [] });
+    expect(query.matches(document)).to.be.false;
+
+    // array without element (and make sure it doesn't match in a nested field
+    // or a different field).
+    document = doc('collection/1', 0, {
+      array: [41, '42', { a: 42, b: [42] }],
+      different: [42]
+    });
+    expect(query.matches(document)).to.be.false;
+
+    // array with element.
+    document = doc('collection/1', 0, { array: [1, '2', 42, { a: 1 }] });
+    expect(query.matches(document)).to.be.true;
+  });
+
+  it('matches array-contains filters with object values', () => {
+    // Search for arrays containing the object { a: [42] }
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('array', 'array-contains', { a: [42] })
+    );
+
+    // array without element.
+    let document = doc('collection/1', 0, {
+      array: [{ a: 42 }, { a: [42, 43] }, { b: [42] }]
+    });
+    expect(query.matches(document)).to.be.false;
+
+    // array with element.
+    document = doc('collection/1', 0, {
+      array: [1, '2', 42, { a: [42] }]
+    });
+    expect(query.matches(document)).to.be.true;
+  });
+
   it('matches NaN for filters', () => {
     const query = Query.atPath(path('collection')).addFilter(
       filter('sort', '==', NaN)

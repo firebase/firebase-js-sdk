@@ -22,7 +22,6 @@ export interface User extends UserInfo {
   emailVerified: boolean;
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   getIdToken(forceRefresh?: boolean): Promise<any>;
-  getToken(forceRefresh?: boolean): Promise<any>;
   isAnonymous: boolean;
   linkAndRetrieveDataWithCredential(credential: AuthCredential): Promise<any>;
   linkWithCredential(credential: AuthCredential): Promise<any>;
@@ -239,6 +238,10 @@ export interface OAuthCredential extends AuthCredential {
   secret?: string;
 }
 
+export interface AuthSettings {
+  appVerificationDisabledForTesting: boolean;
+}
+
 export class FirebaseAuth {
   private constructor();
 
@@ -263,13 +266,14 @@ export class FirebaseAuth {
   isSignInWithEmailLink(emailLink: string): boolean;
   getRedirectResult(): Promise<any>;
   languageCode: string | null;
+  settings: AuthSettings;
   onAuthStateChanged(
-    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
+    nextOrObserver: Observer<any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
   onIdTokenChanged(
-    nextOrObserver: Observer<any, any> | ((a: User | null) => any),
+    nextOrObserver: Observer<any> | ((a: User | null) => any),
     error?: (a: Error) => any,
     completed?: Unsubscribe
   ): Unsubscribe;
@@ -301,6 +305,7 @@ export class FirebaseAuth {
   signInWithPopup(provider: AuthProvider): Promise<any>;
   signInWithRedirect(provider: AuthProvider): Promise<any>;
   signOut(): Promise<any>;
+  updateCurrentUser(user: User | null): Promise<any>;
   useDeviceLanguage(): any;
   verifyPasswordResetCode(code: string): Promise<any>;
 }

@@ -52,7 +52,7 @@ describe('DocumentChange:', () => {
     const expected = documentSetAsArray(updatedSnapshot.docs);
     const actual = documentSetAsArray(initialSnapshot.docs);
 
-    const changes = changesFromSnapshot({} as Firestore, updatedSnapshot);
+    const changes = changesFromSnapshot({} as Firestore, true, updatedSnapshot);
 
     for (const change of changes) {
       if (change.type !== 'added') {

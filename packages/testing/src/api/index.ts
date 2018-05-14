@@ -64,28 +64,34 @@ export function initializeTestApp(options: any): admin.app.App {
   );
 }
 
-export function loadDatabaseRules(options: any): void {
-  if (!('databaseName' in options)) {
+export type LoadDatabaseRulesOptions = {
+  databaseName: String;
+  rules: String;
+  rulesPath: fs.PathLike;
+};
+export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
+  if (!options.databaseName) {
     throw new Error('databaseName not specified');
   }
-  if (!('rulesPath' in options)) {
-    throw new Error('rulesPath not specified');
+
+  if (options.rulesPath) {
+    if (!fs.existsSync(options.rulesPath)) {
+      throw new Error('Could not find file: ' + options.rulesPath);
+    }
+    options.rules = fs.readFileSync(options.rulesPath).toString('utf8');
   }
-  if (!fs.existsSync(options.rulesPath)) {
-    throw new Error('Could not find file: ' + options.rulesPath);
+  if (!options.rules) {
+    throw new Error('must provide either rules or rulesPath');
   }
-  fs
-    .createReadStream(options.rulesPath)
-    .pipe(
-      request({
-        uri: DBURL + '/.settings/rules.json?ns=' + options.databaseName,
-        method: 'PUT',
-        headers: { Authorization: 'Bearer owner' }
-      })
-    )
-    .catch(function(err) {
-      throw new Error('could not load rules: ' + err);
-    });
+
+  request({
+    uri: DBURL + '/.settings/rules.json?ns=' + options.databaseName,
+    method: 'PUT',
+    headers: { Authorization: 'Bearer owner' },
+    body: options.rules
+  }).catch(function(err) {
+    throw new Error('could not load rules: ' + err);
+  });
 }
 
 export function assertFails(pr: Promise<any>): any {

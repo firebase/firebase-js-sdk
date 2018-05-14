@@ -63,7 +63,8 @@ import {
   validateNamedType,
   validateOptionalArgType,
   validateOptionNames,
-  valueDescription
+  valueDescription,
+  validateOptionalArrayElements
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
@@ -568,9 +569,14 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
-    const parsed = options.merge
-      ? this._firestore._dataConverter.parseMergeData('Transaction.set', value)
-      : this._firestore._dataConverter.parseSetData('Transaction.set', value);
+    const parsed =
+      options.merge || options.mergeFields
+        ? this._firestore._dataConverter.parseMergeData(
+            'Transaction.set',
+            value,
+            options.mergeFields
+          )
+        : this._firestore._dataConverter.parseSetData('Transaction.set', value);
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -658,9 +664,14 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
-    const parsed = options.merge
-      ? this._firestore._dataConverter.parseMergeData('WriteBatch.set', value)
-      : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
+    const parsed =
+      options.merge || options.mergeFields
+        ? this._firestore._dataConverter.parseMergeData(
+            'WriteBatch.set',
+            value,
+            options.mergeFields
+          )
+        : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.NONE)
     );
@@ -817,15 +828,17 @@ export class DocumentReference implements firestore.DocumentReference {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
 
-    const parsed = options.merge
-      ? this.firestore._dataConverter.parseMergeData(
-          'DocumentReference.set',
-          value
-        )
-      : this.firestore._dataConverter.parseSetData(
-          'DocumentReference.set',
-          value
-        );
+    const parsed =
+      options.merge || options.mergeFields
+        ? this.firestore._dataConverter.parseMergeData(
+            'DocumentReference.set',
+            value,
+            options.mergeFields
+          )
+        : this.firestore._dataConverter.parseSetData(
+            'DocumentReference.set',
+            value
+          );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
     );
@@ -879,7 +892,7 @@ export class DocumentReference implements firestore.DocumentReference {
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.DocumentListenOptions,
+    options: firestore.SnapshotListenOptions,
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe;
   onSnapshot(
@@ -888,7 +901,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.DocumentListenOptions,
+    options: firestore.SnapshotListenOptions,
     onNext: NextFn<firestore.DocumentSnapshot>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -901,7 +914,7 @@ export class DocumentReference implements firestore.DocumentReference {
       1,
       4
     );
-    let options: firestore.DocumentListenOptions = {
+    let options: firestore.SnapshotListenOptions = {
       includeMetadataChanges: false
     };
     let observer: PartialObserver<firestore.DocumentSnapshot>;
@@ -910,7 +923,7 @@ export class DocumentReference implements firestore.DocumentReference {
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as firestore.DocumentListenOptions;
+      options = args[currArg] as firestore.SnapshotListenOptions;
       validateOptionNames('DocumentReference.onSnapshot', options, [
         'includeMetadataChanges'
       ]);
@@ -924,8 +937,7 @@ export class DocumentReference implements firestore.DocumentReference {
     }
 
     const internalOptions = {
-      includeDocumentMetadataChanges: options.includeMetadataChanges,
-      includeQueryMetadataChanges: options.includeMetadataChanges
+      includeMetadataChanges: options.includeMetadataChanges
     };
 
     if (isPartialObserver(args[currArg])) {
@@ -1043,8 +1055,7 @@ export class DocumentReference implements firestore.DocumentReference {
   ): void {
     const unlisten = this.onSnapshotInternal(
       {
-        includeQueryMetadataChanges: true,
-        includeDocumentMetadataChanges: true,
+        includeMetadataChanges: true,
         waitForSyncWhenOnline: true
       },
       {
@@ -1271,7 +1282,15 @@ export class Query implements firestore.Query {
     validateDefined('Query.where', 3, value);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
+    const relationOp = RelationOp.fromString(opStr);
     if (fieldPath.isKeyField()) {
+      if (relationOp === RelationOp.ARRAY_CONTAINS) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "Invalid Query. You can't perform array-contains queries on " +
+            'FieldPath.documentId() since document IDs are not arrays.'
+        );
+      }
       if (typeof value === 'string') {
         if (value.indexOf('/') !== -1) {
           // TODO(dimond): Allow slashes once ancestor queries are supported
@@ -1314,11 +1333,7 @@ export class Query implements firestore.Query {
         value
       );
     }
-    const filter = fieldFilter(
-      fieldPath,
-      RelationOp.fromString(opStr),
-      fieldValue
-    );
+    const filter = fieldFilter(fieldPath, relationOp, fieldValue);
     this.validateNewFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }
@@ -1568,7 +1583,7 @@ export class Query implements firestore.Query {
 
   onSnapshot(observer: PartialObserver<firestore.QuerySnapshot>): Unsubscribe;
   onSnapshot(
-    options: firestore.QueryListenOptions,
+    options: firestore.SnapshotListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe;
   onSnapshot(
@@ -1577,7 +1592,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
   onSnapshot(
-    options: firestore.QueryListenOptions,
+    options: firestore.SnapshotListenOptions,
     onNext: NextFn<firestore.QuerySnapshot>,
     onError?: ErrorFn,
     onCompletion?: CompleteFn
@@ -1585,29 +1600,22 @@ export class Query implements firestore.Query {
 
   onSnapshot(...args: AnyJs[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
-    let options: firestore.QueryListenOptions = {};
+    let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;
     let currArg = 0;
     if (
       typeof args[currArg] === 'object' &&
       !isPartialObserver(args[currArg])
     ) {
-      options = args[currArg] as firestore.QueryListenOptions;
+      options = args[currArg] as firestore.SnapshotListenOptions;
       validateOptionNames('Query.onSnapshot', options, [
-        'includeQueryMetadataChanges',
-        'includeDocumentMetadataChanges'
+        'includeMetadataChanges'
       ]);
       validateNamedOptionalType(
         'Query.onSnapshot',
         'boolean',
-        'includeDocumentMetadataChanges',
-        options.includeDocumentMetadataChanges
-      );
-      validateNamedOptionalType(
-        'Query.onSnapshot',
-        'boolean',
-        'includeQueryMetadataChanges',
-        options.includeQueryMetadataChanges
+        'includeMetadataChanges',
+        options.includeMetadataChanges
       );
       currArg++;
     }
@@ -1694,8 +1702,7 @@ export class Query implements firestore.Query {
   ): void {
     const unlisten = this.onSnapshotInternal(
       {
-        includeDocumentMetadataChanges: false,
-        includeQueryMetadataChanges: true,
+        includeMetadataChanges: true,
         waitForSyncWhenOnline: true
       },
       {
@@ -1776,6 +1783,7 @@ export class Query implements firestore.Query {
 
 export class QuerySnapshot implements firestore.QuerySnapshot {
   private _cachedChanges: firestore.DocumentChange[] | null = null;
+  private _cachedChangesIncludeMetadataChanges: boolean | null = null;
 
   readonly metadata: firestore.SnapshotMetadata;
 
@@ -1819,13 +1827,44 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     return new Query(this._originalQuery, this._firestore);
   }
 
-  get docChanges(): firestore.DocumentChange[] {
-    if (!this._cachedChanges) {
-      this._cachedChanges = changesFromSnapshot(
-        this._firestore,
-        this._snapshot
+  docChanges(
+    options?: firestore.SnapshotListenOptions
+  ): firestore.DocumentChange[] {
+    validateOptionNames('QuerySnapshot.docChanges', options, [
+      'includeMetadataChanges'
+    ]);
+
+    if (options) {
+      validateNamedOptionalType(
+        'QuerySnapshot.docChanges',
+        'boolean',
+        'includeMetadataChanges',
+        options.includeMetadataChanges
       );
     }
+
+    const includeMetadataChanges = options && options.includeMetadataChanges;
+
+    if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'To include metadata changes with your document changes, you must ' +
+          'also pass { includeMetadataChanges:true } to onSnapshot().'
+      );
+    }
+
+    if (
+      !this._cachedChanges ||
+      this._cachedChangesIncludeMetadataChanges !== includeMetadataChanges
+    ) {
+      this._cachedChanges = changesFromSnapshot(
+        this._firestore,
+        includeMetadataChanges,
+        this._snapshot
+      );
+      this._cachedChangesIncludeMetadataChanges = includeMetadataChanges;
+    }
+
     return this._cachedChanges;
   }
 
@@ -1850,6 +1889,38 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       this.metadata.fromCache
     );
   }
+}
+
+// TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
+// into a method. Because this is a runtime breaking change and somewhat subtle
+// (both Array and Function have a .length, etc.), we'll replace the .length and
+// @@iterator properties to throw a custom error message. In ~6 months we can
+// delete the custom error as most folks will have hopefully migrated.
+function throwDocChangesMethodError(): never {
+  throw new FirestoreError(
+    Code.INVALID_ARGUMENT,
+    'QuerySnapshot.docChanges has been changed from a property into a ' +
+      'method, so usages like "querySnapshot.docChanges" should become ' +
+      '"querySnapshot.docChanges()"'
+  );
+}
+
+/**
+ * This is technically overwriting the `Function.prototype.length` property of
+ * `docChanges`. On IE11, the property is improperly defined with
+ * `{ configurable: false }` which causes this line to throw. Wrap in a
+ * try-catch to ensure that we still have a functional SDK.
+ */
+try {
+  Object.defineProperty(QuerySnapshot.prototype.docChanges, 'length', {
+    get: () => throwDocChangesMethodError()
+  });
+} catch (err) {} // Ignore this failure intentionally
+
+if (typeof Symbol !== 'undefined') {
+  Object.defineProperty(QuerySnapshot.prototype.docChanges, Symbol.iterator, {
+    get: () => throwDocChangesMethodError()
+  });
 }
 
 export class CollectionReference extends Query
@@ -1922,8 +1993,24 @@ function validateSetOptions(
     };
   }
 
-  validateOptionNames(methodName, options, ['merge']);
+  validateOptionNames(methodName, options, ['merge', 'mergeFields']);
   validateNamedOptionalType(methodName, 'boolean', 'merge', options.merge);
+  validateOptionalArrayElements(
+    methodName,
+    'mergeFields',
+    'a string or a FieldPath',
+    options.mergeFields,
+    element =>
+      typeof element === 'string' || element instanceof ExternalFieldPath
+  );
+
+  if (options.mergeFields !== undefined && options.merge !== undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+    );
+  }
+
   return options;
 }
 
@@ -1970,6 +2057,7 @@ function validateReference(
  */
 export function changesFromSnapshot(
   firestore: Firestore,
+  includeMetadataChanges: boolean,
   snapshot: ViewSnapshot
 ): firestore.DocumentChange[] {
   if (snapshot.oldDocs.isEmpty()) {
@@ -2004,26 +2092,30 @@ export function changesFromSnapshot(
     // A DocumentSet that is updated incrementally as changes are applied to use
     // to lookup the index of a document.
     let indexTracker = snapshot.oldDocs;
-    return snapshot.docChanges.map(change => {
-      const doc = new QueryDocumentSnapshot(
-        firestore,
-        change.doc.key,
-        change.doc,
-        snapshot.fromCache
-      );
-      let oldIndex = -1;
-      let newIndex = -1;
-      if (change.type !== ChangeType.Added) {
-        oldIndex = indexTracker.indexOf(change.doc.key);
-        assert(oldIndex >= 0, 'Index for document not found');
-        indexTracker = indexTracker.delete(change.doc.key);
-      }
-      if (change.type !== ChangeType.Removed) {
-        indexTracker = indexTracker.add(change.doc);
-        newIndex = indexTracker.indexOf(change.doc.key);
-      }
-      return { type: resultChangeType(change.type), doc, oldIndex, newIndex };
-    });
+    return snapshot.docChanges
+      .filter(
+        change => includeMetadataChanges || change.type !== ChangeType.Metadata
+      )
+      .map(change => {
+        const doc = new QueryDocumentSnapshot(
+          firestore,
+          change.doc.key,
+          change.doc,
+          snapshot.fromCache
+        );
+        let oldIndex = -1;
+        let newIndex = -1;
+        if (change.type !== ChangeType.Added) {
+          oldIndex = indexTracker.indexOf(change.doc.key);
+          assert(oldIndex >= 0, 'Index for document not found');
+          indexTracker = indexTracker.delete(change.doc.key);
+        }
+        if (change.type !== ChangeType.Removed) {
+          indexTracker = indexTracker.add(change.doc);
+          newIndex = indexTracker.indexOf(change.doc.key);
+        }
+        return { type: resultChangeType(change.type), doc, oldIndex, newIndex };
+      });
   }
 }
 

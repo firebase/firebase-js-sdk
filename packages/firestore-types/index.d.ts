@@ -468,13 +468,14 @@ export class WriteBatch {
 }
 
 /**
- * Options for use with `DocumentReference.onSnapshot()` to control the
- * behavior of the snapshot listener.
+ * An options object that can be passed to `DocumentReference.onSnapshot()`,
+ * `Query.onSnapshot()` and `QuerySnapshot.docChanges()` to control which
+ * types of changes to include in the result set.
  */
-export interface DocumentListenOptions {
+export interface SnapshotListenOptions {
   /**
-   * Raise an event even if only metadata of the document changed. Default is
-   * false.
+   * Include a change even if only the metadata of the query or of a document
+   * changed. Default is false.
    */
   readonly includeMetadataChanges?: boolean;
 }
@@ -483,7 +484,7 @@ export interface DocumentListenOptions {
  * An options object that configures the behavior of `set()` calls in
  * `DocumentReference`, `WriteBatch` and `Transaction`. These calls can be
  * configured to perform granular merges instead of overwriting the target
- * documents in their entirety by providing a `SetOptions` with `merge: true`.
+ * documents in their entirety.
  */
 export interface SetOptions {
   /**
@@ -492,6 +493,16 @@ export interface SetOptions {
    * untouched.
    */
   readonly merge?: boolean;
+
+  /**
+   * Changes the behavior of set() calls to only replace the specified field
+   * paths. Any field path that is not specified is ignored and remains
+   * untouched.
+   *
+   * <p>It is an error to pass a SetOptions object to a set() call that is
+   * missing a value for any of the fields specified here.
+   */
+  readonly mergeFields?: (string | FieldPath)[];
 }
 
 /**
@@ -660,7 +671,7 @@ export class DocumentReference {
     complete?: () => void;
   }): () => void;
   onSnapshot(
-    options: DocumentListenOptions,
+    options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: DocumentSnapshot) => void;
       error?: (error: Error) => void;
@@ -673,7 +684,7 @@ export class DocumentReference {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
-    options: DocumentListenOptions,
+    options: SnapshotListenOptions,
     onNext: (snapshot: DocumentSnapshot) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
@@ -841,26 +852,8 @@ export type OrderByDirection = 'desc' | 'asc';
  * Filter conditions in a `Query.where()` clause are specified using the
  * strings '<', '<=', '==', '>=', and '>'.
  */
+// TODO(array-features): Add 'array-contains' once backend support lands.
 export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
-
-/**
- * Options for use with `Query.onSnapshot() to control the behavior of the
- * snapshot listener.
- */
-export interface QueryListenOptions {
-  /**
-   * Raise an event even if only metadata changes (i.e. one of the
-   * `QuerySnapshot.metadata` properties). Default is false.
-   */
-  readonly includeQueryMetadataChanges?: boolean;
-
-  /**
-   * Raise an event even if only metadata of a document in the query results
-   * changes (i.e. one of the `DocumentSnapshot.metadata` properties on one of
-   * the documents). Default is false.
-   */
-  readonly includeDocumentMetadataChanges?: boolean;
-}
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1042,7 +1035,7 @@ export class Query {
     complete?: () => void;
   }): () => void;
   onSnapshot(
-    options: QueryListenOptions,
+    options: SnapshotListenOptions,
     observer: {
       next?: (snapshot: QuerySnapshot) => void;
       error?: (error: Error) => void;
@@ -1055,7 +1048,7 @@ export class Query {
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
-    options: QueryListenOptions,
+    options: SnapshotListenOptions,
     onNext: (snapshot: QuerySnapshot) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
@@ -1082,12 +1075,6 @@ export class QuerySnapshot {
    * modifications.
    */
   readonly metadata: SnapshotMetadata;
-  /**
-   * An array of the documents that changed since the last snapshot. If this
-   * is the first snapshot, all documents will be in the list as added
-   * changes.
-   */
-  readonly docChanges: DocumentChange[];
 
   /** An array of all the documents in the QuerySnapshot. */
   readonly docs: QueryDocumentSnapshot[];
@@ -1097,6 +1084,16 @@ export class QuerySnapshot {
 
   /** True if there are no documents in the QuerySnapshot. */
   readonly empty: boolean;
+
+  /**
+   * Returns an array of the documents changes since the last snapshot. If this
+   * is the first snapshot, all documents will be in the list as added changes.
+   *
+   * @param options `SnapshotListenOptions` that control whether metadata-only
+   * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
+   * snapshot events.
+   */
+  docChanges(options?: SnapshotListenOptions): DocumentChange[];
 
   /**
    * Enumerates all of the documents in the QuerySnapshot.
@@ -1220,6 +1217,33 @@ export class FieldValue {
    * Returns a sentinel for use with update() to mark a field for deletion.
    */
   static delete(): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to union the given elements with any array value that already
+   * exists on the server. Each specified element that doesn't already exist in
+   * the array will be added to the end. If the field being modified is not
+   * already an array it will be overwritten with an array containing exactly
+   * the specified elements.
+   *
+   * @param elements The elements to union into the array.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  // TODO(array-features): Expose this once backend support lands.
+  //static arrayUnion(...elements: any[]): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to remove the given elements from any array value that already
+   * exists on the server. All instances of each element specified will be
+   * removed from the array. If the field being modified is not already an
+   * array it will be overwritten with an empty array.
+   *
+   * @param elements The elements to remove from the array.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  // TODO(array-features): Expose this once backend support lands.
+  //static arrayRemove(...elements: any[]): FieldValue;
 
   /**
    * Returns true if this `FieldValue` is equal to the provided one.

@@ -16,12 +16,14 @@
 import { assert } from 'chai';
 import * as sinon from 'sinon';
 
-import { SWController } from '../src/controllers/sw-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ERROR_CODES } from '../src/models/errors';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
+
+import { describe } from './testing-utils/messaging-test-runner';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
@@ -96,7 +98,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const fakeReg = makeFakeSWReg();
     (self as any).registration = fakeReg;
 
-    const messagingService = new SWController(app);
+    const messagingService = new SwController(app);
     return messagingService
       .getSWRegistration_()
       .then(registration => {

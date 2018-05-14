@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-require('@firebase/firestore');
+import { isSupported } from '../../index';
+
+/** Runner for tests that require service worker functionality. */
+const runner = isSupported() ? describe : describe.skip;
+export { runner as describe };

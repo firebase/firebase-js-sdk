@@ -88,9 +88,16 @@ function validateNamespace(definition, candidate) {
       if (
         definitionChunk.__type === 'function' &&
         definitionChunk.__return &&
-        typeof candidateChunk === 'function' &&
-        candidateChunk()
+        typeof candidateChunk === 'function'
       ) {
+        try {
+          candidateChunk();
+        } catch (e) {
+          it(`Throws because current browser is unsupported`, () => {
+            __expect(e.code).to.have.string('unsupported-browser');
+          });
+          return;
+        }
         validateNamespace(definitionChunk.__return, candidateChunk());
       }
     });

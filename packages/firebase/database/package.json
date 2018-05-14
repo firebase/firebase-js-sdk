@@ -1,0 +1,5 @@
+{
+  "name": "firebase/database",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js"
+}

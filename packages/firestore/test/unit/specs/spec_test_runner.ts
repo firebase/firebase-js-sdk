@@ -81,6 +81,7 @@ import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
 import {
+  deletedDoc,
   deleteMutation,
   doc,
   filter,
@@ -557,8 +558,7 @@ abstract class TestRunner {
     const aggregator = new EventAggregator(query, this.pushEvent.bind(this));
     // TODO(dimond): Allow customizing listen options in spec tests
     const options = {
-      includeDocumentMetadataChanges: true,
-      includeQueryMetadataChanges: true,
+      includeMetadataChanges: true,
       waitForSyncWhenOnline: false
     };
     const queryListener = new QueryListener(query, aggregator, options);
@@ -571,6 +571,16 @@ abstract class TestRunner {
         'targetId assigned to listen'
       );
     });
+
+    // Skip the backoff that may have been triggered by a previous call to
+    // `watchStreamCloses()`.
+    if (
+      this.queue.containsDelayedOperation(TimerId.ListenStreamConnectionBackoff)
+    ) {
+      await this.queue.runDelayedOperationsEarly(
+        TimerId.ListenStreamConnectionBackoff
+      );
+    }
 
     if (this.isPrimaryClient) {
       // Open should always have happened after a listen
@@ -696,12 +706,12 @@ abstract class TestRunner {
         'Exactly one of `doc` or `docs` needs to be set'
       );
       let count = 0;
-      return sequence(watchEntity.docs, (d: SpecDocument) => {
+      return sequence(watchEntity.docs, (specDocument: SpecDocument) => {
         count++;
         const isLast = count === watchEntity.docs!.length;
         return this.doWatchEntity(
           {
-            doc: d,
+            doc: specDocument,
             targets: watchEntity.targets,
             removedTargets: watchEntity.removedTargets
           },
@@ -709,20 +719,23 @@ abstract class TestRunner {
         );
       });
     } else if (watchEntity.doc) {
-      const d = doc(watchEntity.doc[0], watchEntity.doc[1], watchEntity.doc[2]);
+      const [key, version, data] = watchEntity.doc;
+      const document = data
+        ? doc(key, version, data)
+        : deletedDoc(key, version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        d.key,
-        d
+        document.key,
+        document
       );
       return this.doWatchEvent(change, watchSnapshot);
     } else if (watchEntity.key) {
-      const k = key(watchEntity.key);
+      const documentKey = key(watchEntity.key);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        k,
+        documentKey,
         null
       );
       return this.doWatchEvent(change, watchSnapshot);
@@ -1652,15 +1665,18 @@ export interface SpecQuery {
 
 /**
  * [<key>, <version>, <value>, <doc-options> (optional), ...]
- * Represents a document.
+ * Represents a document. <value> is null for deleted documents.
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [string, SpecSnapshotVersion, JsonObject<AnyJs>];
+export type SpecDocument = [
+  string,
+  SpecSnapshotVersion,
+  JsonObject<AnyJs> | null
+];
 
 export interface SpecExpectation {
-  /** If a query is a string, that's treated as a query for a path. */
-  query: string | SpecQuery;
+  query: SpecQuery;
   errorCode?: number;
   fromCache?: boolean;
   hasPendingWrites?: boolean;

@@ -22,6 +22,8 @@ goog.provide('fireauth.RecaptchaVerifierTest');
 
 goog.require('fireauth.AuthError');
 goog.require('fireauth.BaseRecaptchaVerifier');
+goog.require('fireauth.GRecaptchaMockFactory');
+goog.require('fireauth.RecaptchaRealLoader');
 goog.require('fireauth.RecaptchaVerifier');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.authenum.Error');
@@ -36,6 +38,7 @@ goog.require('goog.testing.MockClock');
 goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.TestCase');
+goog.require('goog.testing.events');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.mockmatchers');
 goog.require('goog.testing.recordFunction');
@@ -51,6 +54,11 @@ var myElement, myElement2;
 var ignoreArgument;
 var loaderInstance;
 var clock;
+var grecaptchaMock;
+var randomCounter;
+var startInstanceId = fireauth.GRecaptchaMockFactory.START_INSTANCE_ID;
+var expirationTimeMs = fireauth.GRecaptchaMockFactory.EXPIRATION_TIME_MS;
+var solveTimeMs = fireauth.GRecaptchaMockFactory.SOLVE_TIME_MS;
 
 
 /**
@@ -233,12 +241,28 @@ function setUp() {
   myElement2 = goog.dom.createDom(goog.dom.TagName.DIV, {'id': 'recaptcha2'});
   document.body.appendChild(myElement2);
   // Bypass singleton for tests so loaders are not shared among different tests.
-  loaderInstance = new fireauth.BaseRecaptchaVerifier.Loader();
+  loaderInstance = new fireauth.RecaptchaRealLoader();
   stubs.replace(
-      fireauth.BaseRecaptchaVerifier.Loader,
+      fireauth.RecaptchaRealLoader,
       'getInstance',
       function() {
         return loaderInstance;
+      });
+  // Mock grecaptcha.
+  var randomCounter = 0;
+  var grecaptchaMock = new fireauth.GRecaptchaMockFactory();
+  stubs.replace(
+      fireauth.GRecaptchaMockFactory,
+      'getInstance',
+      function() {
+        return grecaptchaMock;
+      });
+  stubs.replace(
+      fireauth.util,
+      'generateRandomAlphaNumericString',
+      function(charCount) {
+        assertEquals(50, charCount);
+        return 'random' + (randomCounter++).toString();
       });
 }
 
@@ -264,7 +288,6 @@ function tearDown() {
   delete goog.global['devCallback'];
   delete goog.global['devExpiredCallback'];
   stubs.reset();
-  goog.dispose(clock);
 }
 
 
@@ -279,7 +302,12 @@ function initializeAuthServiceOnApp(app) {
     // Use set as Auth doesn't exist on the App instance.
     stubs.set(app, 'auth', function() {
       if (!this.auth_) {
-        this.auth_ = {};
+        this.auth_ = {
+          settings: {
+            // App verification enabled by default.
+            appVerificationDisabledForTesting: false
+          }
+        };
       }
       return this.auth_;
     });
@@ -321,6 +349,32 @@ function simulateAuthFramework(app, frameworks) {
  * @return {!goog.Promise} The result of the test.
  */
 function installAndRunTest(id, func) {
+  /**
+   * @return {?goog.Promise<void>} A promise that resolves on cleanup
+   *     completion.
+   */
+  var cleanupAppAndClock = function() {
+    var promises = [];
+    for (var i = 0; i < firebase.apps.length; i++) {
+      promises.push(firebase.apps[i].delete());
+    }
+    var p = null;
+    if (promises.length) {
+      p = goog.Promise.all(promises).then(function() {
+        // Dispose clock then. Disposing before will throw an error in IE 11.
+        goog.dispose(clock);
+      });
+      if (clock) {
+        // Some IE browsers like IE 11, native promise hangs if this is not
+        // called when clock is mocked.
+        // app.delete() will hang (it uses the native Promise).
+        clock.tick();
+      }
+    } else if (clock) {
+      goog.dispose(clock);
+    }
+    return p;
+  };
   var testCase = new goog.testing.TestCase();
   testCase.addNewTest(id, func);
   var error = null;
@@ -334,16 +388,10 @@ function installAndRunTest(id, func) {
     assertEquals(1, result.runCount);
     assertEquals(1, result.successCount);
     assertEquals(0, result.errors.length);
-    // Delete app before resolving.
-    if (app) {
-      return app.delete();
-    }
+    return cleanupAppAndClock();
   }).thenCatch(function(err) {
     error = err;
-    // Delete app before resolving.
-    if (app) {
-      return app.delete();
-    }
+    return cleanupAppAndClock();
   }).then(function() {
     if (error) {
       throw error;
@@ -559,6 +607,214 @@ function testBaseRecaptchaVerifier_render() {
       return resp;
     }).then(function(recaptchaToken) {
       assertEquals('response-1', recaptchaToken);
+    });
+  });
+}
+
+
+function testBaseRecaptchaVerifier_render_visible_testMode() {
+  return installAndRunTest('testBaseAppVerifier_visible_testMode', function() {
+    // Confirm expected endpoint config and version passed to underlying RPC
+    // handler.
+    var version = '1.2.3';
+    var responseCallback = goog.testing.recordFunction();
+    var expiredCallback = goog.testing.recordFunction();
+    // Record calls to grecaptchaMock.render.
+    stubs.replace(
+        fireauth.GRecaptchaMockFactory.prototype,
+        'render',
+        goog.testing.recordFunction(
+            fireauth.GRecaptchaMockFactory.prototype.render));
+    var endpoint = fireauth.constants.Endpoint.STAGING;
+    var endpointConfig = {
+      'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
+      'secureTokenEndpoint': endpoint.secureTokenEndpoint
+    };
+    var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
+    var recaptchaConfig = {
+      'recaptchaSiteKey': 'SITE_KEY'
+    };
+    var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+    var rpcHandlerConstructor = mockControl.createConstructorMock(
+        fireauth, 'RpcHandler');
+    rpcHandlerConstructor('API_KEY', endpointConfig, version)
+        .$returns(rpcHandler);
+    safeLoad(ignoreArgument).$never();
+    rpcHandler.getRecaptchaParam().$once().$returns(recaptchaConfig);
+    mockControl.$replayAll();
+
+    // Install mock clock.
+    clock = new goog.testing.MockClock(true);
+    var params = {
+      'size': 'compact',
+      'theme': 'light',
+      'type': 'image',
+      'callback': responseCallback,
+      'expired-callback': expiredCallback
+    };
+    var recaptchaVerifier = new fireauth.BaseRecaptchaVerifier(
+        'API_KEY', myElement, params, function() {return null;}, version,
+        endpointConfig, true /** Enable test mode */);
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    // Confirm property is readonly.
+    recaptchaVerifier['type'] = 'modified';
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    return recaptchaVerifier.render().then(function(widgetId) {
+      // Mock instance should be rendered.
+      assertEquals(
+          1, fireauth.GRecaptchaMockFactory.prototype.render.getCallCount());
+      // For visible reCAPTCHA, confirm expectedContainer element matches the
+      // parent of the actual container.
+      assertEquals(
+          myElement,
+          goog.dom.getParentElement(
+              fireauth.GRecaptchaMockFactory.prototype.render.getLastCall()
+                  .getArgument(0)));
+      var actualParams = fireauth.GRecaptchaMockFactory.prototype.render
+          .getLastCall().getArgument(1);
+      // Confirm expected parameters passed to reCAPTCHA.
+      assertEquals('SITE_KEY', actualParams['sitekey']);
+      assertEquals('light', actualParams['theme']);
+      assertEquals('image', actualParams['type']);
+      assertEquals('compact', actualParams['size']);
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      var verifyPromise = recaptchaVerifier.verify();
+      assertEquals(0, responseCallback.getCallCount());
+      clock.tick(solveTimeMs);
+      assertEquals(1, responseCallback.getCallCount());
+      assertEquals('random0', responseCallback.getLastCall().getArgument(0));
+      return verifyPromise;
+    }).then(function(recaptchaToken) {
+      assertEquals('random0', recaptchaToken);
+      // Already rendered.
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.verify();
+    }).then(function(recaptchaToken) {
+      // Same unexpired response returned.
+      assertEquals('random0', recaptchaToken);
+      assertEquals(0, expiredCallback.getCallCount());
+      // Expire response.
+      clock.tick(expirationTimeMs);
+      assertEquals(1, expiredCallback.getCallCount());
+      var resp = recaptchaVerifier.verify();
+      // Solve response after expiration. New reCAPTCHA token should be
+      // returned.
+      clock.tick(solveTimeMs);
+      return resp;
+    }).then(function(recaptchaToken) {
+      assertEquals(2, responseCallback.getCallCount());
+      assertEquals('random1', responseCallback.getLastCall().getArgument(0));
+      assertEquals('random1', recaptchaToken);
+    });
+  });
+}
+
+
+function testBaseRecaptchaVerifier_render_invisible_testMode() {
+  return installAndRunTest('testBaseVerifier_invisible_testMode', function() {
+    // Confirm expected endpoint config and version passed to underlying RPC
+    // handler.
+    var version = '1.2.3';
+    var responseCallback = goog.testing.recordFunction();
+    var expiredCallback = goog.testing.recordFunction();
+    // Record calls to grecaptchaMock.render.
+    stubs.replace(
+        fireauth.GRecaptchaMockFactory.prototype,
+        'render',
+        goog.testing.recordFunction(
+            fireauth.GRecaptchaMockFactory.prototype.render));
+    var endpoint = fireauth.constants.Endpoint.STAGING;
+    var endpointConfig = {
+      'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
+      'secureTokenEndpoint': endpoint.secureTokenEndpoint
+    };
+    var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
+    var recaptchaConfig = {
+      'recaptchaSiteKey': 'SITE_KEY'
+    };
+    var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+    var rpcHandlerConstructor = mockControl.createConstructorMock(
+        fireauth, 'RpcHandler');
+    rpcHandlerConstructor('API_KEY', endpointConfig, version)
+        .$returns(rpcHandler);
+    safeLoad(ignoreArgument).$never();
+    rpcHandler.getRecaptchaParam().$once().$returns(recaptchaConfig);
+    mockControl.$replayAll();
+
+    // Install mock clock.
+    clock = new goog.testing.MockClock(true);
+    var params = {
+      'size': 'invisible',
+      'theme': 'light',
+      'type': 'image',
+      'callback': responseCallback,
+      'expired-callback': expiredCallback
+    };
+    var recaptchaVerifier = new fireauth.BaseRecaptchaVerifier(
+        'API_KEY', myElement, params, function() {return null;}, version,
+        endpointConfig, true /** Enable test mode */);
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    // Confirm property is readonly.
+    recaptchaVerifier['type'] = 'modified';
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    return recaptchaVerifier.render().then(function(widgetId) {
+      // Confirm mock reCAPTCHA instance rendered.
+      assertEquals(
+          1, fireauth.GRecaptchaMockFactory.prototype.render.getCallCount());
+      // For invisible reCAPTCHA, confirm expectedContainer element matches the
+      // actual container.
+      assertEquals(
+          myElement,
+          fireauth.GRecaptchaMockFactory.prototype.render.getLastCall()
+              .getArgument(0));
+      var actualParams = fireauth.GRecaptchaMockFactory.prototype.render
+          .getLastCall().getArgument(1);
+      // Confirm expected parameters passed to reCAPTCHA.
+      assertEquals('SITE_KEY', actualParams['sitekey']);
+      assertEquals('light', actualParams['theme']);
+      assertEquals('image', actualParams['type']);
+      assertEquals('invisible', actualParams['size']);
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      var verifyPromise = recaptchaVerifier.verify();
+      // verify calls render underneath, wait for it to resolve before running
+      // clock.
+      return recaptchaVerifier.render().then(function() {
+        assertEquals(0, responseCallback.getCallCount());
+        clock.tick(solveTimeMs);
+        assertEquals(1, responseCallback.getCallCount());
+        assertEquals('random0', responseCallback.getLastCall().getArgument(0));
+        return verifyPromise;
+      });
+    }).then(function(recaptchaToken) {
+      assertEquals('random0', recaptchaToken);
+      // Already rendered.
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.verify();
+    }).then(function(recaptchaToken) {
+      // Same unexpired response returned.
+      assertEquals('random0', recaptchaToken);
+      assertEquals(0, expiredCallback.getCallCount());
+      // Expire response.
+      clock.tick(expirationTimeMs);
+      assertEquals(1, expiredCallback.getCallCount());
+      // Element click should resolve with a token.
+      goog.testing.events.fireClickSequence(myElement);
+      clock.tick(solveTimeMs);
+      return recaptchaVerifier.verify();
+    }).then(function(recaptchaToken) {
+      assertEquals(2, responseCallback.getCallCount());
+      assertEquals('random1', responseCallback.getLastCall().getArgument(0));
+      assertEquals('random1', recaptchaToken);
     });
   });
 }
@@ -1456,7 +1712,7 @@ function testBaseRecaptchaVerifier_localization_alreadyLoaded() {
     initializeRecaptchaMocks();
     // Initialize after simulated reCAPTCHA dependency is loaded to make sure
     // internal counter knows about the existence of grecaptcha.
-    loaderInstance = new fireauth.BaseRecaptchaVerifier.Loader();
+    loaderInstance = new fireauth.RecaptchaRealLoader();
     var recaptchaConfig = {
       'recaptchaSiteKey': 'SITE_KEY'
     };
@@ -1478,104 +1734,6 @@ function testBaseRecaptchaVerifier_localization_alreadyLoaded() {
     return recaptchaVerifier.render().then(function(widgetId) {
       recaptchaVerifier.clear();
     });
-  });
-}
-
-
-function testBaseRecaptchaVerifierLoader() {
-  return installAndRunTest('testBaseAppVerifier_loader', function() {
-    var expectedParams = {
-      'sitekey': 'SITE_KEY',
-      'theme': 'light',
-      'type': 'image'
-    };
-    var currentLanguageCode = null;
-    var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
-    // First load. Dependency loaded with null language code.
-    safeLoad(ignoreArgument)
-        .$does(function(url) {
-          var uri = goog.Uri.parse(goog.html.TrustedResourceUrl.unwrap(url));
-          var callback = uri.getParameterValue('onload');
-          assertEquals('', uri.getParameterValue('hl'));
-          currentLanguageCode = null;
-          initializeRecaptchaMocks();
-          goog.global[callback]();
-        })
-        .$once();
-    // Third load. Dependency loaded with 'fr' language code.
-    safeLoad(ignoreArgument)
-        .$does(function(url) {
-          var uri = goog.Uri.parse(goog.html.TrustedResourceUrl.unwrap(url));
-          var callback = uri.getParameterValue('onload');
-          assertEquals('fr', uri.getParameterValue('hl'));
-          currentLanguageCode = 'fr';
-          initializeRecaptchaMocks();
-          goog.global[callback]();
-        })
-        .$once();
-    // Seventh load. Dependency loaded with 'ar' language code.
-    safeLoad(ignoreArgument)
-        .$does(function(url) {
-          var uri = goog.Uri.parse(goog.html.TrustedResourceUrl.unwrap(url));
-          var callback = uri.getParameterValue('onload');
-          assertEquals('ar', uri.getParameterValue('hl'));
-          currentLanguageCode = 'ar';
-          initializeRecaptchaMocks();
-          goog.global[callback]();
-        })
-        .$once();
-    mockControl.$replayAll();
-    var loader = new fireauth.BaseRecaptchaVerifier.Loader();
-    // First load with empty string hl.
-    return loader.loadRecaptchaDeps(null).then(function() {
-      assertNull(currentLanguageCode);
-      // No load needed.
-      return loader.loadRecaptchaDeps(null);
-    }).then(function() {
-      assertNull(currentLanguageCode);
-      // Will load.
-      return loader.loadRecaptchaDeps('fr');
-    }).then(function() {
-      assertEquals('fr', currentLanguageCode);
-      // Simulate reCAPTCHAs rendered.
-      grecaptcha.render(myElement, expectedParams);
-      grecaptcha.render(myElement2, expectedParams);
-      // This will do nothing.
-      return loader.loadRecaptchaDeps('de');
-    }).then(function() {
-      assertEquals('fr', currentLanguageCode);
-      loader.clearSingleRecaptcha();
-      // Still no load as one instance remains.
-      return loader.loadRecaptchaDeps('ru');
-    }).then(function() {
-      assertEquals('fr', currentLanguageCode);
-      loader.clearSingleRecaptcha();
-      // Language still loaded. No reload needed.
-      return loader.loadRecaptchaDeps('fr');
-    }).then(function() {
-      assertEquals('fr', currentLanguageCode);
-      // This will load reCAPTCHA dependencies for specified language.
-      return loader.loadRecaptchaDeps('ar');
-    }).then(function() {
-      assertEquals('ar', currentLanguageCode);
-    });
-  });
-}
-
-
-function testBaseRecaptchaVerifierLoader_alreadyLoaded() {
-  return installAndRunTest(
-      'testBaseAppVerifier_loader_alreadyLoaded', function() {
-    // Simulate grecaptcha loaded.
-    initializeRecaptchaMocks();
-    // No depedency load.
-    var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
-    safeLoad(ignoreArgument).$times(0);
-    mockControl.$replayAll();
-
-    // Initialize after simulated reCAPTCHA dependency is loaded.
-    var loader = new fireauth.BaseRecaptchaVerifier.Loader();
-    return loader.loadRecaptchaDeps('de');
   });
 }
 
@@ -1709,6 +1867,125 @@ function testRecaptchaVerifier_render() {
       return resp;
     }).then(function(recaptchaToken) {
       assertEquals('response-1', recaptchaToken);
+    });
+  });
+}
+
+
+function testRecaptchaVerifier_render_testingMode() {
+  return installAndRunTest('testAppVerifier_render_testingMode', function() {
+    // Confirm expected endpoint config passed to underlying RPC handler.
+    var endpoint = fireauth.constants.Endpoint.STAGING;
+    var endpointConfig = {
+      'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
+      'secureTokenEndpoint': endpoint.secureTokenEndpoint
+    };
+    var responseCallback = goog.testing.recordFunction();
+    var expiredCallback = goog.testing.recordFunction();
+    stubs.replace(
+      fireauth.constants,
+      'getEndpointConfig',
+      function(opt_id) {
+        return endpointConfig;
+      });
+    // Record calls to grecaptchaMock.render.
+    stubs.replace(
+        fireauth.GRecaptchaMockFactory.prototype,
+        'render',
+        goog.testing.recordFunction(
+            fireauth.GRecaptchaMockFactory.prototype.render));
+    // Confirm expected client version with the expected frameworks.
+    var expectedClientFullVersion = fireauth.util.getClientVersion(
+        fireauth.util.ClientImplementation.JSCORE, firebase.SDK_VERSION,
+        [fireauth.util.Framework.FIREBASEUI]);
+    var safeLoad = mockControl.createMethodMock(goog.net.jsloader, 'safeLoad');
+    var recaptchaConfig = {
+      'recaptchaSiteKey': 'SITE_KEY'
+    };
+    var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+    var rpcHandlerConstructor = mockControl.createConstructorMock(
+        fireauth, 'RpcHandler');
+    // RpcHandler should be initialized with expected API key, endpoint config
+    // and client version.
+    rpcHandlerConstructor('API_KEY', endpointConfig, expectedClientFullVersion)
+        .$returns(rpcHandler);
+    safeLoad(ignoreArgument).$never();
+    rpcHandler.getRecaptchaParam().$once().$returns(recaptchaConfig);
+    mockControl.$replayAll();
+
+    // Install mock clock.
+    clock = new goog.testing.MockClock(true);
+    app = firebase.initializeApp({
+      apiKey: 'API_KEY'
+    }, 'test');
+    // Simulate FirebaseUI logging.
+    simulateAuthFramework(app, [fireauth.util.Framework.FIREBASEUI]);
+    // Disable app verification.
+    app.auth().settings.appVerificationDisabledForTesting = true;
+    var params = {
+      'size': 'compact',
+      'theme': 'light',
+      'type': 'image',
+      'callback': responseCallback,
+      'expired-callback': expiredCallback
+    };
+    var recaptchaVerifier = new fireauth.RecaptchaVerifier(
+        myElement, params, app);
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    // Confirm property is readonly.
+    recaptchaVerifier['type'] = 'modified';
+    assertEquals('recaptcha', recaptchaVerifier['type']);
+    return recaptchaVerifier.render().then(function(widgetId) {
+      // Mock reCAPTCHA should be rendered.
+      assertEquals(
+          1, fireauth.GRecaptchaMockFactory.prototype.render.getCallCount());
+      // For visible reCAPTCHA, confirm expectedContainer element matches the
+      // parent of the actual container.
+      assertEquals(
+          myElement,
+          goog.dom.getParentElement(
+              fireauth.GRecaptchaMockFactory.prototype.render.getLastCall()
+                  .getArgument(0)));
+      var actualParams = fireauth.GRecaptchaMockFactory.prototype.render
+          .getLastCall().getArgument(1);
+      // Confirm expected parameters passed to reCAPTCHA.
+      assertEquals('SITE_KEY', actualParams['sitekey']);
+      assertEquals('light', actualParams['theme']);
+      assertEquals('image', actualParams['type']);
+      assertEquals('compact', actualParams['size']);
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      var verifyPromise = recaptchaVerifier.verify();
+      assertEquals(0, responseCallback.getCallCount());
+      clock.tick(solveTimeMs);
+      assertEquals(1, responseCallback.getCallCount());
+      assertEquals('random0', responseCallback.getLastCall().getArgument(0));
+      return verifyPromise;
+    }).then(function(recaptchaToken) {
+      assertEquals('random0', recaptchaToken);
+      // Already rendered.
+      return recaptchaVerifier.render();
+    }).then(function(widgetId) {
+      assertEquals(startInstanceId, widgetId);
+      return recaptchaVerifier.verify();
+    }).then(function(recaptchaToken) {
+      // Same unexpired response returned.
+      assertEquals('random0', recaptchaToken);
+      assertEquals(0, expiredCallback.getCallCount());
+      // Expire response.
+      clock.tick(expirationTimeMs);
+      assertEquals(1, expiredCallback.getCallCount());
+      var resp = recaptchaVerifier.verify();
+      // Solve response after expiration. New reCAPTCHA token should be
+      // returned.
+      clock.tick(solveTimeMs);
+      return resp;
+    }).then(function(recaptchaToken) {
+      assertEquals(2, responseCallback.getCallCount());
+      assertEquals('random1', responseCallback.getLastCall().getArgument(0));
+      assertEquals('random1', recaptchaToken);
     });
   });
 }

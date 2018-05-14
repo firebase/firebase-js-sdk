@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 declare namespace firebase {
+  type NextFn<T> = (value: T) => void;
+  type ErrorFn<E = Error> = (error: E) => void;
   type CompleteFn = () => void;
 
   interface FirebaseError {
@@ -23,10 +25,10 @@ declare namespace firebase {
     stack?: string;
   }
 
-  interface Observer<V, E> {
-    complete(): any;
-    error(error: E): any;
-    next(value: V | null): any;
+  interface Observer<T, E = Error> {
+    next: NextFn<T>;
+    error: ErrorFn<E>;
+    complete: CompleteFn;
   }
 
   var SDK_VERSION: string;
@@ -40,7 +42,6 @@ declare namespace firebase {
       forceRefresh?: boolean
     ): Promise<firebase.auth.IdTokenResult>;
     getIdToken(forceRefresh?: boolean): Promise<any>;
-    getToken(forceRefresh?: boolean): Promise<any>;
     isAnonymous: boolean;
     linkAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
@@ -106,11 +107,13 @@ declare namespace firebase {
 
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
-  function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
+  const messaging: firebase.messaging.MessagingFactory;
 
   function storage(app?: firebase.app.App): firebase.storage.Storage;
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
+
+  function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
 declare namespace firebase.app {
@@ -118,11 +121,47 @@ declare namespace firebase.app {
     auth(): firebase.auth.Auth;
     database(): firebase.database.Database;
     delete(): Promise<any>;
-    messaging(): firebase.messaging.Messaging;
+    messaging: firebase.messaging.MessagingFactory;
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
+    functions(): firebase.functions.Functions;
+  }
+}
+
+declare namespace firebase.functions {
+  export interface HttpsCallableResult {
+    readonly data: any;
+  }
+  export interface HttpsCallable {
+    (data?: any): Promise<HttpsCallableResult>;
+  }
+  export class Functions {
+    private constructor();
+    httpsCallable(name: string): HttpsCallable;
+  }
+  export type ErrorStatus =
+    | 'ok'
+    | 'cancelled'
+    | 'unknown'
+    | 'invalid-argument'
+    | 'deadline-exceeded'
+    | 'not-found'
+    | 'already-exists'
+    | 'permission-denied'
+    | 'resource-exhausted'
+    | 'failed-precondition'
+    | 'aborted'
+    | 'out-of-range'
+    | 'unimplemented'
+    | 'internal'
+    | 'unavailable'
+    | 'data-loss'
+    | 'unauthenticated';
+  export interface HttpsError extends Error {
+    readonly code: ErrorStatus;
+    readonly details?: any;
   }
 }
 
@@ -152,6 +191,10 @@ declare namespace firebase.auth {
     verify(): Promise<any>;
   }
 
+  interface AuthSettings {
+    appVerificationDisabledForTesting: boolean;
+  }
+
   interface Auth {
     app: firebase.app.App;
     applyActionCode(code: string): Promise<any>;
@@ -171,16 +214,17 @@ declare namespace firebase.auth {
     isSignInWithEmailLink(emailLink: string): boolean;
     getRedirectResult(): Promise<any>;
     languageCode: string | null;
+    settings: firebase.auth.AuthSettings;
     onAuthStateChanged(
       nextOrObserver:
-        | firebase.Observer<any, any>
+        | firebase.Observer<any>
         | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
     ): firebase.Unsubscribe;
     onIdTokenChanged(
       nextOrObserver:
-        | firebase.Observer<any, any>
+        | firebase.Observer<any>
         | ((a: firebase.User | null) => any),
       error?: (a: firebase.auth.Error) => any,
       completed?: firebase.Unsubscribe
@@ -217,6 +261,7 @@ declare namespace firebase.auth {
     signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
     signOut(): Promise<any>;
+    updateCurrentUser(user: firebase.User | null): Promise<any>;
     useDeviceLanguage(): any;
     verifyPasswordResetCode(code: string): Promise<any>;
   }
@@ -461,7 +506,6 @@ declare namespace firebase.database {
     key: string | null;
     onDisconnect(): firebase.database.OnDisconnect;
     parent: firebase.database.Reference | null;
-    path: string;
     push(
       value?: any,
       onComplete?: (a: Error | null) => any
@@ -505,18 +549,29 @@ declare namespace firebase.database.ServerValue {
 }
 
 declare namespace firebase.messaging {
+  interface MessagingFactory {
+    (app?: firebase.app.App): Messaging;
+    isSupported(): boolean;
+  }
+
   interface Messaging {
-    deleteToken(token: string): Promise<any> | null;
-    getToken(): Promise<any> | null;
+    deleteToken(token: string): Promise<boolean>;
+    getToken(): Promise<string | null>;
     onMessage(
-      nextOrObserver: firebase.Observer<any, any> | ((a: Object) => any)
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
     onTokenRefresh(
-      nextOrObserver: firebase.Observer<any, any> | ((a: Object) => any)
+      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
+      error?: firebase.ErrorFn,
+      completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
-    requestPermission(): Promise<any> | null;
-    setBackgroundMessageHandler(callback: (a: Object) => any): any;
-    useServiceWorker(registration: any): any;
+    requestPermission(): Promise<void>;
+    setBackgroundMessageHandler(
+      callback: (payload: any) => Promise<any> | void
+    ): void;
+    useServiceWorker(registration: ServiceWorkerRegistration): void;
     usePublicVapidKey(b64PublicKey: string): void;
   }
 }
@@ -615,10 +670,7 @@ declare namespace firebase.storage {
     catch(onRejected: (a: Error) => any): Promise<any>;
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?:
-        | firebase.Observer<any, any>
-        | null
-        | ((a: Object) => any),
+      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
@@ -1100,13 +1152,14 @@ declare namespace firebase.firestore {
   }
 
   /**
-   * Options for use with `DocumentReference.onSnapshot()` to control the
-   * behavior of the snapshot listener.
+   * An options object that can be passed to `DocumentReference.onSnapshot()`,
+   * `Query.onSnapshot()` and `QuerySnapshot.docChanges()` to control which
+   * types of changes to include in the result set.
    */
-  export interface DocumentListenOptions {
+  export interface SnapshotListenOptions {
     /**
-     * Raise an event even if only metadata of the document changed. Default is
-     * false.
+     * Include a change even if only the metadata of the query or of a document
+     * changed. Default is false.
      */
     readonly includeMetadataChanges?: boolean;
   }
@@ -1115,7 +1168,7 @@ declare namespace firebase.firestore {
    * An options object that configures the behavior of `set()` calls in
    * `DocumentReference`, `WriteBatch` and `Transaction`. These calls can be
    * configured to perform granular merges instead of overwriting the target
-   * documents in their entirety by providing a `SetOptions` with `merge: true`.
+   * documents in their entirety.
    */
   export interface SetOptions {
     /**
@@ -1124,6 +1177,16 @@ declare namespace firebase.firestore {
      * untouched.
      */
     readonly merge?: boolean;
+
+    /**
+     * Changes the behavior of set() calls to only replace the specified field
+     * paths. Any field path that is not specified is ignored and remains
+     * untouched.
+     *
+     * <p>It is an error to pass a SetOptions object to a set() call that is
+     * missing a value for any of the fields specified here.
+     */
+    readonly mergeFields?: (string | FieldPath)[];
   }
 
   /**
@@ -1292,7 +1355,7 @@ declare namespace firebase.firestore {
       complete?: () => void;
     }): () => void;
     onSnapshot(
-      options: DocumentListenOptions,
+      options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: DocumentSnapshot) => void;
         error?: (error: Error) => void;
@@ -1305,7 +1368,7 @@ declare namespace firebase.firestore {
       onCompletion?: () => void
     ): () => void;
     onSnapshot(
-      options: DocumentListenOptions,
+      options: SnapshotListenOptions,
       onNext: (snapshot: DocumentSnapshot) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
@@ -1473,26 +1536,8 @@ declare namespace firebase.firestore {
    * Filter conditions in a `Query.where()` clause are specified using the
    * strings '<', '<=', '==', '>=', and '>'.
    */
+  // TODO(array-features): Add 'array-contains' once backend support lands.
   export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
-
-  /**
-   * Options for use with `Query.onSnapshot() to control the behavior of the
-   * snapshot listener.
-   */
-  export interface QueryListenOptions {
-    /**
-     * Raise an event even if only metadata changes (i.e. one of the
-     * `QuerySnapshot.metadata` properties). Default is false.
-     */
-    readonly includeQueryMetadataChanges?: boolean;
-
-    /**
-     * Raise an event even if only metadata of a document in the query results
-     * changes (i.e. one of the `DocumentSnapshot.metadata` properties on one of
-     * the documents). Default is false.
-     */
-    readonly includeDocumentMetadataChanges?: boolean;
-  }
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1678,7 +1723,7 @@ declare namespace firebase.firestore {
       complete?: () => void;
     }): () => void;
     onSnapshot(
-      options: QueryListenOptions,
+      options: SnapshotListenOptions,
       observer: {
         next?: (snapshot: QuerySnapshot) => void;
         error?: (error: Error) => void;
@@ -1691,7 +1736,7 @@ declare namespace firebase.firestore {
       onCompletion?: () => void
     ): () => void;
     onSnapshot(
-      options: QueryListenOptions,
+      options: SnapshotListenOptions,
       onNext: (snapshot: QuerySnapshot) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
@@ -1718,12 +1763,6 @@ declare namespace firebase.firestore {
      * modifications.
      */
     readonly metadata: SnapshotMetadata;
-    /**
-     * An array of the documents that changed since the last snapshot. If this
-     * is the first snapshot, all documents will be in the list as added
-     * changes.
-     */
-    readonly docChanges: DocumentChange[];
 
     /** An array of all the documents in the QuerySnapshot. */
     readonly docs: QueryDocumentSnapshot[];
@@ -1733,6 +1772,16 @@ declare namespace firebase.firestore {
 
     /** True if there are no documents in the QuerySnapshot. */
     readonly empty: boolean;
+
+    /**
+     * Returns an array of the documents changes since the last snapshot. If this
+     * is the first snapshot, all documents will be in the list as added changes.
+     *
+     * @param options `SnapshotListenOptions` that control whether metadata-only
+     * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
+     * snapshot events.
+     */
+    docChanges(options?: SnapshotListenOptions): DocumentChange[];
 
     /**
      * Enumerates all of the documents in the QuerySnapshot.
@@ -1856,6 +1905,33 @@ declare namespace firebase.firestore {
      * Returns a sentinel for use with update() to mark a field for deletion.
      */
     static delete(): FieldValue;
+
+    /**
+     * Returns a special value that can be used with set() or update() that tells
+     * the server to union the given elements with any array value that already
+     * exists on the server. Each specified element that doesn't already exist in
+     * the array will be added to the end. If the field being modified is not
+     * already an array it will be overwritten with an array containing exactly
+     * the specified elements.
+     *
+     * @param elements The elements to union into the array.
+     * @return The FieldValue sentinel for use in a call to set() or update().
+     */
+    // TODO(array-features): Expose this once backend support lands.
+    //static arrayUnion(...elements: any[]): FieldValue;
+
+    /**
+     * Returns a special value that can be used with set() or update() that tells
+     * the server to remove the given elements from any array value that already
+     * exists on the server. All instances of each element specified will be
+     * removed from the array. If the field being modified is not already an
+     * array it will be overwritten with an empty array.
+     *
+     * @param elements The elements to remove from the array.
+     * @return The FieldValue sentinel for use in a call to set() or update().
+     */
+    // TODO(array-features): Expose this once backend support lands.
+    //static arrayRemove(...elements: any[]): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.

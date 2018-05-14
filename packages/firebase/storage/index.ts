@@ -14,10 +14,4 @@
  * limitations under the License.
  */
 
-var firebase = require('./app');
-require('./auth');
-require('./database');
-require('./messaging');
-require('./storage');
-
-module.exports = firebase;
+import '@firebase/storage';

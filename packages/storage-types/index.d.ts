@@ -19,12 +19,6 @@ import { Observer, Unsubscribe } from '@firebase/util';
 
 export interface FullMetadata extends UploadMetadata {
   bucket: string;
-  /**
-   * @deprecated
-   * Use Reference.getDownloadURL instead. This property will be removed in a
-   * future release.
-   */
-  downloadURLs: string[];
   fullPath: string;
   generation: string;
   metageneration: string;
@@ -83,7 +77,7 @@ export interface UploadTask {
   on(
     event: TaskEvent,
     nextOrObserver?:
-      | Observer<UploadTaskSnapshot, Error>
+      | Observer<UploadTaskSnapshot>
       | null
       | ((a: UploadTaskSnapshot) => any),
     error?: ((a: Error) => any) | null,
@@ -100,12 +94,6 @@ export interface UploadTask {
 
 export interface UploadTaskSnapshot {
   bytesTransferred: number;
-  /**
-   * @deprecated
-   * Use Reference.getDownloadURL instead. This property will be removed in a
-   * future release.
-   */
-  downloadURL: string | null;
   metadata: FullMetadata;
   ref: Reference;
   state: TaskState;
