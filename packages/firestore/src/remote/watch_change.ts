@@ -17,22 +17,23 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
-import { maybeDocumentMap, documentKeySet } from '../model/collections';
-import { Document, NoDocument } from '../model/document';
+import {
+  maybeDocumentMap,
+  documentKeySet,
+  DocumentKeySet
+} from '../model/collections';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as objUtils from '../util/obj';
-
 import { ExistenceFilter } from './existence_filter';
-import {
-  CurrentStatusUpdate,
-  RemoteEvent,
-  ResetMapping,
-  TargetChange,
-  UpdateMapping
-} from './remote_event';
+import { RemoteEvent, TargetChange } from './remote_event';
+import { ChangeType } from '../core/view_snapshot';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
+import { primitiveComparator } from '../util/misc';
 
 /**
  * Internal representation of the watcher API protocol buffers.
@@ -97,226 +98,97 @@ export class WatchTargetChange {
   ) {}
 }
 
+/** Tracks the internal state of a Watch target. */
+interface TargetState {
+  /**
+   * The number of pending responses (adds or removes) that we are waiting on.
+   * We only consider targets active that have no pending responses.
+   */
+  pendingResponses: number;
+
+  /** The last resume token sent to us for this target. */
+  resumeToken: ProtoByteString;
+
+  /**
+   * Whether this target has been marked 'current' (i.e. the watch backend has
+   * sent us all changes up to the point at which the target was added).
+   */
+  current: boolean;
+
+  /** Keeps track of the document changes since the last raised snapshot. */
+  snapshotChanges: SortedMap<DocumentKey, ChangeType>;
+}
+
 /**
  * A helper class to accumulate watch changes into a RemoteEvent and other
  * target information.
  */
 export class WatchChangeAggregator {
+  /**
+   * @param queryDataCallback A callback that returns the QueryData for active
+   * queries. Returns 'null' if the query is no longer active (e.g. the user
+   * stopped listening).
+   * @param existingKeysCallback A callback that returns the set of document
+   * keys that were assigned to the target at the last raised snapshot.
+   */
   constructor(
-    private snapshotVersion: SnapshotVersion,
-    private readonly listenTargets: { [targetId: number]: QueryData },
-    pendingTargetResponses: { [targetId: number]: number }
-  ) {
-    this.pendingTargetResponses = objUtils.shallowCopy(pendingTargetResponses);
-  }
+    private queryDataCallback: (targetId: TargetId) => QueryData | null,
+    private existingKeysCallback: (targetId: TargetId) => DocumentKeySet
+  ) {}
 
-  /** The existence filter - if any - for the given target IDs. */
-  readonly existenceFilters: { [targetId: number]: ExistenceFilter } = {};
+  /** The internal state of all tracked targets. */
+  private targetStates: { [targetId: number]: TargetState } = {};
 
-  /** The number of pending responses that we are waiting on from watch. */
-  readonly pendingTargetResponses: { [targetId: number]: number };
-
-  /** Keeps track of the current target mappings */
-  private targetChanges: { [targetId: number]: TargetChange } = {};
-
-  /** Keeps track of document to update */
+  /** Keeps track of the documents to update since the last raised snapshot. */
   private documentUpdates = maybeDocumentMap();
 
-  /** Whether this aggregator was frozen and can no longer be modified */
-  private frozen = false;
-
-  /** Tracks which document updates are due only to limbo target resolution */
-  private limboDocuments = documentKeySet();
-
-  /** Aggregates a watch change into the current state */
-  add(watchChange: WatchChange): void {
-    assert(!this.frozen, 'Trying to modify frozen WatchChangeAggregator.');
-    if (watchChange instanceof DocumentWatchChange) {
-      this.addDocumentChange(watchChange);
-    } else if (watchChange instanceof WatchTargetChange) {
-      this.addTargetChange(watchChange);
-    } else if (watchChange instanceof ExistenceFilterChange) {
-      this.addExistenceFilterChange(watchChange);
-    } else {
-      fail('Unknown watch change: ' + watchChange);
-    }
-  }
-
-  /** Aggregates all provided watch changes to the current state in order */
-  addChanges(watchChanges: WatchChange[]): void {
-    assert(!this.frozen, 'Trying to modify frozen WatchChangeAggregator.');
-    watchChanges.forEach(change => this.add(change));
-  }
+  /** A mapping of document keys to their set of target IDs. */
+  private documentTargetMapping = documentTargetMap();
 
   /**
-   * Converts the current state into a remote event with the snapshot version
-   * provided via the constructor.
+   * Processes and adds the DocumentWatchChange to the current set of changes.
    */
-  createRemoteEvent(): RemoteEvent {
-    const targetChanges = this.targetChanges;
-
-    // Remove all the non-active targets from the remote event.
-    objUtils.forEachNumber(this.targetChanges, targetId => {
-      if (!this.isActiveTarget(targetId)) {
-        delete targetChanges[targetId];
-      }
-    });
-
-    // Mark this aggregator as frozen so no further modifications are made
-    this.frozen = true;
-    return new RemoteEvent(
-      this.snapshotVersion,
-      targetChanges,
-      this.documentUpdates,
-      this.limboDocuments
-    );
-  }
-
-  private ensureTargetChange(targetId: TargetId): TargetChange {
-    let change = this.targetChanges[targetId];
-    if (!change) {
-      // Create an UpdateMapping by default, since resets are always explicit.
-      change = {
-        currentStatusUpdate: CurrentStatusUpdate.None,
-        snapshotVersion: this.snapshotVersion,
-        mapping: new UpdateMapping(),
-        resumeToken: emptyByteString()
-      };
-      this.targetChanges[targetId] = change;
-    }
-    return change;
-  }
-
-  /**
-   * Returns the QueryData instance for the given targetId if the target is
-   * active, or null otherwise. For a target to be considered active there must
-   * be no pending acks we're waiting for and it must be in the current list of
-   * targets that the client cares about.
-   */
-  protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
-    const queryData = this.listenTargets[targetId];
-    return queryData &&
-      !objUtils.contains(this.pendingTargetResponses, targetId)
-      ? queryData
-      : null;
-  }
-
-  /**
-   * Defers to queryForActiveTarget to determine if the given targetId
-   * corresponds to an active target.
-   *
-   * This method is visible for testing.
-   */
-  protected isActiveTarget(targetId: TargetId): boolean {
-    return this.queryDataForActiveTarget(targetId) !== null;
-  }
-
-  /**
-   * Updates limbo document tracking for a given target-document mapping change.
-   * If the target is a limbo target, and the change for the document has only
-   * seen limbo targets so far, and we are not already tracking a change for
-   * this document, then consider this document a limbo document update.
-   * Otherwise, ensure that we don't consider this document a limbo document.
-   * Returns true if the change still has only seen limbo resolution changes.
-   */
-  private updateLimboDocuments(
-    key: DocumentKey,
-    queryData: QueryData,
-    isOnlyLimbo: boolean
-  ): boolean {
-    if (!isOnlyLimbo) {
-      // It wasn't a limbo doc before, so it definitely isn't now.
-      return false;
-    }
-    if (!this.documentUpdates.get(key)) {
-      // We haven't seen the document update for this key yet.
-      if (queryData.purpose === QueryPurpose.LimboResolution) {
-        this.limboDocuments = this.limboDocuments.add(key);
-        return true;
-      } else {
-        // We haven't seen the document before, but this is a non-limbo target.
-        // Since we haven't seen it, we know it's not in our set of limbo docs.
-        // Return false to ensure that this key is marked as non-limbo.
-        return false;
-      }
-    } else if (queryData.purpose === QueryPurpose.LimboResolution) {
-      // We have only seen limbo targets so far for this document, and this is
-      // another limbo target.
-      return true;
-    } else {
-      // We haven't marked this as non-limbo yet, but this target is not a limbo
-      // target. Mark the key as non-limbo and make sure it isn't in our set.
-      this.limboDocuments = this.limboDocuments.delete(key);
-      return false;
-    }
-  }
-
-  private addDocumentChange(docChange: DocumentWatchChange): void {
-    let relevant = false;
-    let isOnlyLimbo = true;
-
+  addDocumentChange(docChange: DocumentWatchChange): void {
     for (const targetId of docChange.updatedTargetIds) {
-      const queryData = this.queryDataForActiveTarget(targetId);
-      if (queryData) {
-        const change = this.ensureTargetChange(targetId);
-        isOnlyLimbo = this.updateLimboDocuments(
-          docChange.key,
-          queryData,
-          isOnlyLimbo
-        );
-        change.mapping.add(docChange.key);
-        relevant = true;
+      if (docChange.newDoc instanceof Document) {
+        this.addDocument(targetId, docChange.newDoc);
+      } else if (docChange.newDoc instanceof NoDocument) {
+        this.removeDocument(targetId, docChange.key, docChange.newDoc);
+      } else {
+        // Remove the document from the target, but don't synthesize a document
+        // delete since the document may have been modified to no longer match
+        // the target.
+        this.removeDocument(targetId, docChange.key);
       }
     }
 
     for (const targetId of docChange.removedTargetIds) {
-      const queryData = this.queryDataForActiveTarget(targetId);
-      if (queryData) {
-        const change = this.ensureTargetChange(targetId);
-        isOnlyLimbo = this.updateLimboDocuments(
-          docChange.key,
-          queryData,
-          isOnlyLimbo
-        );
-        change.mapping.delete(docChange.key);
-        relevant = true;
-      }
-    }
-
-    // Only update the document if there is a new document to replace to an
-    // active target that is being listened to, this might be just a target
-    // update instead.
-    if (docChange.newDoc && relevant) {
-      this.documentUpdates = this.documentUpdates.insert(
-        docChange.key,
-        docChange.newDoc
-      );
+      this.removeDocument(targetId, docChange.key);
     }
   }
 
-  private addTargetChange(targetChange: WatchTargetChange): void {
+  /** Processes and adds the WatchTargetChange to the current set of changes. */
+  addTargetChange(targetChange: WatchTargetChange): void {
     targetChange.targetIds.forEach(targetId => {
-      const change = this.ensureTargetChange(targetId);
+      const targetState = this.ensureTargetState(targetId);
       switch (targetChange.state) {
         case WatchTargetChangeState.NoChange:
           if (this.isActiveTarget(targetId)) {
             // Creating the change above satisfies the semantics of no-change.
-            applyResumeToken(change, targetChange.resumeToken);
+            this.updateResumeToken(targetId, targetChange.resumeToken);
           }
           break;
         case WatchTargetChangeState.Added:
           // We need to decrement the number of pending acks needed from watch
           // for this targetId.
           this.recordTargetResponse(targetId);
-          if (!objUtils.contains(this.pendingTargetResponses, targetId)) {
+          if (targetState.pendingResponses === 0) {
             // We have a freshly added target, so we need to reset any state
-            // that we had previously This can happen e.g. when remove and add
+            // that we had previously. This can happen e.g. when remove and add
             // back a target for existence filter mismatches.
-            change.mapping = new UpdateMapping();
-            change.currentStatusUpdate = CurrentStatusUpdate.None;
-            delete this.existenceFilters[targetId];
+            targetState.current = false;
           }
-          applyResumeToken(change, targetChange.resumeToken);
+          this.updateResumeToken(targetId, targetChange.resumeToken);
           break;
         case WatchTargetChangeState.Removed:
           // We need to keep track of removed targets to we can
@@ -331,8 +203,8 @@ export class WatchChangeAggregator {
           break;
         case WatchTargetChangeState.Current:
           if (this.isActiveTarget(targetId)) {
-            change.currentStatusUpdate = CurrentStatusUpdate.MarkCurrent;
-            applyResumeToken(change, targetChange.resumeToken);
+            targetState.current = true;
+            this.updateResumeToken(targetId, targetChange.resumeToken);
           }
           break;
         case WatchTargetChangeState.Reset:
@@ -340,8 +212,8 @@ export class WatchChangeAggregator {
             // Overwrite any existing target mapping with a reset
             // mapping. Every subsequent update will modify the reset
             // mapping, not an update mapping.
-            change.mapping = new ResetMapping();
-            applyResumeToken(change, targetChange.resumeToken);
+            this.resetTarget(targetId);
+            this.updateResumeToken(targetId, targetChange.resumeToken);
           }
           break;
         default:
@@ -350,35 +222,318 @@ export class WatchChangeAggregator {
     });
   }
 
+  /** Resets a target after an existence filter mismatch. */
+  handleExistenceFilterMismatch(targetId: TargetId): void {
+    this.resetTarget(targetId);
+  }
+
+  /**
+   * Converts the currently accumulated state into a remote event at the
+   * provided snapshot version. Resets the accumulated changes before returning.
+   */
+  createRemoteEvent(snapshotVersion: SnapshotVersion): RemoteEvent {
+    const targetChanges: { [targetId: number]: TargetChange } = {};
+
+    objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
+      if (this.isActiveTarget(targetId)) {
+        const queryData = this.queryDataCallback(targetId);
+
+        let addedDocuments = documentKeySet();
+        let modifiedDocuments = documentKeySet();
+        let removedDocuments = documentKeySet();
+
+        if (targetState.snapshotChanges.size !== 0) {
+          targetState.snapshotChanges.forEach((key, changeType) => {
+            switch (changeType) {
+              case ChangeType.Added:
+                addedDocuments = addedDocuments.add(key);
+                break;
+              case ChangeType.Modified:
+                modifiedDocuments = modifiedDocuments.add(key);
+                break;
+              case ChangeType.Removed:
+                removedDocuments = removedDocuments.add(key);
+                break;
+              default:
+                fail('Encountered invalid change type: ' + changeType);
+            }
+          });
+        } else if (targetState.current && queryData.query.isDocumentQuery()) {
+          // Document queries for document that don't exist can produce an empty
+          // result set. To update our local cache, we synthesize a document
+          // delete if we have not previously received the document. This
+          // resolves the limbo state of the document, removing it from
+          // limboDocumentRefs.
+          //
+          // TODO(dimond): Ideally we would have an explicit lookup query
+          // instead resulting in an explicit delete message and we could
+          // remove this special logic.
+          const key = new DocumentKey(queryData.query.path);
+          if (!this.hasSyncedDocument(targetId, key)) {
+            this.documentUpdates = this.documentUpdates.insert(
+              key,
+              new NoDocument(key, snapshotVersion)
+            );
+
+            // While we don't add the document to a target, we potentially
+            // need to mark it as a resolved limbo key. This requires us
+            // to add the document to the list of document target mappings.
+            this.ensureDocumentTargetMapping(key);
+          }
+        }
+
+        targetChanges[targetId] = {
+          current: targetState.current,
+          resumeToken: targetState.resumeToken,
+          snapshotVersion,
+          addedDocuments,
+          modifiedDocuments,
+          removedDocuments
+        };
+
+        targetState.snapshotChanges = snapshotChangesMap();
+      }
+    });
+
+    let resolvedLimboDocuments = documentKeySet();
+
+    this.documentTargetMapping.forEach((key, targets) => {
+      let isLimboTarget = true;
+
+      targets.forEachWhile(targetId => {
+        if (this.isActiveTarget(targetId)) {
+          const queryData = this.queryDataCallback(targetId);
+          if (queryData.purpose !== QueryPurpose.LimboResolution) {
+            isLimboTarget = false;
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      if (isLimboTarget) {
+        resolvedLimboDocuments = resolvedLimboDocuments.add(key);
+      }
+    });
+
+    const remoteEvent = {
+      snapshotVersion,
+      targetChanges,
+      resolvedLimboDocuments,
+      documentUpdates: this.documentUpdates
+    };
+
+    this.documentUpdates = maybeDocumentMap();
+    this.documentTargetMapping = documentTargetMap();
+
+    return remoteEvent;
+  }
+
+  /**
+   * Adds the provided document to the internal list of document updates and
+   * its document key to the given target's mapping.
+   */
+  // Visible for testing.
+  addDocument(targetId: TargetId, document: MaybeDocument): void {
+    if (!this.isActiveTarget(targetId)) {
+      return;
+    }
+
+    const changeType = this.hasSyncedDocument(targetId, document.key)
+      ? ChangeType.Modified
+      : ChangeType.Added;
+
+    const targetState = this.ensureTargetState(targetId);
+    targetState.snapshotChanges = targetState.snapshotChanges.insert(
+      document.key,
+      changeType
+    );
+
+    this.documentUpdates = this.documentUpdates.insert(document.key, document);
+
+    this.documentTargetMapping = this.documentTargetMapping.insert(
+      document.key,
+      this.ensureDocumentTargetMapping(document.key).add(targetId)
+    );
+  }
+
+  /**
+   * Removes the provided document from the internal list of document updates and
+   * removes its target mapping. If the document exists and we know that is was
+   * removed (rather than modified to no longer match a query), a 'NoDocument'
+   * should be provided to also remove the document data.
+   */
+  removeDocument(
+    targetId: TargetId,
+    key: DocumentKey,
+    removedDocument?: NoDocument
+  ): void {
+    if (!this.isActiveTarget(targetId)) {
+      return;
+    }
+
+    const targetState = this.ensureTargetState(targetId);
+
+    if (this.hasSyncedDocument(targetId, key)) {
+      targetState.snapshotChanges = targetState.snapshotChanges.insert(
+        key,
+        ChangeType.Removed
+      );
+      if (removedDocument) {
+        // We only synthesize a delete for known snapshot versions. This
+        // allows us to not affect the global state of documents during a target
+        // reset (which should only bring a single target back to an
+        // unknown snapshot version).
+        this.documentUpdates = this.documentUpdates.insert(
+          key,
+          removedDocument
+        );
+      }
+    } else {
+      targetState.snapshotChanges = targetState.snapshotChanges.remove(key);
+    }
+
+    this.documentTargetMapping = this.documentTargetMapping.insert(
+      key,
+      this.ensureDocumentTargetMapping(key).delete(targetId)
+    );
+  }
+
+  /**
+   * Returns the current count of documents in the target. This includes both
+   * the number of documents that the LocalStore considers to be part of the
+   * target as well as any accumulated changes.
+   */
+  getCurrentSize(targetId: TargetId): number {
+    const targetState = this.ensureTargetState(targetId);
+
+    let currentSize = this.existingKeysCallback(targetId).size;
+
+    targetState.snapshotChanges.forEach((key, changeType) => {
+      switch (changeType) {
+        case ChangeType.Added:
+          ++currentSize;
+          break;
+        case ChangeType.Modified:
+          break;
+        case ChangeType.Removed:
+          --currentSize;
+          break;
+        default:
+          fail('Encountered invalid change type: ' + changeType);
+      }
+    });
+
+    return currentSize;
+  }
+
+  /**
+   * Increment the mapping of how many acks are needed from watch before we can
+   * consider the server to be 'in-sync' with the client's active targets.
+   */
+  recordPendingTargetRequest(targetId: TargetId): void {
+    const targetState = this.ensureTargetState(targetId);
+    // For each request we get we need to record we need a response for it.
+    targetState.pendingResponses += 1;
+  }
+
+  private ensureTargetState(targetId: TargetId): TargetState {
+    if (!this.targetStates[targetId]) {
+      this.targetStates[targetId] = {
+        pendingResponses: 0,
+        current: false,
+        resumeToken: emptyByteString(),
+        snapshotChanges: snapshotChangesMap()
+      };
+    }
+
+    return this.targetStates[targetId];
+  }
+
+  private ensureDocumentTargetMapping(key: DocumentKey): SortedSet<TargetId> {
+    let targetMapping = this.documentTargetMapping.get(key);
+
+    if (!targetMapping) {
+      targetMapping = new SortedSet<TargetId>(primitiveComparator);
+      this.documentTargetMapping = this.documentTargetMapping.insert(
+        key,
+        targetMapping
+      );
+    }
+
+    return targetMapping;
+  }
+
+  /**
+   * Verifies that the user is still interested in this target (by calling
+   * `queryDataCallback()`) and that we are not waiting for pending ADDs
+   * from watch.
+   */
+  protected isActiveTarget(targetId: TargetId): boolean {
+    const targetState = this.ensureTargetState(targetId);
+
+    return (
+      this.queryDataCallback(targetId) != null &&
+      targetState.pendingResponses === 0
+    );
+  }
+
+  /**
+   * Resets the initial state of a Watch target to its initial state (e.g. sets
+   * 'current' to false, clears the resume token and removes its target mapping
+   * from all documents).
+   */
+  private resetTarget(targetId: TargetId): void {
+    delete this.targetStates[targetId];
+
+    // Trigger removal for any documents currently mapped to this target.
+    // These removals will be part of the initial snapshot if Watch does not
+    // resend these documents.
+    const existingKeys = this.existingKeysCallback(targetId);
+    existingKeys.forEach(key => {
+      this.removeDocument(targetId, key);
+    });
+  }
+
   /**
    * Record that we get a watch target add/remove by decrementing the number of
    * pending target responses that we have.
    */
   private recordTargetResponse(targetId: TargetId): void {
-    const newCount = (this.pendingTargetResponses[targetId] || 0) - 1;
-    if (newCount === 0) {
-      delete this.pendingTargetResponses[targetId];
-    } else {
-      this.pendingTargetResponses[targetId] = newCount;
+    const targetState = this.ensureTargetState(targetId);
+    targetState.pendingResponses -= 1;
+  }
+
+  /**
+   * Applies the resume token to the TargetChange, but only when it has a new
+   * value. null and empty resumeTokens are discarded.
+   */
+  private updateResumeToken(
+    targetId: TargetId,
+    resumeToken: ProtoByteString
+  ): void {
+    if (resumeToken.length > 0) {
+      const targetState = this.ensureTargetState(targetId);
+      targetState.resumeToken = resumeToken;
     }
   }
 
-  private addExistenceFilterChange(change: ExistenceFilterChange): void {
-    if (this.isActiveTarget(change.targetId)) {
-      this.existenceFilters[change.targetId] = change.existenceFilter;
-    }
+  /** Returns whether the LocalStore considers the document to be part of the specified target. */
+  private hasSyncedDocument(targetId: TargetId, key: DocumentKey): boolean {
+    const existingKeys = this.existingKeysCallback(targetId);
+    return existingKeys.has(key);
   }
 }
 
-/**
- * Applies the resume token to the TargetChange, but only when it has a new
- * value. null and empty resumeTokens are discarded.
- */
-function applyResumeToken(
-  change: TargetChange,
-  resumeToken: ProtoByteString
-): void {
-  if (resumeToken.length > 0) {
-    change.resumeToken = resumeToken;
-  }
+function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
+  return new SortedMap<DocumentKey, SortedSet<TargetId>>((left, right) =>
+    DocumentKey.comparator(left, right)
+  );
+}
+
+function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
+  return new SortedMap<DocumentKey, ChangeType>((left, right) =>
+    DocumentKey.comparator(left, right)
+  );
 }

@@ -82,6 +82,20 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
+  specTest('Existence filter uses current state of query', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/1', 1000, { v: 1 });
+    const doc2 = doc('collection/2', 2000, { v: 2 });
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, doc1)
+      .expectEvents(query, { added: [doc1] })
+      .watchSends({ affects: [query] }, doc2)
+      .watchFilters([query], doc1.key, doc2.key)
+      .watchSnapshots(2000)
+      .expectEvents(query, { added: [doc2] });
+  });
+
   specTest('Existence filter limbo resolution is denied', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });
