@@ -26,6 +26,7 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
   key,
+  keys,
   path,
   resumeTokenForSnapshot,
   version
@@ -34,9 +35,33 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
+import { DocumentKeySet } from '../../../src/model/collections';
+import { TargetChange } from '../../../src/remote/remote_event';
+import { emptyByteString } from '../../../src/platform/platform';
+import { DocumentKey } from '../../../src/model/document_key';
 
 let persistence: Persistence;
 let cache: TestQueryCache;
+
+function targetChange(
+  snapshotVersion: SnapshotVersion,
+  added: DocumentKey[] = [],
+  modified: DocumentKey[] = [],
+  removed: DocumentKey[] = []
+): TargetChange {
+  return {
+    snapshotVersion,
+    resumeToken: emptyByteString(),
+    current: true,
+    addedDocuments: keys(...added.map(key => key.toString())),
+    modifiedDocuments: keys(...modified.map(key => key.toString())),
+    removedDocuments: keys(...removed.map(key => key.toString()))
+  };
+}
+
+function extractKeys(keys: DocumentKeySet): string[] {
+  return keys.toArray().map(key => key.toString());
+}
 
 describe('MemoryQueryCache', () => {
   beforeEach(() => {
@@ -175,8 +200,14 @@ function genericQueryCacheTests(): void {
 
     expect(await cache.containsKey(key1)).to.equal(false);
 
-    await cache.addMatchingKeys([key1], rooms.targetId);
-    await cache.addMatchingKeys([key2], rooms.targetId);
+    await cache.applyTargetChange(
+      rooms.targetId,
+      targetChange(rooms.snapshotVersion, [key1])
+    );
+    await cache.applyTargetChange(
+      rooms.targetId,
+      targetChange(rooms.snapshotVersion, [key2])
+    );
 
     expect(await cache.containsKey(key1)).to.equal(true);
     expect(await cache.containsKey(key2)).to.equal(true);
@@ -188,18 +219,20 @@ function genericQueryCacheTests(): void {
 
   it('adds or removes matching keys', async () => {
     const k = key('foo/bar');
+    const v = version(0);
+
     expect(await cache.containsKey(k)).to.equal(false);
 
-    await cache.addMatchingKeys([k], 1);
+    await cache.applyTargetChange(1, targetChange(v, [k]));
     expect(await cache.containsKey(k)).to.equal(true);
 
-    await cache.addMatchingKeys([k], 2);
+    await cache.applyTargetChange(2, targetChange(v, [k]));
     expect(await cache.containsKey(k)).to.equal(true);
 
-    await cache.removeMatchingKeys([k], 1);
+    await cache.applyTargetChange(1, targetChange(v, [], [], [k]));
     expect(await cache.containsKey(k)).to.equal(true);
 
-    await cache.removeMatchingKeys([k], 2);
+    await cache.applyTargetChange(2, targetChange(v, [], [], [k]));
     expect(await cache.containsKey(k)).to.equal(false);
   });
 
@@ -207,19 +240,23 @@ function genericQueryCacheTests(): void {
     const key1 = key('foo/bar');
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
+    const ver = version(0);
 
-    cache.addMatchingKeys([key1, key2], 1);
-    cache.addMatchingKeys([key3], 2);
+    await cache.applyTargetChange(1, targetChange(ver, [key1, key2]));
+    await cache.applyTargetChange(2, targetChange(ver, [key3]));
+
     expect(await cache.containsKey(key1)).to.equal(true);
     expect(await cache.containsKey(key2)).to.equal(true);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(1);
+    await cache.applyTargetChange(1, targetChange(ver, [], [], [key1, key2]));
+
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(2);
+    await cache.applyTargetChange(2, targetChange(ver, [], [], [key3]));
+
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(false);
@@ -236,24 +273,38 @@ function genericQueryCacheTests(): void {
 
     const room1 = key('rooms/bar');
     const room2 = key('rooms/foo');
-    await cache.addMatchingKeys([room1, room2], rooms.targetId);
-
+    await cache.applyTargetChange(
+      rooms.targetId,
+      targetChange(rooms.snapshotVersion, [room1, room2])
+    );
     const halls = testQueryData(QUERY_HALLS, 2, 1);
     await cache.addQueryData(halls);
 
     const hall1 = key('halls/bar');
     const hall2 = key('halls/foo');
-    await cache.addMatchingKeys([hall1, hall2], halls.targetId);
-
+    await cache.applyTargetChange(
+      halls.targetId,
+      targetChange(rooms.snapshotVersion, [hall1, hall2])
+    );
     expect(await testGc.collectGarbage()).to.deep.equal([]);
 
-    cache.removeMatchingKeys([room1], rooms.targetId);
+    await cache.applyTargetChange(
+      rooms.targetId,
+      targetChange(rooms.snapshotVersion, [], [], [room1])
+    );
     expect(await testGc.collectGarbage()).to.deep.equal([room1]);
 
-    cache.removeQueryData(rooms);
+    await cache.applyTargetChange(
+      rooms.targetId,
+      targetChange(rooms.snapshotVersion, [], [], [room2])
+    );
+    await cache.removeQueryData(rooms);
     expect(await testGc.collectGarbage()).to.deep.equal([room2]);
 
-    cache.removeMatchingKeysForTargetId(halls.targetId);
+    await cache.applyTargetChange(
+      halls.targetId,
+      targetChange(halls.snapshotVersion, [], [], [hall1, hall2])
+    );
     expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
   });
 
@@ -261,17 +312,17 @@ function genericQueryCacheTests(): void {
     const key1 = key('foo/bar');
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
+    const ver = version(0);
 
-    await cache.addMatchingKeys([key1, key2], 1);
-    await cache.addMatchingKeys([key3], 2);
-
+    await cache.applyTargetChange(1, targetChange(ver, [key1, key2]));
+    await cache.applyTargetChange(2, targetChange(ver, [key3]));
     expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
       key1,
       key2
     ]);
     expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([key3]);
 
-    cache.addMatchingKeys([key1], 2);
+    await cache.applyTargetChange(2, targetChange(ver, [key1, key3]));
     expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
       key1,
       key2
@@ -283,18 +334,19 @@ function genericQueryCacheTests(): void {
   });
 
   it('can get / set highestTargetId', async () => {
+    const ver = version(0);
+
     expect(cache.getHighestTargetId()).to.deep.equal(0);
     const queryData1 = testQueryData(QUERY_ROOMS, 1);
 
     await cache.addQueryData(queryData1);
     const key1 = key('rooms/bar');
     const key2 = key('rooms/foo');
-    await cache.addMatchingKeys([key1, key2], 1);
-
+    await cache.applyTargetChange(1, targetChange(ver, [key1, key2]));
     const queryData2 = testQueryData(QUERY_HALLS, 2);
     await cache.addQueryData(queryData2);
     const key3 = key('halls/foo');
-    await cache.addMatchingKeys([key3], 2);
+    await cache.applyTargetChange(2, targetChange(ver, [key3]));
     expect(cache.getHighestTargetId()).to.deep.equal(2);
 
     await cache.removeQueryData(queryData2);
@@ -345,5 +397,57 @@ function genericQueryCacheTests(): void {
           );
         });
       });
+  });
+
+  it('get changes for single version', async () => {
+    await cache.applyTargetChange(
+      0,
+      targetChange(
+        version(3),
+        [key('coll/a'), key('coll/b')],
+        [key('coll/c')],
+        [key('coll/d')]
+      )
+    );
+    const changes = await cache.getChangesSince(0, version(0));
+    expect(extractKeys(changes)).to.have.members([
+      'coll/a',
+      'coll/b',
+      'coll/c',
+      'coll/d'
+    ]);
+  });
+
+  it('get changes for multiple versions', async () => {
+    await cache.applyTargetChange(0, targetChange(version(1), [key('coll/a')]));
+    await cache.applyTargetChange(
+      0,
+      targetChange(version(2), [], [key('coll/b')])
+    );
+    await cache.applyTargetChange(
+      0,
+      targetChange(version(3), [], [], [key('coll/c')])
+    );
+
+    let changes = await cache.getChangesSince(0, version(1));
+    expect(extractKeys(changes)).to.have.members([
+      'coll/a',
+      'coll/b',
+      'coll/c'
+    ]);
+
+    changes = await cache.getChangesSince(0, version(2));
+    expect(extractKeys(changes)).to.have.members(['coll/b', 'coll/c']);
+
+    changes = await cache.getChangesSince(0, version(3));
+    expect(extractKeys(changes)).to.have.members(['coll/c']);
+  });
+
+  it('get changes with multiple targets', async () => {
+    await cache.applyTargetChange(0, targetChange(version(0), [key('coll/a')]));
+    await cache.applyTargetChange(1, targetChange(version(0), [key('coll/b')]));
+    const changes = await cache.getChangesSince(0, version(0));
+
+    expect(extractKeys(changes)).to.have.members(['coll/a']);
   });
 }

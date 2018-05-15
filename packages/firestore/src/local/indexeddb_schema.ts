@@ -86,6 +86,12 @@ export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
 
+/**
+ * An array of seconds and nanoseconds that allows storage of timestamps in an
+ * an IndexedDb key.
+ */
+export type DbTimestampArray = number[];
+
 // The key for the singleton object in the 'owner' store is 'owner'.
 export type DbOwnerKey = 'owner';
 
@@ -582,17 +588,18 @@ export class DbTargetChange {
     /**
      * The snapshot version for this change.
      */
-    public snapshotVersion: DbTimestamp,
+    public snapshotVersion: DbTimestampArray,
     /**
      * The keys of the changed documents in this snapshot.
      */
-    public changes: {
-      added?: EncodedResourcePath[];
-      modified?: EncodedResourcePath[];
-      removed?: EncodedResourcePath[];
-    }
+    public changes: EncodedResourcePath[]
   ) {}
 }
+
+/**
+ * The key for a DbTargetChange, containing a targetId and a snapshot version.
+ */
+export type DbTargetChangeKey = [TargetId, DbTimestampArray];
 
 function createTargetChangeStore(db: IDBDatabase): void {
   db.createObjectStore(DbTargetChange.store, {

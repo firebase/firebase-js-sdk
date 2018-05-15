@@ -30,9 +30,14 @@ import {
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp
+  DbTargetChange,
+  DbTimestamp,
+  DbTimestampArray
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
+import { TargetId } from '../core/types';
+import { decode, encode } from './encoded_resource_path';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -88,6 +93,45 @@ export class LocalSerializer {
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
+  }
+
+  /** Converts a timestamp into an array of seconds and nanoseconds.  */
+  toTimestampArray(timestamp: Timestamp): DbTimestampArray {
+    return [timestamp.seconds, timestamp.nanoseconds];
+  }
+
+  /**
+   * Encodes a set of document keyss into a DbTargetChange.
+   */
+  toDbTargetChanges(
+    targetId: TargetId,
+    snapshotVersion: SnapshotVersion,
+    changes: DocumentKeySet
+  ): DbTargetChange {
+    const targetChange = new DbTargetChange(
+      targetId,
+      this.toTimestampArray(snapshotVersion.toTimestamp()),
+      []
+    );
+
+    changes.forEach(key => {
+      targetChange.changes.push(encode(key.path));
+    });
+
+    return targetChange;
+  }
+
+  /** Decodes a DbTargetChange into its set of updated document keys. */
+  fromDbTargetChange(dbTargetChange: DbTargetChange): DocumentKeySet {
+    let documentChanges = documentKeySet();
+
+    for (const documentKey of dbTargetChange.changes) {
+      documentChanges = documentChanges.add(
+        new DocumentKey(decode(documentKey))
+      );
+    }
+
+    return documentChanges;
   }
 
   /** Decodes a DbTarget into QueryData */
