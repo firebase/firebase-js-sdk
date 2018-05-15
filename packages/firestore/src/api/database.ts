@@ -1907,8 +1907,10 @@ function throwDocChangesMethodError(): never {
 }
 
 const docChangesPropertiesToOverride = [
-  'length', 'forEach', 'map',
-  ...(typeof Symbol !== 'undefined' ? [Symbol.iterator] : []),
+  'length',
+  'forEach',
+  'map',
+  ...(typeof Symbol !== 'undefined' ? [Symbol.iterator] : [])
 ];
 docChangesPropertiesToOverride.forEach(property => {
   /**
