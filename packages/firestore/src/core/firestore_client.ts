@@ -229,11 +229,11 @@ export class FirestoreClient {
     }
   }
 
-  private canFallback(error: FirestoreError|DOMException): boolean {
+  private canFallback(error: FirestoreError | DOMException): boolean {
     if (error instanceof FirestoreError) {
       return (
-          error.code === Code.FAILED_PRECONDITION ||
-          error.code === Code.UNIMPLEMENTED
+        error.code === Code.FAILED_PRECONDITION ||
+        error.code === Code.UNIMPLEMENTED
       );
     } else if (error instanceof DOMException) {
       return error.code === QUOTA_EXCEEDED;
