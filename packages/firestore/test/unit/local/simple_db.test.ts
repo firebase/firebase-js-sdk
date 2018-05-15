@@ -133,13 +133,11 @@ describe('SimpleDb', () => {
   });
 
   it('lets you explicitly abort transactions', async () => {
-    await expect(
-      runTransaction((store, txn) => {
-        return store.put(dummyUser).next(() => {
-          txn.abort();
-        });
-      })
-    ).to.eventually.be.rejectedWith('The IndexedDb transaction was aborted.');
+    await runTransaction((store, txn) => {
+      return store.put(dummyUser).next(() => {
+        txn.abort();
+      });
+    });
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {

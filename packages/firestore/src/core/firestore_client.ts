@@ -57,7 +57,7 @@ import { ViewSnapshot } from './view_snapshot';
 const LOG_TAG = 'FirestoreClient';
 
 /** The DOMException code for quota exceeded. */
-const QUOTA_EXCEEDED = 22;
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -229,6 +229,10 @@ export class FirestoreClient {
     }
   }
 
+  /**
+   * Decides whether the provided error allows us to gracefully disable
+   * persistence (as opposed to crashing the client).
+   */
   private canFallback(error: FirestoreError | DOMException): boolean {
     if (error instanceof FirestoreError) {
       return (
@@ -239,7 +243,7 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      return error.code === QUOTA_EXCEEDED;
+      return error.code === DOM_EXCEPTION_QUOTA_EXCEEDED;
     }
 
     return true;
