@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
 import { expect } from 'chai';
 import { SimpleDb } from '../../../src/local/simple_db';
 
@@ -22,6 +25,8 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+
+chai.use(chaiAsPromised);
 
 interface User {
   id: number;
@@ -128,11 +133,13 @@ describe('SimpleDb', () => {
   });
 
   it('lets you explicitly abort transactions', async () => {
-    await runTransaction((store, txn) => {
-      return store.put(dummyUser).next(() => {
-        txn.abort(); // JUST KIDDING!
-      });
-    });
+    expect(
+      runTransaction((store, txn) => {
+        return store.put(dummyUser).next(() => {
+          txn.abort();
+        });
+      })
+    ).to.eventually.be.rejectedWith('The IndexedDb transaction was aborted.');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
@@ -142,18 +149,13 @@ describe('SimpleDb', () => {
   });
 
   it('aborts transactions when an error happens', async () => {
-    let gotError = false;
-    try {
-      await runTransaction(store => {
+    expect(
+      runTransaction(store => {
         return store.put(dummyUser).next(() => {
-          throw new Error('error');
+          throw new Error('Generated error');
         });
-      });
-    } catch (error) {
-      expect(error.message).to.equal('error');
-      gotError = true;
-    }
-    expect(gotError).to.equal(true);
+      })
+    ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
@@ -162,20 +164,14 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('still propagates error if you throw after aborting an exception.', async () => {
-    let gotError = false;
-    try {
-      await runTransaction((store, txn) => {
+  it('aborts transactions when persistence promise is rejected', async () => {
+    expect(
+      runTransaction(store => {
         return store.put(dummyUser).next(() => {
-          txn.abort();
-          throw new Error('error');
+          return PersistencePromise.reject(new Error('Generated error'));
         });
-      });
-    } catch (error) {
-      expect(error.message).to.equal('error');
-      gotError = true;
-    }
-    expect(gotError).to.equal(true);
+      })
+    ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {

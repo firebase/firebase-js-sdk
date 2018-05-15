@@ -264,10 +264,14 @@ export class SimpleDbTransaction {
 
   constructor(private readonly transaction: IDBTransaction) {
     this.completionPromise = new Promise<void>((resolve, reject) => {
-      // We consider aborting to be "normal" and just resolve the promise.
-      // May need to revisit if/when we actually need to abort transactions.
-      this.transaction.onabort = this.transaction.oncomplete = event => {
+      this.transaction.oncomplete = () => {
         resolve();
+      };
+      this.transaction.onabort = () => {
+        const error =
+          transaction.error ||
+          new Error('The IndexedDb transaction was aborted.');
+        reject(error);
       };
       this.transaction.onerror = (event: Event) => {
         reject((event.target as IDBRequest).error);
