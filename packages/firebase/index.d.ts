@@ -1179,9 +1179,6 @@ declare namespace firebase.firestore {
      * Changes the behavior of set() calls to only replace the specified field
      * paths. Any field path that is not specified is ignored and remains
      * untouched.
-     *
-     * <p>It is an error to pass a SetOptions object to a set() call that is
-     * missing a value for any of the fields specified here.
      */
     readonly mergeFields?: (string | FieldPath)[];
   }
