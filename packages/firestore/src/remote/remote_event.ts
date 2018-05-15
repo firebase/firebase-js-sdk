@@ -43,10 +43,10 @@ export class RemoteEvent {
   readonly resolvedLimboDocuments: DocumentKeySet;
 
   constructor(options: {
-    snapshotVersion: SnapshotVersion,
-    targetChanges: { [targetId: number]: TargetChange },
-    documentUpdates: MaybeDocumentMap,
-    resolvedLimboDocuments: DocumentKeySet
+    snapshotVersion: SnapshotVersion;
+    targetChanges: { [targetId: number]: TargetChange };
+    documentUpdates: MaybeDocumentMap;
+    resolvedLimboDocuments: DocumentKeySet;
   }) {
     this.snapshotVersion = options.snapshotVersion;
     this.targetChanges = options.targetChanges;
@@ -97,11 +97,11 @@ export class TargetChange {
   readonly removedDocuments: DocumentKeySet;
 
   constructor(options: {
-    resumeToken: ProtoByteString,
-    current: boolean,
-    addedDocuments: DocumentKeySet,
-    modifiedDocuments: DocumentKeySet,
-    removedDocuments: DocumentKeySet
+    resumeToken: ProtoByteString;
+    current: boolean;
+    addedDocuments: DocumentKeySet;
+    modifiedDocuments: DocumentKeySet;
+    removedDocuments: DocumentKeySet;
   }) {
     this.current = options.current;
     this.resumeToken = options.resumeToken;

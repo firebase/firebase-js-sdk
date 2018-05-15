@@ -38,6 +38,7 @@ import {
 } from '../../util/helpers';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
+import {SnapshotVersion} from '../../../src/core/snapshot_version';
 
 type TargetMap = {
   [targetId: number]: QueryData;
@@ -306,7 +307,6 @@ describe('RemoteEvent', () => {
 
     expectEqual(event.snapshotVersion, version(3));
     expect(event.documentUpdates.size).to.equal(0);
-
     expect(size(event.targetChanges)).to.equal(1);
 
     // Reset mapping is empty.
@@ -439,6 +439,7 @@ describe('RemoteEvent', () => {
     const aggregator = createAggregator({
       snapshotVersion: 3,
       targets,
+      existingKeys: keys(doc1),
       changes: [change1, change2]
     });
 
@@ -453,6 +454,9 @@ describe('RemoteEvent', () => {
     event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(0);
     expect(size(event.targetChanges)).to.equal(1);
+
+    const expected = updateMapping(SnapshotVersion.MIN, [], [], [doc1], false);
+    expectTargetChangeEquals(event.targetChanges[1], expected);
   });
 
   it('existence filters removes current changes', () => {
@@ -527,6 +531,37 @@ describe('RemoteEvent', () => {
     expectTargetChangeEquals(event.targetChanges[1], mapping1);
   });
 
+  it('only raises events for updated targets', () => {
+    const targets = listens(1, 2);
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+    const updatedDoc2 = doc('docs/2', 3, { value: 2 });
+
+    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const change2 = new DocumentWatchChange([2], [], doc2.key, doc2);
+
+    const aggregator = createAggregator({
+      snapshotVersion: 3,
+      targets,
+      existingKeys: keys(doc1, doc2),
+      changes: [change1, change2]
+    });
+
+    let event = aggregator.createRemoteEvent(version(2));
+    expect(event.documentUpdates.size).to.equal(2);
+    expect(size(event.targetChanges)).to.equal(2);
+
+    aggregator.addDocument(2, updatedDoc2);
+    event = aggregator.createRemoteEvent(version(2));
+
+    expect(event.documentUpdates.size).to.equal(1);
+    expect(size(event.targetChanges)).to.equal(1);
+
+    const mapping1 = updateMapping(version(3), [], [updatedDoc2], []);
+    expectTargetChangeEquals(event.targetChanges[2], mapping1);
+  });
+
   it('synthesizes deletes', () => {
     const targets = limboListens(1);
     const limboKey = DocumentKey.fromPathString('coll/limbo');
@@ -566,7 +601,7 @@ describe('RemoteEvent', () => {
     expect(event.resolvedLimboDocuments.has(limboKey)).to.be.false;
   });
 
-  it('filters updates', () => {
+  it('separates document updates', () => {
     const updateTargetId = 1;
     const newDoc = doc('docs/new', 1, { key: 'value' });
     const existingDoc = doc('docs/existing', 1, { some: 'data' });

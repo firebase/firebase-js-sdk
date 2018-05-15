@@ -99,24 +99,123 @@ export class WatchTargetChange {
 }
 
 /** Tracks the internal state of a Watch target. */
-interface TargetState {
+class TargetState {
   /**
    * The number of pending responses (adds or removes) that we are waiting on.
    * We only consider targets active that have no pending responses.
    */
-  pendingResponses: number;
+  private pendingResponses = 0;
 
-  /** The last resume token sent to us for this target. */
-  resumeToken: ProtoByteString;
+  /** Keeps track of the document changes since the last raised snapshot. */
+  private snapshotChanges: SortedMap<
+    DocumentKey,
+    ChangeType
+  > = snapshotChangesMap();
+
+  private _resumeToken: ProtoByteString = emptyByteString();
+  private _current = false;
+  private _shouldRaise = false;
 
   /**
    * Whether this target has been marked 'current' (i.e. the watch backend has
    * sent us all changes up to the point at which the target was added).
    */
-  current: boolean;
+  get current(): boolean {
+    return this._current;
+  }
 
-  /** Keeps track of the document changes since the last raised snapshot. */
-  snapshotChanges: SortedMap<DocumentKey, ChangeType>;
+  /** The last resume token sent to us for this target. */
+  get resumeToken(): ProtoByteString {
+    return this._resumeToken;
+  }
+
+  /** Whether this target has pending target adds or target removes. */
+  get isPending(): boolean {
+    return this.pendingResponses !== 0;
+  }
+
+  /** Whether we have modified any state that should trigger a snapshot. */
+  get shouldRaise(): boolean {
+    return this._shouldRaise;
+  }
+
+  /**
+   * Applies the resume token to the TargetChange, but only when it has a new
+   * value. Empty resumeTokens are discarded.
+   */
+  updateResumeToken(resumeToken: ProtoByteString) : void {
+    if (resumeToken.length > 0) {
+      this._shouldRaise = true;
+      this._resumeToken = resumeToken;
+    }
+  }
+
+  /**
+   * Creates a target change from the current set of changes.
+   *
+   * To reset the document changes after raising this snapshot, call
+   * `clearChanges()`.
+   */
+  toTargetChange(): TargetChange {
+    let addedDocuments = documentKeySet();
+    let modifiedDocuments = documentKeySet();
+    let removedDocuments = documentKeySet();
+
+    this.snapshotChanges.forEach((key, changeType) => {
+      switch (changeType) {
+        case ChangeType.Added:
+          addedDocuments = addedDocuments.add(key);
+          break;
+        case ChangeType.Modified:
+          modifiedDocuments = modifiedDocuments.add(key);
+          break;
+        case ChangeType.Removed:
+          removedDocuments = removedDocuments.add(key);
+          break;
+        default:
+          fail('Encountered invalid change type: ' + changeType);
+      }
+    });
+
+    return new TargetChange({
+      current: this._current,
+      resumeToken: this._resumeToken,
+      addedDocuments,
+      modifiedDocuments,
+      removedDocuments
+    });
+  }
+
+  /**
+   * Resets the document changes and sets `shouldRaise` to false.
+   */
+  clearChanges() : void {
+    this._shouldRaise = false;
+    this.snapshotChanges = snapshotChangesMap();
+  }
+
+  addDocument(key: DocumentKey, changeType: ChangeType) : void {
+    this._shouldRaise = true;
+    this.snapshotChanges = this.snapshotChanges.insert(key, changeType);
+  }
+
+  removeDocument(key: DocumentKey) : void {
+    this._shouldRaise = true;
+    this.snapshotChanges = this.snapshotChanges.remove(key);
+  }
+
+  recordPendingTargetRequest(): void {
+    this.pendingResponses += 1;
+  }
+
+  recordTargetResponse(): void {
+    this.pendingResponses -= 1;
+  }
+
+  markCurrent() :void {
+    this._shouldRaise = true;
+    this._current = true;
+  }
 }
 
 /**
@@ -175,20 +274,20 @@ export class WatchChangeAggregator {
         case WatchTargetChangeState.NoChange:
           if (this.isActiveTarget(targetId)) {
             // Creating the change above satisfies the semantics of no-change.
-            this.updateResumeToken(targetId, targetChange.resumeToken);
+            targetState.updateResumeToken(targetChange.resumeToken);
           }
           break;
         case WatchTargetChangeState.Added:
           // We need to decrement the number of pending acks needed from watch
           // for this targetId.
           this.recordTargetResponse(targetId);
-          if (targetState.pendingResponses === 0) {
+          if (!targetState.isPending) {
             // We have a freshly added target, so we need to reset any state
             // that we had previously. This can happen e.g. when remove and add
             // back a target for existence filter mismatches.
-            targetState.current = false;
+            targetState.clearChanges();
           }
-          this.updateResumeToken(targetId, targetChange.resumeToken);
+          targetState.updateResumeToken(targetChange.resumeToken);
           break;
         case WatchTargetChangeState.Removed:
           // We need to keep track of removed targets to we can
@@ -196,6 +295,9 @@ export class WatchChangeAggregator {
           // We need to decrement the number of pending acks needed from watch
           // for this targetId.
           this.recordTargetResponse(targetId);
+          if (!targetState.isPending) {
+            delete this.targetStates[targetId];
+          }
           assert(
             !targetChange.cause,
             'WatchChangeAggregator does not handle errored targets'
@@ -203,8 +305,8 @@ export class WatchChangeAggregator {
           break;
         case WatchTargetChangeState.Current:
           if (this.isActiveTarget(targetId)) {
-            targetState.current = true;
-            this.updateResumeToken(targetId, targetChange.resumeToken);
+            targetState.markCurrent();
+            targetState.updateResumeToken(targetChange.resumeToken);
           }
           break;
         case WatchTargetChangeState.Reset:
@@ -213,7 +315,7 @@ export class WatchChangeAggregator {
             // mapping. Every subsequent update will modify the reset
             // mapping, not an update mapping.
             this.resetTarget(targetId);
-            this.updateResumeToken(targetId, targetChange.resumeToken);
+            targetState.updateResumeToken(targetChange.resumeToken);
           }
           break;
         default:
@@ -238,27 +340,12 @@ export class WatchChangeAggregator {
       if (this.isActiveTarget(targetId)) {
         const queryData = this.queryDataCallback(targetId);
 
-        let addedDocuments = documentKeySet();
-        let modifiedDocuments = documentKeySet();
-        let removedDocuments = documentKeySet();
+        if (targetState.shouldRaise) {
+          targetChanges[targetId] = targetState.toTargetChange();
+          targetState.clearChanges();
+        }
 
-        if (targetState.snapshotChanges.size !== 0) {
-          targetState.snapshotChanges.forEach((key, changeType) => {
-            switch (changeType) {
-              case ChangeType.Added:
-                addedDocuments = addedDocuments.add(key);
-                break;
-              case ChangeType.Modified:
-                modifiedDocuments = modifiedDocuments.add(key);
-                break;
-              case ChangeType.Removed:
-                removedDocuments = removedDocuments.add(key);
-                break;
-              default:
-                fail('Encountered invalid change type: ' + changeType);
-            }
-          });
-        } else if (targetState.current && queryData.query.isDocumentQuery()) {
+        if (targetState.current && queryData.query.isDocumentQuery()) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
@@ -269,7 +356,10 @@ export class WatchChangeAggregator {
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
           const key = new DocumentKey(queryData.query.path);
-          if (!this.hasSyncedDocument(targetId, key)) {
+          if (
+            this.documentUpdates.get(key) === null &&
+            !this.hasSyncedDocument(targetId, key)
+          ) {
             this.documentUpdates = this.documentUpdates.insert(
               key,
               new NoDocument(key, snapshotVersion)
@@ -281,16 +371,6 @@ export class WatchChangeAggregator {
             this.ensureDocumentTargetMapping(key);
           }
         }
-
-        targetChanges[targetId] = new TargetChange({
-          current: targetState.current,
-          resumeToken: targetState.resumeToken,
-          addedDocuments,
-          modifiedDocuments,
-          removedDocuments
-        });
-
-        targetState.snapshotChanges = snapshotChangesMap();
       }
     });
 
@@ -344,10 +424,7 @@ export class WatchChangeAggregator {
       : ChangeType.Added;
 
     const targetState = this.ensureTargetState(targetId);
-    targetState.snapshotChanges = targetState.snapshotChanges.insert(
-      document.key,
-      changeType
-    );
+    targetState.addDocument(document.key, changeType);
 
     this.documentUpdates = this.documentUpdates.insert(document.key, document);
 
@@ -375,10 +452,7 @@ export class WatchChangeAggregator {
     const targetState = this.ensureTargetState(targetId);
 
     if (this.hasSyncedDocument(targetId, key)) {
-      targetState.snapshotChanges = targetState.snapshotChanges.insert(
-        key,
-        ChangeType.Removed
-      );
+      targetState.addDocument(key, ChangeType.Removed);
       if (removedDocument) {
         // We only synthesize a delete for known snapshot versions. This
         // allows us to not affect the global state of documents during a target
@@ -390,7 +464,7 @@ export class WatchChangeAggregator {
         );
       }
     } else {
-      targetState.snapshotChanges = targetState.snapshotChanges.remove(key);
+      targetState.removeDocument(key);
     }
 
     this.documentTargetMapping = this.documentTargetMapping.insert(
@@ -406,25 +480,12 @@ export class WatchChangeAggregator {
    */
   getCurrentSize(targetId: TargetId): number {
     const targetState = this.ensureTargetState(targetId);
-
-    let currentSize = this.existingKeysCallback(targetId).size;
-
-    targetState.snapshotChanges.forEach((key, changeType) => {
-      switch (changeType) {
-        case ChangeType.Added:
-          ++currentSize;
-          break;
-        case ChangeType.Modified:
-          break;
-        case ChangeType.Removed:
-          --currentSize;
-          break;
-        default:
-          fail('Encountered invalid change type: ' + changeType);
-      }
-    });
-
-    return currentSize;
+    const targetChange = targetState.toTargetChange();
+    return (
+      this.existingKeysCallback(targetId).size +
+      targetChange.addedDocuments.size -
+      targetChange.removedDocuments.size
+    );
   }
 
   /**
@@ -432,19 +493,14 @@ export class WatchChangeAggregator {
    * consider the server to be 'in-sync' with the client's active targets.
    */
   recordPendingTargetRequest(targetId: TargetId): void {
-    const targetState = this.ensureTargetState(targetId);
     // For each request we get we need to record we need a response for it.
-    targetState.pendingResponses += 1;
+    const targetState = this.ensureTargetState(targetId);
+    targetState.recordPendingTargetRequest();
   }
 
   private ensureTargetState(targetId: TargetId): TargetState {
     if (!this.targetStates[targetId]) {
-      this.targetStates[targetId] = {
-        pendingResponses: 0,
-        current: false,
-        resumeToken: emptyByteString(),
-        snapshotChanges: snapshotChangesMap()
-      };
+      this.targetStates[targetId] = new TargetState();
     }
 
     return this.targetStates[targetId];
@@ -471,11 +527,7 @@ export class WatchChangeAggregator {
    */
   protected isActiveTarget(targetId: TargetId): boolean {
     const targetState = this.ensureTargetState(targetId);
-
-    return (
-      this.queryDataCallback(targetId) != null &&
-      targetState.pendingResponses === 0
-    );
+    return !targetState.isPending && this.queryDataCallback(targetId) != null;
   }
 
   /**
@@ -501,21 +553,7 @@ export class WatchChangeAggregator {
    */
   private recordTargetResponse(targetId: TargetId): void {
     const targetState = this.ensureTargetState(targetId);
-    targetState.pendingResponses -= 1;
-  }
-
-  /**
-   * Applies the resume token to the TargetChange, but only when it has a new
-   * value. null and empty resumeTokens are discarded.
-   */
-  private updateResumeToken(
-    targetId: TargetId,
-    resumeToken: ProtoByteString
-  ): void {
-    if (resumeToken.length > 0) {
-      const targetState = this.ensureTargetState(targetId);
-      targetState.resumeToken = resumeToken;
-    }
+    targetState.recordTargetResponse();
   }
 
   /** Returns whether the LocalStore considers the document to be part of the specified target. */
