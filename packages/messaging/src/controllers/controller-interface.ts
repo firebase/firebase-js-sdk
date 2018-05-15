@@ -16,7 +16,6 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseServiceInternals } from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   CompleteFn,
   ErrorFn,
@@ -26,6 +25,7 @@ import {
 } from '@firebase/util';
 
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
+import { FirebaseMessaging } from '../interfaces/firebase-messaging';
 import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, errorFactory } from '../models/errors';

@@ -16,7 +16,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { firebase } from '@firebase/app';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { FirebaseMessaging } from '@firebase/messaging';
 
 /**
  * The metadata that should be supplied with function calls.

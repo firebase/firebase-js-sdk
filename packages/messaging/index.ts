@@ -19,11 +19,13 @@ import {
   _FirebaseNamespace,
   FirebaseServiceFactory
 } from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
 
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
+import { FirebaseMessaging } from './src/interfaces/firebase-messaging';
 import { ERROR_CODES, errorFactory } from './src/models/errors';
+
+export { FirebaseMessaging } from './src/interfaces/firebase-messaging';
 
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
