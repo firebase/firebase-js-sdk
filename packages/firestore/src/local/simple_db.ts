@@ -20,6 +20,8 @@ import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
+import {Firestore} from '../api/database';
+import {Deferred} from '../util/promise';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -147,15 +149,14 @@ export class SimpleDb {
       .catch(error => {
         // Abort the transaction if there was an
         // error.
-        transaction.abort();
-        return PersistencePromise.reject(error);
+        transaction.abort(error);
       })
       .toPromise();
 
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
     // caller.
-    return transaction.completionPromise.then(
+    return transaction.completionPromise.promise.then(
       () => transactionFnResult
     ) as AnyDuringMigration;
   }
@@ -246,11 +247,8 @@ export class SimpleDbTransaction {
 
   /**
    * A promise that resolves with the result of the IndexedDb transaction.
-   *
-   * Note: A transaction explicitly aborted via abort() is considered successful
-   * and this promise will resolve as successful.
    */
-  readonly completionPromise: Promise<void>;
+  readonly completionPromise: Deferred<void>;
 
   static open(
     db: IDBDatabase,
@@ -263,23 +261,27 @@ export class SimpleDbTransaction {
   }
 
   constructor(private readonly transaction: IDBTransaction) {
-    this.completionPromise = new Promise<void>((resolve, reject) => {
-      this.transaction.oncomplete = () => {
-        resolve();
-      };
-      this.transaction.onabort = () => {
-        const error =
-          transaction.error ||
-          new Error('The IndexedDb transaction was aborted.');
-        reject(error);
-      };
-      this.transaction.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
-      };
-    });
+    this.completionPromise = new Deferred<void>();
+
+    this.transaction.oncomplete = () => {
+      this.completionPromise.resolve();
+    };
+    this.transaction.onabort = () => {
+      const error =
+        transaction.error ||
+        new Error('The IndexedDb transaction was aborted.');
+      this.completionPromise.reject(error);
+    };
+    this.transaction.onerror = (event: Event) => {
+      this.completionPromise.reject((event.target as IDBRequest).error);
+    };
   }
 
-  abort(): void {
+  abort(error?:Error): void {
+    if (error) {
+      this.completionPromise.reject(error);
+    }
+
     if (!this.aborted) {
       debug(LOG_TAG, 'Aborting transaction.');
       this.aborted = true;

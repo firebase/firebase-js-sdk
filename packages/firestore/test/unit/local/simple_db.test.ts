@@ -133,7 +133,7 @@ describe('SimpleDb', () => {
   });
 
   it('lets you explicitly abort transactions', async () => {
-    expect(
+    await expect(
       runTransaction((store, txn) => {
         return store.put(dummyUser).next(() => {
           txn.abort();
@@ -149,7 +149,7 @@ describe('SimpleDb', () => {
   });
 
   it('aborts transactions when an error happens', async () => {
-    expect(
+    await expect(
       runTransaction(store => {
         return store.put(dummyUser).next(() => {
           throw new Error('Generated error');
@@ -165,12 +165,28 @@ describe('SimpleDb', () => {
   });
 
   it('aborts transactions when persistence promise is rejected', async () => {
-    expect(
+    await expect(
       runTransaction(store => {
         return store.put(dummyUser).next(() => {
           return PersistencePromise.reject(new Error('Generated error'));
         });
       })
+    ).to.eventually.be.rejectedWith('Generated error');
+
+    await runTransaction(store => {
+      return store.get(dummyUser.id).next(user => {
+        expect(user).to.deep.equal(null);
+      });
+    });
+  });
+
+  it('exposes error from inside a transaction', async () => {
+    await expect(
+        runTransaction(store => {
+          return store.put(dummyUser).next(() => {
+            throw new Error('Generated error');
+          });
+        }).then(() => {}, error => Promise.reject(error))
     ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
