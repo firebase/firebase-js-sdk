@@ -274,7 +274,7 @@ export class SimpleDbTransaction {
     };
   }
 
-  get completionPromise() : Promise<void> {
+  get completionPromise(): Promise<void> {
     return this.completionDeferred.promise;
   }
 
@@ -284,7 +284,11 @@ export class SimpleDbTransaction {
     }
 
     if (!this.aborted) {
-      debug(LOG_TAG, 'Aborting transaction: %s', error ? error.message : 'Client-initiated abort');
+      debug(
+        LOG_TAG,
+        'Aborting transaction: %s',
+        error ? error.message : 'Client-initiated abort'
+      );
       this.aborted = true;
       this.transaction.abort();
     }
