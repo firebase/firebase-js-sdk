@@ -20,7 +20,6 @@ import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
-import { Firestore } from '../api/database';
 import { Deferred } from '../util/promise';
 
 const LOG_TAG = 'SimpleDb';
