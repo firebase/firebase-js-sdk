@@ -1914,10 +1914,11 @@ const docChangesPropertiesToOverride = [
 ];
 docChangesPropertiesToOverride.forEach(property => {
   /**
-   * This will technically overwrite the `Function.prototype.length` property of
-   * `docChanges`. On IE11, the property is improperly defined with
-   * `{ configurable: false }` which causes this line to throw. Wrap in a
-   * try-catch to ensure that we still have a functional SDK.
+   * We are (re-)defining properties on QuerySnapshot.prototype.docChanges which
+   * is a Function. This could fail, in particular in the case of 'length' which
+   * already exists on Function.prototype and on IE11 is improperly defined with
+   * `{ configurable: false }`. So we wrap this in a try/catch to ensure that we
+   * still have a functional SDK.
    */
   try {
     Object.defineProperty(QuerySnapshot.prototype.docChanges, property, {
