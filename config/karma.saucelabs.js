@@ -18,7 +18,6 @@ const glob = require('glob');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
-const babelOptions = require('./babel.test');
 
 /** Tests in these packages are excluded due to flakiness or long run time. */
 const excluded = [
@@ -86,11 +85,11 @@ function appiumLauncher(
  */
 const sauceLabsBrowsers = {
   // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
-  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
-  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', '66.0'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', '60.0'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', '11.0'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', '17.17134'),
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', '11.103')
 
   // Mobile
   // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
@@ -101,10 +100,7 @@ module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
-    files: [
-      'packages/polyfill/index.ts',
-      ...getTestFiles()
-    ],
+    files: ['packages/polyfill/index.ts', ...getTestFiles()],
 
     logLevel: config.LOG_INFO,
 
@@ -114,7 +110,7 @@ module.exports = function(config) {
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },
 
-    babelPreprocessor: { options: babelOptions },
+    babelPreprocessor: { options: { presets: ['@babel/preset-env'] } },
 
     frameworks: ['mocha'],
 
