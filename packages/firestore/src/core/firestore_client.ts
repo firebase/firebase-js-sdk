@@ -235,7 +235,7 @@ export class FirestoreClient {
         error.code === Code.FAILED_PRECONDITION ||
         error.code === Code.UNIMPLEMENTED
       );
-    } else if (error instanceof DOMException) {
+    } else if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
       return error.code === QUOTA_EXCEEDED;
     }
 
