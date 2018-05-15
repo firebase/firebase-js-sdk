@@ -34,13 +34,13 @@ import {
   MessageParameter,
   MessageType
 } from '../models/worker-page-message';
-import { ControllerInterface } from './controller-interface';
+import { BaseController } from './base-controller';
 
 interface ManifestContent {
   gcm_sender_id: string;
 }
 
-export class WindowController extends ControllerInterface {
+export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
   private manifestCheckPromise: Promise<void> | null = null;
