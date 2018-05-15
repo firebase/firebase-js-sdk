@@ -182,11 +182,11 @@ describe('SimpleDb', () => {
 
   it('exposes error from inside a transaction', async () => {
     await expect(
-        runTransaction(store => {
-          return store.put(dummyUser).next(() => {
-            throw new Error('Generated error');
-          });
-        }).then(() => {}, error => Promise.reject(error))
+      runTransaction(store => {
+        return store.put(dummyUser).next(() => {
+          throw new Error('Generated error');
+        });
+      }).then(() => {}, error => Promise.reject(error))
     ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
