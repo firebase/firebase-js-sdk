@@ -19,21 +19,16 @@ import {
   _FirebaseNamespace,
   FirebaseServiceFactory
 } from '@firebase/app-types/private';
+import { FirebaseMessaging } from '@firebase/messaging-types';
 
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
 import { ERROR_CODES, errorFactory } from './src/models/errors';
 
-import * as types from '@firebase/messaging-types';
-
-export interface MessagingServiceFactory extends FirebaseServiceFactory {
-  isSupported?(): boolean;
-}
-
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
-  const factoryMethod: MessagingServiceFactory = app => {
+  const factoryMethod: FirebaseServiceFactory = app => {
     if (!isSupported()) {
       throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
     }
@@ -46,11 +41,9 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
       return new WindowController(app);
     }
   };
-  factoryMethod.isSupported = isSupported;
 
   const namespaceExports = {
-    // no-inline
-    Messaging: WindowController
+    isSupported
   };
 
   instance.INTERNAL.registerService(
@@ -67,13 +60,13 @@ registerMessaging(firebase as _FirebaseNamespace);
  */
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
-    messaging?: {
-      (app?: FirebaseApp): types.FirebaseMessaging;
-      Messaging: typeof types.FirebaseMessaging;
+    messaging: {
+      (app?: FirebaseApp): FirebaseMessaging;
+      isSupported(): boolean;
     };
   }
   interface FirebaseApp {
-    messaging?(): types.FirebaseMessaging;
+    messaging(): FirebaseMessaging;
   }
 }
 

@@ -107,7 +107,7 @@ declare namespace firebase {
 
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
-  const messaging: firebase.messaging.MessagingFactory;
+  function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
 
   function storage(app?: firebase.app.App): firebase.storage.Storage;
 
@@ -121,7 +121,7 @@ declare namespace firebase.app {
     auth(): firebase.auth.Auth;
     database(): firebase.database.Database;
     delete(): Promise<any>;
-    messaging: firebase.messaging.MessagingFactory;
+    messaging(): firebase.messaging.Messaging;
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
@@ -549,11 +549,6 @@ declare namespace firebase.database.ServerValue {
 }
 
 declare namespace firebase.messaging {
-  interface MessagingFactory {
-    (app?: firebase.app.App): Messaging;
-    isSupported(): boolean;
-  }
-
   interface Messaging {
     deleteToken(token: string): Promise<boolean>;
     getToken(): Promise<string | null>;
@@ -574,6 +569,8 @@ declare namespace firebase.messaging {
     useServiceWorker(registration: ServiceWorkerRegistration): void;
     usePublicVapidKey(b64PublicKey: string): void;
   }
+
+  function isSupported(): boolean;
 }
 
 declare namespace firebase.storage {
