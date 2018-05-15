@@ -75,10 +75,6 @@ function expectTargetChangeEquals(
     expected.resumeToken,
     'TargetChange.resumeToken'
   );
-  expect(actual.snapshotVersion.isEqual(expected.snapshotVersion)).to.equal(
-    true,
-    'TargetChange.snapshotVersion'
-  );
   expect(actual.addedDocuments.isEqual(expected.addedDocuments)).to.equal(
     true,
     'TargetChange.addedDocuments'

@@ -23,7 +23,7 @@ import { DocumentKeySet, MaybeDocumentMap } from '../model/collections';
  * state or the set of documents in our watched targets) and documentUpdates
  * (changes to the actual documents).
  */
-export interface RemoteEvent {
+export class RemoteEvent {
   /**
    * The snapshot version this event brings us up to, or MIN if not set.
    */
@@ -41,6 +41,18 @@ export interface RemoteEvent {
    * A set of which document updates are due only to limbo resolution targets.
    */
   readonly resolvedLimboDocuments: DocumentKeySet;
+
+  constructor(options: {
+    snapshotVersion: SnapshotVersion,
+    targetChanges: { [targetId: number]: TargetChange },
+    documentUpdates: MaybeDocumentMap,
+    resolvedLimboDocuments: DocumentKeySet
+  }) {
+    this.snapshotVersion = options.snapshotVersion;
+    this.targetChanges = options.targetChanges;
+    this.documentUpdates = options.documentUpdates;
+    this.resolvedLimboDocuments = options.resolvedLimboDocuments;
+  }
 }
 
 /**
@@ -50,16 +62,13 @@ export interface RemoteEvent {
  * documents are not part of the TargetChange since documents may be part of
  * multiple targets.
  */
-export interface TargetChange {
+export class TargetChange {
   /**
    * The "current" (synced) status of this target. Note that "current"
    * has special meaning in the RPC protocol that implies that a target is
    * both up-to-date and consistent with the rest of the watch stream.
    */
   readonly current: boolean;
-
-  /** The snapshot version that this target change brings us up to. */
-  readonly snapshotVersion: SnapshotVersion;
 
   /**
    * An opaque, server-assigned token that allows watching a query to be resumed
@@ -86,4 +95,18 @@ export interface TargetChange {
    * remote event.
    */
   readonly removedDocuments: DocumentKeySet;
+
+  constructor(options: {
+    resumeToken: ProtoByteString,
+    current: boolean,
+    addedDocuments: DocumentKeySet,
+    modifiedDocuments: DocumentKeySet,
+    removedDocuments: DocumentKeySet
+  }) {
+    this.current = options.current;
+    this.resumeToken = options.resumeToken;
+    this.addedDocuments = options.addedDocuments;
+    this.modifiedDocuments = options.modifiedDocuments;
+    this.removedDocuments = options.removedDocuments;
+  }
 }

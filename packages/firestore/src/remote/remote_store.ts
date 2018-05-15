@@ -444,7 +444,7 @@ export class RemoteStore {
         if (queryData) {
           this.listenTargets[targetId] = queryData.update({
             resumeToken: change.resumeToken,
-            snapshotVersion: change.snapshotVersion
+            snapshotVersion: snapshotVersion
           });
         }
       }

@@ -282,14 +282,13 @@ export class WatchChangeAggregator {
           }
         }
 
-        targetChanges[targetId] = {
+        targetChanges[targetId] = new TargetChange({
           current: targetState.current,
           resumeToken: targetState.resumeToken,
-          snapshotVersion,
           addedDocuments,
           modifiedDocuments,
           removedDocuments
-        };
+        });
 
         targetState.snapshotChanges = snapshotChangesMap();
       }
@@ -317,12 +316,12 @@ export class WatchChangeAggregator {
       }
     });
 
-    const remoteEvent = {
+    const remoteEvent = new RemoteEvent({
       snapshotVersion,
       targetChanges,
       resolvedLimboDocuments,
       documentUpdates: this.documentUpdates
-    };
+    });
 
     this.documentUpdates = maybeDocumentMap();
     this.documentTargetMapping = documentTargetMap();

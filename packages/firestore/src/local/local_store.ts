@@ -450,7 +450,7 @@ export class LocalStore {
           if (resumeToken.length > 0) {
             queryData = queryData.update({
               resumeToken,
-              snapshotVersion: change.snapshotVersion
+              snapshotVersion: remoteEvent.snapshotVersion
             });
             this.targetIds[targetId] = queryData;
             promises.push(this.queryCache.updateQueryData(txn, queryData));

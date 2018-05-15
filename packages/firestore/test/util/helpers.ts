@@ -320,14 +320,13 @@ export function updateMapping(
     removedDocuments = removedDocuments.add(k);
   });
 
-  return {
+  return new TargetChange({
     addedDocuments,
     removedDocuments,
     modifiedDocuments,
-    snapshotVersion,
     resumeToken: resumeTokenForSnapshot(snapshotVersion),
     current: !!current
-  };
+  });
 }
 
 export function addTargetMapping(
