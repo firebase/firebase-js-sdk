@@ -266,6 +266,9 @@ export class SimpleDbTransaction {
       this.completionPromise.resolve();
     };
     this.transaction.onabort = () => {
+      // TODO(mrschmidt): If in the future we end up adding code that
+      // intentionally aborts transactions we may need to turn this into a
+      // non-error case.
       const error =
         transaction.error ||
         new Error('The IndexedDb transaction was aborted.');
