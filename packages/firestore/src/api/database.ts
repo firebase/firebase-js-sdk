@@ -1760,7 +1760,7 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Invalid query. Queries only support a single array-contains ' +
-            'filter.'
+              'filter.'
           );
         }
       }
