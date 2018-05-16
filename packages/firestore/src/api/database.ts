@@ -1735,21 +1735,34 @@ export class Query implements firestore.Query {
   }
 
   private validateNewFilter(filter: Filter): void {
-    if (filter instanceof RelationFilter && filter.isInequality()) {
-      const existingField = this._query.getInequalityFilterField();
-      if (existingField !== null && !existingField.isEqual(filter.field)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. All where filters with an inequality' +
-            ' (<, <=, >, or >=) must be on the same field. But you have' +
-            ` inequality filters on '${existingField.toString()}'` +
-            ` and '${filter.field.toString()}'`
-        );
-      }
+    if (filter instanceof RelationFilter) {
+      if (filter.isInequality()) {
+        const existingField = this._query.getInequalityFilterField();
+        if (existingField !== null && !existingField.isEqual(filter.field)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. All where filters with an inequality' +
+              ' (<, <=, >, or >=) must be on the same field. But you have' +
+              ` inequality filters on '${existingField.toString()}'` +
+              ` and '${filter.field.toString()}'`
+          );
+        }
 
-      const firstOrderByField = this._query.getFirstOrderByField();
-      if (firstOrderByField !== null) {
-        this.validateOrderByAndInequalityMatch(filter.field, firstOrderByField);
+        const firstOrderByField = this._query.getFirstOrderByField();
+        if (firstOrderByField !== null) {
+          this.validateOrderByAndInequalityMatch(
+            filter.field,
+            firstOrderByField
+          );
+        }
+      } else if (filter.op === RelationOp.ARRAY_CONTAINS) {
+        if (this._query.hasArrayContainsFilter()) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. Queries only support a single array-contains ' +
+              'filter.'
+          );
+        }
       }
     }
   }
