@@ -800,8 +800,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsOp, 1)
             .where('foo', arrayContainsOp, 2)
         ).to.throw(
-          'Invalid query. Queries only support having a single ' +
-            'array-contains filter.'
+          'Invalid query. Queries only support a single array-contains filter.'
         );
       }
     );
