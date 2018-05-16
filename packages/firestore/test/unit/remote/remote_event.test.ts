@@ -38,7 +38,7 @@ import {
 } from '../../util/helpers';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 type TargetMap = {
   [targetId: number]: QueryData;

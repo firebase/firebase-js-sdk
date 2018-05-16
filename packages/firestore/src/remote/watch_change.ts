@@ -143,7 +143,7 @@ class TargetState {
    * Applies the resume token to the TargetChange, but only when it has a new
    * value. Empty resumeTokens are discarded.
    */
-  updateResumeToken(resumeToken: ProtoByteString) : void {
+  updateResumeToken(resumeToken: ProtoByteString): void {
     if (resumeToken.length > 0) {
       this._shouldRaise = true;
       this._resumeToken = resumeToken;
@@ -189,17 +189,17 @@ class TargetState {
   /**
    * Resets the document changes and sets `shouldRaise` to false.
    */
-  clearChanges() : void {
+  clearChanges(): void {
     this._shouldRaise = false;
     this.snapshotChanges = snapshotChangesMap();
   }
 
-  addDocument(key: DocumentKey, changeType: ChangeType) : void {
+  addDocument(key: DocumentKey, changeType: ChangeType): void {
     this._shouldRaise = true;
     this.snapshotChanges = this.snapshotChanges.insert(key, changeType);
   }
 
-  removeDocument(key: DocumentKey) : void {
+  removeDocument(key: DocumentKey): void {
     this._shouldRaise = true;
     this.snapshotChanges = this.snapshotChanges.remove(key);
   }
@@ -212,7 +212,7 @@ class TargetState {
     this.pendingResponses -= 1;
   }
 
-  markCurrent() :void {
+  markCurrent(): void {
     this._shouldRaise = true;
     this._current = true;
   }
