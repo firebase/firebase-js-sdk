@@ -36,7 +36,7 @@ import {
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { TargetId } from '../core/types';
-import { decode, encode } from './encoded_resource_path';
+import {decode, encode, EncodedResourcePath} from './encoded_resource_path';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
@@ -103,7 +103,7 @@ export class LocalSerializer {
   /**
    * Encodes a set of document keyss into a DbTargetChange.
    */
-  toDbTargetChanges(
+  toDbTargetChange(
     targetId: TargetId,
     snapshotVersion: SnapshotVersion,
     changes: DocumentKeySet
@@ -121,11 +121,11 @@ export class LocalSerializer {
     return targetChange;
   }
 
-  /** Decodes a DbTargetChange into its set of updated document keys. */
-  fromDbTargetChange(dbTargetChange: DbTargetChange): DocumentKeySet {
+  /** Decodes an array of resource paths into a set of document keys. */
+  fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
     let documentChanges = documentKeySet();
 
-    for (const documentKey of dbTargetChange.changes) {
+    for (const documentKey of encodedPaths) {
       documentChanges = documentChanges.add(
         new DocumentKey(decode(documentKey))
       );

@@ -141,16 +141,16 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<DocumentKeySet>;
 
   /**
-   * Returns the set of documents that were updated by the given target
-   * starting with the provided snapshot version (inclusive).
+   * Returns the document keys that were updated by the given target, optionally
+   * starting from the provided snapshot version (inclusive).
    *
    * Returned document keys are for documents that were added, modified or
    * removed at any intermediate snapshots and may include documents that only
    * existed temporarily.
    */
-  getChangesSince(
+  getChangedKeysForTargetId(
     transaction: PersistenceTransaction,
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion
+    fromSnapshot?: SnapshotVersion
   ): PersistencePromise<DocumentKeySet>;
 }

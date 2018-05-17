@@ -196,26 +196,28 @@ export class MemoryQueryCache implements QueryCache {
     return this.references.containsKey(txn, key);
   }
 
-  getChangesSince(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    snapshotVersion: SnapshotVersion
+  getChangedKeysForTargetId(
+      transaction: PersistenceTransaction,
+      targetId: TargetId,
+      fromSnapshot?: SnapshotVersion
   ): PersistencePromise<DocumentKeySet> {
-    let documentUpdates = documentKeySet();
+    const snapshotVersion = fromSnapshot || SnapshotVersion.MIN;
+
     const it = this.targetChanges.getIteratorFrom({
       targetId,
       snapshotVersion
     });
 
+    let changedKeys = documentKeySet();
     while (it.hasNext()) {
       const entry = it.getNext();
       if (entry.key.targetId !== targetId) {
         break;
       }
-      documentUpdates = documentUpdates.unionWith(entry.value);
+      changedKeys = changedKeys.unionWith(entry.value);
     }
 
-    return PersistencePromise.resolve(documentUpdates);
+    return PersistencePromise.resolve(changedKeys);
   }
 
   applyTargetChange(

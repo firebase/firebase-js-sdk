@@ -87,8 +87,8 @@ export class DbTimestamp {
 }
 
 /**
- * An array of seconds and nanoseconds that allows storage of timestamps in an
- * an IndexedDb key.
+ * A 2-element array containing seconds and nanoseconds which allows storage of
+ * timestamps in an IndexedDb key.
  */
 export type DbTimestampArray = number[];
 

@@ -327,28 +327,27 @@ export class IndexedDbQueryCache implements QueryCache {
       .next(() => count > 0);
   }
 
-  getChangesSince(
+  getChangedKeysForTargetId(
     transaction: PersistenceTransaction,
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion
+    fromSnapshot?: SnapshotVersion
   ): PersistencePromise<DocumentKeySet> {
-    let documentUpdates = documentKeySet();
+    const fromTimestamp = (fromSnapshot || SnapshotVersion.MIN).toTimestamp();
+
+    let changedKesy = documentKeySet();
     const range = IDBKeyRange.bound(
-      [
-        targetId,
-        this.serializer.toTimestampArray(snapshotVersion.toTimestamp())
-      ],
+      [targetId, fromTimestamp],
       [targetId + 1],
       /*lowerOpen=*/ false,
       /*upperOpen=*/ true
     );
     return targetChangeStore(transaction)
       .iterate({ range }, (_, targetChange) => {
-        documentUpdates = documentUpdates.unionWith(
-          this.serializer.fromDbTargetChange(targetChange)
+        changedKesy = changedKesy.unionWith(
+          this.serializer.fromDbResourcePaths(targetChange.changes)
         );
       })
-      .next(() => documentUpdates);
+      .next(() => changedKesy);
   }
 
   applyTargetChange(
@@ -378,7 +377,7 @@ export class IndexedDbQueryCache implements QueryCache {
     // empty. This allows us to replace existing changes with an empty set.
     promises.push(
       targetChangeStore(transaction).put(
-        this.serializer.toDbTargetChanges(
+        this.serializer.toDbTargetChange(
           targetId,
           change.snapshotVersion,
           allModifiedKeys

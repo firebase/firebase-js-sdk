@@ -409,7 +409,7 @@ function genericQueryCacheTests(): void {
         [key('coll/d')]
       )
     );
-    const changes = await cache.getChangesSince(0, version(0));
+    const changes = await cache.getChangedKeysForTargetId(0);
     expect(extractKeys(changes)).to.have.members([
       'coll/a',
       'coll/b',
@@ -429,24 +429,24 @@ function genericQueryCacheTests(): void {
       targetChange(version(3), [], [], [key('coll/c')])
     );
 
-    let changes = await cache.getChangesSince(0, version(1));
+    let changes = await cache.getChangedKeysForTargetId(0, version(1));
     expect(extractKeys(changes)).to.have.members([
       'coll/a',
       'coll/b',
       'coll/c'
     ]);
 
-    changes = await cache.getChangesSince(0, version(2));
+    changes = await cache.getChangedKeysForTargetId(0, version(2));
     expect(extractKeys(changes)).to.have.members(['coll/b', 'coll/c']);
 
-    changes = await cache.getChangesSince(0, version(3));
+    changes = await cache.getChangedKeysForTargetId(0, version(3));
     expect(extractKeys(changes)).to.have.members(['coll/c']);
   });
 
   it('get changes with multiple targets', async () => {
     await cache.applyTargetChange(0, targetChange(version(0), [key('coll/a')]));
     await cache.applyTargetChange(1, targetChange(version(0), [key('coll/b')]));
-    const changes = await cache.getChangesSince(0, version(0));
+    const changes = await cache.getChangedKeysForTargetId(0, version(0));
 
     expect(extractKeys(changes)).to.have.members(['coll/a']);
   });
