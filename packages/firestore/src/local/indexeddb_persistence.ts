@@ -533,12 +533,12 @@ export class IndexedDbPersistence implements Persistence {
    */
   private getZombiedClientId(): ClientId | null {
     if (this.window.localStorage === undefined) {
-            assert(
-                 process.env.USE_MOCK_PERSISTENCE === 'YES',
-                  'Operating without LocalStorage is only supported with IndexedDbShim.'
-                );
-            return null;
-         }
+      assert(
+        process.env.USE_MOCK_PERSISTENCE === 'YES',
+        'Operating without LocalStorage is only supported with IndexedDbShim.'
+      );
+      return null;
+    }
 
     try {
       const zombiedClientId = this.window.localStorage.getItem(
