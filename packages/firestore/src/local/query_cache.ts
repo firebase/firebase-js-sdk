@@ -23,6 +23,7 @@ import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
+import { TargetIdGenerator } from '../core/target_id_generator';
 
 /**
  * Represents cached queries received from the remote backend.
@@ -36,13 +37,6 @@ export interface QueryCache extends GarbageSource {
   start(transaction: PersistenceTransaction): PersistencePromise<void>;
 
   /**
-   * Returns the highest target ID of any query in the cache. Typically called
-   * during startup to seed a target ID generator and avoid collisions with
-   * existing queries. If there are no queries in the cache, returns zero.
-   */
-  getHighestTargetId(): TargetId;
-
-  /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
    * snapshots received from the backend prior to this version (e.g. for targets
@@ -53,7 +47,9 @@ export interface QueryCache extends GarbageSource {
    * This is updated whenever our we get a TargetChange with a read_time and
    * empty target_ids.
    */
-  getLastRemoteSnapshotVersion(): SnapshotVersion;
+  getLastRemoteSnapshotVersion(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion>;
 
   /**
    * Set the snapshot version representing the last consistent snapshot received
@@ -103,7 +99,10 @@ export interface QueryCache extends GarbageSource {
   /**
    * The number of targets currently in the cache.
    */
-  readonly count: number;
+  // Visible for testing.
+  getQueryCount(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number>;
 
   /**
    * Looks up a QueryData entry in the cache.
@@ -156,4 +155,15 @@ export interface QueryCache extends GarbageSource {
     transaction: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<DocumentKeySet>;
+
+  /**
+   * Returns a new target ID that is higher than any query in the cache. If
+   * there are no queries in the cache, returns the first valid target ID.
+   * Allocated target IDs are persisted and `allocateTargetId()` will never
+   * return the same ID twice.
+   */
+  allocateTargetId(
+    transaction: PersistenceTransaction,
+    targetIdGenerator: TargetIdGenerator
+  ): PersistencePromise<TargetId>;
 }

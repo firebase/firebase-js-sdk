@@ -364,7 +364,7 @@ export class RemoteStore {
     if (
       !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
       snapshotVersion.compareTo(
-        this.localStore.getLastRemoteSnapshotVersion()
+        await this.localStore.getLastRemoteSnapshotVersion()
       ) >= 0
     ) {
       const changes = this.accumulatedWatchChanges;

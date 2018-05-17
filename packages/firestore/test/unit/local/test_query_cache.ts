@@ -22,12 +22,15 @@ import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 
 /**
  * A wrapper around a QueryCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestQueryCache {
+  private targetIdGenerator = TargetIdGenerator.forLocalStore();
+
   constructor(public persistence: Persistence, public cache: QueryCache) {}
 
   start(): Promise<void> {
@@ -48,8 +51,10 @@ export class TestQueryCache {
     });
   }
 
-  count(): number {
-    return this.cache.count;
+  getQueryCount(): Promise<number> {
+    return this.persistence.runTransaction('getQueryCount', true, txn => {
+      return this.cache.getQueryCount(txn);
+    });
   }
 
   removeQueryData(queryData: QueryData): Promise<void> {
@@ -64,12 +69,20 @@ export class TestQueryCache {
     });
   }
 
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.cache.getLastRemoteSnapshotVersion();
+  getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
+    return this.persistence.runTransaction(
+      'getLastRemoteSnapshotVersion',
+      true,
+      txn => {
+        return this.cache.getLastRemoteSnapshotVersion(txn);
+      }
+    );
   }
 
-  getHighestTargetId(): TargetId {
-    return this.cache.getHighestTargetId();
+  allocateTargetId(): Promise<TargetId> {
+    return this.persistence.runTransaction('allocateTargetId', true, txn => {
+      return this.cache.allocateTargetId(txn, this.targetIdGenerator);
+    });
   }
 
   addMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {

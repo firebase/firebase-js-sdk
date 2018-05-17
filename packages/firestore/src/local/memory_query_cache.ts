@@ -28,6 +28,7 @@ import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
+import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
   /**
@@ -52,12 +53,19 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.lastRemoteSnapshotVersion;
+  getLastRemoteSnapshotVersion(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion> {
+    return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
   }
 
-  getHighestTargetId(): TargetId {
-    return this.highestTargetId;
+  allocateTargetId(
+    transaction: PersistenceTransaction,
+    targetIdGenerator: TargetIdGenerator
+  ): PersistencePromise<TargetId> {
+    const nextTargetId = targetIdGenerator.after(this.highestTargetId);
+    this.highestTargetId = nextTargetId;
+    return PersistencePromise.resolve(nextTargetId);
   }
 
   setLastRemoteSnapshotVersion(
@@ -114,8 +122,10 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  get count(): number {
-    return this.targetCount;
+  getQueryCount(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number> {
+    return PersistencePromise.resolve(this.targetCount);
   }
 
   getQueryData(
