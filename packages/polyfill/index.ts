@@ -23,5 +23,8 @@ import 'promise-polyfill/src/polyfill';
 // ES6
 import 'core-js/fn/array/find';
 import 'core-js/fn/array/find-index';
+import 'core-js/fn/object/assign';
 import 'core-js/fn/string/starts-with';
 import 'core-js/fn/string/repeat';
+import 'core-js/fn/symbol';
+import 'core-js/fn/symbol/iterator';
