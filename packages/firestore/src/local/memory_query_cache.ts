@@ -197,9 +197,9 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   getChangedKeysForTargetId(
-      transaction: PersistenceTransaction,
-      targetId: TargetId,
-      fromSnapshot?: SnapshotVersion
+    transaction: PersistenceTransaction,
+    targetId: TargetId,
+    fromSnapshot?: SnapshotVersion
   ): PersistencePromise<DocumentKeySet> {
     const snapshotVersion = fromSnapshot || SnapshotVersion.MIN;
 

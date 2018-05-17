@@ -111,8 +111,10 @@ export class TestQueryCache {
     targetId: TargetId,
     fromVersion?: SnapshotVersion
   ): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction('getChangedKeysForTargetId', false, txn =>
-      this.cache.getChangedKeysForTargetId(txn, targetId, fromVersion)
+    return this.persistence.runTransaction(
+      'getChangedKeysForTargetId',
+      false,
+      txn => this.cache.getChangedKeysForTargetId(txn, targetId, fromVersion)
     );
   }
 }

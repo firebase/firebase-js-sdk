@@ -36,7 +36,7 @@ import {
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { TargetId } from '../core/types';
-import {decode, encode, EncodedResourcePath} from './encoded_resource_path';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
