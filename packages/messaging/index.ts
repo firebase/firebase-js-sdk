@@ -14,9 +14,26 @@
  * limitations under the License.
  */
 
-export { SwController } from './src/controllers/sw-controller';
-export { WindowController } from './src/controllers/window-controller';
-export { ERROR_CODES, errorFactory } from './src/models/errors';
+import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+
+import { SwController } from './src/controllers/sw-controller';
+import { WindowController } from './src/controllers/window-controller';
+import { ERROR_CODES, errorFactory } from './src/models/errors';
+
+export function messaging(app: FirebaseApp): FirebaseMessaging {
+  if (!isSupported()) {
+    throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
+  }
+
+  if (self && 'ServiceWorkerGlobalScope' in self) {
+    // Running in ServiceWorker context
+    return new SwController(app);
+  } else {
+    // Assume we are in the window context.
+    return new WindowController(app);
+  }
+}
 
 export function isSupported(): boolean {
   if (self && 'ServiceWorkerGlobalScope' in self) {

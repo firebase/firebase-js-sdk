@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types';
 import {
   Observer,
   Unsubscribe,
@@ -23,8 +23,8 @@ import {
   CompleteFn
 } from '@firebase/util';
 
-export class FirebaseMessaging {
-  private constructor();
+export interface FirebaseMessaging {
+  app: FirebaseApp;
   deleteToken(token: string): Promise<boolean>;
   getToken(): Promise<string | null>;
   onMessage(
