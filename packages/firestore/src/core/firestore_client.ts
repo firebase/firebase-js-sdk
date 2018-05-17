@@ -56,6 +56,9 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
+/** The DOMException code for quota exceeded. */
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
  * pieces of the client SDK architecture. It is responsible for creating the
@@ -199,7 +202,7 @@ export class FirestoreClient {
     if (usePersistence) {
       return this.startIndexedDbPersistence()
         .then(persistenceResult.resolve)
-        .catch((error: FirestoreError) => {
+        .catch(error => {
           // Regardless of whether or not the retry succeeds, from an user
           // perspective, offline persistence has failed.
           persistenceResult.reject(error);
@@ -226,11 +229,24 @@ export class FirestoreClient {
     }
   }
 
-  private canFallback(error: FirestoreError): boolean {
-    return (
-      error.code === Code.FAILED_PRECONDITION ||
-      error.code === Code.UNIMPLEMENTED
-    );
+  /**
+   * Decides whether the provided error allows us to gracefully disable
+   * persistence (as opposed to crashing the client).
+   */
+  private canFallback(error: FirestoreError | DOMException): boolean {
+    if (error instanceof FirestoreError) {
+      return (
+        error.code === Code.FAILED_PRECONDITION ||
+        error.code === Code.UNIMPLEMENTED
+      );
+    } else if (
+      typeof DOMException !== 'undefined' &&
+      error instanceof DOMException
+    ) {
+      return error.code === DOM_EXCEPTION_QUOTA_EXCEEDED;
+    }
+
+    return true;
   }
 
   /**

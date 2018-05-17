@@ -79,7 +79,7 @@ var app = firebase.initializeApp({ ... });
 If you are using ES6 imports or TypeScript:
 
 ```
-import * as firebase from 'firebase';
+import firebase from 'firebase';
 var app = firebase.initializeApp({ ... });
 ```
 
@@ -130,7 +130,7 @@ services you use:
 
 ```
 // This import loads the firebase namespace along with all its type information.
-import * as firebase from 'firebase/app';
+import firebase from 'firebase/app';
 
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';

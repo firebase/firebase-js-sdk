@@ -40,7 +40,7 @@ const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class ControllerInterface implements FirebaseMessaging {
+export abstract class BaseController implements FirebaseMessaging {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
   private readonly messagingSenderId: string;
