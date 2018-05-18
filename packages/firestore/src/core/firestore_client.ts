@@ -57,7 +57,7 @@ import { ViewSnapshot } from './view_snapshot';
 const LOG_TAG = 'FirestoreClient';
 
 /** The DOMException code for an aborted operation. */
-const DOM_EXCEPTION_ABORTED = 22;
+const DOM_EXCEPTION_ABORTED = 20;
 
 /** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
