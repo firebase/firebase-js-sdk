@@ -106,12 +106,12 @@ From the CDN, include the individual services you use (include `firebase-app`
 first):
 
 ```
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-messaging.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging.js"></script>
 
 <script>
   var app = firebase.initializeApp({ ... });
