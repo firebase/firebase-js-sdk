@@ -428,7 +428,9 @@ declare namespace firebase.database {
     child(path: string): firebase.database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (a: firebase.database.DataSnapshot) => boolean | void): boolean;
+    forEach(
+      action: (a: firebase.database.DataSnapshot) => boolean | void
+    ): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -459,7 +461,12 @@ declare namespace firebase.database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
-  type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+  type EventType =
+    | 'value'
+    | 'child_added'
+    | 'child_changed'
+    | 'child_moved'
+    | 'child_removed';
 
   interface Query {
     endAt(
