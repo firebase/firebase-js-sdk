@@ -53,7 +53,12 @@ export interface OnDisconnect {
   update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
-type EventType = 'value' | 'child_added' | 'child_changed' | 'child_moved' | 'child_removed';
+type EventType =
+  | 'value'
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
 
 export interface Query {
   endAt(value: number | string | boolean | null, key?: string): Query;
