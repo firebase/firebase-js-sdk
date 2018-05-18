@@ -56,10 +56,13 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
+/** The DOMException code for an aborted operation. */
+const DOM_EXCEPTION_ABORTED = 22;
+
 /** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
-/**
+    /**
  * FirestoreClient is a top-level class that constructs and owns all of the
  * pieces of the client SDK architecture. It is responsible for creating the
  * async queue that is shared by all of the other components in the system.
@@ -243,7 +246,10 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      return error.code === DOM_EXCEPTION_QUOTA_EXCEEDED;
+      return (
+          error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+          error.code === DOM_EXCEPTION_ABORTED
+      );
     }
 
     return true;
