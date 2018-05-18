@@ -15,17 +15,16 @@
  */
 
 import firebase from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-
-import { isSupported, messaging } from '@firebase/messaging';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { FirebaseMessaging, isSupported } from '@firebase/messaging';
 
 const messagingName = 'messaging';
 const namespaceExports = { isSupported };
 
 (firebase as _FirebaseNamespace).INTERNAL.registerService(
   messagingName,
-  messaging,
+  (app: FirebaseApp) => new FirebaseMessaging(app),
   namespaceExports
 );
 
