@@ -24,6 +24,7 @@
   "devDependencies": {
     "closure-builder": "2.2.39",
     "del": "3.0.0",
+    "event-stream": "^3.3.4",
     "express": "4.16.3",
     "firebase-functions": "1.0.1",
     "firebase-tools": "3.18.2",
@@ -31,7 +32,8 @@
     "google-closure-library": "20180405.0.0",
     "gulp": "4.0.0",
     "gulp-closure-compiler": "0.4.0",
-    "protractor": "5.3.1"
+    "protractor": "5.3.1",
+    "vinyl": "^2.1.0"
   },
   "repository": {
     "type": "git",

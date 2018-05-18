@@ -19,6 +19,8 @@ const closureCompiler = require('gulp-closure-compiler');
 const del = require('del');
 const express = require('express');
 const path = require('path');
+const { through } = require('event-stream');
+const File = require('vinyl');
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
@@ -26,15 +28,24 @@ const path = require('path');
 const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
 // For minified builds, wrap the output so we avoid leaking global variables.
-const OUTPUT_WRAPPER_CJS = `(function() {
-  var firebase = require('@firebase/app').default;
-  %output%
-}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`;
+const CJS_WRAPPER_PREFIX = `(function() {var firebase = require('@firebase/app').default;`;
+const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
+const WRAPPER_SUFFIX = `}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`;
 
-const OUTPUT_WRAPPER_ESM = `import firebase from '@firebase/app';
-(function() {
-  %output%
-}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`;
+const wrap = through(function(file) {
+  const wrappedFile = (prefix, path) =>
+    new File({
+      path,
+      contents: Buffer.concat([
+        Buffer.from(prefix),
+        file.contents,
+        Buffer.from(WRAPPER_SUFFIX)
+      ])
+    });
+
+  this.emit('data', wrappedFile(CJS_WRAPPER_PREFIX, 'auth.js'));
+  this.emit('data', wrappedFile(EMS_WRAPPER_PREFIX, 'auth.esm.js'));
+});
 
 // The path to Closure Compiler.
 const COMPILER_PATH = `${path.dirname(
@@ -46,7 +57,7 @@ const closureLibRoot = path.dirname(
 );
 
 // Builds the core Firebase-auth JS.
-const buildFirebaseAuth = (fileName, outputWrapper) =>
+const buildFirebaseAuth = () =>
   gulp
     .src([
       `${closureLibRoot}/closure/goog/**/*.js`,
@@ -56,7 +67,7 @@ const buildFirebaseAuth = (fileName, outputWrapper) =>
     .pipe(
       closureCompiler({
         compilerPath: COMPILER_PATH,
-        fileName,
+        fileName: 'unwrapped.js',
         compilerFlags: {
           closure_entry_point: 'fireauth.exports',
           compilation_level: OPTIMIZATION_LEVEL,
@@ -78,26 +89,14 @@ const buildFirebaseAuth = (fileName, outputWrapper) =>
             )
           ],
           language_out: 'ES5',
-          only_closure_dependencies: true,
-          output_wrapper: outputWrapper
+          only_closure_dependencies: true
         }
       })
     )
+    .pipe(wrap)
     .pipe(gulp.dest('dist'));
 
-function buildFirebaseAuthCJS() {
-  return buildFirebaseAuth('auth.js', OUTPUT_WRAPPER_CJS);
-}
-buildFirebaseAuthCJS.description =
-  'Builds a CommonJS version of the package (dist/auth.js).';
-gulp.task(buildFirebaseAuthCJS);
-
-function buildFirebaseAuthESM() {
-  return buildFirebaseAuth('auth.esm.js', OUTPUT_WRAPPER_ESM);
-}
-buildFirebaseAuthESM.description =
-  'Builds an EcmaScript modules version of the package (dist/auth.esm.js).';
-gulp.task(buildFirebaseAuthESM);
+gulp.task('build-firebase-auth-js', buildFirebaseAuth);
 
 // Deletes intermediate files.
 gulp.task('clean', done => del(['dist/*', 'dist'], done));
@@ -115,7 +114,4 @@ gulp.task('serve', () => {
   app.listen(4000);
 });
 
-gulp.task(
-  'default',
-  gulp.parallel(['buildFirebaseAuthCJS', 'buildFirebaseAuthESM'])
-);
+gulp.task('default', buildFirebaseAuth);
