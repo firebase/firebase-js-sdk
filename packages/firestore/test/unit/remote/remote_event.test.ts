@@ -106,10 +106,11 @@ describe('RemoteEvent', () => {
       });
     }
 
-    const aggregator = new WatchChangeAggregator(
-      targetId => (options.targets ? options.targets[targetId] : null),
-      () => options.existingKeys || documentKeySet()
-    );
+    const aggregator = new WatchChangeAggregator({
+      getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
+      getQueryDataForTarget: targetId =>
+        options.targets ? options.targets[targetId] : null
+    });
 
     if (options.outstandingResponses) {
       objUtils.forEachNumber(

@@ -106,7 +106,11 @@ class TargetState {
    */
   private pendingResponses = 0;
 
-  /** Keeps track of the document changes since the last raised snapshot. */
+  /**
+   * Keeps track of the document changes since the last raised snapshot. These
+   * changes are continuously updated as we receive document updates and
+   * always reflect the current set of changes against the existing snapshot.
+   */
   private snapshotChanges: SortedMap<
     DocumentKey,
     ChangeType
@@ -117,8 +121,12 @@ class TargetState {
   private _shouldRaise = false;
 
   /**
-   * Whether this target has been marked 'current' (i.e. the watch backend has
-   * sent us all changes up to the point at which the target was added).
+   * Whether this target has been marked 'current'.
+   *
+   * 'Current' has special meaning for in the RPC protocol: It implies that the
+   * Watch backend has sent us all changes up to the point at which the target
+   * was added and that the target is consistent with the rest of the watch
+   * stream.
    */
   get current(): boolean {
     return this._current;
@@ -177,13 +185,13 @@ class TargetState {
       }
     });
 
-    return new TargetChange({
-      current: this._current,
-      resumeToken: this._resumeToken,
+    return new TargetChange(
+      this._resumeToken,
+      this._current,
       addedDocuments,
       modifiedDocuments,
       removedDocuments
-    });
+    );
   }
 
   /**
@@ -218,22 +226,26 @@ class TargetState {
   }
 }
 
+export interface WatchMetadataProvider {
+  /**
+   * Returns the set of remote document keys for the given target ID. This list
+   * includes the documents that were assigned to the target when we received
+   * the last snapshot.
+   */
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
+
+  /**
+   * Returns the QueryData for an active target ID or 'null' if this query
+   * has become inactive
+   */
+  getQueryDataForTarget(targetId: TargetId): QueryData | null;
+}
 /**
  * A helper class to accumulate watch changes into a RemoteEvent and other
  * target information.
  */
 export class WatchChangeAggregator {
-  /**
-   * @param queryDataCallback A callback that returns the QueryData for active
-   * queries. Returns 'null' if the query is no longer active (e.g. the user
-   * stopped listening).
-   * @param existingKeysCallback A callback that returns the set of document
-   * keys that were assigned to the target at the last raised snapshot.
-   */
-  constructor(
-    private queryDataCallback: (targetId: TargetId) => QueryData | null,
-    private existingKeysCallback: (targetId: TargetId) => DocumentKeySet
-  ) {}
+  constructor(private metadataProvider: WatchMetadataProvider) {}
 
   /** The internal state of all tracked targets. */
   private targetStates: { [targetId: number]: TargetState } = {};
@@ -254,9 +266,10 @@ export class WatchChangeAggregator {
       } else if (docChange.newDoc instanceof NoDocument) {
         this.removeDocument(targetId, docChange.key, docChange.newDoc);
       } else {
-        // Remove the document from the target, but don't synthesize a document
-        // delete since the document may have been modified to no longer match
-        // the target.
+        // This is just a target update, which might have been issued if the
+        // document has been modified to no longer match the target. We don't
+        // synthesize a document delete since we cannot be sure that the
+        // document no longer exists.
         this.removeDocument(targetId, docChange.key);
       }
     }
@@ -337,9 +350,8 @@ export class WatchChangeAggregator {
     const targetChanges: { [targetId: number]: TargetChange } = {};
 
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
-      if (this.isActiveTarget(targetId)) {
-        const queryData = this.queryDataCallback(targetId);
-
+      const queryData = this.queryDataForActiveTarget(targetId);
+      if (queryData) {
         if (targetState.shouldRaise) {
           targetChanges[targetId] = targetState.toTargetChange();
           targetState.clearChanges();
@@ -380,12 +392,10 @@ export class WatchChangeAggregator {
       let isLimboTarget = true;
 
       targets.forEachWhile(targetId => {
-        if (this.isActiveTarget(targetId)) {
-          const queryData = this.queryDataCallback(targetId);
-          if (queryData.purpose !== QueryPurpose.LimboResolution) {
-            isLimboTarget = false;
-            return false;
-          }
+        const queryData = this.queryDataForActiveTarget(targetId);
+        if (queryData && queryData.purpose !== QueryPurpose.LimboResolution) {
+          isLimboTarget = false;
+          return false;
         }
 
         return true;
@@ -396,12 +406,12 @@ export class WatchChangeAggregator {
       }
     });
 
-    const remoteEvent = new RemoteEvent({
+    const remoteEvent = new RemoteEvent(
       snapshotVersion,
       targetChanges,
-      resolvedLimboDocuments,
-      documentUpdates: this.documentUpdates
-    });
+      this.documentUpdates,
+      resolvedLimboDocuments
+    );
 
     this.documentUpdates = maybeDocumentMap();
     this.documentTargetMapping = documentTargetMap();
@@ -482,7 +492,7 @@ export class WatchChangeAggregator {
     const targetState = this.ensureTargetState(targetId);
     const targetChange = targetState.toTargetChange();
     return (
-      this.existingKeysCallback(targetId).size +
+      this.metadataProvider.getRemoteKeysForTarget(targetId).size +
       targetChange.addedDocuments.size -
       targetChange.removedDocuments.size
     );
@@ -522,12 +532,22 @@ export class WatchChangeAggregator {
 
   /**
    * Verifies that the user is still interested in this target (by calling
-   * `queryDataCallback()`) and that we are not waiting for pending ADDs
+   * `getQueryDataForTarget()`) and that we are not waiting for pending ADDs
    * from watch.
    */
   protected isActiveTarget(targetId: TargetId): boolean {
+    return this.queryDataForActiveTarget(targetId) !== null;
+  }
+
+  /**
+   * Returns the QueryData for an active target (i.e. a target that the user
+   * is still interested in that has no outstanding target change requests).
+   */
+  protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
     const targetState = this.ensureTargetState(targetId);
-    return !targetState.isPending && this.queryDataCallback(targetId) != null;
+    return targetState.isPending
+      ? null
+      : this.metadataProvider.getQueryDataForTarget(targetId);
   }
 
   /**
@@ -541,7 +561,7 @@ export class WatchChangeAggregator {
     // Trigger removal for any documents currently mapped to this target.
     // These removals will be part of the initial snapshot if Watch does not
     // resend these documents.
-    const existingKeys = this.existingKeysCallback(targetId);
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     existingKeys.forEach(key => {
       this.removeDocument(targetId, key);
     });
@@ -558,7 +578,7 @@ export class WatchChangeAggregator {
 
   /** Returns whether the LocalStore considers the document to be part of the specified target. */
   private hasSyncedDocument(targetId: TargetId, key: DocumentKey): boolean {
-    const existingKeys = this.existingKeysCallback(targetId);
+    const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     return existingKeys.has(key);
   }
 }

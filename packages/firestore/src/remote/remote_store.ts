@@ -45,12 +45,14 @@ import {
   ExistenceFilterChange,
   WatchChange,
   WatchChangeAggregator,
+  WatchMetadataProvider,
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { NoDocument } from '../model/document';
+import { DocumentKeySet } from '../model/collections';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -76,7 +78,7 @@ const MAX_PENDING_WRITES = 10;
  * - retrying mutations that failed because of network problems.
  * - acking mutations to the SyncEngine once they are accepted or rejected.
  */
-export class RemoteStore {
+export class RemoteStore implements WatchMetadataProvider {
   private pendingWrites: MutationBatch[] = [];
   private lastBatchSeen: BatchId = BATCHID_UNKNOWN;
 
@@ -225,6 +227,16 @@ export class RemoteStore {
     }
   }
 
+  /** {@link WatchMetadataProvider.getQueryDataForTarget} */
+  getQueryDataForTarget(targetId: TargetId): QueryData | null {
+    return this.listenTargets[targetId] || null;
+  }
+
+  /** {@link WatchMetadataProvider.getRemoteKeysForTarget} */
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
+    return this.syncEngine.getRemoteKeysForTarget(targetId);
+  }
+
   /**
    * We need to increment the the expected number of pending responses we're due
    * from watch so we wait for the ack to process any messages from this target.
@@ -255,11 +267,7 @@ export class RemoteStore {
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
 
-    this.watchChangeAggregator = new WatchChangeAggregator(
-      targetId => this.listenTargets[targetId] || null,
-      targetId => this.syncEngine.getDocuments(targetId)
-    );
-
+    this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.onlineStateTracker.handleWatchStreamStart();
   }
 
@@ -450,7 +458,7 @@ export class RemoteStore {
       }
     });
 
-    // Finally handle remote event
+    // Finally raise remote event
     return this.syncEngine.applyRemoteEvent(remoteEvent);
   }
 

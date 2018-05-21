@@ -59,7 +59,9 @@ export interface RemoteSyncer {
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void>;
 
   /**
-   * Returns the current set of documents assigned to the target's view.
+   * Returns the set of remote document keys for the given target ID. This list
+   * includes the documents that were assigned to the target when we received
+   * the last snapshot.
    */
-  getDocuments(targetId: TargetId): DocumentKeySet;
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
 }

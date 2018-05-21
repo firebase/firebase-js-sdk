@@ -330,8 +330,11 @@ export class View {
       targetChange.addedDocuments.forEach(
         key => (this._syncedDocuments = this._syncedDocuments.add(key))
       );
-      targetChange.modifiedDocuments.forEach(
-        key => (this._syncedDocuments = this._syncedDocuments.add(key))
+      targetChange.modifiedDocuments.forEach(key =>
+        assert(
+          this._syncedDocuments.has(key),
+          `Modified document ${key} should exist in view.`
+        )
       );
       targetChange.removedDocuments.forEach(
         key => (this._syncedDocuments = this._syncedDocuments.delete(key))

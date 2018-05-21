@@ -262,10 +262,11 @@ export function docInsertRemoteEvent(
     doc.key,
     doc
   );
-  const aggregator = new WatchChangeAggregator(
-    targetId => queryData(targetId, QueryPurpose.Listen, doc.key.toString()),
-    () => documentKeySet()
-  );
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => documentKeySet(),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+  });
   aggregator.addDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
 }
@@ -285,10 +286,11 @@ export function docUpdateRemoteEvent(
     doc.key,
     doc
   );
-  const aggregator = new WatchChangeAggregator(
-    targetId => queryData(targetId, QueryPurpose.Listen, doc.key.toString()),
-    () => documentKeySet().add(doc.key)
-  );
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => keys(doc),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+  });
   aggregator.addDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
 }
@@ -320,13 +322,13 @@ export function updateMapping(
     removedDocuments = removedDocuments.add(k);
   });
 
-  return new TargetChange({
+  return new TargetChange(
+    resumeTokenForSnapshot(snapshotVersion),
+    !!current,
     addedDocuments,
-    removedDocuments,
     modifiedDocuments,
-    resumeToken: resumeTokenForSnapshot(snapshotVersion),
-    current: !!current
-  });
+    removedDocuments
+  );
 }
 
 export function addTargetMapping(
