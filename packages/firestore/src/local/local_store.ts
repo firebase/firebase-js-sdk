@@ -150,9 +150,6 @@ export class LocalStore {
   /** Maps a targetID to data about its query. */
   private targetIds = {} as { [targetId: number]: QueryData };
 
-  /** Used to generate targetIDs for queries tracked locally. */
-  private targetIdGenerator = TargetIdGenerator.forLocalStore();
-
   /**
    * A heldBatchResult is a mutation batch result (from a write acknowledgement)
    * that arrived before the watch stream got notified of a snapshot that
@@ -265,9 +262,7 @@ export class LocalStore {
   private startQueryCache(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
-    return this.queryCache.start(txn).next(() => {
-      this.targetIdGenerator = TargetIdGenerator.forLocalStore();
-    });
+    return this.queryCache.start(txn);
   }
 
   private startMutationQueue(
@@ -706,12 +701,10 @@ export class LocalStore {
             queryData = cached;
             return PersistencePromise.resolve();
           } else {
-            return this.queryCache
-              .allocateTargetId(txn, this.targetIdGenerator)
-              .next(targetId => {
-                queryData = new QueryData(query, targetId, QueryPurpose.Listen);
-                return this.queryCache.addQueryData(txn, queryData);
-              });
+            return this.queryCache.allocateTargetId(txn).next(targetId => {
+              queryData = new QueryData(query, targetId, QueryPurpose.Listen);
+              return this.queryCache.addQueryData(txn, queryData);
+            });
           }
         })
         .next(() => {

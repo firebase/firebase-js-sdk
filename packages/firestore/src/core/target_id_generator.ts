@@ -20,7 +20,7 @@ import { assert } from '../util/assert';
 const RESERVED_BITS = 1;
 
 enum GeneratorIds {
-  LocalStore = 0, // The target IDs for user queries are even (end in 0).
+  QueryCache = 0, // The target IDs for user-issued queries are even (end in 0).
   SyncEngine = 1 // The target IDs for limbo detection are odd (end in 1).
 }
 
@@ -31,6 +31,8 @@ enum GeneratorIds {
  * will ever produce the same ID. This is useful, because sometimes the backend
  * may group IDs from separate parts of the client into the same ID space.
  */
+// TODO(mrschmidt): Explore removing this class in favor of generating these IDs
+// directly in SyncEngine and LocalStore.
 export class TargetIdGenerator {
   private nextId: TargetId;
 
@@ -69,12 +71,12 @@ export class TargetIdGenerator {
     this.nextId = targetId;
   }
 
-  static forLocalStore(): TargetIdGenerator {
+  static forQueryCache(): TargetIdGenerator {
     // We seed the local store generator to return '2' as its first ID, as there
     // is no differentiation in the protocol layer between an unset number and
     // the number '0'. If we were to sent a target with target ID '0', the
     // backend would consider it unset and replace it with its own ID.
-    const targetIdGenerator = new TargetIdGenerator(GeneratorIds.LocalStore, 2);
+    const targetIdGenerator = new TargetIdGenerator(GeneratorIds.QueryCache, 2);
     return targetIdGenerator;
   }
 

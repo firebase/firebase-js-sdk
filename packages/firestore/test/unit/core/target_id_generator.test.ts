@@ -46,8 +46,8 @@ describe('TargetIdGenerator', () => {
     expect(generator.next()).to.equal(53);
   });
 
-  it('can return correct generator for local store and sync engine', () => {
-    expect(TargetIdGenerator.forLocalStore().next()).to.equal(2);
+  it('can return correct generator for query cache and sync engine', () => {
+    expect(TargetIdGenerator.forQueryCache().next()).to.equal(2);
     expect(TargetIdGenerator.forSyncEngine().next()).to.equal(1);
   });
 

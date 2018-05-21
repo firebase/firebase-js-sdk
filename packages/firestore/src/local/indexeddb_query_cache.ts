@@ -47,17 +47,25 @@ export class IndexedDbQueryCache implements QueryCache {
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
 
+  // PORTING NOTE: We don't cache global metadata for the query cache, since
+  // some of it (in particular `highestTargetId`) can be modified by secondary
+  // tabs. We could perhaps be more granular (and e.g. still cache
+  //  lastRemoteSnapshotVersion  in memory) but for simplicity we currently go
+  // to IndexedDb whenever we need to read metadata. We can revisit if it turns
+  // out to have a meaningful performance impact.
+
+  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.
     return PersistencePromise.resolve();
   }
 
   allocateTargetId(
-    transaction: PersistenceTransaction,
-    targetIdGenerator: TargetIdGenerator
+    transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.highestTargetId = targetIdGenerator.after(
+      metadata.highestTargetId = this.targetIdGenerator.after(
         metadata.highestTargetId
       );
       return this.saveMetadata(transaction, metadata).next(

@@ -28,9 +28,9 @@ import { TargetIdGenerator } from '../../../src/core/target_id_generator';
  * A wrapper around a QueryCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
+// TODO(multitab): Adjust the `requirePrimaryLease` argument to match the usage
+// in the client.
 export class TestQueryCache {
-  private targetIdGenerator = TargetIdGenerator.forLocalStore();
-
   constructor(public persistence: Persistence, public cache: QueryCache) {}
 
   start(): Promise<void> {
@@ -80,8 +80,8 @@ export class TestQueryCache {
   }
 
   allocateTargetId(): Promise<TargetId> {
-    return this.persistence.runTransaction('allocateTargetId', true, txn => {
-      return this.cache.allocateTargetId(txn, this.targetIdGenerator);
+    return this.persistence.runTransaction('allocateTargetId', false, txn => {
+      return this.cache.allocateTargetId(txn);
     });
   }
 

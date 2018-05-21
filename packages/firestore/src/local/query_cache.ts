@@ -163,7 +163,6 @@ export interface QueryCache extends GarbageSource {
    * return the same ID twice.
    */
   allocateTargetId(
-    transaction: PersistenceTransaction,
-    targetIdGenerator: TargetIdGenerator
+    transaction: PersistenceTransaction
   ): PersistencePromise<TargetId>;
 }

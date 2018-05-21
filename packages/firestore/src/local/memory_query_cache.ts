@@ -48,6 +48,8 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetCount = 0;
 
+  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.
     return PersistencePromise.resolve();
@@ -60,10 +62,9 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   allocateTargetId(
-    transaction: PersistenceTransaction,
-    targetIdGenerator: TargetIdGenerator
+    transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
-    const nextTargetId = targetIdGenerator.after(this.highestTargetId);
+    const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
     this.highestTargetId = nextTargetId;
     return PersistencePromise.resolve(nextTargetId);
   }
