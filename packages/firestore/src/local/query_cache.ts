@@ -23,7 +23,6 @@ import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
-import { TargetIdGenerator } from '../core/target_id_generator';
 
 /**
  * Represents cached queries received from the remote backend.

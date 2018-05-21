@@ -22,7 +22,6 @@ import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 
 /**
  * A wrapper around a QueryCache that automatically creates a
