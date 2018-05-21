@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
 import firebase from '@firebase/app';
-import '@firebase/messaging';
+import 'firebase/messaging';
 import { Service } from '../../src/api/service';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
