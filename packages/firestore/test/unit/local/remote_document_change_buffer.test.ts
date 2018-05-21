@@ -47,10 +47,7 @@ describe('RemoteDocumentChangeBuffer', () => {
       );
 
       // Add a couple initial items to the cache.
-      return Promise.all([
-        cache.addEntry(INITIAL_DOC),
-        cache.addEntry(deletedDoc('coll/b', 314))
-      ]);
+      return cache.addEntries([INITIAL_DOC, deletedDoc('coll/b', 314)]);
     });
   });
 

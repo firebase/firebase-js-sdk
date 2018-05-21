@@ -15,35 +15,71 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap, documentMap } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  DocumentMap,
+  documentMap
+} from '../model/collections';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { fail } from '../util/assert';
 
-import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
+import {
+  DbRemoteDocument,
+  DbRemoteDocumentKey,
+  DbSnapshotChange,
+  DbSnapshotChangeKey
+} from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { SortedMap } from '../util/sorted_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   constructor(private serializer: LocalSerializer) {}
 
-  addEntry(
+  addEntries(
     transaction: PersistenceTransaction,
-    maybeDocument: MaybeDocument
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
-    return remoteDocumentsStore(transaction).put(
-      dbKey(maybeDocument.key),
-      this.serializer.toDbRemoteDocument(maybeDocument)
+    const promises: Array<PersistencePromise<void>> = [];
+    const documentStore = remoteDocumentsStore(transaction);
+
+    let accumulatedChanges = new SortedMap<SnapshotVersion, DocumentKeySet>(
+      SnapshotVersion.comparator
     );
+
+    for (const maybeDocument of maybeDocuments) {
+      promises.push(
+        documentStore.put(
+          dbKey(maybeDocument.key),
+          this.serializer.toDbRemoteDocument(maybeDocument)
+        )
+      );
+
+      const existingChanges =
+        accumulatedChanges.get(maybeDocument.version) || documentKeySet();
+      accumulatedChanges = accumulatedChanges.insert(
+        maybeDocument.version,
+        existingChanges.add(maybeDocument.key)
+      );
+    }
+
+    promises.push(this.persistChanges(transaction, accumulatedChanges));
+
+    return PersistencePromise.waitFor(promises);
   }
 
   removeEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
+    // We don't need to keep changelog for these removals since `removeEntry` is
+    // only used for garbage collection.
     return remoteDocumentsStore(transaction).delete(dbKey(documentKey));
   }
 
@@ -81,6 +117,69 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       })
       .next(() => results);
   }
+
+  getDocumentsChangedSince(
+    transaction: PersistenceTransaction,
+    snapshotVersion: SnapshotVersion
+  ): PersistencePromise<MaybeDocument[]> {
+    const documentPromises: Array<PersistencePromise<MaybeDocument>> = [];
+
+    let changedKeys = documentKeySet();
+
+    const range = IDBKeyRange.lowerBound(
+      this.serializer.toTimestampArray(snapshotVersion.toTimestamp()),
+      /*lowerOpen=*/ false
+    );
+
+    return snapshotChangeStore(transaction)
+      .iterate({ range }, (_, snapshotChange) => {
+        changedKeys = changedKeys.unionWith(
+          this.serializer.fromDbResourcePaths(snapshotChange.changes)
+        );
+      })
+      .next(() => {
+        changedKeys.forEach(key => {
+          documentPromises.push(
+            this.getEntry(transaction, key).next(
+              maybeDoc =>
+                maybeDoc || new NoDocument(key, SnapshotVersion.forDeletedDoc())
+            )
+          );
+        });
+      })
+      .next(() => PersistencePromise.map(documentPromises));
+  }
+
+  private persistChanges(
+    transaction: PersistenceTransaction,
+    changes: SortedMap<SnapshotVersion, DocumentKeySet>
+  ): PersistencePromise<void> {
+    const changesStore = snapshotChangeStore(transaction);
+
+    const promises: Array<PersistencePromise<void>> = [];
+
+    changes.forEach((snapshotVersion, changedKeys) => {
+      const timestamp = this.serializer.toTimestampArray(
+        snapshotVersion.toTimestamp()
+      );
+
+      const appendChanges = changesStore
+        .get(timestamp)
+        .next(maybeChanges => (maybeChanges ? maybeChanges.changes : []))
+        .next(existingChanges => {
+          changedKeys = changedKeys.unionWith(
+            this.serializer.fromDbResourcePaths(existingChanges)
+          );
+          return changesStore.put(
+            this.serializer.toDbSnapshotChange(snapshotVersion, changedKeys)
+          );
+        });
+
+      promises.push(appendChanges);
+    });
+
+    return PersistencePromise.waitFor(promises);
+  }
 }
 
 /**
@@ -89,10 +188,33 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
+  return getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+    txn,
+    DbRemoteDocument.store
+  );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the snapshotChanges object store.
+ */
+function snapshotChangeStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbSnapshotChangeKey, DbSnapshotChange> {
+  return getStore<DbSnapshotChangeKey, DbSnapshotChange>(
+    txn,
+    DbSnapshotChange.store
+  );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore from a transaction.
+ */
+function getStore<KeyType extends IDBValidKey, ValueType>(
+  txn: PersistenceTransaction,
+  store: string
+): SimpleDbStore<KeyType, ValueType> {
   if (txn instanceof SimpleDbTransaction) {
-    return txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
-    );
+    return txn.store<KeyType, ValueType>(store);
   } else {
     return fail('Invalid transaction object provided!');
   }

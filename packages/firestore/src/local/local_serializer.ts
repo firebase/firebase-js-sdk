@@ -29,13 +29,12 @@ import {
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
+  DbSnapshotChange,
   DbTarget,
-  DbTargetChange,
   DbTimestamp,
   DbTimestampArray
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
-import { TargetId } from '../core/types';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 
@@ -101,15 +100,13 @@ export class LocalSerializer {
   }
 
   /**
-   * Encodes a set of document keyss into a DbTargetChange.
+   * Encodes a snapshot version and its document keys into a DbSnapshotChange.
    */
-  toDbTargetChange(
-    targetId: TargetId,
+  toDbSnapshotChange(
     snapshotVersion: SnapshotVersion,
     changes: DocumentKeySet
-  ): DbTargetChange {
-    const targetChange = new DbTargetChange(
-      targetId,
+  ): DbSnapshotChange {
+    const targetChange = new DbSnapshotChange(
       this.toTimestampArray(snapshotVersion.toTimestamp()),
       []
     );

@@ -129,6 +129,10 @@ export function deletedDoc(
   return new NoDocument(key(keyStr), version(ver));
 }
 
+export function removedDoc(keyStr: string): NoDocument {
+  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+}
+
 export function wrap(value: AnyJs): FieldValue {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so

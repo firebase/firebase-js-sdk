@@ -17,7 +17,7 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
-import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
@@ -28,29 +28,12 @@ import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
-import { SortedMap } from '../util/sorted_map';
-import { primitiveComparator } from '../util/misc';
-import { TargetChange } from '../remote/remote_event';
-
-type SnapshotKey = { targetId: TargetId; snapshotVersion: SnapshotVersion };
 
 export class MemoryQueryCache implements QueryCache {
   /**
    * Maps a query to the data about that query
    */
   private queries = new ObjectMap<Query, QueryData>(q => q.canonicalId());
-
-  /**
-   * Tracks the set of updated keys by query target and snapshot.
-   */
-  private targetChanges = new SortedMap<SnapshotKey, DocumentKeySet>(
-    (left, right) => {
-      const cmp = primitiveComparator(left.targetId, right.targetId);
-      return cmp !== 0
-        ? cmp
-        : left.snapshotVersion.compareTo(right.snapshotVersion);
-    }
-  );
 
   /** The last received snapshot version. */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -128,24 +111,6 @@ export class MemoryQueryCache implements QueryCache {
     this.queries.delete(queryData.query);
     this.references.removeReferencesForId(queryData.targetId);
     this.targetCount -= 1;
-
-    const snapshotsToDelete: SnapshotKey[] = [];
-
-    const it = this.targetChanges.getIteratorFrom({
-      targetId: queryData.targetId,
-      snapshotVersion: SnapshotVersion.MIN
-    });
-    while (it.hasNext()) {
-      const key = it.getNext().key;
-      if (key.targetId !== queryData.targetId) {
-        break;
-      }
-      snapshotsToDelete.push(key);
-    }
-    snapshotsToDelete.forEach(key => {
-      this.targetChanges = this.targetChanges.remove(key);
-    });
-
     return PersistencePromise.resolve();
   }
 
@@ -161,20 +126,30 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(queryData);
   }
 
-  private addMatchingKeys(
+  addMatchingKeys(
     txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
-  ): void {
+  ): PersistencePromise<void> {
     this.references.addReferences(keys, targetId);
+    return PersistencePromise.resolve();
   }
 
-  private removeMatchingKeys(
+  removeMatchingKeys(
     txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
-  ): void {
+  ): PersistencePromise<void> {
     this.references.removeReferences(keys, targetId);
+    return PersistencePromise.resolve();
+  }
+
+  removeMatchingKeysForTargetId(
+    txn: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<void> {
+    this.references.removeReferencesForId(targetId);
+    return PersistencePromise.resolve();
   }
 
   getMatchingKeysForTargetId(
@@ -194,49 +169,5 @@ export class MemoryQueryCache implements QueryCache {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return this.references.containsKey(txn, key);
-  }
-
-  getChangedKeysForTargetId(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    fromSnapshot?: SnapshotVersion
-  ): PersistencePromise<DocumentKeySet> {
-    const snapshotVersion = fromSnapshot || SnapshotVersion.MIN;
-
-    const it = this.targetChanges.getIteratorFrom({
-      targetId,
-      snapshotVersion
-    });
-
-    let changedKeys = documentKeySet();
-    while (it.hasNext()) {
-      const entry = it.getNext();
-      if (entry.key.targetId !== targetId) {
-        break;
-      }
-      changedKeys = changedKeys.unionWith(entry.value);
-    }
-
-    return PersistencePromise.resolve(changedKeys);
-  }
-
-  applyTargetChange(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    change: TargetChange
-  ): PersistencePromise<void> {
-    const allModifiedKeys = change.addedDocuments
-      .unionWith(change.modifiedDocuments)
-      .unionWith(change.removedDocuments);
-
-    this.targetChanges = this.targetChanges.insert(
-      { targetId, snapshotVersion: change.snapshotVersion },
-      allModifiedKeys
-    );
-
-    this.addMatchingKeys(transaction, change.addedDocuments, targetId);
-    this.removeMatchingKeys(transaction, change.removedDocuments, targetId);
-
-    return PersistencePromise.resolve();
   }
 }

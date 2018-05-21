@@ -492,7 +492,15 @@ export class LocalStore {
           if (!queryData) return;
 
           promises.push(
-            this.queryCache.applyTargetChange(txn, targetId, change)
+            this.queryCache
+              .removeMatchingKeys(txn, change.removedDocuments, targetId)
+              .next(() => {
+                return this.queryCache.addMatchingKeys(
+                  txn,
+                  change.addedDocuments,
+                  targetId
+                );
+              })
           );
 
           // Update the resume token if the change includes one. Don't clear

@@ -16,25 +16,41 @@
 
 import { Query } from '../core/query';
 import {
+  documentKeySet,
+  DocumentKeySet,
   DocumentMap,
   documentMap,
   maybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { SortedMap } from '../util/sorted_map';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();
+  private changes = new SortedMap<SnapshotVersion, DocumentKeySet>(
+    SnapshotVersion.comparator
+  );
 
-  addEntry(
+  addEntries(
     transaction: PersistenceTransaction,
-    maybeDocument: MaybeDocument
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
-    this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
+    for (const maybeDocument of maybeDocuments) {
+      this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
+
+      const existingChanges =
+        this.changes.get(maybeDocument.version) || documentKeySet();
+      this.changes = this.changes.insert(
+        maybeDocument.version,
+        existingChanges.add(maybeDocument.key)
+      );
+    }
     return PersistencePromise.resolve();
   }
 
@@ -73,5 +89,28 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       }
     }
     return PersistencePromise.resolve(results);
+  }
+
+  getDocumentsChangedSince(
+    transaction: PersistenceTransaction,
+    snapshotVersion: SnapshotVersion
+  ): PersistencePromise<MaybeDocument[]> {
+    let changedKeys = documentKeySet();
+    const changedDocs: MaybeDocument[] = [];
+
+    const it = this.changes.getIteratorFrom(snapshotVersion);
+    while (it.hasNext()) {
+      it.getNext().value.forEach(key => {
+        if (!changedKeys.has(key)) {
+          changedKeys = changedKeys.add(key);
+          changedDocs.push(
+            this.docs.get(key) ||
+              new NoDocument(key, SnapshotVersion.forDeletedDoc())
+          );
+        }
+      });
+    }
+
+    return PersistencePromise.resolve(changedDocs);
   }
 }

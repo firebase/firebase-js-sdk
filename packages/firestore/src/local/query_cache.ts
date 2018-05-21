@@ -23,7 +23,6 @@ import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
-import { TargetChange } from '../remote/remote_event';
 
 /**
  * Represents cached queries received from the remote backend.
@@ -121,13 +120,31 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<QueryData | null>;
 
   /**
-   * Applies the target change event to the cached query results of the given
-   * target.
+   * Adds the given document keys to cached query results of the given target
+   * ID.
    */
-  applyTargetChange(
+  addMatchingKeys(
     transaction: PersistenceTransaction,
-    tagetId: TargetId,
-    change: TargetChange
+    keys: DocumentKeySet,
+    targetId: TargetId
+  ): PersistencePromise<void>;
+
+  /**
+   * Removes the given document keys from the cached query results of the
+   * given target ID.
+   */
+  removeMatchingKeys(
+    transaction: PersistenceTransaction,
+    keys: DocumentKeySet,
+    targetId: TargetId
+  ): PersistencePromise<void>;
+
+  /**
+   * Removes all the keys in the query results of the given target ID.
+   */
+  removeMatchingKeysForTargetId(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
   ): PersistencePromise<void>;
 
   /**
@@ -138,19 +155,5 @@ export interface QueryCache extends GarbageSource {
   getMatchingKeysForTargetId(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<DocumentKeySet>;
-
-  /**
-   * Returns the document keys that were updated by the given target, optionally
-   * starting from the provided snapshot version (inclusive).
-   *
-   * Returned document keys are for documents that were added, modified or
-   * removed at any intermediate snapshots and may include documents that only
-   * existed temporarily.
-   */
-  getChangedKeysForTargetId(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    fromSnapshot?: SnapshotVersion
   ): PersistencePromise<DocumentKeySet>;
 }

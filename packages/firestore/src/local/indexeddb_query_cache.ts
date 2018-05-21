@@ -27,8 +27,6 @@ import * as EncodedResourcePath from './encoded_resource_path';
 import { GarbageCollector } from './garbage_collector';
 import {
   DbTarget,
-  DbTargetChange,
-  DbTargetChangeKey,
   DbTargetDocument,
   DbTargetDocumentKey,
   DbTargetGlobal,
@@ -41,7 +39,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { TargetChange } from '../remote/remote_event';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
@@ -126,19 +123,7 @@ export class IndexedDbQueryCache implements QueryCache {
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(this.metadata.targetCount > 0, 'Removing from an empty query cache');
-
-    const documentStore = documentTargetStore(transaction);
-    const changeStore = targetChangeStore(transaction);
-    const range = IDBKeyRange.bound(
-      [queryData.targetId],
-      [queryData.targetId + 1],
-      /*lowerOpen=*/ false,
-      /*upperOpen=*/ true
-    );
-
-    return this.notifyGCForRemovedKeys(transaction, range)
-      .next(() => documentStore.delete(range))
-      .next(() => changeStore.delete(range))
+    return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
       .next(() => targetsStore(transaction).delete(queryData.targetId))
       .next(() => {
         this.metadata.targetCount -= 1;
@@ -211,7 +196,7 @@ export class IndexedDbQueryCache implements QueryCache {
       .next(() => result);
   }
 
-  private addMatchingKeys(
+  addMatchingKeys(
     txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
@@ -227,7 +212,7 @@ export class IndexedDbQueryCache implements QueryCache {
     return PersistencePromise.waitFor(promises);
   }
 
-  private removeMatchingKeys(
+  removeMatchingKeys(
     txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
@@ -244,6 +229,22 @@ export class IndexedDbQueryCache implements QueryCache {
       }
     });
     return PersistencePromise.waitFor(promises);
+  }
+
+  removeMatchingKeysForTargetId(
+    txn: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<void> {
+    const store = documentTargetStore(txn);
+    const range = IDBKeyRange.bound(
+      [targetId],
+      [targetId + 1],
+      /*lowerOpen=*/ false,
+      /*upperOpen=*/ true
+    );
+    return this.notifyGCForRemovedKeys(txn, range).next(() =>
+      store.delete(range)
+    );
   }
 
   private notifyGCForRemovedKeys(
@@ -326,67 +327,6 @@ export class IndexedDbQueryCache implements QueryCache {
       )
       .next(() => count > 0);
   }
-
-  getChangedKeysForTargetId(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    fromSnapshot?: SnapshotVersion
-  ): PersistencePromise<DocumentKeySet> {
-    const fromTimestamp = (fromSnapshot || SnapshotVersion.MIN).toTimestamp();
-
-    let changedKesy = documentKeySet();
-    const range = IDBKeyRange.bound(
-      [targetId, fromTimestamp],
-      [targetId + 1],
-      /*lowerOpen=*/ false,
-      /*upperOpen=*/ true
-    );
-    return targetChangeStore(transaction)
-      .iterate({ range }, (_, targetChange) => {
-        changedKesy = changedKesy.unionWith(
-          this.serializer.fromDbResourcePaths(targetChange.changes)
-        );
-      })
-      .next(() => changedKesy);
-  }
-
-  applyTargetChange(
-    transaction: PersistenceTransaction,
-    targetId: TargetId,
-    change: TargetChange
-  ): PersistencePromise<void> {
-    const promises: Array<PersistencePromise<void>> = [];
-
-    let allModifiedKeys = change.modifiedDocuments;
-
-    if (change.addedDocuments.size > 0) {
-      allModifiedKeys = allModifiedKeys.unionWith(change.addedDocuments);
-      promises.push(
-        this.addMatchingKeys(transaction, change.addedDocuments, targetId)
-      );
-    }
-
-    if (change.removedDocuments.size > 0) {
-      allModifiedKeys = allModifiedKeys.unionWith(change.removedDocuments);
-      promises.push(
-        this.removeMatchingKeys(transaction, change.removedDocuments, targetId)
-      );
-    }
-
-    // We always write the changes to IndexedDb, even if `allModifiedKeys` is
-    // empty. This allows us to replace existing changes with an empty set.
-    promises.push(
-      targetChangeStore(transaction).put(
-        this.serializer.toDbTargetChange(
-          targetId,
-          change.snapshotVersion,
-          allModifiedKeys
-        )
-      )
-    );
-
-    return PersistencePromise.waitFor(promises);
-  }
 }
 
 /**
@@ -417,15 +357,6 @@ function documentTargetStore(
     txn,
     DbTargetDocument.store
   );
-}
-
-/**
- * Helper to get a typed SimpleDbStore for the target change object store.
- */
-function targetChangeStore(
-  txn: PersistenceTransaction
-): SimpleDbStore<DbTargetChangeKey, DbTargetChange> {
-  return getStore<DbTargetChangeKey, DbTargetChange>(txn, DbTargetChange.store);
 }
 
 /**

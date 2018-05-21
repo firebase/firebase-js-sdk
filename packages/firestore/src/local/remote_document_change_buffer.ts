@@ -78,17 +78,17 @@ export class RemoteDocumentChangeBuffer {
    * the provided transaction.
    */
   apply(transaction: PersistenceTransaction): PersistencePromise<void> {
-    const changes = this.assertChanges();
+    const docs: MaybeDocument[] = [];
 
-    const promises: Array<PersistencePromise<void>> = [];
+    const changes = this.assertChanges();
     changes.forEach((key, maybeDoc) => {
-      promises.push(this.remoteDocumentCache.addEntry(transaction, maybeDoc));
+      docs.push(maybeDoc);
     });
 
     // We should not be used to buffer any more changes.
     this.changes = null;
 
-    return PersistencePromise.waitFor(promises);
+    return this.remoteDocumentCache.addEntries(transaction, docs);
   }
 
   /** Helper to assert this.changes is not null and return it. */

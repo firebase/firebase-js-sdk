@@ -20,9 +20,8 @@ import { TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
-import { DocumentKeySet } from '../../../src/model/collections';
+import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { TargetChange } from '../../../src/remote/remote_event';
 
 /**
  * A wrapper around a QueryCache that automatically creates a
@@ -73,6 +72,26 @@ export class TestQueryCache {
     return this.cache.getHighestTargetId();
   }
 
+  addMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
+    return this.persistence.runTransaction('addMatchingKeys', true, txn => {
+      let set = documentKeySet();
+      for (const key of keys) {
+        set = set.add(key);
+      }
+      return this.cache.addMatchingKeys(txn, set, targetId);
+    });
+  }
+
+  removeMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
+    return this.persistence.runTransaction('removeMatchingKeys', true, txn => {
+      let set = documentKeySet();
+      for (const key of keys) {
+        set = set.add(key);
+      }
+      return this.cache.removeMatchingKeys(txn, set, targetId);
+    });
+  }
+
   getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
     return this.persistence
       .runTransaction('getMatchingKeysForTargetId', true, txn => {
@@ -85,11 +104,13 @@ export class TestQueryCache {
       });
   }
 
-  applyTargetChange(targetId: TargetId, change: TargetChange): Promise<void> {
+  removeMatchingKeysForTargetId(targetId: TargetId): Promise<void> {
     return this.persistence.runTransaction(
       'removeMatchingKeysForTargetId',
       true,
-      txn => this.cache.applyTargetChange(txn, targetId, change)
+      txn => {
+        return this.cache.removeMatchingKeysForTargetId(txn, targetId);
+      }
     );
   }
 
@@ -104,17 +125,6 @@ export class TestQueryCache {
       'setLastRemoteSnapshotVersion',
       true,
       txn => this.cache.setLastRemoteSnapshotVersion(txn, version)
-    );
-  }
-
-  getChangedKeysForTargetId(
-    targetId: TargetId,
-    fromVersion?: SnapshotVersion
-  ): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction(
-      'getChangedKeysForTargetId',
-      false,
-      txn => this.cache.getChangedKeysForTargetId(txn, targetId, fromVersion)
     );
   }
 }

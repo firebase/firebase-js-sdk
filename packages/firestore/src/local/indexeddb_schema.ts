@@ -69,7 +69,7 @@ export function createOrUpgradeDb(
   if (fromVersion < 3 && toVersion >= 3) {
     p = p.next(() => {
       createClientMetadataStore(db);
-      createTargetChangeStore(db);
+      createSnapshotChangeStore(db);
     });
   }
   return p;
@@ -566,27 +566,23 @@ function ensureTargetGlobalExists(
 }
 
 /**
- * An object representing the changes at a particular snapshot version for the
- * given target. This is used to facilitate storing query changelogs in the
- * targetChanges object store.
+ * An object store to store the keys of changed documents at a particular
+ * snapshot version. This is used to facilitate storing document changelogs in
+ * the Remote Document Cache.
  *
  * PORTING NOTE: This is used for change propagation during multi-tab syncing
  * and not needed on iOS and Android.
  */
-export class DbTargetChange {
+export class DbSnapshotChange {
   /** Name of the IndexedDb object store.  */
-  static store = 'targetChanges';
+  static store = 'snapshotChanges';
 
-  /** Keys are automatically assigned via the targetId and snapshotVersion. */
-  static keyPath = ['targetId', 'snapshotVersion'];
+  /** Keys are automatically assigned via the `snapshotVersion` property. */
+  static keyPath = 'snapshotVersion';
 
   constructor(
     /**
-     * The targetId identifying a target.
-     */
-    public targetId: TargetId,
-    /**
-     * The snapshot version for this change.
+     * The snapshot version for these changes.
      */
     public snapshotVersion: DbTimestampArray,
     /**
@@ -597,13 +593,13 @@ export class DbTargetChange {
 }
 
 /**
- * The key for a DbTargetChange, containing a targetId and a snapshot version.
+ * The key for a DbSnapshotChange, consisting of the snapshot version.
  */
-export type DbTargetChangeKey = [TargetId, DbTimestampArray];
+export type DbSnapshotChangeKey = DbTimestampArray;
 
-function createTargetChangeStore(db: IDBDatabase): void {
-  db.createObjectStore(DbTargetChange.store, {
-    keyPath: DbTargetChange.keyPath as KeyPath
+function createSnapshotChangeStore(db: IDBDatabase): void {
+  db.createObjectStore(DbSnapshotChange.store, {
+    keyPath: DbSnapshotChange.keyPath as KeyPath
   });
 }
 
@@ -658,7 +654,7 @@ export const V2_STORES = V1_STORES;
 export const V3_STORES = [
   ...V2_STORES,
   DbClientMetadata.store,
-  DbTargetChange.store
+  DbSnapshotChange.store
 ];
 
 /**
