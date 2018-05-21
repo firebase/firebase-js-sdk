@@ -327,7 +327,7 @@ export class ChildrenNode implements Node {
   forEachChild(
     index: Index,
     action: (key: string, node: Node) => boolean | void
-  ): any {
+  ): boolean {
     const idx = this.resolveIndex_(index);
     if (idx) {
       return idx.inorderTraversal(function(wrappedNode) {
