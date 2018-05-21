@@ -56,6 +56,9 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
+/** The DOMException code for an aborted operation. */
+const DOM_EXCEPTION_ABORTED = 20;
+
 /** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
@@ -243,7 +246,16 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      return error.code === DOM_EXCEPTION_QUOTA_EXCEEDED;
+      // We fall back to memory persistence if we cannot acquire an owner lease.
+      // This can happen can during a schema migration, or during the initial
+      // write of the `owner` lease.
+      // For both the `QuotaExceededError` and the  `AbortError`, it is safe to
+      // fall back to memory persistence since all modifications to IndexedDb
+      // failed to commit.
+      return (
+        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+        error.code === DOM_EXCEPTION_ABORTED
+      );
     }
 
     return true;

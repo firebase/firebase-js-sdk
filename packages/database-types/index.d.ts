@@ -20,7 +20,7 @@ export interface DataSnapshot {
   child(path: string): DataSnapshot;
   exists(): boolean;
   exportVal(): any;
-  forEach(action: (a: DataSnapshot) => boolean): boolean;
+  forEach(action: (a: DataSnapshot) => boolean | void): boolean;
   getPriority(): string | number | null;
   hasChild(path: string): boolean;
   hasChildren(): boolean;
@@ -53,6 +53,13 @@ export interface OnDisconnect {
   update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
 }
 
+type EventType =
+  | 'value'
+  | 'child_added'
+  | 'child_changed'
+  | 'child_moved'
+  | 'child_removed';
+
 export interface Query {
   endAt(value: number | string | boolean | null, key?: string): Query;
   equalTo(value: number | string | boolean | null, key?: string): Query;
@@ -60,22 +67,22 @@ export interface Query {
   limitToFirst(limit: number): Query;
   limitToLast(limit: number): Query;
   off(
-    eventType?: string,
+    eventType?: EventType,
     callback?: (a: DataSnapshot, b?: string | null) => any,
     context?: Object | null
   ): any;
   on(
-    eventType: string,
+    eventType: EventType,
     callback: (a: DataSnapshot | null, b?: string) => any,
     cancelCallbackOrContext?: Object | null,
     context?: Object | null
   ): (a: DataSnapshot | null, b?: string) => any;
   once(
-    eventType: string,
+    eventType: EventType,
     successCallback?: (a: DataSnapshot, b?: string) => any,
     failureCallbackOrContext?: Object | null,
     context?: Object | null
-  ): Promise<any>;
+  ): Promise<DataSnapshot>;
   orderByChild(path: string): Query;
   orderByKey(): Query;
   orderByPriority(): Query;
