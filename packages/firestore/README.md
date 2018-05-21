@@ -10,16 +10,6 @@ If you are developing a Node.js application that requires administrative access 
 use the [`@google-cloud/firestore`](https://www.npmjs.com/package/@google-cloud/firestore) Server
 SDK with your developer credentials.
 
-## Installation
-
-The Cloud Firestore Web SDK is part of the [`firebase`](https://npm.im/firebase) package.
-
-You can install the Cloud Firestore Web SDK by running the following in your project:
-
-```bash
-$ npm install --save firebase
-```
-
 ## Usage
 
 You can then use the firebase namespace exposed by this package as illustrated
