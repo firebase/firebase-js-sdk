@@ -1,8 +1,9 @@
 # @firebase/auth
 
 This is the authentication component for the Firebase JS SDK. It has a peer 
-dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM. This package
-is included by default in the [`firebase`](https://npm.im/firebase) wrapper
+dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM. 
+
+This package is included by default in the [`firebase`](https://npm.im/firebase) wrapper
 package.
 
 ## Table of Contents
