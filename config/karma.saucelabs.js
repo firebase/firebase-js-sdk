@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
+const argv = require('yargs').argv;
 const glob = require('glob');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
-const mochaBase = require('./mocha.base');
-
-/** Tests in these packages are excluded due to flakiness or long run time. */
-const excluded = ['integration/firestore/*', 'integration/messaging/*'];
 
 /**
  * Gets a list of file patterns for test, defined individually
@@ -30,10 +27,17 @@ const excluded = ['integration/firestore/*', 'integration/messaging/*'];
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = glob.sync('{packages,integration}/*/karma.conf.js', {
-    cwd: root,
-    ignore: excluded
-  });
+  configs = argv['database-firestore-only']
+    ? glob.sync('packages/{database,firestore}/karma.conf.js')
+    : glob.sync('{packages,integration}/*/karma.conf.js', {
+        // Excluded due to flakiness or long run time.
+        ignore: [
+          'packages/database/*',
+          'packages/firestore/*',
+          'integration/firestore/*',
+          'integration/messaging/*'
+        ]
+      });
   files = configs.map(x => {
     let patterns = require(path.join(root, x)).files;
     let dirname = path.dirname(x);
@@ -126,23 +130,9 @@ module.exports = function(config) {
 
     port: 9876,
 
-    retryLimit: 0,
+    retryLimit: 3,
 
     // concurrency: 10,
-
-    client: {
-      mocha: Object.assign({}, mochaBase, {
-        // TODO(b/78474429, b/78473696): The tests matched by this regex
-        // are currently failing in the saucelabs cross-browser tests. They
-        // are disabled until we have a chance to investigate / fix them.
-        grep:
-          'Crawler Support' +
-          '|Transaction Tests server values: local timestamp should eventually \\(but not immediately\\) match the server with txns' +
-          '|QueryListener raises error event' +
-          '|AsyncQueue handles failures',
-        invert: true
-      })
-    },
 
     specReporter: {
       maxLogLines: 5,
