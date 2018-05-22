@@ -14,4 +14,26 @@
  * limitations under the License.
  */
 
-import '@firebase/database';
+import _firebase from '../app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { RepoManager, Reference, Query, Database, enableLogging, INTERNAL, TEST_ACCESS } from '@firebase/database';
+
+const firebase = _firebase as any as _FirebaseNamespace;
+
+const SERVICE_NAME = 'database';
+
+firebase.INTERNAL.registerService(
+  SERVICE_NAME,
+  (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
+  {
+    Reference,
+    Query,
+    Database,
+    enableLogging,
+    INTERNAL,
+    ServerValue: Database.ServerValue,
+    TEST_ACCESS
+  },
+  null,
+  true
+);
