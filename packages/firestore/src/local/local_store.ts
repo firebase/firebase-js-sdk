@@ -18,7 +18,6 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetIdGenerator } from '../core/target_id_generator';
 import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import {
   DocumentKeySet,
@@ -145,9 +144,6 @@ export class LocalStore {
   /** Maps a targetID to data about its query. */
   private targetIds = {} as { [targetId: number]: QueryData };
 
-  /** Used to generate targetIDs for queries tracked locally. */
-  private targetIdGenerator = TargetIdGenerator.forLocalStore();
-
   /**
    * A heldBatchResult is a mutation batch result (from a write acknowledgement)
    * that arrived before the watch stream got notified of a snapshot that
@@ -260,10 +256,7 @@ export class LocalStore {
   private startQueryCache(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
-    return this.queryCache.start(txn).next(() => {
-      const targetId = this.queryCache.getHighestTargetId();
-      this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
-    });
+    return this.queryCache.start(txn);
   }
 
   private startMutationQueue(
@@ -368,8 +361,9 @@ export class LocalStore {
       let affected: DocumentKeySet;
       return this.mutationQueue
         .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
-        .next(() => {
-          if (this.shouldHoldBatchResult(batchResult.commitVersion)) {
+        .next(() => this.shouldHoldBatchResult(txn, batchResult.commitVersion))
+        .next(shouldHoldBatchResult => {
+          if (shouldHoldBatchResult) {
             this.heldBatchResults.push(batchResult);
             affected = documentKeySet();
             return PersistencePromise.resolve();
@@ -468,8 +462,12 @@ export class LocalStore {
    * Returns the last consistent snapshot processed (used by the RemoteStore to
    * determine whether to buffer incoming snapshots from the backend).
    */
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.queryCache.getLastRemoteSnapshotVersion();
+  getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
+    return this.persistence.runTransaction(
+      'Get last remote snapshot version',
+      false,
+      txn => this.queryCache.getLastRemoteSnapshotVersion(txn)
+    );
   }
 
   /**
@@ -555,19 +553,24 @@ export class LocalStore {
       // can synthesize remote events when we get permission denied errors while
       // trying to resolve the state of a locally cached document that is in
       // limbo.
-      const lastRemoteVersion = this.queryCache.getLastRemoteSnapshotVersion();
       const remoteVersion = remoteEvent.snapshotVersion;
       if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
-        assert(
-          remoteVersion.compareTo(lastRemoteVersion) >= 0,
-          'Watch stream reverted to previous snapshot?? ' +
-            remoteVersion +
-            ' < ' +
-            lastRemoteVersion
-        );
-        promises.push(
-          this.queryCache.setLastRemoteSnapshotVersion(txn, remoteVersion)
-        );
+        const updateRemoteVersion = this.queryCache
+          .getLastRemoteSnapshotVersion(txn)
+          .next(lastRemoteVersion => {
+            assert(
+              remoteVersion.compareTo(lastRemoteVersion) >= 0,
+              'Watch stream reverted to previous snapshot?? ' +
+                remoteVersion +
+                ' < ' +
+                lastRemoteVersion
+            );
+            return this.queryCache.setLastRemoteSnapshotVersion(
+              txn,
+              remoteVersion
+            );
+          });
+        promises.push(updateRemoteVersion);
       }
 
       let releasedWriteKeys: DocumentKeySet;
@@ -672,10 +675,10 @@ export class LocalStore {
             queryData = cached;
             return PersistencePromise.resolve();
           } else {
-            // TODO(multitab): targetIdGenerator is not multi-tab safe
-            const targetId = this.targetIdGenerator.next();
-            queryData = new QueryData(query, targetId, QueryPurpose.Listen);
-            return this.queryCache.addQueryData(txn, queryData);
+            return this.queryCache.allocateTargetId(txn).next(targetId => {
+              queryData = new QueryData(query, targetId, QueryPurpose.Listen);
+              return this.queryCache.addQueryData(txn, queryData);
+            });
           }
         })
         .next(() => {
@@ -784,36 +787,63 @@ export class LocalStore {
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer
   ): PersistencePromise<DocumentKeySet> {
-    const toRelease: MutationBatchResult[] = [];
-    for (const batchResult of this.heldBatchResults) {
-      if (!this.isRemoteUpToVersion(batchResult.commitVersion)) {
-        break;
-      }
-      toRelease.push(batchResult);
-    }
+    let writesToRelease: PersistencePromise<MutationBatchResult[]>;
 
-    if (toRelease.length === 0) {
-      return PersistencePromise.resolve(documentKeySet());
+    if (objUtils.isEmpty(this.targetIds)) {
+      // We always release all writes when there are no active watch targets.
+      writesToRelease = PersistencePromise.resolve(
+        this.heldBatchResults.slice()
+      );
     } else {
-      this.heldBatchResults.splice(0, toRelease.length);
-      return this.releaseBatchResults(txn, toRelease, documentBuffer);
+      writesToRelease = this.queryCache
+        .getLastRemoteSnapshotVersion(txn)
+        .next(lastRemoteVersion => {
+          const toRelease = [];
+          for (const batchResult of this.heldBatchResults) {
+            if (batchResult.commitVersion.compareTo(lastRemoteVersion) > 0) {
+              break;
+            }
+            toRelease.push(batchResult);
+          }
+          return toRelease;
+        });
     }
+
+    return writesToRelease.next(toRelease => {
+      if (toRelease.length === 0) {
+        return PersistencePromise.resolve(documentKeySet());
+      } else {
+        this.heldBatchResults.splice(0, toRelease.length);
+        return this.releaseBatchResults(txn, toRelease, documentBuffer);
+      }
+    });
   }
 
-  private isRemoteUpToVersion(version: SnapshotVersion): boolean {
-    // If there are no watch targets, then we won't get remote snapshots, and
-    // we are always "up-to-date."
-    const lastRemoteVersion = this.queryCache.getLastRemoteSnapshotVersion();
-    return (
-      version.compareTo(lastRemoteVersion) <= 0 ||
-      objUtils.isEmpty(this.targetIds)
-    );
+  private isRemoteUpToVersion(
+    txn: PersistenceTransaction,
+    version: SnapshotVersion
+  ): PersistencePromise<boolean> {
+    return this.queryCache
+      .getLastRemoteSnapshotVersion(txn)
+      .next(lastRemoteVersion => {
+        return (
+          version.compareTo(lastRemoteVersion) <= 0 ||
+          objUtils.isEmpty(this.targetIds)
+        );
+      });
   }
 
-  private shouldHoldBatchResult(version: SnapshotVersion): boolean {
+  private shouldHoldBatchResult(
+    txn: PersistenceTransaction,
+    batchVersion: SnapshotVersion
+  ): PersistencePromise<boolean> {
     // Check if watcher isn't up to date or prior results are already held.
-    return (
-      !this.isRemoteUpToVersion(version) || this.heldBatchResults.length > 0
+    if (this.heldBatchResults.length > 0) {
+      return PersistencePromise.resolve(true);
+    }
+
+    return this.isRemoteUpToVersion(txn, batchVersion).next(
+      remoteSynced => !remoteSynced
     );
   }
 

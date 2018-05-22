@@ -347,13 +347,11 @@ export class RemoteStore {
         this.watchChangeAggregator.addTargetChange(watchChange);
       }
 
-      if (
-        !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
-        snapshotVersion.compareTo(
-          this.localStore.getLastRemoteSnapshotVersion()
-        ) >= 0
-      ) {
-        await this.raiseWatchSnapshot(snapshotVersion);
+      if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+        const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+        if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+          await this.raiseWatchSnapshot(snapshotVersion);
+        }
       }
     }
   }

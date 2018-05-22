@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
+const argv = require('yargs').argv;
 const glob = require('glob');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
-
-/** Tests in these packages are excluded due to flakiness or long run time. */
-const excluded = [
-  'packages/database/*',
-  'packages/firestore/*',
-  'integration/firestore/*',
-  'integration/messaging/*'
-];
 
 /**
  * Gets a list of file patterns for test, defined individually
@@ -34,10 +27,17 @@ const excluded = [
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = glob.sync('{packages,integration}/*/karma.conf.js', {
-    cwd: root,
-    ignore: excluded
-  });
+  configs = argv['database-firestore-only']
+    ? glob.sync('packages/{database,firestore}/karma.conf.js')
+    : glob.sync('{packages,integration}/*/karma.conf.js', {
+        // Excluded due to flakiness or long run time.
+        ignore: [
+          'packages/database/*',
+          'packages/firestore/*',
+          'integration/firestore/*',
+          'integration/messaging/*'
+        ]
+      });
   files = configs.map(x => {
     let patterns = require(path.join(root, x)).files;
     let dirname = path.dirname(x);
@@ -85,11 +85,11 @@ function appiumLauncher(
  */
 const sauceLabsBrowsers = {
   // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
-  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest')
-  // IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest'),
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', '66.0'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', '60.0'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', '11.0'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', '17.17134'),
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', '11.103')
 
   // Mobile
   // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
@@ -100,11 +100,18 @@ module.exports = function(config) {
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
-    files: getTestFiles(),
+    files: ['packages/polyfill/index.ts', ...getTestFiles()],
 
     logLevel: config.LOG_INFO,
 
-    preprocessors: { '**/test/**/*.ts': ['webpack', 'sourcemap'] },
+    preprocessors: {
+      'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
+      '**/test/**/*.ts': ['webpack', 'sourcemap'],
+      'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
+      'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
+    },
+
+    babelPreprocessor: { options: { presets: ['@babel/preset-env'] } },
 
     frameworks: ['mocha'],
 
@@ -119,7 +126,7 @@ module.exports = function(config) {
 
     customLaunchers: sauceLabsBrowsers,
 
-    reporters: ['spec', 'saucelabs'],
+    reporters: ['spec', 'summary', 'saucelabs'],
 
     port: 9876,
 
@@ -127,11 +134,37 @@ module.exports = function(config) {
 
     // concurrency: 10,
 
+    specReporter: {
+      maxLogLines: 5,
+      suppressErrorSummary: false,
+      suppressFailed: false,
+      suppressPassed: true,
+      suppressSkipped: true,
+      showSpecTiming: true,
+      failFast: false
+    },
+
+    summaryReporter: {
+      show: 'failed',
+      specLength: 80,
+      overviewColumn: false
+    },
+
     sauceLabs: {
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
-      startConnect: true
+      startConnect: true,
+      connectOptions: {
+        // Realtime Database uses WebSockets to connect to firebaseio.com
+        // so we have to set noSslBumpDomains. Theoretically SSL Bumping
+        // only needs to be disabled for 'firebaseio.com'. However, we are
+        // seeing much longer test time with that configuration, so leave
+        // it as 'all' for now.
+        // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
+        // for more details.
+        noSslBumpDomains: 'all'
+      }
     }
   });
 

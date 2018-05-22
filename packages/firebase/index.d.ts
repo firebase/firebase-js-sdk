@@ -107,7 +107,7 @@ declare namespace firebase {
 
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
-  const messaging: firebase.messaging.MessagingFactory;
+  function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
 
   function storage(app?: firebase.app.App): firebase.storage.Storage;
 
@@ -121,7 +121,7 @@ declare namespace firebase.app {
     auth(): firebase.auth.Auth;
     database(): firebase.database.Database;
     delete(): Promise<any>;
-    messaging: firebase.messaging.MessagingFactory;
+    messaging(): firebase.messaging.Messaging;
     name: string;
     options: Object;
     storage(url?: string): firebase.storage.Storage;
@@ -428,7 +428,9 @@ declare namespace firebase.database {
     child(path: string): firebase.database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (a: firebase.database.DataSnapshot) => boolean): boolean;
+    forEach(
+      action: (a: firebase.database.DataSnapshot) => boolean | void
+    ): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -459,6 +461,13 @@ declare namespace firebase.database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
+  type EventType =
+    | 'value'
+    | 'child_added'
+    | 'child_changed'
+    | 'child_moved'
+    | 'child_removed';
+
   interface Query {
     endAt(
       value: number | string | boolean | null,
@@ -472,22 +481,22 @@ declare namespace firebase.database {
     limitToFirst(limit: number): firebase.database.Query;
     limitToLast(limit: number): firebase.database.Query;
     off(
-      eventType?: string,
+      eventType?: EventType,
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
     ): any;
     on(
-      eventType: string,
+      eventType: EventType,
       callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
     ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
     once(
-      eventType: string,
+      eventType: EventType,
       successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
       failureCallbackOrContext?: Object | null,
       context?: Object | null
-    ): Promise<any>;
+    ): Promise<DataSnapshot>;
     orderByChild(path: string): firebase.database.Query;
     orderByKey(): firebase.database.Query;
     orderByPriority(): firebase.database.Query;
@@ -549,11 +558,6 @@ declare namespace firebase.database.ServerValue {
 }
 
 declare namespace firebase.messaging {
-  interface MessagingFactory {
-    (app?: firebase.app.App): Messaging;
-    isSupported(): boolean;
-  }
-
   interface Messaging {
     deleteToken(token: string): Promise<boolean>;
     getToken(): Promise<string | null>;
@@ -574,6 +578,8 @@ declare namespace firebase.messaging {
     useServiceWorker(registration: ServiceWorkerRegistration): void;
     usePublicVapidKey(b64PublicKey: string): void;
   }
+
+  function isSupported(): boolean;
 }
 
 declare namespace firebase.storage {
@@ -1182,9 +1188,6 @@ declare namespace firebase.firestore {
      * Changes the behavior of set() calls to only replace the specified field
      * paths. Any field path that is not specified is ignored and remains
      * untouched.
-     *
-     * <p>It is an error to pass a SetOptions object to a set() call that is
-     * missing a value for any of the fields specified here.
      */
     readonly mergeFields?: (string | FieldPath)[];
   }

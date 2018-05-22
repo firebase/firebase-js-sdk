@@ -20,6 +20,7 @@ import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
+import { Deferred } from '../util/promise';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -145,10 +146,8 @@ export class SimpleDb {
     const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
     const transactionFnResult = transactionFn(transaction)
       .catch(error => {
-        // Abort the transaction if there was an
-        // error.
-        transaction.abort();
-        return PersistencePromise.reject(error);
+        // Abort the transaction if there was an error.
+        transaction.abort(error);
       })
       .toPromise();
 
@@ -246,11 +245,8 @@ export class SimpleDbTransaction {
 
   /**
    * A promise that resolves with the result of the IndexedDb transaction.
-   *
-   * Note: A transaction explicitly aborted via abort() is considered successful
-   * and this promise will resolve as successful.
    */
-  readonly completionPromise: Promise<void>;
+  private readonly completionDeferred = new Deferred<void>();
 
   static open(
     db: IDBDatabase,
@@ -263,21 +259,36 @@ export class SimpleDbTransaction {
   }
 
   constructor(private readonly transaction: IDBTransaction) {
-    this.completionPromise = new Promise<void>((resolve, reject) => {
-      // We consider aborting to be "normal" and just resolve the promise.
-      // May need to revisit if/when we actually need to abort transactions.
-      this.transaction.onabort = this.transaction.oncomplete = event => {
-        resolve();
-      };
-      this.transaction.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
-      };
-    });
+    this.transaction.oncomplete = () => {
+      this.completionDeferred.resolve();
+    };
+    this.transaction.onabort = () => {
+      if (transaction.error) {
+        this.completionDeferred.reject(transaction.error);
+      } else {
+        this.completionDeferred.resolve();
+      }
+    };
+    this.transaction.onerror = (event: Event) => {
+      this.completionDeferred.reject((event.target as IDBRequest).error);
+    };
   }
 
-  abort(): void {
+  get completionPromise(): Promise<void> {
+    return this.completionDeferred.promise;
+  }
+
+  abort(error?: Error): void {
+    if (error) {
+      this.completionDeferred.reject(error);
+    }
+
     if (!this.aborted) {
-      debug(LOG_TAG, 'Aborting transaction.');
+      debug(
+        LOG_TAG,
+        'Aborting transaction: %s',
+        error ? error.message : 'Client-initiated abort'
+      );
       this.aborted = true;
       this.transaction.abort();
     }

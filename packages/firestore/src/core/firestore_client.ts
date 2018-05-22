@@ -62,6 +62,12 @@ import { AutoId } from '../util/misc';
 
 const LOG_TAG = 'FirestoreClient';
 
+/** The DOMException code for an aborted operation. */
+const DOM_EXCEPTION_ABORTED = 20;
+
+/** The DOMException code for quota exceeded. */
+const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
  * pieces of the client SDK architecture. It is responsible for creating the
@@ -211,7 +217,7 @@ export class FirestoreClient {
     if (usePersistence) {
       return this.startIndexedDbPersistence(user)
         .then(persistenceResult.resolve)
-        .catch((error: FirestoreError) => {
+        .catch(error => {
           // Regardless of whether or not the retry succeeds, from an user
           // perspective, offline persistence has failed.
           persistenceResult.reject(error);
@@ -238,11 +244,33 @@ export class FirestoreClient {
     }
   }
 
-  private canFallback(error: FirestoreError): boolean {
-    return (
-      error.code === Code.FAILED_PRECONDITION ||
-      error.code === Code.UNIMPLEMENTED
-    );
+  /**
+   * Decides whether the provided error allows us to gracefully disable
+   * persistence (as opposed to crashing the client).
+   */
+  private canFallback(error: FirestoreError | DOMException): boolean {
+    if (error instanceof FirestoreError) {
+      return (
+        error.code === Code.FAILED_PRECONDITION ||
+        error.code === Code.UNIMPLEMENTED
+      );
+    } else if (
+      typeof DOMException !== 'undefined' &&
+      error instanceof DOMException
+    ) {
+      // We fall back to memory persistence if we cannot acquire an owner lease.
+      // This can happen can during a schema migration, or during the initial
+      // write of the `owner` lease.
+      // For both the `QuotaExceededError` and the  `AbortError`, it is safe to
+      // fall back to memory persistence since all modifications to IndexedDb
+      // failed to commit.
+      return (
+        error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
+        error.code === DOM_EXCEPTION_ABORTED
+      );
+    }
+
+    return true;
   }
 
   /**
