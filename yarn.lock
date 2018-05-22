@@ -8724,10 +8724,6 @@ prettier@1.12.0:
   version "1.12.0"
   resolved "https://registry.npmjs.org/prettier/-/prettier-1.12.0.tgz#d26fc5894b9230de97629b39cae225b503724ce8"
 
-prettier@^1.12.1:
-  version "1.12.1"
-  resolved "https://registry.npmjs.org/prettier/-/prettier-1.12.1.tgz#c1ad20e803e7749faf905a409d2367e06bbe7325"
-
 pretty-hrtime@^1.0.0:
   version "1.0.3"
   resolved "https://registry.npmjs.org/pretty-hrtime/-/pretty-hrtime-1.0.3.tgz#b7e3ea42435a4c9b2759d99e0f201eb195802ee1"
