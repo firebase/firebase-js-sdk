@@ -27,26 +27,26 @@ describeSpec('Existence Filters:', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });
     return spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, doc1)
-        .expectEvents(query, { added: [doc1] })
-        .watchFilters([query], doc1.key)
-        .watchSnapshots(2000);
+      .userListens(query)
+      .watchAcksFull(query, 1000, doc1)
+      .expectEvents(query, { added: [doc1] })
+      .watchFilters([query], doc1.key)
+      .watchSnapshots(2000);
   });
 
   specTest('Existence filter match with pending update', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 2000, { v: 2 });
     return spec()
-        .userListens(query)
-        .watchAcks(query)
-        .watchCurrents(query, 'resume-token-1000')
-        .watchSnapshots(2000)
-        .expectEvents(query, { })
-        .watchSends({ affects: [query] }, doc1)
-        .watchFilters([query], doc1.key)
-        .watchSnapshots(2000)
-        .expectEvents(query, { added: [doc1] });
+      .userListens(query)
+      .watchAcks(query)
+      .watchCurrents(query, 'resume-token-1000')
+      .watchSnapshots(2000)
+      .expectEvents(query, {})
+      .watchSends({ affects: [query] }, doc1)
+      .watchFilters([query], doc1.key)
+      .watchSnapshots(2000)
+      .expectEvents(query, { added: [doc1] });
   });
 
   specTest('Existence filter mismatch triggers re-run of query', [], () => {
