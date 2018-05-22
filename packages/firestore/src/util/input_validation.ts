@@ -282,14 +282,15 @@ function validateType(
 }
 
 /**
- * Returns true iff it's a non-null object without a custom prototype
+ * Returns true if it's a non-null object without a custom prototype
  * (i.e. excludes Array, Date, etc.).
  */
 export function isPlainObject(input: AnyJs): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
-    Object.getPrototypeOf(input) === Object.prototype
+    (Object.getPrototypeOf(input) === Object.prototype ||
+      Object.getPrototypeOf(input) === null)
   );
 }
 

@@ -18,9 +18,12 @@ import { expect } from 'chai';
 import { sandbox, SinonSandbox, SinonStub } from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  _FirebaseNamespace,
+  FirebaseServiceFactory
+} from '@firebase/app-types/private';
 
-import { MessagingServiceFactory, registerMessaging } from '../index';
+import { registerMessaging } from '../index';
 import { ERROR_CODES } from '../src/models/errors';
 
 import { SwController } from '../src/controllers/sw-controller';
@@ -52,7 +55,7 @@ describe('Firebase Messaging > registerMessaging', () => {
   });
 
   describe('factoryMethod', () => {
-    let factoryMethod: MessagingServiceFactory;
+    let factoryMethod: FirebaseServiceFactory;
     let fakeApp: FirebaseApp;
 
     beforeEach(() => {
@@ -65,8 +68,9 @@ describe('Firebase Messaging > registerMessaging', () => {
     });
 
     describe('isSupported', () => {
-      it('is a static method on factoryMethod', () => {
-        expect(factoryMethod.isSupported).to.be.a('function');
+      it('is a namespace export', () => {
+        const namespaceExports = registerService.getCall(0).args[2];
+        expect(namespaceExports.isSupported).to.be.a('function');
       });
     });
 

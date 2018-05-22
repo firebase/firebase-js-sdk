@@ -29,14 +29,14 @@ import {
   MessageParameter,
   MessageType
 } from '../models/worker-page-message';
-import { BgMessageHandler, ControllerInterface } from './controller-interface';
+import { BaseController, BgMessageHandler } from './base-controller';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
 
 const FCM_MSG = 'FCM_MSG';
 
-export class SwController extends ControllerInterface {
+export class SwController extends BaseController {
   private bgMessageHandler: BgMessageHandler | null = null;
 
   constructor(app: FirebaseApp) {
