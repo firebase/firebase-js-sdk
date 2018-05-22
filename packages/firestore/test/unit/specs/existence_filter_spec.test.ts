@@ -96,6 +96,34 @@ describeSpec('Existence Filters:', [], () => {
       .expectEvents(query, { added: [doc2] });
   });
 
+  specTest("Existence filter doesn't raise unexpected events", [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/1', 1000, { v: 1 });
+    const doc2 = doc('collection/2', 2000, { v: 2 });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, doc1)
+        .expectEvents(query, { added: [doc1] })
+        .watchSends({ affects: [query] }, doc2)
+        // Send an existence filter, but don't send a new global snapshot. We
+        // should not see an event.
+        .watchFilters([query], doc1.key, doc2.key)
+    );
+  });
+
+  specTest('Existence filter synthesizes deletes', [], () => {
+    const query = Query.atPath(path('collection/a'));
+    const docA = doc('collection/a', 1000, { v: 1 });
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { added: [docA] })
+      .watchFilters([query])
+      .watchSnapshots(2000)
+      .expectEvents(query, { removed: [docA] });
+  });
+
   specTest('Existence filter limbo resolution is denied', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });

@@ -333,7 +333,7 @@ export class View {
       targetChange.modifiedDocuments.forEach(key =>
         assert(
           this._syncedDocuments.has(key),
-          `Modified document ${key} should exist in view.`
+          `Modified document ${key} not found in view.`
         )
       );
       targetChange.removedDocuments.forEach(

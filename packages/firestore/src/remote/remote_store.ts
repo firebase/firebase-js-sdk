@@ -373,7 +373,7 @@ export class RemoteStore implements WatchMetadataProvider {
     const queryData = this.listenTargets[targetId];
     if (!queryData) {
       // A watched target might have been removed already.
-      return this.raiseWatchSnapshot(snapshotVersion);
+      return;
     }
 
     const query = queryData.query;
@@ -391,7 +391,6 @@ export class RemoteStore implements WatchMetadataProvider {
           key,
           new NoDocument(key, snapshotVersion)
         );
-        return this.raiseWatchSnapshot(snapshotVersion);
       } else {
         assert(
           expectedCount === 1,

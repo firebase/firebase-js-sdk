@@ -280,6 +280,62 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, { added: [docB] });
   });
 
+  specTest('Synthesizes deletes for missing document', [], () => {
+    const collQuery = Query.atPath(path('collection'));
+    const docQuery = Query.atPath(path('collection/a'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 1000, { key: 'a' });
+    return (
+      spec()
+        .withGCEnabled(false)
+        // Add a collection query with two documents, one of which gets deleted
+        // (the second document guarantees that we later raise an event from
+        // cache).
+        .userListens(collQuery)
+        .watchAcksFull(collQuery, 1000, docA, docB)
+        .expectEvents(collQuery, { added: [docA, docB] })
+        .userUnlistens(collQuery)
+        .watchRemoves(collQuery)
+        // Verify that DocA and DocB exists
+        .userListens(collQuery, 'resume-token-1000')
+        .expectEvents(collQuery, { added: [docA, docB], fromCache: true })
+        .userUnlistens(collQuery)
+        // Now send a document query that produces no results
+        .userListens(docQuery)
+        .expectEvents(docQuery, { added: [docA], fromCache: true })
+        .watchAcks(docQuery)
+        .watchCurrents(docQuery, 'resume-token-2000')
+        .watchSnapshots(2000)
+        // We get an empty event with a synthesized delete
+        .expectEvents(docQuery, { removed: [docA] })
+        .userUnlistens(docQuery)
+        .watchRemoves(docQuery)
+        // Re-add the initial collection query. Only Doc B exists now
+        .userListens(collQuery, 'resume-token-1000')
+        .expectEvents(collQuery, { added: [docB], fromCache: true })
+    );
+  });
+
+  specTest('Re-opens target without existence filter', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const deletedDocA = deletedDoc('collection/a', 2000);
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { added: [docA] })
+      .userUnlistens(query)
+      .watchRemoves(query)
+      .userListens(query, 'resume-token-1000')
+      .expectEvents(query, { added: [docA], fromCache: true })
+      .watchAcks(query)
+      .watchSends({ removed: [query] }, deletedDocA)
+      .watchCurrents(query, 'resume-token-2000')
+      .watchSnapshots(2000)
+      .expectEvents(query, { removed: [docA] });
+  });
+
   specTest('Ignores update from inactive target', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });

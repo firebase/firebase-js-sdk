@@ -107,9 +107,10 @@ class TargetState {
   private pendingResponses = 0;
 
   /**
-   * Keeps track of the document changes since the last raised snapshot. These
-   * changes are continuously updated as we receive document updates and
-   * always reflect the current set of changes against the existing snapshot.
+   * Keeps track of the document changes since the last raised snapshot.
+   *
+   * These changes are continuously updated as we receive document updates and
+   * always reflect the current set of changes against the last issued snapshot.
    */
   private snapshotChanges: SortedMap<
     DocumentKey,
@@ -275,7 +276,7 @@ export class WatchChangeAggregator {
     }
 
     for (const targetId of docChange.removedTargetIds) {
-      this.removeDocument(targetId, docChange.key);
+      this.removeDocument(targetId, docChange.key, docChange.newDoc);
     }
   }
 
@@ -445,34 +446,24 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Removes the provided document from the internal list of document updates and
-   * removes its target mapping. If the document exists and we know that is was
-   * removed (rather than modified to no longer match a query), a 'NoDocument'
-   * should be provided to also remove the document data.
+   * Removes the provided document from the target mapping. If the
+   * document no longer matches the target, but the document's state is still
+   * known (e.g. we know that the document was deleted or we receuved the change
+   * that caused the filter mismatch), the new document can be provided
+   * to update the remote document cache.
    */
   removeDocument(
     targetId: TargetId,
     key: DocumentKey,
-    removedDocument?: NoDocument
+    updatedDocument?: MaybeDocument
   ): void {
     if (!this.isActiveTarget(targetId)) {
       return;
     }
 
     const targetState = this.ensureTargetState(targetId);
-
     if (this.hasSyncedDocument(targetId, key)) {
       targetState.addDocument(key, ChangeType.Removed);
-      if (removedDocument) {
-        // We only synthesize a delete for known snapshot versions. This
-        // allows us to not affect the global state of documents during a target
-        // reset (which should only bring a single target back to an
-        // unknown snapshot version).
-        this.documentUpdates = this.documentUpdates.insert(
-          key,
-          removedDocument
-        );
-      }
     } else {
       targetState.removeDocument(key);
     }
@@ -481,6 +472,10 @@ export class WatchChangeAggregator {
       key,
       this.ensureDocumentTargetMapping(key).delete(targetId)
     );
+
+    if (updatedDocument) {
+      this.documentUpdates = this.documentUpdates.insert(key, updatedDocument);
+    }
   }
 
   /**
@@ -584,13 +579,11 @@ export class WatchChangeAggregator {
 }
 
 function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
-  return new SortedMap<DocumentKey, SortedSet<TargetId>>((left, right) =>
-    DocumentKey.comparator(left, right)
+  return new SortedMap<DocumentKey, SortedSet<TargetId>>(
+    DocumentKey.comparator
   );
 }
 
 function snapshotChangesMap(): SortedMap<DocumentKey, ChangeType> {
-  return new SortedMap<DocumentKey, ChangeType>((left, right) =>
-    DocumentKey.comparator(left, right)
-  );
+  return new SortedMap<DocumentKey, ChangeType>(DocumentKey.comparator);
 }

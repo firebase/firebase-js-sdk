@@ -32,7 +32,6 @@ export class RemoteEvent {
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-
     readonly targetChanges: { [targetId: number]: TargetChange },
     /**
      * A set of which documents have changed or been deleted, along with the
