@@ -14,4 +14,27 @@
  * limitations under the License.
  */
 
-import '@firebase/storage';
+import _firebase from '../app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { XhrIoPool, TaskState, TaskEvent, StringFormat, Service as Storage, Reference } from '@firebase/storage';
+
+const firebase = _firebase as any as _FirebaseNamespace;
+
+/**
+ * Type constant for Firebase Storage.
+ */
+const SERVICE_NAME = 'storage';
+
+firebase.INTERNAL.registerService(
+  SERVICE_NAME,
+  (app, unused, url) => new Storage(app, new XhrIoPool(), url),
+  {
+    TaskEvent,
+    TaskState,
+    StringFormat,
+    Storage,
+    Reference
+  },
+  undefined,
+  true
+);
