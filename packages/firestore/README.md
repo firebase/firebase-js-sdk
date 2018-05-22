@@ -1,17 +1,14 @@
 # @firebase/firestore
 
-This is the Cloud Firestore component for the Firebase JS SDK. It has a peer
-dependency on the [`@firebase/app`](https://npm.im/@firebase/app) package on NPM. This package
-**is not** included by default in the [`firebase`](https://npm.im/firebase)
-wrapper package.
+This is the [Cloud Firestore](https://firebase.google.com/docs/firestore/) component of the
+[Firebase JS SDK](https://www.npmjs.com/package/firebase).
 
-## Installation
+**This package is not intended for direct usage, and should only be used via the officially
+supported [firebase](https://www.npmjs.com/package/firebase) package.**
 
-You can install this package by running the following in your project:
-
-```bash
-$ npm install @firebase/firestore
-```
+If you are developing a Node.js application that requires administrative access to Cloud Firestore,
+use the [`@google-cloud/firestore`](https://www.npmjs.com/package/@google-cloud/firestore) Server
+SDK with your developer credentials.
 
 ## Usage
 

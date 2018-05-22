@@ -13,6 +13,9 @@ For more information, visit:
 - [Firebase Realtime Database](https://firebase.google.com/docs/database/web/start) -
   The Firebase Realtime Database lets you store and query user data, and makes
   it available between users in realtime.
+- [Cloud Firestore](https://firebase.google.com/docs/firestore/quickstart) -
+  Cloud Firestore is a flexible, scalable database for mobile, web, and server 
+  development from Firebase and Google Cloud Platform.
 - [Firebase Storage](https://firebase.google.com/docs/storage/web/start) -
   Firebase Storage lets you upload and store user generated content, such as
   files, and images.
@@ -45,6 +48,7 @@ Include Firebase in your web application via a `<script>` tag:
     apiKey: '<your-api-key>',
     authDomain: '<your-auth-domain>',
     databaseURL: '<your-database-url>',
+    projectId: '<your-cloud-firestore-project>',
     storageBucket: '<your-storage-bucket>',
     messagingSenderId: '<your-sender-id>'
   });
@@ -95,6 +99,7 @@ you need. The individually installable services are:
 - `firebase-app` - The core `firebase` client (required).
 - `firebase-auth` - Firebase Authentication (optional).
 - `firebase-database` - The Firebase Realtime Database (optional).
+- `firebase-firestore` - Cloud Firestore (optional).
 - `firebase-storage` - Firebase Storage (optional).
 - `firebase-messaging` - Firebase Cloud Messaging (optional).
 
@@ -102,11 +107,12 @@ From the CDN, include the individual services you use (include `firebase-app`
 first):
 
 ```
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase-messaging.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-storage.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging.js"></script>
 
 <script>
   var app = firebase.initializeApp({ ... });
@@ -198,6 +204,7 @@ externs/
   firebase-app-externs.js
   firebase-auth-externs.js
   firebase-database-externs.js
+  firebase-firestore-externs.js
   firebase-storage-externs.js
   firebase-messaging-externs.js
 ```
