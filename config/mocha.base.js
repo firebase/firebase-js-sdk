@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,7 @@
  * limitations under the License.
  */
 
-// Fetch
-import 'whatwg-fetch';
-
-// Promise
-import 'promise-polyfill/src/polyfill';
-
-// ES6
-import 'core-js/fn/array/find';
-import 'core-js/fn/array/find-index';
-import 'core-js/fn/object/assign';
-import 'core-js/fn/string/starts-with';
-import 'core-js/fn/string/repeat';
-import 'core-js/fn/symbol';
-import 'core-js/fn/symbol/iterator';
+module.exports = {
+  timeout: 20000,
+  retries: 3
+};
