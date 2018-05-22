@@ -25,11 +25,18 @@ enum GeneratorIds {
 }
 
 /**
- * TargetIdGenerator generates monotonically increasing integer IDs. There are
- * separate generators for different scopes. While these generators will operate
- * independently of each other, they are scoped, such that no two generators
- * will ever produce the same ID. This is useful, because sometimes the backend
- * may group IDs from separate parts of the client into the same ID space.
+ * Generates monotonically increasing target IDs for sending targets to the
+ * watch stream.
+ *
+ * The client constructs two generators, one for the query cache (via
+ * forQueryCache()), and one for limbo documents (via forSyncEngine()). These
+ * two generators produce non-overlapping IDs (by using even and odd IDs
+ * respectively).
+ *
+ * By separating the target ID space, the query cache can generate target IDs
+ * that persist across client restarts, while sync engine can independently
+ * generate in-memory target IDs that are transient and can be reused after a
+ * restart.
  */
 // TODO(mrschmidt): Explore removing this class in favor of generating these IDs
 // directly in SyncEngine and LocalStore.
@@ -72,7 +79,7 @@ export class TargetIdGenerator {
   }
 
   static forQueryCache(): TargetIdGenerator {
-    // We seed the local store generator to return '2' as its first ID, as there
+    // We seed the query cache generator to return '2' as its first ID, as there
     // is no differentiation in the protocol layer between an unset number and
     // the number '0'. If we were to sent a target with target ID '0', the
     // backend would consider it unset and replace it with its own ID.
