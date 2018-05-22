@@ -18,7 +18,7 @@ import _firebase from '../app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Service as Functions } from '@firebase/functions';
 
-const firebase = _firebase as any as _FirebaseNamespace;
+const firebase = (_firebase as any) as _FirebaseNamespace;
 
 const SERVICE_NAME = 'functions';
 

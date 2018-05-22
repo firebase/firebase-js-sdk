@@ -16,9 +16,16 @@
 
 import _firebase from '../app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { XhrIoPool, TaskState, TaskEvent, StringFormat, Service as Storage, Reference } from '@firebase/storage';
+import {
+  XhrIoPool,
+  TaskState,
+  TaskEvent,
+  StringFormat,
+  Service as Storage,
+  Reference
+} from '@firebase/storage';
 
-const firebase = _firebase as any as _FirebaseNamespace;
+const firebase = (_firebase as any) as _FirebaseNamespace;
 
 /**
  * Type constant for Firebase Storage.
