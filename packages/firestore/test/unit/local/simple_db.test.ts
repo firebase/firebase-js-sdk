@@ -457,7 +457,7 @@ describe('SimpleDb', () => {
   });
 
   // tslint:disable-next-line:ban A little perf test for convenient benchmarking
-  it.only('Perf', () => {
+  it.skip('Perf', () => {
     return runTransaction(store => {
       const start = new Date().getTime();
       const promises = [];
