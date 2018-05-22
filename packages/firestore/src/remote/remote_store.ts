@@ -361,15 +361,14 @@ export class RemoteStore {
     // snapshotVersion or it's older than a previous snapshot we've processed
     // (can happen after we resume a target using a resume token).
     this.accumulatedWatchChanges.push(watchChange);
-    if (
-      !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
-      snapshotVersion.compareTo(
-        this.localStore.getLastRemoteSnapshotVersion()
-      ) >= 0
-    ) {
-      const changes = this.accumulatedWatchChanges;
-      this.accumulatedWatchChanges = [];
-      return this.handleWatchChangeBatch(snapshotVersion, changes);
+
+    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+        const changes = this.accumulatedWatchChanges;
+        this.accumulatedWatchChanges = [];
+        return this.handleWatchChangeBatch(snapshotVersion, changes);
+      }
     }
   }
 
