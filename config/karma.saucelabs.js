@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
+const argv = require('yargs').argv;
 const glob = require('glob');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
-
-/** Tests in these packages are excluded due to flakiness or long run time. */
-const excluded = [
-  'packages/database/*',
-  'packages/firestore/*',
-  'integration/firestore/*',
-  'integration/messaging/*'
-];
 
 /**
  * Gets a list of file patterns for test, defined individually
@@ -34,10 +27,17 @@ const excluded = [
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = glob.sync('{packages,integration}/*/karma.conf.js', {
-    cwd: root,
-    ignore: excluded
-  });
+  configs = argv['database-firestore-only']
+    ? glob.sync('packages/{database,firestore}/karma.conf.js')
+    : glob.sync('{packages,integration}/*/karma.conf.js', {
+        // Excluded due to flakiness or long run time.
+        ignore: [
+          'packages/database/*',
+          'packages/firestore/*',
+          'integration/firestore/*',
+          'integration/messaging/*'
+        ]
+      });
   files = configs.map(x => {
     let patterns = require(path.join(root, x)).files;
     let dirname = path.dirname(x);
@@ -107,6 +107,7 @@ module.exports = function(config) {
     preprocessors: {
       'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
       '**/test/**/*.ts': ['webpack', 'sourcemap'],
+      'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },
 
@@ -125,7 +126,7 @@ module.exports = function(config) {
 
     customLaunchers: sauceLabsBrowsers,
 
-    reporters: ['spec', 'saucelabs'],
+    reporters: ['spec', 'summary', 'saucelabs'],
 
     port: 9876,
 
@@ -133,11 +134,37 @@ module.exports = function(config) {
 
     // concurrency: 10,
 
+    specReporter: {
+      maxLogLines: 5,
+      suppressErrorSummary: false,
+      suppressFailed: false,
+      suppressPassed: true,
+      suppressSkipped: true,
+      showSpecTiming: true,
+      failFast: false
+    },
+
+    summaryReporter: {
+      show: 'failed',
+      specLength: 80,
+      overviewColumn: false
+    },
+
     sauceLabs: {
       tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
-      startConnect: true
+      startConnect: true,
+      connectOptions: {
+        // Realtime Database uses WebSockets to connect to firebaseio.com
+        // so we have to set noSslBumpDomains. Theoretically SSL Bumping
+        // only needs to be disabled for 'firebaseio.com'. However, we are
+        // seeing much longer test time with that configuration, so leave
+        // it as 'all' for now.
+        // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
+        // for more details.
+        noSslBumpDomains: 'all'
+      }
     }
   });
 
