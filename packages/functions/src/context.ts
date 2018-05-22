@@ -15,7 +15,7 @@
  */
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { firebase } from '@firebase/app';
+import firebase from '@firebase/app';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 
 /**

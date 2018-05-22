@@ -17,6 +17,6 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseApp';
 
-export const firebase = createFirebaseNamespace();
+const firebase = createFirebaseNamespace();
 
 export default firebase;
