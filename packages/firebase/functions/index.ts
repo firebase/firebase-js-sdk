@@ -14,4 +14,18 @@
  * limitations under the License.
  */
 
-import '@firebase/functions';
+import _firebase from '../app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { Service as Functions } from '@firebase/functions';
+
+const firebase = _firebase as any as _FirebaseNamespace;
+
+const SERVICE_NAME = 'functions';
+
+firebase.INTERNAL.registerService(
+  SERVICE_NAME,
+  (app, unused, region) => new Functions(app, region),
+  { Functions },
+  undefined,
+  true
+);
