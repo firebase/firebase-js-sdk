@@ -1735,21 +1735,34 @@ export class Query implements firestore.Query {
   }
 
   private validateNewFilter(filter: Filter): void {
-    if (filter instanceof RelationFilter && filter.isInequality()) {
-      const existingField = this._query.getInequalityFilterField();
-      if (existingField !== null && !existingField.isEqual(filter.field)) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. All where filters with an inequality' +
-            ' (<, <=, >, or >=) must be on the same field. But you have' +
-            ` inequality filters on '${existingField.toString()}'` +
-            ` and '${filter.field.toString()}'`
-        );
-      }
+    if (filter instanceof RelationFilter) {
+      if (filter.isInequality()) {
+        const existingField = this._query.getInequalityFilterField();
+        if (existingField !== null && !existingField.isEqual(filter.field)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. All where filters with an inequality' +
+              ' (<, <=, >, or >=) must be on the same field. But you have' +
+              ` inequality filters on '${existingField.toString()}'` +
+              ` and '${filter.field.toString()}'`
+          );
+        }
 
-      const firstOrderByField = this._query.getFirstOrderByField();
-      if (firstOrderByField !== null) {
-        this.validateOrderByAndInequalityMatch(filter.field, firstOrderByField);
+        const firstOrderByField = this._query.getFirstOrderByField();
+        if (firstOrderByField !== null) {
+          this.validateOrderByAndInequalityMatch(
+            filter.field,
+            firstOrderByField
+          );
+        }
+      } else if (filter.op === RelationOp.ARRAY_CONTAINS) {
+        if (this._query.hasArrayContainsFilter()) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. Queries only support a single array-contains ' +
+              'filter.'
+          );
+        }
       }
     }
   }
@@ -1893,9 +1906,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
 
 // TODO(2018/11/01): As of 2018/04/17 we're changing docChanges from an array
 // into a method. Because this is a runtime breaking change and somewhat subtle
-// (both Array and Function have a .length, etc.), we'll replace the .length and
-// @@iterator properties to throw a custom error message. In ~6 months we can
-// delete the custom error as most folks will have hopefully migrated.
+// (both Array and Function have a .length, etc.), we'll replace commonly-used
+// properties (including Symbol.iterator) to throw a custom error message. In
+// ~6 months we can delete the custom error as most folks will have hopefully
+// migrated.
 function throwDocChangesMethodError(): never {
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
@@ -1905,23 +1919,26 @@ function throwDocChangesMethodError(): never {
   );
 }
 
-/**
- * This is technically overwriting the `Function.prototype.length` property of
- * `docChanges`. On IE11, the property is improperly defined with
- * `{ configurable: false }` which causes this line to throw. Wrap in a
- * try-catch to ensure that we still have a functional SDK.
- */
-try {
-  Object.defineProperty(QuerySnapshot.prototype.docChanges, 'length', {
-    get: () => throwDocChangesMethodError()
-  });
-} catch (err) {} // Ignore this failure intentionally
-
-if (typeof Symbol !== 'undefined') {
-  Object.defineProperty(QuerySnapshot.prototype.docChanges, Symbol.iterator, {
-    get: () => throwDocChangesMethodError()
-  });
-}
+const docChangesPropertiesToOverride = [
+  'length',
+  'forEach',
+  'map',
+  ...(typeof Symbol !== 'undefined' ? [Symbol.iterator] : [])
+];
+docChangesPropertiesToOverride.forEach(property => {
+  /**
+   * We are (re-)defining properties on QuerySnapshot.prototype.docChanges which
+   * is a Function. This could fail, in particular in the case of 'length' which
+   * already exists on Function.prototype and on IE11 is improperly defined with
+   * `{ configurable: false }`. So we wrap this in a try/catch to ensure that we
+   * still have a functional SDK.
+   */
+  try {
+    Object.defineProperty(QuerySnapshot.prototype.docChanges, property, {
+      get: () => throwDocChangesMethodError()
+    });
+  } catch (err) {} // Ignore this failure intentionally
+});
 
 export class CollectionReference extends Query
   implements firestore.CollectionReference {

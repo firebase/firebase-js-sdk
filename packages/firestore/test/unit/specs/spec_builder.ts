@@ -81,7 +81,7 @@ export class ClientMemoryState {
     this.queryMapping = {};
     this.limboMapping = {};
     this.activeTargets = {};
-    this.queryIdGenerator = TargetIdGenerator.forLocalStore();
+    this.queryIdGenerator = TargetIdGenerator.forQueryCache();
     this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
   }
 }

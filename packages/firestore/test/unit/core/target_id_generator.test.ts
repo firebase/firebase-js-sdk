@@ -18,26 +18,44 @@ import { expect } from 'chai';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 
 describe('TargetIdGenerator', () => {
-  it('can initialize with increment and "after value"', () => {
-    expect(new TargetIdGenerator(0).next()).to.equal(2);
+  it('can initialize with generator and seed', () => {
+    expect(new TargetIdGenerator(0, 2).next()).to.equal(2);
     expect(new TargetIdGenerator(1).next()).to.equal(1);
+  });
 
-    expect(new TargetIdGenerator(1, -1).next()).to.equal(1);
-    expect(new TargetIdGenerator(1, 2).next()).to.equal(3);
-    expect(new TargetIdGenerator(1, 4).next()).to.equal(5);
-    expect(new TargetIdGenerator(1, 23).next()).to.equal(25);
+  it('rejects invalid seeds', () => {
+    expect(() => new TargetIdGenerator(0, 1)).to.throw(
+      'Cannot supply target ID from different generator ID'
+    );
+    expect(() => new TargetIdGenerator(1).after(2)).to.throw(
+      'Cannot supply target ID from different generator ID'
+    );
+  });
+
+  it('rejects invalid generator IDs', () => {
+    expect(() => new TargetIdGenerator(3)).to.throw(
+      ' Generator ID 3 contains more than 1 reserved bits'
+    );
   });
 
   it('can increments ids', () => {
-    const generator = new TargetIdGenerator(1, 46);
-    expect(generator.next()).to.equal(47);
+    const generator = new TargetIdGenerator(1);
+    expect(generator.after(45)).to.equal(47);
     expect(generator.next()).to.equal(49);
     expect(generator.next()).to.equal(51);
     expect(generator.next()).to.equal(53);
   });
 
-  it('can return correct generator for local store and sync engine', () => {
-    expect(TargetIdGenerator.forLocalStore().next()).to.equal(2);
+  it('can return correct generator for query cache and sync engine', () => {
+    expect(TargetIdGenerator.forQueryCache().next()).to.equal(2);
     expect(TargetIdGenerator.forSyncEngine().next()).to.equal(1);
+  });
+
+  it('can return next ids', () => {
+    expect(new TargetIdGenerator(1).next()).to.equal(1);
+    expect(new TargetIdGenerator(1).after(-1)).to.equal(1);
+    expect(new TargetIdGenerator(1).after(1)).to.equal(3);
+    expect(new TargetIdGenerator(1).after(3)).to.equal(5);
+    expect(new TargetIdGenerator(1).after(23)).to.equal(25);
   });
 });

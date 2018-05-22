@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
 import { expect } from 'chai';
 import { SimpleDb } from '../../../src/local/simple_db';
 
@@ -22,6 +25,8 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+
+chai.use(chaiAsPromised);
 
 interface User {
   id: number;
@@ -94,7 +99,7 @@ describe('SimpleDb', () => {
       })
       .then(simpleDb => {
         db = simpleDb;
-        writeTestData();
+        return writeTestData();
       });
   });
 
@@ -130,7 +135,7 @@ describe('SimpleDb', () => {
   it('lets you explicitly abort transactions', async () => {
     await runTransaction((store, txn) => {
       return store.put(dummyUser).next(() => {
-        txn.abort(); // JUST KIDDING!
+        txn.abort();
       });
     });
 
@@ -142,18 +147,13 @@ describe('SimpleDb', () => {
   });
 
   it('aborts transactions when an error happens', async () => {
-    let gotError = false;
-    try {
-      await runTransaction(store => {
+    await expect(
+      runTransaction(store => {
         return store.put(dummyUser).next(() => {
-          throw new Error('error');
+          throw new Error('Generated error');
         });
-      });
-    } catch (error) {
-      expect(error.message).to.equal('error');
-      gotError = true;
-    }
-    expect(gotError).to.equal(true);
+      })
+    ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
@@ -162,20 +162,30 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('still propagates error if you throw after aborting an exception.', async () => {
-    let gotError = false;
-    try {
-      await runTransaction((store, txn) => {
+  it('aborts transactions when persistence promise is rejected', async () => {
+    await expect(
+      runTransaction(store => {
         return store.put(dummyUser).next(() => {
-          txn.abort();
-          throw new Error('error');
+          return PersistencePromise.reject(new Error('Generated error'));
         });
+      })
+    ).to.eventually.be.rejectedWith('Generated error');
+
+    await runTransaction(store => {
+      return store.get(dummyUser.id).next(user => {
+        expect(user).to.deep.equal(null);
       });
-    } catch (error) {
-      expect(error.message).to.equal('error');
-      gotError = true;
-    }
-    expect(gotError).to.equal(true);
+    });
+  });
+
+  it('exposes error from inside a transaction', async () => {
+    await expect(
+      runTransaction(store => {
+        return store.put(dummyUser).next(() => {
+          throw new Error('Generated error');
+        });
+      }).then(() => {}, error => Promise.reject(error))
+    ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
       return store.get(dummyUser.id).next(user => {
@@ -442,6 +452,35 @@ describe('SimpleDb', () => {
       const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
       return store.loadAll(range).next(results => {
         expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
+      });
+    });
+  });
+
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf', () => {
+    return runTransaction(store => {
+      const start = new Date().getTime();
+      const promises = [];
+      for (let i = 0; i < 1000; ++i) {
+        promises.push(store.put({ id: i, name: 'frank', age: i }));
+      }
+      return PersistencePromise.waitFor(promises).next(() => {
+        const end = new Date().getTime();
+        // tslint:disable-next-line:no-console
+        console.log(`Writing: ${end - start} ms`);
+      });
+    }).then(() => {
+      return runTransaction(store => {
+        const start = new Date().getTime();
+        const promises = [];
+        for (let i = 0; i < 1000; ++i) {
+          promises.push(store.get(i));
+        }
+        return PersistencePromise.map(promises).next(() => {
+          const end = new Date().getTime();
+          // tslint:disable-next-line:no-console
+          console.log(`Reading: ${end - start} ms`);
+        });
       });
     });
   });
