@@ -428,7 +428,9 @@ declare namespace firebase.database {
     child(path: string): firebase.database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (a: firebase.database.DataSnapshot) => boolean): boolean;
+    forEach(
+      action: (a: firebase.database.DataSnapshot) => boolean | void
+    ): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -459,6 +461,13 @@ declare namespace firebase.database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
+  type EventType =
+    | 'value'
+    | 'child_added'
+    | 'child_changed'
+    | 'child_moved'
+    | 'child_removed';
+
   interface Query {
     endAt(
       value: number | string | boolean | null,
@@ -472,22 +481,22 @@ declare namespace firebase.database {
     limitToFirst(limit: number): firebase.database.Query;
     limitToLast(limit: number): firebase.database.Query;
     off(
-      eventType?: string,
+      eventType?: EventType,
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
     ): any;
     on(
-      eventType: string,
+      eventType: EventType,
       callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
     ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
     once(
-      eventType: string,
+      eventType: EventType,
       successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
       failureCallbackOrContext?: Object | null,
       context?: Object | null
-    ): Promise<any>;
+    ): Promise<DataSnapshot>;
     orderByChild(path: string): firebase.database.Query;
     orderByKey(): firebase.database.Query;
     orderByPriority(): firebase.database.Query;
