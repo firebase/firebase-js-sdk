@@ -16,9 +16,17 @@
 
 import _firebase from '../app';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { RepoManager, Reference, Query, Database, enableLogging, INTERNAL, TEST_ACCESS } from '@firebase/database';
+import {
+  RepoManager,
+  Reference,
+  Query,
+  Database,
+  enableLogging,
+  INTERNAL,
+  TEST_ACCESS
+} from '@firebase/database';
 
-const firebase = _firebase as any as _FirebaseNamespace;
+const firebase = (_firebase as any) as _FirebaseNamespace;
 
 const SERVICE_NAME = 'database';
 

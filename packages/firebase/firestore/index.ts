@@ -31,10 +31,10 @@ import {
   PublicQuerySnapshot,
   PublicTransaction,
   PublicWriteBatch,
-  Timestamp,
+  Timestamp
 } from '@firebase/firestore';
 
-const firebase = _firebase as any as _FirebaseNamespace;
+const firebase = (_firebase as any) as _FirebaseNamespace;
 
 const SERVICE_NAME = 'firestore';
 
