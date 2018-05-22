@@ -14,4 +14,50 @@
  * limitations under the License.
  */
 
-import '@firebase/firestore';
+import _firebase from '../app';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  FieldPath,
+  Firestore,
+  GeoPoint,
+  PublicBlob,
+  PublicCollectionReference,
+  PublicDocumentReference,
+  PublicDocumentSnapshot,
+  PublicFieldValue,
+  PublicFirestore,
+  PublicQuery,
+  PublicQueryDocumentSnapshot,
+  PublicQuerySnapshot,
+  PublicTransaction,
+  PublicWriteBatch,
+  Timestamp,
+} from '@firebase/firestore';
+
+const firebase = _firebase as any as _FirebaseNamespace;
+
+const SERVICE_NAME = 'firestore';
+
+const namespace = {
+  Firestore: PublicFirestore,
+  GeoPoint,
+  Timestamp,
+  Blob: PublicBlob,
+  Transaction: PublicTransaction,
+  WriteBatch: PublicWriteBatch,
+  DocumentReference: PublicDocumentReference,
+  DocumentSnapshot: PublicDocumentSnapshot,
+  Query: PublicQuery,
+  QueryDocumentSnapshot: PublicQueryDocumentSnapshot,
+  QuerySnapshot: PublicQuerySnapshot,
+  CollectionReference: PublicCollectionReference,
+  FieldPath,
+  FieldValue: PublicFieldValue,
+  setLogLevel: Firestore.setLogLevel
+};
+
+firebase.INTERNAL.registerService(
+  SERVICE_NAME,
+  app => new Firestore(app),
+  Object.assign({}, namespace)
+);
