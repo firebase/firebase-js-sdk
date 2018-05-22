@@ -5,20 +5,30 @@
 *       @jshcrowthe
 
 # Database Code
+packages/firebase/database  @mikelehen @schmidt-sebastian
 packages/database  @mikelehen @schmidt-sebastian
 packages/database-types  @mikelehen @schmidt-sebastian
 
 # Firestore Code
+packages/firebase/firestore  @mikelehen @schmidt-sebastian @wilhuff
 packages/firestore  @mikelehen @schmidt-sebastian @wilhuff
 packages/webchannel-wrapper  @mikelehen @schmidt-sebastian @wilhuff
 packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff
 integration/firestore  @mikelehen @schmidt-sebastian @wilhuff
 
+# Functions Code
+
+packages/firebase/functions @bklimt
+packages/functions @bklimt
+packages/functions-types @bklimt
+
 # Storage Code
+packages/firebase/storage  @sphippen
 packages/storage  @sphippen
 packages/storage-types  @sphippen
 
 # Messaging Code
+packages/firebase/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 packages/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 packages/messaging-types  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
 integration/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
