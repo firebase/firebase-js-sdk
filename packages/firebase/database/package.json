@@ -1,6 +1,5 @@
 {
   "name": "firebase/database",
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
-  "typings": "dist/database/index.d.ts"
+  "module": "dist/index.esm.js"
 }

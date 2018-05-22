@@ -1,51 +1,6 @@
 # @firebase/app
 
-This is the primary entrypoint to the Firebase JS SDK. **All apps using firebase
-will need this package**. Other `@firebase` packages are typically mounted on to
-the namespaces exposed by this package.
+This package coordinates the communication between the different Firebase components and
+exposes the API surface to the user
 
-## Installation
-
-You can install this package by running the following in your project:
-
-```bash
-$ npm install @firebase/app
-```
-
-## Usage
-
-You can then use the firebase namespace exposed by this package as illustrated
-below:
-
-**ES Modules**
-
-### Referencing the `firebase` export:
-
-```javascript
-import { firebase } from '@firebase/app';
-
-// Do stuff w/ `firebase`
-```
-
-### Referencing the default export:
-
-```javascript
-import firebase from '@firebase/app';
-
-// Do stuff w/ `firebase`
-```
-
-**CommonJS Modules**
-
-```javascript
-const firebase = require('@firebase/app').default;
-
-// Do stuff with `firebase`
-```
-
-## Documentation
-
-For comprehensive documentation please see the [Firebase Reference
-Docs][reference-docs].
-
-[reference-docs]: https://firebase.google.com/docs/reference/js/
+**This package is not intended for direct usage, and should only be used via the officially supported [firebase](https://www.npmjs.com/package/firebase) package.**

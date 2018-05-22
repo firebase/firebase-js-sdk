@@ -56,7 +56,7 @@ async function publishPackage(pkg, releaseType) {
   }
 }
 
-exports.publishToNpm = async (updatedPkgs, releaseType) => {
+exports.publishToNpm = async (updatedPkgs, releaseType, renderer) => {
   const taskArray = await Promise.all(
     updatedPkgs.map(async pkg => {
       const path = await mapPkgNameToPkgPath(pkg);
@@ -76,7 +76,8 @@ exports.publishToNpm = async (updatedPkgs, releaseType) => {
   );
   const tasks = new Listr(taskArray, {
     concurrent: false,
-    exitOnError: false
+    exitOnError: false,
+    renderer
   });
 
   console.log('\r\nPublishing Packages to NPM:');

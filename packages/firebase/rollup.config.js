@@ -55,51 +55,6 @@ const external = Object.keys(pkg.dependencies || {});
 const GLOBAL_NAME = 'firebase';
 
 /**
- * Complete Package Builds
- */
-const completeBuilds = [
-  /**
-   * App Browser Builds
-   */
-  {
-    input: 'src/index.module.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
-    ],
-    plugins,
-    external
-  },
-  {
-    input: 'src/index.cdn.ts',
-    output: {
-      file: 'firebase.js',
-      format: 'umd',
-      name: GLOBAL_NAME
-    },
-    plugins: [...plugins, uglify()]
-  },
-  /**
-   * App Node.js Builds
-   */
-  {
-    input: 'src/index.node.ts',
-    output: { file: pkg.main, format: 'cjs' },
-    plugins,
-    external
-  },
-  /**
-   * App React Native Builds
-   */
-  {
-    input: 'src/index.rn.ts',
-    output: { file: pkg['react-native'], format: 'cjs' },
-    plugins,
-    external: [...external, 'react-native']
-  }
-];
-
-/**
  * Individual Component Builds
  */
 const appBuilds = [
@@ -109,29 +64,11 @@ const appBuilds = [
   {
     input: 'app/index.ts',
     output: [
-      { file: resolve('app', appPkg.browser), format: 'cjs' },
+      { file: resolve('app', appPkg.main), format: 'cjs' },
       { file: resolve('app', appPkg.module), format: 'es' }
     ],
     plugins,
     external
-  },
-  /**
-   * App Node.js Builds
-   */
-  {
-    input: 'app/index.node.ts',
-    output: { file: resolve('app', appPkg.main), format: 'cjs' },
-    plugins,
-    external
-  },
-  /**
-   * App React Native Builds
-   */
-  {
-    input: 'app/index.rn.ts',
-    output: { file: resolve('app', appPkg['react-native']), format: 'cjs' },
-    plugins,
-    external: [...external, 'react-native']
   },
   /**
    * App UMD Builds
@@ -196,4 +133,49 @@ const componentBuilds = components
   })
   .reduce((a, b) => a.concat(b), []);
 
-export default [...completeBuilds, ...appBuilds, ...componentBuilds];
+/**
+ * Complete Package Builds
+ */
+const completeBuilds = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: 'src/index.ts',
+    output: [
+      { file: pkg.browser, format: 'cjs' },
+      { file: pkg.module, format: 'es' }
+    ],
+    plugins,
+    external
+  },
+  {
+    input: 'src/index.cdn.ts',
+    output: {
+      file: 'firebase.js',
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()]
+  },
+  /**
+   * App Node.js Builds
+   */
+  {
+    input: 'src/index.node.ts',
+    output: { file: pkg.main, format: 'cjs' },
+    plugins,
+    external
+  },
+  /**
+   * App React Native Builds
+   */
+  {
+    input: 'src/index.rn.ts',
+    output: { file: pkg['react-native'], format: 'cjs' },
+    plugins,
+    external
+  }
+];
+
+export default [...appBuilds, ...componentBuilds, ...completeBuilds];

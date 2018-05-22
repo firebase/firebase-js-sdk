@@ -29,7 +29,7 @@ import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
 import { ERROR_CODES, errorFactory } from '../models/errors';
-import { IIDModel } from '../models/iid-model';
+import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
@@ -40,13 +40,13 @@ const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class ControllerInterface implements FirebaseMessaging {
+export abstract class BaseController implements FirebaseMessaging {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
   private readonly messagingSenderId: string;
   private readonly tokenDetailsModel: TokenDetailsModel;
   private readonly vapidDetailsModel: VapidDetailsModel;
-  private readonly iidModel: IIDModel;
+  private readonly iidModel: IidModel;
 
   /**
    * An interface of the Messaging Service API
@@ -63,7 +63,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
 
     this.tokenDetailsModel = new TokenDetailsModel();
     this.vapidDetailsModel = new VapidDetailsModel();
-    this.iidModel = new IIDModel();
+    this.iidModel = new IidModel();
 
     this.app = app;
     this.INTERNAL = {
@@ -77,15 +77,11 @@ export abstract class ControllerInterface implements FirebaseMessaging {
   async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
-    if (currentPermission !== 'granted') {
-      if (currentPermission === 'denied') {
-        return Promise.reject(
-          errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED)
-        );
-      }
-
+    if (currentPermission === 'denied') {
+      throw errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED);
+    } else if (currentPermission !== 'granted') {
       // We must wait for permission to be granted
-      return Promise.resolve(null);
+      return null;
     }
 
     const swReg = await this.getSWRegistration_();
@@ -223,7 +219,6 @@ export abstract class ControllerInterface implements FirebaseMessaging {
    * unsubscribes the token from FCM  and then unregisters the push
    * subscription if it exists. It returns a promise that indicates
    * whether or not the unsubscribe request was processed successfully.
-   * @export
    */
   async deleteToken(token: string): Promise<boolean> {
     // Delete the token details from the database.
@@ -357,7 +352,7 @@ export abstract class ControllerInterface implements FirebaseMessaging {
 
   // Visible for testing
   // TODO: make protected
-  getIIDModel(): IIDModel {
+  getIidModel(): IidModel {
     return this.iidModel;
   }
 }

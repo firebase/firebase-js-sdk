@@ -45,7 +45,7 @@ export class Serializer {
     if (data === true || data === false) {
       return data;
     }
-    if (toString.call(data) === '[object String]') {
+    if (Object.prototype.toString.call(data) === '[object String]') {
       return data;
     }
     if (Array.isArray(data)) {

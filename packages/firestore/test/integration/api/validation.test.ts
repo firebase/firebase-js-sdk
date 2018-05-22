@@ -792,6 +792,21 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
+      'with multiple array-contains filters fail.',
+      db => {
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', arrayContainsOp, 1)
+            .where('foo', arrayContainsOp, 2)
+        ).to.throw(
+          'Invalid query. Queries only support a single array-contains filter.'
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
       'must not specify starting or ending point after orderBy',
       db => {
         const collection = db.collection('collection');

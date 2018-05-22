@@ -18,7 +18,7 @@ import * as sinon from 'sinon';
 
 import { ERROR_CODES, ERROR_MAP } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IIDModel } from '../src/models/iid-model';
+import { IidModel } from '../src/models/iid-model';
 
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
@@ -34,9 +34,9 @@ const appPubKey = new Uint8Array([
   255, 237, 107, 177, 171, 78, 84, 131, 221, 231, 87, 188, 22, 232, 71, 15
 ]);
 
-describe('Firebase Messaging > IIDModel', () => {
+describe('Firebase Messaging > IidModel', () => {
   let sandbox: sinon.SinonSandbox;
-  let globalIIDModel: IIDModel;
+  let iidModel: IidModel;
 
   before(() => {
     subscription = makeFakeSubscription();
@@ -44,7 +44,7 @@ describe('Firebase Messaging > IIDModel', () => {
 
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
-    globalIIDModel = new IIDModel();
+    iidModel = new IidModel();
   });
 
   afterEach(() => {
@@ -60,7 +60,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
+      await iidModel.getToken(fcmSenderId, subscription, appPubKey);
     });
 
     it('gets token on valid request with default VAPID key', async () => {
@@ -71,7 +71,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      await globalIIDModel.getToken(
+      await iidModel.getToken(
         fcmSenderId,
         subscription,
         DEFAULT_PUBLIC_VAPID_KEY
@@ -82,7 +82,7 @@ describe('Firebase Messaging > IIDModel', () => {
       const errorMsg = 'invalid token';
       sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
-        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
+        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.equal(errorMsg);
@@ -94,7 +94,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.htmlError(400, 'html-response'));
       try {
-        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
+        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_SUBSCRIBE_FAILED);
@@ -109,7 +109,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
       try {
-        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
+        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.include(
@@ -126,7 +126,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
       try {
-        await globalIIDModel.getToken(fcmSenderId, subscription, appPubKey);
+        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_SUBSCRIBE_NO_PUSH_SET);
@@ -140,7 +140,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await globalIIDModel.updateToken(
+      const res = await iidModel.updateToken(
         fcmSenderId,
         fcmToken,
         fcmPushSet,
@@ -155,7 +155,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await globalIIDModel.updateToken(
+      const res = await iidModel.updateToken(
         fcmSenderId,
         fcmToken,
         fcmPushSet,
@@ -173,7 +173,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
       try {
-        await globalIIDModel.updateToken(
+        await iidModel.updateToken(
           fcmSenderId,
           fcmToken,
           fcmPushSet,
@@ -191,7 +191,7 @@ describe('Firebase Messaging > IIDModel', () => {
         .stub(window, 'fetch')
         .returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await globalIIDModel.updateToken(
+        await iidModel.updateToken(
           fcmSenderId,
           fcmToken,
           fcmPushSet,
@@ -208,7 +208,7 @@ describe('Firebase Messaging > IIDModel', () => {
       const errorMsg = 'invalid token';
       sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
-        await globalIIDModel.updateToken(
+        await iidModel.updateToken(
           fcmSenderId,
           fcmToken,
           fcmPushSet,
@@ -225,7 +225,7 @@ describe('Firebase Messaging > IIDModel', () => {
   describe('deleteToken', () => {
     it('deletes on valid request', async () => {
       sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
-      await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+      await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
     });
 
     it('handles fetch errors', async () => {
@@ -234,7 +234,7 @@ describe('Firebase Messaging > IIDModel', () => {
       sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
 
       try {
-        await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+        await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);
@@ -245,7 +245,7 @@ describe('Firebase Messaging > IIDModel', () => {
       const stubbedFetch = sandbox.stub(window, 'fetch');
       stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await globalIIDModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+        await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED);

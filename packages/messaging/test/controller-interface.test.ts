@@ -18,11 +18,11 @@ import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { ControllerInterface } from '../src/controllers/controller-interface';
-import { SWController } from '../src/controllers/sw-controller';
+import { BaseController } from '../src/controllers/base-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IIDModel } from '../src/models/iid-model';
+import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
@@ -31,13 +31,13 @@ import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 import { describe } from './testing-utils/messaging-test-runner';
 
-const controllersToTest = [WindowController, SWController];
+const controllersToTest = [WindowController, SwController];
 
 /**
- * As ControllerInterface is an abstract class, we need a concrete
+ * As BaseController is an abstract class, we need a concrete
  * implementation that can be initialized for testing
  */
-class MockControllerInterface extends ControllerInterface {
+class MockBaseController extends BaseController {
   async getSWRegistration_(): Promise<ServiceWorkerRegistration> {
     return new ServiceWorkerRegistration();
   }
@@ -47,7 +47,7 @@ class MockControllerInterface extends ControllerInterface {
   }
 }
 
-describe('Firebase Messaging > *ControllerInterface', () => {
+describe('Firebase Messaging > *BaseController', () => {
   let sandbox: sinon.SinonSandbox;
   let app: FirebaseApp;
 
@@ -64,7 +64,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('INTERNAL.delete()', () => {
     it('should call delete()', () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       const spy = sandbox.spy(controller, 'delete');
       controller.INTERNAL.delete();
       expect(spy.callCount).to.equal(1);
@@ -73,7 +73,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('requestPermission()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.requestPermission();
@@ -151,7 +151,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('useServiceWorker()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.useServiceWorker(null as any);
@@ -165,7 +165,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('usePublicVapidKey()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.usePublicVapidKey(null as any);
@@ -179,7 +179,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('onMessage()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.onMessage(null as any, null as any, null as any);
@@ -193,7 +193,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('onTokenRefresh()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.onTokenRefresh(null as any, null as any, null as any);
@@ -207,7 +207,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('setBackgroundMessageHandler()', () => {
     it(`should throw`, () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       let thrownError;
       try {
         controller.setBackgroundMessageHandler(null as any);
@@ -222,7 +222,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
   describe('getNotificationPermission_', () => {
     it('should return current permission', () => {
       sandbox.stub(Notification as any, 'permission').value('test');
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       const result = controller.getNotificationPermission_();
       expect(result).to.equal('test');
     });
@@ -230,7 +230,7 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('getTokenDetailsModel', () => {
     it('should return an instance of TokenDetailsModel', () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       const result = controller.getTokenDetailsModel();
       expect(result).to.be.instanceof(TokenDetailsModel);
     });
@@ -238,17 +238,17 @@ describe('Firebase Messaging > *ControllerInterface', () => {
 
   describe('getVapidDetailsModel', () => {
     it('should return an instance of VapidDetailsModel', () => {
-      const controller = new MockControllerInterface(app);
+      const controller = new MockBaseController(app);
       const result = controller.getVapidDetailsModel();
       expect(result).to.be.instanceof(VapidDetailsModel);
     });
   });
 
-  describe('getIIDModel', () => {
-    it('should return an instance of IIDModel', () => {
-      const controller = new MockControllerInterface(app);
-      const result = controller.getIIDModel();
-      expect(result).to.be.instanceof(IIDModel);
+  describe('getIidModel', () => {
+    it('should return an instance of IidModel', () => {
+      const controller = new MockBaseController(app);
+      const result = controller.getIidModel();
+      expect(result).to.be.instanceof(IidModel);
     });
   });
 });

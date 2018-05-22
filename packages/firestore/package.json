@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "0.5.1",
+  "version": "0.5.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -24,10 +24,10 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "0.4.0",
+    "@firebase/firestore-types": "0.4.2",
     "@firebase/logger": "0.1.1",
     "@firebase/webchannel-wrapper": "0.2.8",
-    "grpc": "1.10.1",
+    "grpc": "1.11.3",
     "tslib": "1.9.0"
   },
   "peerDependencies": {
@@ -40,6 +40,7 @@
     "@types/mocha": "5.0.0",
     "@types/sinon": "4.3.1",
     "chai": "4.1.2",
+    "chai-as-promised": "7.1.1",
     "indexeddbshim": "3.6.2",
     "karma": "2.0.0",
     "karma-chrome-launcher": "2.2.0",

@@ -18,15 +18,15 @@ import * as sinon from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
 
-import { ControllerInterface } from '../src/controllers/controller-interface';
-import { SWController } from '../src/controllers/sw-controller';
+import { BaseController } from '../src/controllers/base-controller';
+import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { ERROR_CODES } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IIDModel } from '../src/models/iid-model';
+import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
@@ -38,7 +38,7 @@ import { describe } from './testing-utils/messaging-test-runner';
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
 describe('Firebase Messaging > *Controller.getToken()', () => {
-  const servicesToTest = [WindowController, SWController];
+  const servicesToTest = [WindowController, SwController];
   const vapidSetupToTest = ['default', 'custom'];
 
   function mockGetReg(fakeReg: Promise<ServiceWorkerRegistration>): void {
@@ -141,7 +141,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   it('should handle a failure to get registration', () => {
     sandbox
-      .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+      .stub(BaseController.prototype, 'getNotificationPermission_')
       .callsFake(() => 'granted');
 
     sandbox
@@ -169,7 +169,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   it('should handle the notification permission', () => {
     const notificationStub = sandbox.stub(
-      ControllerInterface.prototype,
+      BaseController.prototype,
       'getNotificationPermission_'
     );
     notificationStub.onCall(0).returns('denied');
@@ -231,7 +231,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(vapidKeyToUse));
 
         sandbox
-          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .stub(BaseController.prototype, 'getNotificationPermission_')
           .callsFake(() => 'granted');
 
         sandbox
@@ -260,7 +260,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(() => Promise.resolve(CUSTOM_VAPID_KEY));
 
       sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .stub(BaseController.prototype, 'getNotificationPermission_')
         .callsFake(() => 'granted');
 
       sandbox
@@ -281,7 +281,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       mockGetReg(Promise.resolve(registration));
 
       sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .stub(BaseController.prototype, 'getNotificationPermission_')
         .callsFake(() => 'granted');
 
       sandbox
@@ -297,7 +297,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(() => Promise.resolve(subscription));
 
       sandbox
-        .stub(IIDModel.prototype, 'updateToken')
+        .stub(IidModel.prototype, 'updateToken')
         .callsFake(() => Promise.resolve(EXAMPLE_FCM_TOKEN));
 
       sandbox
@@ -330,7 +330,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         };
 
         sandbox
-          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .stub(BaseController.prototype, 'getNotificationPermission_')
           .callsFake(() => 'granted');
 
         sandbox
@@ -353,7 +353,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(async () => {});
 
         sandbox
-          .stub(IIDModel.prototype, 'getToken')
+          .stub(IidModel.prototype, 'getToken')
           .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
         sandbox
@@ -408,7 +408,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         saveTokenDetailsStub.callsFake(async () => {});
 
         sandbox
-          .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+          .stub(BaseController.prototype, 'getNotificationPermission_')
           .callsFake(() => 'granted');
 
         let vapidKeyToUse = DEFAULT_PUBLIC_VAPID_KEY;
@@ -431,10 +431,10 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           pushSet: 'new-pushSet'
         };
         sandbox
-          .stub(IIDModel.prototype, 'getToken')
+          .stub(IidModel.prototype, 'getToken')
           .callsFake(() => Promise.resolve(GET_TOKEN_RESPONSE));
         sandbox
-          .stub(IIDModel.prototype, 'deleteToken')
+          .stub(IidModel.prototype, 'deleteToken')
           .callsFake(async () => {});
 
         const registration = generateFakeReg();
@@ -482,7 +482,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       mockGetReg(regPromise);
 
       sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .stub(BaseController.prototype, 'getNotificationPermission_')
         .callsFake(() => 'granted');
 
       // start with using the deault key.
@@ -541,10 +541,10 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         return Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
       });
 
-      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
+      sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {});
 
       sandbox
-        .stub(IIDModel.prototype, 'getToken')
+        .stub(IidModel.prototype, 'getToken')
         .callsFake(() => Promise.resolve(TOKEN_DETAILS));
 
       const customVAPIDToken = await serviceInstance.getToken();
@@ -567,7 +567,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       const errorMsg = 'messaging/' + ERROR_CODES.TOKEN_UPDATE_FAILED;
 
       sandbox
-        .stub(ControllerInterface.prototype, 'getNotificationPermission_')
+        .stub(BaseController.prototype, 'getNotificationPermission_')
         .callsFake(() => 'granted');
 
       sandbox
@@ -591,7 +591,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(async () => {});
 
       sandbox
-        .stub(IIDModel.prototype, 'updateToken')
+        .stub(IidModel.prototype, 'updateToken')
         .callsFake(() => Promise.reject(new Error(errorMsg)));
 
       const deleteTokenStub = sandbox.stub(
@@ -603,7 +603,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         return Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS);
       });
 
-      sandbox.stub(IIDModel.prototype, 'deleteToken').callsFake(async () => {});
+      sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {});
 
       const serviceInstance = new serviceClass(app);
       try {
