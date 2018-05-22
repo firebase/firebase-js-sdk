@@ -16,6 +16,7 @@
 
 const karma = require('karma');
 const path = require('path');
+const mochaConfig = require('./mocha.base');
 const webpackTestConfig = require('./webpack.test');
 const { argv } = require('yargs');
 
@@ -101,7 +102,7 @@ const config = {
   singleRun: false,
 
   client: {
-    mocha: { timeout: 20000, retries: 3 },
+    mocha: mochaConfig,
 
     // Pass through --grep option to filter the tests that run.
     args: argv.grep ? ['--grep', argv.grep] : []
