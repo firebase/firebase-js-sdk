@@ -9656,6 +9656,12 @@ rx-lite@^3.1.2:
   version "3.1.2"
   resolved "https://registry.npmjs.org/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
+rxjs@6.2.0:
+  version "6.2.0"
+  resolved "https://registry.npmjs.org/rxjs/-/rxjs-6.2.0.tgz#e024d0e180b72756a83c2aaea8f25423751ba978"
+  dependencies:
+    tslib "^1.9.0"
+
 rxjs@^5.5.2:
   version "5.5.9"
   resolved "https://registry.npmjs.org/rxjs/-/rxjs-5.5.9.tgz#12a0487794b00f5eb370fec2751bd973a89886fb"
