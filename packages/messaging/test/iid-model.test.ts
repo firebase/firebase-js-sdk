@@ -34,6 +34,11 @@ const appPubKey = new Uint8Array([
   255, 237, 107, 177, 171, 78, 84, 131, 221, 231, 87, 188, 22, 232, 71, 15
 ]);
 
+/** Creates a new Uint8Array every time */
+function getDefaultPublicKey(): Uint8Array {
+  return new Uint8Array(DEFAULT_PUBLIC_VAPID_KEY);
+}
+
 describe('Firebase Messaging > IidModel', () => {
   let sandbox: sinon.SinonSandbox;
   let iidModel: IidModel;
@@ -76,7 +81,7 @@ describe('Firebase Messaging > IidModel', () => {
       const res = await iidModel.getToken(
         fcmSenderId,
         subscription,
-        DEFAULT_PUBLIC_VAPID_KEY
+        getDefaultPublicKey()
       );
       expect(res).to.deep.equal(mockResponse);
       expect(fetchStub.lastCall.args[1].body).not.to.include(
@@ -167,7 +172,7 @@ describe('Firebase Messaging > IidModel', () => {
         fcmToken,
         fcmPushSet,
         subscription,
-        DEFAULT_PUBLIC_VAPID_KEY
+        getDefaultPublicKey()
       );
       expect(res).to.equal(fcmToken);
       expect(fetchStub.lastCall.args[1].body).not.to.include(
