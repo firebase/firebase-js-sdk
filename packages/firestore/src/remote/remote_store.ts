@@ -315,16 +315,17 @@ export class RemoteStore {
     });
   }
 
-  private async onWatchStreamClose(
-    error: FirestoreError | null
-  ): Promise<void> {
+  private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWatchStreamClose() should only be called when the network is enabled'
     );
 
     this.cleanUpWatchStreamState();
-    this.onlineStateTracker.handleWatchStreamFailure();
+
+    if (error) {
+      this.onlineStateTracker.handleWatchStreamFailure(error);
+    }
 
     // If there was an error, retry the connection.
     if (this.shouldStartWatchStream()) {
