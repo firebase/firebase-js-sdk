@@ -27,15 +27,3 @@ const namespaceExports = { isSupported };
   (app: FirebaseApp) => new FirebaseMessaging(app),
   namespaceExports
 );
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    messaging: {
-      (app?: FirebaseApp): FirebaseMessaging;
-      isSupported(): boolean;
-    };
-  }
-  interface FirebaseApp {
-    messaging(): FirebaseMessaging;
-  }
-}
