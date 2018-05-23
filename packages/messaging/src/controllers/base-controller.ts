@@ -16,7 +16,6 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseServiceInternals } from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   CompleteFn,
   ErrorFn,
@@ -40,7 +39,7 @@ const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class BaseController implements FirebaseMessaging {
+export abstract class BaseController {
   app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
   private readonly messagingSenderId: string;

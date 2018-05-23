@@ -14,34 +14,16 @@
  * limitations under the License.
  */
 
-import _firebase from '../app';
+import firebase from '@firebase/app';
+import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import {
-  isSupported,
-  errorFactory,
-  ERROR_CODES,
-  SwController,
-  WindowController
-} from '@firebase/messaging';
+import { FirebaseMessaging, isSupported } from '@firebase/messaging';
 
-const firebase = (_firebase as any) as _FirebaseNamespace;
+const messagingName = 'messaging';
+const namespaceExports = { isSupported };
 
-const SERVICE_NAME = 'messaging';
-
-const messagingFactory = app => {
-  if (!isSupported()) {
-    throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
-  }
-
-  if (self && 'ServiceWorkerGlobalScope' in self) {
-    // Running in ServiceWorker context
-    return new SwController(app);
-  } else {
-    // Assume we are in the window context.
-    return new WindowController(app);
-  }
-};
-
-firebase.INTERNAL.registerService(SERVICE_NAME, messagingFactory, {
-  isSupported
-});
+(firebase as _FirebaseNamespace).INTERNAL.registerService(
+  messagingName,
+  (app: FirebaseApp) => new FirebaseMessaging(app),
+  namespaceExports
+);

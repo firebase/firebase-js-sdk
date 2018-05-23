@@ -14,103 +14,71 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-import { sandbox, SinonSandbox, SinonStub } from 'sinon';
-
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import { expect } from 'chai';
+import { sandbox, SinonSandbox } from 'sinon';
 
-import { registerMessaging } from '../index';
-import { ERROR_CODES } from '../src/models/errors';
-
+import { FirebaseMessaging, isSupported } from '../index';
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
+import { ERROR_CODES } from '../src/models/errors';
+
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { describe } from './testing-utils/messaging-test-runner';
 
-describe('Firebase Messaging > registerMessaging', () => {
+describe('Firebase Messaging', () => {
   let sinonSandbox: SinonSandbox;
-  let registerService: SinonStub;
-  let fakeFirebase: _FirebaseNamespace;
+  let fakeApp: FirebaseApp;
 
   beforeEach(() => {
     sinonSandbox = sandbox.create();
-    registerService = sinonSandbox.stub();
-
-    fakeFirebase = {
-      INTERNAL: { registerService }
-    } as any;
+    fakeApp = makeFakeApp({ messagingSenderId: '1234567890' });
   });
 
   afterEach(() => {
     sinonSandbox.restore();
   });
 
-  it('calls registerService', () => {
-    registerMessaging(fakeFirebase);
-    expect(registerService.callCount).to.equal(1);
+  describe('isSupported', () => {
+    it('is a function', () => {
+      expect(isSupported).to.be.a('function');
+    });
   });
 
-  describe('factoryMethod', () => {
-    let factoryMethod: FirebaseServiceFactory;
-    let fakeApp: FirebaseApp;
-
+  describe('in Service Worker context', () => {
     beforeEach(() => {
-      registerMessaging(fakeFirebase);
-      factoryMethod = registerService.getCall(0).args[1];
-
-      fakeApp = makeFakeApp({
-        messagingSenderId: '1234567890'
-      });
+      // self.ServiceWorkerGlobalScope exists
+      // can't stub a non-existing property, so no sinon.stub().
+      (self as any).ServiceWorkerGlobalScope = {};
     });
 
-    describe('isSupported', () => {
-      it('is a namespace export', () => {
-        const namespaceExports = registerService.getCall(0).args[2];
-        expect(namespaceExports.isSupported).to.be.a('function');
-      });
+    afterEach(() => {
+      delete (self as any).ServiceWorkerGlobalScope;
     });
 
-    describe('in Service Worker context', () => {
-      beforeEach(() => {
-        // self.ServiceWorkerGlobalScope exists
-        // can't stub a non-existing property, so no sinon.stub().
-        (self as any).ServiceWorkerGlobalScope = {};
-      });
+    it('creates a SwController', () => {
+      const firebaseService = new FirebaseMessaging(fakeApp);
+      expect(firebaseService['controller']).to.be.instanceOf(SwController);
+    });
+  });
 
-      afterEach(() => {
-        delete (self as any).ServiceWorkerGlobalScope;
-      });
+  describe('in Window context', () => {
+    it('throws if required globals do not exist', () => {
+      // Empty navigator, no navigator.serviceWorker ¯\_(ツ)_/¯
+      sinonSandbox.stub(window, 'navigator').value({});
 
-      it('returns a SwController', () => {
-        const firebaseService = factoryMethod(fakeApp);
-        expect(firebaseService).to.be.instanceOf(SwController);
-      });
+      try {
+        new FirebaseMessaging(fakeApp);
+      } catch (e) {
+        expect(e.code).to.equal('messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER);
+        return;
+      }
+      throw new Error('Expected getToken to throw ');
     });
 
-    describe('in Window context', () => {
-      it('throws if required globals do not exist', () => {
-        // Empty navigator, no navigator.serviceWorker ¯\_(ツ)_/¯
-        sinonSandbox.stub(window, 'navigator').value({});
-
-        try {
-          factoryMethod(fakeApp);
-        } catch (e) {
-          expect(e.code).to.equal(
-            'messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER
-          );
-          return;
-        }
-        throw new Error('Expected getToken to throw ');
-      });
-
-      it('returns a WindowController', () => {
-        const firebaseService = factoryMethod(fakeApp);
-        expect(firebaseService).to.be.instanceOf(WindowController);
-      });
+    it('creates a WindowController', () => {
+      const firebaseService = new FirebaseMessaging(fakeApp);
+      expect(firebaseService['controller']).to.be.instanceOf(WindowController);
     });
   });
 });
