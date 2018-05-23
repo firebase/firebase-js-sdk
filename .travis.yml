@@ -8,6 +8,9 @@ env:
   global:
     - CXX=g++-4.8
 before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install ssmtp bsd-mailx
+  - echo -e $SSMTP_CONFIG | sudo tee /etc/ssmtp/ssmtp.conf
   # Yarn defaults to an old version, make sure we
   # get an up to date version
   - npm install -g yarn
@@ -32,7 +35,7 @@ matrix:
 
 jobs:
   allow_failures:
-    - script: yarn test:saucelabs --database-firestore-only
+    - script: ./scripts/saucelabs/database_firestore_test.sh
   include:
     - stage: test
       script: xvfb-run yarn test
@@ -43,8 +46,9 @@ jobs:
       env: '#= cross browser test: all packages except database and firestore'
       if: type = push
     - stage: test
-      script: yarn test:saucelabs --database-firestore-only
+      script: ./scripts/saucelabs/database_firestore_test.sh
       env: '#= cross browser test: database and firestore (allow_failures)'
+      after_failure: ./scripts/saucelabs/report_test_failure.sh
       if: type = push
     - stage: deploy
       script: skip
