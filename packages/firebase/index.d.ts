@@ -424,7 +424,7 @@ declare namespace firebase.auth.Auth {
 }
 
 declare namespace firebase.database {
-  interface DataSnapshot {
+  interface DataSnapshot<T = any> {
     child(path: string): firebase.database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
@@ -436,7 +436,7 @@ declare namespace firebase.database {
     hasChildren(): boolean;
     key: string | null;
     numChildren(): number;
-    val(): any;
+    val(): T | null;
     ref: firebase.database.Reference;
     toJSON(): Object | null;
   }
