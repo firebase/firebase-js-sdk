@@ -18,6 +18,7 @@ import { OnlineState } from '../core/types';
 import * as log from '../util/log';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
+import { FirestoreError } from '../util/error';
 import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';
@@ -97,12 +98,10 @@ export class OnlineStateTracker {
             this.state === OnlineState.Unknown,
             'Timer should be canceled if we transitioned to a different state.'
           );
-          log.debug(
-            LOG_TAG,
-            `Watch stream didn't reach online or offline within ` +
-              `${ONLINE_STATE_TIMEOUT_MS}ms. Considering client offline.`
+          this.logClientOfflineWarningIfNecessary(
+            `Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
+              `seconds.`
           );
-          this.logClientOfflineWarningIfNecessary();
           this.setAndBroadcast(OnlineState.Offline);
 
           // NOTE: handleWatchStreamFailure() will continue to increment
@@ -121,7 +120,7 @@ export class OnlineStateTracker {
    * allow multiple failures (based on MAX_WATCH_STREAM_FAILURES) before we
    * actually transition to the 'Offline' state.
    */
-  handleWatchStreamFailure(): void {
+  handleWatchStreamFailure(error: FirestoreError): void {
     if (this.state === OnlineState.Online) {
       this.setAndBroadcast(OnlineState.Unknown);
 
@@ -133,7 +132,12 @@ export class OnlineStateTracker {
       this.watchStreamFailures++;
       if (this.watchStreamFailures >= MAX_WATCH_STREAM_FAILURES) {
         this.clearOnlineStateTimer();
-        this.logClientOfflineWarningIfNecessary();
+
+        this.logClientOfflineWarningIfNecessary(
+          `Connection failed ${MAX_WATCH_STREAM_FAILURES} ` +
+            `times. Most recent error: ${error.toString()}`
+        );
+
         this.setAndBroadcast(OnlineState.Offline);
       }
     }
@@ -166,10 +170,17 @@ export class OnlineStateTracker {
     }
   }
 
-  private logClientOfflineWarningIfNecessary(): void {
+  private logClientOfflineWarningIfNecessary(details: string): void {
+    const message =
+      `Could not reach Cloud Firestore backend. ${details}\n` +
+      `This typically indicates that your device does not have a healthy ` +
+      `Internet connection at the moment. The client will operate in offline ` +
+      `mode until it is able to successfully connect to the backend.`;
     if (this.shouldWarnClientIsOffline) {
-      log.error('Could not reach Firestore backend.');
+      log.error(message);
       this.shouldWarnClientIsOffline = false;
+    } else {
+      log.debug(LOG_TAG, message);
     }
   }
 
