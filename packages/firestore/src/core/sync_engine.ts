@@ -54,6 +54,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { SortedSet } from '../util/sorted_set';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -350,6 +351,7 @@ export class SyncEngine implements RemoteSyncer {
       const event = new RemoteEvent(
         SnapshotVersion.MIN,
         /* targetChanges= */ {},
+        new SortedSet<TargetId>(primitiveComparator),
         documentUpdates,
         resolvedLimboDocuments
       );

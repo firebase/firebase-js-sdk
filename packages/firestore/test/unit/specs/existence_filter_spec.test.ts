@@ -49,7 +49,34 @@ describeSpec('Existence Filters:', [], () => {
       .expectEvents(query, { added: [doc1] });
   });
 
-  specTest('Existence filter mismatch triggers re-run of query', ['exclusive'], () => {
+  specTest(
+    'Existence filter ignored with pending target',
+    ['exclusive'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc('collection/1', 2000, { v: 2 });
+      return (
+        spec()
+          .withGCEnabled(false)
+          .userListens(query)
+          .watchAcksFull(query, 1000, doc1)
+          .expectEvents(query, { added: [doc1] })
+          .userUnlistens(query)
+          .watchRemoves(query)
+          .userListens(query, 'resume-token-1000')
+          .expectEvents(query, { added: [doc1], fromCache: true })
+          // The empty existence filter is ignored since Watch hasn't ACKed the
+          // target
+          .watchFilters([query])
+          .watchAcks(query)
+          .watchCurrents(query, 'resume-token-2000')
+          .watchSnapshots(2000)
+          .expectEvents(query, {})
+      );
+    }
+  );
+
+  specTest('Existence filter mismatch triggers re-run of query', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });
     const doc2 = doc('collection/2', 1000, { v: 2 });
@@ -108,19 +135,29 @@ describeSpec('Existence Filters:', [], () => {
     );
   });
 
-  specTest("Existence filter doesn't raise unexpected events", [], () => {
+  specTest('Existence filter handled at global snapshot', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });
-    const doc2 = doc('collection/2', 2000, { v: 2 });
+    const doc2 = doc('collection/2', 1000, { v: 2 });
+    const doc3 = doc('collection/3', 2000, { v: 3 });
     return (
       spec()
         .userListens(query)
-        .watchAcksFull(query, 1000, doc1)
-        .expectEvents(query, { added: [doc1] })
-        .watchSends({ affects: [query] }, doc2)
-        // Send an existence filter, but don't send a new global snapshot. We
-        // should not see an event.
-        .watchFilters([query], doc1.key, doc2.key)
+        .watchAcksFull(query, 1000, doc1, doc2)
+        .expectEvents(query, { added: [doc1, doc2] })
+        // Send an existence filter with only one document, but don't send a
+        // new global snapshot. We should not see an event until we receive
+        // the snapshot.
+        .watchFilters([query], doc1.key)
+        .watchSends({ affects: [query] }, doc3)
+        .watchSnapshots(2000)
+        // The query result includes doc3, but is marked as "inconsistent"
+        // due to the filter mismatch
+        .expectEvents(query, { added: [doc3], fromCache: true })
+        .expectActiveTargets({ query, resumeToken: '' })
+        .watchRemoves(query) // Acks removal of query
+        .watchAcksFull(query, 2000, doc1, doc2, doc3)
+        .expectEvents(query, {})
     );
   });
 

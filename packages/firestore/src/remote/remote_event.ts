@@ -15,8 +15,9 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString } from '../core/types';
+import { ProtoByteString, TargetId } from '../core/types';
 import { DocumentKeySet, MaybeDocumentMap } from '../model/collections';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -33,6 +34,11 @@ export class RemoteEvent {
      * A map from target to changes to the target. See TargetChange.
      */
     readonly targetChanges: { [targetId: number]: TargetChange },
+    /**
+     * A set of targets that is known to be inconsistent. Listens for these
+     * targets should be re-established without resume tokens.
+     */
+    readonly targetResets: SortedSet<TargetId>,
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).

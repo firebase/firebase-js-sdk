@@ -263,6 +263,13 @@ export class WatchChangeAggregator {
   private pendingDocumentTargetMapping = documentTargetMap();
 
   /**
+   * A list of targets with existence filter mismatches. These targets are
+   * known to be inconsistent and their listens needs to be re-established by
+   * RemoteStore.
+   */
+  private pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
+
+  /**
    * Processes and adds the DocumentWatchChange to the current set of changes.
    */
   handleDocumentChange(docChange: DocumentWatchChange): void {
@@ -270,7 +277,11 @@ export class WatchChangeAggregator {
       if (docChange.newDoc instanceof Document) {
         this.addDocumentToTarget(targetId, docChange.newDoc);
       } else if (docChange.newDoc instanceof NoDocument) {
-        this.removeDocumentFromTarget(targetId, docChange.key, docChange.newDoc);
+        this.removeDocumentFromTarget(
+          targetId,
+          docChange.key,
+          docChange.newDoc
+        );
       } else {
         // This is just a target update, which might have been issued if the
         // document has been modified to no longer match the target. We don't
@@ -342,6 +353,50 @@ export class WatchChangeAggregator {
     });
   }
 
+  /**
+   * Handles existence filters and synthesizes deletes for filter mismatches.
+   * Targets that are invalidated by filter mismatches are added to
+   * `pendingTargetResets`.
+   */
+  handleExistenceFilter(watchChange: ExistenceFilterChange): void {
+    const targetId = watchChange.targetId;
+    const expectedCount = watchChange.existenceFilter.count;
+
+    const queryData = this.queryDataForActiveTarget(targetId);
+    if (queryData) {
+      const query = queryData.query;
+      if (query.isDocumentQuery()) {
+        if (expectedCount === 0) {
+          // The existence filter told us the document does not exist.
+          // We need to deduce that this document does not exist and apply
+          // a deleted document to our updates. Without applying a deleted
+          // document there might be another query that will raise this
+          // document as part of a snapshot until it is resolved,
+          // essentially exposing inconsistency between queries.
+          const key = new DocumentKey(query.path);
+          this.removeDocumentFromTarget(
+            targetId,
+            key,
+            new NoDocument(key, SnapshotVersion.forDeletedDoc())
+          );
+        } else {
+          assert(
+            expectedCount === 1,
+            'Single document existence filter with count: ' + expectedCount
+          );
+        }
+      } else {
+        const currentSize = this.getCurrentDocumentCountForTarget(targetId);
+        if (currentSize !== expectedCount) {
+          // Existence filter mismatch. We reset the mapping and raise a new
+          // snapshot with `isFromCache:true`.
+          this.resetTarget(targetId);
+          this.pendingTargetResets = this.pendingTargetResets.add(targetId);
+        }
+      }
+    }
+  }
+
   /** Resets a target after an existence filter mismatch. */
   handleExistenceFilterMismatch(targetId: TargetId): void {
     this.resetTarget(targetId);
@@ -393,20 +448,25 @@ export class WatchChangeAggregator {
 
     let resolvedLimboDocuments = documentKeySet();
 
+    // We extract the set of limbo-only document updates as Garbage Collection
+    // special-cases documents that do not appear in the query cache.
+    //
+    // TODO(gsoltis): Expand on this comment once GC is available in the JS
+    // client.
     this.pendingDocumentTargetMapping.forEach((key, targets) => {
-      let isLimboTarget = true;
+      let isOnlyLimboTarget = true;
 
       targets.forEachWhile(targetId => {
         const queryData = this.queryDataForActiveTarget(targetId);
         if (queryData && queryData.purpose !== QueryPurpose.LimboResolution) {
-          isLimboTarget = false;
+          isOnlyLimboTarget = false;
           return false;
         }
 
         return true;
       });
 
-      if (isLimboTarget) {
+      if (isOnlyLimboTarget) {
         resolvedLimboDocuments = resolvedLimboDocuments.add(key);
       }
     });
@@ -414,12 +474,14 @@ export class WatchChangeAggregator {
     const remoteEvent = new RemoteEvent(
       snapshotVersion,
       targetChanges,
+      this.pendingTargetResets,
       this.pendingDocumentUpdates,
       resolvedLimboDocuments
     );
 
     this.pendingDocumentUpdates = maybeDocumentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
+    this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
 
     return remoteEvent;
   }
@@ -441,7 +503,10 @@ export class WatchChangeAggregator {
     const targetState = this.ensureTargetState(targetId);
     targetState.addDocumentChange(document.key, changeType);
 
-    this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(document.key, document);
+    this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+      document.key,
+      document
+    );
 
     this.pendingDocumentTargetMapping = this.pendingDocumentTargetMapping.insert(
       document.key,
@@ -480,7 +545,10 @@ export class WatchChangeAggregator {
     );
 
     if (updatedDocument) {
-      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(key, updatedDocument);
+      this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+        key,
+        updatedDocument
+      );
     }
   }
 
@@ -557,6 +625,10 @@ export class WatchChangeAggregator {
    * from all documents).
    */
   private resetTarget(targetId: TargetId): void {
+    assert(
+      !this.targetStates[targetId].isPending,
+      'Should only reset active targets'
+    );
     delete this.targetStates[targetId];
 
     // Trigger removal for any documents currently mapped to this target.
@@ -567,11 +639,14 @@ export class WatchChangeAggregator {
       this.removeDocumentFromTarget(targetId, key);
     });
   }
-  /** 
-   * Returns whether the LocalStore considers the document to be part of the 
-   * specified target. 
+  /**
+   * Returns whether the LocalStore considers the document to be part of the
+   * specified target.
    */
-  private targetContainsDocument(targetId: TargetId, key: DocumentKey): boolean {
+  private targetContainsDocument(
+    targetId: TargetId,
+    key: DocumentKey
+  ): boolean {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     return existingKeys.has(key);
   }

@@ -20,7 +20,6 @@ import { Transaction } from '../core/transaction';
 import { BatchId, OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import { QueryData, QueryPurpose } from '../local/query_data';
-import { DocumentKey } from '../model/document_key';
 import { MutationResult } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
@@ -51,7 +50,6 @@ import {
 } from './watch_change';
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
-import { NoDocument } from '../model/document';
 import { DocumentKeySet } from '../model/collections';
 
 const LOG_TAG = 'RemoteStore';
@@ -334,10 +332,10 @@ export class RemoteStore implements TargetMetadataProvider {
       return this.handleTargetError(watchChange);
     }
 
-    if (watchChange instanceof ExistenceFilterChange) {
-      await this.handleExistenceFilter(watchChange, snapshotVersion);
-    } else if (watchChange instanceof DocumentWatchChange) {
+    if (watchChange instanceof DocumentWatchChange) {
       this.watchChangeAggregator.handleDocumentChange(watchChange);
+    } else if (watchChange instanceof ExistenceFilterChange) {
+      this.watchChangeAggregator.handleExistenceFilter(watchChange);
     } else {
       assert(
         watchChange instanceof WatchTargetChange,
@@ -346,8 +344,11 @@ export class RemoteStore implements TargetMetadataProvider {
       this.watchChangeAggregator.handleTargetChange(watchChange);
     }
 
-    if (!snapshotVersion.isEqual(SnapshotVersion.MIN) &&
-        snapshotVersion.compareTo(this.localStore.getLastRemoteSnapshotVersion()) >= 0
+    if (
+      !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
+      snapshotVersion.compareTo(
+        this.localStore.getLastRemoteSnapshotVersion()
+      ) >= 0
     ) {
       // We have received a target change with a global snapshot if the snapshot
       // version is not equal to SnapshotVersion.MIN.
@@ -356,86 +357,22 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   // Handle existence filters and existence filter mismatches.
-  private async handleExistenceFilter(
-    filter: ExistenceFilterChange,
-    snapshotVersion: SnapshotVersion
-  ): Promise<void> {
-    const targetId = filter.targetId;
-    const expectedCount = filter.existenceFilter.count;
-
-    const queryData = this.listenTargets[targetId];
-    if (!queryData) {
-      // A watched target might have been removed already.
-      return;
-    }
-
-    const query = queryData.query;
-    if (query.isDocumentQuery()) {
-      if (expectedCount === 0) {
-        // The existence filter told us the document does not exist.
-        // We need to deduce that this document does not exist and apply
-        // a deleted document to our updates. Without applying a deleted
-        // document there might be another query that will raise this
-        // document as part of a snapshot until it is resolved,
-        // essentially exposing inconsistency between queries.
-        const key = new DocumentKey(query.path);
-        this.watchChangeAggregator.removeDocumentFromTarget(
-          targetId,
-          key,
-          new NoDocument(key, snapshotVersion)
-        );
-      } else {
-        assert(
-          expectedCount === 1,
-          'Single document existence filter with count: ' + expectedCount
-        );
-      }
-    } else {
-      const currentSize = this.watchChangeAggregator.getCurrentDocumentCountForTarget(targetId);
-
-      if (currentSize !== expectedCount) {
-        // Existence filter mismatch. We reset the mapping and raise a new
-        // snapshot with `isFromCache:true`.
-        this.watchChangeAggregator.handleExistenceFilterMismatch(targetId);
-
-        // Clear the resume token for the query, since we're in a
-        // known mismatch state.
-        const newQueryData = new QueryData(query, targetId, queryData.purpose);
-        this.listenTargets[targetId] = newQueryData;
-
-        // Cause a hard reset by unwatching and rewatching
-        // immediately, but deliberately don't send a resume token
-        // so that we get a full update.
-        // Make sure we expect that this acks are going to happen.
-        this.sendUnwatchRequest(targetId);
-
-        // Mark the query we send as being on behalf of an existence
-        // filter mismatch, but don't actually retain that in
-        // listenTargets. This ensures that we flag the first
-        // re-listen this way without impacting future listens of
-        // this target (that might happen e.g. on reconnect).
-        const requestQueryData = new QueryData(
-          query,
-          targetId,
-          QueryPurpose.ExistenceFilterMismatch
-        );
-        this.sendWatchRequest(requestQueryData);
-      }
-    }
-  }
-
   /**
    * Takes a batch of changes from the Datastore, repackages them as a
    * RemoteEvent, and passes that on to the listener, which is typically the
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
-    assert(!snapshotVersion.isEqual(SnapshotVersion.MIN), "Can't raise snapshot for unknown SnapshotVersion");
+    assert(
+      !snapshotVersion.isEqual(SnapshotVersion.MIN),
+      "Can't raise snapshot for unknown SnapshotVersion"
+    );
     const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
       snapshotVersion
     );
 
-    // Update in-memory resume tokens. LocalStore will update the
+    // Update in-memory resume tokens and re-issue queries that have been
+    // invalidated by existence filters. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
     objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
       if (change.resumeToken.length > 0) {
@@ -448,6 +385,36 @@ export class RemoteStore implements TargetMetadataProvider {
           });
         }
       }
+    });
+
+    remoteEvent.targetResets.forEach(targetId => {
+      const queryData = this.listenTargets[targetId];
+      if (!queryData) {
+        // A watched target might have been removed already.
+        return;
+      }
+
+      // Clear the resume token for the query, since we're in a
+      // known mismatch state.
+      queryData.resumeToken = emptyByteString();
+
+      // Cause a hard reset by unwatching and rewatching
+      // immediately, but deliberately don't send a resume token
+      // so that we get a full update.
+      // Make sure we expect that this acks are going to happen.
+      this.sendUnwatchRequest(targetId);
+
+      // Mark the query we send as being on behalf of an existence
+      // filter mismatch, but don't actually retain that in
+      // listenTargets. This ensures that we flag the first
+      // re-listen this way without impacting future listens of
+      // this target (that might happen e.g. on reconnect).
+      const requestQueryData = new QueryData(
+        queryData.query,
+        targetId,
+        QueryPurpose.ExistenceFilterMismatch
+      );
+      this.sendWatchRequest(requestQueryData);
     });
 
     // Finally raise remote event
