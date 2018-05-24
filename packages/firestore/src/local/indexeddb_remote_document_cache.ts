@@ -72,7 +72,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     }
 
     promises.push(
-      documentChangesStore(transaction).put({ changes  : this.serializer.toDbResourcePaths(changedKeys)})
+      documentChangesStore(transaction).put({
+        changes: this.serializer.toDbResourcePaths(changedKeys)
+      })
     );
     return PersistencePromise.waitFor(promises);
   }
