@@ -393,7 +393,7 @@ export class WatchChangeAggregator {
   }
 
   /** Resets a target after an existence filter mismatch. */
-  handleExistenceFilterMismatch(targetId: TargetId): void {
+  private handleExistenceFilterMismatch(targetId: TargetId): void {
     this.resetTarget(targetId);
   }
 
@@ -516,6 +516,7 @@ export class WatchChangeAggregator {
    * that caused the filter mismatch), the new document can be provided
    * to update the remote document cache.
    */
+  // Visible for testing.
   removeDocumentFromTarget(
     targetId: TargetId,
     key: DocumentKey,
@@ -552,7 +553,7 @@ export class WatchChangeAggregator {
    * the number of documents that the LocalStore considers to be part of the
    * target as well as any accumulated changes.
    */
-  getCurrentDocumentCountForTarget(targetId: TargetId): number {
+  private getCurrentDocumentCountForTarget(targetId: TargetId): number {
     const targetState = this.ensureTargetState(targetId);
     const targetChange = targetState.toTargetChange();
     return (

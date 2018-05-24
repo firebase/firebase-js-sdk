@@ -20,7 +20,7 @@ import { TargetId } from '../../../src/core/types';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
-  DocumentWatchChange,
+  DocumentWatchChange, ExistenceFilterChange,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -39,6 +39,7 @@ import {
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import {ExistenceFilter} from '../../../src/remote/existence_filter';
 
 type TargetMap = {
   [targetId: number]: QueryData;
@@ -450,10 +451,11 @@ describe('RemoteEvent', () => {
 
     // The existence filter mismatch will remove the document from target 1,
     // but not synthesize a document delete.
-    aggregator.handleExistenceFilterMismatch(1);
+    aggregator.handleExistenceFilter(new ExistenceFilterChange(1, new ExistenceFilter(0)));
 
     event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(0);
+    expect(event.targetResets.size).to.equal(1);
     expect(size(event.targetChanges)).to.equal(1);
 
     const expected = updateMapping(SnapshotVersion.MIN, [], [], [doc1], false);
@@ -474,10 +476,11 @@ describe('RemoteEvent', () => {
 
     // The existence filter mismatch will clear the previous target mapping,
     // but not synthesize a document delete.
-    aggregator.handleExistenceFilterMismatch(1);
+    aggregator.handleExistenceFilter(new ExistenceFilterChange(1, new ExistenceFilter(0)));
 
     const event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(1);
+    expect(event.targetResets.size).to.equal(1);
     expect(size(event.targetChanges)).to.equal(0);
   });
 
