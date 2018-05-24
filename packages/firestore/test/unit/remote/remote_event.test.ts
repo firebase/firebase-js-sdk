@@ -127,12 +127,12 @@ describe('RemoteEvent', () => {
       options.changes.forEach(
         change =>
           change instanceof DocumentWatchChange
-            ? aggregator.addDocumentChange(change)
-            : aggregator.addTargetChange(change)
+            ? aggregator.handleDocumentChange(change)
+            : aggregator.handleTargetChange(change)
       );
     }
 
-    aggregator.addTargetChange(
+    aggregator.handleTargetChange(
       new WatchTargetChange(
         WatchTargetChangeState.NoChange,
         targetIds,
@@ -470,7 +470,7 @@ describe('RemoteEvent', () => {
       snapshotVersion: 3,
       targets
     });
-    aggregator.addDocumentChange(change1);
+    aggregator.handleDocumentChange(change1);
 
     // The existence filter mismatch will clear the previous target mapping,
     // but not synthesize a document delete.
@@ -506,9 +506,9 @@ describe('RemoteEvent', () => {
     expectEqual(event.documentUpdates.get(doc1.key), doc1);
     expectEqual(event.documentUpdates.get(doc2.key), doc2);
 
-    aggregator.removeDocument(1, deletedDoc1.key, deletedDoc1);
-    aggregator.addDocument(1, updatedDoc2);
-    aggregator.addDocument(1, doc3);
+    aggregator.removeDocumentFromTarget(1, deletedDoc1.key, deletedDoc1);
+    aggregator.addDocumentToTarget(1, updatedDoc2);
+    aggregator.addDocumentToTarget(1, doc3);
 
     event = aggregator.createRemoteEvent(version(3));
 
@@ -553,7 +553,7 @@ describe('RemoteEvent', () => {
     expect(event.documentUpdates.size).to.equal(2);
     expect(size(event.targetChanges)).to.equal(2);
 
-    aggregator.addDocument(2, updatedDoc2);
+    aggregator.addDocumentToTarget(2, updatedDoc2);
     event = aggregator.createRemoteEvent(version(2));
 
     expect(event.documentUpdates.size).to.equal(1);

@@ -53,7 +53,7 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
-  docInsertRemoteEvent,
+  docAddedRemoteEvent,
   docUpdateRemoteEvent,
   expectEqual,
   key,
@@ -671,7 +671,7 @@ function genericLocalStoreTests(
 
   it('collects garbage after ChangeBatch with no target ids', () => {
     return expectLocalStore()
-      .after(docInsertRemoteEvent(deletedDoc('foo/bar', 2), [1]))
+      .after(docAddedRemoteEvent(deletedDoc('foo/bar', 2), [1]))
       .afterGC()
       .toNotContain('foo/bar')
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [1]))
@@ -685,7 +685,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
-      .after(docInsertRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
       .afterGC()
       .toContain(doc('foo/bar', 2, { foo: 'bar' }))
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'baz' }), [], [2]))
@@ -700,7 +700,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docInsertRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
         .afterReleasingQuery(query)
@@ -741,7 +741,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docInsertRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
         .afterReleasingQuery(query)
@@ -781,7 +781,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
-      .after(docInsertRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
       .after(setMutation('foo/baz', { foo: 'baz' }))
       .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
@@ -804,7 +804,7 @@ function genericLocalStoreTests(
   it('throws away documents with unknown target-ids immediately', () => {
     const targetId = 321;
     return expectLocalStore()
-      .after(docInsertRemoteEvent(doc('foo/bar', 1, {}), [targetId]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, {}), [targetId]))
       .toContain(doc('foo/bar', 1, {}))
       .afterGC()
       .toNotContain('foo/bar')
@@ -853,7 +853,7 @@ function genericLocalStoreTests(
     const queryData = await localStore.allocateQuery(query);
     expect(queryData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
-      docInsertRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
+      docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
     await localStore.applyRemoteEvent(
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
@@ -885,7 +885,7 @@ function genericLocalStoreTests(
       getRemoteKeysForTarget: () => documentKeySet(),
       getQueryDataForTarget: () => queryData
     });
-    aggregator.addTargetChange(watchChange);
+    aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
     await localStore.applyRemoteEvent(remoteEvent);
 
@@ -913,7 +913,7 @@ function genericLocalStoreTests(
       getRemoteKeysForTarget: () => documentKeySet(),
       getQueryDataForTarget: () => queryData
     });
-    aggregator1.addTargetChange(watchChange1);
+    aggregator1.handleTargetChange(watchChange1);
     const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
     await localStore.applyRemoteEvent(remoteEvent1);
 
@@ -926,7 +926,7 @@ function genericLocalStoreTests(
       getRemoteKeysForTarget: () => documentKeySet(),
       getQueryDataForTarget: () => queryData
     });
-    aggregator2.addTargetChange(watchChange2);
+    aggregator2.handleTargetChange(watchChange2);
     const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
     await localStore.applyRemoteEvent(remoteEvent2);
 

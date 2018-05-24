@@ -45,7 +45,7 @@ import {
   ExistenceFilterChange,
   WatchChange,
   WatchChangeAggregator,
-  WatchMetadataProvider,
+  TargetMetadataProvider,
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
@@ -78,7 +78,7 @@ const MAX_PENDING_WRITES = 10;
  * - retrying mutations that failed because of network problems.
  * - acking mutations to the SyncEngine once they are accepted or rejected.
  */
-export class RemoteStore implements WatchMetadataProvider {
+export class RemoteStore implements TargetMetadataProvider {
   private pendingWrites: MutationBatch[] = [];
   private lastBatchSeen: BatchId = BATCHID_UNKNOWN;
 
@@ -227,12 +227,12 @@ export class RemoteStore implements WatchMetadataProvider {
     }
   }
 
-  /** {@link WatchMetadataProvider.getQueryDataForTarget} */
+  /** {@link TargetMetadataProvider.getQueryDataForTarget} */
   getQueryDataForTarget(targetId: TargetId): QueryData | null {
     return this.listenTargets[targetId] || null;
   }
 
-  /** {@link WatchMetadataProvider.getRemoteKeysForTarget} */
+  /** {@link TargetMetadataProvider.getRemoteKeysForTarget} */
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
     return this.syncEngine.getRemoteKeysForTarget(targetId);
   }
@@ -284,10 +284,6 @@ export class RemoteStore implements WatchMetadataProvider {
   }
 
   private cleanUpWatchStreamState(): void {
-    // If the connection is closed then we'll never get a snapshot version for
-    // the accumulated changes and so we'll never be able to complete the batch.
-    // When we start up again the server is going to resend these changes
-    // anyway, so just toss the accumulated state.
     this.watchChangeAggregator = null;
   }
 
@@ -340,25 +336,22 @@ export class RemoteStore implements WatchMetadataProvider {
 
     if (watchChange instanceof ExistenceFilterChange) {
       await this.handleExistenceFilter(watchChange, snapshotVersion);
+    } else if (watchChange instanceof DocumentWatchChange) {
+      this.watchChangeAggregator.handleDocumentChange(watchChange);
     } else {
-      if (watchChange instanceof DocumentWatchChange) {
-        this.watchChangeAggregator.addDocumentChange(watchChange);
-      } else {
-        assert(
-          watchChange instanceof WatchTargetChange,
-          'Expected watchChange to be an instance of WatchTargetChange'
-        );
-        this.watchChangeAggregator.addTargetChange(watchChange);
-      }
+      assert(
+        watchChange instanceof WatchTargetChange,
+        'Expected watchChange to be an instance of WatchTargetChange'
+      );
+      this.watchChangeAggregator.handleTargetChange(watchChange);
+    }
 
-      if (
-        !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
-        snapshotVersion.compareTo(
-          this.localStore.getLastRemoteSnapshotVersion()
-        ) >= 0
-      ) {
-        await this.raiseWatchSnapshot(snapshotVersion);
-      }
+    if (!snapshotVersion.isEqual(SnapshotVersion.MIN) &&
+        snapshotVersion.compareTo(this.localStore.getLastRemoteSnapshotVersion()) >= 0
+    ) {
+      // We have received a target change with a global snapshot if the snapshot
+      // version is not equal to SnapshotVersion.MIN.
+      await this.raiseWatchSnapshot(snapshotVersion);
     }
   }
 
@@ -386,7 +379,7 @@ export class RemoteStore implements WatchMetadataProvider {
         // document as part of a snapshot until it is resolved,
         // essentially exposing inconsistency between queries.
         const key = new DocumentKey(query.path);
-        this.watchChangeAggregator.removeDocument(
+        this.watchChangeAggregator.removeDocumentFromTarget(
           targetId,
           key,
           new NoDocument(key, snapshotVersion)
@@ -398,13 +391,12 @@ export class RemoteStore implements WatchMetadataProvider {
         );
       }
     } else {
-      const currentSize = this.watchChangeAggregator.getCurrentSize(targetId);
+      const currentSize = this.watchChangeAggregator.getCurrentDocumentCountForTarget(targetId);
 
       if (currentSize !== expectedCount) {
         // Existence filter mismatch. We reset the mapping and raise a new
         // snapshot with `isFromCache:true`.
         this.watchChangeAggregator.handleExistenceFilterMismatch(targetId);
-        await this.raiseWatchSnapshot(snapshotVersion);
 
         // Clear the resume token for the query, since we're in a
         // known mismatch state.
@@ -438,6 +430,7 @@ export class RemoteStore implements WatchMetadataProvider {
    * SyncEngine.
    */
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
+    assert(!snapshotVersion.isEqual(SnapshotVersion.MIN), "Can't raise snapshot for unknown SnapshotVersion");
     const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
       snapshotVersion
     );

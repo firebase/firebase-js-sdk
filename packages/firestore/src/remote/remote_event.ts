@@ -46,11 +46,12 @@ export class RemoteEvent {
 }
 
 /**
- * A part of a RemoteEvent specifying set of changes to a specific target. These
- * changes track which documents are assigned or removed fom the target as well
- * as the current snapshot version and resume token but the actual changes *to*
- * documents are not part of the TargetChange since documents may be part of
- * multiple targets.
+ * A part of a RemoteEvent, a TargetChange specifies the set of changes for a
+ * specific target. These changes track which documents are added, modified or
+ * removed, as well as the target's resume token and whether the target is
+ * marked CURRENT.
+ * The actual changes *to* documents are not part of the TargetChange since
+ * documents may be part of multiple targets.
  */
 export class TargetChange {
   constructor(

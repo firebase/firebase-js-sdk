@@ -247,7 +247,7 @@ export function queryData(
   return new QueryData(query(path)._query, targetId, queryPurpose);
 }
 
-export function docInsertRemoteEvent(
+export function docAddedRemoteEvent(
   doc: MaybeDocument,
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[]
@@ -267,7 +267,7 @@ export function docInsertRemoteEvent(
     getQueryDataForTarget: targetId =>
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
-  aggregator.addDocumentChange(docChange);
+  aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
 }
 
@@ -291,7 +291,7 @@ export function docUpdateRemoteEvent(
     getQueryDataForTarget: targetId =>
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
-  aggregator.addDocumentChange(docChange);
+  aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
 }
 

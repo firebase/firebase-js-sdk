@@ -300,7 +300,7 @@ describeSpec('Listens:', [], () => {
         .userListens(collQuery, 'resume-token-1000')
         .expectEvents(collQuery, { added: [docA, docB], fromCache: true })
         .userUnlistens(collQuery)
-        // Now send a document query that produces no results
+        // Now send a document query that produces no results from the server
         .userListens(docQuery)
         .expectEvents(docQuery, { added: [docA], fromCache: true })
         .watchAcks(docQuery)

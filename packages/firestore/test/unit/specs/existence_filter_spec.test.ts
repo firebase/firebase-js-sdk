@@ -49,7 +49,7 @@ describeSpec('Existence Filters:', [], () => {
       .expectEvents(query, { added: [doc1] });
   });
 
-  specTest('Existence filter mismatch triggers re-run of query', [], () => {
+  specTest('Existence filter mismatch triggers re-run of query', ['exclusive'], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/1', 1000, { v: 1 });
     const doc2 = doc('collection/2', 1000, { v: 2 });
