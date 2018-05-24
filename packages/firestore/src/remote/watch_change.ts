@@ -392,11 +392,6 @@ export class WatchChangeAggregator {
     }
   }
 
-  /** Resets a target after an existence filter mismatch. */
-  private handleExistenceFilterMismatch(targetId: TargetId): void {
-    this.resetTarget(targetId);
-  }
-
   /**
    * Converts the currently accumulated state into a remote event at the
    * provided snapshot version. Resets the accumulated changes before returning.
