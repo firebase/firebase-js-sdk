@@ -53,7 +53,7 @@ export class RemoteEvent {
 
 /**
  * A TargetChange specifies the set of changes for a specific target as part of
- * a RemoteEvent, . These changes track which documents are added, modified or
+ * a RemoteEvent. These changes track which documents are added, modified or
  * removed, as well as the target's resume token and whether the target is
  * marked CURRENT.
  * The actual changes *to* documents are not part of the TargetChange since

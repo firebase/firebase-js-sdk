@@ -49,32 +49,28 @@ describeSpec('Existence Filters:', [], () => {
       .expectEvents(query, { added: [doc1] });
   });
 
-  specTest(
-    'Existence filter ignored with pending target',
-    [],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const doc1 = doc('collection/1', 2000, { v: 2 });
-      return (
-        spec()
-          .withGCEnabled(false)
-          .userListens(query)
-          .watchAcksFull(query, 1000, doc1)
-          .expectEvents(query, { added: [doc1] })
-          .userUnlistens(query)
-          .watchRemoves(query)
-          .userListens(query, 'resume-token-1000')
-          .expectEvents(query, { added: [doc1], fromCache: true })
-          // The empty existence filter is ignored since Watch hasn't ACKed the
-          // target
-          .watchFilters([query])
-          .watchAcks(query)
-          .watchCurrents(query, 'resume-token-2000')
-          .watchSnapshots(2000)
-          .expectEvents(query, {})
-      );
-    }
-  );
+  specTest('Existence filter ignored with pending target', [], () => {
+    const query = Query.atPath(path('collection'));
+    const doc1 = doc('collection/1', 2000, { v: 2 });
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userListens(query)
+        .watchAcksFull(query, 1000, doc1)
+        .expectEvents(query, { added: [doc1] })
+        .userUnlistens(query)
+        .watchRemoves(query)
+        .userListens(query, 'resume-token-1000')
+        .expectEvents(query, { added: [doc1], fromCache: true })
+        // The empty existence filter is ignored since Watch hasn't ACKed the
+        // target
+        .watchFilters([query])
+        .watchAcks(query)
+        .watchCurrents(query, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(query, {})
+    );
+  });
 
   specTest('Existence filter mismatch triggers re-run of query', [], () => {
     const query = Query.atPath(path('collection'));
