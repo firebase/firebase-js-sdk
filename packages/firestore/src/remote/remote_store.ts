@@ -365,7 +365,7 @@ export class RemoteStore implements TargetMetadataProvider {
   private raiseWatchSnapshot(snapshotVersion: SnapshotVersion): Promise<void> {
     assert(
       !snapshotVersion.isEqual(SnapshotVersion.MIN),
-      "Can't raise snapshot for unknown SnapshotVersion"
+      "Can't raise event for unknown SnapshotVersion"
     );
     const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
       snapshotVersion
@@ -387,6 +387,8 @@ export class RemoteStore implements TargetMetadataProvider {
       }
     });
 
+    // Re-establish listens for the targets that have been invalidated by
+    // existence filter mismatches.
     remoteEvent.targetResets.forEach(targetId => {
       const queryData = this.listenTargets[targetId];
       if (!queryData) {
@@ -394,21 +396,19 @@ export class RemoteStore implements TargetMetadataProvider {
         return;
       }
 
-      // Clear the resume token for the query, since we're in a
-      // known mismatch state.
+      // Clear the resume token for the query, since we're in a known mismatch
+      // state.
       queryData.resumeToken = emptyByteString();
 
-      // Cause a hard reset by unwatching and rewatching
-      // immediately, but deliberately don't send a resume token
-      // so that we get a full update.
+      // Cause a hard reset by unwatching and rewatching  immediately, but
+      // deliberately don't send a resume token so that we get a full update.
       // Make sure we expect that this acks are going to happen.
       this.sendUnwatchRequest(targetId);
 
-      // Mark the query we send as being on behalf of an existence
-      // filter mismatch, but don't actually retain that in
-      // listenTargets. This ensures that we flag the first
-      // re-listen this way without impacting future listens of
-      // this target (that might happen e.g. on reconnect).
+      // Mark the query we send as being on behalf of an existence filter
+      // mismatch, but don't actually retain that in listenTargets. This ensures
+      // that we flag the first re-listen this way without impacting future
+      // listens of this target (that might happen e.g. on reconnect).
       const requestQueryData = new QueryData(
         queryData.query,
         targetId,

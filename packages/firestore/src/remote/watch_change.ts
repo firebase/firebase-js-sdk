@@ -117,10 +117,11 @@ class TargetState {
     ChangeType
   > = snapshotChangesMap();
 
-  // See public getters for explanations of these fields.
+  /** See public getters for explanations of these fields. */
   private _resumeToken: ProtoByteString = emptyByteString();
   private _current = false;
 
+  /** Whether this target state should be include in the next snapshot. */
   private _hasPendingChanges = false;
 
   /**
@@ -230,7 +231,7 @@ class TargetState {
 }
 
 /**
- * Interface implemented by RemoteStore to expose query metadata to the
+ * Interface implemented by RemoteStore to expose target metadata to the
  * WatchChangeAggregator.
  */
 export interface TargetMetadataProvider {
@@ -367,12 +368,12 @@ export class WatchChangeAggregator {
       const query = queryData.query;
       if (query.isDocumentQuery()) {
         if (expectedCount === 0) {
-          // The existence filter told us the document does not exist.
-          // We need to deduce that this document does not exist and apply
-          // a deleted document to our updates. Without applying a deleted
-          // document there might be another query that will raise this
-          // document as part of a snapshot until it is resolved,
-          // essentially exposing inconsistency between queries.
+          // The existence filter told us the document does not exist. We deduce
+          // that this document does not exist and apply a deleted document to
+          // our updates. Without applying this deleted document there might be
+          // another query that will raise this document as part of a snapshot
+          // until it is resolved, essentially exposing inconsistency between
+          // queries.
           const key = new DocumentKey(query.path);
           this.removeDocumentFromTarget(
             targetId,
@@ -388,7 +389,7 @@ export class WatchChangeAggregator {
       } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         if (currentSize !== expectedCount) {
-          // Existence filter mismatch. We reset the mapping and raise a new
+          // Existence filter mismatch: We reset the mapping and raise a new
           // snapshot with `isFromCache:true`.
           this.resetTarget(targetId);
           this.pendingTargetResets = this.pendingTargetResets.add(targetId);
@@ -448,7 +449,7 @@ export class WatchChangeAggregator {
 
     let resolvedLimboDocuments = documentKeySet();
 
-    // We extract the set of limbo-only document updates as Garbage Collection
+    // We extract the set of limbo-only document updates as the GC logic
     // special-cases documents that do not appear in the query cache.
     //
     // TODO(gsoltis): Expand on this comment once GC is available in the JS

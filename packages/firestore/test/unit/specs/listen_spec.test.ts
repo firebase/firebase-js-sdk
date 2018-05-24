@@ -98,7 +98,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Will process removals without waiting for a consistent snapshot',
-    ['exclusive'],
+    [],
     () => {
       const query = Query.atPath(path('collection'));
 

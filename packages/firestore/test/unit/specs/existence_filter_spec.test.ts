@@ -51,7 +51,7 @@ describeSpec('Existence Filters:', [], () => {
 
   specTest(
     'Existence filter ignored with pending target',
-    ['exclusive'],
+    [],
     () => {
       const query = Query.atPath(path('collection'));
       const doc1 = doc('collection/1', 2000, { v: 2 });
