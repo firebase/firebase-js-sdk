@@ -283,12 +283,6 @@ export class WatchChangeAggregator {
           docChange.key,
           docChange.newDoc
         );
-      } else {
-        // This is just a target update, which might have been issued if the
-        // document has been modified to no longer match the target. We don't
-        // synthesize a document delete since we cannot be sure that the
-        // document no longer exists.
-        this.removeDocumentFromTarget(targetId, docChange.key);
       }
     }
 
