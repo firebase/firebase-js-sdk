@@ -316,6 +316,16 @@ export class Query {
     return null;
   }
 
+  hasArrayContainsFilter(): boolean {
+    return (
+      this.filters.find(
+        filter =>
+          filter instanceof RelationFilter &&
+          filter.op === RelationOp.ARRAY_CONTAINS
+      ) !== undefined
+    );
+  }
+
   isDocumentQuery(): boolean {
     return DocumentKey.isDocumentKey(this.path) && this.filters.length === 0;
   }

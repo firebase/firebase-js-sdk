@@ -324,7 +324,10 @@ export class ChildrenNode implements Node {
   /**
    * @inheritDoc
    */
-  forEachChild(index: Index, action: (key: string, node: Node) => void): any {
+  forEachChild(
+    index: Index,
+    action: (key: string, node: Node) => boolean | void
+  ): boolean {
     const idx = this.resolveIndex_(index);
     if (idx) {
       return idx.inorderTraversal(function(wrappedNode) {

@@ -96,14 +96,19 @@ export class FirebaseError implements FirebaseError {
       // Patches this.stack, omitted calls above ErrorFactory#create
       captureStackTrace(this, ErrorFactory.prototype.create);
     } else {
-      let err = Error.apply(this, arguments);
-      this.name = ERROR_NAME;
-      // Make non-enumerable getter for the property.
-      Object.defineProperty(this, 'stack', {
-        get: function() {
-          return err.stack;
-        }
-      });
+      try {
+        // In case of IE11, stack will be set only after error is raised.
+        // https://docs.microsoft.com/en-us/scripting/javascript/reference/stack-property-error-javascript
+        throw Error.apply(this, arguments);
+      } catch (err) {
+        this.name = ERROR_NAME;
+        // Make non-enumerable getter for the property.
+        Object.defineProperty(this, 'stack', {
+          get: function() {
+            return err.stack;
+          }
+        });
+      }
     }
   }
 }
