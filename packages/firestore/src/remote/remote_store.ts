@@ -315,19 +315,22 @@ export class RemoteStore {
     });
   }
 
-  private async onWatchStreamClose(
-    error: FirestoreError | null
-  ): Promise<void> {
+  private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
     assert(
       this.isNetworkEnabled(),
       'onWatchStreamClose() should only be called when the network is enabled'
     );
 
     this.cleanUpWatchStreamState();
-    this.onlineStateTracker.handleWatchStreamFailure();
 
-    // If there was an error, retry the connection.
+    // If we still need the watch stream, retry the connection.
     if (this.shouldStartWatchStream()) {
+      // There should generally be an error if the watch stream was closed when
+      // it's still needed, but it's not quite worth asserting.
+      if (error) {
+        this.onlineStateTracker.handleWatchStreamFailure(error);
+      }
+
       this.startWatchStream();
     } else {
       // No need to restart watch stream because there are no active targets.
