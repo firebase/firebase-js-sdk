@@ -35,7 +35,7 @@ matrix:
 
 jobs:
   allow_failures:
-    - script: ./scripts/saucelabs/database_firestore_test.sh
+    - script: ./scripts/saucelabs/run_flaky_tests.sh flaky_tests.log
   include:
     - stage: test
       script: xvfb-run yarn test
@@ -46,9 +46,9 @@ jobs:
       env: '#= cross browser test: all packages except database and firestore'
       if: type = push
     - stage: test
-      script: ./scripts/saucelabs/database_firestore_test.sh
+      script: ./scripts/saucelabs/run_flaky_tests.sh flaky_tests.log
       env: '#= cross browser test: database and firestore (allow_failures)'
-      after_failure: ./scripts/saucelabs/report_test_failure.sh
+      after_failure: ./scripts/saucelabs/report_flaky_tests_failure.sh flaky_tests.log
       if: type = push
     - stage: deploy
       script: skip

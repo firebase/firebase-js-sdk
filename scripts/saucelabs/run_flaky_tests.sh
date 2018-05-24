@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Starts the SauceLabs test for database and firestore, directs output to
-# both stdout and browser_test.log.
+# Runs the flaky tests along with the build. Failures from thest tests will
+# not fail the build. Output of the command is directed to both stdout and
+# file with name specified by user.
 
 set -o pipefail
-yarn test:saucelabs --database-firestore-only | tee browser_test.log
+yarn test:saucelabs --database-firestore-only | tee $1

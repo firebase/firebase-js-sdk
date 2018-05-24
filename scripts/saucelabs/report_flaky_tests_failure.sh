@@ -14,7 +14,7 @@
 # limitations under the License.
 
 # Sends out an email to author of the last commit with summary of the
-# browser test result.
+# flaky test result.
 
 TRAVIS_BUILD_URL=https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 COMMITTER_EMAIL="$(git log -1 $TRAVIS_COMMIT --pretty="%cE")"
@@ -22,16 +22,18 @@ AUTHOR_NAME="$(git log -1 $TRAVIS_COMMIT --pretty="%aN")"
 
 SUBJECT="[firebase-js-sdk] Browser Test Failed"
 
-echo "Hey $AUTHOR_NAME," > email.body
-echo >> email.body
-echo "Seems like you have pushed a commit:" >> email.body
-echo >> email.body
-echo "$(git log -1 $TRAVIS_COMMIT)" >> email.body
-echo >> email.body
-echo "However, the database/firestore browser test has failed:" >> email.body
-echo >> email.body
-sed -n "/SUMMARY/,$ p" browser_test.log >> email.body
-echo >> email.body
-echo "See full build logs at: $TRAVIS_BUILD_URL." >> email.body
+cat > email.body << EOL
+Hey $AUTHOR_NAME, 
+
+Seems like you have pushed a commit:
+
+$(git log -1 $TRAVIS_COMMIT)
+
+However, there are some flaky tests that have failed:
+
+$(sed -n "/SUMMARY/,$ p" $1)
+
+See full build logs at: $TRAVIS_BUILD_URL.
+EOL
 
 mail -s "$SUBJECT" -c yifany@google.com -- $COMMITTER_EMAIL < email.body
