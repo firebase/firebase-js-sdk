@@ -173,10 +173,9 @@ export class OnlineStateTracker {
   private logClientOfflineWarningIfNecessary(details: string): void {
     const message =
       `Could not reach Cloud Firestore backend. ${details}\n` +
-      `This is purely an informational message and typically indicates ` +
-      `that your device does not have a healthy Internet connection at ` +
-      `the moment. The client will operate in offline mode until it is ` +
-      `able to successfully connect to the backend.`;
+      `This typically indicates that your device does not have a healthy ` +
+      `Internet connection at the moment. The client will operate in offline ` +
+      `mode until it is able to successfully connect to the backend.`;
     if (this.shouldWarnClientIsOffline) {
       log.error(message);
       this.shouldWarnClientIsOffline = false;

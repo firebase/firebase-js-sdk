@@ -323,12 +323,14 @@ export class RemoteStore {
 
     this.cleanUpWatchStreamState();
 
-    if (error) {
-      this.onlineStateTracker.handleWatchStreamFailure(error);
-    }
-
-    // If there was an error, retry the connection.
+    // If we still need the watch stream, retry the connection.
     if (this.shouldStartWatchStream()) {
+      // There should generally be an error if the watch stream was closed when
+      // it's still needed, but it's not quite worth asserting.
+      if (error) {
+        this.onlineStateTracker.handleWatchStreamFailure(error);
+      }
+
       this.startWatchStream();
     } else {
       // No need to restart watch stream because there are no active targets.
