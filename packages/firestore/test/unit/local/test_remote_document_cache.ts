@@ -20,7 +20,6 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -31,6 +30,12 @@ export class TestRemoteDocumentCache {
     public persistence: Persistence,
     public cache: RemoteDocumentCache
   ) {}
+
+  start(): Promise<void> {
+    return this.persistence.runTransaction('start', true, txn => {
+      return this.cache.start(txn);
+    });
+  }
 
   addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
     return this.persistence.runTransaction('addEntry', true, txn => {
@@ -60,14 +65,12 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getDocumentsChangedSince(
-    snapshotVersion: SnapshotVersion
-  ): Promise<MaybeDocument[]> {
+  getNextDocumentChanges(): Promise<MaybeDocument[]> {
     return this.persistence.runTransaction(
-      'getDocumentsChangedSince',
+      'getNextDocumentChanges',
       true,
       txn => {
-        return this.cache.getDocumentsChangedSince(txn, snapshotVersion);
+        return this.cache.getNextDocumentChanges(txn);
       }
     );
   }

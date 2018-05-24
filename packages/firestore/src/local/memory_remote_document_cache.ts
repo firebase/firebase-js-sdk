@@ -17,7 +17,6 @@
 import { Query } from '../core/query';
 import {
   documentKeySet,
-  DocumentKeySet,
   DocumentMap,
   documentMap,
   maybeDocumentMap
@@ -28,14 +27,20 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SortedMap } from '../util/sorted_map';
 import { SnapshotVersion } from '../core/snapshot_version';
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();
-  private changes = new SortedMap<SnapshotVersion, DocumentKeySet>(
-    SnapshotVersion.comparator
-  );
+  private nextDocumentChanges = documentKeySet();
+
+  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+    // Technically a no-op but we clear the set of changed documents to mimic
+    // the behavior of the IndexedDb counterpart.
+    //
+    // This is for testing only.
+    this.nextDocumentChanges = documentKeySet();
+    return PersistencePromise.resolve();
+  }
 
   addEntries(
     transaction: PersistenceTransaction,
@@ -43,12 +48,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<void> {
     for (const maybeDocument of maybeDocuments) {
       this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
-
-      const existingChanges =
-        this.changes.get(maybeDocument.version) || documentKeySet();
-      this.changes = this.changes.insert(
-        maybeDocument.version,
-        existingChanges.add(maybeDocument.key)
+      this.nextDocumentChanges = this.nextDocumentChanges.add(
+        maybeDocument.key
       );
     }
     return PersistencePromise.resolve();
@@ -91,25 +92,19 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getDocumentsChangedSince(
-    transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+  getNextDocumentChanges(
+    transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocument[]> {
-    let changedKeys = documentKeySet();
     const changedDocs: MaybeDocument[] = [];
 
-    const it = this.changes.getIteratorFrom(snapshotVersion);
-    while (it.hasNext()) {
-      it.getNext().value.forEach(key => {
-        if (!changedKeys.has(key)) {
-          changedKeys = changedKeys.add(key);
-          changedDocs.push(
-            this.docs.get(key) ||
-              new NoDocument(key, SnapshotVersion.forDeletedDoc())
-          );
-        }
-      });
-    }
+    this.nextDocumentChanges.forEach(key => {
+      changedDocs.push(
+        this.docs.get(key) ||
+          new NoDocument(key, SnapshotVersion.forDeletedDoc())
+      );
+    });
+
+    this.nextDocumentChanges = documentKeySet();
 
     return PersistencePromise.resolve(changedDocs);
   }

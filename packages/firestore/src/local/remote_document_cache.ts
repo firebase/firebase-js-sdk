@@ -21,7 +21,6 @@ import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -33,12 +32,22 @@ import { SnapshotVersion } from '../core/snapshot_version';
  */
 export interface RemoteDocumentCache {
   /**
+   * Starts up the remote document cache.
+   *
+   * Reads the ID of the last  document change from the documentChanges store.
+   * Existing changes will not be returned as part of
+   * `getNextDocumentChanges()`.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  start(transaction: PersistenceTransaction): PersistencePromise<void>;
+
+  /**
    * Adds or replaces document entries in the cache.
    *
    * The cache key is extracted from `maybeDocument.key`. If there is already a
    * cache entry for the key, it will be replaced.
    *
-   * @param maybeDocuments An set of Documents or NoDocuments to put in the
+   * @param maybeDocuments A set of Documents or NoDocuments to put in the
    * cache.
    */
   addEntries(
@@ -85,12 +94,12 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<DocumentMap>;
 
   /**
-   * Returns the set of cached documents that have changed since the given
-   * snapshot version (inclusive).
+   * Returns the set of documents that have been updated since the last call.
+   * If this is the first call, returns the set of changes since client
+   * initialization.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
-  getDocumentsChangedSince(
-    transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+  getNextDocumentChanges(
+    transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocument[]>;
 }

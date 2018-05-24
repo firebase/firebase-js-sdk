@@ -39,10 +39,6 @@ export class SnapshotVersion {
     return SnapshotVersion.MIN;
   }
 
-  static comparator(left: SnapshotVersion, right: SnapshotVersion): number {
-    return left.compareTo(right);
-  }
-
   private constructor(private timestamp: Timestamp) {}
 
   compareTo(other: SnapshotVersion): number {

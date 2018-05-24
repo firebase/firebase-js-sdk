@@ -25,8 +25,7 @@ import {
   expectEqual,
   key,
   path,
-  removedDoc,
-  version
+  removedDoc
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
@@ -107,6 +106,8 @@ function genericRemoteDocumentCacheTests(): void {
       persistence,
       persistence.getRemoteDocumentCache()
     );
+
+    return cache.start();
   });
 
   it('returns null for document not in cache', () => {
@@ -183,7 +184,7 @@ function genericRemoteDocumentCacheTests(): void {
       doc('a/1', 3, DOC_DATA)
     ]);
 
-    let changedDocs = await cache.getDocumentsChangedSince(version(1));
+    let changedDocs = await cache.getNextDocumentChanges();
     assertMatches(
       [
         doc('a/1', 3, DOC_DATA),
@@ -193,27 +194,13 @@ function genericRemoteDocumentCacheTests(): void {
       changedDocs
     );
 
-    changedDocs = await cache.getDocumentsChangedSince(version(2));
-    assertMatches(
-      [
-        doc('a/1', 3, DOC_DATA),
-        doc('b/1', 2, DOC_DATA),
-        doc('b/2', 2, DOC_DATA)
-      ],
-      changedDocs
-    );
-
-    changedDocs = await cache.getDocumentsChangedSince(version(3));
-    assertMatches([doc('a/1', 3, DOC_DATA)], changedDocs);
+    await cache.addEntries([doc('c/1', 3, DOC_DATA)]);
+    changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
   });
 
   it('can get empty changes', async () => {
-    let changedDocs = await cache.getDocumentsChangedSince(version(1));
-    assertMatches([], changedDocs);
-
-    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
-
-    changedDocs = await cache.getDocumentsChangedSince(version(2));
+    const changedDocs = await cache.getNextDocumentChanges();
     assertMatches([], changedDocs);
   });
 
@@ -225,10 +212,19 @@ function genericRemoteDocumentCacheTests(): void {
     ]);
     await cache.removeEntry(key('a/2'));
 
-    const changedDocs = await cache.getDocumentsChangedSince(version(1));
+    const changedDocs = await cache.getNextDocumentChanges();
     assertMatches(
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
       changedDocs
     );
+  });
+
+  it('start() skips previous changes', async () => {
+    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
+
+    await cache.start();
+
+    const changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([], changedDocs);
   });
 }

@@ -29,10 +29,8 @@ import {
   DbNoDocument,
   DbQuery,
   DbRemoteDocument,
-  DbSnapshotChange,
   DbTarget,
-  DbTimestamp,
-  DbTimestampArray
+  DbTimestamp
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
@@ -94,31 +92,20 @@ export class LocalSerializer {
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
   }
 
-  /** Converts a timestamp into an array of seconds and nanoseconds.  */
-  toTimestampArray(timestamp: Timestamp): DbTimestampArray {
-    return [timestamp.seconds, timestamp.nanoseconds];
-  }
-
-  /**
-   * Encodes a snapshot version and its document keys into a DbSnapshotChange.
+  /*
+   * Encodes a set of document keys into an array of EncodedResourcePaths.
    */
-  toDbSnapshotChange(
-    snapshotVersion: SnapshotVersion,
-    changes: DocumentKeySet
-  ): DbSnapshotChange {
-    const targetChange = new DbSnapshotChange(
-      this.toTimestampArray(snapshotVersion.toTimestamp()),
-      []
-    );
+  toDbResourcePaths(changes: DocumentKeySet): EncodedResourcePath[] {
+    const encodedKeys: EncodedResourcePath[] = [];
 
     changes.forEach(key => {
-      targetChange.changes.push(encode(key.path));
+      encodedKeys.push(encode(key.path));
     });
 
-    return targetChange;
+    return encodedKeys;
   }
 
-  /** Decodes an array of resource paths into a set of document keys. */
+  /** Decodes an array of EncodedResourcePaths into a set of document keys. */
   fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
     let documentChanges = documentKeySet();
 
