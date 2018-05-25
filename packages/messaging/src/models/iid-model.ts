@@ -15,6 +15,7 @@
  */
 
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
+import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { ERROR_CODES, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
@@ -42,7 +43,12 @@ export class IidModel {
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
 
-    if (publicVapidKey !== DEFAULT_PUBLIC_VAPID_KEY) {
+    if (
+      !isArrayBufferEqual(
+        publicVapidKey.buffer,
+        DEFAULT_PUBLIC_VAPID_KEY.buffer
+      )
+    ) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
     }
@@ -110,7 +116,12 @@ export class IidModel {
       `encryption_key=${p256dh}&` +
       `encryption_auth=${auth}`;
 
-    if (publicVapidKey !== DEFAULT_PUBLIC_VAPID_KEY) {
+    if (
+      !isArrayBufferEqual(
+        publicVapidKey.buffer,
+        DEFAULT_PUBLIC_VAPID_KEY.buffer
+      )
+    ) {
       const applicationPubKey = arrayBufferToBase64(publicVapidKey);
       fcmUpdateBody += `&application_pub_key=${applicationPubKey}`;
     }
