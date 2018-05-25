@@ -391,7 +391,7 @@ declare namespace firebase.auth {
     verifyPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<any>;
+    ): Promise<string>;
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
