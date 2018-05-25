@@ -18,7 +18,6 @@ import { Query } from '../core/query';
 import { documentKeySet, DocumentMap, documentMap } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { fail } from '../util/assert';
 
 import {
   DbRemoteDocument,
@@ -30,7 +29,7 @@ import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore } from './simple_db';
 import { SnapshotVersion } from '../core/snapshot_version';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
@@ -162,7 +161,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
     DbRemoteDocument.store
   );
@@ -174,26 +173,11 @@ function remoteDocumentsStore(
 function documentChangesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentChangesKey, DbDocumentChanges> {
-  return getStore<DbDocumentChangesKey, DbDocumentChanges>(
+  return SimpleDb.getStore<DbDocumentChangesKey, DbDocumentChanges>(
     txn,
     DbDocumentChanges.store
   );
 }
-
-/**
- * Helper to get a typed SimpleDbStore from a transaction.
- */
-function getStore<KeyType extends IDBValidKey, ValueType>(
-  txn: PersistenceTransaction,
-  store: string
-): SimpleDbStore<KeyType, ValueType> {
-  if (txn instanceof SimpleDbTransaction) {
-    return txn.store<KeyType, ValueType>(store);
-  } else {
-    return fail('Invalid transaction object provided!');
-  }
-}
-
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
   return docKey.path.toArray();
 }
