@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 
 import * as EncodedResourcePath from './encoded_resource_path';
@@ -38,7 +38,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore } from './simple_db';
 import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class IndexedDbQueryCache implements QueryCache {
@@ -358,7 +358,7 @@ export class IndexedDbQueryCache implements QueryCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
+  return SimpleDb.getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
 }
 
 /**
@@ -367,7 +367,10 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return getStore<DbTargetGlobalKey, DbTargetGlobal>(txn, DbTargetGlobal.store);
+  return SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
+    txn,
+    DbTargetGlobal.store
+  );
 }
 
 /**
@@ -376,22 +379,8 @@ function globalTargetStore(
 function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return getStore<DbTargetDocumentKey, DbTargetDocument>(
+  return SimpleDb.getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
     DbTargetDocument.store
   );
-}
-
-/**
- * Helper to get a typed SimpleDbStore from a transaction.
- */
-function getStore<KeyType extends IDBValidKey, ValueType>(
-  txn: PersistenceTransaction,
-  store: string
-): SimpleDbStore<KeyType, ValueType> {
-  if (txn instanceof SimpleDbTransaction) {
-    return txn.store<KeyType, ValueType>(store);
-  } else {
-    return fail('Invalid transaction object provided!');
-  }
 }
