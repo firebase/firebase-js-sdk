@@ -36,7 +36,7 @@ export interface RemoteDocumentCache {
    *
    * Reads the ID of the last  document change from the documentChanges store.
    * Existing changes will not be returned as part of
-   * `getNextDocumentChanges()`.
+   * `getNewDocumentChanges()`.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   start(transaction: PersistenceTransaction): PersistencePromise<void>;
@@ -99,7 +99,7 @@ export interface RemoteDocumentCache {
    * initialization.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
-  getNextDocumentChanges(
+  getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocument[]>;
 }

@@ -83,7 +83,7 @@ function genericRemoteDocumentCacheTests(): void {
       });
   }
 
-  function assertMatches<V>(
+  function assertMatches(
     expected: MaybeDocument[],
     actual: MaybeDocument[]
   ): void {

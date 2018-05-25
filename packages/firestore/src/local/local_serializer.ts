@@ -95,10 +95,10 @@ export class LocalSerializer {
   /*
    * Encodes a set of document keys into an array of EncodedResourcePaths.
    */
-  toDbResourcePaths(changes: DocumentKeySet): EncodedResourcePath[] {
+  toDbResourcePaths(keys: DocumentKeySet): EncodedResourcePath[] {
     const encodedKeys: EncodedResourcePath[] = [];
 
-    changes.forEach(key => {
+    keys.forEach(key => {
       encodedKeys.push(encode(key.path));
     });
 
@@ -107,15 +107,13 @@ export class LocalSerializer {
 
   /** Decodes an array of EncodedResourcePaths into a set of document keys. */
   fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
-    let documentChanges = documentKeySet();
+    let keys = documentKeySet();
 
     for (const documentKey of encodedPaths) {
-      documentChanges = documentChanges.add(
-        new DocumentKey(decode(documentKey))
-      );
+      keys = keys.add(new DocumentKey(decode(documentKey)));
     }
 
-    return documentChanges;
+    return keys;
   }
 
   /** Decodes a DbTarget into QueryData */

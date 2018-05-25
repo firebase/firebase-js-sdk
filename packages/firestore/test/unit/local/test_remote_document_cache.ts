@@ -70,7 +70,7 @@ export class TestRemoteDocumentCache {
       'getNextDocumentChanges',
       true,
       txn => {
-        return this.cache.getNextDocumentChanges(txn);
+        return this.cache.getNewDocumentChanges(txn);
       }
     );
   }

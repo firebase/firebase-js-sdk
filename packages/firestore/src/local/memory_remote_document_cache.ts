@@ -31,14 +31,12 @@ import { SnapshotVersion } from '../core/snapshot_version';
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();
-  private nextDocumentChanges = documentKeySet();
+  private newDocumentChanges = documentKeySet();
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Technically a no-op but we clear the set of changed documents to mimic
     // the behavior of the IndexedDb counterpart.
-    //
-    // This is for testing only.
-    this.nextDocumentChanges = documentKeySet();
+    this.newDocumentChanges = documentKeySet();
     return PersistencePromise.resolve();
   }
 
@@ -48,9 +46,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<void> {
     for (const maybeDocument of maybeDocuments) {
       this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
-      this.nextDocumentChanges = this.nextDocumentChanges.add(
-        maybeDocument.key
-      );
+      this.newDocumentChanges = this.newDocumentChanges.add(maybeDocument.key);
     }
     return PersistencePromise.resolve();
   }
@@ -92,19 +88,19 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getNextDocumentChanges(
+  getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocument[]> {
     const changedDocs: MaybeDocument[] = [];
 
-    this.nextDocumentChanges.forEach(key => {
+    this.newDocumentChanges.forEach(key => {
       changedDocs.push(
         this.docs.get(key) ||
           new NoDocument(key, SnapshotVersion.forDeletedDoc())
       );
     });
 
-    this.nextDocumentChanges = documentKeySet();
+    this.newDocumentChanges = documentKeySet();
 
     return PersistencePromise.resolve(changedDocs);
   }
