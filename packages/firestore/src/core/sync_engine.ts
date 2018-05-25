@@ -693,6 +693,5 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.queryViewsByTarget[targetId]
       ? this.queryViewsByTarget[targetId].view.syncedDocuments
       : documentKeySet();
-
   }
 }
