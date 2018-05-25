@@ -37,12 +37,40 @@ const plugins = [
   commonjs()
 ];
 
-const external = Object.keys(pkg.dependencies || {});
+const external = [...Object.keys(pkg.dependencies || {}), 'rxjs/operators'];
 
 /**
  * Global UMD Build
  */
 const GLOBAL_NAME = 'rxfire';
+
+const coreBuild = [
+  /**
+   * App Browser Builds
+   */
+  {
+    input: './index.ts',
+    output: [
+      { file: resolve('.', pkg.main), format: 'cjs' },
+      { file: resolve('.', pkg.module), format: 'es' }
+    ],
+    plugins,
+    external
+  },
+  /**
+   * App UMD Builds
+   */
+  {
+    input: './index.ts',
+    output: {
+      file: 'rxfire.js',
+      sourcemap: true,
+      format: 'umd',
+      name: GLOBAL_NAME
+    },
+    plugins: [...plugins, uglify()]
+  }
+];
 
 const components = [
   'auth',
@@ -70,11 +98,13 @@ const componentBuilds = components
           extend: true,
           name: GLOBAL_NAME,
           globals: {
-            'rxfire': GLOBAL_NAME
+            'rxfire': GLOBAL_NAME,
+            'rxjs': 'rxjs',
+            'rxjs/operators': 'rxjs.operators'
           }
         },
         plugins: [...plugins, uglify()],
-        external: ['firebase', 'rxjs']
+        external: ['firebase', 'rxjs', 'rxjs/operators']
       }
     ];
   })
@@ -125,4 +155,4 @@ const completeBuilds = [
   }
 ];
 
-export default [...componentBuilds ];
+export default [ ...coreBuild, ...componentBuilds ];
