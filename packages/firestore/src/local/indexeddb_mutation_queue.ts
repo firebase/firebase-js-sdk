@@ -40,7 +40,7 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore } from './simple_db';
 import { DocumentKeySet } from '../model/collections';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
@@ -603,7 +603,7 @@ function convertStreamToken(token: ProtoByteString): string {
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return getStore<DbMutationBatchKey, DbMutationBatch>(
+  return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
     txn,
     DbMutationBatch.store
   );
@@ -615,7 +615,7 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return getStore<DbDocumentMutationKey, DbDocumentMutation>(
+  return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
     txn,
     DbDocumentMutation.store
   );
@@ -627,22 +627,8 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return getStore<DbMutationQueueKey, DbMutationQueue>(
+  return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
     txn,
     DbMutationQueue.store
   );
-}
-
-/**
- * Helper to get a typed SimpleDbStore from a transaction.
- */
-function getStore<KeyType extends IDBValidKey, ValueType>(
-  txn: PersistenceTransaction,
-  store: string
-): SimpleDbStore<KeyType, ValueType> {
-  if (txn instanceof SimpleDbTransaction) {
-    return txn.store<KeyType, ValueType>(store);
-  } else {
-    return fail('Invalid transaction object provided!');
-  }
 }
