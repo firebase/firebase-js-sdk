@@ -121,8 +121,12 @@ class TargetState {
   private _resumeToken: ProtoByteString = emptyByteString();
   private _current = false;
 
-  /** Whether this target state should be include in the next snapshot. */
-  private _hasPendingChanges = true; // Raise a snapshot for a new target state
+  /**
+   * Whether this target state should be included in the next snapshot. We
+   * initialize to true so that newly-added targets are included in the next
+   * RemoteEvent.
+   */
+  private _hasPendingChanges = true;
 
   /**
    * Whether this target has been marked 'current'.
@@ -402,11 +406,6 @@ export class WatchChangeAggregator {
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
       const queryData = this.queryDataForActiveTarget(targetId);
       if (queryData) {
-        if (targetState.hasPendingChanges) {
-          targetChanges[targetId] = targetState.toTargetChange();
-          targetState.clearPendingChanges();
-        }
-
         if (targetState.current && queryData.query.isDocumentQuery()) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
@@ -428,6 +427,11 @@ export class WatchChangeAggregator {
               new NoDocument(key, snapshotVersion)
             );
           }
+        }
+
+        if (targetState.hasPendingChanges) {
+          targetChanges[targetId] = targetState.toTargetChange();
+          targetState.clearPendingChanges();
         }
       }
     });
@@ -531,7 +535,7 @@ export class WatchChangeAggregator {
       this.ensureDocumentTargetMapping(key).delete(targetId)
     );
 
-    if (updatedDocument && !this.pendingDocumentUpdates.get(key)) {
+    if (updatedDocument) {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
         key,
         updatedDocument
