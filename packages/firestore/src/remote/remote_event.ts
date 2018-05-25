@@ -38,7 +38,7 @@ export class RemoteEvent {
      * A set of targets that is known to be inconsistent. Listens for these
      * targets should be re-established without resume tokens.
      */
-    readonly targetResets: SortedSet<TargetId>,
+    readonly targetMismatches: SortedSet<TargetId>,
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).

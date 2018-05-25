@@ -356,7 +356,6 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  // Handle existence filters and existence filter mismatches.
   /**
    * Takes a batch of changes from the Datastore, repackages them as a
    * RemoteEvent, and passes that on to the listener, which is typically the
@@ -371,8 +370,7 @@ export class RemoteStore implements TargetMetadataProvider {
       snapshotVersion
     );
 
-    // Update in-memory resume tokens and re-issue queries that have been
-    // invalidated by existence filters. LocalStore will update the
+    // Update in-memory resume tokens. LocalStore will update the
     // persistent view of these when applying the completed RemoteEvent.
     objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
       if (change.resumeToken.length > 0) {
@@ -389,7 +387,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // Re-establish listens for the targets that have been invalidated by
     // existence filter mismatches.
-    remoteEvent.targetResets.forEach(targetId => {
+    remoteEvent.targetMismatches.forEach(targetId => {
       const queryData = this.listenTargets[targetId];
       if (!queryData) {
         // A watched target might have been removed already.
@@ -400,9 +398,8 @@ export class RemoteStore implements TargetMetadataProvider {
       // state.
       queryData.resumeToken = emptyByteString();
 
-      // Cause a hard reset by unwatching and rewatching  immediately, but
+      // Cause a hard reset by unwatching and rewatching immediately, but
       // deliberately don't send a resume token so that we get a full update.
-      // Make sure we expect that this acks are going to happen.
       this.sendUnwatchRequest(targetId);
 
       // Mark the query we send as being on behalf of an existence filter
@@ -431,6 +428,7 @@ export class RemoteStore implements TargetMetadataProvider {
         // A watched target might have been removed already.
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
+          this.watchChangeAggregator.removeTarget(targetId);
           return this.syncEngine.rejectListen(targetId, error);
         }
       });

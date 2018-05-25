@@ -51,6 +51,29 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, { added: [docB] });
   });
 
+  specTest("Doesn't raise events for empty target", [], () => {
+    const query1 = Query.atPath(path('collection1'));
+    const query2 = Query.atPath(path('collection2'));
+    const query3 = Query.atPath(path('collection3'));
+    const docA = doc('collection2/a', 1000, { key: 'a' });
+    return (
+      spec()
+        .userListens(query1)
+        .userListens(query2)
+        .userListens(query3)
+        .watchAcks(query1)
+        .watchCurrents(query1, 'resume-token-1000')
+        .watchAcks(query2)
+        .watchSends({ affects: [query2] }, docA)
+        .watchAcks(query3)
+        .watchSnapshots(1000)
+        // The event for query3 is filtered since we did not receive any
+        // document updates or state changes.
+        .expectEvents(query1, {})
+        .expectEvents(query2, { added: [docA], fromCache: true })
+    );
+  });
+
   specTest(
     'Ensure correct query results with latency-compensated deletes',
     [],

@@ -41,6 +41,7 @@ import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
+import { emptyByteString } from '../../../src/platform/platform';
 
 type TargetMap = {
   [targetId: number]: QueryData;
@@ -458,7 +459,7 @@ describe('RemoteEvent', () => {
 
     event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(0);
-    expect(event.targetResets.size).to.equal(1);
+    expect(event.targetMismatches.size).to.equal(1);
     expect(size(event.targetChanges)).to.equal(1);
 
     const expected = updateMapping(SnapshotVersion.MIN, [], [], [doc1], false);
@@ -469,13 +470,20 @@ describe('RemoteEvent', () => {
     const targets = listens(1);
 
     const doc1 = doc('docs/1', 1, { value: 1 });
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const addDoc = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const markCurrent = new WatchTargetChange(
+      WatchTargetChangeState.Current,
+      [1],
+      emptyByteString()
+    );
 
     const aggregator = createAggregator({
       snapshotVersion: 3,
       targets
     });
-    aggregator.handleDocumentChange(change1);
+
+    aggregator.handleTargetChange(markCurrent);
+    aggregator.handleDocumentChange(addDoc);
 
     // The existence filter mismatch will clear the previous target mapping,
     // but not synthesize a document delete.
@@ -485,8 +493,8 @@ describe('RemoteEvent', () => {
 
     const event = aggregator.createRemoteEvent(version(3));
     expect(event.documentUpdates.size).to.equal(1);
-    expect(event.targetResets.size).to.equal(1);
-    expect(size(event.targetChanges)).to.equal(0);
+    expect(event.targetMismatches.size).to.equal(1);
+    expect(event.targetChanges[1].current).to.be.false;
   });
 
   it('handles document update', () => {

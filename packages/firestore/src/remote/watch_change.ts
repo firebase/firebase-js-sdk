@@ -112,7 +112,7 @@ class TargetState {
    * These changes are continuously updated as we receive document updates and
    * always reflect the current set of changes against the last issued snapshot.
    */
-  private snapshotChanges: SortedMap<
+  private documentChanges: SortedMap<
     DocumentKey,
     ChangeType
   > = snapshotChangesMap();
@@ -122,7 +122,7 @@ class TargetState {
   private _current = false;
 
   /** Whether this target state should be include in the next snapshot. */
-  private _hasPendingChanges = false;
+  private _hasPendingChanges = true; // Raise a snapshot for a new target state
 
   /**
    * Whether this target has been marked 'current'.
@@ -173,7 +173,7 @@ class TargetState {
     let modifiedDocuments = documentKeySet();
     let removedDocuments = documentKeySet();
 
-    this.snapshotChanges.forEach((key, changeType) => {
+    this.documentChanges.forEach((key, changeType) => {
       switch (changeType) {
         case ChangeType.Added:
           addedDocuments = addedDocuments.add(key);
@@ -203,17 +203,17 @@ class TargetState {
    */
   clearPendingChanges(): void {
     this._hasPendingChanges = false;
-    this.snapshotChanges = snapshotChangesMap();
+    this.documentChanges = snapshotChangesMap();
   }
 
   addDocumentChange(key: DocumentKey, changeType: ChangeType): void {
     this._hasPendingChanges = true;
-    this.snapshotChanges = this.snapshotChanges.insert(key, changeType);
+    this.documentChanges = this.documentChanges.insert(key, changeType);
   }
 
   removeDocumentChange(key: DocumentKey): void {
     this._hasPendingChanges = true;
-    this.snapshotChanges = this.snapshotChanges.remove(key);
+    this.documentChanges = this.documentChanges.remove(key);
   }
 
   recordPendingTargetRequest(): void {
@@ -320,7 +320,7 @@ export class WatchChangeAggregator {
           // for this targetId.
           targetState.recordTargetResponse();
           if (!targetState.isPending) {
-            delete this.targetStates[targetId];
+            this.removeTarget(targetId);
           }
           assert(
             !targetChange.cause,
@@ -422,15 +422,11 @@ export class WatchChangeAggregator {
             this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)
           ) {
-            this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
+            this.removeDocumentFromTarget(
+              targetId,
               key,
               new NoDocument(key, snapshotVersion)
             );
-
-            // While we don't add the document to a target, we potentially
-            // need to mark it as a resolved limbo key. This requires us
-            // to add the document to the list of document target mappings.
-            this.ensureDocumentTargetMapping(key);
           }
         }
       }
@@ -535,12 +531,16 @@ export class WatchChangeAggregator {
       this.ensureDocumentTargetMapping(key).delete(targetId)
     );
 
-    if (updatedDocument) {
+    if (updatedDocument && !this.pendingDocumentUpdates.get(key)) {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
         key,
         updatedDocument
       );
     }
+  }
+
+  removeTarget(targetId: TargetId): void {
+    delete this.targetStates[targetId];
   }
 
   /**
@@ -604,8 +604,8 @@ export class WatchChangeAggregator {
    * is still interested in that has no outstanding target change requests).
    */
   protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
-    const targetState = this.ensureTargetState(targetId);
-    return targetState.isPending
+    const targetState = this.targetStates[targetId];
+    return targetState && targetState.isPending
       ? null
       : this.metadataProvider.getQueryDataForTarget(targetId);
   }
@@ -620,7 +620,7 @@ export class WatchChangeAggregator {
       !this.targetStates[targetId].isPending,
       'Should only reset active targets'
     );
-    delete this.targetStates[targetId];
+    this.targetStates[targetId] = new TargetState();
 
     // Trigger removal for any documents currently mapped to this target.
     // These removals will be part of the initial snapshot if Watch does not

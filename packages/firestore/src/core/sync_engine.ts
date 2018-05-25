@@ -351,7 +351,7 @@ export class SyncEngine implements RemoteSyncer {
       const event = new RemoteEvent(
         SnapshotVersion.MIN,
         /* targetChanges= */ {},
-        /* targetResets= */ new SortedSet<TargetId>(primitiveComparator),
+        /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
         documentUpdates,
         resolvedLimboDocuments
       );
