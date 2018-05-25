@@ -21,7 +21,6 @@ import { ChangeType } from '../../../src/core/view_snapshot';
 import { documentKeySet } from '../../../src/model/collections';
 import {
   ackTarget,
-  addTargetMapping,
   applyDocChanges,
   doc,
   documentSetAsArray,
@@ -30,7 +29,9 @@ import {
   keySet,
   limboChanges,
   orderBy,
-  path
+  path,
+  updateMapping,
+  version
 } from '../../util/helpers';
 
 describe('View', () => {
@@ -253,13 +254,19 @@ describe('View', () => {
       limboChanges({ added: [doc1] })
     );
 
-    viewChange = view.applyChanges(changes, addTargetMapping(doc1));
+    viewChange = view.applyChanges(
+      changes,
+      updateMapping(version(0), [doc1], [], [], /* current= */ true)
+    );
     expect(viewChange.limboChanges).to.deep.equal(
       limboChanges({ removed: [doc1] })
     );
 
     changes = view.computeDocChanges(documentUpdates(doc2));
-    viewChange = view.applyChanges(changes, addTargetMapping(doc2));
+    viewChange = view.applyChanges(
+      changes,
+      updateMapping(version(0), [doc2], [], [], /* current= */ true)
+    );
     expect(viewChange.limboChanges).to.deep.equal([]);
 
     viewChange = applyDocChanges(view, doc3);
