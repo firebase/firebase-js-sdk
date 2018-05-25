@@ -69,7 +69,7 @@ export function createOrUpgradeDb(
   if (fromVersion < 3 && toVersion >= 3) {
     p = p.next(() => {
       createClientMetadataStore(db);
-      createTargetChangeStore(db);
+      createRemoteDocumentChangesStore(db);
     });
   }
   return p;
@@ -560,43 +560,38 @@ function ensureTargetGlobalExists(
 }
 
 /**
- * An object representing the changes at a particular snapshot version for the
- * given target. This is used to facilitate storing query changelogs in the
- * targetChanges object store.
+ * An object store to store the keys of changed documents. This is used to
+ * facilitate storing document changelogs in the Remote Document Cache.
  *
  * PORTING NOTE: This is used for change propagation during multi-tab syncing
  * and not needed on iOS and Android.
  */
-export class DbTargetChange {
+export class DbRemoteDocumentChanges {
   /** Name of the IndexedDb object store.  */
-  static store = 'targetChanges';
+  static store = 'remoteDocumentChanges';
 
-  /** Keys are automatically assigned via the targetId and snapshotVersion. */
-  static keyPath = ['targetId', 'snapshotVersion'];
+  /** Keys are auto-generated via the `id` property. */
+  static keyPath = 'id';
+
+  /** The auto-generated key of this entry. */
+  id?: number;
 
   constructor(
-    /**
-     * The targetId identifying a target.
-     */
-    public targetId: TargetId,
-    /**
-     * The snapshot version for this change.
-     */
-    public snapshotVersion: DbTimestamp,
-    /**
-     * The keys of the changed documents in this snapshot.
-     */
-    public changes: {
-      added?: EncodedResourcePath[];
-      modified?: EncodedResourcePath[];
-      removed?: EncodedResourcePath[];
-    }
+    /** The keys of the changed documents. */
+    public changes: EncodedResourcePath[]
   ) {}
 }
 
-function createTargetChangeStore(db: IDBDatabase): void {
-  db.createObjectStore(DbTargetChange.store, {
-    keyPath: DbTargetChange.keyPath as KeyPath
+/*
+ * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
+ * number.
+*/
+export type DbRemoteDocumentChangesKey = number;
+
+function createRemoteDocumentChangesStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentChanges.store, {
+    keyPath: 'id',
+    autoIncrement: true
   });
 }
 
@@ -651,7 +646,7 @@ export const V2_STORES = V1_STORES;
 export const V3_STORES = [
   ...V2_STORES,
   DbClientMetadata.store,
-  DbTargetChange.store
+  DbRemoteDocumentChanges.store
 ];
 
 /**

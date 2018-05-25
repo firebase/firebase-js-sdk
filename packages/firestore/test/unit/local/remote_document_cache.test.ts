@@ -19,7 +19,14 @@ import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { MaybeDocument } from '../../../src/model/document';
-import { deletedDoc, doc, expectEqual, key, path } from '../../util/helpers';
+import {
+  deletedDoc,
+  doc,
+  expectEqual,
+  key,
+  path,
+  removedDoc
+} from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
@@ -67,7 +74,7 @@ function genericRemoteDocumentCacheTests(): void {
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
     return cache
-      .addEntry(doc)
+      .addEntries([doc])
       .then(() => {
         return cache.getEntry(doc.key);
       })
@@ -76,11 +83,31 @@ function genericRemoteDocumentCacheTests(): void {
       });
   }
 
+  function assertMatches(
+    expected: MaybeDocument[],
+    actual: MaybeDocument[]
+  ): void {
+    expect(actual.length).to.equal(expected.length);
+    actual.forEach(actualDoc => {
+      const found = expected.find(expectedDoc => {
+        if (actualDoc.key.isEqual(expectedDoc.key)) {
+          expectEqual(actualDoc, expectedDoc);
+          return true;
+        }
+        return false;
+      });
+
+      expect(found).to.not.be.undefined;
+    });
+  }
+
   beforeEach(() => {
     cache = new TestRemoteDocumentCache(
       persistence,
       persistence.getRemoteDocumentCache()
     );
+
+    return cache.start();
   });
 
   it('returns null for document not in cache', () => {
@@ -102,14 +129,14 @@ function genericRemoteDocumentCacheTests(): void {
   });
 
   it('can set document to new value', () => {
-    return cache.addEntry(doc(DOC_PATH, VERSION, DOC_DATA)).then(() => {
+    return cache.addEntries([doc(DOC_PATH, VERSION, DOC_DATA)]).then(() => {
       return setAndReadDocument(doc(DOC_PATH, VERSION + 1, { data: 2 }));
     });
   });
 
   it('can remove document', () => {
     return cache
-      .addEntry(doc(DOC_PATH, VERSION, DOC_DATA))
+      .addEntries([doc(DOC_PATH, VERSION, DOC_DATA)])
       .then(() => {
         return cache.removeEntry(key(DOC_PATH));
       })
@@ -126,26 +153,78 @@ function genericRemoteDocumentCacheTests(): void {
     return cache.removeEntry(key(DOC_PATH));
   });
 
-  it('can get documents matching query', () => {
+  it('can get documents matching query', async () => {
     // TODO(mikelehen): This just verifies that we do a prefix scan against the
     // query path. We'll need more tests once we add index support.
-    return cache
-      .addEntry(doc('a/1', VERSION, DOC_DATA))
-      .then(() => cache.addEntry(doc('b/1', VERSION, DOC_DATA)))
-      .then(() => cache.addEntry(doc('b/2', VERSION, DOC_DATA)))
-      .then(() => cache.addEntry(doc('c/1', VERSION, DOC_DATA)))
-      .then(() => {
-        const query = new Query(path('b'));
-        return cache.getDocumentsMatchingQuery(query).then(results => {
-          const expected = [
-            doc('b/1', VERSION, DOC_DATA),
-            doc('b/2', VERSION, DOC_DATA)
-          ];
-          expect(results.size).to.equal(expected.length);
-          results.forEach((key, doc) => {
-            expectEqual(doc, expected.shift());
-          });
-        });
-      });
+    await cache.addEntries([
+      doc('a/1', VERSION, DOC_DATA),
+      doc('b/1', VERSION, DOC_DATA),
+      doc('b/2', VERSION, DOC_DATA),
+      doc('c/1', VERSION, DOC_DATA)
+    ]);
+
+    const query = new Query(path('b'));
+    const matchingDocs: MaybeDocument[] = [];
+
+    (await cache.getDocumentsMatchingQuery(query)).forEach((key, doc) => {
+      matchingDocs.push(doc);
+    });
+
+    assertMatches(
+      [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
+      matchingDocs
+    );
+  });
+
+  it('can get changes', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('b/1', 2, DOC_DATA),
+      doc('b/2', 2, DOC_DATA),
+      doc('a/1', 3, DOC_DATA)
+    ]);
+
+    let changedDocs = await cache.getNextDocumentChanges();
+    assertMatches(
+      [
+        doc('a/1', 3, DOC_DATA),
+        doc('b/1', 2, DOC_DATA),
+        doc('b/2', 2, DOC_DATA)
+      ],
+      changedDocs
+    );
+
+    await cache.addEntries([doc('c/1', 3, DOC_DATA)]);
+    changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
+  });
+
+  it('can get empty changes', async () => {
+    const changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([], changedDocs);
+  });
+
+  it('can get missing documents in changes', async () => {
+    await cache.addEntries([
+      doc('a/1', 1, DOC_DATA),
+      doc('a/2', 2, DOC_DATA),
+      doc('a/3', 3, DOC_DATA)
+    ]);
+    await cache.removeEntry(key('a/2'));
+
+    const changedDocs = await cache.getNextDocumentChanges();
+    assertMatches(
+      [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
+      changedDocs
+    );
+  });
+
+  it('start() skips previous changes', async () => {
+    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
+
+    await cache.start();
+
+    const changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([], changedDocs);
   });
 }

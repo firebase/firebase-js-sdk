@@ -31,9 +31,15 @@ export class TestRemoteDocumentCache {
     public cache: RemoteDocumentCache
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument): Promise<void> {
+  start(): Promise<void> {
+    return this.persistence.runTransaction('start', true, txn => {
+      return this.cache.start(txn);
+    });
+  }
+
+  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
     return this.persistence.runTransaction('addEntry', true, txn => {
-      return this.cache.addEntry(txn, maybeDocument);
+      return this.cache.addEntries(txn, maybeDocuments);
     });
   }
 
@@ -55,6 +61,16 @@ export class TestRemoteDocumentCache {
       true,
       txn => {
         return this.cache.getDocumentsMatchingQuery(txn, query);
+      }
+    );
+  }
+
+  getNextDocumentChanges(): Promise<MaybeDocument[]> {
+    return this.persistence.runTransaction(
+      'getNextDocumentChanges',
+      true,
+      txn => {
+        return this.cache.getNewDocumentChanges(txn);
       }
     );
   }
