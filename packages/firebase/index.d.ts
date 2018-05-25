@@ -46,12 +46,16 @@ declare namespace firebase {
     linkAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
     ): Promise<firebase.auth.UserCredential>;
-    linkWithCredential(credential: firebase.auth.AuthCredential): Promise<firebase.User>;
+    linkWithCredential(
+      credential: firebase.auth.AuthCredential
+    ): Promise<firebase.User>;
     linkWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
-    linkWithPopup(provider: firebase.auth.AuthProvider): Promise<firebase.auth.UserCredential>;
+    linkWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
     phoneNumber: string | null;
@@ -66,7 +70,9 @@ declare namespace firebase {
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
-    reauthenticateWithPopup(provider: firebase.auth.AuthProvider): Promise<firebase.auth.UserCredential>;
+    reauthenticateWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
     reauthenticateWithRedirect(
       provider: firebase.auth.AuthProvider
     ): Promise<void>;
@@ -253,8 +259,13 @@ declare namespace firebase.auth {
       credential: firebase.auth.AuthCredential
     ): Promise<firebase.User>;
     signInWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
-    signInAndRetrieveDataWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
-    signInWithEmailAndPassword(email: string, password: string): Promise<firebase.auth.UserCredential>;
+    signInAndRetrieveDataWithCustomToken(
+      token: string
+    ): Promise<firebase.auth.UserCredential>;
+    signInWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<firebase.auth.UserCredential>;
     signInAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
@@ -263,8 +274,13 @@ declare namespace firebase.auth {
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
-    signInWithEmailLink(email: string, emailLink?: string): Promise<firebase.auth.UserCredential>;
-    signInWithPopup(provider: firebase.auth.AuthProvider): Promise<firebase.auth.UserCredential>;
+    signInWithEmailLink(
+      email: string,
+      emailLink?: string
+    ): Promise<firebase.auth.UserCredential>;
+    signInWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     signOut(): Promise<void>;
     updateCurrentUser(user: firebase.User | null): Promise<void>;

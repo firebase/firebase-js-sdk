@@ -23,7 +23,9 @@ export interface User extends UserInfo {
   getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
   getIdToken(forceRefresh?: boolean): Promise<string>;
   isAnonymous: boolean;
-  linkAndRetrieveDataWithCredential(credential: AuthCredential): Promise<UserCredential>;
+  linkAndRetrieveDataWithCredential(
+    credential: AuthCredential
+  ): Promise<UserCredential>;
   linkWithCredential(credential: AuthCredential): Promise<User>;
   linkWithPhoneNumber(
     phoneNumber: string,
@@ -261,7 +263,10 @@ export class FirebaseAuth {
   applyActionCode(code: string): Promise<void>;
   checkActionCode(code: string): Promise<ActionCodeInfo>;
   confirmPasswordReset(code: string, newPassword: string): Promise<void>;
-  createUserWithEmailAndPassword(email: string, password: string): Promise<UserCredential>;
+  createUserWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<UserCredential>;
   createUserAndRetrieveDataWithEmailAndPassword(
     email: string,
     password: string
@@ -292,18 +297,26 @@ export class FirebaseAuth {
     actionCodeSettings?: ActionCodeSettings | null
   ): Promise<void>;
   setPersistence(persistence: Persistence): Promise<void>;
-  signInAndRetrieveDataWithCredential(credential: AuthCredential): Promise<UserCredential>;
+  signInAndRetrieveDataWithCredential(
+    credential: AuthCredential
+  ): Promise<UserCredential>;
   signInAnonymously(): Promise<UserCredential>;
   signInAnonymouslyAndRetrieveData(): Promise<UserCredential>;
   signInWithCredential(credential: AuthCredential): Promise<User>;
   signInWithCustomToken(token: string): Promise<UserCredential>;
   signInAndRetrieveDataWithCustomToken(token: string): Promise<UserCredential>;
-  signInWithEmailAndPassword(email: string, password: string): Promise<UserCredential>;
+  signInWithEmailAndPassword(
+    email: string,
+    password: string
+  ): Promise<UserCredential>;
   signInAndRetrieveDataWithEmailAndPassword(
     email: string,
     password: string
   ): Promise<UserCredential>;
-  signInWithEmailLink(email: string, emailLink?: string): Promise<UserCredential>;
+  signInWithEmailLink(
+    email: string,
+    emailLink?: string
+  ): Promise<UserCredential>;
   signInWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
