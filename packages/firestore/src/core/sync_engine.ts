@@ -60,7 +60,10 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { SharedClientStateSyncer } from '../local/shared_client_state_syncer';
+import {
+  SharedClientStateSyncer,
+  QueryTargetState
+} from '../local/shared_client_state_syncer';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
 
@@ -665,6 +668,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   getActiveClients(): Promise<ClientId[]> {
     return this.localStore.getActiveClients();
+  }
+
+  // PORTING NOTE: Multi-tab only
+  applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
+  ): Promise<void> {
+    // TODO(multitab): Implement this
+    return Promise.resolve();
   }
 
   async enableNetwork(): Promise<void> {

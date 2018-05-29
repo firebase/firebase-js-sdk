@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-import { BatchId, MutationBatchState } from '../core/types';
+import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
 import { ClientId } from './shared_client_state';
+
+/** The different states of a watch target. */
+export type QueryTargetState = 'pending' | 'active' | 'inactive' | 'rejected';
 
 /**
  * An interface that describes the actions the SharedClientState class needs to
@@ -32,6 +35,13 @@ export interface SharedClientStateSyncer {
   applyBatchState(
     batchId: BatchId,
     state: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void>;
+
+  /** Applies a query target change from a different tab. */
+  applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void>;
 
