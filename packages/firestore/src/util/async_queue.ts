@@ -263,7 +263,7 @@ export class AsyncQueue {
     if (this.failure) {
       fail(
         'AsyncQueue is already failed: ' +
-          (this.failure.stack || this.failure.message)
+          (this.failure.message || this.failure.stack)
       );
     }
   }

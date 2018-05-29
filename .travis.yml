@@ -32,7 +32,7 @@ matrix:
 
 jobs:
   allow_failures:
-    - script: yarn test:saucelabs --database-firestore-only
+    - script: yarn test:saucelabs --database-only
   include:
     - stage: test
       script: xvfb-run yarn test
@@ -40,11 +40,11 @@ jobs:
       env: '#= chrome headless test'
     - stage: test
       script: yarn test:saucelabs
-      env: '#= cross browser test: all packages except database and firestore'
+      env: '#= cross browser test: all packages except database'
       if: type = push
     - stage: test
-      script: yarn test:saucelabs --database-firestore-only
-      env: '#= cross browser test: database and firestore (allow_failures)'
+      script: yarn test:saucelabs --database-only
+      env: '#= cross browser test: database (allow_failures)'
       if: type = push
     - stage: deploy
       script: skip

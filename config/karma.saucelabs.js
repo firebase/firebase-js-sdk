@@ -27,13 +27,12 @@ const karmaBase = require('./karma.base');
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = argv['database-firestore-only']
-    ? glob.sync('packages/{database,firestore}/karma.conf.js')
+  configs = argv['database-only']
+    ? glob.sync('packages/database/karma.conf.js')
     : glob.sync('{packages,integration}/*/karma.conf.js', {
         // Excluded due to flakiness or long run time.
         ignore: [
           'packages/database/*',
-          'packages/firestore/*',
           'integration/firestore/*',
           'integration/messaging/*'
         ]
