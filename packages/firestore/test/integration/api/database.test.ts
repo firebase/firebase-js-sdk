@@ -195,7 +195,10 @@ apiDescribe('Database', persistence => {
       const mergeData = {
         foo: firebase.firestore.FieldValue.delete(),
         inner: { foo: firebase.firestore.FieldValue.delete() },
-        nested: { untouched: firebase.firestore.FieldValue.delete(), foo: firebase.firestore.FieldValue.delete() }
+        nested: {
+          untouched: firebase.firestore.FieldValue.delete(),
+          foo: firebase.firestore.FieldValue.delete()
+        }
       };
       const finalData = {
         untouched: true,
