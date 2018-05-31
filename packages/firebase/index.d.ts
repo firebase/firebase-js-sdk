@@ -2042,3 +2042,4 @@ declare namespace firebase.firestore {
 }
 
 export = firebase;
+export as namespace firebase;
