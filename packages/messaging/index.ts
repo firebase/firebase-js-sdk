@@ -85,6 +85,7 @@ export function isSupported(): boolean {
  */
 function isWindowControllerSupported(): boolean {
   return (
+    navigator.cookieEnabled &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
     'Notification' in window &&
