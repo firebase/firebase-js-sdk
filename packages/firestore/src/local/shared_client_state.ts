@@ -118,12 +118,12 @@ export interface SharedClientState {
   /**
    * Records that a query target has been updated.
    *
-   * Called by the primary client to notify secondary clients of updates to
-   * existing watch targets.
+   * Called by the primary client to notify secondary clients of document
+   * changes or state transitions for the provided query target.
    */
   trackQueryUpdate(
     targetId: TargetId,
-    state: 'active' | 'inactive' | 'rejected',
+    state: 'active' | 'current' | 'rejected',
     error?: FirestoreError
   ): void;
 
@@ -289,7 +289,7 @@ export class QueryTargetMetadata {
     let validData =
       typeof targetState === 'object' &&
       isSafeInteger(targetState.lastUpdateTime) &&
-      ['pending', 'active', 'inactive', 'rejected'].indexOf(
+      ['pending', 'active', 'current', 'rejected'].indexOf(
         targetState.state
       ) !== -1 &&
       (targetState.error === undefined ||
@@ -678,7 +678,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   trackQueryUpdate(
     targetId: BatchId,
-    state: 'active' | 'inactive' | 'rejected',
+    state: 'active' | 'current' | 'rejected',
     error?: FirestoreError
   ): void {
     this.persistQueryTargetState(targetId, state, error);
@@ -954,7 +954,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   trackQueryUpdate(
     targetId: BatchId,
-    state: 'active' | 'inactive' | 'rejected',
+    state: 'active' | 'current' | 'rejected',
     error?: FirestoreError
   ): void {
     // No op.
