@@ -477,7 +477,7 @@ export class SyncEngine implements RemoteSyncer {
       const query = Query.atPath(key.path);
       this.limboKeysByTarget[limboTargetId] = key;
       this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.Listen)
+        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,
