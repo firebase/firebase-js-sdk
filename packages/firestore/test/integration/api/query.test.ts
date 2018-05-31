@@ -25,7 +25,8 @@ import {
   toChangesArray,
   toDataArray,
   withTestCollection,
-  arrayContainsOp
+  arrayContainsOp,
+  isIeOrEdge
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
@@ -575,18 +576,23 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('throws custom error when using docChanges as property', () => {
-    const querySnap = querySnapshot('foo/bar', {}, {}, false, false, false);
+  // On IE, `docChanges.length` cannot be rewritten and using it does not throw
+  // an exception.
+  (isIeOrEdge() ? it.skip : it)(
+    'throws custom error when using docChanges as property',
+    () => {
+      const querySnap = querySnapshot('foo/bar', {}, {}, false, false, false);
 
-    const expectedError =
-      'QuerySnapshot.docChanges has been changed from a property into a method';
+      const expectedError =
+        'QuerySnapshot.docChanges has been changed from a property into a method';
 
-    // tslint:disable-next-line:no-any We are testing invalid API usage.
-    const docChange = querySnap.docChanges as any;
-    expect(() => docChange.length).to.throw(expectedError);
-    expect(() => {
-      for (const _ of docChange) {
-      }
-    }).to.throw(expectedError);
-  });
+      // tslint:disable-next-line:no-any We are testing invalid API usage.
+      const docChange = querySnap.docChanges as any;
+      expect(() => docChange.length).to.throw(expectedError);
+      expect(() => {
+        for (const _ of docChange) {
+        }
+      }).to.throw(expectedError);
+    }
+  );
 });

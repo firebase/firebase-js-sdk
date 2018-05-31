@@ -45,8 +45,8 @@ function getDefaultSettings(): firestore.Settings {
 export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
-function isIeOrEdge(): boolean {
-  if (!window.navigator) {
+export function isIeOrEdge(): boolean {
+  if (typeof window === 'undefined' || !window.navigator) {
     return false;
   }
 
