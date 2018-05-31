@@ -160,25 +160,23 @@ describeSpec('Persistence:', ['persistence'], () => {
       { uid: 'user1' },
       { hasLocalMutations: true }
     );
-    return (
-      spec()
-        .userListens(query)
-        .watchAcksFull(query, 500, existingDoc)
-        .expectEvents(query, { added: [existingDoc] })
-        .userSets('users/anon', { uid: 'anon' })
-        .expectEvents(query, { added: [anonDoc], hasPendingWrites: true })
-        // .changeUser('user1')
-        // // A user change will re-send the query with the current resume token
-        // .expectActiveTargets({ query, resumeToken: 'resume-token-500' })
-        // .expectEvents(query, { removed: [anonDoc] })
-        // .userSets('users/user1', { uid: 'user1' })
-        // .expectEvents(query, { added: [user1Doc], hasPendingWrites: true })
-        // .changeUser(null)
-        // .expectEvents(query, {
-        //   removed: [user1Doc],
-        //   added: [anonDoc],
-        //   hasPendingWrites: true
-        // })
-    );
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 500, existingDoc)
+      .expectEvents(query, { added: [existingDoc] })
+      .userSets('users/anon', { uid: 'anon' })
+      .expectEvents(query, { added: [anonDoc], hasPendingWrites: true });
+    // .changeUser('user1')
+    // // A user change will re-send the query with the current resume token
+    // .expectActiveTargets({ query, resumeToken: 'resume-token-500' })
+    // .expectEvents(query, { removed: [anonDoc] })
+    // .userSets('users/user1', { uid: 'user1' })
+    // .expectEvents(query, { added: [user1Doc], hasPendingWrites: true })
+    // .changeUser(null)
+    // .expectEvents(query, {
+    //   removed: [user1Doc],
+    //   added: [anonDoc],
+    //   hasPendingWrites: true
+    // })
   });
 });
