@@ -32,6 +32,7 @@ matrix:
 
 jobs:
   allow_failures:
+    - script: yarn test:saucelabs
     - script: yarn test:saucelabs --database-firestore-only
   include:
     - stage: test
