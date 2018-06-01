@@ -18,14 +18,18 @@ import { Code, FirestoreError } from '../util/error';
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
-import { min, primitiveComparator } from '../util/misc';
+import { min } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
-import { SharedClientStateSyncer } from './shared_client_state_syncer';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from './shared_client_state_syncer';
 import { AsyncQueue } from '../util/async_queue';
 import { Platform } from '../platform/platform';
+import { batchIdSet, TargetIdSet, targetIdSet } from '../model/collections';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -113,14 +117,14 @@ export interface SharedClientState {
   removeLocalQueryTarget(targetId: TargetId): void;
 
   /**
-   * Records that a query target has been updated.
+   * Processes an update to a query target.
    *
    * Called by the primary client to notify secondary clients of document
-   * changes or state transitions for the provided query target.
+   * changes or state transitions that affect the provided query target.
    */
   trackQueryUpdate(
     targetId: TargetId,
-    state: 'incomplete' | 'current' | 'rejected',
+    state: QueryTargetState,
     error?: FirestoreError
   ): void;
 
@@ -251,20 +255,20 @@ export class MutationMetadata {
  */
 interface QueryTargetStateSchema {
   lastUpdateTime: number;
-  state: 'incomplete' | 'current' | 'rejected';
+  state: QueryTargetState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
 
 /**
  * Holds the state of a query target, including its target ID and whether the
- * target is 'incomplete', 'current' or 'rejected'.
+ * target is 'not-current', 'current' or 'rejected'.
  */
 // Visible for testing
 export class QueryTargetMetadata {
   constructor(
     readonly targetId: TargetId,
     readonly lastUpdateTime: Date,
-    readonly state: 'incomplete' | 'current' | 'rejected',
+    readonly state: QueryTargetState,
     readonly error?: FirestoreError
   ) {
     assert(
@@ -286,7 +290,8 @@ export class QueryTargetMetadata {
     let validData =
       typeof targetState === 'object' &&
       isSafeInteger(targetState.lastUpdateTime) &&
-      ['incomplete', 'current', 'rejected'].indexOf(targetState.state) !== -1 &&
+      ['not-current', 'current', 'rejected'].indexOf(targetState.state) !==
+        -1 &&
       (targetState.error === undefined ||
         typeof targetState.error === 'object');
 
@@ -356,7 +361,7 @@ interface ClientStateSchema {
  */
 // Visible for testing.
 export interface ClientState {
-  readonly activeTargetIds: SortedSet<TargetId>;
+  readonly activeTargetIds: TargetIdSet;
   readonly lastUpdateTime: Date;
   readonly maxMutationBatchId: BatchId | null;
   readonly minMutationBatchId: BatchId | null;
@@ -371,7 +376,7 @@ class RemoteClientState implements ClientState {
   private constructor(
     readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
-    readonly activeTargetIds: SortedSet<TargetId>,
+    readonly activeTargetIds: TargetIdSet,
     readonly minMutationBatchId: BatchId | null,
     readonly maxMutationBatchId: BatchId | null
   ) {}
@@ -622,7 +627,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     return minMutationBatch;
   }
 
-  getAllActiveQueryTargets(): SortedSet<TargetId> {
+  getAllActiveQueryTargets(): TargetIdSet {
     let activeTargets = targetIdSet();
     objUtils.forEach(this.activeClients, (key, value) => {
       activeTargets = activeTargets.unionWith(value.activeTargetIds);
@@ -666,13 +671,12 @@ export class WebStorageSharedClientState implements SharedClientState {
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localClientState.removeQueryTarget(targetId);
     this.persistClientState();
-    // TODO(multitab): Call `unlisten` on the primary tab and remove the query
-    // state from Local Storage.
+    // TODO(multitab): Remove the query state from Local Storage.
   }
 
   trackQueryUpdate(
-    targetId: BatchId,
-    state: 'incomplete' | 'current' | 'rejected',
+    targetId: TargetId,
+    state: QueryTargetState,
     error?: FirestoreError
   ): void {
     this.persistQueryTargetState(targetId, state, error);
@@ -795,7 +799,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private persistQueryTargetState(
     targetId: TargetId,
-    state: 'incomplete' | 'current' | 'rejected',
+    state: QueryTargetState,
     error?: FirestoreError
   ): void {
     const targetMetadata = new QueryTargetMetadata(
@@ -910,20 +914,30 @@ export class WebStorageSharedClientState implements SharedClientState {
   private handleClientStateEvent(
     clientState: RemoteClientState
   ): Promise<void> {
-    const existingTargets = this.activeClients[clientState.clientId]
-      ? this.activeClients[clientState.clientId].activeTargetIds
-      : targetIdSet();
-    this.activeClients[clientState.clientId] = clientState;
+    const existingTargets = this.getAllActiveQueryTargets();
 
-    let newTargets = Promise.resolve();
-    clientState.activeTargetIds.forEach(async targetId => {
+    this.activeClients[clientState.clientId] = clientState;
+    const newTargets = this.getAllActiveQueryTargets();
+
+    const addedTargets: TargetId[] = [];
+    const removedTargets: TargetId[] = [];
+
+    newTargets.forEach(async targetId => {
       if (!existingTargets.has(targetId)) {
-        newTargets = newTargets.then(() =>
-          this.syncEngine.applyTargetState(targetId, 'pending')
-        );
+        addedTargets.push(targetId);
       }
     });
-    return newTargets;
+
+    existingTargets.forEach(async targetId => {
+      if (!newTargets.has(targetId)) {
+        removedTargets.push(targetId);
+      }
+    });
+
+    return this.syncEngine.applyActiveTargetsChange(
+      addedTargets,
+      removedTargets
+    );
   }
 }
 
@@ -966,8 +980,8 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   trackQueryUpdate(
-    targetId: BatchId,
-    state: 'incomplete' | 'current' | 'rejected',
+    targetId: TargetId,
+    state: QueryTargetState,
     error?: FirestoreError
   ): void {
     // No op.
@@ -977,7 +991,7 @@ export class MemorySharedClientState implements SharedClientState {
     this.localState.removeQueryTarget(targetId);
   }
 
-  getAllActiveQueryTargets(): SortedSet<TargetId> {
+  getAllActiveQueryTargets(): TargetIdSet {
     return this.localState.activeTargetIds;
   }
 
@@ -1000,12 +1014,4 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   shutdown(): void {}
-}
-
-const EMPTY_NUMBERED_ID_SET = new SortedSet<number>(primitiveComparator);
-function targetIdSet(): SortedSet<TargetId> {
-  return EMPTY_NUMBERED_ID_SET;
-}
-function batchIdSet(): SortedSet<BatchId> {
-  return EMPTY_NUMBERED_ID_SET;
 }

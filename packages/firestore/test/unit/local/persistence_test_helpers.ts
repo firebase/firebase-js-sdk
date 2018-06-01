@@ -97,6 +97,10 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {}
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.

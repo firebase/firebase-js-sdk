@@ -18,21 +18,8 @@ import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
 import { ClientId } from './shared_client_state';
 
-/**
- * The different states of a watch target.
- *
- * When a secondary tab inserts a new target, it is marked 'pending'. The
- * primary tab then transitions the target to 'incomplete' once Watch has
- * delivered the first snapshot. Once a Watch target is current, it transitions
- * to 'current'.
- *
- * Targets that get rejected from the backend are marked 'rejected'.
- */
-export type QueryTargetState =
-  | 'pending'
-  | 'incomplete'
-  | 'current'
-  | 'rejected';
+/** The different states of a watch target. */
+export type QueryTargetState = 'not-current' | 'current' | 'rejected';
 
 /**
  * An interface that describes the actions the SharedClientState class needs to
@@ -56,6 +43,12 @@ export interface SharedClientStateSyncer {
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
+  ): Promise<void>;
+
+  /** Adds or removes Watch targets for queries from different tabs. */
+  applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
   ): Promise<void>;
 
   /** Returns the IDs of the clients that are currently active. */

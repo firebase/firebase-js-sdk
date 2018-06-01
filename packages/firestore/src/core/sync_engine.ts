@@ -680,6 +680,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return Promise.resolve();
   }
 
+  // PORTING NOTE: Multi-tab only
+  applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {
+    // TODO(multitab): Implement this
+    return Promise.resolve();
+  }
+
   async enableNetwork(): Promise<void> {
     this.networkAllowed = true;
     if (this.isPrimary) {

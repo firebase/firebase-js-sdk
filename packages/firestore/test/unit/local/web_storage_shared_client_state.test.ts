@@ -40,6 +40,8 @@ import {
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as objUtils from '../../../src/util/obj';
+import { targetIdSet } from '../../../src/model/collections';
+import { SortedSet } from '../../../src/util/sorted_set';
 
 /**
  * The tests assert that the lastUpdateTime of each row in LocalStorage gets
@@ -73,7 +75,7 @@ interface TestSharedClientState {
   mutationState: {
     [batchId: number]: { state: MutationBatchState; error?: FirestoreError };
   };
-  targetCount: number;
+  targetIds: SortedSet<number>;
   targetState: {
     [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
   };
@@ -90,6 +92,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
   private queryState: {
     [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
   } = {};
+  private activeTargets = targetIdSet();
 
   constructor(public activeClients: ClientId[]) {}
 
@@ -97,7 +100,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     return {
       mutationCount: objUtils.size(this.mutationState),
       mutationState: this.mutationState,
-      targetCount: objUtils.size(this.queryState),
+      targetIds: this.activeTargets,
       targetState: this.queryState
     };
   }
@@ -120,6 +123,20 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
   async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
+  }
+
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {
+    for (const targetId of added) {
+      expect(this.activeTargets.has(targetId)).to.be.false;
+      this.activeTargets = this.activeTargets.add(targetId);
+    }
+    for (const targetId of removed) {
+      expect(this.activeTargets.has(targetId)).to.be.true;
+      this.activeTargets = this.activeTargets.delete(targetId);
+    }
   }
 }
 
@@ -294,18 +311,18 @@ describe('WebStorageSharedClientState', () => {
 
   describe('persists query targets', () => {
     function assertTargetState(
-      targetId: BatchId,
-      watchTargetState: string,
+      targetId: TargetId,
+      queryTargetState: string,
       err?: FirestoreError
     ): void {
-      if (watchTargetState === 'pending') {
+      if (queryTargetState === 'pending') {
         expect(localStorage.getItem(targetKey(targetId))).to.be.null;
       } else {
         const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
-        expect(actual.state).to.equal(watchTargetState);
+        expect(actual.state).to.equal(queryTargetState);
 
         const expectedMembers = ['state', 'lastUpdateTime'];
-        if (watchTargetState === 'rejected') {
+        if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
           expect(actual.error.code).to.equal(err.code);
           expect(actual.error.message).to.equal(err.message);
@@ -337,20 +354,20 @@ describe('WebStorageSharedClientState', () => {
       assertClientState([0, 2], null, null);
     });
 
-    it('with an incomplete target', () => {
+    it('with a not-current target', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0], null, null);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'incomplete');
-      assertTargetState(0, 'incomplete');
+      sharedClientState.trackQueryUpdate(0, 'not-current');
+      assertTargetState(0, 'not-current');
     });
 
     it('with a current target', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0], null, null);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'incomplete');
-      assertTargetState(0, 'incomplete');
+      sharedClientState.trackQueryUpdate(0, 'not-current');
+      assertTargetState(0, 'not-current');
       sharedClientState.trackQueryUpdate(0, 'current');
       assertTargetState(0, 'current');
     });
@@ -591,60 +608,130 @@ describe('WebStorageSharedClientState', () => {
   });
 
   describe('processes target updates', () => {
+    const firstClientTargetId: TargetId = 1;
+    const secondClientTargetId: TargetId = 2;
+
+    const firstClientStorageKey = `fs_clients_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${AutoId.newId()}`;
+    const secondClientStorageKey = `fs_clients_${
+      persistenceHelpers.TEST_PERSISTENCE_PREFIX
+    }_${AutoId.newId()}`;
+
+    let firstClient: LocalClientState;
+    let secondClientState: LocalClientState;
+
     beforeEach(() => {
+      firstClient = new LocalClientState();
+      firstClient.addQueryTarget(firstClientTargetId);
+      secondClientState = new LocalClientState();
       return sharedClientState.start();
     });
 
     async function withClientState(
       fn: () => Promise<void>
     ): Promise<TestSharedClientState> {
+      writeToLocalStorage(
+        firstClientStorageKey,
+        firstClient.toLocalStorageJSON()
+      );
       await fn();
       await queue.drain();
       return clientSyncer.sharedClientState;
     }
 
-    it('for pending target', () => {
-      return withClientState(async () => {
-        const secondaryClientState = new LocalClientState();
-        const secondaryClientStateKey = `fs_clients_${
-          persistenceHelpers.TEST_PERSISTENCE_PREFIX
-        }_${AutoId.newId()}`;
-        secondaryClientState.addQueryTarget(1);
+    it('for added target', async () => {
+      let clientState = await withClientState(async () => {
+        // Add a target that only exists in the second client
+        secondClientState.addQueryTarget(secondClientTargetId);
         writeToLocalStorage(
-          secondaryClientStateKey,
-          secondaryClientState.toLocalStorageJSON()
+          secondClientStorageKey,
+          secondClientState.toLocalStorageJSON()
         );
-      }).then(clientState => {
-        expect(clientState.targetCount).to.equal(1);
-        expect(clientState.targetState[1].state).to.equal('pending');
       });
+
+      expect(clientState.targetIds.size).to.equal(2);
+
+      clientState = await withClientState(async () => {
+        // Add a target that already exist in the first client
+        secondClientState.addQueryTarget(firstClientTargetId);
+        writeToLocalStorage(
+          secondClientStorageKey,
+          secondClientState.toLocalStorageJSON()
+        );
+      });
+
+      expect(clientState.targetIds.size).to.equal(2);
     });
 
-    it('for incomplete target', () => {
+    it('for removed target', async () => {
+      let clientState = await withClientState(async () => {
+        secondClientState.addQueryTarget(firstClientTargetId);
+        secondClientState.addQueryTarget(secondClientTargetId);
+        writeToLocalStorage(
+          secondClientStorageKey,
+          secondClientState.toLocalStorageJSON()
+        );
+      });
+
+      expect(clientState.targetIds.size).to.equal(2);
+
+      clientState = await withClientState(async () => {
+        // Remove a target that also exists in the first client
+        secondClientState.removeQueryTarget(firstClientTargetId);
+        writeToLocalStorage(
+          secondClientStorageKey,
+          secondClientState.toLocalStorageJSON()
+        );
+      });
+
+      expect(clientState.targetIds.size).to.equal(2);
+
+      clientState = await withClientState(async () => {
+        // Remove a target that only exists in the second client
+        secondClientState.removeQueryTarget(secondClientTargetId);
+        writeToLocalStorage(
+          secondClientStorageKey,
+          secondClientState.toLocalStorageJSON()
+        );
+      });
+
+      expect(clientState.targetIds.size).to.equal(1);
+    });
+
+    it('for not-current target', () => {
       return withClientState(async () => {
         writeToLocalStorage(
-          targetKey(1),
+          targetKey(firstClientTargetId),
           new QueryTargetMetadata(
-            1,
+            firstClientTargetId,
             new Date(),
-            'incomplete'
+            'not-current'
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetCount).to.equal(1);
-        expect(clientState.targetState[1].state).to.equal('incomplete');
+        expect(clientState.targetIds.size).to.equal(1);
+        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+          'not-current'
+        );
       });
     });
 
     it('for current target', () => {
       return withClientState(async () => {
         writeToLocalStorage(
-          targetKey(1),
-          new QueryTargetMetadata(1, new Date(), 'current').toLocalStorageJSON()
+          targetKey(firstClientTargetId),
+          new QueryTargetMetadata(
+            firstClientTargetId,
+            new Date(),
+            'current'
+          ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetCount).to.equal(1);
-        expect(clientState.targetState[1].state).to.equal('current');
+        expect(clientState.targetIds.size).to.equal(1);
+        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+          'current'
+        );
       });
     });
 
@@ -653,17 +740,20 @@ describe('WebStorageSharedClientState', () => {
         writeToLocalStorage(
           targetKey(1),
           new QueryTargetMetadata(
-            1,
+            firstClientTargetId,
             new Date(),
             'rejected',
             TEST_ERROR
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetCount).to.equal(1);
-        expect(clientState.targetState[1].state).to.equal('rejected');
+        expect(clientState.targetIds.size).to.equal(1);
+        expect(clientState.targetState[firstClientTargetId].state).to.equal(
+          'rejected'
+        );
 
-        const firestoreError = clientState.targetState[1].error;
+        const firestoreError =
+          clientState.targetState[firstClientTargetId].error;
         expect(firestoreError.code).to.equal('internal');
         expect(firestoreError.message).to.equal('Test Error');
       });
@@ -672,15 +762,16 @@ describe('WebStorageSharedClientState', () => {
     it('ignores invalid data', () => {
       return withClientState(async () => {
         writeToLocalStorage(
-          targetKey(1),
+          targetKey(firstClientTargetId),
           new QueryTargetMetadata(
-            1,
+            firstClientTargetId,
             new Date(),
             'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.targetCount).to.equal(0);
+        expect(clientState.targetIds.size).to.equal(1);
+        expect(clientState.targetState[firstClientTargetId]).to.be.undefined;
       });
     });
   });
