@@ -23,10 +23,12 @@ import pkg from './package.json';
 
 import authPkg from './auth/package.json';
 import storagePkg from './storage/package.json';
+import functionsPkg from './functions/package.json';
 
 const pkgsByName = {
   auth: authPkg,
-  storage: storagePkg
+  storage: storagePkg,
+  functions: functionsPkg,
 };
 
 const plugins = [
@@ -74,7 +76,8 @@ const coreBuild = [
 
 const components = [
   'auth',
-  'storage'
+  'storage',
+  'functions'
 ];
 const componentBuilds = components
   .map(component => {
@@ -155,4 +158,7 @@ const completeBuilds = [
   }
 ];
 
-export default [ ...coreBuild, ...componentBuilds ];
+export default [ 
+//  ...coreBuild, 
+  ...componentBuilds 
+];
