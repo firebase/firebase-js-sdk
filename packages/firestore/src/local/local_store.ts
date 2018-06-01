@@ -189,6 +189,7 @@ export class LocalStore {
    * returns any resulting document changes.
    */
   handleUserChange(user: User): Promise<MaybeDocumentMap> {
+    console.log('----- handleUserChange ------');
     return this.persistence.runTransaction('Handle user change', txn => {
       // Swap out the mutation queue, grabbing the pending mutation batches
       // before and after.
