@@ -164,11 +164,14 @@ export class View {
         if (newDoc) {
           newDocumentSet = newDocumentSet.add(newDoc);
           if (newDoc.hasLocalMutations) {
+            console.log('---- adding mutated key ' + key);
             newMutatedKeys = newMutatedKeys.add(key);
           } else {
+            console.log('---- removing mutated key ' + key);
             newMutatedKeys = newMutatedKeys.delete(key);
           }
         } else {
+          console.log('---- deleting mutated key ' + key);
           newDocumentSet = newDocumentSet.delete(key);
           newMutatedKeys = newMutatedKeys.delete(key);
         }
@@ -209,6 +212,10 @@ export class View {
           }
         }
       }
+    );
+
+    console.log(
+        '---- computeDocChanges ---- after mutated size' + newMutatedKeys.size
     );
     if (this.query.hasLimit()) {
       // TODO(klimt): Make DocumentSet size be constant time.
