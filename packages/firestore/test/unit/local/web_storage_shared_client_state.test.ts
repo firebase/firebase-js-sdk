@@ -38,7 +38,6 @@ import {
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
-import { fail } from '../../../src/util/assert';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as objUtils from '../../../src/util/obj';
 
@@ -70,13 +69,14 @@ function targetKey(targetId: TargetId): string {
 }
 
 interface TestSharedClientState {
-  pendingBatches: BatchId[];
-  acknowledgedBatches: BatchId[];
-  rejectedBatches: { [batchId: number]: FirestoreError };
-  pendingTargets: TargetId[];
-  activeTargets: TargetId[];
-  currentTargets: TargetId[];
-  rejectedTargets: { [batchId: number]: FirestoreError };
+  mutationCount: number;
+  mutationState: {
+    [batchId: number]: { state: MutationBatchState; error?: FirestoreError };
+  };
+  targetCount: number;
+  targetState: {
+    [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
+  };
 }
 
 /**
@@ -84,62 +84,22 @@ interface TestSharedClientState {
  * data and exposes it via `.sharedClientState`.
  */
 class TestSharedClientSyncer implements SharedClientStateSyncer {
-  private mutationBatches: {
+  private mutationState: {
     [batchId: number]: { state: MutationBatchState; error?: FirestoreError };
   } = {};
-  private queryTargets: {
+  private queryState: {
     [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
   } = {};
 
   constructor(public activeClients: ClientId[]) {}
 
   get sharedClientState(): TestSharedClientState {
-    const state: TestSharedClientState = {
-      pendingBatches: [],
-      acknowledgedBatches: [],
-      rejectedBatches: {},
-      pendingTargets: [],
-      activeTargets: [],
-      currentTargets: [],
-      rejectedTargets: {}
+    return {
+      mutationCount: objUtils.size(this.mutationState),
+      mutationState: this.mutationState,
+      targetCount: objUtils.size(this.queryState),
+      targetState: this.queryState
     };
-
-    objUtils.forEachNumber(this.mutationBatches, (batchId, val) => {
-      switch (val.state) {
-        case 'pending':
-          state.pendingBatches.push(batchId);
-          return;
-        case 'acknowledged':
-          state.acknowledgedBatches.push(batchId);
-          return;
-        case 'rejected':
-          state.rejectedBatches[batchId] = val.error;
-          return;
-        default:
-          fail('Unknown mutation batch state: ' + val.state);
-      }
-    });
-
-    objUtils.forEachNumber(this.queryTargets, (targetId, val) => {
-      switch (val.state) {
-        case 'pending':
-          state.pendingTargets.push(targetId);
-          return;
-        case 'active':
-          state.activeTargets.push(targetId);
-          return;
-        case 'current':
-          state.currentTargets.push(targetId);
-          return;
-        case 'rejected':
-          state.rejectedTargets[targetId] = val.error;
-          return;
-        default:
-          fail('Unknown query target state: ' + val.state);
-      }
-    });
-
-    return state;
   }
 
   async applyBatchState(
@@ -147,7 +107,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {
-    this.mutationBatches[batchId] = { state, error };
+    this.mutationState[batchId] = { state, error };
   }
 
   async applyTargetState(
@@ -155,7 +115,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
-    this.queryTargets[targetId] = { state, error };
+    this.queryState[targetId] = { state, error };
   }
 
   async getActiveClients(): Promise<ClientId[]> {
@@ -338,19 +298,20 @@ describe('WebStorageSharedClientState', () => {
       watchTargetState: string,
       err?: FirestoreError
     ): void {
-      const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
+      if (watchTargetState === 'pending') {
+        expect(localStorage.getItem(targetKey(targetId))).to.be.null;
+      } else {
+        const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
+        expect(actual.state).to.equal(watchTargetState);
 
-      expect(actual.state).to.equal(watchTargetState);
-
-      const expectedMembers = ['state', 'lastUpdateTime'];
-
-      if (watchTargetState === 'rejected') {
-        expectedMembers.push('error');
-        expect(actual.error.code).to.equal(err.code);
-        expect(actual.error.message).to.equal(err.message);
+        const expectedMembers = ['state', 'lastUpdateTime'];
+        if (watchTargetState === 'rejected') {
+          expectedMembers.push('error');
+          expect(actual.error.code).to.equal(err.code);
+          expect(actual.error.message).to.equal(err.message);
+        }
+        expect(Object.keys(actual)).to.have.members(expectedMembers);
       }
-
-      expect(Object.keys(actual)).to.have.members(expectedMembers);
     }
 
     beforeEach(() => {
@@ -376,19 +337,20 @@ describe('WebStorageSharedClientState', () => {
       assertClientState([0, 2], null, null);
     });
 
-    it('with an active target', () => {
+    it('with an incomplete target', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0], null, null);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'active');
-      assertTargetState(0, 'active');
+      sharedClientState.trackQueryUpdate(0, 'incomplete');
+      assertTargetState(0, 'incomplete');
     });
 
     it('with a current target', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0], null, null);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'active');
+      sharedClientState.trackQueryUpdate(0, 'incomplete');
+      assertTargetState(0, 'incomplete');
       sharedClientState.trackQueryUpdate(0, 'current');
       assertTargetState(0, 'current');
     });
@@ -532,9 +494,8 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.have.members([1]);
-        expect(clientState.acknowledgedBatches).to.be.empty;
-        expect(clientState.rejectedBatches).to.be.empty;
+        expect(clientState.mutationCount).to.equal(1);
+        expect(clientState.mutationState[1].state).to.equal('pending');
       });
     });
 
@@ -549,9 +510,8 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.be.empty;
-        expect(clientState.acknowledgedBatches).to.have.members([1]);
-        expect(clientState.rejectedBatches).to.be.empty;
+        expect(clientState.mutationCount).to.equal(1);
+        expect(clientState.mutationState[1].state).to.equal('acknowledged');
       });
     });
 
@@ -567,10 +527,12 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.be.empty;
-        expect(clientState.acknowledgedBatches).to.be.empty;
-        expect(clientState.rejectedBatches[1].code).to.equal('internal');
-        expect(clientState.rejectedBatches[1].message).to.equal('Test Error');
+        expect(clientState.mutationCount).to.equal(1);
+        expect(clientState.mutationState[1].state).to.equal('rejected');
+
+        const firestoreError = clientState.mutationState[1].error;
+        expect(firestoreError.code).to.equal('internal');
+        expect(firestoreError.message).to.equal('Test Error');
       });
     });
 
@@ -585,7 +547,8 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.have.members([1]);
+        expect(clientState.mutationCount).to.equal(1);
+        expect(clientState.mutationState[1].state).to.equal('pending');
       });
     });
 
@@ -606,7 +569,8 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.have.members([1]);
+        expect(clientState.mutationCount).to.equal(1);
+        expect(clientState.mutationState[1].state).to.equal('pending');
       });
     });
 
@@ -621,9 +585,7 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingBatches).to.be.empty;
-        expect(clientState.acknowledgedBatches).to.be.empty;
-        expect(clientState.rejectedBatches).to.be.empty;
+        expect(clientState.mutationCount).to.equal(0);
       });
     });
   });
@@ -643,29 +605,34 @@ describe('WebStorageSharedClientState', () => {
 
     it('for pending target', () => {
       return withClientState(async () => {
+        const secondaryClientState = new LocalClientState();
+        const secondaryClientStateKey = `fs_clients_${
+          persistenceHelpers.TEST_PERSISTENCE_PREFIX
+        }_${AutoId.newId()}`;
+        secondaryClientState.addQueryTarget(1);
         writeToLocalStorage(
-          targetKey(1),
-          new QueryTargetMetadata(1, new Date(), 'pending').toLocalStorageJSON()
+          secondaryClientStateKey,
+          secondaryClientState.toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingTargets).to.have.members([1]);
-        expect(clientState.activeTargets).to.be.empty;
-        expect(clientState.currentTargets).to.be.empty;
-        expect(clientState.rejectedTargets).to.be.empty;
+        expect(clientState.targetCount).to.equal(1);
+        expect(clientState.targetState[1].state).to.equal('pending');
       });
     });
 
-    it('for active target', () => {
+    it('for incomplete target', () => {
       return withClientState(async () => {
         writeToLocalStorage(
           targetKey(1),
-          new QueryTargetMetadata(1, new Date(), 'active').toLocalStorageJSON()
+          new QueryTargetMetadata(
+            1,
+            new Date(),
+            'incomplete'
+          ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingTargets).to.be.empty;
-        expect(clientState.activeTargets).to.have.members([1]);
-        expect(clientState.currentTargets).to.be.empty;
-        expect(clientState.rejectedTargets).to.be.empty;
+        expect(clientState.targetCount).to.equal(1);
+        expect(clientState.targetState[1].state).to.equal('incomplete');
       });
     });
 
@@ -676,10 +643,8 @@ describe('WebStorageSharedClientState', () => {
           new QueryTargetMetadata(1, new Date(), 'current').toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingTargets).to.be.empty;
-        expect(clientState.activeTargets).to.be.empty;
-        expect(clientState.currentTargets).to.have.members([1]);
-        expect(clientState.rejectedTargets).to.be.empty;
+        expect(clientState.targetCount).to.equal(1);
+        expect(clientState.targetState[1].state).to.equal('current');
       });
     });
 
@@ -695,11 +660,12 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingTargets).to.be.empty;
-        expect(clientState.activeTargets).to.be.empty;
-        expect(clientState.currentTargets).to.be.empty;
-        expect(clientState.rejectedTargets[1].code).to.equal('internal');
-        expect(clientState.rejectedTargets[1].message).to.equal('Test Error');
+        expect(clientState.targetCount).to.equal(1);
+        expect(clientState.targetState[1].state).to.equal('rejected');
+
+        const firestoreError = clientState.targetState[1].error;
+        expect(firestoreError.code).to.equal('internal');
+        expect(firestoreError.message).to.equal('Test Error');
       });
     });
 
@@ -714,10 +680,7 @@ describe('WebStorageSharedClientState', () => {
           ).toLocalStorageJSON()
         );
       }).then(clientState => {
-        expect(clientState.pendingTargets).to.be.empty;
-        expect(clientState.activeTargets).to.be.empty;
-        expect(clientState.currentTargets).to.be.empty;
-        expect(clientState.rejectedTargets).to.be.empty;
+        expect(clientState.targetCount).to.equal(0);
       });
     });
   });

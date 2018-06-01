@@ -22,13 +22,17 @@ import { ClientId } from './shared_client_state';
  * The different states of a watch target.
  *
  * When a secondary tab inserts a new target, it is marked 'pending'. The
- * primary tab then transitions the target to 'active' once Watch has
+ * primary tab then transitions the target to 'incomplete' once Watch has
  * delivered the first snapshot. Once a Watch target is current, it transitions
- * to 'current' from 'active'.
+ * to 'current'.
  *
  * Targets that get rejected from the backend are marked 'rejected'.
  */
-export type QueryTargetState = 'pending' | 'active' | 'current' | 'rejected';
+export type QueryTargetState =
+  | 'pending'
+  | 'incomplete'
+  | 'current'
+  | 'rejected';
 
 /**
  * An interface that describes the actions the SharedClientState class needs to

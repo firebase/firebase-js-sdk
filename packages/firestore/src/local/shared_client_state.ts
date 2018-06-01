@@ -23,10 +23,7 @@ import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
 import { User } from '../auth/user';
-import {
-  SharedClientStateSyncer,
-  QueryTargetState
-} from './shared_client_state_syncer';
+import { SharedClientStateSyncer } from './shared_client_state_syncer';
 import { AsyncQueue } from '../util/async_queue';
 import { Platform } from '../platform/platform';
 
@@ -123,7 +120,7 @@ export interface SharedClientState {
    */
   trackQueryUpdate(
     targetId: TargetId,
-    state: 'active' | 'current' | 'rejected',
+    state: 'incomplete' | 'current' | 'rejected',
     error?: FirestoreError
   ): void;
 
@@ -254,20 +251,20 @@ export class MutationMetadata {
  */
 interface QueryTargetStateSchema {
   lastUpdateTime: number;
-  state: QueryTargetState;
+  state: 'incomplete' | 'current' | 'rejected';
   error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
 
 /**
  * Holds the state of a query target, including its target ID and whether the
- * target is 'pending', 'active', 'inactive' or 'rejected'.
+ * target is 'incomplete', 'current' or 'rejected'.
  */
 // Visible for testing
 export class QueryTargetMetadata {
   constructor(
     readonly targetId: TargetId,
     readonly lastUpdateTime: Date,
-    readonly state: QueryTargetState,
+    readonly state: 'incomplete' | 'current' | 'rejected',
     readonly error?: FirestoreError
   ) {
     assert(
@@ -289,9 +286,7 @@ export class QueryTargetMetadata {
     let validData =
       typeof targetState === 'object' &&
       isSafeInteger(targetState.lastUpdateTime) &&
-      ['pending', 'active', 'current', 'rejected'].indexOf(
-        targetState.state
-      ) !== -1 &&
+      ['incomplete', 'current', 'rejected'].indexOf(targetState.state) !== -1 &&
       (targetState.error === undefined ||
         typeof targetState.error === 'object');
 
@@ -400,7 +395,7 @@ class RemoteClientState implements ClientState {
       (clientState.maxMutationBatchId === null ||
         isSafeInteger(clientState.maxMutationBatchId));
 
-    let activeTargetIdsSet = new SortedSet<TargetId>(primitiveComparator);
+    let activeTargetIdsSet = targetIdSet();
 
     for (let i = 0; validData && i < clientState.activeTargetIds.length; ++i) {
       validData = isSafeInteger(clientState.activeTargetIds[i]);
@@ -439,10 +434,10 @@ class RemoteClientState implements ClientState {
  */
 // Visible for testing.
 export class LocalClientState implements ClientState {
-  activeTargetIds = new SortedSet<TargetId>(primitiveComparator);
+  activeTargetIds = targetIdSet();
   lastUpdateTime: Date;
 
-  private pendingBatchIds = new SortedSet<BatchId>(primitiveComparator);
+  private pendingBatchIds = batchIdSet();
 
   constructor() {
     this.lastUpdateTime = new Date();
@@ -628,7 +623,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   getAllActiveQueryTargets(): SortedSet<TargetId> {
-    let activeTargets = new SortedSet<TargetId>(primitiveComparator);
+    let activeTargets = targetIdSet();
     objUtils.forEach(this.activeClients, (key, value) => {
       activeTargets = activeTargets.unionWith(value.activeTargetIds);
     });
@@ -665,7 +660,6 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   addLocalQueryTarget(targetId: TargetId): void {
     this.localClientState.addQueryTarget(targetId);
-    this.persistQueryTargetState(targetId, 'pending');
     this.persistClientState();
   }
 
@@ -678,7 +672,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   trackQueryUpdate(
     targetId: BatchId,
-    state: 'active' | 'current' | 'rejected',
+    state: 'incomplete' | 'current' | 'rejected',
     error?: FirestoreError
   ): void {
     this.persistQueryTargetState(targetId, state, error);
@@ -730,7 +724,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               event.newValue
             );
             if (clientState) {
-              this.activeClients[clientState.clientId] = clientState;
+              return this.handleClientStateEvent(clientState);
             }
           } else {
             const clientId = this.fromLocalStorageClientStateKey(event.key);
@@ -801,7 +795,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private persistQueryTargetState(
     targetId: TargetId,
-    state: QueryTargetState,
+    state: 'incomplete' | 'current' | 'rejected',
     error?: FirestoreError
   ): void {
     const targetMetadata = new QueryTargetMetadata(
@@ -912,6 +906,25 @@ export class WebStorageSharedClientState implements SharedClientState {
       targetMetadata.error
     );
   }
+
+  private handleClientStateEvent(
+    clientState: RemoteClientState
+  ): Promise<void> {
+    const existingTargets = this.activeClients[clientState.clientId]
+      ? this.activeClients[clientState.clientId].activeTargetIds
+      : targetIdSet();
+    this.activeClients[clientState.clientId] = clientState;
+
+    let newTargets = Promise.resolve();
+    clientState.activeTargetIds.forEach(async targetId => {
+      if (!existingTargets.has(targetId)) {
+        newTargets = newTargets.then(() =>
+          this.syncEngine.applyTargetState(targetId, 'pending')
+        );
+      }
+    });
+    return newTargets;
+  }
 }
 
 /**
@@ -954,7 +967,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   trackQueryUpdate(
     targetId: BatchId,
-    state: 'active' | 'current' | 'rejected',
+    state: 'incomplete' | 'current' | 'rejected',
     error?: FirestoreError
   ): void {
     // No op.
@@ -987,4 +1000,12 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   shutdown(): void {}
+}
+
+const EMPTY_NUMBERED_ID_SET = new SortedSet<number>(primitiveComparator);
+function targetIdSet(): SortedSet<TargetId> {
+  return EMPTY_NUMBERED_ID_SET;
+}
+function batchIdSet(): SortedSet<BatchId> {
+  return EMPTY_NUMBERED_ID_SET;
 }
