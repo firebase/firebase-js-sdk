@@ -139,12 +139,16 @@ export class View {
         ? oldDocumentSet.last()
         : null;
 
-    console.log('---- computeDocChanges ----mutated size' + newMutatedKeys.size);
+    console.log(
+      '---- computeDocChanges ----mutated size' + newMutatedKeys.size
+    );
     docChanges.inorderTraversal(
       (key: DocumentKey, newMaybeDoc: MaybeDocument) => {
-
         console.log('---- computeDocChanges ---- key' + key);
-        console.log('---- computeDocChanges ---- newMaybeDoc' + JSON.stringify(newMaybeDoc));
+        console.log(
+          '---- computeDocChanges ---- newMaybeDoc' +
+            JSON.stringify(newMaybeDoc)
+        );
         const oldDoc = oldDocumentSet.get(key);
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
