@@ -963,6 +963,10 @@ abstract class TestRunner {
         });
       }
 
+      console.log('actual doc changes:');
+      console.log(JSON.stringify(actual.view!.docChanges));
+      console.log('expectedChanges doc changes:');
+      console.log(JSON.stringify(expectedChanges));
       expect(actual.view!.docChanges).to.deep.equal(expectedChanges);
 
       expect(actual.view!.hasPendingWrites).to.equal(
