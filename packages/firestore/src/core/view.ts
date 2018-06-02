@@ -269,6 +269,7 @@ export class View {
     const syncStateChanged = newSyncState !== this.syncState;
     this.syncState = newSyncState;
 
+    console.log('------ applyChanges ----- ' + JSON.stringify(docChanges.mutatedKeys));
     if (changes.length === 0 && !syncStateChanged) {
       // no changes
       return { limboChanges };
