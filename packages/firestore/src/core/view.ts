@@ -215,7 +215,7 @@ export class View {
     );
 
     console.log(
-        '---- computeDocChanges ---- after mutated size' + newMutatedKeys.size
+      '---- computeDocChanges ---- after mutated size' + newMutatedKeys.size
     );
     if (this.query.hasLimit()) {
       // TODO(klimt): Make DocumentSet size be constant time.
