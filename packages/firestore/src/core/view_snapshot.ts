@@ -147,7 +147,10 @@ export class ViewSnapshot {
     readonly hasPendingWrites: boolean,
     readonly syncStateChanged: boolean,
     readonly excludesMetadataChanges: boolean
-  ) {}
+  ) {
+
+    console.log('----- VIEWSNAPSHOT CONSTRUCTUR hasPendingWrites ---' + this.hasPendingWrites);
+  }
 
   isEqual(other: ViewSnapshot): boolean {
     if (
