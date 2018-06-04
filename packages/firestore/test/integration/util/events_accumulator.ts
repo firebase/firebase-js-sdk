@@ -28,8 +28,12 @@ export class EventsAccumulator<
   private events: T[] = [];
   private waitingFor: number;
   private deferred: Deferred<T[]> | null = null;
+  private rejectAdditionalEvents = false;
 
   storeEvent: (evt: T) => void = (evt: T) => {
+    if (this.rejectAdditionalEvents) {
+      throw new Error("Additional event detected after assertNoAdditionalEvents called");
+    }
     this.events.push(evt);
     this.checkFulfilled();
   };
@@ -77,6 +81,7 @@ export class EventsAccumulator<
   }
 
   assertNoAdditionalEvents(): Promise<void> {
+    this.rejectAdditionalEvents = true;
     return new Promise((resolve: (val: void) => void, reject) => {
       setTimeout(() => {
         if (this.events.length > 0) {
