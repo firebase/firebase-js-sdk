@@ -36,56 +36,62 @@ declare namespace firebase {
   type Unsubscribe = () => void;
 
   interface User extends firebase.UserInfo {
-    delete(): Promise<any>;
+    delete(): Promise<void>;
     emailVerified: boolean;
     getIdTokenResult(
       forceRefresh?: boolean
     ): Promise<firebase.auth.IdTokenResult>;
-    getIdToken(forceRefresh?: boolean): Promise<any>;
+    getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     linkAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<any>;
-    linkWithCredential(credential: firebase.auth.AuthCredential): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
+    linkWithCredential(
+      credential: firebase.auth.AuthCredential
+    ): Promise<firebase.User>;
     linkWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<any>;
-    linkWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
-    linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
+    ): Promise<firebase.auth.ConfirmationResult>;
+    linkWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
+    linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     reauthenticateAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
     reauthenticateWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<any>;
+    ): Promise<void>;
     reauthenticateWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<any>;
-    reauthenticateWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
+    ): Promise<firebase.auth.ConfirmationResult>;
+    reauthenticateWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
     reauthenticateWithRedirect(
       provider: firebase.auth.AuthProvider
-    ): Promise<any>;
+    ): Promise<void>;
     refreshToken: string;
-    reload(): Promise<any>;
+    reload(): Promise<void>;
     sendEmailVerification(
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
-    ): Promise<any>;
+    ): Promise<void>;
     toJSON(): Object;
-    unlink(providerId: string): Promise<any>;
-    updateEmail(newEmail: string): Promise<any>;
-    updatePassword(newPassword: string): Promise<any>;
+    unlink(providerId: string): Promise<firebase.User>;
+    updateEmail(newEmail: string): Promise<void>;
+    updatePassword(newPassword: string): Promise<void>;
     updatePhoneNumber(
       phoneCredential: firebase.auth.AuthCredential
-    ): Promise<any>;
+    ): Promise<void>;
     updateProfile(profile: {
       displayName: string | null;
       photoURL: string | null;
-    }): Promise<any>;
+    }): Promise<void>;
   }
 
   interface UserInfo {
@@ -166,7 +172,13 @@ declare namespace firebase.functions {
 }
 
 declare namespace firebase.auth {
-  interface ActionCodeInfo {}
+  interface ActionCodeInfo {
+    data: {
+      email?: string | null;
+      fromEmail?: string | null;
+    };
+    operation: string;
+  }
 
   type ActionCodeSettings = {
     android?: {
@@ -188,7 +200,7 @@ declare namespace firebase.auth {
 
   interface ApplicationVerifier {
     type: string;
-    verify(): Promise<any>;
+    verify(): Promise<string>;
   }
 
   interface AuthSettings {
@@ -197,22 +209,22 @@ declare namespace firebase.auth {
 
   interface Auth {
     app: firebase.app.App;
-    applyActionCode(code: string): Promise<any>;
-    checkActionCode(code: string): Promise<any>;
-    confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    applyActionCode(code: string): Promise<void>;
+    checkActionCode(code: string): Promise<firebase.auth.ActionCodeInfo>;
+    confirmPasswordReset(code: string, newPassword: string): Promise<void>;
     createUserAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
     currentUser: firebase.User | null;
-    fetchProvidersForEmail(email: string): Promise<any>;
-    fetchSignInMethodsForEmail(email: string): Promise<any>;
+    fetchProvidersForEmail(email: string): Promise<Array<string>>;
+    fetchSignInMethodsForEmail(email: string): Promise<Array<string>>;
     isSignInWithEmailLink(emailLink: string): boolean;
-    getRedirectResult(): Promise<any>;
+    getRedirectResult(): Promise<firebase.auth.UserCredential>;
     languageCode: string | null;
     settings: firebase.auth.AuthSettings;
     onAuthStateChanged(
@@ -232,38 +244,48 @@ declare namespace firebase.auth {
     sendSignInLinkToEmail(
       email: string,
       actionCodeSettings: firebase.auth.ActionCodeSettings
-    ): Promise<any>;
+    ): Promise<void>;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
-    ): Promise<any>;
-    setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<any>;
+    ): Promise<void>;
+    setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
     signInAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<any>;
-    signInAnonymously(): Promise<any>;
-    signInAnonymouslyAndRetrieveData(): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
+    signInAnonymously(): Promise<firebase.auth.UserCredential>;
+    signInAnonymouslyAndRetrieveData(): Promise<firebase.auth.UserCredential>;
     signInWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<any>;
-    signInWithCustomToken(token: string): Promise<any>;
-    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
-    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    ): Promise<firebase.User>;
+    signInWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
+    signInAndRetrieveDataWithCustomToken(
+      token: string
+    ): Promise<firebase.auth.UserCredential>;
+    signInWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<firebase.auth.UserCredential>;
     signInAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<firebase.auth.UserCredential>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<any>;
-    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
-    signInWithPopup(provider: firebase.auth.AuthProvider): Promise<any>;
-    signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<any>;
-    signOut(): Promise<any>;
-    updateCurrentUser(user: firebase.User | null): Promise<any>;
-    useDeviceLanguage(): any;
-    verifyPasswordResetCode(code: string): Promise<any>;
+    ): Promise<firebase.auth.ConfirmationResult>;
+    signInWithEmailLink(
+      email: string,
+      emailLink?: string
+    ): Promise<firebase.auth.UserCredential>;
+    signInWithPopup(
+      provider: firebase.auth.AuthProvider
+    ): Promise<firebase.auth.UserCredential>;
+    signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
+    signOut(): Promise<void>;
+    updateCurrentUser(user: firebase.User | null): Promise<void>;
+    useDeviceLanguage(): void;
+    verifyPasswordResetCode(code: string): Promise<string>;
   }
 
   interface AuthCredential {
@@ -276,7 +298,7 @@ declare namespace firebase.auth {
   }
 
   interface ConfirmationResult {
-    confirm(verificationCode: string): Promise<any>;
+    confirm(verificationCode: string): Promise<firebase.auth.UserCredential>;
     verificationId: string;
   }
 
@@ -369,7 +391,7 @@ declare namespace firebase.auth {
     verifyPhoneNumber(
       phoneNumber: string,
       applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<any>;
+    ): Promise<string>;
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
@@ -380,10 +402,10 @@ declare namespace firebase.auth {
       parameters?: Object | null,
       app?: firebase.app.App | null
     );
-    clear(): any;
-    render(): Promise<any>;
+    clear(): void;
+    render(): Promise<number>;
     type: string;
-    verify(): Promise<any>;
+    verify(): Promise<string>;
   }
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
