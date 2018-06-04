@@ -564,105 +564,96 @@ apiDescribe('Database', persistence => {
       const emptyDeferred = new Deferred<void>();
       const dataDeferred = new Deferred<void>();
       let callbacks = 0;
-      doc.onSnapshot(
-        { includeMetadataChanges: true },
-        snap => {
-          callbacks++;
+      doc.onSnapshot({ includeMetadataChanges: true }, snap => {
+        callbacks++;
 
-          if (callbacks == 1) {
-            expect(snap.exists).to.be.false;
-            expect(snap.data()).to.equal(undefined);
-            emptyDeferred.resolve();
-          } else if (callbacks == 2) {
-            expect(snap.exists).to.be.true;
-            expect(snap.data()).to.deep.equal({"a": 1});
-            expect(snap.metadata.hasPendingWrites).to.be.true;
-          } else if (callbacks == 3) {
-            expect(snap.exists).to.be.true;
-            expect(snap.data()).to.deep.equal({"a": 1});
-            expect(snap.metadata.hasPendingWrites).to.be.false;
-            dataDeferred.resolve();
-          } else {
-            throw new Error('Should not have received this callback');
-          }
+        if (callbacks == 1) {
+          expect(snap.exists).to.be.false;
+          expect(snap.data()).to.equal(undefined);
+          emptyDeferred.resolve();
+        } else if (callbacks == 2) {
+          expect(snap.exists).to.be.true;
+          expect(snap.data()).to.deep.equal({ a: 1 });
+          expect(snap.metadata.hasPendingWrites).to.be.true;
+        } else if (callbacks == 3) {
+          expect(snap.exists).to.be.true;
+          expect(snap.data()).to.deep.equal({ a: 1 });
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+          dataDeferred.resolve();
+        } else {
+          throw new Error('Should not have received this callback');
         }
-      );
+      });
 
       return emptyDeferred.promise
-          .then(() => doc.set({"a": 1}))
-          .then(() => dataDeferred.promise);
+        .then(() => doc.set({ a: 1 }))
+        .then(() => dataDeferred.promise);
     });
   });
 
   it('DocumentSnapshot events for change data in document', () => {
-    const initialData = {"a": 1};
-    const changedData = {"b": 2};
+    const initialData = { a: 1 };
+    const changedData = { b: 2 };
 
-    return withTestCollection(persistence, {key1: initialData}, col => {
-      const doc = col.doc("key1");
+    return withTestCollection(persistence, { key1: initialData }, col => {
+      const doc = col.doc('key1');
       const initialDeferred = new Deferred<void>();
       const changedDeferred = new Deferred<void>();
       let callbacks = 0;
-      doc.onSnapshot(
-        { includeMetadataChanges: true },
-        snap => {
-          callbacks++;
+      doc.onSnapshot({ includeMetadataChanges: true }, snap => {
+        callbacks++;
 
-          if (callbacks == 1) {
-            expect(snap.data()).to.deep.equal(initialData);
-            expect(snap.metadata.hasPendingWrites).to.be.false;
-            initialDeferred.resolve();
-          } else if (callbacks == 2) {
-            expect(snap.data()).to.deep.equal(changedData);
-            expect(snap.metadata.hasPendingWrites).to.be.true;
-          } else if (callbacks == 3) {
-            expect(snap.data()).to.deep.equal(changedData);
-            expect(snap.metadata.hasPendingWrites).to.be.false;
-            changedDeferred.resolve();
-          } else {
-            throw new Error('Should not have received this callback');
-          }
+        if (callbacks == 1) {
+          expect(snap.data()).to.deep.equal(initialData);
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+          initialDeferred.resolve();
+        } else if (callbacks == 2) {
+          expect(snap.data()).to.deep.equal(changedData);
+          expect(snap.metadata.hasPendingWrites).to.be.true;
+        } else if (callbacks == 3) {
+          expect(snap.data()).to.deep.equal(changedData);
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+          changedDeferred.resolve();
+        } else {
+          throw new Error('Should not have received this callback');
         }
-      );
+      });
 
       return initialDeferred.promise
-          .then(() => doc.set(changedData))
-          .then(() => changedDeferred.promise);
+        .then(() => doc.set(changedData))
+        .then(() => changedDeferred.promise);
     });
   });
 
-  it('DocumentSnapshot TODO events for delete data in document', () => {
-    const initialData = {"a": 1};
+  it('DocumentSnapshot events for delete data in document', () => {
+    const initialData = { a: 1 };
 
-    return withTestCollection(persistence, {key1: initialData}, col => {
-      const doc = col.doc("key1");
+    return withTestCollection(persistence, { key1: initialData }, col => {
+      const doc = col.doc('key1');
       const initialDeferred = new Deferred<void>();
       const deletedDeferred = new Deferred<void>();
       let callbacks = 0;
-      doc.onSnapshot(
-        { includeMetadataChanges: true },
-        snap => {
-          callbacks++;
+      doc.onSnapshot({ includeMetadataChanges: true }, snap => {
+        callbacks++;
 
-          if (callbacks == 1) {
-            expect(snap.exists).to.be.true;
-            expect(snap.data()).to.deep.equal(initialData);
-            expect(snap.metadata.hasPendingWrites).to.be.false;
-            initialDeferred.resolve();
-          } else if (callbacks == 2) {
-            expect(snap.exists).to.be.false;
-            expect(snap.data()).to.equal(undefined);
-            expect(snap.metadata.hasPendingWrites).to.be.false;
-            deletedDeferred.resolve();
-          } else {
-            throw new Error('Should not have received this callback');
-          }
+        if (callbacks == 1) {
+          expect(snap.exists).to.be.true;
+          expect(snap.data()).to.deep.equal(initialData);
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+          initialDeferred.resolve();
+        } else if (callbacks == 2) {
+          expect(snap.exists).to.be.false;
+          expect(snap.data()).to.equal(undefined);
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+          deletedDeferred.resolve();
+        } else {
+          throw new Error('Should not have received this callback');
         }
-      );
+      });
 
       return initialDeferred.promise
-          .then(() => doc.delete())
-          .then(() => deletedDeferred.promise);
+        .then(() => doc.delete())
+        .then(() => deletedDeferred.promise);
     });
   });
 
