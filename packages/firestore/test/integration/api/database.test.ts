@@ -556,20 +556,26 @@ apiDescribe('Database', persistence => {
       const doc = col.doc();
       const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
       doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
-      return storeEvent.awaitEvent().then(snap => {
+      return storeEvent
+        .awaitEvent()
+        .then(snap => {
           expect(snap.exists).to.be.false;
           expect(snap.data()).to.equal(undefined);
         })
-      .then(() => doc.set({ a: 1 }))
-      .then(() => storeEvent.awaitEvent()).then(snap => {
-        expect(snap.exists).to.be.true;
-        expect(snap.data()).to.deep.equal({ a: 1 });
-        expect(snap.metadata.hasPendingWrites).to.be.true;
-      }).then(() => storeEvent.awaitEvent()).then(snap => {
-        expect(snap.exists).to.be.true;
-        expect(snap.data()).to.deep.equal({ a: 1 });
-        expect(snap.metadata.hasPendingWrites).to.be.false;
-      }).then(() => storeEvent.assertNoAdditionalEvents());
+        .then(() => doc.set({ a: 1 }))
+        .then(() => storeEvent.awaitEvent())
+        .then(snap => {
+          expect(snap.exists).to.be.true;
+          expect(snap.data()).to.deep.equal({ a: 1 });
+          expect(snap.metadata.hasPendingWrites).to.be.true;
+        })
+        .then(() => storeEvent.awaitEvent())
+        .then(snap => {
+          expect(snap.exists).to.be.true;
+          expect(snap.data()).to.deep.equal({ a: 1 });
+          expect(snap.metadata.hasPendingWrites).to.be.false;
+        })
+        .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
@@ -581,18 +587,24 @@ apiDescribe('Database', persistence => {
       const doc = col.doc('key1');
       const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
       doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
-      return storeEvent.awaitEvent().then(snap => {
+      return storeEvent
+        .awaitEvent()
+        .then(snap => {
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
-      })
-      .then(() => doc.set(changedData))
-      .then(() => storeEvent.awaitEvent()).then(snap => {
+        })
+        .then(() => doc.set(changedData))
+        .then(() => storeEvent.awaitEvent())
+        .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
           expect(snap.metadata.hasPendingWrites).to.be.true;
-      }).then(() => storeEvent.awaitEvent()).then(snap => {
+        })
+        .then(() => storeEvent.awaitEvent())
+        .then(snap => {
           expect(snap.data()).to.deep.equal(changedData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
-      }).then(() => storeEvent.assertNoAdditionalEvents());
+        })
+        .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
@@ -603,17 +615,21 @@ apiDescribe('Database', persistence => {
       const doc = col.doc('key1');
       const storeEvent = new EventsAccumulator<firestore.DocumentSnapshot>();
       doc.onSnapshot({ includeMetadataChanges: true }, storeEvent.storeEvent);
-      return storeEvent.awaitEvent().then(snap => {
+      return storeEvent
+        .awaitEvent()
+        .then(snap => {
           expect(snap.exists).to.be.true;
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
-      })
-      .then(() => doc.delete())
-      .then(() => storeEvent.awaitEvent()).then(snap => {
+        })
+        .then(() => doc.delete())
+        .then(() => storeEvent.awaitEvent())
+        .then(snap => {
           expect(snap.exists).to.be.false;
           expect(snap.data()).to.equal(undefined);
           expect(snap.metadata.hasPendingWrites).to.be.false;
-      }).then(() => storeEvent.assertNoAdditionalEvents());
+        })
+        .then(() => storeEvent.assertNoAdditionalEvents());
     });
   });
 
