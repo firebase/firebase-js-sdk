@@ -545,11 +545,11 @@ apiDescribe('Database', persistence => {
       doc.onSnapshot(snap => {
         callbacks++;
 
-        if (callbacks == 1) {
+        if (callbacks === 1) {
           expect(snap.exists).to.be.false;
           expect(snap.data()).to.equal(undefined);
           deferred.resolve();
-        } else if (callbacks == 2) {
+        } else if (callbacks === 2) {
           throw new Error('Should not have received this callback');
         }
       });
@@ -567,15 +567,15 @@ apiDescribe('Database', persistence => {
       doc.onSnapshot({ includeMetadataChanges: true }, snap => {
         callbacks++;
 
-        if (callbacks == 1) {
+        if (callbacks === 1) {
           expect(snap.exists).to.be.false;
           expect(snap.data()).to.equal(undefined);
           emptyDeferred.resolve();
-        } else if (callbacks == 2) {
+        } else if (callbacks === 2) {
           expect(snap.exists).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
           expect(snap.metadata.hasPendingWrites).to.be.true;
-        } else if (callbacks == 3) {
+        } else if (callbacks === 3) {
           expect(snap.exists).to.be.true;
           expect(snap.data()).to.deep.equal({ a: 1 });
           expect(snap.metadata.hasPendingWrites).to.be.false;
@@ -603,14 +603,14 @@ apiDescribe('Database', persistence => {
       doc.onSnapshot({ includeMetadataChanges: true }, snap => {
         callbacks++;
 
-        if (callbacks == 1) {
+        if (callbacks === 1) {
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
           initialDeferred.resolve();
-        } else if (callbacks == 2) {
+        } else if (callbacks === 2) {
           expect(snap.data()).to.deep.equal(changedData);
           expect(snap.metadata.hasPendingWrites).to.be.true;
-        } else if (callbacks == 3) {
+        } else if (callbacks === 3) {
           expect(snap.data()).to.deep.equal(changedData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
           changedDeferred.resolve();
@@ -636,12 +636,12 @@ apiDescribe('Database', persistence => {
       doc.onSnapshot({ includeMetadataChanges: true }, snap => {
         callbacks++;
 
-        if (callbacks == 1) {
+        if (callbacks === 1) {
           expect(snap.exists).to.be.true;
           expect(snap.data()).to.deep.equal(initialData);
           expect(snap.metadata.hasPendingWrites).to.be.false;
           initialDeferred.resolve();
-        } else if (callbacks == 2) {
+        } else if (callbacks === 2) {
           expect(snap.exists).to.be.false;
           expect(snap.data()).to.equal(undefined);
           expect(snap.metadata.hasPendingWrites).to.be.false;
