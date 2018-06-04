@@ -56,13 +56,13 @@ export function documentKeySet(): DocumentKeySet {
 }
 
 export type TargetIdSet = SortedSet<TargetId>;
-const EMPTY_TARGET_ID_SET = new SortedSet<number>(primitiveComparator);
+const EMPTY_TARGET_ID_SET = new SortedSet<TargetId>(primitiveComparator);
 export function targetIdSet(): SortedSet<TargetId> {
   return EMPTY_TARGET_ID_SET;
 }
 
 export type BatchIdSet = SortedSet<BatchId>;
-const EMPTY_BATCH_ID_SET = new SortedSet<number>(primitiveComparator);
+const EMPTY_BATCH_ID_SET = new SortedSet<BatchId>(primitiveComparator);
 export function batchIdSet(): SortedSet<BatchId> {
   return EMPTY_BATCH_ID_SET;
 }
