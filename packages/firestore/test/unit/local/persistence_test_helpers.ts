@@ -27,7 +27,10 @@ import { BatchId, MutationBatchState, TargetId } from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
-import { SharedClientStateSyncer } from '../../../src/local/shared_client_state_syncer';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from '../../../src/local/shared_client_state_syncer';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { PlatformSupport } from '../../../src/platform/platform';
@@ -89,6 +92,15 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
   }
+  async applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
+  ): Promise<void> {}
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.
