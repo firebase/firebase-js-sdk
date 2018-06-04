@@ -537,6 +537,135 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('DocumentSnapshot events for non existent document', () => {
+    return withTestCollection(persistence, {}, col => {
+      const doc = col.doc();
+      const deferred = new Deferred<void>();
+      let callbacks = 0;
+      doc.onSnapshot(snap => {
+        callbacks++;
+
+        if (callbacks == 1) {
+          expect(snap.exists).to.be.false;
+          expect(snap.data()).to.equal(undefined);
+          deferred.resolve();
+        } else if (callbacks == 2) {
+          throw new Error('Should not have received this callback');
+        }
+      });
+
+      return deferred.promise;
+    });
+  });
+
+  it('DocumentSnapshot events for add data to document', () => {
+    return withTestCollection(persistence, {}, col => {
+      const doc = col.doc();
+      const emptyDeferred = new Deferred<void>();
+      const dataDeferred = new Deferred<void>();
+      let callbacks = 0;
+      doc.onSnapshot(
+        { includeMetadataChanges: true },
+        snap => {
+          callbacks++;
+
+          if (callbacks == 1) {
+            expect(snap.exists).to.be.false;
+            expect(snap.data()).to.equal(undefined);
+            emptyDeferred.resolve();
+          } else if (callbacks == 2) {
+            expect(snap.exists).to.be.true;
+            expect(snap.data()).to.deep.equal({"a": 1});
+            expect(snap.metadata.hasPendingWrites).to.be.true;
+          } else if (callbacks == 3) {
+            expect(snap.exists).to.be.true;
+            expect(snap.data()).to.deep.equal({"a": 1});
+            expect(snap.metadata.hasPendingWrites).to.be.false;
+            dataDeferred.resolve();
+          } else {
+            throw new Error('Should not have received this callback');
+          }
+        }
+      );
+
+      return emptyDeferred.promise
+          .then(() => doc.set({"a": 1}))
+          .then(() => dataDeferred.promise);
+    });
+  });
+
+  it('DocumentSnapshot events for change data in document', () => {
+    const initialData = {"a": 1};
+    const changedData = {"b": 2};
+
+    return withTestCollection(persistence, {key1: initialData}, col => {
+      const doc = col.doc("key1");
+      const initialDeferred = new Deferred<void>();
+      const changedDeferred = new Deferred<void>();
+      let callbacks = 0;
+      doc.onSnapshot(
+        { includeMetadataChanges: true },
+        snap => {
+          callbacks++;
+
+          if (callbacks == 1) {
+            expect(snap.data()).to.deep.equal(initialData);
+            expect(snap.metadata.hasPendingWrites).to.be.false;
+            initialDeferred.resolve();
+          } else if (callbacks == 2) {
+            expect(snap.data()).to.deep.equal(changedData);
+            expect(snap.metadata.hasPendingWrites).to.be.true;
+          } else if (callbacks == 3) {
+            expect(snap.data()).to.deep.equal(changedData);
+            expect(snap.metadata.hasPendingWrites).to.be.false;
+            changedDeferred.resolve();
+          } else {
+            throw new Error('Should not have received this callback');
+          }
+        }
+      );
+
+      return initialDeferred.promise
+          .then(() => doc.set(changedData))
+          .then(() => changedDeferred.promise);
+    });
+  });
+
+  it('DocumentSnapshot TODO events for delete data in document', () => {
+    const initialData = {"a": 1};
+
+    return withTestCollection(persistence, {key1: initialData}, col => {
+      const doc = col.doc("key1");
+      const initialDeferred = new Deferred<void>();
+      const deletedDeferred = new Deferred<void>();
+      let callbacks = 0;
+      doc.onSnapshot(
+        { includeMetadataChanges: true },
+        snap => {
+          callbacks++;
+
+          if (callbacks == 1) {
+            expect(snap.exists).to.be.true;
+            expect(snap.data()).to.deep.equal(initialData);
+            expect(snap.metadata.hasPendingWrites).to.be.false;
+            initialDeferred.resolve();
+          } else if (callbacks == 2) {
+            expect(snap.exists).to.be.false;
+            expect(snap.data()).to.equal(undefined);
+            expect(snap.metadata.hasPendingWrites).to.be.false;
+            deletedDeferred.resolve();
+          } else {
+            throw new Error('Should not have received this callback');
+          }
+        }
+      );
+
+      return initialDeferred.promise
+          .then(() => doc.delete())
+          .then(() => deletedDeferred.promise);
+    });
+  });
+
   it('Listen can be called multiple times', () => {
     return withTestCollection(persistence, {}, coll => {
       const doc = coll.doc();
@@ -551,32 +680,6 @@ apiDescribe('Database', persistence => {
         });
       });
       return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
-    });
-  });
-
-  it('Local document events are fired with hasLocalChanges=true.', () => {
-    return withTestDoc(persistence, docRef => {
-      let gotLocalDocEvent = false;
-      const remoteDocEventDeferred = new Deferred();
-      const unlisten = docRef.onSnapshot(
-        { includeMetadataChanges: true },
-        doc => {
-          if (doc.exists) {
-            expect(doc.data()).to.deep.equal({ a: 1 });
-            if (doc.metadata.hasPendingWrites) {
-              gotLocalDocEvent = true;
-            } else {
-              expect(gotLocalDocEvent).to.equal(true);
-              remoteDocEventDeferred.resolve();
-            }
-          }
-        }
-      );
-
-      docRef.set({ a: 1 });
-      return remoteDocEventDeferred.promise.then(() => {
-        unlisten();
-      });
     });
   });
 
