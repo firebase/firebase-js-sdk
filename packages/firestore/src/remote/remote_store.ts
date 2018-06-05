@@ -259,13 +259,13 @@ export class RemoteStore implements TargetMetadataProvider {
       this.shouldStartWatchStream(),
       'startWriteStream() called when shouldStartWatchStream() is false.'
     );
+                   
+    this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.watchStream.start({
       onOpen: this.onWatchStreamOpen.bind(this),
       onClose: this.onWatchStreamClose.bind(this),
       onWatchChange: this.onWatchStreamChange.bind(this)
     });
-
-    this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.onlineStateTracker.handleWatchStreamStart();
   }
 
