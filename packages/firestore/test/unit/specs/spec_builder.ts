@@ -810,8 +810,8 @@ export class MultiClientSpecBuilder extends SpecBuilder {
 
     this.activeClientIndex = clientIndex;
     this.config.numClients = Math.max(
-        this.config.numClients,
-        this.activeClientIndex + 1
+      this.config.numClients,
+      this.activeClientIndex + 1
     );
 
     return this;
