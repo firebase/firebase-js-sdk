@@ -33,7 +33,7 @@ const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
 const WRAPPER_SUFFIX = `}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {});`;
 
 const wrap = through(function(file) {
-  const wrappedFile = (prefix, path) =>
+  const makeFile = (prefix, path) =>
     new File({
       path,
       contents: Buffer.concat([
@@ -43,8 +43,8 @@ const wrap = through(function(file) {
       ])
     });
 
-  this.emit('data', wrappedFile(CJS_WRAPPER_PREFIX, 'auth.js'));
-  this.emit('data', wrappedFile(EMS_WRAPPER_PREFIX, 'auth.esm.js'));
+  this.emit('data', makeFile(CJS_WRAPPER_PREFIX, 'auth.js'));
+  this.emit('data', makeFile(EMS_WRAPPER_PREFIX, 'auth.esm.js'));
 });
 
 // The path to Closure Compiler.
