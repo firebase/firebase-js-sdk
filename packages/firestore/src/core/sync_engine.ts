@@ -302,7 +302,7 @@ export class SyncEngine implements RemoteSyncer {
 
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
-console.log('----- applyRemoteEvent()');
+    console.log('----- applyRemoteEvent()');
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
