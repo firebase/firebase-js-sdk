@@ -18,14 +18,13 @@ import { Query } from '../core/query';
 import { DocumentMap, documentMap } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { fail } from '../util/assert';
 
 import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   constructor(private serializer: LocalSerializer) {}
@@ -89,13 +88,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  if (txn instanceof SimpleDbTransaction) {
-    return txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
-      DbRemoteDocument.store
-    );
-  } else {
-    return fail('Invalid transaction object provided!');
-  }
+  return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+    txn,
+    DbRemoteDocument.store
+  );
 }
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {

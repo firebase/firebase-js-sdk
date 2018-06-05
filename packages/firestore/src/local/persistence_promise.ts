@@ -172,32 +172,37 @@ export class PersistencePromise<T> {
     // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
     all: Array<PersistencePromise<any>>
   ): PersistencePromise<void> {
-    return all.reduce((promise, nextPromise, idx) => {
-      return promise.next(() => {
-        return nextPromise;
-      });
-    }, PersistencePromise.resolve());
+    const expectedCount = all.length;
+    if (expectedCount === 0) {
+      return PersistencePromise.resolve();
+    }
+
+    let resolvedCount = 0;
+    return new PersistencePromise<void>((resolve, reject) => {
+      for (const promise of all) {
+        promise.next(
+          () => {
+            ++resolvedCount;
+            if (resolvedCount === expectedCount) {
+              resolve();
+            }
+          },
+          err => reject(err)
+        );
+      }
+    });
   }
 
   static map<R>(all: Array<PersistencePromise<R>>): PersistencePromise<R[]> {
     const results: R[] = [];
-    let first = true;
-    // initial is ignored, so we can cheat on the type.
-    // tslint:disable-next-line:no-any
-    const initial = PersistencePromise.resolve<R>(null as any);
-    return all
-      .reduce((promise, nextPromise) => {
-        return promise.next(result => {
-          if (!first) {
-            results.push(result);
-          }
-          first = false;
-          return nextPromise;
-        });
-      }, initial)
-      .next(result => {
-        results.push(result);
-        return results;
+    const promises: Array<PersistencePromise<void>> = [];
+    for (let i = 0; i < all.length; ++i) {
+      promises[i] = all[i].next(result => {
+        results[i] = result;
       });
+    }
+    return PersistencePromise.waitFor(promises).next(() => {
+      return results;
+    });
   }
 }

@@ -44,7 +44,7 @@ import {
   ViewChange
 } from '../../src/core/view';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
-import { QueryData } from '../../src/local/query_data';
+import { QueryData, QueryPurpose } from '../../src/local/query_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -75,12 +75,7 @@ import {
 } from '../../src/model/mutation';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { emptyByteString } from '../../src/platform/platform';
-import {
-  CurrentStatusUpdate,
-  RemoteEvent,
-  TargetChange,
-  UpdateMapping
-} from '../../src/remote/remote_event';
+import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   WatchChangeAggregator
@@ -90,6 +85,7 @@ import { AnyJs, primitiveComparator } from '../../src/util/misc';
 import { forEach, Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
+import { query } from './api_helpers';
 
 export type TestSnapshotVersion = number;
 
@@ -151,6 +147,16 @@ export function dbId(project: string, database?: string): DatabaseId {
 
 export function key(path: string): DocumentKey {
   return new DocumentKey(new ResourcePath(splitPath(path, '/')));
+}
+
+export function keys(
+  ...documents: Array<MaybeDocument | string>
+): DocumentKeySet {
+  let keys = documentKeySet();
+  for (const doc of documents) {
+    keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
+  }
+  return keys;
 }
 
 export function path(path: string): ResourcePath {
@@ -233,6 +239,38 @@ export function bound(
   return new Bound(components, before);
 }
 
+export function queryData(
+  targetId: TargetId,
+  queryPurpose: QueryPurpose,
+  path: string
+): QueryData {
+  return new QueryData(query(path)._query, targetId, queryPurpose);
+}
+
+export function docAddedRemoteEvent(
+  doc: MaybeDocument,
+  updatedInTargets?: TargetId[],
+  removedFromTargets?: TargetId[]
+): RemoteEvent {
+  assert(
+    !(doc instanceof Document) || !doc.hasLocalMutations,
+    "Docs from remote updates shouldn't have local changes."
+  );
+  const docChange = new DocumentWatchChange(
+    updatedInTargets || [],
+    removedFromTargets || [],
+    doc.key,
+    doc
+  );
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => documentKeySet(),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+  });
+  aggregator.handleDocumentChange(docChange);
+  return aggregator.createRemoteEvent(doc.version);
+}
+
 export function docUpdateRemoteEvent(
   doc: MaybeDocument,
   updatedInTargets?: TargetId[],
@@ -242,50 +280,79 @@ export function docUpdateRemoteEvent(
     !(doc instanceof Document) || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
-  if (updatedInTargets === undefined) updatedInTargets = [];
-  if (removedFromTargets === undefined) removedFromTargets = [];
   const docChange = new DocumentWatchChange(
-    updatedInTargets,
-    removedFromTargets,
+    updatedInTargets || [],
+    removedFromTargets || [],
     doc.key,
     doc
   );
-  const listens: { [targetId: number]: QueryData } = {};
-  for (const targetId of updatedInTargets.concat(removedFromTargets)) {
-    listens[targetId] = {} as QueryData;
-  }
-  const aggregator = new WatchChangeAggregator(doc.version, listens, {});
-  aggregator.add(docChange);
-  const event = aggregator.createRemoteEvent();
-  return event;
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => keys(doc),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+  });
+  aggregator.handleDocumentChange(docChange);
+  return aggregator.createRemoteEvent(doc.version);
+}
+
+export function updateMapping(
+  snapshotVersion: SnapshotVersion,
+  added: Array<Document | string>,
+  modified: Array<Document | string>,
+  removed: Array<MaybeDocument | string>,
+  current?: boolean
+): TargetChange {
+  let addedDocuments = documentKeySet();
+  let modifiedDocuments = documentKeySet();
+  let removedDocuments = documentKeySet();
+
+  added.forEach(docOrKey => {
+    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+    addedDocuments = addedDocuments.add(k);
+  });
+  modified.forEach(docOrKey => {
+    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
+    modifiedDocuments = modifiedDocuments.add(k);
+  });
+  removed.forEach(docOrKey => {
+    const k =
+      docOrKey instanceof Document || docOrKey instanceof NoDocument
+        ? docOrKey.key
+        : key(docOrKey);
+    removedDocuments = removedDocuments.add(k);
+  });
+
+  return new TargetChange(
+    resumeTokenForSnapshot(snapshotVersion),
+    !!current,
+    addedDocuments,
+    modifiedDocuments,
+    removedDocuments
+  );
 }
 
 export function addTargetMapping(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
-  const mapping = new UpdateMapping();
-  for (const docOrKey of docsOrKeys) {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
-    mapping.addedDocuments = mapping.addedDocuments.add(k);
-  }
-  return {
-    mapping,
-    snapshotVersion: SnapshotVersion.MIN,
-    resumeToken: emptyByteString(),
-    currentStatusUpdate: CurrentStatusUpdate.None
-  };
+  return updateMapping(
+    SnapshotVersion.MIN,
+    docsOrKeys,
+    [],
+    [],
+    /* current= */ false
+  );
 }
 
 export function ackTarget(
   ...docsOrKeys: Array<Document | string>
 ): TargetChange {
-  const targetChange = addTargetMapping(...docsOrKeys);
-  return {
-    mapping: targetChange.mapping,
-    snapshotVersion: targetChange.snapshotVersion,
-    resumeToken: emptyByteString(),
-    currentStatusUpdate: CurrentStatusUpdate.MarkCurrent
-  };
+  return updateMapping(
+    SnapshotVersion.MIN,
+    docsOrKeys,
+    [],
+    [],
+    /* current= */ true
+  );
 }
 
 export function limboChanges(changes: {
@@ -321,16 +388,6 @@ export function localViewChanges(
   );
 
   return new LocalViewChanges(query, addedKeys, removedKeys);
-}
-
-export function updateMapping(
-  added: Document[],
-  removed: Document[]
-): UpdateMapping {
-  const update = new UpdateMapping();
-  added.forEach(doc => update.add(doc.key));
-  removed.forEach(doc => update.delete(doc.key));
-  return update;
 }
 
 /** Creates a resume token to match the given snapshot version. */

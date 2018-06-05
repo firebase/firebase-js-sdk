@@ -22,12 +22,7 @@ import {
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
-import {
-  CurrentStatusUpdate,
-  ResetMapping,
-  TargetChange,
-  UpdateMapping
-} from '../remote/remote_event';
+import { TargetChange } from '../remote/remote_event';
 import { assert, fail } from '../util/assert';
 
 import { Query } from './query';
@@ -332,29 +327,19 @@ export class View {
    */
   private applyTargetChange(targetChange?: TargetChange): void {
     if (targetChange) {
-      const targetMapping = targetChange.mapping;
-      if (targetMapping instanceof ResetMapping) {
-        this._syncedDocuments = targetMapping.documents;
-      } else if (targetMapping instanceof UpdateMapping) {
-        this._syncedDocuments = targetMapping.applyToKeySet(
-          this._syncedDocuments
-        );
-      }
-
-      switch (targetChange.currentStatusUpdate) {
-        case CurrentStatusUpdate.MarkCurrent:
-          this.current = true;
-          break;
-        case CurrentStatusUpdate.MarkNotCurrent:
-          this.current = false;
-          break;
-        case CurrentStatusUpdate.None:
-          break;
-        default:
-          fail(
-            'Unknown current status update: ' + targetChange.currentStatusUpdate
-          );
-      }
+      targetChange.addedDocuments.forEach(
+        key => (this._syncedDocuments = this._syncedDocuments.add(key))
+      );
+      targetChange.modifiedDocuments.forEach(key =>
+        assert(
+          this._syncedDocuments.has(key),
+          `Modified document ${key} not found in view.`
+        )
+      );
+      targetChange.removedDocuments.forEach(
+        key => (this._syncedDocuments = this._syncedDocuments.delete(key))
+      );
+      this.current = targetChange.current;
     }
   }
 

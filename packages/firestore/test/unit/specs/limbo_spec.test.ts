@@ -186,4 +186,72 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query, { removed: [doc2] })
     );
   });
+
+  // Regression test for b/72533250.
+  specTest('Limbo documents handle receiving ack and then current', [], () => {
+    const fullQuery = Query.atPath(path('collection'));
+    const limitQuery = Query.atPath(path('collection'))
+      .addFilter(filter('include', '==', true))
+      .withLimit(1);
+    const docA = doc('collection/a', 1000, { key: 'a', include: true });
+    const docB = doc('collection/b', 1000, { key: 'b', include: true });
+    const docBQuery = Query.atPath(docB.key.path);
+    return (
+      spec()
+        // No GC so we can keep the cache populated.
+        .withGCEnabled(false)
+
+        // Full query to populate the cache with docA and docB
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1000, docA, docB)
+        .expectEvents(fullQuery, {
+          added: [docA, docB]
+        })
+        .userUnlistens(fullQuery)
+
+        // Perform limit(1) query.
+        .userListens(limitQuery)
+        .expectEvents(limitQuery, {
+          added: [docA],
+          fromCache: true
+        })
+        .watchAcksFull(limitQuery, 2000, docA)
+        .expectEvents(limitQuery, {
+          fromCache: false
+        })
+
+        // Edit docA so it no longer matches the query and we pull in docB
+        // from cache.
+        .userPatches('collection/a', { include: false })
+        .expectEvents(limitQuery, {
+          removed: [docA],
+          added: [docB],
+          fromCache: true
+        })
+        // docB is in limbo since we haven't gotten the watch update to pull
+        // it in yet.
+        .expectLimboDocs(docB.key)
+
+        // Ack the query and send the document update.
+        .watchAcks(docBQuery)
+        .watchSends({ affects: [docBQuery] }, docB)
+
+        // TODO(b/72533250): If you uncomment this totally valid watch
+        // snapshot, then the test fails because the subsequent CURRENT below
+        // is turned into a delete of docB.
+        //.watchSnapshots(2000)
+
+        // Additionally CURRENT the query (should have no effect)
+        .watchCurrents(docBQuery, 'resume-token-3000')
+        .watchSnapshots(3000)
+
+        // Watch catches up to the local write to docA, and broadcasts its
+        // removal (and replacement by docB).
+        .watchSends({ removed: [limitQuery] }, docA)
+        .watchSends({ affects: [limitQuery] }, docB)
+        .watchSnapshots(4000)
+        .expectEvents(limitQuery, { fromCache: false })
+        .expectLimboDocs()
+    );
+  });
 });

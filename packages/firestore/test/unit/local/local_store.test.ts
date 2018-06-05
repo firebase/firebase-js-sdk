@@ -25,19 +25,17 @@ import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
-import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  DocumentMap,
+  MaybeDocumentMap
+} from '../../../src/model/collections';
 import {
   Document,
   MaybeDocument,
   NoDocument
 } from '../../../src/model/document';
-import {
-  DeleteMutation,
-  Mutation,
-  MutationResult,
-  PatchMutation,
-  SetMutation
-} from '../../../src/model/mutation';
+import { Mutation, MutationResult } from '../../../src/model/mutation';
 import {
   MutationBatch,
   MutationBatchResult
@@ -49,12 +47,13 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
-import { assert, fail } from '../../../src/util/assert';
+import { assert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   deletedDoc,
   deleteMutation,
   doc,
+  docAddedRemoteEvent,
   docUpdateRemoteEvent,
   expectEqual,
   key,
@@ -79,20 +78,14 @@ class LocalStoreTester {
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
   ): LocalStoreTester {
-    if (
-      op instanceof SetMutation ||
-      op instanceof PatchMutation ||
-      op instanceof DeleteMutation
-    ) {
+    if (op instanceof Mutation) {
       return this.afterMutations([op]);
     } else if (op instanceof Array) {
       return this.afterMutations(op);
-    } else if (op instanceof RemoteEvent) {
-      return this.afterRemoteEvent(op);
     } else if (op instanceof LocalViewChanges) {
       return this.afterViewChanges(op);
     } else {
-      return fail('Unknown operation on LocalStore: ' + op);
+      return this.afterRemoteEvent(op);
     }
   }
 
@@ -678,7 +671,7 @@ function genericLocalStoreTests(
 
   it('collects garbage after ChangeBatch with no target ids', () => {
     return expectLocalStore()
-      .after(docUpdateRemoteEvent(deletedDoc('foo/bar', 2), [1]))
+      .after(docAddedRemoteEvent(deletedDoc('foo/bar', 2), [1]))
       .afterGC()
       .toNotContain('foo/bar')
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [1]))
@@ -692,7 +685,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
-      .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
       .afterGC()
       .toContain(doc('foo/bar', 2, { foo: 'bar' }))
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'baz' }), [], [2]))
@@ -707,7 +700,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
         .afterReleasingQuery(query)
@@ -748,7 +741,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docUpdateRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered up-to-date.
         .afterReleasingQuery(query)
@@ -788,7 +781,7 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
-      .after(docUpdateRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
       .after(setMutation('foo/baz', { foo: 'baz' }))
       .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
@@ -811,7 +804,7 @@ function genericLocalStoreTests(
   it('throws away documents with unknown target-ids immediately', () => {
     const targetId = 321;
     return expectLocalStore()
-      .after(docUpdateRemoteEvent(doc('foo/bar', 1, {}), [targetId]))
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, {}), [targetId]))
       .toContain(doc('foo/bar', 1, {}))
       .afterGC()
       .toNotContain('foo/bar')
@@ -860,7 +853,7 @@ function genericLocalStoreTests(
     const queryData = await localStore.allocateQuery(query);
     expect(queryData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
-      docUpdateRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
+      docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
     await localStore.applyRemoteEvent(
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
@@ -888,13 +881,12 @@ function genericLocalStoreTests(
       [targetId],
       resumeToken
     );
-    const aggregator = new WatchChangeAggregator(
-      version(1000),
-      { [targetId]: queryData },
-      {}
-    );
-    aggregator.add(watchChange);
-    const remoteEvent = aggregator.createRemoteEvent();
+    const aggregator = new WatchChangeAggregator({
+      getRemoteKeysForTarget: () => documentKeySet(),
+      getQueryDataForTarget: () => queryData
+    });
+    aggregator.handleTargetChange(watchChange);
+    const remoteEvent = aggregator.createRemoteEvent(version(1000));
     await localStore.applyRemoteEvent(remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
@@ -917,13 +909,12 @@ function genericLocalStoreTests(
       [targetId],
       resumeToken
     );
-    const aggregator1 = new WatchChangeAggregator(
-      version(1000),
-      { [targetId]: queryData },
-      {}
-    );
-    aggregator1.add(watchChange1);
-    const remoteEvent1 = aggregator1.createRemoteEvent();
+    const aggregator1 = new WatchChangeAggregator({
+      getRemoteKeysForTarget: () => documentKeySet(),
+      getQueryDataForTarget: () => queryData
+    });
+    aggregator1.handleTargetChange(watchChange1);
+    const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
     await localStore.applyRemoteEvent(remoteEvent1);
 
     const watchChange2 = new WatchTargetChange(
@@ -931,13 +922,12 @@ function genericLocalStoreTests(
       [targetId],
       emptyByteString()
     );
-    const aggregator2 = new WatchChangeAggregator(
-      version(2000),
-      { [targetId]: queryData },
-      {}
-    );
-    aggregator2.add(watchChange2);
-    const remoteEvent2 = aggregator2.createRemoteEvent();
+    const aggregator2 = new WatchChangeAggregator({
+      getRemoteKeysForTarget: () => documentKeySet(),
+      getQueryDataForTarget: () => queryData
+    });
+    aggregator2.handleTargetChange(watchChange2);
+    const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
     await localStore.applyRemoteEvent(remoteEvent2);
 
     // Stop listening so that the query should become inactive (but persistent)

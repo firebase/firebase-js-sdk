@@ -20,7 +20,11 @@ import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
-import { MaybeDocumentMap, documentKeySet } from '../model/collections';
+import {
+  MaybeDocumentMap,
+  documentKeySet,
+  DocumentKeySet
+} from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -32,7 +36,6 @@ import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -51,6 +54,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { SortedSet } from '../util/sorted_set';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -296,25 +300,6 @@ export class SyncEngine implements RemoteSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
-    // Make sure limbo documents are deleted if there were no results.
-    // Filter out document additions to targets that they already belong to.
-    objUtils.forEachNumber(
-      remoteEvent.targetChanges,
-      (targetId, targetChange) => {
-        const limboKey = this.limboKeysByTarget[targetId];
-        if (!limboKey) {
-          const qv = this.queryViewsByTarget[targetId];
-          assert(!!qv, 'Missing QueryView for non-limbo query: ' + targetId);
-          targetChange.mapping.filterUpdates(qv.view.syncedDocuments);
-        } else {
-          remoteEvent.synthesizeDeleteForLimboTargetChange(
-            targetChange,
-            limboKey
-          );
-        }
-      }
-    );
-
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
@@ -355,19 +340,20 @@ export class SyncEngine implements RemoteSyncer {
       // This is kind of a hack. Ideally, we would have a method in the local
       // store to purge a document. However, it would be tricky to keep all of
       // the local store's invariants with another method.
-      let docMap = new SortedMap<DocumentKey, MaybeDocument>(
+      let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
         DocumentKey.comparator
       );
-      docMap = docMap.insert(
+      documentUpdates = documentUpdates.insert(
         limboKey,
         new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
       );
-      const limboDocuments = documentKeySet().add(limboKey);
+      const resolvedLimboDocuments = documentKeySet().add(limboKey);
       const event = new RemoteEvent(
         SnapshotVersion.MIN,
-        {},
-        docMap,
-        limboDocuments
+        /* targetChanges= */ {},
+        /* targetMismatches= */ new SortedSet<TargetId>(primitiveComparator),
+        documentUpdates,
+        resolvedLimboDocuments
       );
       return this.applyRemoteEvent(event);
     } else {
@@ -491,7 +477,7 @@ export class SyncEngine implements RemoteSyncer {
       const query = Query.atPath(key.path);
       this.limboKeysByTarget[limboTargetId] = key;
       this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.Listen)
+        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,
@@ -598,5 +584,11 @@ export class SyncEngine implements RemoteSyncer {
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
+    return this.queryViewsByTarget[targetId]
+      ? this.queryViewsByTarget[targetId].view.syncedDocuments
+      : documentKeySet();
   }
 }

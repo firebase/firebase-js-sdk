@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.3.2"
+    "@firebase/auth-types": "0.3.3"
   },
   "devDependencies": {
     "closure-builder": "2.2.39",

@@ -99,7 +99,7 @@ describe('SimpleDb', () => {
       })
       .then(simpleDb => {
         db = simpleDb;
-        writeTestData();
+        return writeTestData();
       });
   });
 
@@ -452,6 +452,35 @@ describe('SimpleDb', () => {
       const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
       return store.loadAll(range).next(results => {
         expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
+      });
+    });
+  });
+
+  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  it.skip('Perf', () => {
+    return runTransaction(store => {
+      const start = new Date().getTime();
+      const promises = [];
+      for (let i = 0; i < 1000; ++i) {
+        promises.push(store.put({ id: i, name: 'frank', age: i }));
+      }
+      return PersistencePromise.waitFor(promises).next(() => {
+        const end = new Date().getTime();
+        // tslint:disable-next-line:no-console
+        console.log(`Writing: ${end - start} ms`);
+      });
+    }).then(() => {
+      return runTransaction(store => {
+        const start = new Date().getTime();
+        const promises = [];
+        for (let i = 0; i < 1000; ++i) {
+          promises.push(store.get(i));
+        }
+        return PersistencePromise.map(promises).next(() => {
+          const end = new Date().getTime();
+          // tslint:disable-next-line:no-console
+          console.log(`Reading: ${end - start} ms`);
+        });
       });
     });
   });

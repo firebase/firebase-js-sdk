@@ -27,15 +27,25 @@ addons:
       - google-chrome-stable
       - g++-4.8
 
+matrix:
+  fast_finish: true
+
 jobs:
+  allow_failures:
+    - script: yarn test:saucelabs
+    - script: yarn test:saucelabs --database-firestore-only
   include:
     - stage: test
       script: xvfb-run yarn test
       after_success: yarn test:coverage
-      env: '#comment = yarn test'
+      env: '#= chrome headless test'
     - stage: test
-      script: xvfb-run yarn test:saucelabs
-      env: '#comment = yarn test:saucelabs'
+      script: yarn test:saucelabs
+      env: '#= cross browser test: all packages except database and firestore'
+      if: type = push
+    - stage: test
+      script: yarn test:saucelabs --database-firestore-only
+      env: '#= cross browser test: database and firestore (allow_failures)'
       if: type = push
     - stage: deploy
       script: skip

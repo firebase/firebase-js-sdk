@@ -133,7 +133,7 @@ export class DataSnapshot {
    * @return {boolean} True if forEach was canceled by action returning true for
    * one of the child nodes.
    */
-  forEach(action: (d: DataSnapshot) => void): boolean {
+  forEach(action: (d: DataSnapshot) => boolean | void): boolean {
     validateArgCount('DataSnapshot.forEach', 1, 1, arguments.length);
     validateCallback('DataSnapshot.forEach', 1, action, false);
 
