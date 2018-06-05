@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-const argv = require('yargs').argv;
-const glob = require('glob');
+const argv = require('yargs').array('packages').argv;
+const globby = require('globby');
 const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
@@ -26,23 +26,22 @@ const karmaBase = require('./karma.base');
  * integration.
  */
 function getTestFiles() {
-  let root = path.resolve(__dirname, '..');
-  configs = argv['database-firestore-only']
-    ? glob.sync('packages/{database,firestore}/karma.conf.js')
-    : glob.sync('{packages,integration}/*/karma.conf.js', {
-        // Excluded due to flakiness or long run time.
-        ignore: [
-          'packages/database/*',
-          'packages/firestore/*',
-          'integration/firestore/*',
-          'integration/messaging/*'
-        ]
-      });
-  files = configs.map(x => {
-    let patterns = require(path.join(root, x)).files;
+  const root = path.resolve(__dirname, '..');
+  console.log('argv:', argv);
+  const packages = argv['packages'] || ['{packages,integration}/*'];
+  // Firestore integration test excluded from automated test.
+  // See integration/firestore/package.json.
+  const configs = globby.sync(
+    packages.map(x => path.join(x, 'karma.conf.js')),
+    { ignore: 'integration/firestore/*' }
+  );
+  console.log('configs:', configs);
+  let files = configs.map(x => {
+    let patterns = require(path.resolve(root, x)).files;
     let dirname = path.dirname(x);
-    return patterns.map(p => path.join(dirname, p));
+    return patterns.map(p => path.resolve(dirname, p));
   });
+  console.log('files:', files);
   return [].concat(...files);
 }
 
