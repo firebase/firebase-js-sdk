@@ -57,7 +57,7 @@ function evalModule {
   for basedir in "${nodeModulesBasedirs[@]}"
   do
     if [ -f "$basedir/$1" ]; then
-      "$basedir/$1" "${@:2}"
+      eval "$basedir/$1 ${@:2}"
     fi
   done
 }
@@ -77,7 +77,7 @@ function killServer () {
 }
 
 # Start the local webserver.
-evalModule gulp serve &
+evalModule gulp "serve &"
 serverPid=$!
 echo "Local HTTP Server started with PID $serverPid."
 
