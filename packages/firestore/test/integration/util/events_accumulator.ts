@@ -34,6 +34,7 @@ export class EventsAccumulator<
     if (this.rejectAdditionalEvents) {
       throw new Error(
         'Additional event detected after assertNoAdditionalEvents called'
+        + JSON.stringify(evt)
       );
     }
     this.events.push(evt);
