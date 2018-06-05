@@ -271,14 +271,6 @@ export class SpecBuilder {
     return this;
   }
 
-  drainQueue(): this {
-    this.nextStep();
-    this.currentStep = {
-      drainQueue: true
-    };
-    return this;
-  }
-
   changeUser(uid: string | null): this {
     this.nextStep();
     this.currentStep = { changeUser: uid };
@@ -812,11 +804,16 @@ export class MultiClientSpecBuilder extends SpecBuilder {
     // state, we don't need to use a different SpecBuilder instance for each
     // client.
     this.nextStep();
+    this.currentStep = {
+      drainQueue: true
+    };
+
     this.activeClientIndex = clientIndex;
     this.config.numClients = Math.max(
-      this.config.numClients,
-      this.activeClientIndex + 1
+        this.config.numClients,
+        this.activeClientIndex + 1
     );
+
     return this;
   }
 
