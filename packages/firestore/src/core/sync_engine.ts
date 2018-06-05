@@ -167,6 +167,7 @@ export class SyncEngine implements RemoteSyncer {
             .remoteDocumentKeys(queryData.targetId)
             .then(remoteKeys => {
               const view = new View(query, remoteKeys);
+              console.log('---listen()');
               const viewDocChanges = view.computeDocChanges(docs);
               const viewChange = view.applyChanges(viewDocChanges);
               assert(
@@ -223,6 +224,8 @@ export class SyncEngine implements RemoteSyncer {
    */
   write(batch: Mutation[], userCallback: Deferred<void>): Promise<void> {
     this.assertSubscribed('write()');
+
+    console.log('---write()');
     return this.localStore
       .localWrite(batch)
       .then(result => {
@@ -299,7 +302,7 @@ export class SyncEngine implements RemoteSyncer {
 
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
-
+console.log('----- applyRemoteEvent()');
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
@@ -523,6 +526,7 @@ export class SyncEngine implements RemoteSyncer {
       queriesProcessed.push(
         Promise.resolve()
           .then(() => {
+            console.log('---emitNewSnapsAndNotifyLocalStore()');
             const viewDocChanges = queryView.view.computeDocChanges(changes);
             if (!viewDocChanges.needsRefill) {
               return viewDocChanges;
@@ -531,6 +535,7 @@ export class SyncEngine implements RemoteSyncer {
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
             return this.localStore.executeQuery(queryView.query).then(docs => {
+              console.log('---emitNewSnapsAndNotifyLocalStore()2');
               return queryView.view.computeDocChanges(docs, viewDocChanges);
             });
           })
@@ -568,6 +573,7 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   private assertSubscribed(fnName: string): void {
+    console.log('---- assertSubscribed ' + fnName);
     assert(
       this.viewHandler !== null && this.errorHandler !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
