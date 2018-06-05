@@ -100,7 +100,7 @@ export class EventsAccumulator<
     });
   }
 
-  allowAdditionalEvents() : void {
+  allowAdditionalEvents(): void {
     this.rejectAdditionalEvents = false;
   }
 
