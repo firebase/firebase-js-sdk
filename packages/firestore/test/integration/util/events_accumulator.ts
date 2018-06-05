@@ -100,6 +100,10 @@ export class EventsAccumulator<
     });
   }
 
+  allowAdditionalEvents() : void {
+    this.rejectAdditionalEvents = false;
+  }
+
   private checkFulfilled(): void {
     if (this.deferred !== null && this.events.length >= this.waitingFor) {
       const events = this.events.splice(0, this.waitingFor);
