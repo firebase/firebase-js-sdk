@@ -2,7 +2,7 @@
 # Each line is a file pattern followed by one or more owners.
 
 # These owners will be the default owners for everything in the repo.
-*       @jshcrowthe
+*       @jshcrowthe @hiranya911
 
 # Database Code
 packages/database  @mikelehen @schmidt-sebastian
@@ -19,9 +19,9 @@ packages/storage  @sphippen
 packages/storage-types  @sphippen
 
 # Messaging Code
-packages/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
-packages/messaging-types  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
-integration/messaging  @gauntface @pinarx @mmermerkaya @alecmce @dwoffinden
+packages/messaging  @gauntface @pinarx @mmermerkaya @dwoffinden
+packages/messaging-types  @gauntface @pinarx @mmermerkaya @dwoffinden
+integration/messaging  @gauntface @pinarx @mmermerkaya @dwoffinden
 
 # Auth Code
 packages/auth  @bojeil-google @wti806

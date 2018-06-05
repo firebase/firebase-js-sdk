@@ -139,7 +139,8 @@ apiDescribe('Database', persistence => {
         updated: false
       };
       const mergeData = {
-        time: firebase.firestore.FieldValue.serverTimestamp()
+        time: firebase.firestore.FieldValue.serverTimestamp(),
+        nested: { time: firebase.firestore.FieldValue.serverTimestamp() }
       };
       return doc
         .set(initialData)
@@ -149,6 +150,7 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.get('updated')).to.be.false;
           expect(docSnapshot.get('time')).to.be.an.instanceof(Timestamp);
+          expect(docSnapshot.get('nested.time')).to.be.an.instanceof(Timestamp);
         });
     });
   });
@@ -175,6 +177,67 @@ apiDescribe('Database', persistence => {
         .then(docSnapshot => {
           expect(docSnapshot.exists).to.be.ok;
           expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
+
+  it('can delete field using mergeFields', () => {
+    return withTestDoc(persistence, doc => {
+      const initialData = {
+        untouched: true,
+        foo: 'bar',
+        inner: { removed: true, foo: 'bar' },
+        nested: { untouched: true, foo: 'bar' }
+      };
+      const mergeData = {
+        foo: firebase.firestore.FieldValue.delete(),
+        inner: { foo: firebase.firestore.FieldValue.delete() },
+        nested: {
+          untouched: firebase.firestore.FieldValue.delete(),
+          foo: firebase.firestore.FieldValue.delete()
+        }
+      };
+      const finalData = {
+        untouched: true,
+        inner: {},
+        nested: { untouched: true }
+      };
+      return doc
+        .set(initialData)
+        .then(() =>
+          doc.set(mergeData, { mergeFields: ['foo', 'inner', 'nested.foo'] })
+        )
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
+
+  it('can set server timestamps using mergeFields', () => {
+    return withTestDoc(persistence, doc => {
+      const initialData = {
+        untouched: true,
+        foo: 'bar',
+        nested: { untouched: true, foo: 'bar' }
+      };
+      const mergeData = {
+        foo: firebase.firestore.FieldValue.serverTimestamp(),
+        inner: { foo: firebase.firestore.FieldValue.serverTimestamp() },
+        nested: { foo: firebase.firestore.FieldValue.serverTimestamp() }
+      };
+      return doc
+        .set(initialData)
+        .then(() =>
+          doc.set(mergeData, { mergeFields: ['foo', 'inner', 'nested.foo'] })
+        )
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.get('foo')).to.be.instanceof(Timestamp);
+          expect(docSnapshot.get('inner.foo')).to.be.instanceof(Timestamp);
+          expect(docSnapshot.get('nested.foo')).to.be.instanceof(Timestamp);
         });
     });
   });
