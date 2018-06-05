@@ -150,6 +150,8 @@ export class View {
             JSON.stringify(newMaybeDoc)
         );
         const oldDoc = oldDocumentSet.get(key);
+        console.log('----newMaybeDoc '  + JSON.stringify(newMaybeDoc));
+        // instanceof fails?
         let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
         if (newDoc) {
           assert(
