@@ -696,7 +696,6 @@ describeSpec('Writes:', [], () => {
           modified: [docV2]
         })
         .client(1)
-        .drainQueue() // Process all local storage events.
         .expectEvents(query, {
           hasPendingWrites: true,
           fromCache: true,
@@ -709,7 +708,6 @@ describeSpec('Writes:', [], () => {
           modified: [docV3]
         })
         .client(0)
-        .drainQueue() // Process all local storage events.
         .expectEvents(query, {
           hasPendingWrites: true,
           modified: [docV3]
@@ -745,7 +743,6 @@ describeSpec('Writes:', [], () => {
         added: [localDoc]
       })
       .client(0)
-      .drainQueue()
       .expectEvents(query, {
         hasPendingWrites: true,
         added: [localDoc]
@@ -757,7 +754,6 @@ describeSpec('Writes:', [], () => {
         metadata: [remoteDoc]
       })
       .client(1)
-      .drainQueue()
       .expectUserCallbacks({
         acknowledged: ['collection/a']
       });
@@ -794,7 +790,6 @@ describeSpec('Writes:', [], () => {
         added: [localDoc]
       })
       .client(0)
-      .drainQueue()
       .expectEvents(query, {
         hasPendingWrites: true,
         added: [localDoc]
@@ -810,7 +805,6 @@ describeSpec('Writes:', [], () => {
         removed: [localDoc]
       })
       .client(1)
-      .drainQueue()
       .expectUserCallbacks({
         rejected: ['collection/a']
       })
