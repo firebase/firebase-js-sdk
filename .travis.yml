@@ -8,6 +8,9 @@ env:
   global:
     - CXX=g++-4.8
 before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install aha bsd-mailx jq ssmtp
+  - echo -e $SSMTP_CONFIG | sudo tee /etc/ssmtp/ssmtp.conf
   # Yarn defaults to an old version, make sure we
   # get an up to date version
   - npm install -g yarn
@@ -27,26 +30,34 @@ addons:
       - google-chrome-stable
       - g++-4.8
 
+# Defaults to cloning only the current branch with depth 50.
+# This allows all branches to be cloned, so that we can obtain a list of commits
+# as well as committers' name and email. This increases git cloning time by ~1s.
+git:
+  depth: false
+
 matrix:
   fast_finish: true
 
 jobs:
   allow_failures:
+    - script: ./scripts/saucelabs/run_test_for_push_build.sh
     - script: yarn test:saucelabs
-    - script: yarn test:saucelabs --database-firestore-only
   include:
     - stage: test
       script: xvfb-run yarn test
       after_success: yarn test:coverage
       env: '#= chrome headless test'
     - stage: test
-      script: yarn test:saucelabs
-      env: '#= cross browser test: all packages except database and firestore'
+      script: ./scripts/saucelabs/run_test_for_push_build.sh
+      after_failure: ./scripts/saucelabs/report_test_results.sh
+      env: '#= saucelabs browser test --- push build'
       if: type = push
     - stage: test
-      script: yarn test:saucelabs --database-firestore-only
-      env: '#= cross browser test: database and firestore (allow_failures)'
-      if: type = push
+      script: yarn test:saucelabs
+      after_failure: ./scripts/saucelabs/report_test_results.sh
+      env: '#= saucelabs browser test --- cron job'
+      if: type = cron
     - stage: deploy
       script: skip
       # NPM Canary Build Config

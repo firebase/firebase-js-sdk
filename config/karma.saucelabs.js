@@ -27,7 +27,6 @@ const karmaBase = require('./karma.base');
  */
 function getTestFiles() {
   const root = path.resolve(__dirname, '..');
-  console.log('argv:', argv);
   const packages = argv['packages'] || ['{packages,integration}/*'];
   // Firestore integration test excluded from automated test.
   // See integration/firestore/package.json.
@@ -35,13 +34,11 @@ function getTestFiles() {
     packages.map(x => path.join(x, 'karma.conf.js')),
     { ignore: 'integration/firestore/*' }
   );
-  console.log('configs:', configs);
   let files = configs.map(x => {
     let patterns = require(path.resolve(root, x)).files;
     let dirname = path.dirname(x);
     return patterns.map(p => path.resolve(dirname, p));
   });
-  console.log('files:', files);
   return [].concat(...files);
 }
 
