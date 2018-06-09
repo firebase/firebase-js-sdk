@@ -36,6 +36,10 @@ const WRAPPER_SUFFIX =
   `global : typeof self !== 'undefined' ? ` +
   `self : typeof window !== 'undefined' ? window : {});`;
 
+/*
+ * Re-emits file variations surrounding a content of an input file with
+ * CommonJS and EcmaScript modules wrappers.
+ */
 const wrap = through(function(file) {
   const makeFile = (prefix, path) =>
     new File({
