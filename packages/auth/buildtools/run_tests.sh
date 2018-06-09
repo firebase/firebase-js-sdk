@@ -53,11 +53,16 @@ declare -a nodeModulesBasedirs=(
   "./node_modules/.bin"
   "../../node_modules/.bin"
 )
+
+# Tries to resolve the first argument as an npm executable, taking hoisting into
+# account. If case of a successful resolution, executes the binary, passing
+# the rest of given arguments to an invocation.
 function evalModule {
   for basedir in "${nodeModulesBasedirs[@]}"
   do
     if [ -f "$basedir/$1" ]; then
       eval "$basedir/$1 ${@:2}"
+      break
     fi
   done
 }
