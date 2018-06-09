@@ -57,11 +57,11 @@ const wrap = through(function(file) {
 
 // The path to Closure Compiler.
 const COMPILER_PATH = `${path.dirname(
-  require.resolve('google-closure-compiler/package.json')
+    require.resolve('google-closure-compiler/package.json')
 )}/compiler.jar`;
 
 const closureLibRoot = path.dirname(
-  require.resolve('google-closure-library/package.json')
+    require.resolve('google-closure-library/package.json')
 );
 
 // Builds the core Firebase-auth JS.
@@ -73,33 +73,33 @@ const buildFirebaseAuth = () =>
       'src/**/*.js'
     ])
     .pipe(
-      closureCompiler({
-        compilerPath: COMPILER_PATH,
-        fileName: 'unwrapped.js',
-        compilerFlags: {
-          closure_entry_point: 'fireauth.exports',
-          compilation_level: OPTIMIZATION_LEVEL,
-          externs: [
-            'externs/externs.js',
-            'externs/grecaptcha.js',
-            'externs/gapi.iframes.js',
-            path.resolve(
-              __dirname,
-              '../firebase/externs/firebase-app-externs.js'
-            ),
-            path.resolve(
-              __dirname,
-              '../firebase/externs/firebase-error-externs.js'
-            ),
-            path.resolve(
-              __dirname,
-              '../firebase/externs/firebase-app-internal-externs.js'
-            )
-          ],
-          language_out: 'ES5',
-          only_closure_dependencies: true
-        }
-      })
+        closureCompiler({
+          compilerPath: COMPILER_PATH,
+          fileName: 'unwrapped.js',
+          compilerFlags: {
+            closure_entry_point: 'fireauth.exports',
+            compilation_level: OPTIMIZATION_LEVEL,
+            externs: [
+              'externs/externs.js',
+              'externs/grecaptcha.js',
+              'externs/gapi.iframes.js',
+              path.resolve(
+                  __dirname,
+                  '../firebase/externs/firebase-app-externs.js'
+              ),
+              path.resolve(
+                  __dirname,
+                  '../firebase/externs/firebase-error-externs.js'
+              ),
+              path.resolve(
+                  __dirname,
+                  '../firebase/externs/firebase-app-internal-externs.js'
+              )
+            ],
+            language_out: 'ES5',
+            only_closure_dependencies: true
+          }
+        })
     )
     .pipe(wrap)
     .pipe(gulp.dest('dist'));
@@ -114,8 +114,8 @@ gulp.task('serve', () => {
   const app = express();
 
   app.use(
-    '/node_modules',
-    express.static(path.resolve(__dirname, '../../node_modules'))
+      '/node_modules',
+      express.static(path.resolve(__dirname, '../../node_modules'))
   );
   app.use(express.static(__dirname));
 
