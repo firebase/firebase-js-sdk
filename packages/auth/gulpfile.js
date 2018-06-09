@@ -29,12 +29,12 @@ const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
 // For minified builds, wrap the output so we avoid leaking global variables.
 const CJS_WRAPPER_PREFIX =
-  `(function() {var firebase = require('@firebase/app').default;`;
+    `(function() {var firebase = require('@firebase/app').default;`;
 const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
 const WRAPPER_SUFFIX =
-  `}).call(typeof global !== 'undefined' ? ` +
-  `global : typeof self !== 'undefined' ? ` +
-  `self : typeof window !== 'undefined' ? window : {});`;
+    `}).call(typeof global !== 'undefined' ? ` +
+    `global : typeof self !== 'undefined' ? ` +
+    `self : typeof window !== 'undefined' ? window : {});`;
 
 /*
  * Re-emits file variations surrounding a content of an input file with
