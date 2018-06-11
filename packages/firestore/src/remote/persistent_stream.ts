@@ -314,12 +314,7 @@ export abstract class PersistentStream<
       "Can't provide an error when not in an error state."
     );
 
-    // The stream will be closed so we don't need our idle close timer anymore.
-    this.cancelIdleCheck();
-
-    // Ensure we don't leave a pending backoff operation queued (in case close()
-    // was called while we were waiting to reconnect).
-    this.backoff.cancel();
+    this.closeWithFinalState(finalState);
 
     if (finalState !== PersistentStreamState.Error) {
       // If this is an intentional close ensure we don't delay our next connection attempt.
@@ -360,6 +355,20 @@ export abstract class PersistentStream<
    * Calling super.tearDown() is not required.
    */
   protected tearDown(): void {}
+
+  /**
+   * Cancels idel-close-timer and reset backoff as necessary. Mainly those
+   * stream-specific close operations.
+   * @param finalState The intended state of the stream after closing.
+   */
+  protected closeWithFinalState(finalState: PersistentStreamState): void {
+    // The stream will be closed so we don't need our idle close timer anymore.
+    this.cancelIdleCheck();
+
+   // Ensure we don't leave a pending backoff operation queued (in case close()
+   // was called while we were waiting to reconnect).
+   this.backoff.cancel();
+  }
 
   /**
    * Used by subclasses to start the concrete RPC and return the underlying
@@ -579,6 +588,15 @@ export class PersistentListenStream extends PersistentStream<
     request.database = this.serializer.encodedDatabaseId;
     request.removeTarget = targetId;
     this.sendRequest(request);
+  }
+
+  // Override of PersistentStream.closeWithFinalState.
+  closeWithFinalState(finalState: PersistentStreamState): void {
+    // We only close those if there is no error. The RemoveStore will restart
+    // the stream if there is error.
+    if (finalState !== PersistentStreamState.Error) {
+      super.closeWithFinalState(finalState);
+    }
   }
 }
 
