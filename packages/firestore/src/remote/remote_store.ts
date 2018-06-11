@@ -219,9 +219,15 @@ export class RemoteStore implements TargetMetadataProvider {
     delete this.listenTargets[targetId];
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
-      if (objUtils.isEmpty(this.listenTargets)) {
-        this.watchStream.markIdle();
-      }
+    }
+    if (this.isNetworkEnabled() &&
+        this.watchStream.canTimeout() &&
+        objUtils.isEmpty(this.listenTargets)) {
+      this.watchStream.markIdle({
+        onOpen: null,
+        onClose: this.onWatchStreamClose.bind(this),
+        onWatchChange: null
+      });
     }
   }
 

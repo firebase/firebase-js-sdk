@@ -79,11 +79,10 @@ describeSpec('Offline:', [], () => {
           })
           // Remove listen.
           .userUnlistens(query)
-          .runTimer(TimerId.All)
           // If the next (already scheduled) connection attempt fails, we'll move
           // to unknown since there are no listeners, and stop trying to connect.
           .watchStreamCloses(Code.UNAVAILABLE)
-          .runTimer(TimerId.All)
+          .runTimer(TimerId.ListenStreamIdle)
           // Suppose sometime later we listen again, it should take two failures
           // before we get cached data.
           .userListens(query)
@@ -124,6 +123,9 @@ describeSpec('Offline:', [], () => {
             fromCache: true,
             hasPendingWrites: false
           })
+          // no further events
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE)
       );
     }
   );
