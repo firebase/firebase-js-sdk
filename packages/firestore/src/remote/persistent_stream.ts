@@ -161,6 +161,8 @@ export abstract class PersistentStream<
 
   protected listener: ListenerType | null = null;
 
+  protected closeAfterError: boolean | null = true;
+
   constructor(
     private queue: AsyncQueue,
     connectionTimerId: TimerId,
@@ -176,6 +178,7 @@ export abstract class PersistentStream<
       BACKOFF_MAX_DELAY_MS
     );
     this.state = PersistentStreamState.Initial;
+    this.closeAfterError = true;
   }
 
   /**
@@ -361,13 +364,15 @@ export abstract class PersistentStream<
    * stream-specific close operations.
    * @param finalState The intended state of the stream after closing.
    */
-  protected closeWithFinalState(finalState: PersistentStreamState): void {
-    // The stream will be closed so we don't need our idle close timer anymore.
-    this.cancelIdleCheck();
+  private closeWithFinalState(finalState: PersistentStreamState): void {
+    if (finalState !== PersistentStreamState.Error || this.closeAfterError) {
+      // The stream will be closed so we don't need our idle close timer anymore.
+      this.cancelIdleCheck();
 
-   // Ensure we don't leave a pending backoff operation queued (in case close()
-   // was called while we were waiting to reconnect).
-   this.backoff.cancel();
+      // Ensure we don't leave a pending backoff operation queued (in case close()
+      // was called while we were waiting to reconnect).
+      this.backoff.cancel();
+    }
   }
 
   /**
@@ -538,6 +543,7 @@ export class PersistentListenStream extends PersistentStream<
       connection,
       credentials
     );
+    this.closeAfterError = false;
   }
 
   protected startRpc(
@@ -588,15 +594,6 @@ export class PersistentListenStream extends PersistentStream<
     request.database = this.serializer.encodedDatabaseId;
     request.removeTarget = targetId;
     this.sendRequest(request);
-  }
-
-  // Override of PersistentStream.closeWithFinalState.
-  closeWithFinalState(finalState: PersistentStreamState): void {
-    // We only close those if there is no error. The RemoveStore will restart
-    // the stream if there is error.
-    if (finalState !== PersistentStreamState.Error) {
-      super.closeWithFinalState(finalState);
-    }
   }
 }
 
