@@ -1,7 +1,0 @@
-.gitignore
-*.gz
-webpack.*.js
-index.html
-dev.js
-index.dev.js
-gulpfile.js
