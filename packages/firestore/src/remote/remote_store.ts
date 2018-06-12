@@ -220,9 +220,11 @@ export class RemoteStore implements TargetMetadataProvider {
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
     }
-    if (this.isNetworkEnabled() &&
-        this.watchStream.canTimeout() &&
-        objUtils.isEmpty(this.listenTargets)) {
+    if (
+      this.isNetworkEnabled() &&
+      this.watchStream.canTimeout() &&
+      objUtils.isEmpty(this.listenTargets)
+    ) {
       this.watchStream.markIdle({
         onOpen: null,
         onClose: this.onWatchStreamClose.bind(this),
@@ -268,8 +270,8 @@ export class RemoteStore implements TargetMetadataProvider {
     if (afterError) {
       assert(
         this.shouldStartWatchStreamAfterError(),
-        ('startWriteStream() called when shouldStartWatchStreamAfterError() ' +
-         'is false.')
+        'startWriteStream() called when shouldStartWatchStreamAfterError() ' +
+          'is false.'
       );
     } else {
       assert(
@@ -277,7 +279,7 @@ export class RemoteStore implements TargetMetadataProvider {
         'startWriteStream() called when shouldStartWatchStream() is false.'
       );
     }
-                   
+
     this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.watchStream.start({
       onOpen: this.onWatchStreamOpen.bind(this),
