@@ -28,7 +28,7 @@ import functionsPkg from './functions/package.json';
 const pkgsByName = {
   auth: authPkg,
   storage: storagePkg,
-  functions: functionsPkg,
+  functions: functionsPkg
 };
 
 const plugins = [
@@ -74,11 +74,7 @@ const coreBuild = [
   }
 ];
 
-const components = [
-  'auth',
-  'storage',
-  'functions'
-];
+const components = ['auth', 'storage', 'functions'];
 const componentBuilds = components
   .map(component => {
     const pkg = pkgsByName[component];
@@ -101,8 +97,8 @@ const componentBuilds = components
           extend: true,
           name: GLOBAL_NAME,
           globals: {
-            'rxfire': GLOBAL_NAME,
-            'rxjs': 'rxjs',
+            rxfire: GLOBAL_NAME,
+            rxjs: 'rxjs',
             'rxjs/operators': 'rxjs.operators'
           }
         },
@@ -158,7 +154,7 @@ const completeBuilds = [
   }
 ];
 
-export default [ 
-//  ...coreBuild, 
-  ...componentBuilds 
+export default [
+  //  ...coreBuild,
+  ...componentBuilds
 ];
