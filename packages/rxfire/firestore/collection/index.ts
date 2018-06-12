@@ -1,14 +1,26 @@
 import { firestore } from 'firebase/app';
 import { fromCollectionRef } from '../fromRef';
 import { Observable } from 'rxjs';
-import { map, filter, scan } from 'rxjs/operators';
+import { map, filter, scan, distinctUntilChanged } from 'rxjs/operators';
+
+const ALL_EVENTS: firestore.DocumentChangeType[] = 
+  ['added', 'modified', 'removed'];
+
+const changesFilter = (events?: firestore.DocumentChangeType[]) => map(
+  (changes: firestore.DocumentChange[]) => {
+    return changes.filter(change => events.indexOf(change.type) > -1);
+  }
+);
+
+const filterEmpty = 
+  filter((changes: firestore.DocumentChange[]) => changes.length > 0)
 
 /**
  * Creates a new sorted array from a new change.
  * @param combined
  * @param change
  */
-export function combineChange<T>(
+function combineChange<T>(
   combined: firestore.DocumentChange[], change: firestore.DocumentChange
 ): firestore.DocumentChange[] {
   switch (change.type) {
@@ -43,9 +55,9 @@ export function combineChange<T>(
  * @param changes
  * @param events
  */
-export function combineChanges<T>(
+function combineChanges<T>(
   current: firestore.DocumentChange[], changes: firestore.DocumentChange[],
-  events: firestore.DocumentChangeType[]
+  events: firestore.DocumentChangeType[] = ALL_EVENTS
 ) {
   changes.forEach(change => {
     // skip unwanted change types
@@ -62,10 +74,14 @@ export function combineChanges<T>(
  * order of occurence.
  * @param query
  */
-export function docChanges(query: firestore.Query) {
+export function docChanges(
+  query: firestore.Query, events: firestore.DocumentChangeType[] = ALL_EVENTS
+) {
   return fromCollectionRef(query)
     .pipe(
-      map(snapshot => snapshot.docChanges())
+      map(snapshot => snapshot.docChanges()),
+      changesFilter(events),
+      filterEmpty
     );
 }
 
@@ -73,10 +89,10 @@ export function docChanges(query: firestore.Query) {
  * Return a stream of document changes on a query. These results are in sort order.
  * @param query
  */
-export function docs(query: firestore.Query, events: firestore.DocumentChangeType[]) {
+export function collection(query: firestore.Query) {
   return fromCollectionRef(query)
     .pipe(
-      map(changes => changes.docs[0])
+      map(changes => changes.docs)
     );
 }
 
@@ -85,42 +101,25 @@ export function docs(query: firestore.Query, events: firestore.DocumentChangeTyp
  * @param query
  */
 export function sortedChanges(
-  query: firestore.Query, events: firestore.DocumentChangeType[]
+  query: firestore.Query, events?: firestore.DocumentChangeType[]
 ) {
   return fromCollectionRef(query)
     .pipe(
       map(changes => changes.docChanges()),
       scan((
         current: firestore.DocumentChange[], changes: firestore.DocumentChange[]
-      ) => combineChanges(current, changes, events), [])
+      ) => combineChanges(current, changes, events), []),
+      filterEmpty
     );
 }
 
 /**
- * Listen to the latest change in the stream. This method returns changes
- * as they occur and they are not sorted by query order. This allows you to construct
- * your own data structure.
- */
-export function stateChanges(
-  query: firestore.Query, events?: firestore.DocumentChangeType[]
-) {
-  if (!events || events.length === 0) {
-    return docChanges(query);
-  }
-  return docChanges(query)
-    .pipe(
-      map(actions => actions.filter(change => events.indexOf(change.type) > -1)),
-      filter(changes => changes.length > 0)
-    );
-}
-
-/**
- * Create a stream of changes as they occur it time. This method is similar to stateChanges()
- * but it collects each event in an array over time.
+ * Create a stream of changes as they occur it time. This method is similar 
+ * to stateChanges() but it collects each event in an array over time.
  */
 export function auditTrail(
   query: firestore.Query, events?: firestore.DocumentChangeType[]
-) {
-  return stateChanges(query, events)
+): Observable<firestore.DocumentChange[]> {
+  return docChanges(query, events)
     .pipe(scan((current, action) => [...current, ...action], []));
 }
