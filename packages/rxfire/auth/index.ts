@@ -19,7 +19,7 @@ import { Observable, from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
 /**
- * Create an observable of authentication state. The observer is only 
+ * Create an observable of authentication state. The observer is only
  * triggered on sign-in or sign-out.
  * @param auth firebase.auth.Auth
  */
@@ -31,7 +31,7 @@ export function authState(auth: auth.Auth): Observable<User> {
 }
 
 /**
- * Create an observable of user state. The observer is triggered for sign-in, 
+ * Create an observable of user state. The observer is triggered for sign-in,
  * sign-out, and token refresh events
  * @param auth firebase.auth.Auth
  */
@@ -43,13 +43,12 @@ export function user(auth: auth.Auth): Observable<User> {
 }
 
 /**
- * Create an observable of idToken state. The observer is triggered for sign-in, 
+ * Create an observable of idToken state. The observer is triggered for sign-in,
  * sign-out, and token refresh events
  * @param auth firebase.auth.Auth
  */
 export function idToken(auth: auth.Auth) {
-  return user(auth)
-    .pipe(
-      switchMap(user => user ? from(user.getIdToken()) : of(null))
-    );
+  return user(auth).pipe(
+    switchMap(user => (user ? from(user.getIdToken()) : of(null)))
+  );
 }

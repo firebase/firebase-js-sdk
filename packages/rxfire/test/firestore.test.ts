@@ -1,32 +1,38 @@
 import { expect } from 'chai';
 import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
-import { collection, docChanges, sortedChanges, auditTrail } from '../firestore';
+import {
+  collection,
+  docChanges,
+  sortedChanges,
+  auditTrail
+} from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
 
-const createId = () => Math.random().toString(36).substring(5);
+const createId = () =>
+  Math.random()
+    .toString(36)
+    .substring(5);
 
 /**
  * Create a collection with a random name. This helps sandbox offline tests and
  * makes sure tests don't interfere with each other as they run.
  */
-const createRandomCol =
-  (firestore: firestore.Firestore) => firestore.collection(createId());
+const createRandomCol = (firestore: firestore.Firestore) =>
+  firestore.collection(createId());
 
 /**
  * Unwrap a snapshot but add the type property to the data object.
  */
-const unwrapChange = map(
-  (changes: firestore.DocumentChange[]) => {
-    return changes.map(c => ({ type: c.type, ...c.doc.data() }))
-  }
-);
+const unwrapChange = map((changes: firestore.DocumentChange[]) => {
+  return changes.map(c => ({ type: c.type, ...c.doc.data() }));
+});
 
 /**
  * Create an environment for the tests to run in. The information is returned
  * from the function for use within the test.
  */
-const seedTest = (firestore) => {
+const seedTest = firestore => {
   const colRef = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });
@@ -38,7 +44,7 @@ const seedTest = (firestore) => {
     { name: 'Shannon', type: 'added' }
   ];
   return { colRef, davidDoc, shannonDoc, expectedNames, expectedEvents };
-}
+};
 
 describe('RxFire Firestore', () => {
   let app: app.App = null;
@@ -47,16 +53,16 @@ describe('RxFire Firestore', () => {
   /**
    * Each test runs inside it's own app instance and the app
    * is deleted after the test runs.
-   * 
+   *
    * Firestore tests run "offline" to reduce "flakeyness".
-   * 
-   * Each test is responsible for seeding and removing data. Helper 
+   *
+   * Each test is responsible for seeding and removing data. Helper
    * functions are useful if the process becomes brittle or tedious.
    * Note that removing is less necessary since the tests are run
    * offline.
    */
   beforeEach(() => {
-    app = initializeApp({ projectId: "rxfire-test" });
+    app = initializeApp({ projectId: 'rxfire-test' });
     firestore = app.firestore();
     firestore.settings({ timestampsInSnapshots: true });
     firestore.disableNetwork();
@@ -67,17 +73,15 @@ describe('RxFire Firestore', () => {
   });
 
   describe('collection', () => {
-
     /**
      * This is a simple test to see if the collection() method
-     * correctly emits snapshots. 
-     * 
+     * correctly emits snapshots.
+     *
      * The test seeds two "people" into the collection. RxFire
      * creats an observable with the `collection()` method and
      * asserts that the two "people" are in the array.
      */
     it('should emit snapshots', (done: MochaDone) => {
-
       const { colRef, expectedNames } = seedTest(firestore);
 
       collection(colRef)
@@ -86,22 +90,18 @@ describe('RxFire Firestore', () => {
           expect(names).to.eql(expectedNames);
           done();
         });
-
     });
-
   });
 
   describe('docChanges', () => {
-
     /**
      * The `stateChanges()` method emits a stream of events as they
      * occur rather than in sorted order.
-     * 
+     *
      * This test adds a "person" and then modifies it. This should
      * result in an array item of "added" and then "modified".
      */
     it('should emit events as they occur', (done: MochaDone) => {
-
       const { colRef, davidDoc } = seedTest(firestore);
 
       davidDoc.set({ name: 'David' });
@@ -117,22 +117,19 @@ describe('RxFire Firestore', () => {
         expect(change[0].type).to.eq('modified');
         done();
       });
-
     });
-
   });
 
   /**
    * KNOWN ISSUE: Filtered observables emit even when other events happen.
-   * 
+   *
    * const addedChanges = sortedChanges(colRef, ['added'])
    * const modifiedChanges = sortedChanges(colRef, ['modified'])
-   * 
+   *
    * addedChanges will emit it's added items even when the 'modified' events
    * occur.
    */
   describe('sortedChanges', () => {
-
     /**
      * The `sortedChanges()` method reduces the stream of `docChanges()` to
      * a sorted array. This test seeds two "people" and checks to make sure
@@ -141,7 +138,6 @@ describe('RxFire Firestore', () => {
      * order.
      */
     it('should emit an array of sorted snapshots', (done: MochaDone) => {
-
       const { colRef, davidDoc } = seedTest(firestore);
 
       const addedChanges = sortedChanges(colRef, ['added']).pipe(
@@ -167,12 +163,11 @@ describe('RxFire Firestore', () => {
       modifiedChanges.subscribe(data => {
         const expectedNames = [
           { name: 'David!', type: 'modified' },
-          { name: 'Shannon', type: 'added' },
+          { name: 'Shannon', type: 'added' }
         ];
         expect(data).to.eql(expectedNames);
         done();
       });
-
     });
 
     /**
@@ -182,12 +177,9 @@ describe('RxFire Firestore', () => {
      * filters to 'modified'.
      */
     it('should filter by event type', (done: MochaDone) => {
-
       const { colRef, davidDoc, expectedEvents } = seedTest(firestore);
 
-      const addedChanges = sortedChanges(colRef, ['added']).pipe(
-        unwrapChange
-      );
+      const addedChanges = sortedChanges(colRef, ['added']).pipe(unwrapChange);
       const modifiedChanges = sortedChanges(colRef, ['modified']).pipe(
         unwrapChange
       );
@@ -203,16 +195,13 @@ describe('RxFire Firestore', () => {
         expect(data).to.eql(expectedModifiedEvent);
         done();
       });
-
     });
-
   });
 
   describe('auditTrail', () => {
-
     /**
      * The `auditTrail()` method returns an array of every change that has
-     * occured in the application. This test seeds two "people" into the 
+     * occured in the application. This test seeds two "people" into the
      * collection and checks that the two added events are there. It then
      * modifies a "person" and makes sure that event is on the array as well.
      */
@@ -229,13 +218,12 @@ describe('RxFire Firestore', () => {
 
       secondAudit.subscribe(list => {
         const modifiedList = [
-          ...expectedEvents, 
-          { name: 'David!', type: 'modified'}
+          ...expectedEvents,
+          { name: 'David!', type: 'modified' }
         ];
         expect(list).to.eql(modifiedList);
         done();
       });
-
     });
 
     /**
@@ -256,9 +244,6 @@ describe('RxFire Firestore', () => {
       });
 
       davidDoc.update({ name: 'David!' });
-
     });
-
   });
-
 });
