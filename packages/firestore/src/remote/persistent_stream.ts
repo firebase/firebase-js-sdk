@@ -210,7 +210,7 @@ export abstract class PersistentStream<
    *   2) The RPC failed and we are re-trying connection.
    */
   canTimeout(): boolean {
-    return this.state === PersistentStreamState.Open || !this.closeAfterError;
+    return this.isOpen() || (!this.closeAfterError && this.isStarted());
   }
 
   /**
@@ -383,7 +383,7 @@ export abstract class PersistentStream<
    * @param finalState The intended state of the stream after closing.
    */
   private closeWithFinalState(finalState: PersistentStreamState): void {
-    if (finalState !== PersistentStreamState.Error || this.closeAfterError) {
+    if (this.closeAfterError || finalState !== PersistentStreamState.Error) {
       // The stream will be closed so we don't need our idle close timer anymore.
       this.cancelIdleCheck();
 
