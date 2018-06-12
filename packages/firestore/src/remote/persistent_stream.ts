@@ -296,7 +296,7 @@ export abstract class PersistentStream<
     if (this.canTimeout()) {
       // When timing out an idle stream there's no reason to force the stream into backoff when
       // it restarts so set the stream state to Initial instead of Error.
-      return this.close(PersistentStreamState.Initial, null, listener);
+      return this.close(PersistentStreamState.Initial, /* error= */ null, listener);
     }
   }
 
