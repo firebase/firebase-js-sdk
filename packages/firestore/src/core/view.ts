@@ -224,15 +224,20 @@ export class View {
 
   /**
    * Updates the view with the given ViewDocumentChanges and updates limbo docs
-   * and sync state from the given (optional) target change.
+   * and sync state from the given CURRENT state or the optionally provided
+   * target change.
+   *
    * @param docChanges The set of changes to make to the view's docs.
-   * @param targetChange A target change to apply for computing limbo docs and
-   *        sync state.
+   * @param updateLimboDocuments Whether to update limbo documents based on this
+   * change.
+   * @param currentOrTargetChange The new CURRENT state of the target or a
+   * new target change to apply for computing limbo docs and sync state.
    * @return A new ViewChange with the given docs, changes, and sync state.
    */
   applyChanges(
     docChanges: ViewDocumentChanges,
-    targetChange?: TargetChange
+    updateLimboDocuments: boolean,
+    currentOrTargetChange?: boolean | TargetChange
   ): ViewChange {
     assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
     const oldDocs = this.documentSet;
@@ -247,8 +252,15 @@ export class View {
       );
     });
 
-    this.applyTargetChange(targetChange);
-    const limboChanges = this.updateLimboDocuments();
+    if (typeof currentOrTargetChange === 'boolean') {
+      this.applySyncStateChange(currentOrTargetChange);
+    } else {
+      this.applyTargetChange(currentOrTargetChange);
+    }
+
+    const limboChanges = updateLimboDocuments
+      ? this.updateLimboDocuments()
+      : [];
     const synced = this.limboDocuments.size === 0 && this.current;
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
@@ -286,12 +298,15 @@ export class View {
       // are guaranteed to get a new TargetChange that sets `current` back to
       // true once the client is back online.
       this.current = false;
-      return this.applyChanges({
-        documentSet: this.documentSet,
-        changeSet: new DocumentChangeSet(),
-        mutatedKeys: this.mutatedKeys,
-        needsRefill: false
-      });
+      return this.applyChanges(
+        {
+          documentSet: this.documentSet,
+          changeSet: new DocumentChangeSet(),
+          mutatedKeys: this.mutatedKeys,
+          needsRefill: false
+        },
+        /* updateLimboDocuments= */ false
+      );
     } else {
       // No effect, just return a no-op ViewChange.
       return { limboChanges: [] };
@@ -341,6 +356,10 @@ export class View {
       );
       this.current = targetChange.current;
     }
+  }
+
+  private applySyncStateChange(current: boolean): void {
+    this.current = current;
   }
 
   private updateLimboDocuments(): LimboDocumentChange[] {

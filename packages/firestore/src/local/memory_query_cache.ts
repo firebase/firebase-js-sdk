@@ -137,6 +137,18 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(queryData);
   }
 
+  getQueryDataForTarget(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<QueryData | null> {
+    this.queries.forEach((query, queryData) => {
+      if (queryData.targetId === targetId) {
+        return PersistencePromise.resolve(queryData);
+      }
+    });
+    return PersistencePromise.resolve(null);
+  }
+
   addMatchingKeys(
     txn: PersistenceTransaction,
     keys: DocumentKeySet,

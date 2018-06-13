@@ -67,6 +67,7 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
+import { MemorySharedClientState } from '../../../src/local/shared_client_state';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -281,7 +282,8 @@ function genericLocalStoreTests(
     localStore = new LocalStore(
       persistence,
       User.UNAUTHENTICATED,
-      new EagerGarbageCollector()
+      new EagerGarbageCollector(),
+      new MemorySharedClientState()
     );
     return localStore.start();
   });
@@ -296,7 +298,8 @@ function genericLocalStoreTests(
     localStore = new LocalStore(
       persistence,
       User.UNAUTHENTICATED,
-      new NoOpGarbageCollector()
+      new NoOpGarbageCollector(),
+      new MemorySharedClientState()
     );
     return localStore.start();
   }

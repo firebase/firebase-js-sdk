@@ -110,8 +110,12 @@ export interface SharedClientState {
    */
   getMinimumGlobalPendingMutation(): BatchId | null;
 
-  /** Associates a new Query Target ID with the local Firestore clients. */
-  addLocalQueryTarget(targetId: TargetId): void;
+  /**
+   * Associates a new Query Target ID with the local Firestore clients. Returns
+   * the query state for the query and can return 'current' if the query is
+   * already associated with another tab.
+   */
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
   /** Removes a Query Target ID for the local Firestore clients. */
   removeLocalQueryTarget(targetId: TargetId): void;
@@ -473,18 +477,10 @@ export class LocalClientState implements ClientState {
   }
 
   addQueryTarget(targetId: TargetId): void {
-    assert(
-      !this.activeTargetIds.has(targetId),
-      `Target with ID '${targetId}' already active.`
-    );
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 
   removeQueryTarget(targetId: TargetId): void {
-    assert(
-      this.activeTargetIds.has(targetId),
-      `Active Target ID '${targetId}' not found.`
-    );
     this.activeTargetIds = this.activeTargetIds.delete(targetId);
   }
 
@@ -663,9 +659,31 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
   }
 
-  addLocalQueryTarget(targetId: TargetId): void {
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
+    let queryState: QueryTargetState = 'not-current';
+
+    // Lookup an existing query state if the target ID was already registered
+    // by another tab
+    if (this.getAllActiveQueryTargets().has(targetId)) {
+      const storageItem = this.storage.getItem(
+        this.toLocalStorageQueryTargetMetadataKey(targetId)
+      );
+
+      if (storageItem) {
+        const metadata = QueryTargetMetadata.fromLocalStorageEntry(
+          targetId,
+          storageItem
+        );
+        if (metadata) {
+          queryState = metadata.state;
+        }
+      }
+    }
+
     this.localClientState.addQueryTarget(targetId);
     this.persistClientState();
+
+    return queryState;
   }
 
   removeLocalQueryTarget(targetId: TargetId): void {
@@ -826,6 +844,11 @@ export class WebStorageSharedClientState implements SharedClientState {
     return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
   }
 
+  /** Assembles the key for a query state in LocalStorage */
+  private toLocalStorageQueryTargetMetadataKey(targetId: TargetId): string {
+    return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
+  }
+
   /**
    * Parses a client state key in LocalStorage. Returns null if the key does not
    * match the expected key format.
@@ -975,8 +998,9 @@ export class MemorySharedClientState implements SharedClientState {
     return this.localState.minMutationBatchId;
   }
 
-  addLocalQueryTarget(targetId: TargetId): void {
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
     this.localState.addQueryTarget(targetId);
+    return 'not-current';
   }
 
   trackQueryUpdate(

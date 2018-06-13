@@ -30,6 +30,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import { MaybeDocumentMap } from '../../../src/model/collections';
 
 let persistence: Persistence;
 let cache: TestRemoteDocumentCache;
@@ -74,7 +75,7 @@ function genericRemoteDocumentCacheTests(): void {
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
     return cache
-      .addEntries([doc])
+      .addEntries(doc)
       .then(() => {
         return cache.getEntry(doc.key);
       })
@@ -85,12 +86,12 @@ function genericRemoteDocumentCacheTests(): void {
 
   function assertMatches(
     expected: MaybeDocument[],
-    actual: MaybeDocument[]
+    actual: MaybeDocumentMap
   ): void {
-    expect(actual.length).to.equal(expected.length);
-    actual.forEach(actualDoc => {
+    expect(actual.size).to.equal(expected.length);
+    actual.forEach((actualKey, actualDoc) => {
       const found = expected.find(expectedDoc => {
-        if (actualDoc.key.isEqual(expectedDoc.key)) {
+        if (actualKey.isEqual(expectedDoc.key)) {
           expectEqual(actualDoc, expectedDoc);
           return true;
         }
@@ -129,14 +130,14 @@ function genericRemoteDocumentCacheTests(): void {
   });
 
   it('can set document to new value', () => {
-    return cache.addEntries([doc(DOC_PATH, VERSION, DOC_DATA)]).then(() => {
+    return cache.addEntries(doc(DOC_PATH, VERSION, DOC_DATA)).then(() => {
       return setAndReadDocument(doc(DOC_PATH, VERSION + 1, { data: 2 }));
     });
   });
 
   it('can remove document', () => {
     return cache
-      .addEntries([doc(DOC_PATH, VERSION, DOC_DATA)])
+      .addEntries(doc(DOC_PATH, VERSION, DOC_DATA))
       .then(() => {
         return cache.removeEntry(key(DOC_PATH));
       })
@@ -156,19 +157,15 @@ function genericRemoteDocumentCacheTests(): void {
   it('can get documents matching query', async () => {
     // TODO(mikelehen): This just verifies that we do a prefix scan against the
     // query path. We'll need more tests once we add index support.
-    await cache.addEntries([
+    await cache.addEntries(
       doc('a/1', VERSION, DOC_DATA),
       doc('b/1', VERSION, DOC_DATA),
       doc('b/2', VERSION, DOC_DATA),
       doc('c/1', VERSION, DOC_DATA)
-    ]);
+    );
 
     const query = new Query(path('b'));
-    const matchingDocs: MaybeDocument[] = [];
-
-    (await cache.getDocumentsMatchingQuery(query)).forEach((key, doc) => {
-      matchingDocs.push(doc);
-    });
+    const matchingDocs = await cache.getDocumentsMatchingQuery(query);
 
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
@@ -177,12 +174,12 @@ function genericRemoteDocumentCacheTests(): void {
   });
 
   it('can get changes', async () => {
-    await cache.addEntries([
+    await cache.addEntries(
       doc('a/1', 1, DOC_DATA),
       doc('b/1', 2, DOC_DATA),
       doc('b/2', 2, DOC_DATA),
       doc('a/1', 3, DOC_DATA)
-    ]);
+    );
 
     let changedDocs = await cache.getNextDocumentChanges();
     assertMatches(
@@ -194,7 +191,7 @@ function genericRemoteDocumentCacheTests(): void {
       changedDocs
     );
 
-    await cache.addEntries([doc('c/1', 3, DOC_DATA)]);
+    await cache.addEntries(doc('c/1', 3, DOC_DATA));
     changedDocs = await cache.getNextDocumentChanges();
     assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
   });
@@ -205,11 +202,11 @@ function genericRemoteDocumentCacheTests(): void {
   });
 
   it('can get missing documents in changes', async () => {
-    await cache.addEntries([
+    await cache.addEntries(
       doc('a/1', 1, DOC_DATA),
       doc('a/2', 2, DOC_DATA),
       doc('a/3', 3, DOC_DATA)
-    ]);
+    );
     await cache.removeEntry(key('a/2'));
 
     const changedDocs = await cache.getNextDocumentChanges();
@@ -220,7 +217,7 @@ function genericRemoteDocumentCacheTests(): void {
   });
 
   it('start() skips previous changes', async () => {
-    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
+    await cache.addEntries(doc('a/1', 1, DOC_DATA));
 
     await cache.start();
 
