@@ -17,7 +17,7 @@
 import { firestore } from 'firebase/app';
 import { fromCollectionRef } from '../fromRef';
 import { Observable } from 'rxjs';
-import { map, filter, scan, distinctUntilChanged } from 'rxjs/operators';
+import { map, filter, scan } from 'rxjs/operators';
 
 const ALL_EVENTS: firestore.DocumentChangeType[] = [
   'added',
@@ -29,6 +29,18 @@ const changesFilter = (events?: firestore.DocumentChangeType[]) =>
   map((changes: firestore.DocumentChange[]) => {
     return changes.filter(change => events.indexOf(change.type) > -1);
   });
+
+const filterEvents = (events?: firestore.DocumentChangeType[]) => filter(
+  (changes: firestore.DocumentChange[]) => {
+    let hasChange = false;
+    changes.forEach(change => {
+      if (events.indexOf(change.type) >= 0) {
+        hasChange = true;
+      }
+    });
+    return hasChange;
+  }
+);
 
 const filterEmpty = filter(
   (changes: firestore.DocumentChange[]) => changes.length > 0
@@ -103,7 +115,7 @@ export function docChanges(
 ) {
   return fromCollectionRef(query).pipe(
     map(snapshot => snapshot.docChanges()),
-    changesFilter(events),
+    filterEvents(events),
     filterEmpty
   );
 }
@@ -124,16 +136,14 @@ export function sortedChanges(
   query: firestore.Query,
   events?: firestore.DocumentChangeType[]
 ) {
-  return fromCollectionRef(query).pipe(
-    map(changes => changes.docChanges()),
+  return docChanges(query, events).pipe(
     scan(
       (
         current: firestore.DocumentChange[],
         changes: firestore.DocumentChange[]
       ) => combineChanges(current, changes, events),
       []
-    ),
-    filterEmpty
+    )
   );
 }
 
