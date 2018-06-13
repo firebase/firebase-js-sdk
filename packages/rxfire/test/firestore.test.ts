@@ -262,4 +262,5 @@ describe('RxFire Firestore', () => {
       davidDoc.update({ name: 'David!' });
     });
   });
+  
 });
