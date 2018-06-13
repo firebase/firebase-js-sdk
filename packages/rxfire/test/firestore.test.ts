@@ -136,15 +136,6 @@ describe('RxFire Firestore', () => {
     });
   });
 
-  /**
-   * KNOWN ISSUE: Filtered observables emit even when other events happen.
-   *
-   * const addedChanges = sortedChanges(colRef, ['added'])
-   * const modifiedChanges = sortedChanges(colRef, ['modified'])
-   *
-   * addedChanges will emit it's added items even when the 'modified' events
-   * occur.
-   */
   describe('sortedChanges', () => {
     /**
      * The `sortedChanges()` method reduces the stream of `docChanges()` to
@@ -157,8 +148,7 @@ describe('RxFire Firestore', () => {
       const { colRef, davidDoc } = seedTest(firestore);
 
       const addedChanges = sortedChanges(colRef, ['added']).pipe(
-        unwrapChange,
-        take(1)
+        unwrapChange
       );
 
       const modifiedChanges = sortedChanges(colRef).pipe(
@@ -168,6 +158,7 @@ describe('RxFire Firestore', () => {
       );
 
       addedChanges.subscribe(data => {
+        debugger;
         const expectedNames = [
           { name: 'David', type: 'added' },
           { name: 'Shannon', type: 'added' }
