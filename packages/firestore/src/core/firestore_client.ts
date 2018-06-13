@@ -481,7 +481,10 @@ export class FirestoreClient {
         const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
           docs
         );
-        return view.applyChanges(viewDocChanges, /* updateLimboDocuments= */ false).snapshot;
+        return view.applyChanges(
+          viewDocChanges,
+          /* updateLimboDocuments= */ false
+        ).snapshot;
       });
   }
 
