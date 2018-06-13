@@ -30,8 +30,8 @@ const changesFilter = (events?: firestore.DocumentChangeType[]) =>
     return changes.filter(change => events.indexOf(change.type) > -1);
   });
 
-const filterEvents = (events?: firestore.DocumentChangeType[]) => filter(
-  (changes: firestore.DocumentChange[]) => {
+const filterEvents = (events?: firestore.DocumentChangeType[]) =>
+  filter((changes: firestore.DocumentChange[]) => {
     let hasChange = false;
     changes.forEach(change => {
       if (events.indexOf(change.type) >= 0) {
@@ -39,8 +39,7 @@ const filterEvents = (events?: firestore.DocumentChangeType[]) => filter(
       }
     });
     return hasChange;
-  }
-);
+  });
 
 const filterEmpty = filter(
   (changes: firestore.DocumentChange[]) => changes.length > 0

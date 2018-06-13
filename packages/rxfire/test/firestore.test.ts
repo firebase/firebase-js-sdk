@@ -147,9 +147,7 @@ describe('RxFire Firestore', () => {
     it('should emit an array of sorted snapshots', (done: MochaDone) => {
       const { colRef, davidDoc } = seedTest(firestore);
 
-      const addedChanges = sortedChanges(colRef, ['added']).pipe(
-        unwrapChange
-      );
+      const addedChanges = sortedChanges(colRef, ['added']).pipe(unwrapChange);
 
       const modifiedChanges = sortedChanges(colRef).pipe(
         unwrapChange,
@@ -253,5 +251,4 @@ describe('RxFire Firestore', () => {
       davidDoc.update({ name: 'David!' });
     });
   });
-  
 });
