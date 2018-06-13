@@ -18,7 +18,7 @@ import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 
 describeSpec('Limbo Documents:', [], () => {
   specTest(
@@ -254,4 +254,37 @@ describeSpec('Limbo Documents:', [], () => {
         .expectLimboDocs()
     );
   });
+
+  specTest(
+    'Limbo docs are resolved by primary client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      const doc2 = doc('collection/b', 1001, { key: 'b' });
+      const deletedDoc2 = deletedDoc('collection/b', 1004);
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1002, doc1, doc2)
+        .client(1)
+        .expectEvents(query, { added: [doc1, doc2] })
+        .client(0)
+        .watchRemovesDoc(doc2.key, query)
+        .watchSnapshots(1003)
+        .expectLimboDocs(doc2.key)
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .ackLimbo(1004, deletedDoc2)
+        .expectLimboDocs()
+        .client(1)
+        .expectEvents(query, { removed: [doc2] });
+    }
+  );
 });

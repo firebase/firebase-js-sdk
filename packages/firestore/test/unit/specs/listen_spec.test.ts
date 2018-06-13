@@ -19,7 +19,7 @@ import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
 
 describeSpec('Listens:', [], () => {
@@ -399,6 +399,203 @@ describeSpec('Listens:', [], () => {
           .userListens(query, 'resume-token-2000')
           .expectEvents(query, { added: [docA], fromCache: true })
       );
+    }
+  );
+
+  specTest('Query is rejected and re-listened to', [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+      )
+      .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
+  });
+
+  specTest('Query is executed by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+
+    return client(0)
+      .becomeVisible()
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { fromCache: true })
+      .client(0)
+      .expectListen(query)
+      .watchAcks(query)
+      .watchSends({ affects: [query] }, docA)
+      .watchSnapshots(1000)
+      .client(1)
+      .expectEvents(query, { added: [docA], fromCache: true })
+      .client(0)
+      .watchCurrents(query, 'resume-token-2000')
+      .watchSnapshots(2000)
+      .client(1)
+      .expectEvents(query, { fromCache: false });
+  });
+
+  specTest(
+    'Query is shared between primary and secondary client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'a' });
+
+      return client(0)
+        .becomeVisible()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { added: [docA] })
+        .client(2)
+        .userListens(query)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .watchSends({ affects: [query] }, docB)
+        .watchSnapshots(2000)
+        .expectEvents(query, { added: [docB] })
+        .client(1)
+        .expectEvents(query, { added: [docB] })
+        .client(2)
+        .expectEvents(query, { added: [docB] });
+    }
+  );
+
+  specTest(
+    'Query only raises events in participating clients',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .client(2)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(3)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0) // No events
+        .expectListen(query)
+        .watchAcksFull(query, 1000, docA)
+        .client(1) // No events
+        .client(2)
+        .expectEvents(query, { added: [docA] })
+        .client(3)
+        .expectEvents(query, { added: [docA] });
+    }
+  );
+
+  specTest('Query is unlisted to by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'a' });
+
+    return client(0)
+      .becomeVisible()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { added: [docA] })
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { added: [docA] })
+      .client(0)
+      .userUnlistens(query)
+      .expectListen(query)
+      .watchSends({ affects: [query] }, docB)
+      .watchSnapshots(2000)
+      .client(1)
+      .expectEvents(query, { added: [docB] })
+      .userUnlistens(query)
+      .client(0)
+      .expectUnlisten(query);
+  });
+
+  specTest('Query is resumed by secondary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'a' });
+
+    return client(0, /* withGcEnabled= */ false)
+      .becomeVisible()
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { fromCache: true })
+      .client(0)
+      .expectListen(query)
+      .watchAcksFull(query, 1000, docA)
+      .client(1)
+      .expectEvents(query, { added: [docA] })
+      .userUnlistens(query)
+      .client(0)
+      .expectUnlisten(query)
+      .watchRemoves(query)
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { added: [docA], fromCache: true })
+      .client(0)
+      .expectListen(query, 'resume-token-1000')
+      .watchAcksFull(query, 2000, docB)
+      .client(1)
+      .expectEvents(query, { added: [docB] });
+  });
+
+  specTest('Query is rejected by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+
+    return client(0, /* withGcEnabled= */ false)
+      .becomeVisible()
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { fromCache: true })
+      .client(0)
+      .expectListen(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+      )
+      .client(1)
+      .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED });
+  });
+
+  specTest(
+    'Query is rejected and re-listened to by secondary client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return client(0, /* withGcEnabled= */ false)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchRemoves(
+          query,
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+        )
+        .client(1)
+        .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000)
+        .client(1)
+        .expectEvents(query, {});
     }
   );
 });

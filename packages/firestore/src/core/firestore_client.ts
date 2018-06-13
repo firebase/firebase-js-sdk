@@ -344,7 +344,8 @@ export class FirestoreClient {
         this.localStore = new LocalStore(
           this.persistence,
           user,
-          this.garbageCollector
+          this.garbageCollector,
+          this.sharedClientState
         );
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
@@ -480,7 +481,10 @@ export class FirestoreClient {
         const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
           docs
         );
-        return view.applyChanges(viewDocChanges).snapshot;
+        return view.applyChanges(
+          viewDocChanges,
+          /* updateLimboDocuments= */ false
+        ).snapshot;
       });
   }
 

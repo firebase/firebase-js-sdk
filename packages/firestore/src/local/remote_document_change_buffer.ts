@@ -85,10 +85,10 @@ export class RemoteDocumentChangeBuffer {
       docs.push(maybeDoc);
     });
 
-    // We should not be used to buffer any more changes.
+    // We should not buffer any more changes.
     this.changes = null;
 
-    return this.remoteDocumentCache.addEntries(transaction, docs);
+    return this.remoteDocumentCache.addEntries(transaction, ...docs);
   }
 
   /** Helper to assert this.changes is not null and return it. */

@@ -15,7 +15,13 @@
  */
 
 import { Query } from '../core/query';
-import { documentKeySet, DocumentMap, documentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentMap,
+  documentMap,
+  MaybeDocumentMap,
+  maybeDocumentMap
+} from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
@@ -54,7 +60,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   addEntries(
     transaction: PersistenceTransaction,
-    maybeDocuments: MaybeDocument[]
+    ...maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     const documentStore = remoteDocumentsStore(transaction);
@@ -124,10 +130,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   getNewDocumentChanges(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocument[]> {
-    const documentPromises: Array<PersistencePromise<MaybeDocument>> = [];
-
+  ): PersistencePromise<MaybeDocumentMap> {
     let changedKeys = documentKeySet();
+    let changedDocs = maybeDocumentMap();
 
     const range = IDBKeyRange.lowerBound(
       this.lastReturnedDocumentChangesId,
@@ -142,16 +147,20 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         this.lastReturnedDocumentChangesId = documentChange.id;
       })
       .next(() => {
+        const documentPromises: Array<PersistencePromise<void>> = [];
         changedKeys.forEach(key => {
           documentPromises.push(
-            this.getEntry(transaction, key).next(
-              maybeDoc =>
+            this.getEntry(transaction, key).next(maybeDoc => {
+              changedDocs = changedDocs.insert(
+                key,
                 maybeDoc || new NoDocument(key, SnapshotVersion.forDeletedDoc())
-            )
+              );
+            })
           );
         });
+        return PersistencePromise.waitFor(documentPromises);
       })
-      .next(() => PersistencePromise.map(documentPromises));
+      .next(() => changedDocs);
   }
 }
 
