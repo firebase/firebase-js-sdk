@@ -243,6 +243,7 @@ apiDescribe('Queries', persistence => {
           return storeEvent.assertNoAdditionalEvents();
         })
         .then(() => {
+          storeEvent.allowAdditionalEvents();
           return coll.doc('b').set({ v: 'b1' });
         })
         .then(() => {
