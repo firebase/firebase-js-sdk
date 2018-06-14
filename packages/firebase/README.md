@@ -102,6 +102,7 @@ you need. The individually installable services are:
 - `firebase-firestore` - Cloud Firestore (optional).
 - `firebase-storage` - Firebase Storage (optional).
 - `firebase-messaging` - Firebase Cloud Messaging (optional).
+- `firebase-functions` - Firebase Cloud Functions (optional).
 
 From the CDN, include the individual services you use (include `firebase-app`
 first):
@@ -113,6 +114,7 @@ first):
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-storage.js"></script>
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-messaging.js"></script>
+<script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-functions.js"></script>
 
 <script>
   var app = firebase.initializeApp({ ... });
