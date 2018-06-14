@@ -647,6 +647,17 @@ describeSpec('Writes:', [], () => {
       .expectNumOutstandingWrites(0);
   });
 
+  specTest('New writes are sent after write failure', [], () => {
+    return spec()
+      .userSets('collection/a', { v: 1 })
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure')
+      )
+      .userSets('collection/b', { v: 1 })
+      .writeAcks('collection/b', 2000);
+  });
+
   specTest(
     'Pending writes are shared between clients',
     ['multi-client'],
@@ -811,6 +822,90 @@ describeSpec('Writes:', [], () => {
       .expectEvents(query, {
         fromCache: true,
         removed: [localDoc]
+      });
+  });
+
+  specTest('Write are sequenced by multiple clients', ['multi-client'], () => {
+    return client(0)
+      .userSets('collection/a', { v: 1 })
+      .client(1)
+      .userSets('collection/b', { v: 1 })
+      .client(2)
+      .userSets('collection/c', { v: 1 })
+      .client(3)
+      .userSets('collection/d', { v: 1 })
+      .client(0)
+      .writeAcks('collection/a', 1000)
+      .writeAcks('collection/b', 2000, { expectUserCallback: false })
+      .writeAcks('collection/c', 3000, { expectUserCallback: false })
+      .failWrite(
+        'collection/d',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/b']
+      })
+      .client(2)
+      .expectUserCallbacks({
+        acknowledged: ['collection/c']
+      })
+      .client(3)
+      .expectUserCallbacks({
+        rejected: ['collection/d']
+      })
+      .client(0)
+      .userSets('collection/f', { v: 1 })
+      .client(1)
+      .userSets('collection/g', { v: 1 })
+      .client(2)
+      .userSets('collection/h', { v: 1 })
+      .client(3)
+      .userSets('collection/i', { v: 1 })
+      .client(0)
+      .writeAcks('collection/f', 4000)
+      .writeAcks('collection/g', 5000, { expectUserCallback: false })
+      .writeAcks('collection/h', 6000, { expectUserCallback: false })
+      .failWrite(
+        'collection/i',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/g']
+      })
+      .client(2)
+      .expectUserCallbacks({
+        acknowledged: ['collection/h']
+      })
+      .client(3)
+      .expectUserCallbacks({
+        rejected: ['collection/i']
+      })
+      .client(3)
+      .userSets('collection/j', { v: 1 })
+      .userSets('collection/k', { v: 1 })
+      .userSets('collection/l', { v: 1 })
+      .client(0)
+      .writeAcks('collection/j', 7000, { expectUserCallback: false })
+      .failWrite(
+        'collection/k',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .writeAcks('collection/k', 8000, { expectUserCallback: false })
+      .client(3)
+      .expectUserCallbacks({
+        acknowledged: ['collection/j', 'collection/l'],
+        rejected: ['collection/k']
       });
   });
 });

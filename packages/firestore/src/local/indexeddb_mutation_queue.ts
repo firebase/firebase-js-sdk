@@ -46,20 +46,6 @@ import { DocumentKeySet } from '../model/collections';
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
   /**
-   * Next value to use when assigning sequential IDs to each mutation batch.
-   *
-   * NOTE: There can only be one IndexedDbMutationQueue for a given db at a
-   * time, hence it is safe to track nextBatchID as an instance-level property.
-   * Should we ever relax this constraint we'll need to revisit this.
-   */
-  private nextBatchId: BatchId;
-
-  /**
-   * A write-through cache copy of the metadata describing the current queue.
-   */
-  private metadata: DbMutationQueue;
-
-  /**
    * Caches the document keys for pending mutation batches. If the mutation
    * has been removed from IndexedDb, the cached value may continue to
    * be used to retrieve the batch's document keys. To remove a cached value
@@ -103,9 +89,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
+    let nextBatchId;
+
     return IndexedDbMutationQueue.loadNextBatchIdFromDb(transaction)
-      .next(nextBatchId => {
-        this.nextBatchId = nextBatchId;
+      .next(batchId => {
+        nextBatchId = batchId;
         return mutationQueuesStore(transaction).get(this.userId);
       })
       .next((metadata: DbMutationQueue | null) => {
@@ -113,28 +101,33 @@ export class IndexedDbMutationQueue implements MutationQueue {
           metadata = new DbMutationQueue(
             this.userId,
             BATCHID_UNKNOWN,
-            /*lastStreamToken=*/ ''
+            /*lastStreamToken=*/ '',
+            BATCHID_UNKNOWN
           );
         }
-        this.metadata = metadata;
+
+        // TODO(multitab): This should only run when no other client is
+        // active, as batch IDs may otherwise go back in time in clients that
+        // have already processed mutations.
 
         // On restart, nextBatchId may end up lower than
         // lastAcknowledgedBatchId since it's computed from the queue
         // contents, and there may be no mutations in the queue. In this
         // case, we need to reset lastAcknowledgedBatchId (which is safe
         // since the queue must be empty).
-        if (this.metadata.lastAcknowledgedBatchId >= this.nextBatchId) {
+        if (metadata.lastAcknowledgedBatchId >= nextBatchId) {
           return this.checkEmpty(transaction).next(empty => {
             assert(
               empty,
               'Reset nextBatchID is only possible when the queue is empty'
             );
 
-            this.metadata.lastAcknowledgedBatchId = BATCHID_UNKNOWN;
-            return mutationQueuesStore(transaction).put(this.metadata);
+            metadata.lastAcknowledgedBatchId = BATCHID_UNKNOWN;
+            metadata.lastProcessedBatchId = BATCHID_UNKNOWN;
+            return mutationQueuesStore(transaction).put(metadata);
           });
         } else {
-          return PersistencePromise.resolve();
+          return mutationQueuesStore(transaction).put(metadata);
         }
       });
   }
@@ -184,13 +177,27 @@ export class IndexedDbMutationQueue implements MutationQueue {
   getNextBatchId(
     transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.nextBatchId);
+    let maxPendingBatchId = BATCHID_UNKNOWN;
+    const range = IDBKeyRange.lowerBound([this.userId]);
+    return mutationsStore(transaction)
+      .iterate({ range, reverse: true }, (key, dbBatch, control) => {
+        const batch = this.serializer.fromDbMutationBatch(dbBatch);
+        maxPendingBatchId = batch.batchId;
+        control.done();
+      })
+      .next(() => this.getMutationQueueMetadata(transaction))
+      .next(
+        metadata =>
+          Math.max(maxPendingBatchId, metadata.lastProcessedBatchId) + 1
+      );
   }
 
   getHighestAcknowledgedBatchId(
     transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.metadata.lastAcknowledgedBatchId);
+    return this.getMutationQueueMetadata(transaction).next(metadata => {
+      return metadata.lastAcknowledgedBatchId;
+    });
   }
 
   acknowledgeBatch(
@@ -198,30 +205,37 @@ export class IndexedDbMutationQueue implements MutationQueue {
     batch: MutationBatch,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    const batchId = batch.batchId;
-    assert(
-      batchId > this.metadata.lastAcknowledgedBatchId,
-      'Mutation batchIDs must be acknowledged in order'
-    );
+    return this.getMutationQueueMetadata(transaction).next(metadata => {
+      const batchId = batch.batchId;
+      assert(
+        batchId > metadata.lastAcknowledgedBatchId,
+        'Mutation batchIDs must be acknowledged in order'
+      );
 
-    this.metadata.lastAcknowledgedBatchId = batchId;
-    this.metadata.lastStreamToken = convertStreamToken(streamToken);
+      metadata.lastAcknowledgedBatchId = batchId;
+      metadata.lastProcessedBatchId = batchId;
+      metadata.lastStreamToken = convertStreamToken(streamToken);
 
-    return mutationQueuesStore(transaction).put(this.metadata);
+      return mutationQueuesStore(transaction).put(metadata);
+    });
   }
 
   getLastStreamToken(
     transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
-    return PersistencePromise.resolve(this.metadata.lastStreamToken);
+    return this.getMutationQueueMetadata(transaction).next(
+      metadata => metadata.lastStreamToken
+    );
   }
 
   setLastStreamToken(
     transaction: PersistenceTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
-    this.metadata.lastStreamToken = convertStreamToken(streamToken);
-    return mutationQueuesStore(transaction).put(this.metadata);
+    return this.getMutationQueueMetadata(transaction).next(metadata => {
+      metadata.lastStreamToken = convertStreamToken(streamToken);
+      return mutationQueuesStore(transaction).put(metadata);
+    });
   }
 
   addMutationBatch(
@@ -229,35 +243,35 @@ export class IndexedDbMutationQueue implements MutationQueue {
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
-    const batchId = this.nextBatchId;
-    this.nextBatchId++;
-    const batch = new MutationBatch(batchId, localWriteTime, mutations);
-    const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+    return this.getNextBatchId(transaction).next(batchId => {
+      const batch = new MutationBatch(batchId, localWriteTime, mutations);
+      const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
-    this.documentKeysByBatchId[dbBatch.batchId] = batch.keys();
+      this.documentKeysByBatchId[dbBatch.batchId] = batch.keys();
 
-    return mutationsStore(transaction)
-      .put(dbBatch)
-      .next(() => {
-        const promises: Array<PersistencePromise<void>> = [];
-        for (const mutation of mutations) {
-          const indexKey = DbDocumentMutation.key(
-            this.userId,
-            mutation.key.path,
-            batchId
-          );
-          promises.push(
-            documentMutationsStore(transaction).put(
-              indexKey,
-              DbDocumentMutation.PLACEHOLDER
-            )
-          );
-        }
-        return PersistencePromise.waitFor(promises);
-      })
-      .next(() => {
-        return batch;
-      });
+      return mutationsStore(transaction)
+        .put(dbBatch)
+        .next(() => {
+          const promises: Array<PersistencePromise<void>> = [];
+          for (const mutation of mutations) {
+            const indexKey = DbDocumentMutation.key(
+              this.userId,
+              mutation.key.path,
+              batchId
+            );
+            promises.push(
+              documentMutationsStore(transaction).put(
+                indexKey,
+                DbDocumentMutation.PLACEHOLDER
+              )
+            );
+          }
+          return PersistencePromise.waitFor(promises);
+        })
+        .next(() => {
+          return batch;
+        });
+    });
   }
 
   lookupMutationBatch(
@@ -295,26 +309,28 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
-    // been acknowledged so the first unacknowledged batch after batchID will
-    // have a batchID larger than both of these values.
-    const nextBatchId =
-      Math.max(batchId, this.metadata.lastAcknowledgedBatchId) + 1;
+    return this.getMutationQueueMetadata(transaction).next(metadata => {
+      // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
+      // been acknowledged so the first unacknowledged batch after batchID will
+      // have a batchID larger than both of these values.
+      const nextBatchId =
+        Math.max(batchId, metadata.lastAcknowledgedBatchId) + 1;
 
-    const range = IDBKeyRange.lowerBound(this.keyForBatchId(nextBatchId));
-    let foundBatch: MutationBatch | null = null;
-    return mutationsStore(transaction)
-      .iterate({ range }, (key, dbBatch, control) => {
-        if (dbBatch.userId === this.userId) {
-          assert(
-            dbBatch.batchId >= nextBatchId,
-            'Should have found mutation after ' + nextBatchId
-          );
-          foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
-        }
-        control.done();
-      })
-      .next(() => foundBatch);
+      const range = IDBKeyRange.lowerBound(this.keyForBatchId(nextBatchId));
+      let foundBatch: MutationBatch | null = null;
+      return mutationsStore(transaction)
+        .iterate({ range }, (key, dbBatch, control) => {
+          if (dbBatch.userId === this.userId) {
+            assert(
+              dbBatch.batchId >= nextBatchId,
+              'Should have found mutation after ' + nextBatchId
+            );
+            foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
+          }
+          control.done();
+        })
+        .next(() => foundBatch);
+    });
   }
 
   getAllMutationBatches(
@@ -481,8 +497,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const indexTxn = documentMutationsStore(transaction);
     const promises: Array<PersistencePromise<void>> = [];
 
+    let maxProcessedBatchId = BATCHID_UNKNOWN;
+
     for (const batch of batches) {
       const range = IDBKeyRange.only(this.keyForBatchId(batch.batchId));
+      maxProcessedBatchId = Math.max(batch.batchId, maxProcessedBatchId);
       let numDeleted = 0;
       const removePromise = txn.iterate({ range }, (key, value, control) => {
         numDeleted++;
@@ -510,6 +529,19 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
       }
     }
+    // PORTING NOTE: Multi-tab only.
+    // Keeping track of removed mutation batches allows us to ensure that batch
+    // IDs always advance during the lifetime of all clients.
+    promises.push(
+      this.getMutationQueueMetadata(transaction).next(metadata => {
+        if (maxProcessedBatchId > metadata.lastProcessedBatchId) {
+          metadata.lastProcessedBatchId = maxProcessedBatchId;
+          return mutationQueuesStore(transaction).put(metadata);
+        }
+        return PersistencePromise.resolve();
+      })
+    );
+
     return PersistencePromise.waitFor(promises);
   }
 
@@ -581,6 +613,19 @@ export class IndexedDbMutationQueue implements MutationQueue {
    */
   private keyForBatchId(batchId: BatchId): DbMutationBatchKey {
     return [this.userId, batchId];
+  }
+
+  // PORTING NOTE: Multi-tab only (state is held in memory in other clients).
+  /** Returns the mutation queue's metadata from IndexedDb. */
+  private getMutationQueueMetadata(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<DbMutationQueue> {
+    return mutationQueuesStore(transaction)
+      .get(this.userId)
+      .next((metadata: DbMutationQueue | null) => {
+        assert(metadata != null, 'Mutation metadata row missing');
+        return metadata;
+      });
   }
 }
 

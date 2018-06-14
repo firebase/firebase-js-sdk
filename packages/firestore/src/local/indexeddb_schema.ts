@@ -70,6 +70,7 @@ export function createOrUpgradeDb(
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
+      return saveProcessedMutationCount(txn);
     });
   }
   return p;
@@ -147,12 +148,40 @@ export class DbMutationQueue {
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
      */
-    public lastStreamToken: string
+    public lastStreamToken: string,
+    // PORTING NOTE: Multi-tab only.
+    /**
+     * An identifier for the highest numbered batch that has been acknowledged
+     * or rejected by the server. This ID ensures that even as mutations are
+     * removed, batch IDs never go back in time over the lifetime of a client.
+     */
+    public lastProcessedBatchId: number
   ) {}
 }
 
 /** keys in the 'mutations' object store are [userId, batchId] pairs. */
 export type DbMutationBatchKey = [string, BatchId];
+
+/**
+ * Sets a mutation queue's `lastProcessedBatchId` to its
+ * `lastAcknowledgedBatchId` for all existing entries.
+ */
+function saveProcessedMutationCount(
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const mutationsStore = txn.store<DbMutationBatchKey, DbMutationQueue>(
+    DbMutationQueue.store
+  );
+
+  let promises = mutationsStore.loadAll().next(entries => {
+    for (const entry of entries) {
+      entry.lastProcessedBatchId = entry.lastAcknowledgedBatchId;
+      promises = promises.next(() => mutationsStore.put(entry));
+    }
+  });
+
+  return promises;
+}
 
 /**
  * An object to be stored in the 'mutations' store in IndexedDb.
@@ -515,7 +544,7 @@ function createQueryCache(db: IDBDatabase): void {
 }
 
 /**
- * * Counts the number of targets persisted and adds that value to the target
+ * Counts the number of targets persisted and adds that value to the target
  * global singleton.
  */
 function saveTargetCount(
