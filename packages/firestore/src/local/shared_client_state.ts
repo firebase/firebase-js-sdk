@@ -15,7 +15,12 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
-import { BatchId, MutationBatchState, TargetId } from '../core/types';
+import {
+  BatchId,
+  MutationBatchState,
+  OnlineState,
+  TargetId
+} from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
 import { min } from '../util/misc';
@@ -159,6 +164,13 @@ export interface SharedClientState {
     removedBatchIds: BatchId[],
     addedBatchIds: BatchId[]
   ): void;
+
+  /**
+   * Changes the online state of the current client. If this change differs
+   * from the online state observed by the primary client, may raise new view
+   * snapshots in all active clients.
+   */
+  setOnlineState(onlineState: OnlineState): void;
 }
 
 /**
@@ -354,6 +366,7 @@ export class QueryTargetMetadata {
 interface ClientStateSchema {
   lastUpdateTime: number;
   activeTargetIds: number[];
+  onlineState: string;
   minMutationBatchId: number | null;
   maxMutationBatchId: number | null;
 }
@@ -367,6 +380,7 @@ interface ClientStateSchema {
 export interface ClientState {
   readonly activeTargetIds: TargetIdSet;
   readonly lastUpdateTime: Date;
+  readonly onlineState: OnlineState;
   readonly maxMutationBatchId: BatchId | null;
   readonly minMutationBatchId: BatchId | null;
 }
@@ -380,6 +394,7 @@ class RemoteClientState implements ClientState {
   private constructor(
     readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
+    readonly onlineState: OnlineState,
     readonly activeTargetIds: TargetIdSet,
     readonly minMutationBatchId: BatchId | null,
     readonly maxMutationBatchId: BatchId | null
@@ -398,6 +413,8 @@ class RemoteClientState implements ClientState {
     let validData =
       typeof clientState === 'object' &&
       isSafeInteger(clientState.lastUpdateTime) &&
+      ['Unknown', 'Offline', 'Online'].indexOf(clientState.onlineState) !==
+        -1 &&
       clientState.activeTargetIds instanceof Array &&
       (clientState.minMutationBatchId === null ||
         isSafeInteger(clientState.minMutationBatchId)) &&
@@ -414,9 +431,12 @@ class RemoteClientState implements ClientState {
     }
 
     if (validData) {
+      const onlineState = OnlineState[clientState.onlineState];
+
       return new RemoteClientState(
         clientId,
         new Date(clientState.lastUpdateTime),
+        onlineState,
         activeTargetIdsSet,
         clientState.minMutationBatchId,
         clientState.maxMutationBatchId
@@ -444,6 +464,7 @@ class RemoteClientState implements ClientState {
 // Visible for testing.
 export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
+  onlineState = OnlineState.Unknown;
   lastUpdateTime: Date;
 
   private pendingBatchIds = batchIdSet();
@@ -497,6 +518,7 @@ export class LocalClientState implements ClientState {
     const data: ClientStateSchema = {
       lastUpdateTime: this.lastUpdateTime.getTime(),
       activeTargetIds: this.activeTargetIds.toArray(),
+      onlineState: OnlineState[this.onlineState],
       minMutationBatchId: this.minMutationBatchId,
       maxMutationBatchId: this.maxMutationBatchId
     };
@@ -714,6 +736,15 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.currentUser = user;
   }
 
+  setOnlineState(onlineState: OnlineState): void {
+    const existingState = this.onlineState;
+    this.localClientState.onlineState = onlineState;
+    this.persistClientState();
+    if (existingState !== this.onlineState) {
+      this.syncEngine.applyOnlineStateChange(onlineState);
+    }
+  }
+
   shutdown(): void {
     assert(
       this.started,
@@ -722,6 +753,29 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.platform.window.removeEventListener('storage', this.storageListener);
     this.storage.removeItem(this.localClientStorageKey);
     this.started = false;
+  }
+
+  /**
+   * Returns the "highest" online state of all active clients ("Online" takes
+   * precedence over "Offline", which takes precedence over "Unknown").
+   */
+  private get onlineState(): OnlineState {
+    let onlineState = OnlineState.Unknown;
+
+    objUtils.forEach(this.activeClients, (clientId, client) => {
+      if (client.onlineState === OnlineState.Online) {
+        // This is the primary client as only the primary client should ever be
+        // "Online".
+        onlineState = OnlineState.Online;
+      } else if (
+        onlineState === OnlineState.Unknown &&
+        client.onlineState === OnlineState.Offline
+      ) {
+        onlineState = OnlineState.Offline;
+      }
+    });
+
+    return onlineState;
   }
 
   private handleLocalStorageEvent(event: StorageEvent): void {
@@ -746,11 +800,14 @@ export class WebStorageSharedClientState implements SharedClientState {
               event.newValue
             );
             if (clientState) {
-              return this.handleClientStateEvent(clientState);
+              return this.handleClientStateEvent(
+                clientState.clientId,
+                clientState
+              );
             }
           } else {
             const clientId = this.fromLocalStorageClientStateKey(event.key);
-            delete this.activeClients[clientId];
+            return this.handleClientStateEvent(clientId, null);
           }
         } else if (this.mutationBatchKeyRe.test(event.key)) {
           if (event.newValue !== null) {
@@ -935,11 +992,18 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private handleClientStateEvent(
-    clientState: RemoteClientState
+    clientId: ClientId,
+    clientState: RemoteClientState | null
   ): Promise<void> {
     const existingTargets = this.getAllActiveQueryTargets();
+    const existingOnlineState = this.onlineState;
 
-    this.activeClients[clientState.clientId] = clientState;
+    if (clientState) {
+      this.activeClients[clientId] = clientState;
+    } else {
+      delete this.activeClients[clientId];
+    }
+
     const newTargets = this.getAllActiveQueryTargets();
 
     const addedTargets: TargetId[] = [];
@@ -956,6 +1020,11 @@ export class WebStorageSharedClientState implements SharedClientState {
         removedTargets.push(targetId);
       }
     });
+
+    const newOnlineState = this.onlineState;
+    if (newOnlineState !== existingOnlineState) {
+      this.syncEngine.applyOnlineStateChange(newOnlineState);
+    }
 
     return this.syncEngine.applyActiveTargetsChange(
       addedTargets,
@@ -1035,6 +1104,10 @@ export class MemorySharedClientState implements SharedClientState {
     addedBatchIds.forEach(batchId => {
       this.localState.addPendingMutation(batchId);
     });
+  }
+
+  setOnlineState(onlineState: OnlineState): void {
+    // No op.
   }
 
   shutdown(): void {}

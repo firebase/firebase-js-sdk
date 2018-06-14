@@ -602,4 +602,64 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, {});
     }
   );
+
+  specTest(
+    "Secondary client uses primary client's online state",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return client(0, false)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000)
+        .client(1)
+        .expectEvents(query, {})
+        .client(0)
+        .disableNetwork()
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .enableNetwork()
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000)
+        .client(1)
+        .expectEvents(query, {});
+    }
+  );
+
+  specTest(
+    "Secondary client's online state is ignored",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 2000, { key: 'a' });
+
+      return client(0, false)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000)
+        .client(1)
+        .expectEvents(query, {})
+        .disableNetwork() // Ignored since this is the secondary client.
+        .client(0)
+        .watchSends({ affects: [query] }, docA)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .disableNetwork()
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .enableNetwork();
+    }
+  );
 });

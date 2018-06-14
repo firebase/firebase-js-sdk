@@ -365,6 +365,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   applyOnlineStateChange(onlineState: OnlineState): void {
     const newViewSnapshots = [] as ViewSnapshot[];
+    this.sharedClientState.setOnlineState(onlineState);
     this.queryViewsByQuery.forEach((query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       assert(
@@ -372,6 +373,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         'OnlineState should not affect limbo documents.'
       );
       if (viewChange.snapshot) {
+        this.sharedClientState.trackQueryUpdate(
+          queryView.targetId,
+          viewChange.snapshot.fromCache ? 'not-current' : 'current'
+        );
         newViewSnapshots.push(viewChange.snapshot);
       }
     });
