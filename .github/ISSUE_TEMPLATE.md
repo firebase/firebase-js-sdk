@@ -18,6 +18,7 @@ Are you in the right place?
 ### [REQUIRED] Describe your environment
 
   * Operating System version: _____
+  * Browser version: _____
   * Firebase SDK version: _____
   * Firebase Product: _____ (auth, database, storage, etc)
 
@@ -32,7 +33,7 @@ Are you in the right place?
 -->
 #### Relevant Code:
 
-<!-- 
+<!--
   Reproduce the issue on StackBlitz and provide your forked URL
   or give us some sample code below
 -->
