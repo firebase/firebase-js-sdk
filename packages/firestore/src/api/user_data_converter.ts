@@ -242,6 +242,16 @@ class ParseContext {
     );
   }
 
+  /** Returns 'true' if 'fieldPath' was traversed when creating this context. */
+  contains(fieldPath: FieldPath): boolean {
+    return (
+      this.fieldMask.find(field => fieldPath.isPrefixOf(field)) !== undefined ||
+      this.fieldTransforms.find(transform =>
+        fieldPath.isPrefixOf(transform.field)
+      ) !== undefined
+    );
+  }
+
   private validatePath(): void {
     // TODO(b/34871131): Remove null check once we have proper paths for fields
     // within arrays.
@@ -345,12 +355,13 @@ export class UserDataConverter {
           fail('Expected stringOrFieldPath to be a string or a FieldPath');
         }
 
-        if (!updateData.contains(fieldPath)) {
+        if (!context.contains(fieldPath)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
           );
         }
+
         validatedFieldPaths.push(fieldPath);
       }
 
