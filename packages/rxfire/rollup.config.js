@@ -83,7 +83,4 @@ const componentBuilds = components
   })
   .reduce((a, b) => a.concat(b), []);
 
-
-export default [
-  ...componentBuilds
-];
+export default [...componentBuilds];
