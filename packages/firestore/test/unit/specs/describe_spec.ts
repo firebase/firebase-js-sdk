@@ -30,12 +30,14 @@ const PERSISTENCE_TAG = 'persistence';
 const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
+const NO_LRU = 'no-lru';
 const KNOWN_TAGS = [
   EXCLUSIVE_TAG,
   PERSISTENCE_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
-  NO_IOS_TAG
+  NO_IOS_TAG,
+  NO_LRU
 ];
 
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
@@ -46,6 +48,7 @@ interface SpecOutputFormat {
   describeName: string;
   itName: string;
   tags: string[];
+  comment?: string;
   steps: SpecStep[];
 }
 
@@ -81,8 +84,26 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 export function specTest(
   name: string,
   tags: string[],
-  builder: () => SpecBuilder
+  builder: () => SpecBuilder): void;
+export function specTest(
+  name: string,
+  tags: string[],
+  comment: string,
+  builder: () => SpecBuilder): void;
+export function specTest(
+  name: string,
+  tags: string[],
+  commentOrBuilder: string | (() => SpecBuilder),
+  maybeBuilder?: () => SpecBuilder
 ): void {
+  let comment: string;
+  let builder: () => SpecBuilder;
+  if (typeof commentOrBuilder === 'string') {
+    comment = commentOrBuilder;
+    builder = maybeBuilder;
+  } else {
+    builder = commentOrBuilder;
+  }
   // Union in the tags for the describeSpec().
   tags = tags.concat(describeTags);
   for (const tag of tags) {
@@ -103,6 +124,12 @@ export function specTest(
         runner = it.only;
       } else if (!WEB_SPEC_TEST_FILTER(tags)) {
         runner = it.skip;
+      } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
+        runner = (fullname: string, fn: () => {}) => {
+          const skipComment = comment || "";
+          // tslint:disable-next-line:no-console
+          console.log('skipping "' + fullName + '"\n\t' + skipComment);
+        };
       } else {
         runner = it;
       }
@@ -123,6 +150,7 @@ export function specTest(
     describeName,
     itName: name,
     tags,
+    comment,
     config: specJSON.config,
     steps: specJSON.steps
   };
