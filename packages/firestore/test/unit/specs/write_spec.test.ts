@@ -22,6 +22,7 @@ import { doc, path } from '../../util/helpers';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Writes:', [], () => {
   specTest(
@@ -875,4 +876,28 @@ describeSpec('Writes:', [], () => {
         })
     );
   });
+
+  specTest(
+    'Write is executed after primary tab failover',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .becomeVisible()
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .userSets('collection/a', { v: 1 })
+        .userSets('collection/b', { v: 1 })
+        .client(0)
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .shutdown()
+        .client(1)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .writeAcks('collection/b', 2000);
+    }
+  );
 });
