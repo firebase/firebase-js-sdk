@@ -24,11 +24,13 @@ import pkg from './package.json';
 import authPkg from './auth/package.json';
 import storagePkg from './storage/package.json';
 import functionsPkg from './functions/package.json';
+import firestorePkg from './firestore/package.json';
 
 const pkgsByName = {
   auth: authPkg,
   storage: storagePkg,
-  functions: functionsPkg
+  functions: functionsPkg,
+  firestore: firestorePkg
 };
 
 const plugins = [
@@ -46,35 +48,7 @@ const external = [...Object.keys(pkg.dependencies || {}), 'rxjs/operators'];
  */
 const GLOBAL_NAME = 'rxfire';
 
-const coreBuild = [
-  /**
-   * App Browser Builds
-   */
-  {
-    input: './index.ts',
-    output: [
-      { file: resolve('.', pkg.main), format: 'cjs' },
-      { file: resolve('.', pkg.module), format: 'es' }
-    ],
-    plugins,
-    external
-  },
-  /**
-   * App UMD Builds
-   */
-  {
-    input: './index.ts',
-    output: {
-      file: 'rxfire.js',
-      sourcemap: true,
-      format: 'umd',
-      name: GLOBAL_NAME
-    },
-    plugins: [...plugins, uglify()]
-  }
-];
-
-const components = ['auth', 'storage', 'functions'];
+const components = ['auth', 'storage', 'functions', 'firestore'];
 const componentBuilds = components
   .map(component => {
     const pkg = pkgsByName[component];
@@ -109,52 +83,7 @@ const componentBuilds = components
   })
   .reduce((a, b) => a.concat(b), []);
 
-/**
- * Complete Package Builds
- */
-const completeBuilds = [
-  /**
-   * App Browser Builds
-   */
-  {
-    input: 'src/index.ts',
-    output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
-    ],
-    plugins,
-    external
-  },
-  {
-    input: 'src/index.cdn.ts',
-    output: {
-      file: 'rxfire.js',
-      format: 'umd',
-      name: GLOBAL_NAME
-    },
-    plugins: [...plugins, uglify()]
-  },
-  /**
-   * App Node.js Builds
-   */
-  {
-    input: 'src/index.node.ts',
-    output: { file: pkg.main, format: 'cjs' },
-    plugins,
-    external
-  },
-  /**
-   * App React Native Builds
-   */
-  {
-    input: 'src/index.rn.ts',
-    output: { file: pkg['react-native'], format: 'cjs' },
-    plugins,
-    external
-  }
-];
 
 export default [
-  //  ...coreBuild,
   ...componentBuilds
 ];
