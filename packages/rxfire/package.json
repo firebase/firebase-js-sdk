@@ -65,5 +65,8 @@
     "webpack": "3.11.0",
     "yargs": "11.0.0"
   },
-  "typings": "dist/index.d.ts"
+  "typings": "dist/index.d.ts",
+  "files": [
+    
+  ]
 }
