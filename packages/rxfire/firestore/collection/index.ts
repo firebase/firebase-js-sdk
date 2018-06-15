@@ -25,11 +25,11 @@ const ALL_EVENTS: firestore.DocumentChangeType[] = [
   'removed'
 ];
 
-const changesFilter = (events?: firestore.DocumentChangeType[]) =>
-  map((changes: firestore.DocumentChange[]) => {
-    return changes.filter(change => events.indexOf(change.type) > -1);
-  });
-
+/**
+ * Create an operator that determines if a the stream of document changes
+ * are specified by the event filter. If the document change type is not
+ * in specified events array, it will not be emitted. 
+ */
 const filterEvents = (events?: firestore.DocumentChangeType[]) =>
   filter((changes: firestore.DocumentChange[]) => {
     let hasChange = false;
@@ -41,6 +41,11 @@ const filterEvents = (events?: firestore.DocumentChangeType[]) =>
     return hasChange;
   });
 
+/**
+ * Create an operator that filters out empty changes. We provide the 
+ * ability to filter on events, which means all changes can be filtered out. 
+ * This creates an empty array and would be incorrect to emit. 
+ */
 const filterEmpty = filter(
   (changes: firestore.DocumentChange[]) => changes.length > 0
 );
