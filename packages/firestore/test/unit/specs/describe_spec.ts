@@ -84,12 +84,14 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 export function specTest(
   name: string,
   tags: string[],
-  builder: () => SpecBuilder): void;
+  builder: () => SpecBuilder
+): void;
 export function specTest(
   name: string,
   tags: string[],
   comment: string,
-  builder: () => SpecBuilder): void;
+  builder: () => SpecBuilder
+): void;
 export function specTest(
   name: string,
   tags: string[],
@@ -126,7 +128,7 @@ export function specTest(
         runner = it.skip;
       } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
         runner = (fullname: string, fn: () => {}) => {
-          const skipComment = comment || "";
+          const skipComment = comment || '';
           // tslint:disable-next-line:no-console
           console.log('skipping "' + fullName + '"\n\t' + skipComment);
         };

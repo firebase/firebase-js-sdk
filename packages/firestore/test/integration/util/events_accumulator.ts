@@ -33,8 +33,8 @@ export class EventsAccumulator<
   storeEvent: (evt: T) => void = (evt: T) => {
     if (this.rejectAdditionalEvents) {
       throw new Error(
-        'Additional event detected after assertNoAdditionalEvents called'
-        + JSON.stringify(evt)
+        'Additional event detected after assertNoAdditionalEvents called' +
+          JSON.stringify(evt)
       );
     }
     this.events.push(evt);
