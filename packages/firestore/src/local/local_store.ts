@@ -703,7 +703,7 @@ export class LocalStore {
   }
 
   /**
-   * Unpin all the documents associated with the given query and remove the
+   * Unpin all the documents associated with the given query and remove its
    * query data from the query cache.
    */
   releaseQuery(query: Query): Promise<void> {
@@ -717,7 +717,6 @@ export class LocalStore {
           );
           this.localViewReferences.removeReferencesForId(queryData!.targetId);
           delete this.targetIds[queryData!.targetId];
-
           if (this.garbageCollector.isEager) {
             return this.queryCache.removeQueryData(txn, queryData!);
           } else {
@@ -747,18 +746,17 @@ export class LocalStore {
    * Locally unpin all the documents associated with the given query, but keep
    * persisted query data.
    */
+  // PORTING NOTE: Multi-tab only.
   removeQuery(query: Query): Promise<void> {
     return this.persistence.runTransaction('Remove query', false, txn => {
-      return this.queryCache
-        .getQueryData(txn, query)
-        .next((queryData: QueryData | null) => {
-          assert(
-            queryData != null,
-            'Tried to release nonexistent query: ' + query
-          );
-          this.localViewReferences.removeReferencesForId(queryData!.targetId);
-          delete this.targetIds[queryData!.targetId];
-        });
+      return this.queryCache.getQueryData(txn, query).next(queryData => {
+        assert(
+          queryData != null,
+          'Tried to release nonexistent query: ' + query
+        );
+        this.localViewReferences.removeReferencesForId(queryData!.targetId);
+        delete this.targetIds[queryData!.targetId];
+      });
     });
   }
 

@@ -235,11 +235,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
     this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
-    const remainsActive = this.sharedClientState
+    const targetRemainsActive = this.sharedClientState
       .getAllActiveQueryTargets()
       .has(queryView.targetId);
 
-    if (this.isPrimary && remainsActive) {
+    if (this.isPrimary && targetRemainsActive) {
       return; // We need to keep the query for other clients.
     }
 
@@ -748,24 +748,30 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     error?: FirestoreError
   ): Promise<void> {
     // Apply the target state if the target is either actively being listened to
-    // or a limbo target change (which could theoretically apply to any target).
+    // or a limbo target change (which could then apply to any target).
     if (
       this.queryViewsByTarget[targetId] ||
       this.limboIdGenerator.covers(targetId)
     ) {
-      if (state === 'rejected') {
-        const queryView = this.queryViewsByTarget[targetId];
-        this.remoteStore.unlisten(targetId);
-        await this.localStore.removeQuery(queryView.query);
-        return this.removeAndCleanupQuery(queryView.query).then(() => {
-          this.errorHandler!(queryView.query, error);
-        });
-      } else {
-        const changes = await this.localStore.getNewDocumentChanges();
-        await this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          state === 'current'
-        );
+      switch (state) {
+        case 'not-current': {
+          const changes = await this.localStore.getNewDocumentChanges();
+          return this.emitNewSnapsAndNotifyLocalStore(changes, false);
+        }
+        case 'current': {
+          const changes = await this.localStore.getNewDocumentChanges();
+          return this.emitNewSnapsAndNotifyLocalStore(changes, true);
+        }
+        case 'rejected': {
+          const queryView = this.queryViewsByTarget[targetId];
+          this.remoteStore.unlisten(targetId);
+          await this.localStore.removeQuery(queryView.query);
+          return this.removeAndCleanupQuery(queryView.query).then(() => {
+            this.errorHandler!(queryView.query, error);
+          });
+        }
+        default:
+          fail('Unexpected target state: ' + state);
       }
     }
   }
@@ -794,7 +800,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     for (const targetId of removed) {
       const queryView = this.queryViewsByTarget[targetId];
       // Check that the query is still active since the query might have been
-      // removed if the backend rejected it.
+      // removed if has been rejected by the backend.
       if (queryView) {
         this.remoteStore.unlisten(targetId);
         await this.localStore.releaseQuery(queryView.query);

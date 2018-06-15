@@ -70,7 +70,7 @@ export class TargetIdGenerator {
     return this.next();
   }
 
-  /** Verifies that the provided ID lies within this generators ID space. */
+  /** Verifies that the provided ID lies within this generator's ID space. */
   covers(targetId: TargetId): boolean {
     return (targetId & RESERVED_BITS) === this.generatorId;
   }

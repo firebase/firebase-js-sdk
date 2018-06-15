@@ -414,9 +414,7 @@ describeSpec('Listens:', [], () => {
       )
       .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
       .userListens(query)
-      .watchAcks(query)
-      .watchCurrents(query, 'resume-token-1000')
-      .watchSnapshots(1000)
+      .watchAcksFull(query, 1000)
       .expectEvents(query, {});
   });
 
@@ -557,7 +555,7 @@ describeSpec('Listens:', [], () => {
   specTest('Query is rejected by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
 
-    return client(0, false)
+    return client(0, /* withGcEnabled= */ false)
       .becomeVisible()
       .client(1)
       .userListens(query)
@@ -573,12 +571,12 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest(
-    'Query is rejected and re-listened to by another client',
+    'Query is rejected and re-listened to by secondary client',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, false)
+      return client(0, /* withGcEnabled= */ false)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -595,9 +593,7 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
-        .watchAcks(query)
-        .watchCurrents(query, 'resume-token-1000')
-        .watchSnapshots(1000)
+        .watchAcksFull(query, 1000)
         .client(1)
         .expectEvents(query, {});
     }

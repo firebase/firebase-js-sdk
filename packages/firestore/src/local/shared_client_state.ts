@@ -117,8 +117,8 @@ export interface SharedClientState {
 
   /**
    * Associates a new Query Target ID with the local Firestore clients. Returns
-   * the query state for the query and can return 'current' if the query is
-   * already associated with another tab.
+   * the new query state for the query (which can be 'current' if the query is
+   * already associated with another tab).
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
@@ -1040,6 +1040,7 @@ export class WebStorageSharedClientState implements SharedClientState {
  */
 export class MemorySharedClientState implements SharedClientState {
   private localState = new LocalClientState();
+  private queryState: { [targetId: number]: QueryTargetState } = {};
 
   syncEngine: SharedClientStateSyncer | null;
 
@@ -1069,7 +1070,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {
     this.localState.addQueryTarget(targetId);
-    return 'not-current';
+    return this.queryState[targetId] || 'not-current';
   }
 
   trackQueryUpdate(
@@ -1077,11 +1078,12 @@ export class MemorySharedClientState implements SharedClientState {
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    // No op.
+    this.queryState[targetId] = state;
   }
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+    delete this.queryState[targetId];
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
