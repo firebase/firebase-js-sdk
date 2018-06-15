@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { Deferred } from '../util/promise';
+import { PersistenceTransaction } from './persistence';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -133,6 +134,18 @@ export class SimpleDb {
       return false;
     } else {
       return true;
+    }
+  }
+
+  /** Helper to get a typed SimpleDbStore from a transaction. */
+  static getStore<KeyType extends IDBValidKey, ValueType>(
+    txn: PersistenceTransaction,
+    store: string
+  ): SimpleDbStore<KeyType, ValueType> {
+    if (txn instanceof SimpleDbTransaction) {
+      return txn.store<KeyType, ValueType>(store);
+    } else {
+      return fail('Invalid transaction object provided!');
     }
   }
 

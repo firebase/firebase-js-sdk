@@ -85,11 +85,11 @@ function appiumLauncher(
  */
 const sauceLabsBrowsers = {
   // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', '66.0'),
-  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', '60.0'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', '11.0'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', '17.17134'),
-  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', '11.103')
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
 
   // Mobile
   // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),

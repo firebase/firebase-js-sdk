@@ -516,6 +516,12 @@
     "@firebase/util" "0.1.10"
     tslib "^1.9.0"
 
+"@firebase/auth@0.5.3":
+  version "0.5.3"
+  resolved "https://registry.npmjs.org/@firebase/auth/-/auth-0.5.3.tgz#4f0d83cd5a7c173d3a7a06f904bb1084acd8a0c4"
+  dependencies:
+    "@firebase/auth-types" "0.3.3"
+
 "@firebase/database-types@0.2.1":
   version "0.2.1"
   resolved "https://registry.npmjs.org/@firebase/database-types/-/database-types-0.2.1.tgz#f83a6d03af5f8c93276ceb89e1f31e4664c9df1b"
@@ -3778,7 +3784,7 @@ event-emitter@~0.3.5:
     d "1"
     es5-ext "~0.10.14"
 
-event-stream@~3.3.0:
+event-stream@^3.3.4, event-stream@~3.3.0:
   version "3.3.4"
   resolved "http://registry.npmjs.org/event-stream/-/event-stream-3.3.4.tgz#4ab4c9a0f5a54db9338b4c34d86bfce8f4b35571"
   dependencies:
