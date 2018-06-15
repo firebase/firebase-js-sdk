@@ -16,25 +16,22 @@
 
 import { firestore } from 'firebase/app';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
-type Reference<T> = firestore.DocumentReference | firestore.CollectionReference;
-
-function _fromRef<T, R>(ref: any): Observable<R> {
+function _fromRef(ref: any): Observable<any> {
   return new Observable(subscriber => {
     const unsubscribe = ref.onSnapshot(subscriber);
     return { unsubscribe };
   });
 }
 
-export function fromRef<R>(ref: firestore.DocumentReference | firestore.Query) {
-  return _fromRef<typeof ref, R>(ref);
+export function fromRef(ref: firestore.DocumentReference | firestore.Query) {
+  return _fromRef(ref);
 }
 
-export function fromDocRef<T>(ref: firestore.DocumentReference) {
-  return fromRef<firestore.DocumentSnapshot>(ref);
+export function fromDocRef(ref: firestore.DocumentReference): Observable<firestore.DocumentSnapshot> {
+  return fromRef(ref);
 }
 
-export function fromCollectionRef<T>(ref: firestore.Query) {
-  return fromRef<firestore.QuerySnapshot>(ref);
+export function fromCollectionRef<T>(ref: firestore.Query): Observable<firestore.QuerySnapshot> {
+  return fromRef(ref);
 }

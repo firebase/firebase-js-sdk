@@ -51,7 +51,7 @@ export function putString(
   format?: storage.StringFormat,
   metadata?: storage.UploadMetadata
 ) {
-  return fromTask(ref.put(data, metadata));
+  return fromTask(ref.putString(data, format, metadata));
 }
 
 export function percentage(task: storage.UploadTask) {
