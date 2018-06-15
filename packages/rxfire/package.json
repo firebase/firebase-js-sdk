@@ -1,6 +1,7 @@
 {
   "name": "rxfire",
-  "version": "0.0.2",
+  "version": "0.0.0",
+  "private": true,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -67,6 +68,18 @@
   },
   "typings": "dist/index.d.ts",
   "files": [
-    
+    "./auth",
+    "./firestore",
+    "./functions",
+    "./storage",
+    "./package.json",
+    "./rxfire-auth.js",
+    "./rxfire-auth.js.map",
+    "./rxfire-firestore.js",
+    "./rxfire-firestore.js.map",
+    "./rxfire-storage.js",
+    "./rxfire-storage.js.map",
+    "./rxfire-functions.js",
+    "./rxfire-functions.js.map"
   ]
 }

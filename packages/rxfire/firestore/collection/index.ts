@@ -55,7 +55,7 @@ const filterEmpty = filter(
  * @param combined
  * @param change
  */
-function combineChange<T>(
+function processIndividualChange(
   combined: firestore.DocumentChange[],
   change: firestore.DocumentChange
 ): firestore.DocumentChange[] {
@@ -94,7 +94,7 @@ function combineChange<T>(
  * @param changes
  * @param events
  */
-function combineChanges<T>(
+function processDocumentChanges(
   current: firestore.DocumentChange[],
   changes: firestore.DocumentChange[],
   events: firestore.DocumentChangeType[] = ALL_EVENTS
@@ -102,7 +102,7 @@ function combineChanges<T>(
   changes.forEach(change => {
     // skip unwanted change types
     if (events.indexOf(change.type) > -1) {
-      current = combineChange(current, change);
+      current = processIndividualChange(current, change);
     }
   });
   return current;
@@ -125,7 +125,7 @@ export function docChanges(
 }
 
 /**
- * Return a stream of document changes on a query. These results are in sort order.
+ * Return a stream of document snapshots on a query. These results are in sort order.
  * @param query
  */
 export function collection(query: firestore.Query) {
@@ -145,7 +145,7 @@ export function sortedChanges(
       (
         current: firestore.DocumentChange[],
         changes: firestore.DocumentChange[]
-      ) => combineChanges(current, changes, events),
+      ) => processDocumentChanges(current, changes, events),
       []
     )
   );
