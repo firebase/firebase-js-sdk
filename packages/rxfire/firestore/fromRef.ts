@@ -28,10 +28,14 @@ export function fromRef(ref: firestore.DocumentReference | firestore.Query) {
   return _fromRef(ref);
 }
 
-export function fromDocRef(ref: firestore.DocumentReference): Observable<firestore.DocumentSnapshot> {
+export function fromDocRef(
+  ref: firestore.DocumentReference
+): Observable<firestore.DocumentSnapshot> {
   return fromRef(ref);
 }
 
-export function fromCollectionRef<T>(ref: firestore.Query): Observable<firestore.QuerySnapshot> {
+export function fromCollectionRef<T>(
+  ref: firestore.Query
+): Observable<firestore.QuerySnapshot> {
   return fromRef(ref);
 }
