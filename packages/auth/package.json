@@ -1,7 +1,8 @@
 {
   "name": "@firebase/auth",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "main": "dist/auth.js",
+  "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "files": [
@@ -10,19 +11,20 @@
   ],
   "scripts": {
     "build": "gulp",
-    "test": "npm run build && npm run generate-test-files && ./buildtools/run_tests.sh",
-    "serve": "npm run build && npm run generate-test-files && gulp serve",
     "demo": "./buildtools/run_demo.sh",
     "generate-test-files": "./buildtools/generate_test_files.sh",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "serve": "npm run build && npm run generate-test-files && gulp serve",
+    "test": "npm run generate-test-files && ./buildtools/run_tests.sh"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.3.2"
+    "@firebase/auth-types": "0.3.3"
   },
   "devDependencies": {
     "closure-builder": "2.2.39",
     "del": "3.0.0",
+    "event-stream": "^3.3.4",
     "express": "4.16.3",
     "firebase-functions": "1.0.1",
     "firebase-tools": "3.18.2",
@@ -30,7 +32,8 @@
     "google-closure-library": "20180405.0.0",
     "gulp": "4.0.0",
     "gulp-closure-compiler": "0.4.0",
-    "protractor": "5.3.1"
+    "protractor": "5.3.1",
+    "vinyl": "^2.1.0"
   },
   "repository": {
     "type": "git",

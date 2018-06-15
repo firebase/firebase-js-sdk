@@ -34,6 +34,11 @@ const appPubKey = new Uint8Array([
   255, 237, 107, 177, 171, 78, 84, 131, 221, 231, 87, 188, 22, 232, 71, 15
 ]);
 
+/** Creates a new Uint8Array every time */
+function getDefaultPublicKey(): Uint8Array {
+  return new Uint8Array(DEFAULT_PUBLIC_VAPID_KEY);
+}
+
 describe('Firebase Messaging > IidModel', () => {
   let sandbox: sinon.SinonSandbox;
   let iidModel: IidModel;
@@ -57,10 +62,12 @@ describe('Firebase Messaging > IidModel', () => {
         token: fcmToken,
         pushSet: fcmPushSet
       };
-      sandbox
+      const fetchStub = sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      await iidModel.getToken(fcmSenderId, subscription, appPubKey);
+      const res = await iidModel.getToken(fcmSenderId, subscription, appPubKey);
+      expect(res).to.deep.equal(mockResponse);
+      expect(fetchStub.lastCall.args[1].body).to.include('application_pub_key');
     });
 
     it('gets token on valid request with default VAPID key', async () => {
@@ -68,13 +75,17 @@ describe('Firebase Messaging > IidModel', () => {
         token: fcmToken,
         pushSet: fcmPushSet
       };
-      sandbox
+      const fetchStub = sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      await iidModel.getToken(
+      const res = await iidModel.getToken(
         fcmSenderId,
         subscription,
-        DEFAULT_PUBLIC_VAPID_KEY
+        getDefaultPublicKey()
+      );
+      expect(res).to.deep.equal(mockResponse);
+      expect(fetchStub.lastCall.args[1].body).not.to.include(
+        'application_pub_key'
       );
     });
 
@@ -137,22 +148,7 @@ describe('Firebase Messaging > IidModel', () => {
   describe('updateToken', () => {
     it('updates on valid request with custom VAPID key', async () => {
       const mockResponse = { token: fcmToken };
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await iidModel.updateToken(
-        fcmSenderId,
-        fcmToken,
-        fcmPushSet,
-        subscription,
-        DEFAULT_PUBLIC_VAPID_KEY
-      );
-      expect(res).to.equal(fcmToken);
-    });
-
-    it('updates on valid request with default VAPID key', async () => {
-      const mockResponse = { token: fcmToken };
-      sandbox
+      const fetchStub = sandbox
         .stub(window, 'fetch')
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
       const res = await iidModel.updateToken(
@@ -163,6 +159,25 @@ describe('Firebase Messaging > IidModel', () => {
         appPubKey
       );
       expect(res).to.equal(fcmToken);
+      expect(fetchStub.lastCall.args[1].body).to.include('application_pub_key');
+    });
+
+    it('updates on valid request with default VAPID key', async () => {
+      const mockResponse = { token: fcmToken };
+      const fetchStub = sandbox
+        .stub(window, 'fetch')
+        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
+      const res = await iidModel.updateToken(
+        fcmSenderId,
+        fcmToken,
+        fcmPushSet,
+        subscription,
+        getDefaultPublicKey()
+      );
+      expect(res).to.equal(fcmToken);
+      expect(fetchStub.lastCall.args[1].body).not.to.include(
+        'application_pub_key'
+      );
     });
 
     it('handles invalid fetch response, no FCM token returned', async () => {
