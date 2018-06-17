@@ -76,7 +76,9 @@ export interface CredentialsProvider {
    * Requests a token for the current user, optionally forcing a refreshed
    * token to be fetched.
    */
-  getToken(forceRefresh: boolean): Promise<Token | null>;
+  getToken(): Promise<Token | null>;
+
+  invalidateToken(): void;
 
   /**
    * Specifies a listener to be notified of user changes (sign-in / sign-out).
@@ -99,9 +101,11 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
 
   constructor() {}
 
-  getToken(forceRefresh: boolean): Promise<Token | null> {
+  getToken(): Promise<Token | null> {
     return Promise.resolve<Token | null>(null);
   }
+
+  invalidateToken(): void {}
 
   setUserChangeListener(listener: UserListener): void {
     assert(!this.userListener, 'Can only call setUserChangeListener() once.');
@@ -138,6 +142,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   /** The User listener registered with setUserChangeListener(). */
   private userListener: UserListener | null = null;
 
+  private forceRefresh = false;
+
   constructor(private readonly app: FirebaseApp) {
     // We listen for token changes but all we really care about is knowing when
     // the uid may have changed.
@@ -160,7 +166,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     );
   }
 
-  getToken(forceRefresh: boolean): Promise<Token | null> {
+  getToken(): Promise<Token | null> {
     assert(
       this.tokenListener != null,
       'getToken cannot be called after listener removed.'
@@ -170,6 +176,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     // fail (with an ABORTED error) if there is a user change while the request
     // is outstanding.
     const initialUserCounter = this.userCounter;
+    const forceRefresh = this.forceRefresh;
+    this.forceRefresh = false;
     return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(
       tokenData => {
         // Cancel the request since the user changed while the request was
@@ -193,6 +201,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
         }
       }
     );
+  }
+
+  invalidateToken(): void {
+    this.forceRefresh = true;
   }
 
   setUserChangeListener(listener: UserListener): void {
@@ -285,7 +297,7 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
     );
   }
 
-  getToken(forceRefresh: boolean): Promise<Token | null> {
+  getToken(): Promise<Token | null> {
     return Promise.resolve(new FirstPartyToken(this.gapi, this.sessionIndex));
   }
 
@@ -297,6 +309,8 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
   }
 
   removeUserChangeListener(): void {}
+
+  invalidateToken(): void {}
 }
 
 /**

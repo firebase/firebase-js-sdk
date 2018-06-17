@@ -15,6 +15,7 @@
  */
 
 import { expect } from 'chai';
+import { EmptyCredentialsProvider } from '../../../src/api/credentials';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { MutationResult } from '../../../src/model/mutation';
 import {
@@ -29,6 +30,7 @@ import {
   WatchTargetChange
 } from '../../../src/remote/watch_change';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { Code, FirestoreError } from '../../../src/util/error';
 import { Deferred } from '../../../src/util/promise';
 import { setMutation } from '../../util/helpers';
 import { withTestDatastore } from '../util/internal_helpers';
@@ -104,10 +106,12 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
   }
 
   onOpen(): Promise<void> {
+    console.warn('OPEN');
     return this.resolvePending('open');
   }
 
   onClose(err?: FirestoreError): Promise<void> {
+    console.warn('CLOSE');
     return this.resolvePending('close');
   }
 
@@ -151,6 +155,25 @@ describe('Watch Stream', () => {
     });
   });
 });
+
+class MockCredentialsProvider extends EmptyCredentialsProvider {
+  private states: string[] = [];
+
+  get observedStates(): string[] {
+    return this.states;
+  }
+
+  getToken(): Promise<Token | null> {
+    this.states.push('getToken');
+    return super.getToken();
+  }
+
+  invalidateToken(): void {
+    console.log('INVALIDATE TOKEN')
+    this.states.push('invalidateToken');
+    super.invalidateToken();
+  }
+}
 
 describe('Write Stream', () => {
   let streamListener: StreamStatusListener;
@@ -261,5 +284,47 @@ describe('Write Stream', () => {
           expect(writeStream.isOpen()).to.be.true;
         });
     }, queue);
+  });
+
+  it('force refreshes auth token on receiving unauthenticated error', () => {
+    const queue = new AsyncQueue();
+    const credentials = new MockCredentialsProvider();
+
+    return withTestDatastore(ds => {
+      const writeStream = ds.newPersistentWriteStream();
+      writeStream.start(streamListener);
+      return streamListener
+        .awaitCallback('open')
+        .then(() => {
+          // Simulate callback from GRPC with an unauthenticated error -- this
+          // should invalidate the token.
+          writeStream.handleStreamClose(new FirestoreError(Code.UNAUTHENTICATED, ''));
+          console.log('AWAIT CLOSE');
+          // return streamListener.awaitCallback('close');
+          return streamListener.awaitCallback('close');
+        })
+        .then(() => {
+          console.log('AWAIT OPEN');
+          writeStream.start(streamListener);
+          return streamListener.awaitCallback('open');
+        })
+        .then(() => {
+          // Simulate a different error -- token should not be invalidated this
+          // time.
+          console.log('AWAIT CLOSE 2');
+          writeStream.close(new FirestoreError(Code.UNAVAILABLE, ''));
+          return streamListener.awaitCallback('close');
+        })
+        //.then(() => {
+        //  console.log('AWAIT OPEN 2');
+        //  //writeStream.start(streamListener);
+        //  return streamListener.awaitCallback('open');
+        //})
+        .then(() => {
+          console.log('FINALLY');
+          expect(credentials.observedStates).to.deep.equal(
+            ['getToken', 'invalidateToken', 'getToken']);
+        });
+    }, queue, credentials);
   });
 });

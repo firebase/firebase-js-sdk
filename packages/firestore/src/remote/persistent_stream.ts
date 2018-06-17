@@ -331,6 +331,10 @@ export abstract class PersistentStream<
         'Using maximum backoff delay to prevent overloading the backend.'
       );
       this.backoff.resetToMax();
+    } else if (error && error.code === Code.UNAUTHENTICATED) {
+      console.log('about to invalidate token');
+      this.backoff.reset();
+      this.credentialsProvider.invalidateToken();
     }
 
     // Clean up the underlying stream because we are no longer interested in events.
@@ -384,7 +388,7 @@ export abstract class PersistentStream<
 
     this.state = PersistentStreamState.Auth;
 
-    this.credentialsProvider.getToken(/*forceRefresh=*/ false).then(
+    this.credentialsProvider.getToken().then(
       token => {
         // Normally we'd have to schedule the callback on the AsyncQueue.
         // However, the following calls are safe to be called outside the
