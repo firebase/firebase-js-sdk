@@ -19,7 +19,10 @@ import * as firestore from '@firebase/firestore-types';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
-import { CredentialsProvider, EmptyCredentialsProvider } from '../../../src/api/credentials';
+import {
+  CredentialsProvider,
+  EmptyCredentialsProvider
+} from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
