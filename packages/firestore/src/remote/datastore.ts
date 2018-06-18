@@ -111,7 +111,6 @@ export class Datastore {
 
   /** Gets an auth token and invokes the provided RPC. */
   private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
-    // TODO(mikelehen): Retry (with backoff) on token failures?
     return this.credentials
       .getToken()
       .then(token => {
@@ -130,7 +129,6 @@ export class Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
-    // TODO(mikelehen): Retry (with backoff) on token failures?
     return this.credentials
       .getToken()
       .then(token => {

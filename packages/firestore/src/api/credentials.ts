@@ -203,6 +203,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     );
   }
 
+  // Marks the last retrieved token as invalid, making the next GetToken request
+  // force refresh the token.
   invalidateToken(): void {
     this.forceRefresh = true;
   }

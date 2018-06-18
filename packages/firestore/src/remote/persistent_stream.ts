@@ -332,8 +332,8 @@ export abstract class PersistentStream<
       );
       this.backoff.resetToMax();
     } else if (error && error.code === Code.UNAUTHENTICATED) {
-      console.log('about to invalidate token');
-      this.backoff.reset();
+      // "unauthenticated" error means the token was rejected. Try force refreshing it in case it
+      // just expired.
       this.credentialsProvider.invalidateToken();
     }
 
