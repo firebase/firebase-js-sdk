@@ -161,14 +161,13 @@ export abstract class PersistentStream<
 
   protected listener: ListenerType | null = null;
 
-  protected closeAfterError: boolean | null = true;
-
   constructor(
     private queue: AsyncQueue,
     connectionTimerId: TimerId,
     private idleTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider
+    private credentialsProvider: CredentialsProvider,
+    protected closeAfterError: boolean
   ) {
     this.backoff = new ExponentialBackoff(
       queue,
@@ -178,7 +177,6 @@ export abstract class PersistentStream<
       BACKOFF_MAX_DELAY_MS
     );
     this.state = PersistentStreamState.Initial;
-    this.closeAfterError = true;
   }
 
   /**
@@ -337,7 +335,14 @@ export abstract class PersistentStream<
       "Can't provide an error when not in an error state."
     );
 
-    this.closeWithFinalState(finalState);
+    if (this.closeAfterError || finalState !== PersistentStreamState.Error) {
+      // The stream will be closed so we don't need our idle close timer anymore.
+      this.cancelIdleCheck();
+
+      // Ensure we don't leave a pending backoff operation queued (in case close()
+      // was called while we were waiting to reconnect).
+      this.backoff.cancel();
+    }
 
     if (finalState !== PersistentStreamState.Error) {
       // If this is an intentional close ensure we don't delay our next connection attempt.
@@ -380,22 +385,6 @@ export abstract class PersistentStream<
    * Calling super.tearDown() is not required.
    */
   protected tearDown(): void {}
-
-  /**
-   * Cancels idel-close-timer and reset backoff as necessary. Mainly those
-   * stream-specific close operations.
-   * @param finalState The intended state of the stream after closing.
-   */
-  private closeWithFinalState(finalState: PersistentStreamState): void {
-    if (this.closeAfterError || finalState !== PersistentStreamState.Error) {
-      // The stream will be closed so we don't need our idle close timer anymore.
-      this.cancelIdleCheck();
-
-      // Ensure we don't leave a pending backoff operation queued (in case close()
-      // was called while we were waiting to reconnect).
-      this.backoff.cancel();
-    }
-  }
 
   /**
    * Used by subclasses to start the concrete RPC and return the underlying
@@ -563,9 +552,9 @@ export class PersistentListenStream extends PersistentStream<
       TimerId.ListenStreamConnectionBackoff,
       TimerId.ListenStreamIdle,
       connection,
-      credentials
+      credentials,
+      /* closeAfterError= */ false
     );
-    this.closeAfterError = false;
   }
 
   protected startRpc(
@@ -672,7 +661,8 @@ export class PersistentWriteStream extends PersistentStream<
       TimerId.WriteStreamConnectionBackoff,
       TimerId.WriteStreamIdle,
       connection,
-      credentials
+      credentials,
+      /* closeAfterError= */ true
     );
   }
 

@@ -301,12 +301,11 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Returns whether the watch stream should be started after an error because
-   * it's necessary and has not yet been started. Similar to
-   * {@link shouldStartWatchStream} except this one does not check whether there
-   * are active watch target or not. For certain cases, even there is no
+   * Returns whether the watch stream should be started after an error. Similar
+   * to {@link shouldStartWatchStream} except this one does not check whether
+   * there are active listen targets. For certain cases, even there is no
    * listener, we may still want to keep the watch stream live, see
-   * http://github.com/firebase/firebase-ios-sdk/issues/1165.
+   * https://github.com/firebase/firebase-ios-sdk/issues/1165.
    */
   private shouldStartWatchStreamAfterError(): boolean {
     return this.isNetworkEnabled() && !this.watchStream.isStarted();
