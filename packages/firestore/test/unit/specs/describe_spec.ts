@@ -106,6 +106,7 @@ export function specTest(
   } else {
     builder = commentOrBuilder;
   }
+  assert(!!builder, 'Missing spec builder');
   // Union in the tags for the describeSpec().
   tags = tags.concat(describeTags);
   for (const tag of tags) {
@@ -127,11 +128,8 @@ export function specTest(
       } else if (!WEB_SPEC_TEST_FILTER(tags)) {
         runner = it.skip;
       } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
-        runner = (fullname: string, fn: () => {}) => {
-          const skipComment = comment || '';
-          // tslint:disable-next-line:no-console
-          console.log('skipping "' + fullName + '"\n\t' + skipComment);
-        };
+        // spec should have a comment explaining why it is being skipped.
+        runner = it.skip;
       } else {
         runner = it;
       }
