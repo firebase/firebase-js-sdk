@@ -70,7 +70,7 @@ export function createOrUpgradeDb(
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
-      return saveProcessedMutationCount(txn);
+      return populateLastProcessedBatchId(txn);
     });
   }
   return p;
@@ -166,17 +166,17 @@ export type DbMutationBatchKey = [string, BatchId];
  * Sets a mutation queue's `lastProcessedBatchId` to its
  * `lastAcknowledgedBatchId` for all existing entries.
  */
-function saveProcessedMutationCount(
+function populateLastProcessedBatchId(
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
-  const mutationsStore = txn.store<DbMutationBatchKey, DbMutationQueue>(
+  const mutationQueuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
     DbMutationQueue.store
   );
 
-  let promises = mutationsStore.loadAll().next(entries => {
-    for (const entry of entries) {
-      entry.lastProcessedBatchId = entry.lastAcknowledgedBatchId;
-      promises = promises.next(() => mutationsStore.put(entry));
+  let promises = mutationQueuesStore.loadAll().next(queues => {
+    for (const queue of queues) {
+      queue.lastProcessedBatchId = queue.lastAcknowledgedBatchId;
+      promises = promises.next(() => mutationQueuesStore.put(queue));
     }
   });
 

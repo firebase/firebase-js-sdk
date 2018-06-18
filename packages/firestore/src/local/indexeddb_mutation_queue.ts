@@ -181,8 +181,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const range = IDBKeyRange.lowerBound([this.userId]);
     return mutationsStore(transaction)
       .iterate({ range, reverse: true }, (key, dbBatch, control) => {
-        const batch = this.serializer.fromDbMutationBatch(dbBatch);
-        maxPendingBatchId = batch.batchId;
+        if (dbBatch.userId === this.userId) {
+          const batch = this.serializer.fromDbMutationBatch(dbBatch);
+          maxPendingBatchId = batch.batchId;
+        }
         control.done();
       })
       .next(() => this.getMutationQueueMetadata(transaction))
