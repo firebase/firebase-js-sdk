@@ -718,7 +718,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private removeItem(key: string): void {
-    debug(LOG_TAG, 'REMOVE', this.localClientStorageKey);
+    debug(LOG_TAG, 'REMOVE', key);
     this.storage.removeItem(key);
   }
 
