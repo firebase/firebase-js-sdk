@@ -552,14 +552,22 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.localClientId
     );
     this.activeClients[this.localClientId] = new LocalClientState();
+
+    // Escape the special characters mentioned here:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+    const escapedPersistenceKey = persistenceKey.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
     this.clientStateKeyRe = new RegExp(
-      `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
+      `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d+)(?:_(.*))?$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)(?:_(.*))?$`
     );
     this.queryTargetKeyRe = new RegExp(
-      `^${QUERY_TARGET_KEY_PREFIX}_${persistenceKey}_(\\d+)$`
+      `^${QUERY_TARGET_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)$`
     );
 
     // Rather than adding the storage observer during start(), we add the
