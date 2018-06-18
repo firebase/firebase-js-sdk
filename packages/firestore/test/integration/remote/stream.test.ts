@@ -290,40 +290,39 @@ describe('Write Stream', () => {
       ds => {
         const writeStream = ds.newPersistentWriteStream();
         writeStream.start(streamListener);
-        return (
-          streamListener
-            .awaitCallback('open')
-            .then(() => {
-              // Simulate callback from GRPC with an unauthenticated error -- this should invalidate
-              // the token.
-              writeStream.handleStreamClose(
-                new FirestoreError(Code.UNAUTHENTICATED, '')
-              );
-              return streamListener.awaitCallback('close');
-            })
-            .then(() => {
-              writeStream.start(streamListener);
-              return streamListener.awaitCallback('open');
-            })
-            .then(() => {
-              // Simulate a different error -- token should not be invalidated this time.
-              writeStream.handleStreamClose(
-                new FirestoreError(Code.UNAVAILABLE, ''));
-              return streamListener.awaitCallback('close');
-            })
-            .then(() => {
-              writeStream.start(streamListener);
-              return streamListener.awaitCallback('open');
-            })
-            .then(() => {
-              expect(credentials.observedStates).to.have.ordered.members([
-                'getToken',
-                'invalidateToken',
-                'getToken',
-                'getToken'
-              ]);
-            })
-        );
+        return streamListener
+          .awaitCallback('open')
+          .then(() => {
+            // Simulate callback from GRPC with an unauthenticated error -- this should invalidate
+            // the token.
+            writeStream.handleStreamClose(
+              new FirestoreError(Code.UNAUTHENTICATED, '')
+            );
+            return streamListener.awaitCallback('close');
+          })
+          .then(() => {
+            writeStream.start(streamListener);
+            return streamListener.awaitCallback('open');
+          })
+          .then(() => {
+            // Simulate a different error -- token should not be invalidated this time.
+            writeStream.handleStreamClose(
+              new FirestoreError(Code.UNAVAILABLE, '')
+            );
+            return streamListener.awaitCallback('close');
+          })
+          .then(() => {
+            writeStream.start(streamListener);
+            return streamListener.awaitCallback('open');
+          })
+          .then(() => {
+            expect(credentials.observedStates).to.have.ordered.members([
+              'getToken',
+              'invalidateToken',
+              'getToken',
+              'getToken'
+            ]);
+          });
       },
       queue,
       credentials
