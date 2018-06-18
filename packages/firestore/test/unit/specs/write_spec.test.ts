@@ -448,7 +448,8 @@ describeSpec('Writes:', [], () => {
 
   specTest(
     'Held writes are released when there are no queries left.',
-    [],
+    ['no-lru'],
+    'This test expects a new target id for a new listen, but without eager gc, the same target id is reused',
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(
