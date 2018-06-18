@@ -594,7 +594,7 @@ export class WebStorageSharedClientState implements SharedClientState {
         continue;
       }
 
-      const storageItem = this.storage.getItem(
+      const storageItem = this.getItem(
         this.toLocalStorageClientStateKey(clientId)
       );
       if (storageItem) {
@@ -702,8 +702,24 @@ export class WebStorageSharedClientState implements SharedClientState {
       'WebStorageSharedClientState.shutdown() called when not started'
     );
     this.platform.window.removeEventListener('storage', this.storageListener);
-    this.storage.removeItem(this.localClientStorageKey);
+    this.removeItem(this.localClientStorageKey);
     this.started = false;
+  }
+
+  private getItem(key: string): string | null {
+    const value = this.storage.getItem(key);
+    debug(LOG_TAG, 'READ', key, value);
+    return value;
+  }
+
+  private setItem(key: string, value: string): void {
+    debug(LOG_TAG, 'SET', key, value);
+    this.storage.setItem(key, value);
+  }
+
+  private removeItem(key: string): void {
+    debug(LOG_TAG, 'REMOVE', key);
+    this.storage.removeItem(key);
   }
 
   private handleLocalStorageEvent(event: StorageEvent): void {
@@ -714,6 +730,8 @@ export class WebStorageSharedClientState implements SharedClientState {
         event.key !== this.localClientStorageKey,
         'Received LocalStorage notification for local change.'
       );
+
+      debug(LOG_TAG, 'EVENT', event.key, event.newValue);
 
       this.queue.enqueue(async () => {
         if (!this.started) {
@@ -766,9 +784,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   private persistClientState(): void {
     // TODO(multitab): Consider rate limiting/combining state updates for
     // clients that frequently update their client state.
-    debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localClientState.refreshLastUpdateTime();
-    this.storage.setItem(
+    this.setItem(
       this.localClientStorageKey,
       this.localClientState.toLocalStorageJSON()
     );
@@ -794,7 +811,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       mutationKey += `_${this.currentUser.uid}`;
     }
 
-    this.storage.setItem(mutationKey, mutationState.toLocalStorageJSON());
+    this.setItem(mutationKey, mutationState.toLocalStorageJSON());
   }
 
   private persistQueryTargetState(
@@ -813,7 +830,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.persistenceKey
     }_${targetId}`;
 
-    this.storage.setItem(targetKey, targetMetadata.toLocalStorageJSON());
+    this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
   /** Assembles the key for a client state in LocalStorage */
