@@ -98,7 +98,7 @@ export function specTest(
   commentOrBuilder: string | (() => SpecBuilder),
   maybeBuilder?: () => SpecBuilder
 ): void {
-  let comment: string;
+  let comment: string|undefined;
   let builder: () => SpecBuilder;
   if (typeof commentOrBuilder === 'string') {
     comment = commentOrBuilder;
