@@ -638,7 +638,7 @@ describe('Firebase Messaging > *SwController', () => {
       expect(event.notification.close.callCount).to.equal(1);
     });
 
-    ['link', 'click_action'].forEach(key => {
+    for (const key of ['link', 'click_action']) {
       describe(key, () => {
         let link: string;
         let waitUntilSpy: sinon.SinonSpy;
@@ -647,40 +647,33 @@ describe('Firebase Messaging > *SwController', () => {
         beforeEach(() => {
           link = '/test-link';
           waitUntilSpy = sandbox.spy();
-          if (key === 'link') {
-            // New API
-            event = {
-              notification: {
-                data: {
-                  FCM_MSG: {
-                    notification: {},
-                    fcmOptions: {
-                      link: link
-                    }
+
+          const FCM_MSG =
+            key === 'link'
+              ? // New API
+                {
+                  notification: {},
+                  fcmOptions: {
+                    link
                   }
-                },
-                close: sandbox.spy()
-              },
-              waitUntil: waitUntilSpy,
-              stopImmediatePropagation: sandbox.spy()
-            };
-          } else if (key === 'click_action') {
-            // Legacy API
-            event = {
-              notification: {
-                data: {
-                  FCM_MSG: {
-                    notification: {
-                      click_action: link
-                    }
+                }
+              : // Legacy API
+                {
+                  notification: {
+                    click_action: link
                   }
-                },
-                close: sandbox.spy()
+                };
+
+          event = {
+            notification: {
+              data: {
+                FCM_MSG
               },
-              waitUntil: waitUntilSpy,
-              stopImmediatePropagation: sandbox.spy()
-            };
-          }
+              close: sandbox.spy()
+            },
+            waitUntil: waitUntilSpy,
+            stopImmediatePropagation: sandbox.spy()
+          };
         });
 
         it('should open URL (third-party so no window client access)', async () => {
@@ -797,7 +790,7 @@ describe('Firebase Messaging > *SwController', () => {
           });
         });
       });
-    });
+    }
   });
 
   describe('getNotificationData_', () => {
