@@ -556,7 +556,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     // Escape the special characters mentioned here:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     const escapedPersistenceKey = persistenceKey.replace(
-        /[.*+?^${}()|[\]\\]/g,
+      /[.*+?^${}()|[\]\\]/g,
       '\\$&'
     );
 
