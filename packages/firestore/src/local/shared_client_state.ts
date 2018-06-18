@@ -554,11 +554,12 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.activeClients[this.localClientId] = new LocalClientState();
 
     // Escape the special characters mentioned here:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Special_characters_meaning_in_regular_expressions
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
     const escapedPersistenceKey = persistenceKey.replace(
-      /[\.\\\[\]\^\|\$\(\)\?\:\*\+\{\}\,\=\!]/g,
+        /[.*+?^${}()|[\]\\]/g,
       '\\$&'
     );
+
     this.clientStateKeyRe = new RegExp(
       `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
     );
