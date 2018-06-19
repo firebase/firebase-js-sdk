@@ -53,12 +53,6 @@ export class TestMutationQueue {
       .then(batches => batches.length);
   }
 
-  getNextBatchId(): Promise<BatchId> {
-    return this.persistence.runTransaction('getNextBatchId', true, txn => {
-      return this.queue.getNextBatchId(txn);
-    });
-  }
-
   getHighestAcknowledgedBatchId(): Promise<BatchId> {
     return this.persistence.runTransaction(
       'getHighestAcknowledgedBatchId',
