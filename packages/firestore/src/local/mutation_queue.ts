@@ -43,6 +43,17 @@ export interface MutationQueue extends GarbageSource {
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 
   /**
+   * Returns the next BatchId that will be assigned to a new mutation batch.
+   *
+   * Callers generally don't care about this value except to test that the
+   * mutation queue is properly maintaining the invariant that
+   * highestAcknowledgedBatchId is less than nextBatchId.
+   */
+  getNextBatchId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<BatchId>;
+
+  /**
    * Returns the highest batchId that has been acknowledged. If no batches have
    * been acknowledged or if there are no batches in the queue this can return
    * BATCHID_UNKNOWN.

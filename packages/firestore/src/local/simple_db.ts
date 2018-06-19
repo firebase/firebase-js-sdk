@@ -363,25 +363,6 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
   }
 
   /**
-   * Adds a new value into an Object Store that uses auto-generated keys and
-   * returns the new key value.
-   *
-   * @param value The object to write.
-   * @return The value of the auto-generated key.
-   */
-  add(value: ValueType): PersistencePromise<number> {
-    debug(LOG_TAG, 'ADD', this.store.name, value, value);
-    let request = this.store.put(value as ValueType);
-    return wrapRequest<number>(request).next(autoId => {
-      assert(
-        typeof autoId === 'number',
-        'add() used without an auto-generated key'
-      );
-      return autoId;
-    });
-  }
-
-  /**
    * Gets the object with the specified key from the specified store, or null
    * if no object exists with the specified key.
    *

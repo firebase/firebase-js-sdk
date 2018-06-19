@@ -18,9 +18,8 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   createOrUpgradeDb,
-  DbMutationBatch,
-  DbMutationBatchKey,
   DbMutationQueue,
+  DbMutationQueueKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
@@ -30,7 +29,6 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import * as api from '../../../src/protos/firestore_proto_api';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 
@@ -148,37 +146,33 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     );
   });
 
-  it.only('can upgrade from schema version 2 to 3', () => {
-    const testWrite = { delete: 'foo' };
-    const testMutations = [
-      {
-        userId: 'foo',
-        batchId: 0,
-        localWriteTime: 1337,
-        mutations: []
-      },
-      {
-        userId: 'foo',
-        batchId: 1,
-        localWriteTime: 1337,
-        mutations: [testWrite]
-      },
-      {
-        userId: 'foo',
-        batchId: 42,
-        localWriteTime: 1337,
-        mutations: [testWrite, testWrite]
-      }
-    ];
-
+  it('can upgrade from schema version 2 to 3', () => {
     return withDb(2, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
-        const store = txn.store(DbMutationBatch.store);
+      return sdb.runTransaction('readwrite', [DbMutationQueue.store], txn => {
+        const store = txn.store(DbMutationQueue.store);
         let p = PersistencePromise.resolve();
-        for (const testMutation of testMutations) {
-          p = p.next(() => store.put(testMutation));
-        }
+        p = p.next(() =>
+          store.put({
+            userId: 'a',
+            lastAcknowledgedBatchId: -1,
+            lastStreamToken: 'token'
+          })
+        );
+        p = p.next(() =>
+          store.put({
+            userId: 'b',
+            lastAcknowledgedBatchId: 0,
+            lastStreamToken: 'token'
+          })
+        );
+        p = p.next(() =>
+          store.put({
+            userId: 'c',
+            lastAcknowledgedBatchId: 1,
+            lastStreamToken: 'token'
+          })
+        );
         return p;
       });
     }).then(() =>
@@ -187,19 +181,15 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(getAllObjectStores(db)).to.have.members(V3_STORES);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readonly', [DbMutationBatch.store], txn => {
-          const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
+        return sdb.runTransaction('readonly', [DbMutationQueue.store], txn => {
+          const store = txn.store<DbMutationQueueKey, DbMutationQueue>(
             DbMutationQueue.store
           );
-          let p = PersistencePromise.resolve();
-          for (const testMutation of testMutations) {
-            p = p.next(() =>
-              store.get(testMutation.batchId).next(mutationBatch => {
-                expect(mutationBatch).to.deep.equal(exptectedBatch);
-              })
-            );
-          }
-          return p;
+          return store.loadAll().next(entries => {
+            expect(entries[0].nextBatchId).to.equal(1);
+            expect(entries[1].nextBatchId).to.equal(1);
+            expect(entries[2].nextBatchId).to.equal(2);
+          });
         });
       })
     );

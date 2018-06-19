@@ -21,7 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {SimpleDb, SimpleDbTransaction} from './simple_db';
+import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
@@ -33,7 +33,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * 3. Multi-Tab Support.
  */
 export const SCHEMA_VERSION = 3;
-
 
 /**
  * Performs database creation and schema upgrades.
@@ -54,20 +53,11 @@ export function createOrUpgradeDb(
   );
   let p = PersistencePromise.resolve();
 
-  // ... commetn
-  let existingMutations : DbMutationBatch[];
-
-
   if (fromVersion < 1 && toVersion >= 1) {
     createOwnerStore(db);
     createMutationQueue(db);
     createQueryCache(db);
     createRemoteDocumentCache(db);
-  } else {
-    p = loadAllMutationBatches(txn).next(mutations => {
-      existingMutations = mutations;
-    });
-    upgradeMutationBatchSchema(db);
   }
 
   if (fromVersion < 2 && toVersion >= 2) {
@@ -80,26 +70,10 @@ export function createOrUpgradeDb(
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
-      return insertMutationBatches(txn, existingMutations);
+      return populateNextMutationBatchId(txn);
     });
   }
   return p;
-}
-
-
-function loadAllMutationBatches(txn:SimpleDbTransaction) : PersistencePromise<DbMutationBatch[]> {
-    return txn.store<DbMutationBatchKey, DbMutationBatch>( DbMutationBatch.store).loadAll();
-}
-
-
-function insertMutationBatches(txn: SimpleDbTransaction, mutations: DbMutationBatch[]) : PersistencePromise<void> {
- let mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>( DbMutationBatch.store);
-
- let p = PersistencePromise.resolve();
- for (const mutation of mutations) {
-   p = p.next(() => mutationsStore.put(mutation));
- }
- return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -174,12 +148,39 @@ export class DbMutationQueue {
      * After sending this token, earlier tokens may not be used anymore so
      * only a single stream token is retained.
      */
-    public lastStreamToken: string
+    public lastStreamToken: string,
+    // PORTING NOTE: Multi-tab only.
+    /**
+     * An identifier with the ID of the next mutation batch to be added to this
+     * object store.
+     */
+    public nextBatchId: number
   ) {}
 }
 
-/** The 'mutations' store  is keyed by batch ID. */
-export type DbMutationBatchKey = BatchId;
+/** keys in the 'mutations' object store are [userId, batchId] pairs. */
+export type DbMutationBatchKey = [string, BatchId];
+
+/**
+ * Sets a mutation queue's `nextBatchId` to the successor of
+ * `lastAcknowledgedBatchId` for all existing entries.
+ */
+function populateNextMutationBatchId(
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const mutationQueuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
+    DbMutationQueue.store
+  );
+
+  let promises = mutationQueuesStore.loadAll().next(queues => {
+    for (const queue of queues) {
+      queue.nextBatchId = Math.max(queue.lastAcknowledgedBatchId + 1, 1);
+      promises = promises.next(() => mutationQueuesStore.put(queue));
+    }
+  });
+
+  return promises;
+}
 
 /**
  * An object to be stored in the 'mutations' store in IndexedDb.
@@ -193,25 +194,18 @@ export class DbMutationBatch {
   static store = 'mutations';
 
   /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = 'batchId';
-
-  /** The index name for lookup of mutations by user. */
-  static userMutationsIndex = 'userMutationsIndex';
-
-  /** The user mutations index is keyed by [userId, batchId] pairs. */
-  static userMutationsKeyPath = ['userId', 'batchId'];
-
-  /**
-   * The auto-generated identifier for this batch, allocated in a monotonically
-   * increasing manner.
-   */
-  public batchId?: BatchId;
+  static keyPath = ['userId', 'batchId'];
 
   constructor(
     /**
      * The normalized user ID to which this batch belongs.
      */
     public userId: string,
+    /**
+     * An identifier for this batch, allocated by the mutation queue in a
+     * monotonically increasing manner.
+     */
+    public batchId: BatchId,
     /**
      * The local write time of the batch, stored as milliseconds since the
      * epoch.
@@ -238,32 +232,12 @@ function createMutationQueue(db: IDBDatabase): void {
     keyPath: DbMutationQueue.keyPath
   });
 
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
-    autoIncrement: true
+  db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath as KeyPath
   });
-  mutationBatchesStore.createIndex(
-    DbMutationBatch.userMutationsIndex,
-    DbMutationBatch.userMutationsKeyPath,
-    { unique: true }
-  );
 
   db.createObjectStore(DbDocumentMutation.store);
 }
-
-function upgradeMutationBatchSchema(db: IDBDatabase): void {
-  db.deleteObjectStore(DbMutationBatch.store);
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
-    autoIncrement: true
-  });
-  mutationBatchesStore.createIndex(
-      DbMutationBatch.userMutationsIndex,
-      DbMutationBatch.userMutationsKeyPath,
-      { unique: true }
-  );
-}
-
 
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
