@@ -47,13 +47,33 @@
 #
 # Travis will run `npm test -- --saucelabs`.
 
+# Since yarn workspaces might hoist our packages, we have to fallback to
+# ../../node_modules when we want to execute a script.
+declare -a nodeModulesBasedirs=(
+  "./node_modules/.bin"
+  "../../node_modules/.bin"
+)
+
+# Tries to resolve the first argument as an npm executable, taking hoisting into
+# account. If case of a successful resolution, executes the binary, passing
+# the rest of given arguments to an invocation.
+function evalModule {
+  for basedir in "${nodeModulesBasedirs[@]}"
+  do
+    if [ -f "$basedir/$1" ]; then
+      eval "$basedir/$1 ${@:2}"
+      break
+    fi
+  done
+}
+
 cd "$(dirname $(dirname "$0"))"
 
 function killServer () {
   if [ "$seleniumStarted" = true ]; then
     echo "Stopping Selenium..."
-    ./node_modules/.bin/webdriver-manager shutdown
-    ./node_modules/.bin/webdriver-manager clean
+    evalModule webdriver-manager shutdown
+    evalModule webdriver-manager clean
     # Selenium is not getting shutdown. Send a kill signal.
     lsof -t -i :4444 | xargs kill
   fi
@@ -62,7 +82,7 @@ function killServer () {
 }
 
 # Start the local webserver.
-./node_modules/.bin/gulp serve &
+evalModule gulp "serve &"
 serverPid=$!
 echo "Local HTTP Server started with PID $serverPid."
 
@@ -75,17 +95,17 @@ if [[ $1 = "--saucelabs" ]]; then
   sleep 2
   echo "Using SauceLabs."
   # $2 contains the tunnelIdentifier argument if specified, otherwise is empty.
-  ./node_modules/.bin/protractor protractor.conf.js --saucelabs $2
+  evalModule protractor protractor.conf.js --saucelabs $2
 else
   echo "Using Chrome and Firefox."
-  ./node_modules/.bin/webdriver-manager clean
+  evalModule webdriver-manager clean
   # Updates Selenium Webdriver.
-  ./node_modules/.bin/webdriver-manager update
+  evalModule webdriver-manager update
   # Start Selenium Webdriver.
-  ./node_modules/.bin/webdriver-manager start &>/dev/null &
+  evalModule webdriver-manager start &>/dev/null &
   seleniumStarted=true
   echo "Selenium Server started."
   # Wait for servers to come up.
   sleep 10
-  ./node_modules/.bin/protractor protractor.conf.js
+  evalModule protractor protractor.conf.js
 fi

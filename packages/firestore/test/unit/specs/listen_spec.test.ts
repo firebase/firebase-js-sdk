@@ -24,19 +24,24 @@ import { RpcError } from './spec_rpc_error';
 
 describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
-  specTest('Contents of query are cleared when listen is removed.', [], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 1000, { key: 'a' });
-    return (
-      spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
-        .userUnlistens(query)
-        // should get no events.
-        .userListens(query)
-    );
-  });
+  specTest(
+    'Contents of query are cleared when listen is removed.',
+    ['no-lru'],
+    'Explicitly tests eager GC behavior',
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        spec()
+          .userListens(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
+          .userUnlistens(query)
+          // should get no events.
+          .userListens(query)
+      );
+    }
+  );
 
   specTest('Contents of query update when new data is received.', [], () => {
     const query = Query.atPath(path('collection'));
