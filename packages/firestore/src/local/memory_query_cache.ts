@@ -141,6 +141,9 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<QueryData | null> {
+    // Note: While this method performs an O(n) scan, `getQueryDataForTarget` is
+    // only called in multi-tab mode and this memory-based implementation should
+    // never get invoked.
     this.queries.forEach((query, queryData) => {
       if (queryData.targetId === targetId) {
         return PersistencePromise.resolve(queryData);

@@ -43,7 +43,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
   addEntries(
     transaction: PersistenceTransaction,
-    ...maybeDocuments: MaybeDocument[]
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
     for (const maybeDocument of maybeDocuments) {
       this.docs = this.docs.insert(maybeDocument.key, maybeDocument);

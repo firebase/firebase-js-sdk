@@ -138,7 +138,17 @@ export interface SharedClientState {
    * The implementation for this may require O(n) runtime, where 'n' is the size
    * of the result set.
    */
+  // Visibile for testing
   getAllActiveQueryTargets(): SortedSet<TargetId>;
+
+  /**
+   * Checks whether the provided target ID is currently being listened to by
+   * any of the active clients.
+   *
+   * The implementation may require O(n*log m) runtime, where 'n' is the number
+   * of clients and 'm' the number of targets.
+   */
+  isActiveQueryTarget(targetId: TargetId): boolean;
 
   /**
    * Starts the SharedClientState, reads existing client data and registers
@@ -477,6 +487,10 @@ export class LocalClientState implements ClientState {
   }
 
   addQueryTarget(targetId: TargetId): void {
+    assert(
+      !this.activeTargetIds.has(targetId),
+      `Target with ID '${targetId}' already active.`
+    );
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 
@@ -639,6 +653,17 @@ export class WebStorageSharedClientState implements SharedClientState {
     return activeTargets;
   }
 
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    for (const clientId in this.activeClients) {
+      if (this.activeClients.hasOwnProperty(clientId)) {
+        if (this.activeClients[clientId].activeTargetIds.has(targetId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   addLocalPendingMutation(batchId: BatchId): void {
     this.localClientState.addPendingMutation(batchId);
     this.persistMutationState(batchId, 'pending');
@@ -672,7 +697,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Lookup an existing query state if the target ID was already registered
     // by another tab
-    if (this.getAllActiveQueryTargets().has(targetId)) {
+    if (this.isActiveQueryTarget(targetId)) {
       const storageItem = this.storage.getItem(
         this.toLocalStorageQueryTargetMetadataKey(targetId)
       );
@@ -1044,6 +1069,10 @@ export class MemorySharedClientState implements SharedClientState {
 
   getAllActiveQueryTargets(): TargetIdSet {
     return this.localState.activeTargetIds;
+  }
+
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    return this.localState.activeTargetIds.has(targetId);
   }
 
   start(): Promise<void> {

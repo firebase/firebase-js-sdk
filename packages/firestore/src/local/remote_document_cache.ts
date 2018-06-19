@@ -52,7 +52,7 @@ export interface RemoteDocumentCache {
    */
   addEntries(
     transaction: PersistenceTransaction,
-    ...maybeDocuments: MaybeDocument[]
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void>;
 
   /** Removes the cached entry for the given key (no-op if no entry exists). */

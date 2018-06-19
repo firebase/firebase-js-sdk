@@ -166,7 +166,13 @@ export class LocalStore {
      * and the garbage collector is performing eager collection).
      */
     private garbageCollector: GarbageCollector,
-    /** Handles held write acknowledgment for multi-tab writes. */
+    /**
+     * SharedClientState to notify of acknowledged writes.
+     *
+     * TODO(mrschmidt): When we get rid of held write acks, the SyncEngine can
+     * notify SharedClientState of all write acknowledgements and LocalStore
+     * should no longer need access to SharedClientState.
+     */
     private sharedClientState: SharedClientState
   ) {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
@@ -743,21 +749,12 @@ export class LocalStore {
   }
 
   /**
-   * Locally unpin all the documents associated with the given query, but keep
-   * persisted query data.
+   * Locally unpin all the documents associated with the given target.
    */
   // PORTING NOTE: Multi-tab only.
-  removeQuery(query: Query): Promise<void> {
-    return this.persistence.runTransaction('Remove query', false, txn => {
-      return this.queryCache.getQueryData(txn, query).next(queryData => {
-        assert(
-          queryData != null,
-          'Tried to release nonexistent query: ' + query
-        );
-        this.localViewReferences.removeReferencesForId(queryData!.targetId);
-        delete this.targetIds[queryData!.targetId];
-      });
-    });
+  removeLocalQueryData(targetId: TargetId) : void {
+    this.localViewReferences.removeReferencesForId(targetId);
+    delete this.targetIds[targetId];
   }
 
   /**
