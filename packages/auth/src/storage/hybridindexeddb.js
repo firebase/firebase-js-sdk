@@ -18,6 +18,7 @@ goog.provide('fireauth.storage.HybridIndexedDB');
 
 goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.Storage');
+goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.array');
 
@@ -56,16 +57,24 @@ fireauth.storage.HybridIndexedDB = function(fallbackStorage) {
     // Initial check shows indexedDB is available. This is not enough.
     // Try to write/read from indexedDB. If it fails, switch to fallback.
     if (fireauth.storage.IndexedDB.isAvailable()) {
+      // Test write/read using a random key. This is important for the following
+      // reasons:
+      // 1. Double inclusion of the firebase-auth.js library.
+      // 2. Multiple windows opened at the same time.
+      // The above may cause collision if multiple instances try to
+      // write/read/delete from the same entry.
+      var randomId = fireauth.util.generateEventId();
+      var randomKey = fireauth.storage.HybridIndexedDB.KEY_ + randomId;
       storage = fireauth.storage.IndexedDB.getFireauthManager();
-      return storage.set(fireauth.storage.HybridIndexedDB.KEY_, '!')
+      return storage.set(randomKey, randomId)
           .then(function() {
-            return storage.get(fireauth.storage.HybridIndexedDB.KEY_);
+            return storage.get(randomKey);
           })
           .then(function(value) {
-            if (value !== '!') {
+            if (value !== randomId) {
               throw new Error('indexedDB not supported!');
             }
-            return storage.remove(fireauth.storage.HybridIndexedDB.KEY_);
+            return storage.remove(randomKey);
           })
           .then(function() {
             return storage;

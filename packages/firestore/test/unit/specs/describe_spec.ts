@@ -30,12 +30,14 @@ const MULTI_CLIENT_TAG = 'multi-client';
 const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
+const NO_LRU = 'no-lru';
 const KNOWN_TAGS = [
   EXCLUSIVE_TAG,
   MULTI_CLIENT_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
-  NO_IOS_TAG
+  NO_IOS_TAG,
+  NO_LRU
 ];
 
 const WEB_SPEC_TEST_FILTER = (tags: string[], persistenceEnabled: boolean) => {
@@ -50,6 +52,7 @@ interface SpecOutputFormat {
   describeName: string;
   itName: string;
   tags: string[];
+  comment?: string;
   steps: SpecStep[];
 }
 
@@ -77,6 +80,9 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 function getTestRunner(tags, persistenceEnabled): Function {
   if (!WEB_SPEC_TEST_FILTER(tags, persistenceEnabled)) {
     return it.skip;
+  } else if (persistenceEnabled && tags.indexOf('no-lru') !== -1) {
+    // spec should have a comment explaining why it is being skipped.
+    return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
     return it.only;
   } else {
@@ -97,7 +103,28 @@ export function specTest(
   name: string,
   tags: string[],
   builder: () => SpecBuilder
+): void;
+export function specTest(
+  name: string,
+  tags: string[],
+  comment: string,
+  builder: () => SpecBuilder
+): void;
+export function specTest(
+  name: string,
+  tags: string[],
+  commentOrBuilder: string | (() => SpecBuilder),
+  maybeBuilder?: () => SpecBuilder
 ): void {
+  let comment: string | undefined;
+  let builder: () => SpecBuilder;
+  if (typeof commentOrBuilder === 'string') {
+    comment = commentOrBuilder;
+    builder = maybeBuilder;
+  } else {
+    builder = commentOrBuilder;
+  }
+  assert(!!builder, 'Missing spec builder');
   // Union in the tags for the describeSpec().
   tags = tags.concat(describeTags);
   for (const tag of tags) {
@@ -131,6 +158,7 @@ export function specTest(
     describeName,
     itName: name,
     tags,
+    comment,
     config: specJSON.config,
     steps: specJSON.steps
   };
