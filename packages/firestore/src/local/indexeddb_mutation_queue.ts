@@ -193,7 +193,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    const range = this.rangeForSingleBatchId(batchId);
     return mutationsStore(transaction)
       .get(batchId)
       .next(dbBatch => {

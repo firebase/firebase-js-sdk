@@ -18,7 +18,6 @@ import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import {
