@@ -1370,7 +1370,7 @@ class TestPlatform implements Platform {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  static TEST_DB_NAME = 'specs';
+  static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
 
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
