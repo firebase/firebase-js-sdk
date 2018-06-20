@@ -1,4 +1,4 @@
-# Unreleased
+# Unrelease
 
 # 0.5.0
 - [changed] Merged the `includeQueryMetadataChanges` and
