@@ -16,6 +16,10 @@ describe('FirebaseApp Tests', () => {
     expect(app.options).to.not.equal(options);
   });
 
+  it('Should properly pass along `name` param if passed', () => {
+    const app = new FirebaseApp({}, 'Midoriya');
+    expect(app.name).to.equal('Midoriya');
+  })
   it('Should have a default value for `name` param', () => {
     const app = new FirebaseApp({});
     expect(app.name).to.equal('[DEFAULT]');
