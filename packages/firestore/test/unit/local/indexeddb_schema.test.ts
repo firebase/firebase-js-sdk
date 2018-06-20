@@ -148,7 +148,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     );
   });
 
-  it.only('can upgrade from schema version 2 to 3', () => {
+  it('can upgrade from schema version 2 to 3', () => {
     const testWrite = { delete: 'foo' };
     const testMutations = [
       {
@@ -187,18 +187,25 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(getAllObjectStores(db)).to.have.members(V3_STORES);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readonly', [DbMutationBatch.store], txn => {
+        return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
           const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-            DbMutationQueue.store
+            DbMutationBatch.store
           );
           let p = PersistencePromise.resolve();
           for (const testMutation of testMutations) {
             p = p.next(() =>
               store.get(testMutation.batchId).next(mutationBatch => {
-                expect(mutationBatch).to.deep.equal(exptectedBatch);
+                expect(mutationBatch).to.deep.equal(testMutation);
               })
             );
           }
+          p = p.next(() => {
+            store
+              .add({ userId: 'foo', localWriteTimeMs: 1000, mutations: [] })
+              .next(batchId => {
+                expect(batchId).to.equal(43);
+              });
+          });
           return p;
         });
       })

@@ -163,7 +163,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .add(dbBatch)
       .next(batchId => {
         batch.batchId = batchId;
-
         this.documentKeysByBatchId[batchId] = batch.keys();
 
         const promises: Array<PersistencePromise<void>> = [];
@@ -304,7 +303,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
           return;
         }
         const mutationKey = this.rangeForSingleBatchId(batchId);
-
         // Look up the mutation batch in the store.
         return mutationsStore(transaction)
           .loadAll(DbMutationBatch.userMutationsIndex, mutationKey)
@@ -383,15 +381,15 @@ export class IndexedDbMutationQueue implements MutationQueue {
           promises.push(
             mutationsStore(transaction)
               .loadAll(DbMutationBatch.userMutationsIndex, mutationKey)
-              .next(([dbBatch]) => {
-                if (!dbBatch) {
+              .next(([mutation]) => {
+                if (!mutation) {
                   fail(
                     'Dangling document-mutation reference found, ' +
                       'which points to ' +
                       mutationKey
                   );
                 }
-                results.push(this.serializer.fromDbMutationBatch(dbBatch!));
+                results.push(this.serializer.fromDbMutationBatch(mutation!));
               })
           );
         });

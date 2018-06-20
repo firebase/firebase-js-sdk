@@ -21,7 +21,7 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import {SimpleDb, SimpleDbTransaction} from './simple_db';
+import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 
@@ -33,7 +33,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * 3. Multi-Tab Support.
  */
 export const SCHEMA_VERSION = 3;
-
 
 /**
  * Performs database creation and schema upgrades.
@@ -54,52 +53,36 @@ export function createOrUpgradeDb(
   );
   let p = PersistencePromise.resolve();
 
-  // ... commetn
-  let existingMutations : DbMutationBatch[];
-
-
   if (fromVersion < 1 && toVersion >= 1) {
     createOwnerStore(db);
     createMutationQueue(db);
     createQueryCache(db);
     createRemoteDocumentCache(db);
-  } else {
-    p = loadAllMutationBatches(txn).next(mutations => {
-      existingMutations = mutations;
-    });
-    upgradeMutationBatchSchema(db);
   }
 
   if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobalExists(txn).next(targetGlobal =>
-      saveTargetCount(txn, targetGlobal)
-    );
+    p = p
+      .next(() => ensureTargetGlobalExists(txn))
+      .next(targetGlobal => saveTargetCount(txn, targetGlobal));
+  }
+
+  if (fromVersion > 0 && fromVersion < 3 && toVersion >= 3) {
+    // Schema version 3 uses auto-generated keys to generate globally unique
+    // mutation batch IDs (this was previously ensured internally by the
+    // client). To migrate to the new schema, we have to read back all mutations
+    // batches and write them back out. We don't rewrite the batch IDs to
+    // guarantee consistency with the other stores used by the mutation queue.
+    // Any further mutation batch IDs will be auto-generated.
+    p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
   }
 
   if (fromVersion < 3 && toVersion >= 3) {
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
-      return insertMutationBatches(txn, existingMutations);
     });
   }
   return p;
-}
-
-
-function loadAllMutationBatches(txn:SimpleDbTransaction) : PersistencePromise<DbMutationBatch[]> {
-    return txn.store<DbMutationBatchKey, DbMutationBatch>( DbMutationBatch.store).loadAll();
-}
-
-
-function insertMutationBatches(txn: SimpleDbTransaction, mutations: DbMutationBatch[]) : PersistencePromise<void> {
- let mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>( DbMutationBatch.store);
-
- let p = PersistencePromise.resolve();
- for (const mutation of mutations) {
-   p = p.next(() => mutationsStore.put(mutation));
- }
- return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -251,19 +234,40 @@ function createMutationQueue(db: IDBDatabase): void {
   db.createObjectStore(DbDocumentMutation.store);
 }
 
-function upgradeMutationBatchSchema(db: IDBDatabase): void {
-  db.deleteObjectStore(DbMutationBatch.store);
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
-    autoIncrement: true
-  });
-  mutationBatchesStore.createIndex(
+/**
+ * Upgrade function to migrate the 'mutations' store from V1 to V3. Loads
+ * and rewrites all data.
+ */
+function upgradeMutationBatchSchemaAndMigrateData(
+  db: IDBDatabase,
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const v1MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  return v1MutationsStore.loadAll().next(existingMutations => {
+    db.deleteObjectStore(DbMutationBatch.store);
+
+    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
+      keyPath: DbMutationBatch.keyPath,
+      autoIncrement: true
+    });
+    mutationsStore.createIndex(
       DbMutationBatch.userMutationsIndex,
       DbMutationBatch.userMutationsKeyPath,
       { unique: true }
-  );
-}
+    );
 
+    let v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+      DbMutationBatch.store
+    );
+    let p = PersistencePromise.resolve();
+    for (const mutation of existingMutations) {
+      p = p.next(() => v3MutationsStore.put(mutation));
+    }
+    return p;
+  });
+}
 
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
