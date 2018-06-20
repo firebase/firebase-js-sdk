@@ -15,9 +15,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  immediateSuccessor
-} from '../../../src/util/misc';
+import { immediateSuccessor } from '../../../src/util/misc';
 
 describe('immediateSuccessor', () => {
   it('generates the correct immediate successors', () => {
