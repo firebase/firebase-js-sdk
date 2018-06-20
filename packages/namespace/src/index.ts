@@ -14,24 +14,8 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseApp';
-import Storage from 'dom-storage';
-import { XMLHttpRequest } from 'xmlhttprequest';
+namespace firebase {
 
-const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
-
-_firebase.INTERNAL.extendNamespace({
-  INTERNAL: {
-    node: {
-      localStorage: new Storage(null, { strict: true }),
-      sessionStorage: new Storage(null, { strict: true }),
-      XMLHttpRequest
-    }
-  }
-});
-
-export const firebase = _firebase as FirebaseNamespace;
+}
 
 export default firebase;

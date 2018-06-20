@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import firebase from '@firebase/app';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory } from '@firebase/app-types/private';
-import { Service } from './src/api/service';
-import 'isomorphic-fetch';
 
-/**
- * Type constant for Firebase Functions.
- */
-const FUNCTIONS_TYPE = 'functions';
-
-function factory(app: FirebaseApp, unused: any, region?: string): Service {
-  return new Service(app, region);
-}
-
-export function registerFunctions(instance) {
-  let namespaceExports = {
-    // no-inline
-    Functions: Service
-  };
-  instance.INTERNAL.registerService(
-    FUNCTIONS_TYPE,
-    factory as FirebaseServiceFactory,
-    namespaceExports,
-    // We don't need to wait on any AppHooks.
-    undefined,
-    // Allow multiple functions instances per app.
-    true
-  );
-}
-
-registerFunctions(firebase);
+console.log('@firebase/functions Node');

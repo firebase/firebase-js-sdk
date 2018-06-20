@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc.
+ * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,4 +14,22 @@
  * limitations under the License.
  */
 
-console.log('@firebase/firestore Browser');
+const karma = require('karma');
+const path = require('path');
+const karmaBase = require('../../config/karma.base');
+
+const files = [`test/**/*`];
+
+module.exports = function(config) {
+  const karmaConfig = Object.assign({}, karmaBase, {
+    // files to load into karma
+    files: files,
+    // frameworks to use
+    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
+    frameworks: ['mocha']
+  });
+
+  config.set(karmaConfig);
+};
+
+module.exports.files = files;

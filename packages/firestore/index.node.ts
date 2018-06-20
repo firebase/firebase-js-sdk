@@ -1,5 +1,5 @@
 /**
- * Copyright 2017 Google Inc.
+ * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,4 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import './src/platform_node/node_init';
-import { Firestore } from './src/api/database';
-import { configureForFirebase } from './src/platform/config';
-import * as types from '@firebase/firestore-types';
-
-export function registerFirestore(instance) {
-  configureForFirebase(instance);
-}
-
-registerFirestore(firebase);
-
-declare module '@firebase/app-types' {
-  interface FirebaseNamespace {
-    firestore?: {
-      (app?: FirebaseApp): types.FirebaseFirestore;
-      Blob: typeof types.Blob;
-      CollectionReference: typeof types.CollectionReference;
-      DocumentReference: typeof types.DocumentReference;
-      DocumentSnapshot: typeof types.DocumentSnapshot;
-      FieldPath: typeof types.FieldPath;
-      FieldValue: typeof types.FieldValue;
-      Firestore: typeof types.FirebaseFirestore;
-      GeoPoint: typeof types.GeoPoint;
-      Query: typeof types.Query;
-      QuerySnapshot: typeof types.QuerySnapshot;
-      Timestamp: typeof types.Timestamp;
-      Transaction: typeof types.Transaction;
-      WriteBatch: typeof types.WriteBatch;
-      setLogLevel: typeof types.setLogLevel;
-    };
-  }
-  interface FirebaseApp {
-    firestore?(): types.FirebaseFirestore;
-  }
-}
+console.log('@firebase/firestore Node');

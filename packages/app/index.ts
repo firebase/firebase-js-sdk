@@ -14,9 +14,4 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
-import { createFirebaseNamespace } from './src/firebaseApp';
-
-export const firebase = createFirebaseNamespace();
-
-export default firebase;
+export { FirebaseApp } from './src/FirebaseApp';
