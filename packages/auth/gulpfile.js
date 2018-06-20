@@ -50,9 +50,11 @@ const wrap = through(function(file) {
         Buffer.from(WRAPPER_SUFFIX)
       ])
     });
+  
+  const PREFIX = '(function() {';
 
-  this.emit('data', makeFile(CJS_WRAPPER_PREFIX, 'auth.js'));
-  this.emit('data', makeFile(EMS_WRAPPER_PREFIX, 'auth.esm.js'));
+  this.emit('data', makeFile(PREFIX, 'auth.js'));
+  this.emit('data', makeFile(PREFIX, 'auth.esm.js'));
 });
 
 // The path to Closure Compiler.

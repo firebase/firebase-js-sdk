@@ -564,88 +564,88 @@ fireauth.exportlib.exportPrototypeMethods(
 
 
 (function() {
-  if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
-      !firebase.INTERNAL.registerService) {
-    throw new Error('Cannot find the firebase namespace; be sure to include ' +
-        'firebase-app.js before this library.');
-  } else {
-    /** @type {!firebase.ServiceFactory} */
-    var factory = function(app, extendApp) {
-      var auth = new fireauth.Auth(app);
-      extendApp({
-        'INTERNAL': {
-          // Extend app.INTERNAL.getUid.
-          'getUid': goog.bind(auth.getUid, auth),
-          'getToken': goog.bind(auth.getIdTokenInternal, auth),
-          'addAuthTokenListener':
-              goog.bind(auth.addAuthTokenListenerInternal, auth),
-          'removeAuthTokenListener':
-              goog.bind(auth.removeAuthTokenListenerInternal, auth)
-        }
-      });
-      return auth;
-    };
+  // if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
+  //     !firebase.INTERNAL.registerService) {
+  //   throw new Error('Cannot find the firebase namespace; be sure to include ' +
+  //       'firebase-app.js before this library.');
+  // } else {
+  //   /** @type {!firebase.ServiceFactory} */
+  //   var factory = function(app, extendApp) {
+  //     var auth = new fireauth.Auth(app);
+  //     extendApp({
+  //       'INTERNAL': {
+  //          // Extend app.INTERNAL.getUid.
+  //         'getUid': goog.bind(auth.getUid, auth),
+  //         'getToken': goog.bind(auth.getIdTokenInternal, auth),
+  //         'addAuthTokenListener':
+  //             goog.bind(auth.addAuthTokenListenerInternal, auth),
+  //         'removeAuthTokenListener':
+  //             goog.bind(auth.removeAuthTokenListenerInternal, auth)
+  //       }
+  //     });
+  //     return auth;
+  //   };
 
-    var namespace = {
-      'Auth': fireauth.Auth,
-      'Error': fireauth.AuthError
-    };
-    fireauth.exportlib.exportFunction(namespace,
-        'EmailAuthProvider', fireauth.EmailAuthProvider, []);
-    fireauth.exportlib.exportFunction(namespace,
-        'FacebookAuthProvider', fireauth.FacebookAuthProvider, []);
-    fireauth.exportlib.exportFunction(namespace,
-        'GithubAuthProvider', fireauth.GithubAuthProvider, []);
-    fireauth.exportlib.exportFunction(namespace,
-        'GoogleAuthProvider', fireauth.GoogleAuthProvider, []);
-    fireauth.exportlib.exportFunction(namespace,
-        'TwitterAuthProvider', fireauth.TwitterAuthProvider, []);
-    fireauth.exportlib.exportFunction(namespace,
-        'OAuthProvider', fireauth.OAuthProvider, [
-          fireauth.args.string('providerId')
-        ]);
-    fireauth.exportlib.exportFunction(namespace,
-        'PhoneAuthProvider', fireauth.PhoneAuthProvider, [
-          fireauth.args.firebaseAuth(true)
-        ]);
-    fireauth.exportlib.exportFunction(namespace,
-        'RecaptchaVerifier', fireauth.RecaptchaVerifier, [
-          fireauth.args.or(
-              fireauth.args.string(),
-              fireauth.args.element(),
-              'recaptchaContainer'),
-          fireauth.args.object('recaptchaParameters', true),
-          fireauth.args.firebaseApp(true)
-        ]);
+  //   var namespace = {
+  //     'Auth': fireauth.Auth,
+  //     'Error': fireauth.AuthError
+  //   };
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'EmailAuthProvider', fireauth.EmailAuthProvider, []);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'FacebookAuthProvider', fireauth.FacebookAuthProvider, []);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'GithubAuthProvider', fireauth.GithubAuthProvider, []);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'GoogleAuthProvider', fireauth.GoogleAuthProvider, []);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'TwitterAuthProvider', fireauth.TwitterAuthProvider, []);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'OAuthProvider', fireauth.OAuthProvider, [
+  //         fireauth.args.string('providerId')
+  //       ]);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'PhoneAuthProvider', fireauth.PhoneAuthProvider, [
+  //         fireauth.args.firebaseAuth(true)
+  //       ]);
+  //   fireauth.exportlib.exportFunction(namespace,
+  //       'RecaptchaVerifier', fireauth.RecaptchaVerifier, [
+  //         fireauth.args.or(
+  //             fireauth.args.string(),
+  //             fireauth.args.element(),
+  //             'recaptchaContainer'),
+  //         fireauth.args.object('recaptchaParameters', true),
+  //         fireauth.args.firebaseApp(true)
+  //       ]);
 
-    // Register Auth service with firebase.App.
-    firebase.INTERNAL.registerService(
-        fireauth.exportlib.AUTH_TYPE,
-        factory,
-        namespace,
-        // Initialize Auth when an App is created, so that tokens and Auth state
-        // listeners are available.
-        function (event, app) {
-          if (event === 'create') {
-            try {
-              app[fireauth.exportlib.AUTH_TYPE]();
-            } catch (e) {
-              // This is a silent operation in the background. If the auth
-              // initialization fails, it should not cause a fatal error.
-              // Instead when the developer tries to initialize again manually,
-              // the error will be thrown.
-              // One specific use case here is the initialization for the nodejs
-              // client when no API key is provided. This is commonly used
-              // for unauthenticated database access.
-            }
-          }
-        }
-        );
+  //   // Register Auth service with firebase.App.
+  //   firebase.INTERNAL.registerService(
+  //       fireauth.exportlib.AUTH_TYPE,
+  //       factory,
+  //       namespace,
+  //       // Initialize Auth when an App is created, so that tokens and Auth state
+  //       // listeners are available.
+  //       function (event, app) {
+  //         if (event === 'create') {
+  //           try {
+  //             app[fireauth.exportlib.AUTH_TYPE]();
+  //           } catch (e) {
+  //             // This is a silent operation in the background. If the auth
+  //             // initialization fails, it should not cause a fatal error.
+  //             // Instead when the developer tries to initialize again manually,
+  //             // the error will be thrown.
+  //             // One specific use case here is the initialization for the nodejs
+  //             // client when no API key is provided. This is commonly used
+  //             // for unauthenticated database access.
+  //           }
+  //         }
+  //       }
+  //       );
 
 
-    // Expose User as firebase.User.
-    firebase.INTERNAL.extendNamespace({
-      'User': fireauth.AuthUser
-    });
-  }
+  //   // Expose User as firebase.User.
+  //   firebase.INTERNAL.extendNamespace({
+  //     'User': fireauth.AuthUser
+  //   });
+  // }
 })();
