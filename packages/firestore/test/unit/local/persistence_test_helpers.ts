@@ -130,6 +130,7 @@ export async function populateWebStorage(
   secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
     existingClientId
   ]);
+  secondaryClientState.onlineStateHandler = () => {};
   await secondaryClientState.start();
 
   for (const batchId of existingMutationBatchIds) {
