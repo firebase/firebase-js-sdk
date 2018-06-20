@@ -13,10 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { FirebaseNamespace } from '@firebase/app-types';
-import { createFirebaseNamespace } from './src/firebaseApp';
-
-export const firebase = createFirebaseNamespace();
-
-export default firebase;
