@@ -68,52 +68,6 @@ describe('IndexedDbMutationQueue', () => {
   });
 
   genericMutationQueueTests();
-
-  describe('loadNextBatchIdFromDb', () => {
-    function loadNextBatchId(): Promise<BatchId> {
-      return persistence.runTransaction('loadNextBatchIdFromDb', true, txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn).next(
-          batchId => {
-            return batchId;
-          }
-        );
-      });
-    }
-
-    function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
-      return persistence.runTransaction('addDummyBatch', true, transaction => {
-        const txn = transaction as SimpleDbTransaction;
-        const store = txn.store<[string, number], DbMutationBatch>(
-          DbMutationBatch.store
-        );
-        const localWriteTime = Date.now();
-        return store.put(
-          new DbMutationBatch(userId, batchId, localWriteTime, [])
-        );
-      });
-    }
-
-    it('returns one when no mutations.', async () => {
-      const batchId = await loadNextBatchId();
-      expect(batchId).to.equal(1);
-    });
-
-    it('finds next id after single mutation batch', async () => {
-      await addDummyBatch('foo', 6);
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-
-    it('finds max across users', async () => {
-      await addDummyBatch('fo', 5);
-      await addDummyBatch('food', 3);
-
-      await addDummyBatch('foo', 6);
-      await addDummyBatch('foo', 2);
-      await addDummyBatch('foo', 1);
-
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-  });
 });
 
 /**
@@ -237,19 +191,10 @@ function genericMutationQueueTests(): void {
     await mutationQueue.start();
 
     // PORTING NOTE: On the Web, the mutation queue does not reset the next
-    // batchID during restart and mutations will never collide.
-
-    // Verify that on restart with an empty queue, nextBatchID doesn't fall to a
-    // lower value.
-    expect(await mutationQueue.getNextBatchId()).to.equal(3);
-
-    // As a result highestAcknowledgedBatchID must also reset lower.
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    const newBatch = await addMutationBatch();
-    expect(newBatch.batchId).to.equal(3);
+    // batchID after all mutations are removed so adding another mutation will
+    // never cause a collision.
+    const batch3 = await addMutationBatch();
+    expect(batch3.batchId).to.equal(3);
 
     // Restart the queue with one unacknowledged batch in it.
     mutationQueue = new TestMutationQueue(
@@ -258,9 +203,9 @@ function genericMutationQueueTests(): void {
     );
     await mutationQueue.start();
 
-    expect(await mutationQueue.getNextBatchId()).to.equal(newBatch.batchId + 1);
+    expect(batch3.batchId).to.equal(3);
 
-    // highestAcknowledgedBatchID must still be BATCHID_UNKNOWN.
+    // highestAcknowledgedBatchID must still be batch2.
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
       batch2.batchId
     );

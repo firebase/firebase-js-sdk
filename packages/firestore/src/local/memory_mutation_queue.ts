@@ -69,12 +69,6 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getNextBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.nextBatchId);
-  }
-
   getHighestAcknowledgedBatchId(
     transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
