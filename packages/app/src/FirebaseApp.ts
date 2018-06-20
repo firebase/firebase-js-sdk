@@ -1,6 +1,12 @@
 import { FirebaseApp as IFirebaseApp, FirebaseOptions } from "@firebase/app-types";
+import { ReplaySubject } from 'rxjs'; 
 
 const DEFAULT = '[DEFAULT]';
+
+export interface AppEvent {
+  type: string,
+  payload?: any
+}
 
 export class FirebaseApp implements IFirebaseApp {
   private _name: string;
@@ -8,9 +14,13 @@ export class FirebaseApp implements IFirebaseApp {
   private _automaticDataCollectionEnabled: boolean = false;
   private _isDestroyed: boolean = false;
 
+  public event$: ReplaySubject<AppEvent> = new ReplaySubject();
+
   constructor(options: FirebaseOptions, name: string = DEFAULT) {
     this._options = Object.assign({}, options);
     this._name = name;
+
+    this.event$.next({ type: "created" });
   }
 
   public get name() {
@@ -35,7 +45,11 @@ export class FirebaseApp implements IFirebaseApp {
 
   public async delete() {
     this._checkDestroyed();
+
     this._isDestroyed = true;
+    
+    this.event$.next({ type: "deleted" });
+    this.event$.complete();
   }
 
   private _checkDestroyed() {
