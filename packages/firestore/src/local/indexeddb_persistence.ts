@@ -201,20 +201,17 @@ export class IndexedDbPersistence implements Persistence {
       const metadataStore = clientMetadataStore(txn);
       return metadataStore
         .put(new DbClientMetadata(this.clientId, Date.now(), this.inForeground))
-        .next(() =>
-          this.canActAsPrimary(txn).next(canActAsPrimary => {
-            if (canActAsPrimary !== this.isPrimary) {
-              this.isPrimary = canActAsPrimary;
-              this.queue.enqueue(() =>
-                this.primaryStateListener(this.isPrimary)
-              );
-            }
+        .next(() => this.canActAsPrimary(txn))
+        .next(canActAsPrimary => {
+          if (canActAsPrimary !== this.isPrimary) {
+            this.isPrimary = canActAsPrimary;
+            this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
+          }
 
-            if (this.isPrimary) {
-              return this.acquireOrExtendPrimaryLease(txn);
-            }
-          })
-        );
+          if (this.isPrimary) {
+            return this.acquireOrExtendPrimaryLease(txn);
+          }
+        });
     });
   }
 
@@ -309,6 +306,9 @@ export class IndexedDbPersistence implements Persistence {
     if (!this.started) {
       return Promise.resolve();
     }
+    // TODO(multitab): Similar to the zombied client ID, we should write an
+    // entry to Local Storage first to indicate that we are no longer alive.
+    // This will help us when the shutdown handler doesn't run to completion.
     this.started = false;
     this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
