@@ -25,6 +25,28 @@ describe('FirebaseApp Tests', () => {
     expect(app.name).to.equal('[DEFAULT]');
   });
 
+  it('Should throw if an invalid value for `name` is passed', () => {
+    // Casting the 3 for testing purposes
+    expect(() => {
+      new FirebaseApp({}, 3 as any);
+    }, 'Allowed a number as a valid name').to.throw();
+    expect(() => {
+      new FirebaseApp({}, null as any);
+    }, 'Allowed null as a valid name').to.throw();
+    expect(() => {
+      new FirebaseApp({}, [] as any);
+    }, 'Allowed an array as a valid name').to.throw();
+    expect(() => {
+      new FirebaseApp({}, {} as any);
+    }, 'Allowed an object as a valid name').to.throw();
+    expect(() => {
+      new FirebaseApp({}, true as any);
+    }, 'Allowed a boolean as a valid name').to.throw();
+    expect(() => {
+      new FirebaseApp({}, '');
+    }, 'Allowed an empty string as a valid name').to.throw();
+  });
+
   it('Should throw on property access after delete', async () => {
     const app = new FirebaseApp({});
 

@@ -17,8 +17,13 @@ export class FirebaseApp implements IFirebaseApp {
   public event$: ReplaySubject<AppEvent> = new ReplaySubject();
 
   constructor(options: FirebaseOptions, name: string = DEFAULT) {
-    this._options = Object.assign({}, options);
+    if (typeof name !== 'string') {
+      throw new Error('bad-app-name');
+    }
     this._name = name;
+
+    // Copy options object
+    this._options = Object.assign({}, options);
 
     this.event$.next({ type: "created" });
   }
