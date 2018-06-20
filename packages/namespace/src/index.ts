@@ -14,4 +14,8 @@
  * limitations under the License.
  */
 
-export { FirebaseApp } from './src/FirebaseApp';
+namespace firebase {
+
+}
+
+export default firebase;

@@ -1,11 +1,14 @@
-import { FirebaseApp as IFirebaseApp, FirebaseOptions } from "@firebase/app-types";
-import { ReplaySubject } from 'rxjs'; 
+import {
+  FirebaseApp as IFirebaseApp,
+  FirebaseOptions
+} from '@firebase/app-types';
+import { ReplaySubject } from 'rxjs';
 
 const DEFAULT = '[DEFAULT]';
 
 export interface AppEvent {
-  type: string,
-  payload?: any
+  type: string;
+  payload?: any;
 }
 
 export class FirebaseApp implements IFirebaseApp {
@@ -25,7 +28,7 @@ export class FirebaseApp implements IFirebaseApp {
     // Copy options object
     this._options = Object.assign({}, options);
 
-    this.event$.next({ type: "created" });
+    this.event$.next({ type: 'created' });
   }
 
   public get name() {
@@ -52,8 +55,8 @@ export class FirebaseApp implements IFirebaseApp {
     this._checkDestroyed();
 
     this._isDestroyed = true;
-    
-    this.event$.next({ type: "deleted" });
+
+    this.event$.next({ type: 'deleted' });
     this.event$.complete();
   }
 

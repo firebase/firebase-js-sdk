@@ -1,6 +1,6 @@
-import { FirebaseApp } from "../src/FirebaseApp";
-import { expect, use } from "chai";
-import chaiAsPromised = require("chai-as-promised");
+import { FirebaseApp } from '../src/FirebaseApp';
+import { expect, use } from 'chai';
+import chaiAsPromised = require('chai-as-promised');
 
 use(chaiAsPromised);
 
@@ -11,7 +11,7 @@ describe('FirebaseApp Tests', () => {
 
     // Value comparison
     expect(app.options).to.deep.equal(options);
-    
+
     // Ensure that app.options isn't using the original `options` object ref
     expect(app.options).to.not.equal(options);
   });
@@ -19,7 +19,7 @@ describe('FirebaseApp Tests', () => {
   it('Should properly pass along `name` param if passed', () => {
     const app = new FirebaseApp({}, 'Midoriya');
     expect(app.name).to.equal('Midoriya');
-  })
+  });
   it('Should have a default value for `name` param', () => {
     const app = new FirebaseApp({});
     expect(app.name).to.equal('[DEFAULT]');

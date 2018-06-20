@@ -14,4 +14,6 @@
  * limitations under the License.
  */
 
-export { FirebaseApp } from './src/FirebaseApp';
+import { testFxn } from './src';
+
+testFxn();
