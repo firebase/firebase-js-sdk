@@ -23,7 +23,7 @@ import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
-import { immediatePredecessor, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import * as EncodedResourcePath from './encoded_resource_path';
@@ -95,14 +95,17 @@ export class IndexedDbMutationQueue implements MutationQueue {
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     let empty = true;
     const range = IDBKeyRange.bound(
-      Number.NEGATIVE_INFINITY,
-      Number.POSITIVE_INFINITY
+      [this.userId, Number.NEGATIVE_INFINITY],
+      [this.userId, Number.POSITIVE_INFINITY]
     );
     return mutationsStore(transaction)
-      .iterate({ range }, (key, value, control) => {
-        empty = false;
-        control.done();
-      })
+      .iterate(
+        { index: DbMutationBatch.userMutationsIndex, range },
+        (key, value, control) => {
+          empty = false;
+          control.done();
+        }
+      )
       .next(() => empty);
   }
 
@@ -192,11 +195,17 @@ export class IndexedDbMutationQueue implements MutationQueue {
   ): PersistencePromise<MutationBatch | null> {
     const range = this.rangeForSingleBatchId(batchId);
     return mutationsStore(transaction)
-      .loadAll(DbMutationBatch.userMutationsIndex, range)
-      .next(
-        ([dbBatch]) =>
-          dbBatch ? this.serializer.fromDbMutationBatch(dbBatch) : null
-      );
+      .get(batchId)
+      .next(dbBatch => {
+        if (dbBatch) {
+          assert(
+            dbBatch.userId === this.userId,
+            `Unexpected user '${dbBatch.userId}' for mutation batch ${batchId}`
+          );
+          return this.serializer.fromDbMutationBatch(dbBatch);
+        }
+        return null;
+      });
   }
 
   lookupMutationKeys(
@@ -519,7 +528,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .get(this.userId)
       .next((metadata: DbMutationQueue | null) => {
         return (
-          metadata || new DbMutationQueue(this.userId, BATCHID_UNKNOWN, '')
+          metadata ||
+          new DbMutationQueue(
+            this.userId,
+            BATCHID_UNKNOWN,
+            /*lastStreamToken=*/ ''
+          )
         );
       });
   }

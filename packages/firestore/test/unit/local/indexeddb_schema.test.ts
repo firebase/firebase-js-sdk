@@ -20,7 +20,6 @@ import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
-  DbMutationQueue,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
@@ -30,7 +29,6 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import * as api from '../../../src/protos/firestore_proto_api';
 
 const INDEXEDDB_TEST_DATABASE = 'schemaTest';
 

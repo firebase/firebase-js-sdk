@@ -371,7 +371,7 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
    */
   add(value: ValueType): PersistencePromise<number> {
     debug(LOG_TAG, 'ADD', this.store.name, value, value);
-    let request = this.store.put(value as ValueType);
+    const request = this.store.put(value as ValueType);
     return wrapRequest<number>(request).next(autoId => {
       assert(
         typeof autoId === 'number',

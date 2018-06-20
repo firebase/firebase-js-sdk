@@ -69,10 +69,10 @@ export function createOrUpgradeDb(
   if (fromVersion > 0 && fromVersion < 3 && toVersion >= 3) {
     // Schema version 3 uses auto-generated keys to generate globally unique
     // mutation batch IDs (this was previously ensured internally by the
-    // client). To migrate to the new schema, we have to read back all mutations
-    // batches and write them back out. We don't rewrite the batch IDs to
-    // guarantee consistency with the other stores used by the mutation queue.
-    // Any further mutation batch IDs will be auto-generated.
+    // client). To migrate to the new schema, we have to read all mutations
+    // and write them back out. We don't rewrite the batch IDs to guarantee
+    // consistency with other object stores. Any further mutation batch IDs will
+    // be auto-generated.
     p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
   }
 
@@ -188,7 +188,7 @@ export class DbMutationBatch {
    * The auto-generated identifier for this batch, allocated in a monotonically
    * increasing manner.
    */
-  public batchId?: BatchId;
+  batchId?: BatchId;
 
   constructor(
     /**
@@ -258,7 +258,7 @@ function upgradeMutationBatchSchemaAndMigrateData(
       { unique: true }
     );
 
-    let v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
       DbMutationBatch.store
     );
     let p = PersistencePromise.resolve();

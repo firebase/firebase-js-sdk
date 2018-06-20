@@ -17,13 +17,10 @@
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
-import { BatchId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
-import { SimpleDbTransaction } from '../../../src/local/simple_db';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
@@ -191,7 +188,7 @@ function genericMutationQueueTests(): void {
     await mutationQueue.start();
 
     // PORTING NOTE: On the Web, the mutation queue does not reset the next
-    // batchID after all mutations are removed so adding another mutation will
+    // batchID after all mutations are removed. Adding another mutation will
     // never cause a collision.
     const batch3 = await addMutationBatch();
     expect(batch3.batchId).to.equal(3);
@@ -203,7 +200,8 @@ function genericMutationQueueTests(): void {
     );
     await mutationQueue.start();
 
-    expect(batch3.batchId).to.equal(3);
+    const batch4 = await addMutationBatch();
+    expect(batch4.batchId).to.equal(4);
 
     // highestAcknowledgedBatchID must still be batch2.
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
