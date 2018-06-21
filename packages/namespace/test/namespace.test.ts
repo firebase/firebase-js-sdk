@@ -46,7 +46,10 @@ describe('`firebase` Namespace', () => {
     const app = firebase.initializeApp({});
     expect(app.automaticDataCollectionEnabled).to.be.false;
 
-    const app2 = firebase.initializeApp({}, { name: 'app-2', automaticDataCollectionEnabled: true });
+    const app2 = firebase.initializeApp(
+      {},
+      { name: 'app-2', automaticDataCollectionEnabled: true }
+    );
     expect(app2.automaticDataCollectionEnabled).to.be.true;
   });
 
@@ -91,7 +94,7 @@ describe('`firebase` Namespace', () => {
   });
   it('Should allow you to access apps through `app` function', () => {
     const defaultApp = firebase.initializeApp({});
-    const namedApp =  firebase.initializeApp({}, 'app-1');
+    const namedApp = firebase.initializeApp({}, 'app-1');
 
     expect(firebase.app()).to.equal(defaultApp);
     expect(firebase.app('app-1')).to.equal(namedApp);
