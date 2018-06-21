@@ -363,22 +363,16 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
   }
 
   /**
-   * Adds a new value into an Object Store that uses auto-generated keys and
-   * returns the new key value.
+   * Adds a new value into an Object Store and returns the new key. Similar to
+   * IndexedDb's `add()`, this method will fail on primary key collisions.
    *
    * @param value The object to write.
-   * @return The value of the auto-generated key.
+   * @return The key of the value to add.
    */
-  add(value: ValueType): PersistencePromise<number> {
+  add(value: ValueType): PersistencePromise<KeyType> {
     debug(LOG_TAG, 'ADD', this.store.name, value, value);
-    const request = this.store.put(value as ValueType);
-    return wrapRequest<number>(request).next(autoId => {
-      assert(
-        typeof autoId === 'number',
-        'add() used without an auto-generated key'
-      );
-      return autoId;
-    });
+    const request = this.store.add(value as ValueType);
+    return wrapRequest<KeyType>(request);
   }
 
   /**

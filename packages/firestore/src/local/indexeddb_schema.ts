@@ -70,7 +70,7 @@ export function createOrUpgradeDb(
     // Schema version 3 uses auto-generated keys to generate globally unique
     // mutation batch IDs (this was previously ensured internally by the
     // client). To migrate to the new schema, we have to read all mutations
-    // and write them back out. We don't rewrite the batch IDs to guarantee
+    // and write them back out. We preserve the existing batch IDs to guarantee
     // consistency with other object stores. Any further mutation batch IDs will
     // be auto-generated.
     p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
@@ -242,7 +242,7 @@ function upgradeMutationBatchSchemaAndMigrateData(
   db: IDBDatabase,
   txn: SimpleDbTransaction
 ): PersistencePromise<void> {
-  const v1MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+  const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
     DbMutationBatch.store
   );
   return v1MutationsStore.loadAll().next(existingMutations => {
@@ -261,11 +261,11 @@ function upgradeMutationBatchSchemaAndMigrateData(
     const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
       DbMutationBatch.store
     );
-    let p = PersistencePromise.resolve();
-    for (const mutation of existingMutations) {
-      p = p.next(() => v3MutationsStore.put(mutation));
-    }
-    return p;
+    const writeAll = existingMutations.map(mutation =>
+      v3MutationsStore.put(mutation)
+    );
+
+    return PersistencePromise.waitFor(writeAll);
   });
 }
 
