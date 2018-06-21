@@ -20,8 +20,6 @@ import {
 } from '@firebase/app-types';
 import { ReplaySubject } from 'rxjs';
 
-const DEFAULT = '[DEFAULT]';
-
 export interface AppEvent {
   type: string;
   payload?: any;
@@ -35,7 +33,7 @@ export class FirebaseApp implements IFirebaseApp {
 
   public event$: ReplaySubject<AppEvent> = new ReplaySubject();
 
-  constructor(options: FirebaseOptions, name: string = DEFAULT) {
+  constructor(options: FirebaseOptions, name: string = '[DEFAULT]') {
     if (typeof name !== 'string') {
       throw new Error('bad-app-name');
     }
@@ -70,10 +68,10 @@ export class FirebaseApp implements IFirebaseApp {
   public async delete() {
     this._checkDestroyed();
 
-    this._isDestroyed = true;
-
     this.event$.next({ type: 'deleted' });
     this.event$.complete();
+
+    this._isDestroyed = true;
   }
 
   private _checkDestroyed() {

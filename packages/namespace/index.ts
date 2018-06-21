@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-import { testFxn } from './src';
+import firebaseNamespace from './src/namespace';
 
-testFxn();
+export default firebaseNamespace;
