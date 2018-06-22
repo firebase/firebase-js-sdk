@@ -752,7 +752,7 @@ export class LocalStore {
    * Locally unpin all the documents associated with the given target.
    */
   // PORTING NOTE: Multi-tab only.
-  removeLocalQueryData(targetId: TargetId) : void {
+  removeLocalQueryData(targetId: TargetId): void {
     this.localViewReferences.removeReferencesForId(targetId);
     delete this.targetIds[targetId];
   }
