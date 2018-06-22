@@ -184,17 +184,15 @@ export class DbMutationBatch {
   /** The user mutations index is keyed by [userId, batchId] pairs. */
   static userMutationsKeyPath = ['userId', 'batchId'];
 
-  /**
-   * The auto-generated identifier for this batch, allocated in a monotonically
-   * increasing manner.
-   */
-  batchId?: BatchId;
-
   constructor(
     /**
      * The normalized user ID to which this batch belongs.
      */
     public userId: string,
+    /**
+     * An identifier for this batch, allocated using an auto-generated key.
+     */
+    public batchId: BatchId,
     /**
      * The local write time of the batch, stored as milliseconds since the
      * epoch.
