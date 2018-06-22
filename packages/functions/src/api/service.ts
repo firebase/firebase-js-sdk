@@ -40,7 +40,7 @@ interface HttpResponse {
 export class Service implements FirebaseFunctions {
   private readonly contextProvider: ContextProvider;
   private readonly serializer = new Serializer();
-  private emulatorOrigin: string|null = null;
+  private emulatorOrigin: string | null = null;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.
