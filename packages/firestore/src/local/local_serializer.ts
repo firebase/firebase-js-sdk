@@ -20,7 +20,7 @@ import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 
@@ -72,16 +72,12 @@ export class LocalSerializer {
 
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */
   toDbMutationBatch(userId: string, batch: MutationBatch): DbMutationBatch {
-    assert(
-      batch.batchId === BATCHID_UNKNOWN,
-      'Can only persist mutation batches with unassigned IDs.'
-    );
-
     const serializedMutations = batch.mutations.map(m =>
       this.remoteSerializer.toMutation(m)
     );
     return new DbMutationBatch(
       userId,
+      batch.batchId,
       batch.localWriteTime.toMillis(),
       serializedMutations
     );

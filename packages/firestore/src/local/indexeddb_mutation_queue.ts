@@ -161,34 +161,40 @@ export class IndexedDbMutationQueue implements MutationQueue {
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
-    const batch = new MutationBatch(BATCHID_UNKNOWN, localWriteTime, mutations);
-    const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+    const documentStore = documentMutationsStore(transaction);
+    const mutationStore = mutationsStore(transaction);
 
-    return mutationsStore(transaction)
-      .add(dbBatch)
-      .next(batchId => {
-        batch.batchId = batchId;
-        this.documentKeysByBatchId[batchId] = batch.keys();
+    // The IndexedDb implementation in Chrome (and Firefox) does not handle
+    // compound indices with include auto-generated keys correctly. To ensure
+    // that the index entry is added correctly in all browsers, we perform two
+    // writes: The first write is used to retrieve the next auto-generated Batch
+    // ID, and the second write populates the index and stores the actual
+    // mutation batch.
+    // See: https://bugs.chromium.org/p/chromium/issues/detail?id=701972
 
-        const promises: Array<PersistencePromise<void>> = [];
-        for (const mutation of mutations) {
-          const indexKey = DbDocumentMutation.key(
-            this.userId,
-            mutation.key.path,
-            batchId
-          );
-          promises.push(
-            documentMutationsStore(transaction).put(
-              indexKey,
-              DbDocumentMutation.PLACEHOLDER
-            )
-          );
-        }
-        return PersistencePromise.waitFor(promises);
-      })
-      .next(() => {
-        return batch;
-      });
+    // tslint:disable-next-line:no-any We write an empty object to obtain key
+    return mutationStore.add({} as any).next(batchId => {
+      assert(typeof batchId === 'number', 'Auto-generated key is not a number');
+
+      const batch = new MutationBatch(batchId, localWriteTime, mutations);
+      const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
+
+      this.documentKeysByBatchId[batchId] = batch.keys();
+
+      const promises: Array<PersistencePromise<void>> = [];
+      for (const mutation of mutations) {
+        const indexKey = DbDocumentMutation.key(
+          this.userId,
+          mutation.key.path,
+          batchId
+        );
+        promises.push(mutationStore.put(dbBatch));
+        promises.push(
+          documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
+        );
+      }
+      return PersistencePromise.waitFor(promises).next(() => batch);
+    });
   }
 
   lookupMutationBatch(
