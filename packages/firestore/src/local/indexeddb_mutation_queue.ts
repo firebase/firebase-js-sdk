@@ -165,7 +165,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const mutationStore = mutationsStore(transaction);
 
     // The IndexedDb implementation in Chrome (and Firefox) does not handle
-    // compound indices with include auto-generated keys correctly. To ensure
+    // compound indices that include auto-generated keys correctly. To ensure
     // that the index entry is added correctly in all browsers, we perform two
     // writes: The first write is used to retrieve the next auto-generated Batch
     // ID, and the second write populates the index and stores the actual

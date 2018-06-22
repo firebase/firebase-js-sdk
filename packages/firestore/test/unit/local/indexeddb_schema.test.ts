@@ -199,7 +199,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           }
           p = p.next(() => {
             store
-              .add({ userId: 'foo', localWriteTimeMs: 1000, mutations: [] })
+              .add({} as any) // tslint:disable-line:no-any
               .next(batchId => {
                 expect(batchId).to.equal(43);
               });
