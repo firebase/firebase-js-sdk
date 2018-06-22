@@ -650,13 +650,13 @@ describeSpec('Writes:', [], () => {
 
   specTest('New writes are sent after write failure', [], () => {
     return spec()
-        .userSets('collection/a', {v: 1})
-        .failWrite(
-            'collection/a',
-            new RpcError(Code.FAILED_PRECONDITION, 'failure')
-        )
-        .userSets('collection/b', {v: 1})
-        .writeAcks('collection/b', 2000);
+      .userSets('collection/a', { v: 1 })
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure')
+      )
+      .userSets('collection/b', { v: 1 })
+      .writeAcks('collection/b', 2000);
   });
 
   specTest('Primary client acknowledges write', ['multi-client'], () => {
