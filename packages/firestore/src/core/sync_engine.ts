@@ -828,8 +828,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.enableNetwork();
   }
 
-  shutdown(): Promise<void> {
-    return this.disableNetwork();
+  async shutdown(): Promise<void> {
+    this.networkAllowed = false;
   }
 
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
