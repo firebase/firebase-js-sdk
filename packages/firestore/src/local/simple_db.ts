@@ -363,6 +363,19 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
   }
 
   /**
+   * Adds a new value into an Object Store and returns the new key. Similar to
+   * IndexedDb's `add()`, this method will fail on primary key collisions.
+   *
+   * @param value The object to write.
+   * @return The key of the value to add.
+   */
+  add(value: ValueType): PersistencePromise<KeyType> {
+    debug(LOG_TAG, 'ADD', this.store.name, value, value);
+    const request = this.store.add(value as ValueType);
+    return wrapRequest<KeyType>(request);
+  }
+
+  /**
    * Gets the object with the specified key from the specified store, or null
    * if no object exists with the specified key.
    *
