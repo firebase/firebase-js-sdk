@@ -44,6 +44,15 @@ export class FirebaseFunctions {
    * @return The `HttpsCallable` instance.
    */
   httpsCallable(name: string): HttpsCallable;
+
+  /**
+   * Changes this instance to point to a Cloud Functions emulator running
+   * locally. See https://firebase.google.com/docs/functions/local-emulator
+   *
+   * @param origin The origin of the local emulator, such as
+   * "http://localhost:5005".
+   */
+  useFunctionsEmulator(origin: string);
 }
 
 /**

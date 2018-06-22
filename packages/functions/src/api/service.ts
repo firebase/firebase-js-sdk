@@ -73,9 +73,11 @@ export class Service implements FirebaseFunctions {
   }
 
   /**
-   * Changes this instance to point to a Cloud Functions emulator running locally.
-   * See https://firebase.google.com/docs/functions/local-emulator
-   * @param origin The origin of the local emulator, such as "http://localhost:5005".
+   * Changes this instance to point to a Cloud Functions emulator running
+   * locally. See https://firebase.google.com/docs/functions/local-emulator
+   *
+   * @param origin The origin of the local emulator, such as
+   * "http://localhost:5005".
    */
   useFunctionsEmulator(origin: string) {
     this.emulatorOrigin = origin;
