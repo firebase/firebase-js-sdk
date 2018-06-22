@@ -448,6 +448,11 @@ class RemoteClientState implements ClientState {
  * primary client.
  */
 export interface SharedOnlineStateSchema {
+  /**
+   * The clientId of the client that wrote this onlineState value. Tracked so
+   * that on startup, clients can check if this client is still active when
+   * determining whether to apply this value or not.
+   */
   readonly clientId: string;
   readonly onlineState: string;
 }
