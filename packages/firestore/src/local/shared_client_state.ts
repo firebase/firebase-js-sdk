@@ -1070,6 +1070,11 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private handleOnlineStateEvent(onlineState: SharedOnlineState): void {
+    // We check whether the client that wrote this online state is still active
+    // by comparing its client ID to the list of clients kept active in
+    // IndexedDb. If a client does not update their IndexedDb client state
+    // within 5 seconds, it is considered inactive and we don't emit an online
+    // state event.
     if (this.activeClients[onlineState.clientId]) {
       this.onlineStateHandler(onlineState.onlineState);
     }
