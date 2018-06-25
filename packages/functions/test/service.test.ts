@@ -31,6 +31,15 @@ describe('Firebase Functions > Service', () => {
         'https://us-central1-my-project.cloudfunctions.net/foo'
       );
     });
+
+    it('can use emulator', () => {
+      service.useFunctionsEmulator('http://localhost:5005');
+      assert.equal(
+        service._url('foo'),
+        'http://localhost:5005/my-project/us-central1/foo'
+      );
+      service.useFunctionsEmulator(null);
+    });
   });
 
   describe('custom region constructor', () => {
