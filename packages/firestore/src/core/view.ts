@@ -224,23 +224,19 @@ export class View {
 
   /**
    * Updates the view with the given ViewDocumentChanges and optionally updates
-   * limbo docs and sync state from the given CURRENT state or the provided
-   * target change.
-   *
+   * limbo docs and sync state from the provided target change.
    * @param docChanges The set of changes to make to the view's docs.
    * @param updateLimboDocuments Whether to update limbo documents based on this
-   * change.
-   * @param currentOrTargetChange The new CURRENT state of the target or a
-   * new target change to apply for computing limbo docs and sync state.
+   *        change.
+   * @param targetChange A target change to apply for computing limbo docs and
+   *        sync state.
    * @return A new ViewChange with the given docs, changes, and sync state.
    */
-  // PORTING NOTE: Other clients always compute limbo document changes and only
-  // take an optional target change instead of a CURRENT status or a target
-  // change.
+  // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
     updateLimboDocuments: boolean,
-    currentOrTargetChange?: boolean | TargetChange
+    targetChange?: TargetChange
   ): ViewChange {
     assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
     const oldDocs = this.documentSet;
@@ -255,13 +251,7 @@ export class View {
       );
     });
 
-    // PORTING NOTE: Multi-tab only.
-    if (typeof currentOrTargetChange === 'boolean') {
-      this.applySyncStateChange(currentOrTargetChange);
-    } else {
-      this.applyTargetChange(currentOrTargetChange);
-    }
-
+    this.applyTargetChange(targetChange);
     const limboChanges = updateLimboDocuments
       ? this.updateLimboDocuments()
       : [];
@@ -360,11 +350,6 @@ export class View {
       );
       this.current = targetChange.current;
     }
-  }
-
-  // PORTING NOTE: Multi-tab only.
-  private applySyncStateChange(current: boolean): void {
-    this.current = current;
   }
 
   private updateLimboDocuments(): LimboDocumentChange[] {

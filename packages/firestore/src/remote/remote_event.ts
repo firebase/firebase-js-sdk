@@ -16,8 +16,15 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
-import { DocumentKeySet, MaybeDocumentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  maybeDocumentMap,
+  MaybeDocumentMap,
+  targetIdSet
+} from '../model/collections';
 import { SortedSet } from '../util/sorted_set';
+import { emptyByteString } from '../platform/platform';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -49,6 +56,30 @@ export class RemoteEvent {
      */
     readonly resolvedLimboDocuments: DocumentKeySet
   ) {}
+
+  /**
+   * Creates a synthesized RemoteEvent that can be used to apply a CURRENT
+   * status change for a query that is executed by a different tab.
+   */
+  // PORTING NOTE: Multi-tab only
+  static createSynthesizedRemoteEventForSyncStateChange(
+    targetId: TargetId,
+    current: boolean
+  ): RemoteEvent {
+    const targetChanges = {
+      [targetId]: TargetChange.createSynthesizedTargetChangeForSyncStateChange(
+        targetId,
+        current
+      )
+    };
+    return new RemoteEvent(
+      SnapshotVersion.MIN,
+      targetChanges,
+      targetIdSet(),
+      maybeDocumentMap(),
+      documentKeySet()
+    );
+  }
 }
 
 /**
@@ -90,4 +121,22 @@ export class TargetChange {
      */
     readonly removedDocuments: DocumentKeySet
   ) {}
+
+  /**
+   * Creates a synthesized TargetChange that can be used to apply a CURRENT
+   * status change for a query that is executed by a different tab.
+   */
+  // PORTING NOTE: Multi-tab only
+  static createSynthesizedTargetChangeForSyncStateChange(
+    targetId: TargetId,
+    current: boolean
+  ): TargetChange {
+    return new TargetChange(
+      emptyByteString(),
+      current,
+      documentKeySet(),
+      documentKeySet(),
+      documentKeySet()
+    );
+  }
 }

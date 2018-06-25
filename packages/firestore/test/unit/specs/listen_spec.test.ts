@@ -503,7 +503,7 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Query is unlisted to by primary client', ['multi-client'], () => {
+  specTest('Query is unlistened to by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'a' });

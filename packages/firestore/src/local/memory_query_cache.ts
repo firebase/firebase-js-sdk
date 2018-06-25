@@ -27,7 +27,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
@@ -140,16 +140,10 @@ export class MemoryQueryCache implements QueryCache {
   getQueryDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<QueryData | null> {
-    // Note: While this method performs an O(n) scan, `getQueryDataForTarget` is
-    // only called in multi-tab mode and this memory-based implementation should
-    // never get invoked.
-    this.queries.forEach((query, queryData) => {
-      if (queryData.targetId === targetId) {
-        return PersistencePromise.resolve(queryData);
-      }
-    });
-    return PersistencePromise.resolve(null);
+  ): never {
+    // This method is only needed for multi-tab and we can't implement it
+    // efficiently without additional data structures.
+    return fail('Not yet implemented.');
   }
 
   addMatchingKeys(

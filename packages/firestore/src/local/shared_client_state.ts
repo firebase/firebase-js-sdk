@@ -111,7 +111,7 @@ export interface SharedClientState {
   getMinimumGlobalPendingMutation(): BatchId | null;
 
   /**
-   * Associates a new Query Target ID with the local Firestore clients. Returns
+   * Associates a new Query Target ID with the local Firestore client. Returns
    * the new query state for the query (which can be 'current' if the query is
    * already associated with another tab).
    */
@@ -138,7 +138,7 @@ export interface SharedClientState {
    * The implementation for this may require O(n) runtime, where 'n' is the size
    * of the result set.
    */
-  // Visibile for testing
+  // Visible for testing
   getAllActiveQueryTargets(): SortedSet<TargetId>;
 
   /**
@@ -654,6 +654,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   isActiveQueryTarget(targetId: TargetId): boolean {
+    // This is not using `obj.forEach` since `forEach` doesn't support early
+    // return.
     for (const clientId in this.activeClients) {
       if (this.activeClients.hasOwnProperty(clientId)) {
         if (this.activeClients[clientId].activeTargetIds.has(targetId)) {
