@@ -72,7 +72,6 @@
     "./firestore",
     "./functions",
     "./storage",
-    "./package.json",
     "./rxfire-auth.js",
     "./rxfire-auth.js.map",
     "./rxfire-firestore.js",
