@@ -33,7 +33,7 @@ const ALL_EVENTS: firestore.DocumentChangeType[] = [
 const filterEvents = (events?: firestore.DocumentChangeType[]) =>
   filter((changes: firestore.DocumentChange[]) => {
     let hasChange = false;
-    for(let i=0; i<changes.length;i++) {
+    for (let i = 0; i < changes.length; i++) {
       const change = changes[i];
       if (events.indexOf(change.type) >= 0) {
         hasChange = true;
