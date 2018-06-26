@@ -4,6 +4,8 @@
 /rxfire*.tgz
 
 # generated declaration files
+# declaration files currently break testing builds
+# TODO: Fix TypeScript build setup before release
 auth/index.d.ts
 firestore/collection/index.d.ts
 firestore/document/index.d.ts

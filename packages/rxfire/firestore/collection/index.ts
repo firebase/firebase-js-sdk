@@ -65,7 +65,8 @@ function processIndividualChange(
         combined[change.newIndex] &&
         combined[change.newIndex].doc.id == change.doc.id
       ) {
-        // Not sure why the duplicates are getting fired
+        // Skip duplicate emissions. This is rare.
+        // TODO: Investigate possible bug in SDK.
       } else {
         combined.splice(change.newIndex, 0, change);
       }
@@ -77,7 +78,7 @@ function processIndividualChange(
         combined.splice(change.oldIndex, 1);
         combined.splice(change.newIndex, 0, change);
       } else {
-        combined.splice(change.newIndex, 1, change);
+        combined[change.newIndex] = change;
       }
       break;
     case 'removed':
