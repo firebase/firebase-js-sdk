@@ -75,6 +75,14 @@
     "/storage/package.json",
     "/storage/dist",
     "/functions/package.json",
-    "/functions/dist"
+    "/functions/dist",
+    "/rxfire-auth.js",
+    "/rxfire-auth.js.map",
+    "/rxfire-firestore.js",
+    "/rxfire-firestore.js.map",
+    "/rxfire-functions.js",
+    "/rxfire-functions.js.map",
+    "/rxfire-storage.js",
+    "/rxfire-storage.js.map"
   ]
 }
