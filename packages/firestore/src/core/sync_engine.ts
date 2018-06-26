@@ -732,12 +732,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
-    // Apply the target state if the target is either actively being listened to
-    // or a limbo target change (which could then apply to any target).
-    if (
-      this.queryViewsByTarget[targetId] ||
-      this.limboTargetIdGenerator.covers(targetId)
-    ) {
+    if (this.queryViewsByTarget[targetId]) {
       switch (state) {
         case 'current':
         case 'not-current': {
