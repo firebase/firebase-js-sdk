@@ -22,6 +22,7 @@ import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { Deferred } from '../util/promise';
 import { PersistenceTransaction } from './persistence';
+import { Code, FirestoreError } from '../util/error';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -60,6 +61,16 @@ export class SimpleDb {
       request.onsuccess = (event: Event) => {
         const db = (event.target as IDBOpenDBRequest).result;
         resolve(new SimpleDb(db));
+      };
+
+      request.onblocked = () => {
+        reject(
+          new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            'Cannot upgrade IndexedDB schema while another tab is open. ' +
+              'Close all tabs that access Firestore and reload this page to proceed.'
+          )
+        );
       };
 
       request.onerror = (event: ErrorEvent) => {
