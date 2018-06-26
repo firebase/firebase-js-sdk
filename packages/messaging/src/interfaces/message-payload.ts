@@ -19,7 +19,12 @@ export interface NotificationDetails extends NotificationOptions {
   click_action?: string;
 }
 
+export interface FcmOptions {
+  link?: string;
+}
+
 export interface MessagePayload {
+  fcmOptions?: FcmOptions;
   notification?: NotificationDetails;
   data?: object;
 }
