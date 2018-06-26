@@ -132,7 +132,7 @@ declare namespace firebase.app {
     options: Object;
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    functions(): firebase.functions.Functions;
+    functions(region?: string): firebase.functions.Functions;
   }
 }
 
@@ -2064,3 +2064,4 @@ declare namespace firebase.firestore {
 }
 
 export = firebase;
+export as namespace firebase;

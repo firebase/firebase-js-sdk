@@ -43,7 +43,7 @@ function decodePath(pathString: string): string {
  */
 function decodeQuery(queryString: string): { [key: string]: string } {
   let results = {};
-  if (queryString.startsWith('?')) {
+  if (queryString.charAt(0) === '?') {
     queryString = queryString.substring(1);
   }
   for (const segment of queryString.split('&')) {
