@@ -58,6 +58,6 @@ declare module '@firebase/app-types' {
     };
   }
   interface FirebaseApp {
-    functions?(): types.FirebaseFunctions;
+    functions?(region?: string): types.FirebaseFunctions;
   }
 }
