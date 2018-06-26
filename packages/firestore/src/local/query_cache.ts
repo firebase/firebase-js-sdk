@@ -104,7 +104,7 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry by query in the cache.
+   * Looks up a QueryData entry by query.
    *
    * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
@@ -118,14 +118,15 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<QueryData | null>;
 
   /**
-   * Looks up a QueryData entry by target ID in the cache.
+   * Looks up a QueryData entry by target ID.
    *
    * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
-   * @param The target ID of the QueryData entry to look up.
+   * @param targetId The target ID of the QueryData entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
    * the query.
    */
+  // PORTING NOTE: Multi-tab only.
   getQueryDataForTarget(
     txn: PersistenceTransaction,
     targetId: TargetId

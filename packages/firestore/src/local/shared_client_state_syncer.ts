@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-import {
-  BatchId,
-  MutationBatchState,
-  OnlineState,
-  TargetId
-} from '../core/types';
+import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
 import { ClientId } from './shared_client_state';
 
@@ -58,7 +53,4 @@ export interface SharedClientStateSyncer {
 
   /** Returns the IDs of the clients that are currently active. */
   getActiveClients(): Promise<ClientId[]>;
-
-  /** Applies an OnlineState change and notifies any views of the change. */
-  applyOnlineStateChange(onlineState: OnlineState): void;
 }

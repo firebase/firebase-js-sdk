@@ -60,7 +60,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   addEntries(
     transaction: PersistenceTransaction,
-    ...maybeDocuments: MaybeDocument[]
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     const documentStore = remoteDocumentsStore(transaction);

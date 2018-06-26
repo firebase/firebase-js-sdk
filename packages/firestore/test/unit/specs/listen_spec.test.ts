@@ -24,19 +24,24 @@ import { RpcError } from './spec_rpc_error';
 
 describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
-  specTest('Contents of query are cleared when listen is removed.', [], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 1000, { key: 'a' });
-    return (
-      spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
-        .userUnlistens(query)
-        // should get no events.
-        .userListens(query)
-    );
-  });
+  specTest(
+    'Contents of query are cleared when listen is removed.',
+    ['no-lru'],
+    'Explicitly tests eager GC behavior',
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      return (
+        spec()
+          .userListens(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
+          .userUnlistens(query)
+          // should get no events.
+          .userListens(query)
+      );
+    }
+  );
 
   specTest('Contents of query update when new data is received.', [], () => {
     const query = Query.atPath(path('collection'));
@@ -135,6 +140,23 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED });
     }
   );
+
+  specTest('Will re-issue listen for errored target', [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcks(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+      )
+      .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
+  });
 
   // It can happen that we need to process watch messages for previously failed
   // targets, because target failures are handled out of band.
@@ -414,9 +436,7 @@ describeSpec('Listens:', [], () => {
       )
       .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
       .userListens(query)
-      .watchAcks(query)
-      .watchCurrents(query, 'resume-token-1000')
-      .watchSnapshots(1000)
+      .watchAcksFull(query, 1000)
       .expectEvents(query, {});
   });
 
@@ -500,7 +520,7 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Query is unlisted to by primary client', ['multi-client'], () => {
+  specTest('Query is unlistened to by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'a' });
@@ -557,7 +577,7 @@ describeSpec('Listens:', [], () => {
   specTest('Query is rejected by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
 
-    return client(0, false)
+    return client(0, /* withGcEnabled= */ false)
       .becomeVisible()
       .client(1)
       .userListens(query)
@@ -573,12 +593,12 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest(
-    'Query is rejected and re-listened to by another client',
+    'Query is rejected and re-listened to by secondary client',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, false)
+      return client(0, /* withGcEnabled= */ false)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -592,12 +612,9 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
-        .watchAcks(query)
-        .watchCurrents(query, 'resume-token-1000')
-        .watchSnapshots(1000)
+        .watchAcksFull(query, 1000)
         .client(1)
         .expectEvents(query, {});
     }
@@ -631,6 +648,29 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, {});
     }
   );
+
+  specTest('New client uses existing online state', ['multi-client'], () => {
+    const query1 = Query.atPath(path('collection'));
+    const query2 = Query.atPath(path('collection'));
+
+    return client(0, false)
+      .userListens(query1)
+      .watchAcksFull(query1, 1000)
+      .expectEvents(query1, {})
+      .client(1)
+      .userListens(query1)
+      .expectEvents(query1, {})
+      .client(0)
+      .disableNetwork()
+      .expectEvents(query1, { fromCache: true })
+      .client(1)
+      .expectEvents(query1, { fromCache: true })
+      .client(2)
+      .userListens(query1)
+      .expectEvents(query1, { fromCache: true })
+      .userListens(query2)
+      .expectEvents(query2, { fromCache: true });
+  });
 
   specTest(
     "Secondary client's online state is ignored",

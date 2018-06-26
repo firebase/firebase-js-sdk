@@ -173,7 +173,10 @@ class LocalStoreTester {
 
   afterReleasingQuery(query: Query): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.releaseQuery(query);
+      return this.localStore.releaseQuery(
+        query,
+        /*keepPersistedQueryData=*/ false
+      );
     });
     return this;
   }
@@ -891,7 +894,7 @@ function genericLocalStoreTests(
     await localStore.applyRemoteEvent(remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseQuery(query);
+    await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
 
     // Should come back with the same resume token
     const queryData2 = await localStore.allocateQuery(query);
@@ -932,7 +935,7 @@ function genericLocalStoreTests(
     await localStore.applyRemoteEvent(remoteEvent2);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseQuery(query);
+    await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
 
     // Should come back with the same resume token
     const queryData2 = await localStore.allocateQuery(query);

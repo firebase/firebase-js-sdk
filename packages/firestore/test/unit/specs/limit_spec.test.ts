@@ -262,8 +262,8 @@ describeSpec('Limits:', [], () => {
         { key: 'a' },
         { hasLocalMutations: true }
       );
-      const doc2 = doc('collection/b', 1002, { key: 'b' });
-      const doc3 = doc('collection/c', 1001, { key: 'c' });
+      const doc2 = doc('collection/b', 1001, { key: 'b' });
+      const doc3 = doc('collection/c', 1002, { key: 'c' });
       return client(0)
         .becomeVisible()
         .client(1)
@@ -271,7 +271,7 @@ describeSpec('Limits:', [], () => {
         .expectEvents(query1, { fromCache: true })
         .client(0)
         .expectListen(query1)
-        .watchAcksFull(query1, 1001, doc2, doc3)
+        .watchAcksFull(query1, 1002, doc2, doc3)
         .client(1)
         .expectEvents(query1, {
           added: [doc2, doc3]

@@ -41,7 +41,8 @@ import { AutoId } from '../../../src/util/misc';
 import { PlatformSupport } from '../../../src/platform/platform';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
-export const TEST_PERSISTENCE_PREFIX = 'PersistenceTestHelpers';
+export const TEST_PERSISTENCE_PREFIX =
+  'firestore/[DEFAULT]/PersistenceTestHelpers';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'fs_';
@@ -130,6 +131,7 @@ export async function populateWebStorage(
   secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
     existingClientId
   ]);
+  secondaryClientState.onlineStateHandler = () => {};
   await secondaryClientState.start();
 
   for (const batchId of existingMutationBatchIds) {

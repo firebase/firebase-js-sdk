@@ -56,6 +56,9 @@ const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
 //     fs_targets_<persistence_prefix>_<target_id>
 const QUERY_TARGET_KEY_PREFIX = 'fs_targets';
 
+// The LocalStorage key that stores the primary tab's online state.
+const ONLINE_STATE_KEY = 'fs_online_state';
+
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
  */
@@ -73,11 +76,12 @@ export type ClientId = string;
  * assigned to `.syncEngine` for updates to mutations and queries that
  * originated in other clients.
  *
- * To receive notifications, `.syncEngine` has to be assigned before calling
- * `start()`.
+ * To receive notifications, `.syncEngine` and `.onlineStateHandler` has to be
+ * assigned before calling `start()`.
  */
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
+  onlineStateHandler: (onlineState: OnlineState) => void;
 
   /** Associates a new Mutation Batch ID with the local Firestore client. */
   addLocalPendingMutation(batchId: BatchId): void;
@@ -116,9 +120,9 @@ export interface SharedClientState {
   getMinimumGlobalPendingMutation(): BatchId | null;
 
   /**
-   * Associates a new Query Target ID with the local Firestore clients. Returns
-   * the query state for the query and can return 'current' if the query is
-   * already associated with another tab.
+   * Associates a new Query Target ID with the local Firestore client. Returns
+   * the new query state for the query (which can be 'current' if the query is
+   * already associated with another tab).
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
@@ -143,7 +147,17 @@ export interface SharedClientState {
    * The implementation for this may require O(n) runtime, where 'n' is the size
    * of the result set.
    */
+  // Visible for testing
   getAllActiveQueryTargets(): SortedSet<TargetId>;
+
+  /**
+   * Checks whether the provided target ID is currently being listened to by
+   * any of the active clients.
+   *
+   * The implementation may require O(n*log m) runtime, where 'n' is the number
+   * of clients and 'm' the number of targets.
+   */
+  isActiveQueryTarget(targetId: TargetId): boolean;
 
   /**
    * Starts the SharedClientState, reads existing client data and registers
@@ -165,11 +179,7 @@ export interface SharedClientState {
     addedBatchIds: BatchId[]
   ): void;
 
-  /**
-   * Changes the online state of the current client. If this change differs
-   * from the online state observed by the primary client, may raise new view
-   * snapshots in all active clients.
-   */
+  /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
 }
 
@@ -366,7 +376,6 @@ export class QueryTargetMetadata {
 interface ClientStateSchema {
   lastUpdateTime: number;
   activeTargetIds: number[];
-  onlineState: string;
   minMutationBatchId: number | null;
   maxMutationBatchId: number | null;
 }
@@ -380,7 +389,6 @@ interface ClientStateSchema {
 export interface ClientState {
   readonly activeTargetIds: TargetIdSet;
   readonly lastUpdateTime: Date;
-  readonly onlineState: OnlineState;
   readonly maxMutationBatchId: BatchId | null;
   readonly minMutationBatchId: BatchId | null;
 }
@@ -394,7 +402,6 @@ class RemoteClientState implements ClientState {
   private constructor(
     readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
-    readonly onlineState: OnlineState,
     readonly activeTargetIds: TargetIdSet,
     readonly minMutationBatchId: BatchId | null,
     readonly maxMutationBatchId: BatchId | null
@@ -413,8 +420,6 @@ class RemoteClientState implements ClientState {
     let validData =
       typeof clientState === 'object' &&
       isSafeInteger(clientState.lastUpdateTime) &&
-      ['Unknown', 'Offline', 'Online'].indexOf(clientState.onlineState) !==
-        -1 &&
       clientState.activeTargetIds instanceof Array &&
       (clientState.minMutationBatchId === null ||
         isSafeInteger(clientState.minMutationBatchId)) &&
@@ -431,12 +436,9 @@ class RemoteClientState implements ClientState {
     }
 
     if (validData) {
-      const onlineState = OnlineState[clientState.onlineState];
-
       return new RemoteClientState(
         clientId,
         new Date(clientState.lastUpdateTime),
-        onlineState,
         activeTargetIdsSet,
         clientState.minMutationBatchId,
         clientState.maxMutationBatchId
@@ -446,6 +448,52 @@ class RemoteClientState implements ClientState {
         LOG_TAG,
         `Failed to parse client data for instance '${clientId}': ${value}`
       );
+      return null;
+    }
+  }
+}
+
+/**
+ * The JSON representation of the system's online state, as written by the
+ * primary client.
+ */
+export interface SharedOnlineStateSchema {
+  /**
+   * The clientId of the client that wrote this onlineState value. Tracked so
+   * that on startup, clients can check if this client is still active when
+   * determining whether to apply this value or not.
+   */
+  readonly clientId: string;
+  readonly onlineState: string;
+}
+
+/**
+ * This class represents the online state for all clients participating in
+ * multi-tab. The online state is only written to by the primary client, and
+ * used in secondary clients to update their query views.
+ */
+export class SharedOnlineState {
+  constructor(readonly clientId: string, readonly onlineState: OnlineState) {}
+
+  /**
+   * Parses a SharedOnlineState from its JSON representation in LocalStorage.
+   * Logs a warning and returns null if the format of the data is not valid.
+   */
+  static fromLocalStorageEntry(value: string): SharedOnlineState | null {
+    const onlineState = JSON.parse(value) as SharedOnlineStateSchema;
+
+    const validData =
+      typeof onlineState === 'object' &&
+      OnlineState[onlineState.onlineState] !== undefined &&
+      typeof onlineState.clientId === 'string';
+
+    if (validData) {
+      return new SharedOnlineState(
+        onlineState.clientId,
+        OnlineState[onlineState.onlineState]
+      );
+    } else {
+      error(LOG_TAG, `Failed to parse online state: ${value}`);
       return null;
     }
   }
@@ -464,7 +512,6 @@ class RemoteClientState implements ClientState {
 // Visible for testing.
 export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
-  onlineState = OnlineState.Unknown;
   lastUpdateTime: Date;
 
   private pendingBatchIds = batchIdSet();
@@ -498,6 +545,10 @@ export class LocalClientState implements ClientState {
   }
 
   addQueryTarget(targetId: TargetId): void {
+    assert(
+      !this.activeTargetIds.has(targetId),
+      `Target with ID '${targetId}' already active.`
+    );
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 
@@ -518,7 +569,6 @@ export class LocalClientState implements ClientState {
     const data: ClientStateSchema = {
       lastUpdateTime: this.lastUpdateTime.getTime(),
       activeTargetIds: this.activeTargetIds.toArray(),
-      onlineState: OnlineState[this.onlineState],
       minMutationBatchId: this.minMutationBatchId,
       maxMutationBatchId: this.maxMutationBatchId
     };
@@ -533,7 +583,8 @@ export class LocalClientState implements ClientState {
  */
 // TODO(multitab): Rename all usages of LocalStorage to WebStorage to better differentiate from LocalClient.
 export class WebStorageSharedClientState implements SharedClientState {
-  syncEngine: SharedClientStateSyncer | null;
+  syncEngine: SharedClientStateSyncer | null = null;
+  onlineStateHandler: (onlineState: OnlineState) => void | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
@@ -570,14 +621,22 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.localClientId
     );
     this.activeClients[this.localClientId] = new LocalClientState();
+
+    // Escape the special characters mentioned here:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+    const escapedPersistenceKey = persistenceKey.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
     this.clientStateKeyRe = new RegExp(
-      `^${CLIENT_STATE_KEY_PREFIX}_${persistenceKey}_([^_]*)$`
+      `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${persistenceKey}_(\\d+)(?:_(.*))?$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)(?:_(.*))?$`
     );
     this.queryTargetKeyRe = new RegExp(
-      `^${QUERY_TARGET_KEY_PREFIX}_${persistenceKey}_(\\d+)$`
+      `^${QUERY_TARGET_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)$`
     );
 
     // Rather than adding the storage observer during start(), we add the
@@ -602,6 +661,10 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.syncEngine !== null,
       'syncEngine property must be set before calling start()'
     );
+    assert(
+      this.onlineStateHandler !== null,
+      'onlineStateHandler property must be set before calling start()'
+    );
 
     // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
@@ -612,7 +675,7 @@ export class WebStorageSharedClientState implements SharedClientState {
         continue;
       }
 
-      const storageItem = this.storage.getItem(
+      const storageItem = this.getItem(
         this.toLocalStorageClientStateKey(clientId)
       );
       if (storageItem) {
@@ -627,6 +690,16 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
 
     this.persistClientState();
+
+    // Check if there is an existing online state and call the callback handler
+    // if applicable.
+    const onlineStateJSON = this.storage.getItem(ONLINE_STATE_KEY);
+    if (onlineStateJSON) {
+      const onlineState = this.fromLocalStorageOnlineState(onlineStateJSON);
+      if (onlineState) {
+        this.handleOnlineStateEvent(onlineState);
+      }
+    }
 
     for (const event of this.earlyEvents) {
       this.handleLocalStorageEvent(event);
@@ -651,6 +724,19 @@ export class WebStorageSharedClientState implements SharedClientState {
       activeTargets = activeTargets.unionWith(value.activeTargetIds);
     });
     return activeTargets;
+  }
+
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    // This is not using `obj.forEach` since `forEach` doesn't support early
+    // return.
+    for (const clientId in this.activeClients) {
+      if (this.activeClients.hasOwnProperty(clientId)) {
+        if (this.activeClients[clientId].activeTargetIds.has(targetId)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   addLocalPendingMutation(batchId: BatchId): void {
@@ -686,7 +772,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Lookup an existing query state if the target ID was already registered
     // by another tab
-    if (this.getAllActiveQueryTargets().has(targetId)) {
+    if (this.isActiveQueryTarget(targetId)) {
       const storageItem = this.storage.getItem(
         this.toLocalStorageQueryTargetMetadataKey(targetId)
       );
@@ -737,12 +823,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   setOnlineState(onlineState: OnlineState): void {
-    const existingState = this.onlineState;
-    this.localClientState.onlineState = onlineState;
-    this.persistClientState();
-    if (existingState !== this.onlineState) {
-      this.syncEngine.applyOnlineStateChange(onlineState);
-    }
+    this.persistOnlineState(onlineState);
   }
 
   shutdown(): void {
@@ -751,31 +832,24 @@ export class WebStorageSharedClientState implements SharedClientState {
       'WebStorageSharedClientState.shutdown() called when not started'
     );
     this.platform.window.removeEventListener('storage', this.storageListener);
-    this.storage.removeItem(this.localClientStorageKey);
+    this.removeItem(this.localClientStorageKey);
     this.started = false;
   }
 
-  /**
-   * Returns the "highest" online state of all active clients ("Online" takes
-   * precedence over "Offline", which takes precedence over "Unknown").
-   */
-  private get onlineState(): OnlineState {
-    let onlineState = OnlineState.Unknown;
+  private getItem(key: string): string | null {
+    const value = this.storage.getItem(key);
+    debug(LOG_TAG, 'READ', key, value);
+    return value;
+  }
 
-    objUtils.forEach(this.activeClients, (clientId, client) => {
-      if (client.onlineState === OnlineState.Online) {
-        // This is the primary client as only the primary client should ever be
-        // "Online".
-        onlineState = OnlineState.Online;
-      } else if (
-        onlineState === OnlineState.Unknown &&
-        client.onlineState === OnlineState.Offline
-      ) {
-        onlineState = OnlineState.Offline;
-      }
-    });
+  private setItem(key: string, value: string): void {
+    debug(LOG_TAG, 'SET', key, value);
+    this.storage.setItem(key, value);
+  }
 
-    return onlineState;
+  private removeItem(key: string): void {
+    debug(LOG_TAG, 'REMOVE', key);
+    this.storage.removeItem(key);
   }
 
   private handleLocalStorageEvent(event: StorageEvent): void {
@@ -786,6 +860,8 @@ export class WebStorageSharedClientState implements SharedClientState {
         event.key !== this.localClientStorageKey,
         'Received LocalStorage notification for local change.'
       );
+
+      debug(LOG_TAG, 'EVENT', event.key, event.newValue);
 
       this.queue.enqueue(async () => {
         if (!this.started) {
@@ -829,6 +905,15 @@ export class WebStorageSharedClientState implements SharedClientState {
               return this.handleQueryTargetEvent(queryTargetMetadata);
             }
           }
+        } else if (event.key === ONLINE_STATE_KEY) {
+          if (event.newValue !== null) {
+            const onlineState = this.fromLocalStorageOnlineState(
+              event.newValue
+            );
+            if (onlineState) {
+              return this.handleOnlineStateEvent(onlineState);
+            }
+          }
         }
       });
     }
@@ -841,9 +926,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   private persistClientState(): void {
     // TODO(multitab): Consider rate limiting/combining state updates for
     // clients that frequently update their client state.
-    debug(LOG_TAG, 'Persisting state in LocalStorage');
     this.localClientState.refreshLastUpdateTime();
-    this.storage.setItem(
+    this.setItem(
       this.localClientStorageKey,
       this.localClientState.toLocalStorageJSON()
     );
@@ -869,7 +953,15 @@ export class WebStorageSharedClientState implements SharedClientState {
       mutationKey += `_${this.currentUser.uid}`;
     }
 
-    this.storage.setItem(mutationKey, mutationState.toLocalStorageJSON());
+    this.setItem(mutationKey, mutationState.toLocalStorageJSON());
+  }
+
+  private persistOnlineState(onlineState: OnlineState): void {
+    const entry: SharedOnlineStateSchema = {
+      clientId: this.localClientId,
+      onlineState: OnlineState[onlineState]
+    };
+    this.storage.setItem(ONLINE_STATE_KEY, JSON.stringify(entry));
   }
 
   private persistQueryTargetState(
@@ -888,7 +980,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       this.persistenceKey
     }_${targetId}`;
 
-    this.storage.setItem(targetKey, targetMetadata.toLocalStorageJSON());
+    this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
   /** Assembles the key for a client state in LocalStorage */
@@ -963,6 +1055,14 @@ export class WebStorageSharedClientState implements SharedClientState {
     return QueryTargetMetadata.fromLocalStorageEntry(targetId, value);
   }
 
+  /**
+   * Parses an online state from LocalStorage. Returns 'null' if the value
+   * could not be parsed.
+   */
+  private fromLocalStorageOnlineState(value: string): SharedOnlineState | null {
+    return SharedOnlineState.fromLocalStorageEntry(value);
+  }
+
   private async handleMutationBatchEvent(
     mutationBatch: MutationMetadata
   ): Promise<void> {
@@ -996,7 +1096,6 @@ export class WebStorageSharedClientState implements SharedClientState {
     clientState: RemoteClientState | null
   ): Promise<void> {
     const existingTargets = this.getAllActiveQueryTargets();
-    const existingOnlineState = this.onlineState;
 
     if (clientState) {
       this.activeClients[clientId] = clientState;
@@ -1021,15 +1120,21 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     });
 
-    const newOnlineState = this.onlineState;
-    if (newOnlineState !== existingOnlineState) {
-      this.syncEngine.applyOnlineStateChange(newOnlineState);
-    }
-
     return this.syncEngine.applyActiveTargetsChange(
       addedTargets,
       removedTargets
     );
+  }
+
+  private handleOnlineStateEvent(onlineState: SharedOnlineState): void {
+    // We check whether the client that wrote this online state is still active
+    // by comparing its client ID to the list of clients kept active in
+    // IndexedDb. If a client does not update their IndexedDb client state
+    // within 5 seconds, it is considered inactive and we don't emit an online
+    // state event.
+    if (this.activeClients[onlineState.clientId]) {
+      this.onlineStateHandler(onlineState.onlineState);
+    }
   }
 }
 
@@ -1040,8 +1145,10 @@ export class WebStorageSharedClientState implements SharedClientState {
  */
 export class MemorySharedClientState implements SharedClientState {
   private localState = new LocalClientState();
+  private queryState: { [targetId: number]: QueryTargetState } = {};
 
-  syncEngine: SharedClientStateSyncer | null;
+  syncEngine: SharedClientStateSyncer | null = null;
+  onlineStateHandler: (onlineState: OnlineState) => void | null = null;
 
   addLocalPendingMutation(batchId: BatchId): void {
     this.localState.addPendingMutation(batchId);
@@ -1069,7 +1176,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {
     this.localState.addQueryTarget(targetId);
-    return 'not-current';
+    return this.queryState[targetId] || 'not-current';
   }
 
   trackQueryUpdate(
@@ -1077,15 +1184,20 @@ export class MemorySharedClientState implements SharedClientState {
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    // No op.
+    this.queryState[targetId] = state;
   }
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+    delete this.queryState[targetId];
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
     return this.localState.activeTargetIds;
+  }
+
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    return this.localState.activeTargetIds.has(targetId);
   }
 
   start(): Promise<void> {

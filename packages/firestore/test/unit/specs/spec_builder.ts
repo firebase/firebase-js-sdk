@@ -94,7 +94,7 @@ class CachedTargetIdGenerator {
 
   /**
    * Returns a cached target ID for the provided query, or a new ID if no
-   * target ID has been assigned.
+   * target ID has ever been assigned.
    */
   next(query: Query): TargetId {
     if (objUtils.contains(this.queryMapping, query.canonicalId())) {

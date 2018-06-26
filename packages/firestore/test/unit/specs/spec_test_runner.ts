@@ -448,6 +448,7 @@ abstract class TestRunner {
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
+    this.sharedClientState.onlineStateHandler = onlineStateChangedHandler;
 
     this.eventManager = new EventManager(this.syncEngine);
   }
@@ -1371,7 +1372,7 @@ class TestPlatform implements Platform {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  static TEST_DB_NAME = 'specs';
+  static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
 
   protected getPersistence(serializer: JsonProtoSerializer): Persistence {
     return new IndexedDbPersistence(
