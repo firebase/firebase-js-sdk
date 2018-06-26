@@ -68,17 +68,13 @@
   },
   "typings": "dist/index.d.ts",
   "files": [
-    "./auth",
-    "./firestore",
-    "./functions",
-    "./storage",
-    "./rxfire-auth.js",
-    "./rxfire-auth.js.map",
-    "./rxfire-firestore.js",
-    "./rxfire-firestore.js.map",
-    "./rxfire-storage.js",
-    "./rxfire-storage.js.map",
-    "./rxfire-functions.js",
-    "./rxfire-functions.js.map"
+    "/auth/package.json",
+    "/auth/dist",
+    "/firestore/package.json",
+    "/firestore/dist",
+    "/storage/package.json",
+    "/storage/dist",
+    "/functions/package.json",
+    "/functions/dist"
   ]
 }
