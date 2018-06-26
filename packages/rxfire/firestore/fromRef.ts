@@ -34,7 +34,7 @@ export function fromDocRef(
   return fromRef(ref);
 }
 
-export function fromCollectionRef<T>(
+export function fromCollectionRef(
   ref: firestore.Query
 ): Observable<firestore.QuerySnapshot> {
   return fromRef(ref);
