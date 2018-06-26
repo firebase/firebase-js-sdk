@@ -156,7 +156,7 @@ export function sortedChanges(
 
 /**
  * Create a stream of changes as they occur it time. This method is similar
- * to stateChanges() but it collects each event in an array over time.
+ * to docChanges() but it collects each event in an array over time.
  */
 export function auditTrail(
   query: firestore.Query,
