@@ -196,7 +196,7 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<QueryData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
-    // depends on the queryTargets index to be efficent.
+    // depends on the queryTargets index to be efficient.
     const canonicalId = query.canonicalId();
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],

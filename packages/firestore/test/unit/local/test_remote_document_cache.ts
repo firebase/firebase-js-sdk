@@ -37,9 +37,9 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  addEntries(...maybeDocuments: MaybeDocument[]): Promise<void> {
+  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
     return this.persistence.runTransaction('addEntry', true, txn => {
-      return this.cache.addEntries(txn, ...maybeDocuments);
+      return this.cache.addEntries(txn, maybeDocuments);
     });
   }
 

@@ -61,9 +61,19 @@ export function createOrUpgradeDb(
   }
 
   if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobalExists(txn).next(targetGlobal =>
-      saveTargetCount(txn, targetGlobal)
-    );
+    p = p
+      .next(() => ensureTargetGlobalExists(txn))
+      .next(targetGlobal => saveTargetCount(txn, targetGlobal));
+  }
+
+  if (fromVersion > 0 && fromVersion < 3 && toVersion >= 3) {
+    // Schema version 3 uses auto-generated keys to generate globally unique
+    // mutation batch IDs (this was previously ensured internally by the
+    // client). To migrate to the new schema, we have to read all mutations
+    // and write them back out. We preserve the existing batch IDs to guarantee
+    // consistency with other object stores. Any further mutation batch IDs will
+    // be auto-generated.
+    p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
   }
 
   if (fromVersion < 3 && toVersion >= 3) {
@@ -151,8 +161,8 @@ export class DbMutationQueue {
   ) {}
 }
 
-/** keys in the 'mutations' object store are [userId, batchId] pairs. */
-export type DbMutationBatchKey = [string, BatchId];
+/** The 'mutations' store  is keyed by batch ID. */
+export type DbMutationBatchKey = BatchId;
 
 /**
  * An object to be stored in the 'mutations' store in IndexedDb.
@@ -166,7 +176,13 @@ export class DbMutationBatch {
   static store = 'mutations';
 
   /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = ['userId', 'batchId'];
+  static keyPath = 'batchId';
+
+  /** The index name for lookup of mutations by user. */
+  static userMutationsIndex = 'userMutationsIndex';
+
+  /** The user mutations index is keyed by [userId, batchId] pairs. */
+  static userMutationsKeyPath = ['userId', 'batchId'];
 
   constructor(
     /**
@@ -174,8 +190,7 @@ export class DbMutationBatch {
      */
     public userId: string,
     /**
-     * An identifier for this batch, allocated by the mutation queue in a
-     * monotonically increasing manner.
+     * An identifier for this batch, allocated using an auto-generated key.
      */
     public batchId: BatchId,
     /**
@@ -204,11 +219,52 @@ function createMutationQueue(db: IDBDatabase): void {
     keyPath: DbMutationQueue.keyPath
   });
 
-  db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath as KeyPath
+  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath,
+    autoIncrement: true
   });
+  mutationBatchesStore.createIndex(
+    DbMutationBatch.userMutationsIndex,
+    DbMutationBatch.userMutationsKeyPath,
+    { unique: true }
+  );
 
   db.createObjectStore(DbDocumentMutation.store);
+}
+
+/**
+ * Upgrade function to migrate the 'mutations' store from V1 to V3. Loads
+ * and rewrites all data.
+ */
+function upgradeMutationBatchSchemaAndMigrateData(
+  db: IDBDatabase,
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  return v1MutationsStore.loadAll().next(existingMutations => {
+    db.deleteObjectStore(DbMutationBatch.store);
+
+    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
+      keyPath: DbMutationBatch.keyPath,
+      autoIncrement: true
+    });
+    mutationsStore.createIndex(
+      DbMutationBatch.userMutationsIndex,
+      DbMutationBatch.userMutationsKeyPath,
+      { unique: true }
+    );
+
+    const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+      DbMutationBatch.store
+    );
+    const writeAll = existingMutations.map(mutation =>
+      v3MutationsStore.put(mutation)
+    );
+
+    return PersistencePromise.waitFor(writeAll);
+  });
 }
 
 /**
@@ -515,7 +571,7 @@ function createQueryCache(db: IDBDatabase): void {
 }
 
 /**
- * * Counts the number of targets persisted and adds that value to the target
+ * Counts the number of targets persisted and adds that value to the target
  * global singleton.
  */
 function saveTargetCount(

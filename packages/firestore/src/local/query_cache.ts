@@ -104,7 +104,7 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry by query in the cache.
+   * Looks up a QueryData entry by query.
    *
    * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
@@ -118,7 +118,7 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<QueryData | null>;
 
   /**
-   * Looks up a QueryData entry by target ID in the cache.
+   * Looks up a QueryData entry by target ID.
    *
    * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
