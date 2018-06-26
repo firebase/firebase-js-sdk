@@ -974,26 +974,26 @@ describeSpec('Writes:', [], () => {
   });
 
   specTest(
-      'Write is executed after primary tab failover',
-      ['multi-client'],
-      () => {
-        return client(0)
-            .becomeVisible()
-            .expectPrimaryState(true)
-            .client(1)
-            .expectPrimaryState(false)
-            .userSets('collection/a', { v: 1 })
-            .userSets('collection/b', { v: 1 })
-            .client(0)
-            .writeAcks('collection/a', 1000, { expectUserCallback: false })
-            .shutdown()
-            .client(1)
-            .expectUserCallbacks({
-              acknowledged: ['collection/a']
-            })
-            .runTimer(TimerId.ClientMetadataRefresh)
-            .expectPrimaryState(true)
-            .writeAcks('collection/b', 2000);
-      }
+    'Write is executed after primary tab failover',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .becomeVisible()
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .userSets('collection/a', { v: 1 })
+        .userSets('collection/b', { v: 1 })
+        .client(0)
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .shutdown()
+        .client(1)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .writeAcks('collection/b', 2000);
+    }
   );
 });
