@@ -68,7 +68,7 @@ export class SimpleDb {
           new FirestoreError(
             Code.FAILED_PRECONDITION,
             'Cannot upgrade IndexedDB schema while another tab is open. ' +
-             'Close all tabs that access Firestore and reload this page to proceed.'
+              'Close all tabs that access Firestore and reload this page to proceed.'
           )
         );
       };
