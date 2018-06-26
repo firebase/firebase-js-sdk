@@ -51,7 +51,10 @@ describe('Firebase Functions > Call', () => {
   let functions: Service;
 
   before(() => {
-    const projectId = TEST_PROJECT.projectId;
+    const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+    const projectId = useEmulator
+      ? 'functions-integration-test'
+      : TEST_PROJECT.projectId;
     const messagingSenderId = 'messaging-sender-id';
     const region = 'us-central1';
     try {
@@ -63,6 +66,11 @@ describe('Firebase Functions > Call', () => {
       );
     }
     functions = new Service(app, region);
+    if (useEmulator) {
+      functions.useFunctionsEmulator(
+        process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN
+      );
+    }
   });
 
   it('simple data', async () => {

@@ -186,16 +186,18 @@ export class SwController extends BaseController {
       return;
     }
 
-    const clickAction = msgPayload.notification.click_action;
-    if (!clickAction) {
+    const link =
+      (msgPayload.fcmOptions && msgPayload.fcmOptions.link) ||
+      msgPayload.notification.click_action;
+    if (!link) {
       // Nothing to do.
       return;
     }
 
-    let windowClient = await this.getWindowClient_(clickAction);
+    let windowClient = await this.getWindowClient_(link);
     if (!windowClient) {
       // Unable to find window client so need to open one.
-      windowClient = await self.clients.openWindow(clickAction);
+      windowClient = await self.clients.openWindow(link);
     } else {
       windowClient = await windowClient.focus();
     }
@@ -205,8 +207,10 @@ export class SwController extends BaseController {
       return;
     }
 
-    // Delete notification data from payload before sending to the page.
+    // Delete notification and fcmOptions data from payload before sending to
+    // the page.
     delete msgPayload.notification;
+    delete msgPayload.fcmOptions;
 
     const internalMsg = createNewMsg(
       MessageType.NOTIFICATION_CLICKED,

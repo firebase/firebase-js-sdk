@@ -40,6 +40,7 @@ interface HttpResponse {
 export class Service implements FirebaseFunctions {
   private readonly contextProvider: ContextProvider;
   private readonly serializer = new Serializer();
+  private emulatorOrigin: string | null = null;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.
@@ -64,7 +65,22 @@ export class Service implements FirebaseFunctions {
   _url(name: string): string {
     const projectId = this.app_.options.projectId;
     const region = this.region_;
+    if (this.emulatorOrigin !== null) {
+      const origin = this.emulatorOrigin;
+      return `${origin}/${projectId}/${region}/${name}`;
+    }
     return `https://${region}-${projectId}.cloudfunctions.net/${name}`;
+  }
+
+  /**
+   * Changes this instance to point to a Cloud Functions emulator running
+   * locally. See https://firebase.google.com/docs/functions/local-emulator
+   *
+   * @param origin The origin of the local emulator, such as
+   * "http://localhost:5005".
+   */
+  useFunctionsEmulator(origin: string) {
+    this.emulatorOrigin = origin;
   }
 
   /**

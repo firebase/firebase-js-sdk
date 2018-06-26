@@ -638,164 +638,159 @@ describe('Firebase Messaging > *SwController', () => {
       expect(event.notification.close.callCount).to.equal(1);
     });
 
-    it('should open click_action URL for FCM notification (third-party so no window client access)', async () => {
-      const clickAction = '/test-click-action';
-      const waitUntilSpy = sandbox.spy();
-      const event: any = {
-        notification: {
-          data: {
-            FCM_MSG: {
-              notification: {
-                click_action: clickAction
-              }
-            }
-          },
-          close: sandbox.spy()
-        },
-        waitUntil: waitUntilSpy,
-        stopImmediatePropagation: sandbox.spy()
-      };
+    for (const key of ['link', 'click_action']) {
+      describe(key, () => {
+        let link: string;
+        let waitUntilSpy: sinon.SinonSpy;
+        let event: any;
 
-      const openWindowStub = sandbox.stub().callsFake(() => {
-        // Pretend it's a third party URL
-        return null;
+        beforeEach(() => {
+          link = '/test-link';
+          waitUntilSpy = sandbox.spy();
+
+          const FCM_MSG =
+            key === 'link'
+              ? // New API
+                {
+                  notification: {},
+                  fcmOptions: {
+                    link
+                  }
+                }
+              : // Legacy API
+                {
+                  notification: {
+                    click_action: link
+                  }
+                };
+
+          event = {
+            notification: {
+              data: {
+                FCM_MSG
+              },
+              close: sandbox.spy()
+            },
+            waitUntil: waitUntilSpy,
+            stopImmediatePropagation: sandbox.spy()
+          };
+        });
+
+        it('should open URL (third-party so no window client access)', async () => {
+          const openWindowStub = sandbox.stub().callsFake(() => {
+            // Pretend it's a third party URL
+            return null;
+          });
+
+          const clients = {
+            openWindow: openWindowStub
+          };
+          sandbox.stub(self, 'clients').value(clients);
+
+          const swController = new SwController(app);
+
+          sandbox
+            .stub(swController, 'getWindowClient_')
+            .callsFake(async () => null);
+
+          swController.onNotificationClick(event);
+
+          expect(event.stopImmediatePropagation.callCount).to.equal(1);
+          expect(event.notification.close.callCount).to.equal(1);
+
+          await event.waitUntil.getCall(0).args[0];
+          expect(openWindowStub.callCount).to.equal(1);
+          expect(openWindowStub.getCall(0).args[0]).to.equal(link);
+        });
+
+        it('should open URL (same origin will include window client access)', async () => {
+          const fakeWindowClient = {};
+
+          const openWindowStub = sandbox.stub().callsFake(() => {
+            // Pretend it's a same origin URL
+            return fakeWindowClient;
+          });
+
+          const clients = {
+            openWindow: openWindowStub
+          };
+          sandbox.stub(self, 'clients').value(clients);
+
+          const swController = new SwController(app);
+
+          sandbox
+            .stub(swController, 'getWindowClient_')
+            .callsFake(async () => null);
+          const attemptToMessageClientStub = sandbox
+            .stub(swController, 'attemptToMessageClient_')
+            .callsFake(async () => {});
+
+          swController.onNotificationClick(event);
+
+          expect(event.stopImmediatePropagation.callCount).to.equal(1);
+          expect(event.notification.close.callCount).to.equal(1);
+
+          await event.waitUntil.getCall(0).args[0];
+          expect(openWindowStub.callCount).to.equal(1);
+          expect(openWindowStub.getCall(0).args[0]).to.equal(link);
+
+          expect(attemptToMessageClientStub.callCount).to.equal(1);
+          expect(attemptToMessageClientStub.args[0][0]).to.equal(
+            fakeWindowClient
+          );
+          expect(attemptToMessageClientStub.args[0][1]).to.deep.equal({
+            'firebase-messaging-msg-data': {},
+            'firebase-messaging-msg-type': 'notification-clicked'
+          });
+        });
+
+        it('should not open a window if one exists, instead focus is', async () => {
+          const focusStub = sandbox.stub().callsFake(() => fakeWindowClient);
+          const fakeWindowClient: Partial<WindowClient> = {
+            focus: focusStub
+          };
+
+          const openWindowStub = sandbox.stub().callsFake(() => {
+            // Pretend it's a same origin URL
+            return fakeWindowClient;
+          });
+
+          const clients = {
+            openWindow: openWindowStub
+          };
+          sandbox.stub(self, 'clients').value(clients);
+
+          const swController = new SwController(app);
+
+          sandbox
+            .stub(swController, 'getWindowClient_')
+            .callsFake(async () => fakeWindowClient);
+          const attemptToMessageClientStub = sandbox
+            .stub(swController, 'attemptToMessageClient_')
+            .callsFake(async () => {});
+
+          swController.onNotificationClick(event);
+
+          expect(event.stopImmediatePropagation.callCount).to.equal(1);
+          expect(event.notification.close.callCount).to.equal(1);
+
+          await event.waitUntil.getCall(0).args[0];
+
+          expect(openWindowStub.callCount).to.equal(0);
+
+          expect(focusStub.callCount).to.equal(1);
+
+          expect(attemptToMessageClientStub.callCount).to.equal(1);
+          expect(attemptToMessageClientStub.args[0][0]).to.equal(
+            fakeWindowClient
+          );
+          expect(attemptToMessageClientStub.args[0][1]).to.deep.equal({
+            'firebase-messaging-msg-data': {},
+            'firebase-messaging-msg-type': 'notification-clicked'
+          });
+        });
       });
-
-      const clients = {
-        openWindow: openWindowStub
-      };
-      sandbox.stub(self, 'clients').value(clients);
-
-      const swController = new SwController(app);
-
-      sandbox
-        .stub(swController, 'getWindowClient_')
-        .callsFake(async () => null);
-
-      swController.onNotificationClick(event);
-
-      expect(event.stopImmediatePropagation.callCount).to.equal(1);
-      expect(event.notification.close.callCount).to.equal(1);
-
-      await event.waitUntil.getCall(0).args[0];
-      expect(openWindowStub.callCount).to.equal(1);
-      expect(openWindowStub.getCall(0).args[0]).to.equal(clickAction);
-    });
-
-    it('should open click_action URL for FCM notification (same origin will include window client access)', async () => {
-      const fakeWindowClient = {};
-      const clickAction = '/test-click-action';
-      const waitUntilSpy = sandbox.spy();
-      const event: any = {
-        notification: {
-          data: {
-            FCM_MSG: {
-              notification: {
-                click_action: clickAction
-              }
-            }
-          },
-          close: sandbox.spy()
-        },
-        waitUntil: waitUntilSpy,
-        stopImmediatePropagation: sandbox.spy()
-      };
-
-      const openWindowStub = sandbox.stub().callsFake(() => {
-        // Pretend it's a third party URL
-        return fakeWindowClient;
-      });
-
-      const clients = {
-        openWindow: openWindowStub
-      };
-      sandbox.stub(self, 'clients').value(clients);
-
-      const swController = new SwController(app);
-
-      sandbox
-        .stub(swController, 'getWindowClient_')
-        .callsFake(async () => null);
-      const attemptToMessageClientStub = sandbox
-        .stub(swController, 'attemptToMessageClient_')
-        .callsFake(async () => {});
-
-      swController.onNotificationClick(event);
-
-      expect(event.stopImmediatePropagation.callCount).to.equal(1);
-      expect(event.notification.close.callCount).to.equal(1);
-
-      await event.waitUntil.getCall(0).args[0];
-      expect(openWindowStub.callCount).to.equal(1);
-      expect(openWindowStub.getCall(0).args[0]).to.equal(clickAction);
-
-      expect(attemptToMessageClientStub.callCount).to.equal(1);
-      expect(attemptToMessageClientStub.args[0][0]).to.equal(fakeWindowClient);
-      expect(attemptToMessageClientStub.args[0][1]).to.deep.equal({
-        'firebase-messaging-msg-data': {},
-        'firebase-messaging-msg-type': 'notification-clicked'
-      });
-    });
-
-    it('should not open a window if one exists, instead focus is', async () => {
-      const focusStub = sandbox.stub().callsFake(() => fakeWindowClient);
-      const fakeWindowClient: Partial<WindowClient> = {
-        focus: focusStub
-      };
-      const clickAction = '/test-click-action';
-      const waitUntilSpy = sandbox.spy();
-      const event: any = {
-        notification: {
-          data: {
-            FCM_MSG: {
-              notification: {
-                click_action: clickAction
-              }
-            }
-          },
-          close: sandbox.spy()
-        },
-        waitUntil: waitUntilSpy,
-        stopImmediatePropagation: sandbox.spy()
-      };
-
-      const openWindowStub = sandbox.stub().callsFake(() => {
-        // Pretend it's a same origin URL
-        return fakeWindowClient;
-      });
-
-      const clients = {
-        openWindow: openWindowStub
-      };
-      sandbox.stub(self, 'clients').value(clients);
-
-      const swController = new SwController(app);
-
-      sandbox
-        .stub(swController, 'getWindowClient_')
-        .callsFake(async () => fakeWindowClient);
-      const attemptToMessageClientStub = sandbox
-        .stub(swController, 'attemptToMessageClient_')
-        .callsFake(async () => {});
-
-      swController.onNotificationClick(event);
-
-      expect(event.stopImmediatePropagation.callCount).to.equal(1);
-      expect(event.notification.close.callCount).to.equal(1);
-
-      await event.waitUntil.getCall(0).args[0];
-
-      expect(openWindowStub.callCount).to.equal(0);
-
-      expect(focusStub.callCount).to.equal(1);
-
-      expect(attemptToMessageClientStub.callCount).to.equal(1);
-      expect(attemptToMessageClientStub.args[0][0]).to.equal(fakeWindowClient);
-      expect(attemptToMessageClientStub.args[0][1]).to.deep.equal({
-        'firebase-messaging-msg-data': {},
-        'firebase-messaging-msg-type': 'notification-clicked'
-      });
-    });
+    }
   });
 
   describe('getNotificationData_', () => {
