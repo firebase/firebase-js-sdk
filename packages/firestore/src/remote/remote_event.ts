@@ -58,16 +58,18 @@ export class RemoteEvent {
   ) {}
 
   /**
-   * Creates a synthesized RemoteEvent that can be used to apply a CURRENT
-   * status change for a query that is executed by a different tab.
+   * HACK: Views require RemoteEvents in order to determine whether the view is
+   * CURRENT, but secondary tabs don't receive remote events. So this method is
+   * used to create a synthesized RemoteEvent that can be used to apply a
+   * CURRENT status change to a View, for queries executed in a different tab.
    */
   // PORTING NOTE: Multi-tab only
-  static createSynthesizedRemoteEventForSyncStateChange(
+  static createSynthesizedRemoteEventForCurrentChange(
     targetId: TargetId,
     current: boolean
   ): RemoteEvent {
     const targetChanges = {
-      [targetId]: TargetChange.createSynthesizedTargetChangeForSyncStateChange(
+      [targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
         targetId,
         current
       )
@@ -123,11 +125,13 @@ export class TargetChange {
   ) {}
 
   /**
-   * Creates a synthesized TargetChange that can be used to apply a CURRENT
-   * status change for a query that is executed by a different tab.
+   * HACK: Views require TargetChanges in order to determine whether the view is
+   * CURRENT, but secondary tabs don't receive remote events. So this method is
+   * used to create a synthesized TargetChanges that can be used to apply a
+   * CURRENT status change to a View, for queries executed in a different tab.
    */
   // PORTING NOTE: Multi-tab only
-  static createSynthesizedTargetChangeForSyncStateChange(
+  static createSynthesizedTargetChangeForCurrentChange(
     targetId: TargetId,
     current: boolean
   ): TargetChange {

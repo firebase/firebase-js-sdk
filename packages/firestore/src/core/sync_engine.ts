@@ -205,7 +205,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
           const viewDocChanges = view.computeDocChanges(docs);
-          const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForSyncStateChange(
+          const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current
           );
@@ -737,7 +737,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         case 'current':
         case 'not-current': {
           const changes = await this.localStore.getNewDocumentChanges();
-          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForSyncStateChange(
+          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
             targetId,
             state === 'current'
           );
