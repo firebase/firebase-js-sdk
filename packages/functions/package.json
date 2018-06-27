@@ -16,6 +16,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
+    "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p test:node",
     "prepare": "npm run build"
   },
   "license": "Apache-2.0",
