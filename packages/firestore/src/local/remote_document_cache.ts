@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap } from '../model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
@@ -101,5 +101,5 @@ export interface RemoteDocumentCache {
   // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocument[]>;
+  ): PersistencePromise<MaybeDocumentMap>;
 }

@@ -17,7 +17,7 @@
 import { Query } from '../../../src/core/query';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { DocumentMap } from '../../../src/model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
@@ -65,7 +65,7 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getNextDocumentChanges(): Promise<MaybeDocument[]> {
+  getNextDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'getNextDocumentChanges',
       true,

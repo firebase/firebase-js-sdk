@@ -27,7 +27,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
@@ -135,6 +135,15 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<QueryData | null> {
     const queryData = this.queries.get(query) || null;
     return PersistencePromise.resolve(queryData);
+  }
+
+  getQueryDataForTarget(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): never {
+    // This method is only needed for multi-tab and we can't implement it
+    // efficiently without additional data structures.
+    return fail('Not yet implemented.');
   }
 
   addMatchingKeys(

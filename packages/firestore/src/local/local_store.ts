@@ -49,7 +49,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { ClientId } from './shared_client_state';
+import { ClientId, SharedClientState } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
@@ -165,7 +165,15 @@ export class LocalStore {
      * cached (e.g. if they are no longer retained by the above reference sets
      * and the garbage collector is performing eager collection).
      */
-    private garbageCollector: GarbageCollector
+    private garbageCollector: GarbageCollector,
+    /**
+     * SharedClientState to notify of acknowledged writes.
+     *
+     * TODO(mrschmidt): When we get rid of held write acks, the SyncEngine can
+     * notify SharedClientState of all write acknowledgements and LocalStore
+     * should no longer need access to SharedClientState.
+     */
+    private sharedClientState: SharedClientState
   ) {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
@@ -700,41 +708,51 @@ export class LocalStore {
     });
   }
 
-  /** Unpin all the documents associated with the given query. */
-  releaseQuery(query: Query): Promise<void> {
-    return this.persistence.runTransaction('Release query', true, txn => {
-      return this.queryCache
-        .getQueryData(txn, query)
-        .next((queryData: QueryData | null) => {
-          assert(
-            queryData != null,
-            'Tried to release nonexistent query: ' + query
-          );
-          this.localViewReferences.removeReferencesForId(queryData!.targetId);
-          delete this.targetIds[queryData!.targetId];
-          if (this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData!);
-          } else {
-            return PersistencePromise.resolve();
-          }
-        })
-        .next(() => {
-          // If this was the last watch target, then we won't get any more
-          // watch snapshots, so we should release any held batch results.
-          if (objUtils.isEmpty(this.targetIds)) {
-            const documentBuffer = new RemoteDocumentChangeBuffer(
-              this.remoteDocuments
+  /**
+   * Unpin all the documents associated with the given query. If
+   * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
+   * directly removes the associated query data from the query cache.
+   */
+  // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
+  releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
+    const requirePrimaryLease = keepPersistedQueryData === false;
+    return this.persistence.runTransaction(
+      'Release query',
+      requirePrimaryLease,
+      txn => {
+        return this.queryCache
+          .getQueryData(txn, query)
+          .next((queryData: QueryData | null) => {
+            assert(
+              queryData != null,
+              'Tried to release nonexistent query: ' + query
             );
-            return this.releaseHeldBatchResults(txn, documentBuffer).next(
-              () => {
-                documentBuffer.apply(txn);
-              }
-            );
-          } else {
-            return PersistencePromise.resolve();
-          }
-        });
-    });
+            this.localViewReferences.removeReferencesForId(queryData!.targetId);
+            delete this.targetIds[queryData!.targetId];
+            if (!keepPersistedQueryData && this.garbageCollector.isEager) {
+              return this.queryCache.removeQueryData(txn, queryData!);
+            } else {
+              return PersistencePromise.resolve();
+            }
+          })
+          .next(() => {
+            // If this was the last watch target, then we won't get any more
+            // watch snapshots, so we should release any held batch results.
+            if (objUtils.isEmpty(this.targetIds)) {
+              const documentBuffer = new RemoteDocumentChangeBuffer(
+                this.remoteDocuments
+              );
+              return this.releaseHeldBatchResults(txn, documentBuffer).next(
+                () => {
+                  documentBuffer.apply(txn);
+                }
+              );
+            } else {
+              return PersistencePromise.resolve();
+            }
+          });
+      }
+    );
   }
 
   /**
@@ -862,9 +880,22 @@ export class LocalStore {
   ): PersistencePromise<DocumentKeySet> {
     let promiseChain = PersistencePromise.resolve();
     for (const batchResult of batchResults) {
-      promiseChain = promiseChain.next(() =>
-        this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
-      );
+      promiseChain = promiseChain
+        .next(() =>
+          this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
+        )
+        .next(() => {
+          // HACK: This should happen in SyncEngine and outside of the
+          // transaction boundary, but we currently don't expose the Batch ID
+          // for released batches outside of LocalStore. Due to the way that
+          // we lock the IndexedDb store, secondary clients will however NOT be
+          // able to act upon these notifications until after this transaction
+          // is committed. b/33446471 will remove this reliance.
+          this.sharedClientState.trackMutationResult(
+            batchResult.batch.batchId,
+            'acknowledged'
+          );
+        });
     }
     return promiseChain.next(() => {
       return this.removeMutationBatches(
@@ -937,5 +968,23 @@ export class LocalStore {
         });
     });
     return promiseChain;
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  getQueryDataForTarget(targetId: TargetId): Promise<QueryData | null> {
+    return this.persistence.runTransaction('Get query data', false, txn => {
+      return this.queryCache.getQueryDataForTarget(txn, targetId);
+    });
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
+    return this.persistence.runTransaction(
+      'Get new document changes',
+      false,
+      txn => {
+        return this.remoteDocuments.getNewDocumentChanges(txn);
+      }
+    );
   }
 }

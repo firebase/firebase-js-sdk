@@ -110,8 +110,12 @@ export interface SharedClientState {
    */
   getMinimumGlobalPendingMutation(): BatchId | null;
 
-  /** Associates a new Query Target ID with the local Firestore clients. */
-  addLocalQueryTarget(targetId: TargetId): void;
+  /**
+   * Associates a new Query Target ID with the local Firestore client. Returns
+   * the new query state for the query (which can be 'current' if the query is
+   * already associated with another tab).
+   */
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
   /** Removes a Query Target ID for the local Firestore clients. */
   removeLocalQueryTarget(targetId: TargetId): void;
@@ -134,7 +138,17 @@ export interface SharedClientState {
    * The implementation for this may require O(n) runtime, where 'n' is the size
    * of the result set.
    */
+  // Visible for testing
   getAllActiveQueryTargets(): SortedSet<TargetId>;
+
+  /**
+   * Checks whether the provided target ID is currently being listened to by
+   * any of the active clients.
+   *
+   * The implementation may require O(n*log m) runtime, where 'n' is the number
+   * of clients and 'm' the number of targets.
+   */
+  isActiveQueryTarget(targetId: TargetId): boolean;
 
   /**
    * Starts the SharedClientState, reads existing client data and registers
@@ -481,10 +495,6 @@ export class LocalClientState implements ClientState {
   }
 
   removeQueryTarget(targetId: TargetId): void {
-    assert(
-      this.activeTargetIds.has(targetId),
-      `Active Target ID '${targetId}' not found.`
-    );
     this.activeTargetIds = this.activeTargetIds.delete(targetId);
   }
 
@@ -643,6 +653,19 @@ export class WebStorageSharedClientState implements SharedClientState {
     return activeTargets;
   }
 
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    // This is not using `obj.forEach` since `forEach` doesn't support early
+    // return.
+    for (const clientId in this.activeClients) {
+      if (this.activeClients.hasOwnProperty(clientId)) {
+        if (this.activeClients[clientId].activeTargetIds.has(targetId)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   addLocalPendingMutation(batchId: BatchId): void {
     this.localClientState.addPendingMutation(batchId);
     this.persistMutationState(batchId, 'pending');
@@ -671,9 +694,31 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
   }
 
-  addLocalQueryTarget(targetId: TargetId): void {
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
+    let queryState: QueryTargetState = 'not-current';
+
+    // Lookup an existing query state if the target ID was already registered
+    // by another tab
+    if (this.isActiveQueryTarget(targetId)) {
+      const storageItem = this.storage.getItem(
+        this.toLocalStorageQueryTargetMetadataKey(targetId)
+      );
+
+      if (storageItem) {
+        const metadata = QueryTargetMetadata.fromLocalStorageEntry(
+          targetId,
+          storageItem
+        );
+        if (metadata) {
+          queryState = metadata.state;
+        }
+      }
+    }
+
     this.localClientState.addQueryTarget(targetId);
     this.persistClientState();
+
+    return queryState;
   }
 
   removeLocalQueryTarget(targetId: TargetId): void {
@@ -851,6 +896,11 @@ export class WebStorageSharedClientState implements SharedClientState {
     return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
   }
 
+  /** Assembles the key for a query state in LocalStorage */
+  private toLocalStorageQueryTargetMetadataKey(targetId: TargetId): string {
+    return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
+  }
+
   /**
    * Parses a client state key in LocalStorage. Returns null if the key does not
    * match the expected key format.
@@ -973,6 +1023,7 @@ export class WebStorageSharedClientState implements SharedClientState {
  */
 export class MemorySharedClientState implements SharedClientState {
   private localState = new LocalClientState();
+  private queryState: { [targetId: number]: QueryTargetState } = {};
 
   syncEngine: SharedClientStateSyncer | null;
 
@@ -1000,8 +1051,9 @@ export class MemorySharedClientState implements SharedClientState {
     return this.localState.minMutationBatchId;
   }
 
-  addLocalQueryTarget(targetId: TargetId): void {
+  addLocalQueryTarget(targetId: TargetId): QueryTargetState {
     this.localState.addQueryTarget(targetId);
+    return this.queryState[targetId] || 'not-current';
   }
 
   trackQueryUpdate(
@@ -1009,15 +1061,20 @@ export class MemorySharedClientState implements SharedClientState {
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    // No op.
+    this.queryState[targetId] = state;
   }
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+    delete this.queryState[targetId];
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
     return this.localState.activeTargetIds;
+  }
+
+  isActiveQueryTarget(targetId: TargetId): boolean {
+    return this.localState.activeTargetIds.has(targetId);
   }
 
   start(): Promise<void> {

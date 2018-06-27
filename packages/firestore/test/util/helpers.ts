@@ -463,7 +463,7 @@ export function applyDocChanges(
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
   const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
-  return view.applyChanges(changes);
+  return view.applyChanges(changes, true);
 }
 
 /**

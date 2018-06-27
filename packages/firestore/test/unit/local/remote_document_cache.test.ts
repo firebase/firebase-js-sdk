@@ -30,6 +30,7 @@ import {
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import { MaybeDocumentMap } from '../../../src/model/collections';
 
 let persistence: Persistence;
 let cache: TestRemoteDocumentCache;
@@ -85,12 +86,12 @@ function genericRemoteDocumentCacheTests(): void {
 
   function assertMatches(
     expected: MaybeDocument[],
-    actual: MaybeDocument[]
+    actual: MaybeDocumentMap
   ): void {
-    expect(actual.length).to.equal(expected.length);
-    actual.forEach(actualDoc => {
+    expect(actual.size).to.equal(expected.length);
+    actual.forEach((actualKey, actualDoc) => {
       const found = expected.find(expectedDoc => {
-        if (actualDoc.key.isEqual(expectedDoc.key)) {
+        if (actualKey.isEqual(expectedDoc.key)) {
           expectEqual(actualDoc, expectedDoc);
           return true;
         }
@@ -164,11 +165,7 @@ function genericRemoteDocumentCacheTests(): void {
     ]);
 
     const query = new Query(path('b'));
-    const matchingDocs: MaybeDocument[] = [];
-
-    (await cache.getDocumentsMatchingQuery(query)).forEach((key, doc) => {
-      matchingDocs.push(doc);
-    });
+    const matchingDocs = await cache.getDocumentsMatchingQuery(query);
 
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],

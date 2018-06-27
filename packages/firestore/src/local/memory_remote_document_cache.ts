@@ -19,6 +19,7 @@ import {
   documentKeySet,
   DocumentMap,
   documentMap,
+  MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -90,11 +91,12 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
   getNewDocumentChanges(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocument[]> {
-    const changedDocs: MaybeDocument[] = [];
+  ): PersistencePromise<MaybeDocumentMap> {
+    let changedDocs = maybeDocumentMap();
 
     this.newDocumentChanges.forEach(key => {
-      changedDocs.push(
+      changedDocs = changedDocs.insert(
+        key,
         this.docs.get(key) ||
           new NoDocument(key, SnapshotVersion.forDeletedDoc())
       );
