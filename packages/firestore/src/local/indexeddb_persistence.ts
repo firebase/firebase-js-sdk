@@ -199,20 +199,26 @@ export class IndexedDbPersistence implements Persistence {
   private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       const metadataStore = clientMetadataStore(txn);
-      metadataStore.put(
-        new DbClientMetadata(this.clientId, Date.now(), this.inForeground)
-      );
+      return metadataStore
+        .put(new DbClientMetadata(this.clientId, Date.now(), this.inForeground))
+        .next(() => this.canActAsPrimary(txn))
+        .next(canActAsPrimary => {
+          if (canActAsPrimary !== this.isPrimary) {
+            this.isPrimary = canActAsPrimary;
+            this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
+          }
 
-      return this.canActAsPrimary(txn).next(canActAsPrimary => {
-        if (canActAsPrimary !== this.isPrimary) {
-          this.isPrimary = canActAsPrimary;
-          this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
-        }
+          if (this.isPrimary) {
+            return this.acquireOrExtendPrimaryLease(txn);
+          }
+        });
+    });
+  }
 
-        if (this.isPrimary) {
-          return this.acquireOrExtendPrimaryLease(txn);
-        }
-      });
+  private removeClientMetadata(): Promise<void> {
+    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
+      const metadataStore = clientMetadataStore(txn);
+      return metadataStore.delete(this.clientId);
     });
   }
 
@@ -296,20 +302,23 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  shutdown(deleteData?: boolean): Promise<void> {
+  async shutdown(deleteData?: boolean): Promise<void> {
     if (!this.started) {
       return Promise.resolve();
     }
+    // TODO(multitab): Similar to the zombied client ID, we should write an
+    // entry to Local Storage first to indicate that we are no longer alive.
+    // This will help us when the shutdown handler doesn't run to completion.
     this.started = false;
     this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    return this.releasePrimaryLeaseIfHeld().then(() => {
-      this.simpleDb.close();
-      if (deleteData) {
-        return SimpleDb.delete(this.dbName);
-      }
-    });
+    await this.releasePrimaryLeaseIfHeld();
+    await this.removeClientMetadata();
+    this.simpleDb.close();
+    if (deleteData) {
+      await SimpleDb.delete(this.dbName);
+    }
   }
 
   getActiveClients(): Promise<ClientId[]> {
