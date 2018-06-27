@@ -662,7 +662,7 @@ export class DbClientMetadata {
   static store = 'clientMetadata';
 
   /** Keys are automatically assigned via the clientId properties. */
-  static keyPath = ['clientId'];
+  static keyPath = 'clientId';
 
   constructor(
     /** The auto-generated client id assigned at client startup. */
@@ -679,7 +679,7 @@ export type DbClientMetadataKey = string;
 
 function createClientMetadataStore(db: IDBDatabase): void {
   db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath as KeyPath
+    keyPath: DbClientMetadata.keyPath
   });
 }
 
