@@ -141,6 +141,23 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  specTest('Will re-issue listen for errored target', [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcks(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+      )
+      .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
+  });
+
   // It can happen that we need to process watch messages for previously failed
   // targets, because target failures are handled out of band.
   // This test verifies that the code does not crash in this case.
@@ -595,12 +612,94 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000)
         .client(1)
         .expectEvents(query, {});
+    }
+  );
+
+  specTest(
+    "Secondary client uses primary client's online state",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return client(0, false)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000)
+        .client(1)
+        .expectEvents(query, {})
+        .client(0)
+        .disableNetwork()
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .enableNetwork()
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000)
+        .client(1)
+        .expectEvents(query, {});
+    }
+  );
+
+  specTest('New client uses existing online state', ['multi-client'], () => {
+    const query1 = Query.atPath(path('collection'));
+    const query2 = Query.atPath(path('collection'));
+
+    return client(0, false)
+      .userListens(query1)
+      .watchAcksFull(query1, 1000)
+      .expectEvents(query1, {})
+      .client(1)
+      .userListens(query1)
+      .expectEvents(query1, {})
+      .client(0)
+      .disableNetwork()
+      .expectEvents(query1, { fromCache: true })
+      .client(1)
+      .expectEvents(query1, { fromCache: true })
+      .client(2)
+      .userListens(query1)
+      .expectEvents(query1, { fromCache: true })
+      .userListens(query2)
+      .expectEvents(query2, { fromCache: true });
+  });
+
+  specTest(
+    "Secondary client's online state is ignored",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 2000, { key: 'a' });
+
+      return client(0, false)
+        .becomeVisible()
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000)
+        .client(1)
+        .expectEvents(query, {})
+        .disableNetwork() // Ignored since this is the secondary client.
+        .client(0)
+        .watchSends({ affects: [query] }, docA)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .disableNetwork()
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .enableNetwork();
     }
   );
 });

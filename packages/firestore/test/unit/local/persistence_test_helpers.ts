@@ -23,7 +23,12 @@ import {
   WebStorageSharedClientState,
   ClientId
 } from '../../../src/local/shared_client_state';
-import { BatchId, MutationBatchState, TargetId } from '../../../src/core/types';
+import {
+  BatchId,
+  MutationBatchState,
+  OnlineState,
+  TargetId
+} from '../../../src/core/types';
 import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
@@ -102,6 +107,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
     added: TargetId[],
     removed: TargetId[]
   ): Promise<void> {}
+  applyOnlineStateChange(onlineState: OnlineState): void {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.
@@ -125,6 +131,7 @@ export async function populateWebStorage(
   secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
     existingClientId
   ]);
+  secondaryClientState.onlineStateHandler = () => {};
   await secondaryClientState.start();
 
   for (const batchId of existingMutationBatchIds) {

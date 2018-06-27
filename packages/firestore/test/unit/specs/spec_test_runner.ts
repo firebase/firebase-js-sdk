@@ -448,6 +448,7 @@ abstract class TestRunner {
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
+    this.sharedClientState.onlineStateHandler = onlineStateChangedHandler;
 
     this.eventManager = new EventManager(this.syncEngine);
   }

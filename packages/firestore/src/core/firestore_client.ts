@@ -376,6 +376,8 @@ export class FirestoreClient {
           user
         );
 
+        this.sharedClientState.onlineStateHandler = onlineStateChangedHandler;
+
         // Set up wiring between sync engine and other components
         this.remoteStore.syncEngine = this.syncEngine;
         this.sharedClientState.syncEngine = this.syncEngine;
