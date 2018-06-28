@@ -454,17 +454,19 @@ abstract class TestRunner {
     } else if ('userDelete' in step) {
       return this.doDelete(step.userDelete!);
     } else if ('watchAck' in step) {
-      return this.doWatchAck(step.watchAck!, step.watchSnapshot);
+      return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
-      return this.doWatchCurrent(step.watchCurrent!, step.watchSnapshot);
+      return this.doWatchCurrent(step.watchCurrent!);
     } else if ('watchRemove' in step) {
-      return this.doWatchRemove(step.watchRemove!, step.watchSnapshot);
+      return this.doWatchRemove(step.watchRemove!);
     } else if ('watchEntity' in step) {
-      return this.doWatchEntity(step.watchEntity!, step.watchSnapshot);
+      return this.doWatchEntity(step.watchEntity!);
     } else if ('watchFilter' in step) {
-      return this.doWatchFilter(step.watchFilter!, step.watchSnapshot);
+      return this.doWatchFilter(step.watchFilter!);
+    } else if ('watchSnapshot' in step) {
+      return this.doWatchSnapshot(step.watchSnapshot!);
     } else if ('watchReset' in step) {
-      return this.doWatchReset(step.watchReset!, step.watchSnapshot);
+      return this.doWatchReset(step.watchReset!);
     } else if ('watchStreamClose' in step) {
       return this.doWatchStreamClose(step.watchStreamClose!);
     } else if ('writeAck' in step) {
@@ -482,9 +484,6 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
-    } else if ('watchSnapshot' in step) {
-      // Handle a single `watchSnapshot` event without any other watch change
-      return this.doWatchSnapshot(step.watchSnapshot!);
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -557,21 +556,15 @@ abstract class TestRunner {
     });
   }
 
-  private doWatchAck(
-    ackedTargets: SpecWatchAck,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Added,
       ackedTargets
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchCurrent(
-    currentTargets: SpecWatchCurrent,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchCurrent(currentTargets: SpecWatchCurrent): Promise<void> {
     const targets = currentTargets[0];
     const resumeToken = currentTargets[1] as ProtoByteString;
     const change = new WatchTargetChange(
@@ -579,24 +572,18 @@ abstract class TestRunner {
       targets,
       resumeToken
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchReset(
-    targetIds: SpecWatchReset,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchReset(targetIds: SpecWatchReset): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Reset,
       targetIds
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchRemove(
-    removed: SpecWatchRemove,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchRemove(removed: SpecWatchRemove): Promise<void> {
     const cause =
       removed.cause &&
       new FirestoreError(
@@ -622,30 +609,21 @@ abstract class TestRunner {
         delete this.connection.activeTargets[targetId];
       });
     }
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchEntity(
-    watchEntity: SpecWatchEntity,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
       assert(
         !watchEntity.doc,
         'Exactly one of `doc` or `docs` needs to be set'
       );
-      let count = 0;
       return sequence(watchEntity.docs, (specDocument: SpecDocument) => {
-        count++;
-        const isLast = count === watchEntity.docs!.length;
-        return this.doWatchEntity(
-          {
-            doc: specDocument,
-            targets: watchEntity.targets,
-            removedTargets: watchEntity.removedTargets
-          },
-          isLast ? watchSnapshot : undefined
-        );
+        return this.doWatchEntity({
+          doc: specDocument,
+          targets: watchEntity.targets,
+          removedTargets: watchEntity.removedTargets
+        });
       });
     } else if (watchEntity.doc) {
       const [key, version, data] = watchEntity.doc;
@@ -658,7 +636,7 @@ abstract class TestRunner {
         document.key,
         document
       );
-      return this.doWatchEvent(change, watchSnapshot);
+      return this.doWatchEvent(change);
     } else if (watchEntity.key) {
       const documentKey = key(watchEntity.key);
       const change = new DocumentWatchChange(
@@ -667,16 +645,13 @@ abstract class TestRunner {
         documentKey,
         null
       );
-      return this.doWatchEvent(change, watchSnapshot);
+      return this.doWatchEvent(change);
     } else {
       return fail('Either doc or docs must be set');
     }
   }
 
-  private doWatchFilter(
-    watchFilter: SpecWatchFilter,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
     assert(
       targetIds.length === 1,
@@ -685,15 +660,13 @@ abstract class TestRunner {
     const keys = watchFilter.slice(1);
     const filter = new ExistenceFilter(keys.length);
     const change = new ExistenceFilterChange(targetIds[0], filter);
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
   private doWatchSnapshot(watchSnapshot: SpecWatchSnapshot): Promise<void> {
     // The client will only respond to watchSnapshots if they are on a target
     // change with an empty set of target IDs. So we should be sure to send a
-    // separate event. TODO(klimt): We should make the spec tests behave more
-    // like the backend. Alternatively, we could hook in to the system at a
-    // level higher than the stream.
+    // separate event.
     const protoJSON: api.ListenResponse = {
       targetChange: {
         readTime: this.serializer.toVersion(version(watchSnapshot.version))
@@ -712,16 +685,10 @@ abstract class TestRunner {
     return this.queue.enqueue(async () => {});
   }
 
-  private async doWatchEvent(
-    watchChange: WatchChange,
-    watchSnapshot?: SpecWatchSnapshot
-  ): Promise<void> {
+  private async doWatchEvent(watchChange: WatchChange): Promise<void> {
     const protoJSON = this.serializer.toTestWatchChange(watchChange);
     this.connection.watchStream!.callOnMessage(protoJSON);
 
-    if (watchSnapshot) {
-      await this.doWatchSnapshot(watchSnapshot);
-    }
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
     return this.queue.enqueue(async () => {});
@@ -1093,7 +1060,7 @@ export interface SpecConfig {
 }
 
 /**
- * Union type for each step. The step consists of (mostly) exactly one `field`
+ * Union type for each step. The step consists of exactly one `field`
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
@@ -1120,10 +1087,7 @@ export interface SpecStep {
   watchEntity?: SpecWatchEntity;
   /** Existence filter in the watch stream */
   watchFilter?: SpecWatchFilter;
-  /**
-   * Optional snapshot version that can be additionally specified on any other
-   * watch event
-   */
+  /** Snapshot ("NO_CHANGE") event in the watch stream. */
   watchSnapshot?: SpecWatchSnapshot;
   /** A step that the watch stream restarts. */
   watchStreamClose?: SpecWatchStreamClose;

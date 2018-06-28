@@ -204,7 +204,6 @@ describeSpec('Existence Filters:', [], () => {
           Query.atPath(doc2.key.path),
           new RpcError(Code.PERMISSION_DENIED, 'no')
         )
-        .watchSnapshots(3000)
         .expectLimboDocs() // doc2 is no longer in limbo
         .expectEvents(query, {
           removed: [doc2]
