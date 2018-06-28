@@ -36,7 +36,7 @@ export interface RemoteSyncer {
    * Rejects the listen for the given targetID. This can be triggered by the
    * backend for any active target.
    *
-   * @param targetID The targetID corresponds to one previously initiated by the
+   * @param targetId The targetID corresponds to one previously initiated by the
    * user as part of QueryData passed to listen() on RemoteStore.
    * @param error A description of the condition that has forced the rejection.
    * Nearly always this will be an indication that the user is no longer
