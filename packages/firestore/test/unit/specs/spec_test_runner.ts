@@ -482,6 +482,9 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('changeUser' in step) {
       return this.doChangeUser(step.changeUser!);
+    } else if ('watchSnapshot' in step) {
+      // Handle a single `watchSnapshot` event without any other watch change
+      return this.doWatchSnapshot(step.watchSnapshot!);
     } else {
       return fail('Unknown step: ' + JSON.stringify(step));
     }
@@ -556,7 +559,7 @@ abstract class TestRunner {
 
   private doWatchAck(
     ackedTargets: SpecWatchAck,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Added,
@@ -567,7 +570,7 @@ abstract class TestRunner {
 
   private doWatchCurrent(
     currentTargets: SpecWatchCurrent,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     const targets = currentTargets[0];
     const resumeToken = currentTargets[1] as ProtoByteString;
@@ -581,7 +584,7 @@ abstract class TestRunner {
 
   private doWatchReset(
     targetIds: SpecWatchReset,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Reset,
@@ -592,7 +595,7 @@ abstract class TestRunner {
 
   private doWatchRemove(
     removed: SpecWatchRemove,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     const cause =
       removed.cause &&
@@ -624,7 +627,7 @@ abstract class TestRunner {
 
   private doWatchEntity(
     watchEntity: SpecWatchEntity,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     if (watchEntity.docs) {
       assert(
@@ -672,7 +675,7 @@ abstract class TestRunner {
 
   private doWatchFilter(
     watchFilter: SpecWatchFilter,
-    watchSnapshot?: SpecSnapshotVersion
+    watchSnapshot?: SpecWatchSnapshot
   ): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
     assert(
@@ -685,27 +688,39 @@ abstract class TestRunner {
     return this.doWatchEvent(change, watchSnapshot);
   }
 
-  private doWatchEvent(
-    watchChange: WatchChange,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
-    let protoJSON = this.serializer.toTestWatchChange(watchChange);
-    this.connection.watchStream!.callOnMessage(protoJSON);
-
+  private doWatchSnapshot(watchSnapshot: SpecWatchSnapshot): Promise<void> {
     // The client will only respond to watchSnapshots if they are on a target
     // change with an empty set of target IDs. So we should be sure to send a
     // separate event. TODO(klimt): We should make the spec tests behave more
     // like the backend. Alternatively, we could hook in to the system at a
     // level higher than the stream.
-    const snapshot =
-      watchSnapshot !== undefined ? version(watchSnapshot) : undefined;
-    if (snapshot) {
-      protoJSON = {
-        targetChange: {
-          readTime: this.serializer.toVersion(snapshot)
-        }
-      };
-      this.connection.watchStream!.callOnMessage(protoJSON);
+    const protoJSON: api.ListenResponse = {
+      targetChange: {
+        readTime: this.serializer.toVersion(version(watchSnapshot.version))
+      }
+    };
+    if (watchSnapshot.resumeToken) {
+      protoJSON.targetChange.resumeToken = watchSnapshot.resumeToken;
+    }
+    if (watchSnapshot.targetIds) {
+      protoJSON.targetChange.targetIds = watchSnapshot.targetIds;
+    }
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    // Put a no-op in the queue so that we know when any outstanding RemoteStore
+    // writes on the network are complete.
+    return this.queue.enqueue(async () => {});
+  }
+
+  private async doWatchEvent(
+    watchChange: WatchChange,
+    watchSnapshot?: SpecWatchSnapshot
+  ): Promise<void> {
+    const protoJSON = this.serializer.toTestWatchChange(watchChange);
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    if (watchSnapshot) {
+      await this.doWatchSnapshot(watchSnapshot);
     }
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
@@ -1109,7 +1124,7 @@ export interface SpecStep {
    * Optional snapshot version that can be additionally specified on any other
    * watch event
    */
-  watchSnapshot?: SpecSnapshotVersion;
+  watchSnapshot?: SpecWatchSnapshot;
   /** A step that the watch stream restarts. */
   watchStreamClose?: SpecWatchStreamClose;
 
@@ -1183,7 +1198,11 @@ export type SpecWatchRemove = {
   cause?: SpecError;
 };
 
-export type SpecSnapshotVersion = TestSnapshotVersion;
+export type SpecWatchSnapshot = {
+  version: TestSnapshotVersion;
+  targetIds: TargetId[];
+  resumeToken?: string;
+};
 
 export type SpecWatchStreamClose = {
   error: SpecError;
@@ -1192,7 +1211,7 @@ export type SpecWatchStreamClose = {
 
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
-  version: SpecSnapshotVersion;
+  version: TestSnapshotVersion;
   /** Whether the ack is expected to generate a user callback. */
   expectUserCallback: boolean;
 };
@@ -1257,7 +1276,7 @@ export interface SpecQuery {
  */
 export type SpecDocument = [
   string,
-  SpecSnapshotVersion,
+  TestSnapshotVersion,
   JsonObject<AnyJs> | null
 ];
 

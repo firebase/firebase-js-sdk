@@ -481,9 +481,20 @@ export class SpecBuilder {
     return this;
   }
 
-  watchSnapshots(version: TestSnapshotVersion): SpecBuilder {
+  watchSnapshots(
+    version: TestSnapshotVersion,
+    targets?: Query[],
+    resumeToken?: string
+  ): SpecBuilder {
     this.assertStep('Watch snapshot requires previous watch step');
-    this.currentStep!.watchSnapshot = version;
+
+    if (this.currentStep!.watchSnapshot !== undefined) {
+      this.nextStep();
+      this.currentStep = {};
+    }
+
+    const targetIds = targets && targets.map(query => this.getTargetId(query));
+    this.currentStep!.watchSnapshot = { version, targetIds, resumeToken };
     return this;
   }
 

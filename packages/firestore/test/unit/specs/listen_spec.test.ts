@@ -406,4 +406,24 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest('Persists resume token sent with target', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 2000, { key: 'a' });
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {})
+      .watchSends({ affects: [query] }, docA)
+      .watchSnapshots(2000, [query], 'resume-token-2000')
+      .watchSnapshots(2000)
+      .expectEvents(query, { added: [docA] })
+      .userUnlistens(query)
+      .watchRemoves(query)
+      .userListens(query, 'resume-token-2000')
+      .expectEvents(query, { added: [docA], fromCache: true })
+      .watchAcksFull(query, 3000)
+      .expectEvents(query, {});
+  });
 });
