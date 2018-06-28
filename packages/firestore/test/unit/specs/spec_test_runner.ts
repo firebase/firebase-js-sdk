@@ -669,15 +669,11 @@ abstract class TestRunner {
     // separate event.
     const protoJSON: api.ListenResponse = {
       targetChange: {
-        readTime: this.serializer.toVersion(version(watchSnapshot.version))
+        readTime: this.serializer.toVersion(version(watchSnapshot.version)),
+        resumeToken: watchSnapshot.resumeToken,
+        targetIds: watchSnapshot.targetIds,
       }
     };
-    if (watchSnapshot.resumeToken) {
-      protoJSON.targetChange.resumeToken = watchSnapshot.resumeToken;
-    }
-    if (watchSnapshot.targetIds) {
-      protoJSON.targetChange.targetIds = watchSnapshot.targetIds;
-    }
     this.connection.watchStream!.callOnMessage(protoJSON);
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
