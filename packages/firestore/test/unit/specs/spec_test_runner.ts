@@ -671,7 +671,7 @@ abstract class TestRunner {
       targetChange: {
         readTime: this.serializer.toVersion(version(watchSnapshot.version)),
         resumeToken: watchSnapshot.resumeToken,
-        targetIds: watchSnapshot.targetIds,
+        targetIds: watchSnapshot.targetIds
       }
     };
     this.connection.watchStream!.callOnMessage(protoJSON);
