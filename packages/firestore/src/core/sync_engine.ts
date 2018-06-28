@@ -66,6 +66,7 @@ import {
 } from '../local/shared_client_state_syncer';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
+import * as objUtils from '../util/obj';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -138,7 +139,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
   private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
-  private isPrimary = false;
+  private isPrimary: undefined | boolean = undefined;
 
   constructor(
     private localStore: LocalStore,
@@ -150,7 +151,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
-    return this.isPrimary;
+    return this.isPrimary === true;
   }
 
   /** Subscribes view and error handler. Can be called only once. */
@@ -235,6 +236,21 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           if (this.isPrimary) {
             this.remoteStore.listen(queryData);
           }
+        });
+    });
+  }
+
+  private synchronizeLocalView(
+    queryData: QueryData
+  ): Promise<void> {
+    const query = queryData.query;
+
+    return this.localStore.executeQuery(query).then(docs => {
+      return this.localStore
+        .remoteDocumentKeys(queryData.targetId)
+        .then(async remoteKeys => {
+          const queryView = this.queryViewsByTarget[queryData.targetId];
+          queryView.view.synchronizeWithRemoteKeys(remoteKeys);
         });
     });
   }
@@ -721,12 +737,46 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only
-  applyPrimaryState(isPrimary: boolean): Promise<void> {
+  async applyPrimaryState(isPrimary: boolean): Promise<void> {
+    const stateUpgraded = this.isPrimary === false && isPrimary;
+
     this.isPrimary = isPrimary;
-    if (this.isPrimary && this.networkAllowed) {
-      return this.remoteStore.enableNetwork();
+    if (this.isPrimary) {
+      if (this.networkAllowed) {
+        await this.remoteStore.enableNetwork();
+      }
+
+      if (stateUpgraded) {
+        // Secondary tabs do not update their set of synced keys. When a
+        // secondary tab acquires a primary lease, we need to reconcile our
+        // state with the state in persistence. To do this, we release and
+        // re-allocate all active queries and update all views accordingly.
+        objUtils.forEachNumber(
+          this.queryViewsByTarget,
+          async (targetId, queryView) => {
+            await this.localStore.releaseQuery(
+              queryView.query,
+              /*keepPersistedQueryData=*/ true
+            );
+          }
+        );
+
+        let p = Promise.resolve();
+        const activeTargets = this.sharedClientState.getAllActiveQueryTargets();
+        activeTargets.forEach(targetId => {
+          p = p.then(async () => {
+            const queryData = await this.localStore.getQueryDataForTarget(
+              targetId
+            );
+            this.remoteStore.listen(queryData);
+            await this.localStore.allocateQuery(queryData.query);
+            await this.synchronizeLocalView(queryData);
+          });
+        });
+        await p;
+      }
     } else {
-      return this.remoteStore.disableNetwork();
+      await this.remoteStore.disableNetwork();
     }
   }
 

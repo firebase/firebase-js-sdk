@@ -984,10 +984,14 @@ abstract class TestRunner {
     this.validateLimboDocs();
     // Always validate that the expected active targets match the actual active
     // targets
-    this.validateActiveTargets();
+    await this.validateActiveTargets();
   }
 
   private validateLimboDocs(): void {
+    if (!this.started) {
+      return;
+    }
+
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
@@ -1010,10 +1014,18 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets(): void {
+  private async validateActiveTargets(): Promise<void> {
     if (!this.isPrimaryClient) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
+    }
+
+    // In multi-tab mode, we cannot rely on the `waitForWatchOpen` call in
+    // `doUserListen` since primary tabs may execute queries from other tabs
+    // without any direct user interaction.
+    if (!obj.isEmpty(this.expectedActiveTargets)) {
+      await this.connection.waitForWatchOpen();
+      await this.queue.drain();
     }
 
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);

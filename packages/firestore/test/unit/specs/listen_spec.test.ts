@@ -21,6 +21,7 @@ import { deletedDoc, doc, filter, path } from '../../util/helpers';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
@@ -700,6 +701,40 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .expectEvents(query, { fromCache: true })
         .enableNetwork();
+    }
+  );
+
+  specTest(
+    'Query is re-listened to after primary tab failover',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'a' });
+
+      return client(0, false)
+        .expectPrimaryState(true)
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000, docA)
+        .client(1)
+        .expectEvents(query, { added: [docA] })
+        .client(2)
+        .userListens(query)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .shutdown()
+        .client(1)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000, docB)
+        .expectEvents(query, { added: [docB] })
+        .client(2)
+        .expectEvents(query, { added: [docB] });
     }
   );
 });
