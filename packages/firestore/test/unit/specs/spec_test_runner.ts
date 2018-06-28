@@ -454,17 +454,19 @@ abstract class TestRunner {
     } else if ('userDelete' in step) {
       return this.doDelete(step.userDelete!);
     } else if ('watchAck' in step) {
-      return this.doWatchAck(step.watchAck!, step.watchSnapshot);
+      return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
-      return this.doWatchCurrent(step.watchCurrent!, step.watchSnapshot);
+      return this.doWatchCurrent(step.watchCurrent!);
     } else if ('watchRemove' in step) {
-      return this.doWatchRemove(step.watchRemove!, step.watchSnapshot);
+      return this.doWatchRemove(step.watchRemove!);
     } else if ('watchEntity' in step) {
-      return this.doWatchEntity(step.watchEntity!, step.watchSnapshot);
+      return this.doWatchEntity(step.watchEntity!);
     } else if ('watchFilter' in step) {
-      return this.doWatchFilter(step.watchFilter!, step.watchSnapshot);
+      return this.doWatchFilter(step.watchFilter!);
+    } else if ('watchSnapshot' in step) {
+      return this.doWatchSnapshot(step.watchSnapshot!);
     } else if ('watchReset' in step) {
-      return this.doWatchReset(step.watchReset!, step.watchSnapshot);
+      return this.doWatchReset(step.watchReset!);
     } else if ('watchStreamClose' in step) {
       return this.doWatchStreamClose(step.watchStreamClose!);
     } else if ('writeAck' in step) {
@@ -554,21 +556,15 @@ abstract class TestRunner {
     });
   }
 
-  private doWatchAck(
-    ackedTargets: SpecWatchAck,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Added,
       ackedTargets
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchCurrent(
-    currentTargets: SpecWatchCurrent,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchCurrent(currentTargets: SpecWatchCurrent): Promise<void> {
     const targets = currentTargets[0];
     const resumeToken = currentTargets[1] as ProtoByteString;
     const change = new WatchTargetChange(
@@ -576,24 +572,18 @@ abstract class TestRunner {
       targets,
       resumeToken
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchReset(
-    targetIds: SpecWatchReset,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchReset(targetIds: SpecWatchReset): Promise<void> {
     const change = new WatchTargetChange(
       WatchTargetChangeState.Reset,
       targetIds
     );
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchRemove(
-    removed: SpecWatchRemove,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchRemove(removed: SpecWatchRemove): Promise<void> {
     const cause =
       removed.cause &&
       new FirestoreError(
@@ -619,30 +609,21 @@ abstract class TestRunner {
         delete this.connection.activeTargets[targetId];
       });
     }
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchEntity(
-    watchEntity: SpecWatchEntity,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     if (watchEntity.docs) {
       assert(
         !watchEntity.doc,
         'Exactly one of `doc` or `docs` needs to be set'
       );
-      let count = 0;
       return sequence(watchEntity.docs, (specDocument: SpecDocument) => {
-        count++;
-        const isLast = count === watchEntity.docs!.length;
-        return this.doWatchEntity(
-          {
-            doc: specDocument,
-            targets: watchEntity.targets,
-            removedTargets: watchEntity.removedTargets
-          },
-          isLast ? watchSnapshot : undefined
-        );
+        return this.doWatchEntity({
+          doc: specDocument,
+          targets: watchEntity.targets,
+          removedTargets: watchEntity.removedTargets
+        });
       });
     } else if (watchEntity.doc) {
       const [key, version, data] = watchEntity.doc;
@@ -655,7 +636,7 @@ abstract class TestRunner {
         document.key,
         document
       );
-      return this.doWatchEvent(change, watchSnapshot);
+      return this.doWatchEvent(change);
     } else if (watchEntity.key) {
       const documentKey = key(watchEntity.key);
       const change = new DocumentWatchChange(
@@ -664,16 +645,13 @@ abstract class TestRunner {
         documentKey,
         null
       );
-      return this.doWatchEvent(change, watchSnapshot);
+      return this.doWatchEvent(change);
     } else {
       return fail('Either doc or docs must be set');
     }
   }
 
-  private doWatchFilter(
-    watchFilter: SpecWatchFilter,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
+  private doWatchFilter(watchFilter: SpecWatchFilter): Promise<void> {
     const targetIds: TargetId[] = watchFilter[0];
     assert(
       targetIds.length === 1,
@@ -682,31 +660,31 @@ abstract class TestRunner {
     const keys = watchFilter.slice(1);
     const filter = new ExistenceFilter(keys.length);
     const change = new ExistenceFilterChange(targetIds[0], filter);
-    return this.doWatchEvent(change, watchSnapshot);
+    return this.doWatchEvent(change);
   }
 
-  private doWatchEvent(
-    watchChange: WatchChange,
-    watchSnapshot?: SpecSnapshotVersion
-  ): Promise<void> {
-    let protoJSON = this.serializer.toTestWatchChange(watchChange);
-    this.connection.watchStream!.callOnMessage(protoJSON);
-
+  private doWatchSnapshot(watchSnapshot: SpecWatchSnapshot): Promise<void> {
     // The client will only respond to watchSnapshots if they are on a target
     // change with an empty set of target IDs. So we should be sure to send a
-    // separate event. TODO(klimt): We should make the spec tests behave more
-    // like the backend. Alternatively, we could hook in to the system at a
-    // level higher than the stream.
-    const snapshot =
-      watchSnapshot !== undefined ? version(watchSnapshot) : undefined;
-    if (snapshot) {
-      protoJSON = {
-        targetChange: {
-          readTime: this.serializer.toVersion(snapshot)
-        }
-      };
-      this.connection.watchStream!.callOnMessage(protoJSON);
-    }
+    // separate event.
+    const protoJSON: api.ListenResponse = {
+      targetChange: {
+        readTime: this.serializer.toVersion(version(watchSnapshot.version)),
+        resumeToken: watchSnapshot.resumeToken,
+        targetIds: watchSnapshot.targetIds
+      }
+    };
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    // Put a no-op in the queue so that we know when any outstanding RemoteStore
+    // writes on the network are complete.
+    return this.queue.enqueue(async () => {});
+  }
+
+  private async doWatchEvent(watchChange: WatchChange): Promise<void> {
+    const protoJSON = this.serializer.toTestWatchChange(watchChange);
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
     return this.queue.enqueue(async () => {});
@@ -1078,7 +1056,7 @@ export interface SpecConfig {
 }
 
 /**
- * Union type for each step. The step consists of (mostly) exactly one `field`
+ * Union type for each step. The step consists of exactly one `field`
  * set and optionally expected events in the `expect` field.
  */
 export interface SpecStep {
@@ -1105,11 +1083,8 @@ export interface SpecStep {
   watchEntity?: SpecWatchEntity;
   /** Existence filter in the watch stream */
   watchFilter?: SpecWatchFilter;
-  /**
-   * Optional snapshot version that can be additionally specified on any other
-   * watch event
-   */
-  watchSnapshot?: SpecSnapshotVersion;
+  /** Snapshot ("NO_CHANGE") event in the watch stream. */
+  watchSnapshot?: SpecWatchSnapshot;
   /** A step that the watch stream restarts. */
   watchStreamClose?: SpecWatchStreamClose;
 
@@ -1183,7 +1158,11 @@ export type SpecWatchRemove = {
   cause?: SpecError;
 };
 
-export type SpecSnapshotVersion = TestSnapshotVersion;
+export type SpecWatchSnapshot = {
+  version: TestSnapshotVersion;
+  targetIds: TargetId[];
+  resumeToken?: string;
+};
 
 export type SpecWatchStreamClose = {
   error: SpecError;
@@ -1192,7 +1171,7 @@ export type SpecWatchStreamClose = {
 
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
-  version: SpecSnapshotVersion;
+  version: TestSnapshotVersion;
   /** Whether the ack is expected to generate a user callback. */
   expectUserCallback: boolean;
 };
@@ -1257,7 +1236,7 @@ export interface SpecQuery {
  */
 export type SpecDocument = [
   string,
-  SpecSnapshotVersion,
+  TestSnapshotVersion,
   JsonObject<AnyJs> | null
 ];
 
