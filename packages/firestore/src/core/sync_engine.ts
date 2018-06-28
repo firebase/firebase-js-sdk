@@ -240,9 +240,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     });
   }
 
-  private synchronizeLocalView(
-    queryData: QueryData
-  ): Promise<void> {
+  private synchronizeLocalView(queryData: QueryData): Promise<void> {
     const query = queryData.query;
 
     return this.localStore.executeQuery(query).then(docs => {
