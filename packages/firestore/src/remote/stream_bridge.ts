@@ -81,7 +81,6 @@ export class StreamBridge<I, O> implements Stream<I, O> {
       this.wrappedOnMessage !== undefined,
       'Cannot call onMessage because no callback was set'
     );
-    console.log(msg);
     this.wrappedOnMessage!(msg);
   }
 }
