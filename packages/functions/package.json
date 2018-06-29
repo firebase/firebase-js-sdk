@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -16,6 +16,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --require index.node.ts --retries 5 --timeout 5000 --exit",
+    "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p test:node",
     "prepare": "npm run build"
   },
   "license": "Apache-2.0",
@@ -63,7 +64,7 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/functions-types": "0.1.3",
+    "@firebase/functions-types": "0.2.0",
     "@firebase/messaging-types": "0.2.3",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.9.0"
