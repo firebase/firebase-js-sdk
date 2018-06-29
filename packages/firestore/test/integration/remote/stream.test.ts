@@ -320,7 +320,7 @@ describe('Write Stream', () => {
               'getToken',
               'invalidateToken',
               'getToken',
-              'getToken',
+              'getToken'
             ]);
           });
       },
