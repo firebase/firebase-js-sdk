@@ -1021,72 +1021,73 @@ describeSpec('Writes:', [], () => {
     // Firebase Auth attempts to rapidly synchronize user changes across tab. We
     // emulate this behavior in this spec tests by calling `changeUser` manually
     // for all clients.
-    return client(0)
-      .userListens(query)
-      .changeUser('user1')
-      // User 1 writes `docA`
-      .userSets('collection/a', { v: 1 })
-      .expectEvents(query, {
-        added: [docALocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .client(1)
-      .changeUser('user1')
-      .userListens(query)
-      .expectEvents(query, {
-        added: [docALocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-
-      // User 1 sets `docB` from a different tab
-      .userSets('collection/b', { v: 1 })
-      .expectEvents(query, {
-        added: [docBLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .client(0)
-      .expectEvents(query, {
-        added: [docBLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .changeUser('user2')
-      .expectEvents(query, {
-        removed: [docALocal, docBLocal],
-        fromCache: true
-      })
-      // User 2 adds `docC`
-      .userSets('collection/c', { v: 1 })
-      .expectEvents(query, {
-        added: [docCLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .client(1)
-      .changeUser('user2')
-      .expectEvents(query, {
-        removed: [docALocal, docBLocal],
-        added: [docCLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .changeUser('user1')
-      .expectEvents(query, {
-        added: [docALocal, docBLocal],
-        removed: [docCLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      })
-      .client(0)
-      .changeUser('user1')
-      .expectEvents(query, {
-        added: [docALocal, docBLocal],
-        removed: [docCLocal],
-        fromCache: true,
-        hasPendingWrites: true
-      });
+    return (
+      client(0)
+        .userListens(query)
+        .changeUser('user1')
+        // User 1 writes `docA`
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          added: [docALocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(1)
+        .changeUser('user1')
+        .userListens(query)
+        .expectEvents(query, {
+          added: [docALocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        // User 1 sets `docB` from a different tab
+        .userSets('collection/b', { v: 1 })
+        .expectEvents(query, {
+          added: [docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(0)
+        .expectEvents(query, {
+          added: [docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .changeUser('user2')
+        .expectEvents(query, {
+          removed: [docALocal, docBLocal],
+          fromCache: true
+        })
+        // User 2 adds `docC`
+        .userSets('collection/c', { v: 1 })
+        .expectEvents(query, {
+          added: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(1)
+        .changeUser('user2')
+        .expectEvents(query, {
+          removed: [docALocal, docBLocal],
+          added: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .changeUser('user1')
+        .expectEvents(query, {
+          added: [docALocal, docBLocal],
+          removed: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(0)
+        .changeUser('user1')
+        .expectEvents(query, {
+          added: [docALocal, docBLocal],
+          removed: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+    );
   });
 });
