@@ -627,7 +627,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, false)
+      return client(0, /*withGcEnabled=*/ false)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -654,7 +654,7 @@ describeSpec('Listens:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const query2 = Query.atPath(path('collection'));
 
-    return client(0, false)
+    return client(0, /*withGcEnabled=*/ false)
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -680,7 +680,7 @@ describeSpec('Listens:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 2000, { key: 'a' });
 
-      return client(0, false)
+      return client(0, /*withGcEnabled=*/ false)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -710,9 +710,9 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 1000, { key: 'a' });
-      const docB = doc('collection/b', 2000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
 
-      return client(0, false)
+      return client(0, /*withGcEnabled=*/ false)
         .expectPrimaryState(true)
         .client(1)
         .userListens(query)
@@ -737,4 +737,32 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { added: [docB] });
     }
   );
+
+  specTest('Query is established in new primary tab', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+
+    // Client 1 and Client 3 listen to the same query. When client 1 shuts
+    // down, client 2 becomes primary and takes ownership of a query it
+    // did not previously listen to.
+    return client(0, /*withGcEnabled=*/ false)
+      .expectPrimaryState(true)
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { added: [docA] })
+      .client(1)
+      .client(2)
+      .userListens(query)
+      .expectEvents(query, { added: [docA] })
+      .client(0)
+      .shutdown()
+      .client(1)
+      .runTimer(TimerId.ClientMetadataRefresh)
+      .expectPrimaryState(true)
+      .expectListen(query, 'resume-token-1000')
+      .watchAcksFull(query, 2000, docB)
+      .client(2)
+      .expectEvents(query, { added: [docB] });
+  });
 });
