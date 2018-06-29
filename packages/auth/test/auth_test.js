@@ -3261,7 +3261,7 @@ function testAuth_syncAuthChanges_newSignOut() {
 
 function testAuth_updateCurrentUser_sameApiKey() {
   fireauth.AuthEventManager.ENABLED = true;
-  asyncTestCase.waitForSignals(6);
+  asyncTestCase.waitForSignals(5);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
   var user1 = new fireauth.AuthUser(
@@ -3291,7 +3291,7 @@ function testAuth_updateCurrentUser_sameApiKey() {
       });
     } else {
       // Verifies listener is triggered initiallly.
-      assertEquals(0, userChanges);
+      assertEquals(0, tokenChanges);
       asyncTestCase.signal();
     }
     tokenChanges++;
@@ -3306,20 +3306,20 @@ function testAuth_updateCurrentUser_sameApiKey() {
     } else {
       // Verifies listener is triggered initiallly.
       assertEquals(0, userChanges);
-      asyncTestCase.signal();
+      // Calls updateCurrentUser after Auth listener being triggered first time.
+      auth1.updateCurrentUser(user1).then(function() {
+        assertUserEquals(user1, auth1['currentUser']);
+        assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
+        auth1.logFramework('angularfire');
+        assertArrayEquals(
+            ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
+        assertEquals('fr', auth1['currentUser'].getLanguageCode());
+        auth1.languageCode = 'de';
+        assertEquals('de', auth1['currentUser'].getLanguageCode());
+        asyncTestCase.signal();
+      });
     }
     userChanges++;
-  });
-  auth1.updateCurrentUser(user1).then(function() {
-    assertUserEquals(user1, auth1['currentUser']);
-    assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
-    auth1.logFramework('angularfire');
-    assertArrayEquals(
-        ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
-    assertEquals('fr', auth1['currentUser'].getLanguageCode());
-    auth1.languageCode = 'de';
-    assertEquals('de', auth1['currentUser'].getLanguageCode());
-    asyncTestCase.signal();
   });
 }
 
@@ -3420,7 +3420,7 @@ function testAuth_updateCurrentUser_differentApiKey() {
         return goog.Promise.resolve();
       }));
   fireauth.AuthEventManager.ENABLED = true;
-  asyncTestCase.waitForSignals(6);
+  asyncTestCase.waitForSignals(5);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
   currentUserStorageManager = new fireauth.storage.UserManager(
@@ -3457,7 +3457,7 @@ function testAuth_updateCurrentUser_differentApiKey() {
       });
     } else {
       // Verifies listener is triggered initiallly.
-      assertEquals(0, userChanges);
+      assertEquals(0, tokenChanges);
       asyncTestCase.signal();
     }
     tokenChanges++;
@@ -3473,23 +3473,23 @@ function testAuth_updateCurrentUser_differentApiKey() {
     } else {
       // Verifies listener is triggered initiallly.
       assertEquals(0, userChanges);
-      asyncTestCase.signal();
+      // Calls updateCurrentUser after Auth listener being triggered first time.
+      auth1.updateCurrentUser(user1).then(function() {
+        // If ApiKey is differnt, user needs to be reloaded.
+        assertEquals(1, fireauth.AuthUser.prototype.reload.getCallCount());
+        fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
+            user1, auth1['currentUser'], 'API_KEY2', 'API_KEY');
+        assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
+        auth1.logFramework('angularfire');
+        assertArrayEquals(
+            ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
+        assertEquals('fr', auth1['currentUser'].getLanguageCode());
+        auth1.languageCode = 'de';
+        assertEquals('de', auth1['currentUser'].getLanguageCode());
+        asyncTestCase.signal();
+      });
     }
     userChanges++;
-  });
-  auth1.updateCurrentUser(user1).then(function() {
-    // If ApiKey is differnt, user needs to be reloaded.
-    assertEquals(1, fireauth.AuthUser.prototype.reload.getCallCount());
-    fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
-        user1, auth1['currentUser'], 'API_KEY2', 'API_KEY');
-    assertArrayEquals(['firebaseui'], auth1['currentUser'].getFramework());
-    auth1.logFramework('angularfire');
-    assertArrayEquals(
-        ['firebaseui', 'angularfire'], auth1['currentUser'].getFramework());
-    assertEquals('fr', auth1['currentUser'].getLanguageCode());
-    auth1.languageCode = 'de';
-    assertEquals('de', auth1['currentUser'].getLanguageCode());
-    asyncTestCase.signal();
   });
 }
 
