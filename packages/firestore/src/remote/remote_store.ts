@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
-import { BatchId, OnlineState, TargetId } from '../core/types';
+import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { MutationResult } from '../model/mutation';
