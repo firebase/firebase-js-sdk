@@ -316,11 +316,11 @@ describe('Write Stream', () => {
             return streamListener.awaitCallback('open');
           })
           .then(() => {
-            expect(credentials.observedStates).to.have.ordered.members([
+            expect(credentials.observedStates).to.deep.equal([
               'getToken',
               'invalidateToken',
               'getToken',
-              'getToken'
+              'getToken',
             ]);
           });
       },

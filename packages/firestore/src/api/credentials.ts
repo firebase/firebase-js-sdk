@@ -72,12 +72,13 @@ export type UserListener = (user: User) => void;
  * listening for changes.
  */
 export interface CredentialsProvider {
-  /**
-   * Requests a token for the current user, optionally forcing a refreshed
-   * token to be fetched.
-   */
+  /** Requests a token for the current user. */
   getToken(): Promise<Token | null>;
 
+  /**
+   * Marks the last retrieved token as invalid, making the next GetToken request
+   * force-refresh the token.
+   */
   invalidateToken(): void;
 
   /**
@@ -203,8 +204,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     );
   }
 
-  // Marks the last retrieved token as invalid, making the next GetToken request
-  // force refresh the token.
   invalidateToken(): void {
     this.forceRefresh = true;
   }

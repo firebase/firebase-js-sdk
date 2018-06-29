@@ -482,7 +482,8 @@ export abstract class PersistentStream<
     });
   }
 
-  private handleStreamClose(error?: FirestoreError): Promise<void> {
+  // Visible for tests
+  handleStreamClose(error?: FirestoreError): Promise<void> {
     assert(this.isStarted(), "Can't handle server close on non-started stream");
     log.debug(LOG_TAG, `close with error: ${error}`);
 
