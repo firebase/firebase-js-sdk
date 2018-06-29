@@ -204,7 +204,7 @@ export class LocalStore {
    * returns any resulting document changes.
    */
   handleUserChange(user: User): Promise<UserChangeResult> {
-    return this.persistence.runTransaction('Handle user change', true, txn => {
+    return this.persistence.runTransaction('Handle user change', false, txn => {
       // Swap out the mutation queue, grabbing the pending mutation batches
       // before and after.
       let oldBatches: MutationBatch[];

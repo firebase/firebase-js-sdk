@@ -816,10 +816,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     removedBatchIds.forEach(batchId => {
       this.removeLocalPendingMutation(batchId);
     });
+    this.currentUser = user;
     addedBatchIds.forEach(batchId => {
       this.addLocalPendingMutation(batchId);
     });
-    this.currentUser = user;
   }
 
   setOnlineState(onlineState: OnlineState): void {
