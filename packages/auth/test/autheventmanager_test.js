@@ -1611,7 +1611,12 @@ function testAuthEventManager_nonCordovaIosOrAndroidFileEnvironment() {
   // All popup/redirect methods should fail with operation not supported errors.
   manager.getRedirectResult().thenCatch(function(error) {
     assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
+    // Clear redirect result will not clear an operation not supported error.
+    manager.clearRedirectResult();
+    manager.getRedirectResult().thenCatch(function(error) {
+      assertErrorEquals(expectedError, error);
+      asyncTestCase.signal();
+    });
   });
   manager.processRedirect('linkViaRedirect', provider, '1234')
       .thenCatch(function(error) {
@@ -1781,7 +1786,12 @@ function testProcessRedirect_error_cordovahandler() {
         assertFalse(status);
         manager.getRedirectResult().thenCatch(function(error) {
           assertErrorEquals(expectedError, error);
-          asyncTestCase.signal();
+          // Clear redirect result should clear recoverable errors.
+          manager.clearRedirectResult();
+          manager.getRedirectResult().then(function(result) {
+            assertNull(result.user);
+            asyncTestCase.signal();
+          });
         });
       });
 }
@@ -1902,7 +1912,12 @@ function testGetRedirectResult_success_cordovahandler() {
     // Initial expected result should resolve.
     manager.getRedirectResult().then(function(result) {
       assertEquals(expectedResult, result);
-      asyncTestCase.signal();
+      // Clear redirect result should clear successful results.
+      manager.clearRedirectResult();
+      manager.getRedirectResult().then(function(result) {
+        assertNull(result.user);
+        asyncTestCase.signal();
+      });
     });
   });
 }
@@ -1946,7 +1961,12 @@ function testGetRedirectResult_error_cordovahandler() {
     // Initial expected result should resolve.
     manager.getRedirectResult().thenCatch(function(error) {
       assertErrorEquals(expectedError, error);
-      asyncTestCase.signal();
+      // Clear redirect result should clear recoverable errors.
+      manager.clearRedirectResult();
+      manager.getRedirectResult().then(function(result) {
+        assertNull(result.user);
+        asyncTestCase.signal();
+      });
     });
   });
 }
@@ -2177,7 +2197,7 @@ function testProcessAuthEvent_invalidAuthEvent() {
   var expectedAuthEvent = null;
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).thenCatch(function(error) {
         assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_AUTH_EVENT),
@@ -2204,7 +2224,7 @@ function testProcessAuthEvent_unknownAuthEvent() {
     assertObjectEquals(expectedResult, result);
     asyncTestCase.signal();
   });
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     asyncTestCase.signal();
   });
@@ -2261,7 +2281,13 @@ function testProcessAuthEvent_unknownAuthEvent_webStorageNotSupported() {
     manager.subscribe(handler);
     manager.getRedirectResult().thenCatch(function(error) {
       assertErrorEquals(expectedError, error);
-      asyncTestCase.signal();
+      // Unrecoverable errors like unsupported web storage should not be
+      // cleared.
+      manager.clearRedirectResult();
+      manager.getRedirectResult().thenCatch(function(error) {
+        assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
     });
   });
 }
@@ -2279,7 +2305,7 @@ function testProcessAuthEvent_popupErrorAuthEvent() {
       new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR));
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.popupAuthEventProcessor_.processAuthEvent(
+  manager.getPopupAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Resolve popup with error.
     assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
@@ -2316,7 +2342,7 @@ function testProcessAuthEvent_redirectErrorAuthEvent() {
     assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Should not be called as event is not a popup type.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
@@ -2348,7 +2374,7 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent() {
       'SESSION_ID');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.popupAuthEventProcessor_.processAuthEvent(
+  manager.getPopupAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Resolve popup with success.
     assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
@@ -2389,7 +2415,7 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent() {
       'SESSION_ID');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.popupAuthEventProcessor_.processAuthEvent(
+  manager.getPopupAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Resolve popup with error.
     assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
@@ -2439,7 +2465,7 @@ function testProcessAuthEvent_finisher_successfulRedirectAuthEvent() {
     assertObjectEquals(expectedRedirectResult, result);
     asyncTestCase.signal();
   });
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Popup resolve should not be called as this is not a popup event.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
@@ -2472,7 +2498,7 @@ function testProcessAuthEvent_finisher_errorRedirectAuthEvent() {
     assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Popup resolve should not be called as this is not a popup event.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
@@ -2494,7 +2520,7 @@ function testProcessAuthEvent_noHandler() {
       'SESSION_ID');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).thenCatch(function(error) {
         assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
@@ -2556,7 +2582,12 @@ function testRedirectResult_timeout() {
       authDomain1, apiKey1, appName1);
   manager.getRedirectResult().thenCatch(function(error) {
     assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
+    // Redirect results with recoverable errors should be cleared.
+    manager.clearRedirectResult();
+    manager.getRedirectResult().then(function(result) {
+      assertNull(result.user);
+      asyncTestCase.signal();
+    });
   });
   // Speed up timeout.
   clock.tick(timeoutDelay);
@@ -2567,7 +2598,9 @@ function testRedirectResult_overwritePreviousRedirectResult() {
   // Once redirect result is determined, it can still be overwritten, though
   // in some cases like ifchandler which gets redirect result from
   // sessionStorage, this should not happen.
-  asyncTestCase.waitForSignals(4);
+  // Test also that clearRedirectResult will clear the cached result as long as
+  // the operation is not pending.
+  asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     return function(requestUri, sessionId) {
       // Iterate through results array each call.
@@ -2595,21 +2628,32 @@ function testRedirectResult_overwritePreviousRedirectResult() {
     assertObjectEquals(expectedRedirectResult, result);
     asyncTestCase.signal();
   });
-  manager.redirectAuthEventProcessor_.processAuthEvent(
+  // Clear redirect result on a pending operation should have no effect.
+  // Above getRedirectResult() should still resolve with expected first result.
+  manager.clearRedirectResult();
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Popup resolve should not be called as this is not a popup event.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
-    asyncTestCase.signal();
+    // Clear redirect result after resolved operation should reset result.
+    manager.clearRedirectResult();
+    return manager.getRedirectResult();
+  }).then(function(result) {
+    assertNull(result.user);
     // Call Second time.
-    manager.redirectAuthEventProcessor_.processAuthEvent(
-        expectedAuthEvent, handler).then(function() {
-      assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
-      asyncTestCase.signal();
-      // getRedirectResult should resolve with the second expected result.
-      manager.getRedirectResult().then(function(result) {
-        assertObjectEquals(expectedRedirectResult2, result);
-        asyncTestCase.signal();
-      });
-    });
+    return manager.getRedirectAuthEventProcessor().processAuthEvent(
+        expectedAuthEvent, handler);
+  }).then(function() {
+    assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
+    // getRedirectResult should resolve with the second expected result.
+    return manager.getRedirectResult();
+  }).then(function(result) {
+    assertObjectEquals(expectedRedirectResult2, result);
+    // Clear redirect result after resolved operation should reset result.
+    manager.clearRedirectResult();
+    return manager.getRedirectResult();
+  }).then(function(result) {
+    assertNull(result.user);
+    asyncTestCase.signal();
   });
 }

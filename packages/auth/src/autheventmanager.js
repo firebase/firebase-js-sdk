@@ -63,7 +63,7 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
    * @private {boolean} Whether the Auth event manager instance is initialized.
    */
   this.initialized_ = false;
-  /** @private {!function(?fireauth.AuthEvent)} The Auth event handler. */
+  /** @private {function(?fireauth.AuthEvent)} The Auth event handler. */
   this.authEventHandler_ = goog.bind(this.handleAuthEvent_, this);
   /** @private {!fireauth.RedirectAuthEventProcessor} The redirect event
    *      processor. */
@@ -111,6 +111,20 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
 
 
 /**
+ * @return {!fireauth.RedirectAuthEventProcessor} The redirect event processor.
+ */
+fireauth.AuthEventManager.prototype.getRedirectAuthEventProcessor = function() {
+  return this.redirectAuthEventProcessor_;
+};
+
+
+/** @return {!fireauth.PopupAuthEventProcessor} The popup event processor. */
+fireauth.AuthEventManager.prototype.getPopupAuthEventProcessor = function() {
+  return this.popupAuthEventProcessor_;
+};
+
+
+/**
  * Instantiates an OAuth sign-in handler depending on the current environment
  * and returns it.
  * @param {string} authDomain The Firebase authDomain used to determine the
@@ -152,6 +166,15 @@ fireauth.AuthEventManager.prototype.reset = function() {
       fireauth.AuthEventManager.instantiateOAuthSignInHandler(
           this.authDomain_, this.apiKey_, this.appName_,
           firebase.SDK_VERSION || null);
+};
+
+
+/**
+ * Clears the cached redirect result as long as there is no pending redirect
+ * result being processed. Unrecoverable errors will not be cleared.
+ */
+fireauth.AuthEventManager.prototype.clearRedirectResult = function() {
+  this.redirectAuthEventProcessor_.clearRedirectResult();
 };
 
 
@@ -539,7 +562,7 @@ fireauth.AuthEventManager.prototype.startPopupTimeout =
 
 
 /**
- * @private {!Object.<!string, !fireauth.AuthEventManager>} Map containing
+ * @private {!Object.<string, !fireauth.AuthEventManager>} Map containing
  *     Firebase event manager instances keyed by Auth event manager ID.
  */
 fireauth.AuthEventManager.manager_ = {};
@@ -634,9 +657,16 @@ fireauth.RedirectAuthEventProcessor = function(manager) {
   this.redirectReject_ = [];
   /** @private {?goog.Promise} Pending timeout promise for redirect. */
   this.redirectTimeoutPromise_ = null;
-  /** @private {boolean} Whether redirect result is resolved. This is true
-          when a valid Auth event has been triggered. */
+  /**
+   * @private {boolean} Whether redirect result is resolved. This is true
+   *     when a valid Auth event has been triggered.
+   */
   this.redirectResultResolved_ = false;
+  /**
+   * @private {boolean} Whether an unrecoverable error was detected. This
+   *     includes web storage unsupported or operation not allowed errors.
+   */
+  this.unrecoverableErrorDetected_ = false;
 };
 
 
@@ -684,6 +714,8 @@ fireauth.RedirectAuthEventProcessor.prototype.processAuthEvent =
       authEvent.getError() &&
       authEvent.getError()['code'] == 'auth/operation-not-supported-in-this-' +
           'environment';
+  this.unrecoverableErrorDetected_ =
+      !!(isWebStorageNotSupported || isOperationNotSupported);
   // UNKNOWN mode is always triggered on load by iframe when no popup/redirect
   // data is available. If web storage unsupported error is thrown, process as
   // error and not as unknown event. If the operation is not supported in this
@@ -717,6 +749,19 @@ fireauth.RedirectAuthEventProcessor.prototype.defaultToEmptyResponse =
   if (!this.redirectResultResolved_) {
     this.redirectResultResolved_ = true;
     // No Auth event available, getRedirectResult should resolve with null.
+    this.setRedirectResult_(false, null, null);
+  }
+};
+
+
+/**
+ * Clears the cached redirect result as long as there is no pending redirect
+ * result being processed. Unrecoverable errors will not be cleared.
+ */
+fireauth.RedirectAuthEventProcessor.prototype.clearRedirectResult = function() {
+  // Clear the result if it is already resolved and no unrecoverable errors are
+  // detected.
+  if (this.redirectResultResolved_ && !this.unrecoverableErrorDetected_) {
     this.setRedirectResult_(false, null, null);
   }
 };
@@ -921,6 +966,8 @@ fireauth.RedirectAuthEventProcessor.prototype.startRedirectTimeout_ =
       .then(function() {
         // If not resolved yet, reject with timeout error.
         if (!self.redirectedUserPromise_) {
+          // Consider redirect result resolved.
+          self.redirectResultResolved_ = true;
           self.setRedirectResult_(true, null, error);
         }
       });
