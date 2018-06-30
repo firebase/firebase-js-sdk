@@ -1988,7 +1988,8 @@ function testAuth_authEventManager() {
   initializeMockStorage();
   var expectedManager = {
     'subscribe': goog.testing.recordFunction(),
-    'unsubscribe': goog.testing.recordFunction()
+    'unsubscribe': goog.testing.recordFunction(),
+    'clearRedirectResult': goog.testing.recordFunction()
   };
   // Return stub manager.
   stubs.replace(
@@ -2012,10 +2013,14 @@ function testAuth_authEventManager() {
     assertEquals(1, expectedManager.subscribe.getCallCount());
     assertEquals(
         auth1, expectedManager.subscribe.getLastCall().getArgument(0));
+    assertEquals(0, expectedManager.clearRedirectResult.getCallCount());
+    // Delete should trigger unsubscribe and redirect result clearing.
     auth1.delete();
     // After destroy, Auth should be unsubscribed.
     assertEquals(1, expectedManager.subscribe.getCallCount());
     assertEquals(1, expectedManager.unsubscribe.getCallCount());
+    // Redirect result should also be cleared.
+    assertEquals(1, expectedManager.clearRedirectResult.getCallCount());
     assertEquals(
         auth1, expectedManager.unsubscribe.getLastCall().getArgument(0));
     asyncTestCase.signal();
