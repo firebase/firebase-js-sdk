@@ -382,6 +382,10 @@ export class View {
     });
     return changes;
   }
+
+  synchronizeWithRemoteKeys(remoteKeys: DocumentKeySet): void {
+    this._syncedDocuments = remoteKeys;
+  }
 }
 
 function compareChangeType(c1: ChangeType, c2: ChangeType): number {

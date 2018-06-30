@@ -345,7 +345,6 @@ export class SpecBuilder {
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
     this.clientState.reset();
-    this.queryIdGenerator = new CachedTargetIdGenerator();
     return this;
   }
 
@@ -361,7 +360,6 @@ export class SpecBuilder {
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
     this.clientState.reset();
-    this.queryIdGenerator = new CachedTargetIdGenerator();
     return this;
   }
 

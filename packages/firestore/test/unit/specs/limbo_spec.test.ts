@@ -19,6 +19,7 @@ import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Limbo Documents:', [], () => {
   specTest(
@@ -260,31 +261,76 @@ describeSpec('Limbo Documents:', [], () => {
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
-      const doc1 = doc('collection/a', 1000, { key: 'a' });
-      const doc2 = doc('collection/b', 1001, { key: 'b' });
-      const deletedDoc2 = deletedDoc('collection/b', 1004);
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1001, { key: 'b' });
+      const deletedDocB = deletedDoc('collection/b', 1004);
 
       return client(0)
-        .becomeVisible()
+        .expectPrimaryState(true)
         .client(1)
         .userListens(query)
         .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
-        .watchAcksFull(query, 1002, doc1, doc2)
+        .watchAcksFull(query, 1002, docA, docB)
         .client(1)
-        .expectEvents(query, { added: [doc1, doc2] })
+        .expectEvents(query, { added: [docA, docB] })
         .client(0)
-        .watchRemovesDoc(doc2.key, query)
+        .watchRemovesDoc(docB.key, query)
         .watchSnapshots(1003)
-        .expectLimboDocs(doc2.key)
+        .expectLimboDocs(docB.key)
         .client(1)
         .expectEvents(query, { fromCache: true })
         .client(0)
-        .ackLimbo(1004, deletedDoc2)
+        .ackLimbo(1004, deletedDocB)
         .expectLimboDocs()
         .client(1)
-        .expectEvents(query, { removed: [doc2] });
+        .expectEvents(query, { removed: [docB] });
     }
   );
+
+  specTest(
+    'Limbo documents are resolved after primary tab failover',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1001, { key: 'b' });
+      const deletedDocB = deletedDoc('collection/b', 1005);
+
+      return (
+        client(0, false)
+          .expectPrimaryState(true)
+          .client(1)
+          .userListens(query)
+          .expectEvents(query, { fromCache: true })
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1002, docA, docB)
+          .client(1)
+          .expectEvents(query, { added: [docA, docB] })
+          .client(0)
+          .watchRemovesDoc(docB.key, query)
+          .watchSnapshots(1003)
+          .expectLimboDocs(docB.key)
+          .shutdown()
+          .client(1)
+          .expectEvents(query, { fromCache: true })
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+          // TODO(37254270): This should be 'resume-token-1003' from the last
+          // global snapshot.
+          .expectListen(query, 'resume-token-1002')
+          .watchAcksFull(query, 1004)
+          .expectLimboDocs(docB.key)
+          .ackLimbo(1005, deletedDocB)
+          .expectLimboDocs()
+          .expectEvents(query, { removed: [docB] })
+      );
+    }
+  );
+
+  // TODO(multitab): We need a test case that verifies that a primary client
+  // that loses its primary lease while documents are in limbo correctly handles
+  // these documents even when it picks up its lease again.
 });

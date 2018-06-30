@@ -980,11 +980,16 @@ abstract class TestRunner {
       }
     }
 
-    // Always validate that the expected limbo docs match the actual limbo docs
-    this.validateLimboDocs();
-    // Always validate that the expected active targets match the actual active
-    // targets
-    this.validateActiveTargets();
+    // Clients don't reset their limbo docs on shutdown, so any validation will
+    // likely fail.
+    if (this.started) {
+      // Always validate that the expected limbo docs match the actual limbo
+      // docs
+      this.validateLimboDocs();
+      // Always validate that the expected active targets match the actual
+      // active targets
+      await this.validateActiveTargets();
+    }
   }
 
   private validateLimboDocs(): void {
@@ -1010,10 +1015,20 @@ abstract class TestRunner {
     );
   }
 
-  private validateActiveTargets(): void {
+  private async validateActiveTargets(): Promise<void> {
     if (!this.isPrimaryClient) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
+    }
+
+    // In multi-tab mode, we cannot rely on the `waitForWatchOpen` call in
+    // `doUserListen` since primary tabs may execute queries from other tabs
+    // without any direct user interaction.
+    // TODO(multitab): Refactor so this is only executed after primary tab
+    // change
+    if (!obj.isEmpty(this.expectedActiveTargets)) {
+      await this.connection.waitForWatchOpen();
+      await this.queue.drain();
     }
 
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);

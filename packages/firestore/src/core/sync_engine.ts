@@ -138,7 +138,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
   private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
-  private isPrimary = false;
+
+  // The primary state is set to `true` or `false` immediately after Firestore
+  // startup. In the interim, a client should only be considered primary if
+  // `isPrimary` is true.
+  private isPrimary: undefined | boolean = undefined;
 
   constructor(
     private localStore: LocalStore,
@@ -150,7 +154,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
-    return this.isPrimary;
+    return this.isPrimary === true;
   }
 
   /** Subscribes view and error handler. Can be called only once. */
@@ -184,19 +188,23 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
       );
-      return this.initializeListenAndNotifyViews(
+      return this.initializeViewAndComputeInitialSnapshot(
         queryData,
         status === 'current'
-      ).then(() => {
+      ).then(viewSnapshot => {
+        if (this.isPrimary) {
+          this.remoteStore.listen(queryData);
+        }
+        this.viewHandler!([viewSnapshot]);
         return queryData.targetId;
       });
     });
   }
 
-  private initializeListenAndNotifyViews(
+  private initializeViewAndComputeInitialSnapshot(
     queryData: QueryData,
     current: boolean
-  ): Promise<void> {
+  ): Promise<ViewSnapshot> {
     const query = queryData.query;
 
     return this.localStore.executeQuery(query).then(docs => {
@@ -231,12 +239,24 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           );
           this.queryViewsByQuery.set(query, data);
           this.queryViewsByTarget[queryData.targetId] = data;
-          this.viewHandler!([viewChange.snapshot!]);
-          if (this.isPrimary) {
-            this.remoteStore.listen(queryData);
-          }
+          return viewChange.snapshot!;
         });
     });
+  }
+
+  /**
+   * Reconcile the list of synced documents in the local views with those from
+   * persistence.
+   */
+  // PORTING NOTE: Multi-tab only.
+  private async synchronizeLocalView(targetId: TargetId): Promise<void> {
+    return this.localStore
+      .remoteDocumentKeys(targetId)
+      .then(async remoteKeys => {
+        const queryView = this.queryViewsByTarget[targetId];
+        assert(!!queryView, 'Expected queryView to be defined');
+        queryView.view.synchronizeWithRemoteKeys(remoteKeys);
+      });
   }
 
   /** Stops listening to the query. */
@@ -721,12 +741,52 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only
-  applyPrimaryState(isPrimary: boolean): Promise<void> {
-    this.isPrimary = isPrimary;
-    if (this.isPrimary && this.networkAllowed) {
-      return this.remoteStore.enableNetwork();
-    } else {
-      return this.remoteStore.disableNetwork();
+  async applyPrimaryState(isPrimary: boolean): Promise<void> {
+    if (isPrimary === true && this.isPrimary !== true) {
+      this.isPrimary = true;
+
+      // Secondary tabs only maintain Views for their local listeners and the
+      // Views internal state may not be 100% populated (in particular
+      // secondary tabs don't track syncedDocuments, the set of documents the
+      // server considers to be in the target). So when a secondary becomes
+      // primary, we need to need to make sure that all views for all targets
+      // match the state on disk.
+      let p = Promise.resolve();
+      const activeTargets = this.sharedClientState.getAllActiveQueryTargets();
+      activeTargets.forEach(targetId => {
+        p = p.then(async () => {
+          let queryData;
+          const query = await this.localStore.getQueryForTarget(targetId);
+          if (this.queryViewsByTarget[targetId] === undefined) {
+            // For queries that never executed on this client, we need to
+            // allocate the query in LocalStore and initialize a new View.
+            queryData = await this.localStore.allocateQuery(query);
+            await this.initializeViewAndComputeInitialSnapshot(
+              queryData,
+              false
+            );
+          } else {
+            // For queries that have a local View, we need to update their state
+            // in LocalStore (as the resume token and the snapshot version
+            // might have changed) and reconcile their views with the persisted
+            // state (the list of syncedDocuments may have gotten out of sync).
+            await this.localStore.releaseQuery(query, true);
+            queryData = await this.localStore.allocateQuery(query);
+            await this.synchronizeLocalView(targetId);
+          }
+          this.remoteStore.listen(queryData);
+        });
+      });
+      await p;
+
+      if (this.networkAllowed) {
+        await this.remoteStore.enableNetwork();
+      }
+    } else if (isPrimary === false && this.isPrimary !== false) {
+      this.isPrimary = false;
+
+      // TODO: Unlisten from all active targets
+      await this.remoteStore.disableNetwork();
     }
   }
 
@@ -785,10 +845,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         !this.queryViewsByTarget[targetId],
         'Trying to add an already active target'
       );
-      const queryData = await this.localStore.getQueryDataForTarget(targetId);
-      assert(!!queryData, `Query data for active target ${targetId} not found`);
-      await this.localStore.allocateQuery(queryData.query);
-      await this.initializeListenAndNotifyViews(queryData, /*current=*/ false);
+      const query = await this.localStore.getQueryForTarget(targetId);
+      assert(!!query, `Query data for active target ${targetId} not found`);
+      const queryData = await this.localStore.allocateQuery(query);
+      await this.initializeViewAndComputeInitialSnapshot(
+        queryData,
+        /*current=*/ false
+      );
+      this.remoteStore.listen(queryData);
     }
 
     for (const targetId of removed) {

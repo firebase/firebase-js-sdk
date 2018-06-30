@@ -142,6 +142,7 @@ export class LocalStore {
   private queryCache: QueryCache;
 
   /** Maps a targetID to data about its query. */
+  // TODO(multitab): Rename to `queryDataByTarget` to match SyncEngine's naming.
   private targetIds = {} as { [targetId: number]: QueryData };
 
   /**
@@ -971,10 +972,16 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  getQueryDataForTarget(targetId: TargetId): Promise<QueryData | null> {
-    return this.persistence.runTransaction('Get query data', false, txn => {
-      return this.queryCache.getQueryDataForTarget(txn, targetId);
-    });
+  getQueryForTarget(targetId: TargetId): Promise<Query | null> {
+    if (this.targetIds[targetId]) {
+      return Promise.resolve(this.targetIds[targetId].query);
+    } else {
+      return this.persistence.runTransaction('Get query data', false, txn => {
+        return this.queryCache
+          .getQueryDataForTarget(txn, targetId)
+          .next(queryData => queryData.query);
+      });
+    }
   }
 
   // PORTING NOTE: Multi-tab only.
