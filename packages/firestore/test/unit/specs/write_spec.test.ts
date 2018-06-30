@@ -1018,11 +1018,10 @@ describeSpec('Writes:', [], () => {
       { hasLocalMutations: true }
     );
 
-    // Firebase Auth attempts to rapidly synchronize user changes across tab. We
-    // emulate this behavior in this spec tests by calling `changeUser` manually
-    // for all clients.
-    return (
-      client(0)
+    // Firebase Auth attempts to rapidly synchronize user changes across tabs.
+    // We emulate this behavior in this spec tests by calling `changeUser`
+    // manually for all clients.
+    return client(0)
         .userListens(query)
         .changeUser('user1')
         // User 1 writes `docA`
@@ -1087,7 +1086,6 @@ describeSpec('Writes:', [], () => {
           removed: [docCLocal],
           fromCache: true,
           hasPendingWrites: true
-        })
-    );
+        });
   });
 });
