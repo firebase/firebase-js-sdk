@@ -1091,7 +1091,7 @@ describeSpec('Writes:', [], () => {
     );
   });
 
-  specTest('Mutations are scoped by user', [, 'multi-client'], () => {
+  specTest('Mutations are scoped by user', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docALocal = doc(
       'collection/a',
