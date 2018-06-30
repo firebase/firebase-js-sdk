@@ -142,6 +142,7 @@ export class LocalStore {
   private queryCache: QueryCache;
 
   /** Maps a targetID to data about its query. */
+  // TODO(multitab): Rename to `queryDataByTarget` to match SyncEngine's naming.
   private targetIds = {} as { [targetId: number]: QueryData };
 
   /**

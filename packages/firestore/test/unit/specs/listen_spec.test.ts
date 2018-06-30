@@ -751,7 +751,7 @@ describeSpec('Listens:', [], () => {
       .userListens(query)
       .watchAcksFull(query, 1000, docA)
       .expectEvents(query, { added: [docA] })
-      .client(1)
+      .client(1) // Start up and initialize the second client.
       .client(2)
       .userListens(query)
       .expectEvents(query, { added: [docA] })

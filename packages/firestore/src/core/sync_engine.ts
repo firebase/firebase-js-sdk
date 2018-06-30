@@ -140,8 +140,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   // The primary state is set to `true` or `false` immediately after Firestore
-  // startup. In the interim, a client should only be considered primary if `
-  // isPrimary` is true.
+  // startup. In the interim, a client should only be considered primary if
+  // `isPrimary` is true.
   private isPrimary: undefined | boolean = undefined;
 
   constructor(
@@ -249,11 +249,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * persistence.
    */
   // PORTING NOTE: Multi-tab only.
-  private async synchronizeLocalView(queryData: QueryData): Promise<void> {
+  private async synchronizeLocalView(targetId: TargetId): Promise<void> {
     return this.localStore
-      .remoteDocumentKeys(queryData.targetId)
+      .remoteDocumentKeys(targetId)
       .then(async remoteKeys => {
-        const queryView = this.queryViewsByTarget[queryData.targetId];
+        const queryView = this.queryViewsByTarget[targetId];
         assert(!!queryView, 'Expected queryView to be defined');
         queryView.view.synchronizeWithRemoteKeys(remoteKeys);
       });
@@ -772,7 +772,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // state (the list of syncedDocuments may have gotten out of sync).
             await this.localStore.releaseQuery(query, true);
             queryData = await this.localStore.allocateQuery(query);
-            await this.synchronizeLocalView(queryData);
+            await this.synchronizeLocalView(targetId);
           }
           this.remoteStore.listen(queryData);
         });
