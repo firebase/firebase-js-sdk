@@ -1090,4 +1090,43 @@ describeSpec('Writes:', [], () => {
         })
     );
   });
+
+  specTest('Mutations are scoped by user', [, 'multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+    );
+    const docBLocal = doc(
+        'collection/b',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+    );
+
+    return (
+        client(0)
+            .changeUser('user1')
+            .userSets('collection/a', { v: 1 })
+            .client(1)
+            .changeUser('user2')
+            .userSets('collection/b', { v: 1 })
+                .client(0)
+                .userListens(query)
+            .expectEvents(query, {
+              added: [docALocal],
+              fromCache: true,
+              hasPendingWrites: true
+            })
+            .client(1)
+            .userListens(query)
+            .expectEvents(query, {
+              added: [docBLocal],
+              fromCache: true,
+              hasPendingWrites: true
+            })
+    );
+  });
 });
