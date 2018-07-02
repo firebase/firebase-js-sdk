@@ -23,6 +23,10 @@ const createId = () =>
 describe('RxFire Database', () => {
   let app: app.App = null;
   let database: database.Database = null;
+  let ref = (path: string) => { 
+    app.database().goOffline(); 
+    return app.database().ref(path); 
+  };
 
   /**
    * Each test runs inside it's own app instance and the app
@@ -40,7 +44,10 @@ describe('RxFire Database', () => {
    * account for this.
    */
   beforeEach(() => {
-    app = initializeApp({ projectId: 'rxfire-test-db' });
+    app = initializeApp({ 
+      projectId: 'rxfire-test-db',
+      databaseURL: "https://rxfire-test.firebaseio.com",
+    });
     database = app.database();
     database.goOffline();
   });
@@ -51,9 +58,9 @@ describe('RxFire Database', () => {
 
   describe('fromRef', () => {
 
-    it('once should complete', (done) => {
+    it('should complete using a once', (done) => {
       const itemRef = ref(createId());
-      itemRef.set(batch);
+      itemRef.set(batch());
       const obs = fromRef(itemRef, 'value', 'once');
       obs.subscribe(_ => {}, () => {}, done);
     });
