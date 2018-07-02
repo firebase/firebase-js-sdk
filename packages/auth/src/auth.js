@@ -70,6 +70,11 @@ fireauth.Auth = function(app) {
       this, 'settings', new fireauth.AuthSettings());
   /** Auth's corresponding App. */
   fireauth.object.setReadonlyProperty(this, 'app', app);
+  // If auth URL is provided, 
+  // set constant 'Endpoint.TEST.firebaseAuthEndpoint' variable to option value
+  if(this.app_().options && this.app_().options['authUrl']) {
+    fireauth.constants.Endpoint.TEST.firebaseAuthEndpoint = this.app_().options['authUrl'];
+  }
   // Initialize RPC handler.
   // API key is required for web client RPC calls.
   if (this.app_().options && this.app_().options['apiKey']) {
