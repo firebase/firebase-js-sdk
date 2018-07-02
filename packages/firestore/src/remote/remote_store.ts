@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
-import { BatchId, OnlineState, TargetId } from '../core/types';
+import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { MutationResult } from '../model/mutation';
@@ -77,8 +77,24 @@ const MAX_PENDING_WRITES = 10;
  * - acking mutations to the SyncEngine once they are accepted or rejected.
  */
 export class RemoteStore implements TargetMetadataProvider {
-  private pendingWrites: MutationBatch[] = [];
-  private lastBatchSeen: BatchId = BATCHID_UNKNOWN;
+  /**
+   * A list of up to MAX_PENDING_WRITES writes that we have fetched from the
+   * LocalStore via fillWritePipeline() and have or will send to the write
+   * stream.
+   *
+   * Whenever writePipeline.length > 0 the RemoteStore will attempt to start or
+   * restart the write stream. When the stream is established the writes in the
+   * pipeline will be sent in order.
+   *
+   * Writes remain in writePipeline until they are acknowledged by the backend
+   * and thus will automatically be re-sent if the stream is interrupted /
+   * restarted before they're acknowledged.
+   *
+   * Write responses from the backend are linked to their originating request
+   * purely based on order, and so we can just shift() writes from the front of
+   * the writePipeline as we receive responses.
+   */
+  private writePipeline: MutationBatch[] = [];
 
   /**
    * A mapping of watched targets that the client cares about tracking and the
@@ -177,7 +193,16 @@ export class RemoteStore implements TargetMetadataProvider {
       this.writeStream.stop();
 
       this.cleanUpWatchStreamState();
-      this.cleanUpWriteStreamState();
+
+      log.debug(
+        LOG_TAG,
+        'Stopping write stream with ' +
+          this.writePipeline.length +
+          ' pending writes'
+      );
+      // TODO(mikelehen): We only actually need to clear the write pipeline if
+      // this is being called as part of handleUserChange(). Consider reworking.
+      this.writePipeline = [];
 
       this.writeStream = null;
       this.watchStream = null;
@@ -439,32 +464,29 @@ export class RemoteStore implements TargetMetadataProvider {
     return promiseChain;
   }
 
-  cleanUpWriteStreamState(): void {
-    this.lastBatchSeen = BATCHID_UNKNOWN;
-    log.debug(
-      LOG_TAG,
-      'Stopping write stream with ' +
-        this.pendingWrites.length +
-        ' pending writes'
-    );
-    this.pendingWrites = [];
-  }
-
   /**
-   * Notifies that there are new mutations to process in the queue. This is
-   * typically called by SyncEngine after it has sent mutations to LocalStore.
+   * Attempts to fill our write pipeline with writes from the LocalStore.
+   *
+   * Called internally to bootstrap or refill the write pipeline and by
+   * SyncEngine whenever there are new mutations to process.
+   *
+   * Starts the write stream if necessary.
    */
   async fillWritePipeline(): Promise<void> {
-    if (this.canWriteMutations()) {
+    if (this.canAddToWritePipeline()) {
+      const lastBatchIdRetrieved =
+        this.writePipeline.length > 0
+          ? this.writePipeline[this.writePipeline.length - 1].batchId
+          : BATCHID_UNKNOWN;
       return this.localStore
-        .nextMutationBatch(this.lastBatchSeen)
+        .nextMutationBatch(lastBatchIdRetrieved)
         .then(batch => {
           if (batch === null) {
-            if (this.pendingWrites.length === 0) {
+            if (this.writePipeline.length === 0) {
               this.writeStream.markIdle();
             }
           } else {
-            this.commit(batch);
+            this.addToWritePipeline(batch);
             return this.fillWritePipeline();
           }
         });
@@ -472,39 +494,31 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Returns true if the backend can accept additional write requests.
-   *
-   * When sending mutations to the write stream (e.g. in fillWritePipeline),
-   * call this method first to check if more mutations can be sent.
-   *
-   * Currently the only thing that can prevent the backend from accepting
-   * write requests is if there are too many requests already outstanding. As
-   * writes complete the backend will be able to accept more.
+   * Returns true if we can add to the write pipeline (i.e. it is not full and
+   * the network is enabled).
    */
-  canWriteMutations(): boolean {
+  private canAddToWritePipeline(): boolean {
     return (
-      this.isNetworkEnabled() && this.pendingWrites.length < MAX_PENDING_WRITES
+      this.isNetworkEnabled() && this.writePipeline.length < MAX_PENDING_WRITES
     );
   }
 
   // For testing
   outstandingWrites(): number {
-    return this.pendingWrites.length;
+    return this.writePipeline.length;
   }
 
   /**
-   * Given mutations to commit, actually commits them to the Datastore. Note
-   * that this does *not* return a Promise specifically because the AsyncQueue
-   * should not block operations for this.
+   * Queues additional writes to be sent to the write stream, sending them
+   * immediately if the write stream is established, else starting the write
+   * stream if it is not yet started.
    */
-  private commit(batch: MutationBatch): void {
+  private addToWritePipeline(batch: MutationBatch): void {
     assert(
-      this.canWriteMutations(),
-      "commit called when batches can't be written"
+      this.canAddToWritePipeline(),
+      'addToWritePipeline called when pipeline is full'
     );
-    this.lastBatchSeen = batch.batchId;
-
-    this.pendingWrites.push(batch);
+    this.writePipeline.push(batch);
 
     if (this.shouldStartWriteStream()) {
       this.startWriteStream();
@@ -517,7 +531,7 @@ export class RemoteStore implements TargetMetadataProvider {
     return (
       this.isNetworkEnabled() &&
       !this.writeStream.isStarted() &&
-      this.pendingWrites.length > 0
+      this.writePipeline.length > 0
     );
   }
 
@@ -543,20 +557,8 @@ export class RemoteStore implements TargetMetadataProvider {
     return this.localStore
       .setLastStreamToken(this.writeStream.lastStreamToken)
       .then(() => {
-        // Drain any pending writes.
-        //
-        // Note that at this point pendingWrites contains mutations that
-        // have already been accepted by fillWritePipeline/commitBatch. If
-        // the pipeline is full, canWriteMutations will be false, despite
-        // the fact that we actually need to send mutations over.
-        //
-        // This also means that this method indirectly respects the limits
-        // imposed by canWriteMutations since writes can't be added to the
-        // pendingWrites array when canWriteMutations is false. If the
-        // limits imposed by canWriteMutations actually protect us from
-        // DOSing ourselves then those limits won't be exceeded here and
-        // we'll continue to make progress.
-        for (const batch of this.pendingWrites) {
+        // Send the write pipeline now that the stream is established.
+        for (const batch of this.writePipeline) {
           this.writeStream.writeMutations(batch.mutations);
         }
       });
@@ -567,12 +569,12 @@ export class RemoteStore implements TargetMetadataProvider {
     results: MutationResult[]
   ): Promise<void> {
     // This is a response to a write containing mutations and should be
-    // correlated to the first pending write.
+    // correlated to the first write in our write pipeline.
     assert(
-      this.pendingWrites.length > 0,
-      'Got result for empty pending writes'
+      this.writePipeline.length > 0,
+      'Got result for empty write pipeline'
     );
-    const batch = this.pendingWrites.shift()!;
+    const batch = this.writePipeline.shift()!;
     const success = MutationBatchResult.from(
       batch,
       commitVersion,
@@ -594,11 +596,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
-    if (error && this.pendingWrites.length > 0) {
-      assert(
-        !!error,
-        'We have pending writes, but the write stream closed without an error'
-      );
+    if (error && this.writePipeline.length > 0) {
       // A promise that is resolved after we processed the error
       let errorHandling: Promise<void>;
       if (this.writeStream.handshakeComplete) {
@@ -644,7 +642,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (isPermanentError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
-      const batch = this.pendingWrites.shift()!;
+      const batch = this.writePipeline.shift()!;
 
       // In this case it's also unlikely that the server itself is melting
       // down -- this was just a bad request so inhibit backoff on the next
