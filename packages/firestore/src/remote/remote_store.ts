@@ -78,17 +78,21 @@ const MAX_PENDING_WRITES = 10;
  */
 export class RemoteStore implements TargetMetadataProvider {
   /**
-   * A set of up to MAX_PENDING_WRITES writes that we have fetched from the
+   * A list of up to MAX_PENDING_WRITES writes that we have fetched from the
    * LocalStore via fillWritePipeline() and have or will send to the write
    * stream.
    *
-   * Whenever writePipeline.length > 0 (and the network is enabled) the write
-   * stream is considered to be necessary and all the writes will be sent to the
-   * backend if/when the stream is established.
+   * Whenever writePipeline.length > 0 the RemoteStore will attempt to start or
+   * restart the write stream. When the stream is established the writes in the
+   * pipeline will be sent in order.
    *
    * Writes remain in writePipeline until they are acknowledged by the backend
    * and thus will automatically be re-sent if the stream is interrupted /
    * restarted before they're acknowledged.
+   *
+   * Write responses from the backend are linked to their originating request
+   * purely based on order, and so we can just shift() writes from the front of
+   * the writePipeline as we receive responses.
    */
   private writePipeline: MutationBatch[] = [];
 
@@ -461,7 +465,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Attempts to fill our write pipeline with mutations from the LocalStore.
+   * Attempts to fill our write pipeline with writes from the LocalStore.
    *
    * Called internally to bootstrap or refill the write pipeline and by
    * SyncEngine whenever there are new mutations to process.
@@ -469,7 +473,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts the write stream if necessary.
    */
   async fillWritePipeline(): Promise<void> {
-    if (!this.isWritePipelineFull()) {
+    if (this.canAddToWritePipeline()) {
       const lastBatchIdRetrieved =
         this.writePipeline.length > 0
           ? this.writePipeline[this.writePipeline.length - 1].batchId
@@ -490,13 +494,12 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Returns true if our write pipeline is full. Note that we consider the write
-   * pipeline full if the network is disabled.
+   * Returns true if we can add to the write pipeline (i.e. it is not full and
+   * the network is enabled).
    */
-  isWritePipelineFull(): boolean {
+  private canAddToWritePipeline(): boolean {
     return (
-      !this.isNetworkEnabled() ||
-      this.writePipeline.length >= MAX_PENDING_WRITES
+      this.isNetworkEnabled() && this.writePipeline.length < MAX_PENDING_WRITES
     );
   }
 
@@ -512,7 +515,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private addToWritePipeline(batch: MutationBatch): void {
     assert(
-      !this.isWritePipelineFull(),
+      this.canAddToWritePipeline(),
       'addToWritePipeline called when pipeline is full'
     );
     this.writePipeline.push(batch);
@@ -554,7 +557,7 @@ export class RemoteStore implements TargetMetadataProvider {
     return this.localStore
       .setLastStreamToken(this.writeStream.lastStreamToken)
       .then(() => {
-        // Drain the write pipeline now that the stream is established.
+        // Send the write pipeline now that the stream is established.
         for (const batch of this.writePipeline) {
           this.writeStream.writeMutations(batch.mutations);
         }
