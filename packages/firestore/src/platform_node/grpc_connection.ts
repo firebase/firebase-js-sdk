@@ -58,6 +58,26 @@ interface CachedStub {
   token: Token | null;
 }
 
+function createMetadata(databaseInfo: DatabaseInfo, token: Token | null): grpc.Metadata {
+  const metadata = new grpc.Metadata();
+  if (token) {
+    for (const header in token.authHeaders) {
+      if (token.authHeaders.hasOwnProperty(header)) {
+        metadata.set(header, token.authHeaders[header]);
+      }
+    }
+  }
+  metadata.set('x-goog-api-client', X_GOOG_API_CLIENT_VALUE);
+  // This header is used to improve routing and project isolation by the
+  // backend.
+  metadata.set(
+    'google-cloud-resource-prefix',
+    `projects/${databaseInfo.databaseId.projectId}/` +
+      `databases/${databaseInfo.databaseId.database}`
+  );
+  return metadata;
+}
+
 /**
  * A Connection implemented by GRPC-Node.
  */
@@ -104,26 +124,9 @@ export class GrpcConnection implements Connection {
     const rpc = stub[rpcMethod];
     assert(rpc != null, 'Unknown RPC: ' + rpcName);
 
-    const metadata = new grpc.Metadata();
-    if (token) {
-      for (const header in token.authHeaders) {
-        if (token.authHeaders.hasOwnProperty(header)) {
-          metadata.set(header, token.authHeaders[header]);
-        }
-      }
-    }
-    metadata.set('x-goog-api-client', X_GOOG_API_CLIENT_VALUE);
-    // This header is used to improve routing and project isolation by the
-    // backend.
-    metadata.set(
-      'google-cloud-resource-prefix',
-      `projects/${this.databaseInfo.databaseId.projectId}/` +
-        `databases/${this.databaseInfo.databaseId.database}`
-    );
+    const metadata = createMetadata(this.databaseInfo, token);
     const f = rpc.bind(stub);
-    return function() {
-      return f(arguments, metadata);
-    };
+    return (...args) => f(...args, metadata);
   }
 
   invokeRPC<Req, Resp>(
