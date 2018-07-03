@@ -41,14 +41,10 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${
   process.versions.node
 } fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
-type DuplexRpc<Req, Resp> = (meta: any) => grpc.ClientDuplexStream<Req, Resp>;
-type ReadableRpc<Req, Resp> = (
-  req: Req,
-  meta: any
-) => grpc.ClientReadableStream<Resp>;
+type DuplexRpc<Req, Resp> = () => grpc.ClientDuplexStream<Req, Resp>;
+type ReadableRpc<Req, Resp> = (req: Req) => grpc.ClientReadableStream<Resp>;
 type UnaryRpc<Req, Resp> = (
   req: Req,
-  any,
   callback: (err?: grpc.ServiceError, resp?: Resp) => void
 ) => grpc.ClientUnaryCall;
 
@@ -160,7 +156,6 @@ export class GrpcConnection implements Connection {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
       return rpc(
         request,
-        { rpb: 'asdf pqrs tuvw' },
         (grpcError?: grpc.ServiceError, value?: Resp) => {
           if (grpcError) {
             log.debug(
@@ -201,7 +196,7 @@ export class GrpcConnection implements Connection {
       `RPC '${rpcName}' invoked (streaming) with request:`,
       request
     );
-    const stream = rpc(request, { rpb: 'foo bar baz' });
+    const stream = rpc(request);
     stream.on('data', response => {
       log.debug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
@@ -225,11 +220,7 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Stream<Req, Resp> {
     const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc<Req, Resp>;
-    console.log('[RPB] opening stream');
-
-    var meta = new grpc.Metadata();
-    meta.add('rpb', 'foo bar baz');
-    const grpcStream = rpc({ rpb: 'foo bar baz' });
+    const grpcStream = rpc();
 
     let closed = false;
     let close: (err?: Error) => void;
