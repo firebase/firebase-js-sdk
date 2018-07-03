@@ -14,8 +14,8 @@ export function stateChanges(query: database.Query, events?: ChildEvent[]) {
 export function list(query: database.Query, events?: ChildEvent[]): Observable<SnapshotPrevKey[]> {
   events = validateEventsArray(events);
   return fromRef(query, 'value', 'once').pipe(
-    switchMap(snapshotAction => {
-      const childEvent$ = [of(snapshotAction)];
+    switchMap(change => {
+      const childEvent$ = [of(change)];
       events.forEach(event => childEvent$.push(fromRef(query, event)));
       return merge(...childEvent$).pipe(scan(buildView, []))
     }),
@@ -46,15 +46,21 @@ function positionAfter<T>(changes: SnapshotPrevKey[], prevKey?: string) {
   }
 }
 
-function buildView(current: SnapshotPrevKey[], action: SnapshotPrevKey) {
-  const { snapshot, prevKey, event } = action; 
+function buildView(current: SnapshotPrevKey[], change: SnapshotPrevKey) {
+  const { snapshot, prevKey, event } = change; 
   const { key } = snapshot;
   const currentKeyPosition = positionFor(current, key);
   const afterPreviousKeyPosition = positionAfter(current, prevKey);
   switch (event) {
     case 'value':
-      if (action.snapshot && action.snapshot.exists()) {
-        current = [...current, action];
+      if (change.snapshot && change.snapshot.exists()) {
+        let prevKey = null;
+        change.snapshot.forEach(snapshot => {
+          const action: SnapshotPrevKey = { snapshot, event: 'value', prevKey };
+          prevKey = snapshot.key;
+          current = [...current, action];
+          return false;
+        });
       }
       return current;
     case 'child_added':
@@ -63,19 +69,19 @@ function buildView(current: SnapshotPrevKey[], action: SnapshotPrevKey) {
         const previous = current[currentKeyPosition - 1];
         if ((previous && previous.snapshot.key || null) != prevKey) {
           current = current.filter(x => x.snapshot.key !== snapshot.key);
-          current.splice(afterPreviousKeyPosition, 0, action);
+          current.splice(afterPreviousKeyPosition, 0, change);
         }
       } else if (prevKey == null) {
-        return [action, ...current];
+        return [change, ...current];
       } else {
         current = current.slice()
-        current.splice(afterPreviousKeyPosition, 0, action);
+        current.splice(afterPreviousKeyPosition, 0, change);
       }
       return current;
     case 'child_removed':
       return current.filter(x => x.snapshot.key !== snapshot.key);
     case 'child_changed':
-      return current.map(x => x.snapshot.key === key ? action : x);
+      return current.map(x => x.snapshot.key === key ? change : x);
     case 'child_moved':
       if(currentKeyPosition > -1) {
         const data = current.splice(currentKeyPosition, 1)[0];
