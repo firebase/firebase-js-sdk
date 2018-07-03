@@ -123,7 +123,7 @@ export class GrpcConnection implements Connection {
     const f = rpc.bind(stub);
     return function() {
       return f(arguments, metadata);
-    }
+    };
   }
 
   invokeRPC<Req, Resp>(
