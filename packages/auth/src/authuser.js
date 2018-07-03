@@ -209,6 +209,8 @@ fireauth.AuthUser =
   this.appName_ = /** @type {string} */ (appOptions['appName']);
   /** @private {?string} The Auth domain. */
   this.authDomain_ = appOptions['authDomain'] || null;
+  /** @private {?Object} The Auth Config, used in custom auth server */
+  this.authConfig_ = appOptions['authConfig'] || null;
   var clientFullVersion = firebase.SDK_VERSION ?
       fireauth.util.getClientVersion(
           fireauth.util.ClientImplementation.JSCORE, firebase.SDK_VERSION) :
@@ -217,7 +219,7 @@ fireauth.AuthUser =
   this.rpcHandler_ = new fireauth.RpcHandler(
       this.apiKey_,
       // Get the client Auth endpoint used.
-      fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
+      (this.authConfig_ || fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint)),
       clientFullVersion);
   // TODO: Consider having AuthUser take a fireauth.StsTokenManager
   // instance instead of a token response but make sure lastAccessToken_ also
@@ -245,7 +247,7 @@ fireauth.AuthUser =
       fireauth.util.isPopupRedirectSupported()) {
     // Get the Auth event manager associated with this user.
     this.authEventManager_ = fireauth.AuthEventManager.getManager(
-        this.authDomain_, this.apiKey_, this.appName_);
+        this.authDomain_, this.apiKey_, this.appName_, this.authConfig_);
   }
   /** @private {!Array<!function(!fireauth.AuthUser):!goog.Promise>} The list of
    *      state change listeners. This is needed to make sure state changes are
@@ -2252,7 +2254,8 @@ fireauth.AuthUser.fromPlainObject = function(user) {
   var options = {
     'apiKey': user['apiKey'],
     'authDomain': user['authDomain'],
-    'appName': user['appName']
+    'appName': user['appName'],
+    'authConfig': user['authConfig']
   };
   // Convert to server response format. Constructor does not take
   // stsTokenManager toPlainObject as that format is different than the return

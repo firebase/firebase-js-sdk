@@ -70,11 +70,6 @@ fireauth.Auth = function(app) {
       this, 'settings', new fireauth.AuthSettings());
   /** Auth's corresponding App. */
   fireauth.object.setReadonlyProperty(this, 'app', app);
-  // If auth URL is provided, 
-  // set constant 'Endpoint.TEST.firebaseAuthEndpoint' variable to option value
-  if(this.app_().options && this.app_().options['authUrl']) {
-    fireauth.constants.Endpoint.TEST.firebaseAuthEndpoint = this.app_().options['authUrl'];
-  }
   // Initialize RPC handler.
   // API key is required for web client RPC calls.
   if (this.app_().options && this.app_().options['apiKey']) {
@@ -85,7 +80,8 @@ fireauth.Auth = function(app) {
     this.rpcHandler_ = new fireauth.RpcHandler(
         this.app_().options && this.app_().options['apiKey'],
         // Get the client Auth endpoint used.
-        fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
+        // If custom config is provided, use it
+        this.app_().options['authConfig'] || fireauth.constants.getEndpointConfig(fireauth.constants.clientEndpoint),
         clientFullVersion);
   } else {
     throw new fireauth.AuthError(fireauth.authenum.Error.INVALID_API_KEY);
@@ -393,6 +389,7 @@ fireauth.Auth.prototype.initAuthEventManager_ = function() {
   var self = this;
   var authDomain = this.app_().options['authDomain'];
   var apiKey = this.app_().options['apiKey'];
+  var authConfig = this.app_().options['authConfig'] || null;
   // Make sure environment also supports popup and redirect.
   if (authDomain && fireauth.util.isPopupRedirectSupported()) {
     // Auth domain is required for Auth event manager to resolve.
@@ -404,7 +401,7 @@ fireauth.Auth.prototype.initAuthEventManager_ = function() {
       // By this time currentUser should be ready if available and will be able
       // to resolve linkWithRedirect if detected.
       self.authEventManager_ = fireauth.AuthEventManager.getManager(
-          authDomain, apiKey, self.app_().name);
+          authDomain, apiKey, self.app_().name, authConfig);
       // Subscribe Auth instance.
       self.authEventManager_.subscribe(self);
       // Subscribe current user by enabling popup and redirect on that user.
@@ -799,6 +796,7 @@ fireauth.Auth.prototype.signInWithIdTokenResponse =
   options['apiKey'] = self.app_().options['apiKey'];
   options['authDomain'] = self.app_().options['authDomain'];
   options['appName'] = self.app_().name;
+  options['authConfig'] = self.app_().options['authConfig'];
   // Wait for state to be ready.
   // This is used internally and is also used for redirect sign in so there is
   // no need for waiting for redirect result to resolve since redirect result
