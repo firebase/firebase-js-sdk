@@ -45,7 +45,7 @@ export const TEST_PERSISTENCE_PREFIX =
   'firestore/[DEFAULT]/PersistenceTestHelpers';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
-const LOCAL_STORAGE_PREFIX = 'fs_';
+const LOCAL_STORAGE_PREFIX = 'firestore_';
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
