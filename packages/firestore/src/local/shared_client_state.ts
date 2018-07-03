@@ -38,26 +38,25 @@ import { batchIdSet, TargetIdSet, targetIdSet } from '../model/collections';
 
 const LOG_TAG = 'SharedClientState';
 
-// TODO(multitab): Change prefix of keys to "firestore_" to match IndexedDb.
-
 // The format of the LocalStorage key that stores the client state is:
-//     fs_clients_<persistence_prefix>_<instance_key>
-const CLIENT_STATE_KEY_PREFIX = 'fs_clients';
+//     firestore_clients_<persistence_prefix>_<instance_key>
+const CLIENT_STATE_KEY_PREFIX = 'firestore_clients';
 
 // The format of the LocalStorage key that stores the mutation state is:
-//     fs_mutations_<persistence_prefix>_<batch_id> (for unauthenticated users)
-// or: fs_mutations_<persistence_prefix>_<batch_id>_<user_uid>
+//     firestore_mutations_<persistence_prefix>_<batch_id>
+//     (for unauthenticated users)
+// or: firestore_mutations_<persistence_prefix>_<batch_id>_<user_uid>
 //
 // 'user_uid' is last to avoid needing to escape '_' characters that it might
 // contain.
-const MUTATION_BATCH_KEY_PREFIX = 'fs_mutations';
+const MUTATION_BATCH_KEY_PREFIX = 'firestore_mutations';
 
 // The format of the LocalStorage key that stores a query target's metadata is:
-//     fs_targets_<persistence_prefix>_<target_id>
-const QUERY_TARGET_KEY_PREFIX = 'fs_targets';
+//     firestore_targets_<persistence_prefix>_<target_id>
+const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 
 // The LocalStorage key that stores the primary tab's online state.
-const ONLINE_STATE_KEY = 'fs_online_state';
+const ONLINE_STATE_KEY = 'firestore_online_state';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
