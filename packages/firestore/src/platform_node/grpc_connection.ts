@@ -154,31 +154,24 @@ export class GrpcConnection implements Connection {
     >;
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
-      return rpc(
-        request,
-        (grpcError?: grpc.ServiceError, value?: Resp) => {
-          if (grpcError) {
-            log.debug(
-              LOG_TAG,
-              `RPC '${rpcName}' failed with error:`,
-              grpcError
-            );
-            callback(
-              new FirestoreError(
-                mapCodeFromRpcCode(grpcError.code),
-                grpcError.message
-              )
-            );
-          } else {
-            log.debug(
-              LOG_TAG,
-              `RPC '${rpcName}' completed with response:`,
-              value
-            );
-            callback(undefined, value);
-          }
+      return rpc(request, (grpcError?: grpc.ServiceError, value?: Resp) => {
+        if (grpcError) {
+          log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
+          callback(
+            new FirestoreError(
+              mapCodeFromRpcCode(grpcError.code),
+              grpcError.message
+            )
+          );
+        } else {
+          log.debug(
+            LOG_TAG,
+            `RPC '${rpcName}' completed with response:`,
+            value
+          );
+          callback(undefined, value);
         }
-      );
+      });
     });
   }
 
