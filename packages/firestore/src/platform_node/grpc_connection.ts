@@ -42,7 +42,10 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${
 } fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
 type DuplexRpc<Req, Resp> = (meta: any) => grpc.ClientDuplexStream<Req, Resp>;
-type ReadableRpc<Req, Resp> = (req: Req, meta: any) => grpc.ClientReadableStream<Resp>;
+type ReadableRpc<Req, Resp> = (
+  req: Req,
+  meta: any
+) => grpc.ClientReadableStream<Resp>;
 type UnaryRpc<Req, Resp> = (
   req: Req,
   any,
@@ -155,24 +158,32 @@ export class GrpcConnection implements Connection {
     >;
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
-      return rpc(request, {"rpb": "asdf pqrs tuvw"}, (grpcError?: grpc.ServiceError, value?: Resp) => {
-        if (grpcError) {
-          log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
-          callback(
-            new FirestoreError(
-              mapCodeFromRpcCode(grpcError.code),
-              grpcError.message
-            )
-          );
-        } else {
-          log.debug(
-            LOG_TAG,
-            `RPC '${rpcName}' completed with response:`,
-            value
-          );
-          callback(undefined, value);
+      return rpc(
+        request,
+        { rpb: 'asdf pqrs tuvw' },
+        (grpcError?: grpc.ServiceError, value?: Resp) => {
+          if (grpcError) {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' failed with error:`,
+              grpcError
+            );
+            callback(
+              new FirestoreError(
+                mapCodeFromRpcCode(grpcError.code),
+                grpcError.message
+              )
+            );
+          } else {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' completed with response:`,
+              value
+            );
+            callback(undefined, value);
+          }
         }
-      });
+      );
     });
   }
 
@@ -190,7 +201,7 @@ export class GrpcConnection implements Connection {
       `RPC '${rpcName}' invoked (streaming) with request:`,
       request
     );
-    const stream = rpc(request, {"rpb": "foo bar baz"});
+    const stream = rpc(request, { rpb: 'foo bar baz' });
     stream.on('data', response => {
       log.debug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
@@ -214,11 +225,11 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Stream<Req, Resp> {
     const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc<Req, Resp>;
-    console.log("[RPB] opening stream");
+    console.log('[RPB] opening stream');
 
     var meta = new grpc.Metadata();
-    meta.add("rpb", "foo bar baz");
-    const grpcStream = rpc({"rpb": "foo bar baz"});
+    meta.add('rpb', 'foo bar baz');
+    const grpcStream = rpc({ rpb: 'foo bar baz' });
 
     let closed = false;
     let close: (err?: Error) => void;
