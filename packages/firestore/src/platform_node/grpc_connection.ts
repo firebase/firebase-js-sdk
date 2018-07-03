@@ -58,7 +58,10 @@ interface CachedStub {
   token: Token | null;
 }
 
-function createMetadata(databaseInfo: DatabaseInfo, token: Token | null): grpc.Metadata {
+function createMetadata(
+  databaseInfo: DatabaseInfo,
+  token: Token | null
+): grpc.Metadata {
   const metadata = new grpc.Metadata();
   if (token) {
     for (const header in token.authHeaders) {
