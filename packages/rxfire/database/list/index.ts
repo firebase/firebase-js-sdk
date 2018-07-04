@@ -1,8 +1,8 @@
 import { database } from 'firebase';
-import { ChildEvent, SnapshotPrevKey } from './interfaces';
+import { ChildEvent, SnapshotPrevKey } from '../interfaces';
 import { Observable, of, merge } from 'rxjs';
-import { validateEventsArray, isNil } from './utils';
-import { fromRef } from './fromRef';
+import { validateEventsArray, isNil } from '../utils';
+import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged } from 'rxjs/operators';
 
 export function stateChanges(query: database.Query, events?: ChildEvent[]) {

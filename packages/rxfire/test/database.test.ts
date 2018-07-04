@@ -4,12 +4,12 @@ import { fromRef } from '../database/fromRef';
 import { list, ChildEvent } from '../database';
 import { take, skip, switchMap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
+import { auditTrail } from '../database/list/audit-trail';
 
 const rando = () =>
   Math.random()
     .toString(36)
     .substring(5);
-    
 
 let batch = (items: any[]) => {
   let batch = {};
@@ -24,9 +24,9 @@ let batch = (items: any[]) => {
 describe('RxFire Database', () => {
   let app: app.App = null;
   let database: database.Database = null;
-  let ref = (path: string) => { 
-    app.database().goOffline(); 
-    return app.database().ref(path); 
+  let ref = (path: string) => {
+    app.database().goOffline();
+    return app.database().ref(path);
   };
 
   function prepareList(opts: { events?: ChildEvent[], skipnumber: number } = { skipnumber: 0 }) {
@@ -55,7 +55,7 @@ describe('RxFire Database', () => {
    * account for this.
    */
   beforeEach(() => {
-    app = initializeApp({ 
+    app = initializeApp({
       projectId: 'rxfire-test-db',
       databaseURL: "https://rxfire-test.firebaseio.com",
     });
@@ -67,18 +67,36 @@ describe('RxFire Database', () => {
     app.delete().then(() => done());
   });
 
-  xdescribe('fromRef', () => {
+  describe('fromRef', () => {
     const items = [{ name: 'one' }, { name: 'two' }, { name: 'three' }]
-      .map(item => ( { key: rando(), ...item } ));
+      .map(item => ({ key: rando(), ...item }));
     const itemsObj = batch(items);
 
+    /**
+     * fromRef() takes in a reference, an event, an optionally a listenType
+     * parameter. This listenType determines if the listen will be a realtime
+     * `on` or a one-time `once`.
+     * 
+     * This test checks that providing the `once` listenType will result in a 
+     * one-time read. This is determined by setting a value at a reference,
+     * subscribing to the observable and calling the MochaDone callback when
+     * the observable completes. 
+     * 
+     * The fact that the observable completes without any added operators 
+     * indicates it was a one-time read. Realtime reads do not complete unless 
+     * accompanied by an operator that forces a complete.
+     */
     it('should complete using a once', (done) => {
       const itemRef = ref(rando());
       itemRef.set(itemsObj);
       const obs = fromRef(itemRef, 'value', 'once');
-      obs.subscribe(_ => {}, () => {}, done);
+      obs.subscribe(_ => { }, () => { }, done);
     });
 
+    /**
+     * This test checks that "non-existent" or null value references are
+     * handled.
+     */
     it('it should should handle non-existence', (done) => {
       const itemRef = ref(rando());
       itemRef.set({});
@@ -89,6 +107,12 @@ describe('RxFire Database', () => {
       }).add(done);
     });
 
+    /**
+     * This test checks that the Observable unsubscribe mechanism works.
+     * 
+     * Calling unsubscribe should trigger the ref.off() method when using a
+     * `on` listenType.
+     */
     it('it should listen and then unsubscribe', (done) => {
       const itemRef = ref(rando());
       itemRef.set(itemsObj);
@@ -106,6 +130,11 @@ describe('RxFire Database', () => {
     });
 
     describe('events', () => {
+
+      /**
+       * This test provides the `child_added` event and tests that only
+       * `child_added` events are received. 
+       */
       it('should stream back a child_added event', (done: any) => {
         const itemRef = ref(rando());
         const data = itemsObj;
@@ -124,7 +153,11 @@ describe('RxFire Database', () => {
           }
         });
       });
-  
+
+      /**
+       * This test provides the `child_changed` event and tests that only
+       * `child_changed` events are received. 
+       */
       it('should stream back a child_changed event', (done: any) => {
         const itemRef = ref(rando());
         itemRef.set(itemsObj);
@@ -141,7 +174,11 @@ describe('RxFire Database', () => {
         });
         itemRef.child(key).update({ name });
       });
-  
+
+      /**
+       * This test provides the `child_removed` event and tests that only
+       * `child_removed` events are received. 
+       */
       it('should stream back a child_removed event', (done: any) => {
         const itemRef = ref(rando());
         itemRef.set(itemsObj);
@@ -158,7 +195,11 @@ describe('RxFire Database', () => {
         });
         itemRef.child(key).remove();
       });
-  
+
+      /**
+       * This test provides the `child_moved` event and tests that only
+       * `child_moved` events are received. 
+       */
       it('should stream back a child_moved event', (done: any) => {
         const itemRef = ref(rando());
         itemRef.set(itemsObj);
@@ -173,9 +214,13 @@ describe('RxFire Database', () => {
           sub.unsubscribe();
           done();
         });
-        itemRef.child(key).setPriority(-100, () => {});
+        itemRef.child(key).setPriority(-100, () => { });
       });
-  
+
+      /**
+       * This test provides the `value` event and tests that only
+       * `value` events are received. 
+       */
       it('should stream back a value event', (done: any) => {
         const itemRef = ref(rando());
         const data = itemsObj;
@@ -190,7 +235,11 @@ describe('RxFire Database', () => {
           expect(sub.closed).to.equal(true);
         });
       });
-  
+
+      /**
+       * This test provides queries a reference and checks that the queried 
+       * values are streamed back.
+       */
       it('should stream back query results', (done: any) => {
         const itemRef = ref(rando());
         itemRef.set(itemsObj);
@@ -203,20 +252,24 @@ describe('RxFire Database', () => {
           done();
         });
       });
-  
+
     });
 
   });
-  
+
   describe('list', () => {
 
     const items = [{ name: 'zero' }, { name: 'one' }, { name: 'two' }]
-      .map((item, i) => ( { key: `${i}`, ...item } ));
+      .map((item, i) => ({ key: `${i}`, ...item }));
 
     const itemsObj = batch(items);
 
     describe('events', () => {
 
+      /**
+       * `value` events are provided first when subscribing to a list. We need
+       * to know what the "intial" data list is, so a value event is used.
+       */
       it('should stream value at first', (done) => {
         const someRef = ref(rando());
         const obs = list(someRef, ['child_added']);
@@ -231,11 +284,18 @@ describe('RxFire Database', () => {
         someRef.set(itemsObj);
       });
 
+      /**
+       * This test checks that `child_added` events are only triggered when 
+       * specified in the events array. 
+       * 
+       * The first result is skipped because it is always `value`. A `take(1)`
+       * is used to close the stream after the `child_added` event occurs.
+       */
       it('should process a new child_added event', done => {
         const aref = ref(rando());
         const obs = list(aref, ['child_added']);
         obs
-          .pipe(skip(1),take(1))
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data[3]).to.eql({ name: 'anotha one' });
@@ -245,10 +305,14 @@ describe('RxFire Database', () => {
         aref.push({ name: 'anotha one' });
       });
 
+      /**
+       * This test checks that events are emitted in proper order. The reference
+       * is queried and the test ensures that the array is in proper order.
+       */
       it('should stream in order events', (done) => {
         const aref = ref(rando());
         const obs = list(aref.orderByChild('name'), ['child_added']);
-        const sub = obs.pipe(take(1)).subscribe(changes => {
+        obs.pipe(take(1)).subscribe(changes => {
           const names = changes.map(change => change.snapshot.val().name);
           expect(names[0]).to.eql('one');
           expect(names[1]).to.eql('two');
@@ -256,11 +320,17 @@ describe('RxFire Database', () => {
         }).add(done);
         aref.set(itemsObj);
       });
-  
+
+      /**
+       * This test checks that the array is in order with child_added specified.
+       * A new record is added that appears on top of the query and the test
+       * skips the first value event and checks that the newly added item is
+       * on top.
+       */
       it('should stream in order events w/child_added', (done) => {
         const aref = ref(rando());
         const obs = list(aref.orderByChild('name'), ['child_added']);
-        const sub = obs.pipe(skip(1),take(1)).subscribe(changes => {
+        obs.pipe(skip(1), take(1)).subscribe(changes => {
           const names = changes.map(change => change.snapshot.val().name);
           expect(names[0]).to.eql('anotha one');
           expect(names[1]).to.eql('one');
@@ -270,11 +340,14 @@ describe('RxFire Database', () => {
         aref.set(itemsObj);
         aref.push({ name: 'anotha one' });
       });
-  
+
+      /**
+       * This test checks that a filtered reference still emits the proper events.
+       */
       it('should stream events filtering', (done) => {
         const aref = ref(rando());
         const obs = list(aref.orderByChild('name').equalTo('zero'), ['child_added']);
-        obs.pipe(skip(1),take(1)).subscribe(changes => {
+        obs.pipe(skip(1), take(1)).subscribe(changes => {
           const names = changes.map(change => change.snapshot.val().name);
           expect(names[0]).to.eql('zero');
           expect(names[1]).to.eql('zero');
@@ -282,11 +355,16 @@ describe('RxFire Database', () => {
         aref.set(itemsObj);
         aref.push({ name: 'zero' });
       });
-  
+
+      /**
+       * This test checks that the a `child_removed` event is processed in the
+       * array by testing that the new length is shorter than the original 
+       * length.
+       */
       it('should process a new child_removed event', done => {
         const aref = ref(rando());
-        const obs = list(aref, ['child_added','child_removed']);
-        const sub = obs.pipe(skip(1),take(1)).subscribe(changes => {
+        const obs = list(aref, ['child_added', 'child_removed']);
+        const sub = obs.pipe(skip(1), take(1)).subscribe(changes => {
           const data = changes.map(change => change.snapshot.val());
           expect(data.length).to.eql(items.length - 1);
         }).add(done);
@@ -295,24 +373,32 @@ describe('RxFire Database', () => {
           aref.child(items[0].key).remove();
         });
       });
-  
+
+      /**
+       * This test checks that the `child_changed` event is processed by 
+       * checking the new value of the object in the array.
+       */
       it('should process a new child_changed event', (done) => {
         const aref = ref(rando());
-        const obs = list(aref, ['child_added','child_changed'])
-        const sub = obs.pipe(skip(1),take(1)).subscribe(changes => {
+        const obs = list(aref, ['child_added', 'child_changed'])
+        const sub = obs.pipe(skip(1), take(1)).subscribe(changes => {
           const data = changes.map(change => change.snapshot.val());
           expect(data[1].name).to.eql('lol');
         }).add(done);
         app.database().goOnline();
         aref.set(itemsObj).then(() => {
-          aref.child(items[1].key).update({ name: 'lol'});
+          aref.child(items[1].key).update({ name: 'lol' });
         });
       });
-  
+
+      /**
+       * This test checks the `child_moved` event is processed by checking that
+       * the new position is properly updated.
+       */
       it('should process a new child_moved event', (done) => {
         const aref = ref(rando());
-        const obs = list(aref, ['child_added','child_moved'])
-        const sub = obs.pipe(skip(1),take(1)).subscribe(changes => {
+        const obs = list(aref, ['child_added', 'child_moved'])
+        const sub = obs.pipe(skip(1), take(1)).subscribe(changes => {
           const data = changes.map(change => change.snapshot.val());
           // We moved the first item to the last item, so we check that
           // the new result is now the last result
@@ -320,10 +406,16 @@ describe('RxFire Database', () => {
         }).add(done);
         app.database().goOnline();
         aref.set(itemsObj).then(() => {
-          aref.child(items[0].key).setPriority('a', () => {});
+          aref.child(items[0].key).setPriority('a', () => { });
         });
       });
 
+      /**
+       * If no events array is provided in `list()` all events are listened to.
+       * 
+       * This test checks that all events are processed without providing the
+       * array.
+       */
       it('should listen to all events by default', (done) => {
         const { snapChanges, ref } = prepareList();
         snapChanges.pipe(take(1)).subscribe(actions => {
@@ -332,20 +424,26 @@ describe('RxFire Database', () => {
         }).add(done);
         ref.set(itemsObj);
       });
-    
+
+      /**
+       * This test checks that multiple subscriptions work properly.
+       */
       it('should handle multiple subscriptions (hot)', (done) => {
         const { snapChanges, ref } = prepareList();
-        const sub = snapChanges.subscribe(() => {}).add(done);
+        const sub = snapChanges.subscribe(() => { }).add(done);
         snapChanges.pipe(take(1)).subscribe(actions => {
           const data = actions.map(a => a.snapshot.val());
           expect(data).to.eql(items);
         }).add(sub);
         ref.set(itemsObj);
       });
-    
+
+      /**
+       * This test checks that multiple subscriptions work properly.
+       */
       it('should handle multiple subscriptions (warm)', done => {
         const { snapChanges, ref } = prepareList();
-        snapChanges.pipe(take(1)).subscribe(() => {}).add(() => {
+        snapChanges.pipe(take(1)).subscribe(() => { }).add(() => {
           snapChanges.pipe(take(1)).subscribe(actions => {
             const data = actions.map(a => a.snapshot.val());
             expect(data).to.eql(items);
@@ -353,8 +451,11 @@ describe('RxFire Database', () => {
         });
         ref.set(itemsObj);
       });
-    
-     it('should listen to only child_added events', (done) => {
+
+      /**
+       * This test checks that only `child_added` events are processed.
+       */
+      it('should listen to only child_added events', (done) => {
         const { snapChanges, ref } = prepareList({ events: ['child_added'], skipnumber: 0 });
         snapChanges.pipe(take(1)).subscribe(actions => {
           const data = actions.map(a => a.snapshot.val());
@@ -362,7 +463,11 @@ describe('RxFire Database', () => {
         }).add(done);
         ref.set(itemsObj);
       });
-    
+
+      /**
+       * This test checks that only `child_added` and `child_changed` events are
+       * processed.
+       */      
       it('should listen to only child_added, child_changed events', (done) => {
         const { snapChanges, ref } = prepareList({
           events: ['child_added', 'child_changed'],
@@ -380,7 +485,10 @@ describe('RxFire Database', () => {
           ref.child(items[0].key).update({ name })
         });
       });
-    
+
+      /**
+       * This test checks that empty sets are processed.
+       */
       it('should handle empty sets', done => {
         const aref = ref(rando());
         aref.set({});
@@ -388,33 +496,68 @@ describe('RxFire Database', () => {
           expect(data.length).to.eql(0);
         }).add(done);
       });
-    
+
+      /**
+       * This test checks that dynamic querying works even with results that
+       * are empty.
+       */
       it('should handle dynamic queries that return empty sets', done => {
-        const ITEMS = 10;
         let count = 0;
-        let firstIndex = 0;
-        let namefilter$ = new BehaviorSubject<number|null>(null);
+        let namefilter$ = new BehaviorSubject<number | null>(null);
         const aref = ref(rando());
         aref.set(itemsObj);
         namefilter$.pipe(switchMap(name => {
           const filteredRef = name ? aref.child('name').equalTo(name) : aref
           return list(filteredRef);
-        }),take(2)).subscribe(data => {
+        }), take(2)).subscribe(data => {
           count = count + 1;
           // the first time should all be 'added'
-          if(count === 1) {
+          if (count === 1) {
             expect(Object.keys(data).length).to.eql(3);
             namefilter$.next(-1);
           }
           // on the second round, we should have filtered out everything
-          if(count === 2) {
+          if (count === 2) {
             expect(Object.keys(data).length).to.eql(0);
           }
         }).add(done);
       });
 
     });
-    
+
+  });
+
+  describe('auditTrail', () => {
+    const items = [{ name: 'zero' }, { name: 'one' }, { name: 'two' }]
+      .map((item, i) => ({ key: `${i}`, ...item }));
+
+    const itemsObj = batch(items);
+
+    function prepareAuditTrail(opts: { events?: ChildEvent[], skipnumber: number } = { skipnumber: 0 }) {
+      const { events, skipnumber } = opts;
+      const aref = ref(rando());
+      aref.set(itemsObj);
+      const changes = auditTrail(aref, events);
+      return {
+        changes: changes.pipe(skip(skipnumber)),
+        ref: aref
+      };
+    }
+
+    /**
+     * This test checks that auditTrail retuns all events by default.
+     */
+    it('should listen to all events by default', (done) => {
+
+      const { changes } = prepareAuditTrail();
+      changes.subscribe(actions => {
+        const data = actions.map(a => a.snapshot.val());
+        expect(data).to.eql(items);
+        done();
+      });
+
+    });
+
   });
 
 });

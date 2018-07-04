@@ -62,7 +62,7 @@ const seedTest = firestore => {
   return { colRef, davidDoc, shannonDoc, expectedNames, expectedEvents };
 };
 
-xdescribe('RxFire Firestore', () => {
+describe('RxFire Firestore', () => {
   let app: app.App = null;
   let firestore: firestore.Firestore = null;
 

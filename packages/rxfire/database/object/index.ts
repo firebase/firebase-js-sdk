@@ -1,6 +1,6 @@
 import { database } from 'firebase';
-import { SnapshotPrevKey } from "./interfaces";
-import { fromRef } from './fromRef';
+import { SnapshotPrevKey } from "../interfaces";
+import { fromRef } from '../fromRef';
 import { Observable } from 'rxjs';
 
 /**
