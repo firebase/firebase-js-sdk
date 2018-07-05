@@ -21,6 +21,7 @@ import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { AsyncQueue } from '../util/async_queue';
 
 import { Connection } from './connection';
@@ -110,10 +111,17 @@ export class Datastore {
 
   /** Gets an auth token and invokes the provided RPC. */
   private invokeRPC<Req, Resp>(rpcName: string, request: Req): Promise<Resp> {
-    // TODO(mikelehen): Retry (with backoff) on token failures?
-    return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
-      return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
-    });
+    return this.credentials
+      .getToken()
+      .then(token => {
+        return this.connection.invokeRPC<Req, Resp>(rpcName, request, token);
+      })
+      .catch((error: FirestoreError) => {
+        if (error.code === Code.UNAUTHENTICATED) {
+          this.credentials.invalidateToken();
+        }
+        throw error;
+      });
   }
 
   /** Gets an auth token and invokes the provided RPC with streamed results. */
@@ -121,13 +129,20 @@ export class Datastore {
     rpcName: string,
     request: Req
   ): Promise<Resp[]> {
-    // TODO(mikelehen): Retry (with backoff) on token failures?
-    return this.credentials.getToken(/*forceRefresh=*/ false).then(token => {
-      return this.connection.invokeStreamingRPC<Req, Resp>(
-        rpcName,
-        request,
-        token
-      );
-    });
+    return this.credentials
+      .getToken()
+      .then(token => {
+        return this.connection.invokeStreamingRPC<Req, Resp>(
+          rpcName,
+          request,
+          token
+        );
+      })
+      .catch((error: FirestoreError) => {
+        if (error.code === Code.UNAUTHENTICATED) {
+          this.credentials.invalidateToken();
+        }
+        throw error;
+      });
   }
 }

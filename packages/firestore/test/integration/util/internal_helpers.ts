@@ -19,7 +19,10 @@ import * as firestore from '@firebase/firestore-types';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { Datastore } from '../../../src/remote/datastore';
 
-import { EmptyCredentialsProvider } from '../../../src/api/credentials';
+import {
+  CredentialsProvider,
+  EmptyCredentialsProvider
+} from '../../../src/api/credentials';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
@@ -41,7 +44,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
 
 export function withTestDatastore(
   fn: (datastore: Datastore) => Promise<void>,
-  queue?: AsyncQueue
+  queue?: AsyncQueue,
+  credentialsProvider?: CredentialsProvider
 ): Promise<void> {
   const databaseInfo = getDefaultDatabaseInfo();
   return PlatformSupport.getPlatform()
@@ -53,7 +57,7 @@ export function withTestDatastore(
       const datastore = new Datastore(
         queue || new AsyncQueue(),
         conn,
-        new EmptyCredentialsProvider(),
+        credentialsProvider || new EmptyCredentialsProvider(),
         serializer
       );
 
