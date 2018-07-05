@@ -61,22 +61,24 @@ const TEST_ERROR = new FirestoreError('internal', 'Test Error');
 
 function mutationKey(user: User, batchId: BatchId): string {
   if (user.isAuthenticated()) {
-    return `fs_mutations_${
+    return `firestore_mutations_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
     }_${batchId}_${user.uid}`;
   } else {
-    return `fs_mutations_${
+    return `firestore_mutations_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
     }_${batchId}`;
   }
 }
 
 function targetKey(targetId: TargetId): string {
-  return `fs_targets_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}_${targetId}`;
+  return `firestore_targets_${
+    persistenceHelpers.TEST_PERSISTENCE_PREFIX
+  }_${targetId}`;
 }
 
 function onlineStateKey(): string {
-  return 'fs_online_state';
+  return 'firestore_online_state';
 }
 
 interface TestSharedClientState {
@@ -227,7 +229,7 @@ describe('WebStorageSharedClientState', () => {
   ): void {
     const actual = JSON.parse(
       localStorage.getItem(
-        `fs_clients_${
+        `firestore_clients_${
           persistenceHelpers.TEST_PERSISTENCE_PREFIX
         }_${primaryClientId}`
       )
@@ -405,7 +407,7 @@ describe('WebStorageSharedClientState', () => {
 
   describe('combines client state', () => {
     const secondaryClientId = AutoId.newId();
-    const secondaryClientStateKey = `fs_clients_${
+    const secondaryClientStateKey = `firestore_clients_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
     }_${secondaryClientId}`;
 
@@ -578,7 +580,7 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('ignores invalid data', async () => {
-      const secondaryClientStateKey = `fs_clients_${
+      const secondaryClientStateKey = `firestore_clients_${
         persistenceHelpers.TEST_PERSISTENCE_PREFIX
       }_${AutoId.newId()}`;
 
@@ -725,10 +727,10 @@ describe('WebStorageSharedClientState', () => {
     const firstClientTargetId: TargetId = 1;
     const secondClientTargetId: TargetId = 2;
 
-    const firstClientStorageKey = `fs_clients_${
+    const firstClientStorageKey = `firestore_clients_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
     }_${AutoId.newId()}`;
-    const secondClientStorageKey = `fs_clients_${
+    const secondClientStorageKey = `firestore_clients_${
       persistenceHelpers.TEST_PERSISTENCE_PREFIX
     }_${AutoId.newId()}`;
 
