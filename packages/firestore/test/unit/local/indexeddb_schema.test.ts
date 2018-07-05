@@ -29,8 +29,15 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { ClientId } from '../../../src/local/shared_client_state';
+import { DatabaseId } from '../../../src/core/database_info';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { AsyncQueue } from '../../../src/util/async_queue';
 
-const INDEXEDDB_TEST_DATABASE = 'schemaTest';
+const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
+const INDEXEDDB_TEST_DATABASE =
+  INDEXEDDB_TEST_DATABASE_PREFIX + IndexedDbPersistence.MAIN_DATABASE;
 
 function withDb(
   schemaVersion,
@@ -61,6 +68,26 @@ function withDb(
     .then(db => {
       db.close();
     });
+}
+
+async function withPersistence(
+  clientId: ClientId,
+  fn: (persistence: IndexedDbPersistence) => Promise<void>
+): Promise<void> {
+  const partition = new DatabaseId('project');
+  const serializer = new JsonProtoSerializer(partition, {
+    useProto3Json: true
+  });
+  const persistence = new IndexedDbPersistence(
+    INDEXEDDB_TEST_DATABASE_PREFIX,
+    clientId,
+    PlatformSupport.getPlatform(),
+    new AsyncQueue(),
+    serializer
+  );
+
+  await fn(persistence);
+  await persistence.shutdown();
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -208,5 +235,41 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         });
       })
     );
+  });
+});
+
+describe('IndexedDb: allowTabSynchronization', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn('No IndexedDB. Skipping allowTabSynchronization tests.');
+    return;
+  }
+
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  it('rejects access when synchronization is disabled', () => {
+    return withPersistence('clientA', async db1 => {
+      await expect(db1.start(/*synchronizeTabs=*/ false)).to.eventually.be
+        .fulfilled;
+      await withPersistence('clientB', async db2 => {
+        await expect(
+          db2.start(/*synchronizeTabs=*/ false)
+        ).to.eventually.be.rejectedWith(
+          'Another tab has exclusive access to the persistence layer.'
+        );
+      });
+    });
+  });
+
+  it('grants access when synchronization is enabled', async () => {
+    return withPersistence('clientA', async db1 => {
+      await expect(db1.start(/*synchronizeTabs=*/ true)).to.eventually.be
+        .fulfilled;
+      await withPersistence('clientB', async db2 => {
+        await expect(db2.start(/*synchronizeTabs=*/ true)).to.eventually.be
+          .fulfilled;
+      });
+    });
   });
 });

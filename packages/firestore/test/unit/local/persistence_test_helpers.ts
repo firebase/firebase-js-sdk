@@ -58,7 +58,7 @@ export async function testIndexedDbPersistence(
   queue = queue || new AsyncQueue();
   clientId = clientId || AutoId.newId();
 
-  const prefix = '${TEST_PERSISTENCE_PREFIX}/';
+  const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {

@@ -463,6 +463,8 @@ abstract class TestRunner {
     serializer: JsonProtoSerializer
   ): Persistence;
 
+  protected abstract startPersistence(persistence: Persistence): Promise<void>;
+
   protected abstract getSharedClientState(): SharedClientState;
 
   get isPrimaryClient(): boolean {
@@ -471,7 +473,7 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.connection.reset();
-    await this.persistence.start();
+    await this.startPersistence(this.persistence);
     await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
@@ -1134,6 +1136,10 @@ class MemoryTestRunner extends TestRunner {
   protected getSharedClientState(): SharedClientState {
     return new MemorySharedClientState();
   }
+
+  protected startPersistence(persistence: Persistence): Promise<void> {
+    return persistence.start();
+  }
 }
 
 /**
@@ -1384,6 +1390,12 @@ class IndexedDbTestRunner extends TestRunner {
       IndexedDbTestRunner.TEST_DB_NAME,
       this.clientId,
       this.user
+    );
+  }
+
+  protected startPersistence(persistence: Persistence): Promise<void> {
+    return (persistence as IndexedDbPersistence).start(
+      /*synchronizeTabs=*/ true
     );
   }
 

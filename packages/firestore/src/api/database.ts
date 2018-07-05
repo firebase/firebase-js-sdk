@@ -101,6 +101,7 @@ import {
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+const DEFAULT_SYNCHRONIZE_TABS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -199,6 +200,37 @@ class FirestoreConfig {
 }
 
 /**
+ * Encapsulates the settings that can be used to configure Firestore
+ * persistence.
+ */
+export class PersistenceSettings {
+  /** Whether to enable multi-tab synchronization. */
+  synchronizeTabs: boolean;
+
+  constructor(
+    readonly enabled: boolean,
+    settings?: firestore.PersistenceSettings
+  ) {
+    assert(
+      enabled || !settings,
+      'Can only provide PersistenceSettings with persistence enabled'
+    );
+    settings = settings || {};
+    this.synchronizeTabs = objUtils.defaulted(
+      settings.synchronizeTabs,
+      DEFAULT_SYNCHRONIZE_TABS
+    );
+  }
+
+  isEqual(other: PersistenceSettings): boolean {
+    return (
+      this.enabled === other.enabled &&
+      this.synchronizeTabs === other.synchronizeTabs
+    );
+  }
+}
+
+/**
  * The root reference to the database.
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
@@ -291,7 +323,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient.disableNetwork();
   }
 
-  enablePersistence(): Promise<void> {
+  enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -301,17 +333,21 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    return this.configureClient(/* persistence= */ true);
+    return this.configureClient(
+      new PersistenceSettings(/* enabled= */ true, settings)
+    );
   }
 
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
-      this.configureClient(/* persistence= */ false);
+      this.configureClient(new PersistenceSettings(/* enabled= */ false));
     }
     return this._firestoreClient as FirestoreClient;
   }
 
-  private configureClient(persistence: boolean): Promise<void> {
+  private configureClient(
+    persistenceSettings: PersistenceSettings
+  ): Promise<void> {
     assert(
       !!this._config.settings.host,
       'FirestoreSettings.host cannot be falsey'
@@ -377,7 +413,7 @@ follow these steps, YOUR APP MAY BREAK.`);
       this._config.credentials,
       this._queue
     );
-    return this._firestoreClient.start(persistence);
+    return this._firestoreClient.start(persistenceSettings);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
