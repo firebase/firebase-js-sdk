@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/// <reference path="../node_modules/@types/mocha/index.d.ts" />
-
 import { expect } from 'chai';
 import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
@@ -25,8 +22,7 @@ import {
   docChanges,
   sortedChanges,
   auditTrail,
-  unwrap,
-  col
+  unwrap
 } from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
 import { Observable } from '@firebase/util';
