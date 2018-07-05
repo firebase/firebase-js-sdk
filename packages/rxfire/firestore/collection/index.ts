@@ -166,3 +166,33 @@ export function auditTrail(
     scan((current, action) => [...current, ...action], [])
   );
 }
+
+/**
+ * Maps a collection or document of snapshot to the data payload and
+ * optionally maps the metadata and/or the doc ID to a specified key
+ * @property {string} id the key to map the doc id to
+ */
+
+export function unwrap(id?: string) {
+  // Observable map
+  return map(
+    (
+      snap: firestore.QueryDocumentSnapshot | firestore.QueryDocumentSnapshot[]
+    ) => {
+      if (snap instanceof Array) {
+        // Array map
+        return snap.map(doc => snapToData(doc, id));
+      } else {
+        // Object map
+        return snapToData(snap, id);
+      }
+    }
+  );
+}
+
+function snapToData<T>(doc: firestore.QueryDocumentSnapshot, id?: string) {
+  return {
+    ...doc.data(),
+    ...(id ? { [id]: doc.id } : null)
+  };
+}

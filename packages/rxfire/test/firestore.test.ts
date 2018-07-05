@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
+/// <reference path="../node_modules/@types/mocha/index.d.ts" />
+
 import { expect } from 'chai';
 import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
 import {
   collection,
+  doc,
   docChanges,
   sortedChanges,
-  auditTrail
+  auditTrail,
+  unwrap,
+  col
 } from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
+import { Observable } from '@firebase/util';
 
 const createId = () =>
   Math.random()
@@ -249,6 +255,88 @@ describe('RxFire Firestore', () => {
       });
 
       davidDoc.update({ name: 'David!' });
+    });
+  });
+
+  describe('auditTrail', () => {
+    /**
+     * The `auditTrail()` method returns an array of every change that has
+     * occured in the application. This test seeds two "people" into the
+     * collection and checks that the two added events are there. It then
+     * modifies a "person" and makes sure that event is on the array as well.
+     */
+    it('should keep create a list of all changes', (done: MochaDone) => {
+      const { colRef, expectedEvents, davidDoc } = seedTest(firestore);
+
+      const firstAudit = auditTrail(colRef).pipe(unwrapChange, take(1));
+      const secondAudit = auditTrail(colRef).pipe(unwrapChange, skip(1));
+
+      firstAudit.subscribe(list => {
+        expect(list).to.eql(expectedEvents);
+        davidDoc.update({ name: 'David!' });
+      });
+
+      secondAudit.subscribe(list => {
+        const modifiedList = [
+          ...expectedEvents,
+          { name: 'David!', type: 'modified' }
+        ];
+        expect(list).to.eql(modifiedList);
+        done();
+      });
+    });
+
+    /**
+     * This test seeds two "people" into the collection. The wrap operator then converts
+     */
+    it('should filter the trail of events by event type', (done: MochaDone) => {
+      const { colRef, davidDoc } = seedTest(firestore);
+
+      const modifiedAudit = auditTrail(colRef, ['modified']).pipe(unwrapChange);
+
+      modifiedAudit.subscribe(updateList => {
+        const expectedEvents = [{ type: 'modified', name: 'David!' }];
+        expect(updateList).to.eql(expectedEvents);
+        done();
+      });
+
+      davidDoc.update({ name: 'David!' });
+    });
+  });
+
+  describe('unwrap operator', () => {
+    /**
+     * The `unwrap(id)` method will map a collection to its data payload and map the doc ID to a the specificed key.
+     */
+    it('should map a QueryDocumentSnapshot[] to an array of plain objects', (done: MochaDone) => {
+      const { colRef } = seedTest(firestore);
+
+      const unwrapped = collection(colRef).pipe(unwrap('userId'));
+
+      unwrapped.subscribe(val => {
+        const expectedDoc = {
+          name: 'David',
+          userId: 'david'
+        };
+        expect(val).to.be.instanceof(Array);
+        expect(val[0]).to.eql(expectedDoc);
+        done();
+      });
+    });
+
+    it('should map a QueryDocumentSnapshot to a plain object', (done: MochaDone) => {
+      const { davidDoc } = seedTest(firestore);
+
+      const unwrapped = doc(davidDoc).pipe(unwrap('UID'));
+
+      unwrapped.subscribe(val => {
+        const expectedDoc = {
+          name: 'David',
+          UID: 'david'
+        };
+        expect(val).to.eql(expectedDoc);
+        done();
+      });
     });
   });
 });
