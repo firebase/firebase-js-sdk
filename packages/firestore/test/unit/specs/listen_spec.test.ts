@@ -763,8 +763,8 @@ describeSpec('Listens:', [], () => {
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
 
-    // Client 1 and Client 3 listen to the same query. When client 1 shuts
-    // down, client 2 becomes primary and takes ownership of a query it
+    // Client 0 and Client 2 listen to the same query. When client 0 shuts
+    // down, client 1 becomes primary and takes ownership of a query it
     // did not previously listen to.
     return client(0, /*withGcEnabled=*/ false)
       .expectPrimaryState(true)
@@ -785,4 +785,36 @@ describeSpec('Listens:', [], () => {
       .client(2)
       .expectEvents(query, { added: [docB] });
   });
+
+  specTest(
+    'Query is established in newly started client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      // Client 0 executes a query on behalf of Client 1. When client 0 shuts
+      // down, client 1 starts up and becomes primary, taking ownership of the
+      // existing query.
+      return client(0)
+        .expectPrimaryState(true)
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000, docA)
+        .client(1)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .shutdown()
+        .client(2)
+        .expectPrimaryState(true)
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000, docB)
+        .client(1)
+        .expectEvents(query, { added: [docB] });
+    }
+  );
 });
