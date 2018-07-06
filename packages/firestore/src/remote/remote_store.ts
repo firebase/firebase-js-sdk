@@ -558,12 +558,23 @@ export class RemoteStore implements TargetMetadataProvider {
     // Record the stream token.
     return this.localStore
       .setLastStreamToken(this.writeStream.lastStreamToken)
-      .then(() => {
-        // Send the write pipeline now that the stream is established.
-        for (const batch of this.writePipeline) {
-          this.writeStream.writeMutations(batch.mutations);
+      .then(
+        () => {
+          // Send the write pipeline now that the stream is established.
+          for (const batch of this.writePipeline) {
+            this.writeStream.writeMutations(batch.mutations);
+          }
+        },
+        err => {
+          if (err.code === Code.FAILED_PRECONDITION) {
+            // We have temporarily lost our primary lease. If we recover,
+            // Sync Engine will re-enable the network.
+            return this.disableNetwork();
+          } else {
+            return Promise.reject(err);
+          }
         }
-      });
+      );
   }
 
   private onMutationResult(
@@ -633,7 +644,17 @@ export class RemoteStore implements TargetMetadataProvider {
       );
       this.writeStream.lastStreamToken = emptyByteString();
 
-      return this.localStore.setLastStreamToken(emptyByteString());
+      return this.localStore
+        .setLastStreamToken(emptyByteString())
+        .catch(err => {
+          if (err.code === Code.FAILED_PRECONDITION) {
+            // We have temporarily lost our primary lease. If we recover,
+            // Sync Engine will re-enable the network.
+            return this.disableNetwork();
+          } else {
+            return Promise.reject(err);
+          }
+        });
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.

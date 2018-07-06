@@ -669,7 +669,7 @@ export class LocalStore {
    * found - used for testing.
    */
   readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('read document', true, txn => {
+    return this.persistence.runTransaction('read document', false, txn => {
       return this.localDocuments.getDocument(txn, key);
     });
   }

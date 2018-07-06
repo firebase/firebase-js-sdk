@@ -203,10 +203,10 @@ export class IndexedDbPersistence implements Persistence {
         .put(new DbClientMetadata(this.clientId, Date.now(), this.inForeground))
         .next(() => this.canActAsPrimary(txn))
         .next(canActAsPrimary => {
-          if (canActAsPrimary !== this.isPrimary) {
-            this.isPrimary = canActAsPrimary;
-            this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
-          }
+          this.isPrimary = canActAsPrimary;
+          // Always call the primary state listener, since SyncEngine may have
+          // changed the primary state to 'false'.
+          this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
 
           if (this.isPrimary) {
             return this.acquireOrExtendPrimaryLease(txn);

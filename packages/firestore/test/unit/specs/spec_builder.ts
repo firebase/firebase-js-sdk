@@ -24,7 +24,11 @@ import {
 } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
-import { mapRpcCodeFromCode } from '../../../src/remote/rpc_error';
+import {
+  isPermanentError,
+  mapCodeFromRpcCode,
+  mapRpcCodeFromCode
+} from '../../../src/remote/rpc_error';
 import { assert } from '../../../src/util/assert';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
@@ -457,12 +461,16 @@ export class SpecBuilder {
   writeAcks(
     doc: string,
     version: TestSnapshotVersion,
-    options?: { expectUserCallback: boolean }
+    options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
   ): this {
     this.nextStep();
-    this.currentStep = { writeAck: { version } };
+    options = options || {};
 
-    if (!options || options.expectUserCallback) {
+    this.currentStep = {
+      writeAck: { version, keepInQueue: !!options.keepInQueue }
+    };
+
+    if (options.expectUserCallback) {
       return this.expectUserCallbacks({ acknowledged: [doc] });
     } else {
       return this;
@@ -476,13 +484,23 @@ export class SpecBuilder {
    */
   failWrite(
     doc: string,
-    err: RpcError,
-    options?: { expectUserCallback: boolean }
+    error: RpcError,
+    options?: { expectUserCallback?: boolean; keepInQueue?: boolean }
   ): this {
     this.nextStep();
-    this.currentStep = { failWrite: { error: err } };
+    options = options || {};
 
-    if (!options || options.expectUserCallback) {
+    // If this is a permanent error, the write is not expected to be sent
+    // again.
+    const isPermanentFailure = isPermanentError(mapCodeFromRpcCode(error.code));
+    const keepInQueue =
+      options.keepInQueue !== undefined
+        ? options.keepInQueue
+        : !isPermanentFailure;
+
+    this.currentStep = { failWrite: { error, keepInQueue } };
+
+    if (options.expectUserCallback) {
       return this.expectUserCallbacks({ rejected: [doc] });
     } else {
       return this;
@@ -896,6 +914,23 @@ export class MultiClientSpecBuilder extends SpecBuilder {
       this.activeClientIndex + 1
     );
 
+    return this;
+  }
+
+  /**
+   * Take the primary lease, even if another client has already obtained the
+   * lease.
+   */
+  stealPrimaryLease(): this {
+    this.nextStep();
+    this.currentStep = {
+      applyClientState: {
+        primary: true
+      },
+      stateExpect: {
+        isPrimary: true
+      }
+    };
     return this;
   }
 

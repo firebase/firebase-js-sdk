@@ -33,7 +33,7 @@ import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -66,6 +66,7 @@ import {
 } from '../local/shared_client_state_syncer';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
+import * as objUtils from '../util/obj';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -277,11 +278,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (!targetRemainsActive) {
         this.remoteStore.unlisten(queryView.targetId);
         await this.removeAndCleanupQuery(queryView);
-        await this.localStore.releaseQuery(
-          query,
-          /*keepPersistedQueryData=*/ false
-        );
-        await this.localStore.collectGarbage();
+        return this.localStore
+          .releaseQuery(query, /*keepPersistedQueryData=*/ false)
+          .then(() => this.localStore.collectGarbage())
+          .catch(err => this.tryRecoverClient(err));
       }
     } else {
       await this.removeAndCleanupQuery(queryView);
@@ -382,9 +382,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
-    return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
-      return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
-    });
+    return this.localStore
+      .applyRemoteEvent(remoteEvent)
+      .then(changes => {
+        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
+      })
+      .catch(err => this.tryRecoverClient(err));
   }
 
   /**
@@ -490,6 +493,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
     } else if (batchState === 'acknowledged' || batchState === 'rejected') {
+      // If we receive a notification of an `acknowledged` or `rejected` batch
+      // via Web Storage, we are either already secondary or another tab has
+      // taken the primary lease.
+      await this.applyPrimaryState(false);
+
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
       this.sharedClientState.removeLocalPendingMutation(batchId);
@@ -521,7 +529,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(changes => {
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
-      });
+      })
+      .catch(err => this.tryRecoverClient(err));
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -533,11 +542,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // listen events.
     this.processUserCallback(batchId, error);
 
-    return this.localStore.rejectBatch(batchId).then(changes => {
-      this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
-      this.sharedClientState.removeLocalPendingMutation(batchId);
-      return this.emitNewSnapsAndNotifyLocalStore(changes);
-    });
+    return this.localStore
+      .rejectBatch(batchId)
+      .then(changes => {
+        this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
+        this.sharedClientState.removeLocalPendingMutation(batchId);
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      })
+      .catch(err => this.tryRecoverClient(err));
   }
 
   private addMutationCallback(
@@ -712,7 +724,27 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
     // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
-      await this.localStore.collectGarbage();
+      await this.localStore
+        .collectGarbage()
+        .catch(err => this.tryRecoverClient(err));
+    }
+  }
+
+  /**
+   * Marks the client as secondary if an IndexedDb operation fails because the
+   * primary lease has been taken by another client. This can happen when the
+   * client is temporarily CPU throttled and fails to renew its lease in time,
+   * in which we treat the current client as secondary. We can always revert
+   * back to primary status via the lease refresh in our persistence layer.
+   *
+   * @param err An error returned by an IndexedDb operation.
+   * @return A Promise that resolves after we recovered, or the original error.
+   */
+  private async tryRecoverClient(err: FirestoreError): Promise<void> {
+    if (err.code === Code.FAILED_PRECONDITION) {
+      return this.applyPrimaryState(false);
+    } else {
+      throw err;
     }
   }
 
@@ -784,9 +816,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
       this.isPrimary = false;
-
-      // TODO: Unlisten from all active targets
       await this.remoteStore.disableNetwork();
+      objUtils.forEachNumber(this.queryViewsByTarget, targetId => {
+        this.remoteStore.unlisten(targetId);
+      });
     }
   }
 
@@ -801,6 +834,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
+    if (this.isPrimary) {
+      // If we receive a target state notification via Web Storage, we are
+      // either already secondary or another tab has taken the primary lease.
+      await this.applyPrimaryState(false);
+    }
+
     if (this.queryViewsByTarget[targetId]) {
       switch (state) {
         case 'current':

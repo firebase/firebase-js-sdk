@@ -785,4 +785,62 @@ describeSpec('Listens:', [], () => {
       .client(2)
       .expectEvents(query, { added: [docB] });
   });
+
+  specTest('Query recovers after primary takeover', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+
+    return (
+      client(0)
+        .expectPrimaryState(true)
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { added: [docA] })
+        .stealPrimaryLease()
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000, docB)
+        .expectEvents(query, { added: [docB] })
+        .client(0)
+        .expectPrimaryState(false)
+        // TODO(multitab): Suppres the additional `fromCache`, which is raised
+        // locally because we disable the network when we lose the primary
+        // lease.
+        .expectEvents(query, { fromCache: true })
+        .expectEvents(query, { added: [docB] })
+    );
+  });
+
+  specTest(
+    'Unresponsive primary ignores watch update',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .client(1)
+          .userListens(query)
+          .expectEvents(query, { fromCache: true })
+          .client(0)
+          .expectListen(query)
+          .client(1)
+          .stealPrimaryLease()
+          .client(0)
+          // Send a watch update to client 0, who is longer primary (but doesn't
+          // it yet). The watch update gets ignored.
+          .watchAcksFull(query, 1000, docA)
+          .expectPrimaryState(false)
+          .client(1)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
+      );
+    }
+  );
 });
