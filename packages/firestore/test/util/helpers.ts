@@ -28,7 +28,6 @@ import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
   Direction,
-  fieldFilter,
   Filter,
   OrderBy,
   Query,
@@ -175,7 +174,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: AnyJs): Filter {
   const dataValue = wrap(value);
   const operator = RelationOp.fromString(op);
-  return fieldFilter(field(path), operator, dataValue);
+  return Filter.create(field(path), operator, dataValue);
 }
 
 export function setMutation(
