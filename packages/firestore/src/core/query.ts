@@ -398,11 +398,7 @@ export abstract class Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(
-    field: FieldPath,
-    op: RelationOp,
-    value: FieldValue
-  ): Filter {
+  static create(field: FieldPath, op: RelationOp, value: FieldValue): Filter {
     if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== RelationOp.EQUAL) {
         throw new FirestoreError(
@@ -468,7 +464,9 @@ export class RelationFilter extends Filter {
     public field: FieldPath,
     public op: RelationOp,
     public value: FieldValue
-  ) { super(); }
+  ) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     if (this.field.isKeyField()) {
@@ -558,7 +556,9 @@ export class RelationFilter extends Filter {
  * Filter that matches 'null' values.
  */
 export class NullFilter extends Filter {
-  constructor(public field: FieldPath) { super(); }
+  constructor(public field: FieldPath) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     const val = doc.field(this.field);
@@ -586,7 +586,9 @@ export class NullFilter extends Filter {
  * Filter that matches 'NaN' values.
  */
 export class NanFilter extends Filter {
-  constructor(public field: FieldPath) { super(); }
+  constructor(public field: FieldPath) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     const val = doc.field(this.field).value();
