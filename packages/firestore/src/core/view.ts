@@ -383,8 +383,24 @@ export class View {
     return changes;
   }
 
+  // PORTING NOTE: Multi-tab only.
   synchronizeWithRemoteKeys(remoteKeys: DocumentKeySet): void {
     this._syncedDocuments = remoteKeys;
+  }
+
+  /**
+   * Returns a view snapshot as if this query was just listened to. Contains
+   * a document add for every existing document and the `fromCache` and
+   * `hasPendingWrites` status of the already established view.
+   */
+  // PORTING NOTE: Multi-tab only.
+  computeInitialSnapshot(): ViewSnapshot {
+    return ViewSnapshot.fromSyncedDocuments(
+      this.query,
+      this.documentSet,
+      this.syncState === SyncState.Local,
+      !this.mutatedKeys.isEmpty()
+    );
   }
 }
 

@@ -514,6 +514,35 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  specTest('Query is joined by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    const docC = doc('collection/c', 3000, { key: 'c' });
+
+    return client(0)
+      .expectPrimaryState(true)
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { fromCache: true })
+      .client(0)
+      .expectListen(query)
+      .watchAcksFull(query, 100, docA)
+      .client(1)
+      .expectEvents(query, { added: [docA] })
+      .client(0)
+      .watchSends({ affects: [query] }, docB)
+      .watchSnapshots(2000)
+      .userListens(query)
+      .expectEvents(query, { added: [docA, docB] })
+      .watchSends({ affects: [query] }, docC)
+      .watchSnapshots(3000)
+      .expectEvents(query, { added: [docC] })
+      .client(1)
+      .expectEvents(query, { added: [docB] })
+      .expectEvents(query, { added: [docC] });
+  });
+
   specTest(
     'Query only raises events in participating clients',
     ['multi-client'],
