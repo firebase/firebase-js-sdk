@@ -212,6 +212,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.viewHandler!([viewSnapshot]);
     return targetId;
   }
+
   private initializeViewAndComputeInitialSnapshot(
     queryData: QueryData,
     current: boolean

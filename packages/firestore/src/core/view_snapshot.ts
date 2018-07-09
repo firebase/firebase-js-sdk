@@ -155,7 +155,7 @@ export class ViewSnapshot {
     documents: DocumentSet,
     fromCache: boolean,
     hasPendingWrites: boolean
-  ) : ViewSnapshot {
+  ): ViewSnapshot {
     const changeSet = new DocumentChangeSet();
     documents.forEach(doc => {
       changeSet.track({ type: ChangeType.Added, doc });
