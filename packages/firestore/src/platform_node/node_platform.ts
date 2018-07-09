@@ -23,6 +23,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
 import { GrpcConnection } from './grpc_connection';
+import { InsecureGrpcConnection } from './insecure_grpc_connection';
 import { loadProtos } from './load_protos';
 import { AnyJs } from '../util/misc';
 
@@ -33,7 +34,11 @@ export class NodePlatform implements Platform {
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     const protos = loadProtos();
-    return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+    if (databaseInfo.ssl) {
+      return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+    } else {
+      return Promise.resolve(new InsecureGrpcConnection(protos, databaseInfo));
+    }
   }
 
   newSerializer(partitionId: DatabaseId): JsonProtoSerializer {
