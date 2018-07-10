@@ -48,13 +48,3 @@ export function fromRef(
     delay(0)
   );
 }
-
-export const unwrap = () =>
-  map((payload: QueryChange) => {
-    const { snapshot, prevKey } = payload;
-    let key: string | null = null;
-    if (snapshot.exists()) {
-      key = snapshot.key;
-    }
-    return { type: event, payload: snapshot, prevKey, key };
-  });
