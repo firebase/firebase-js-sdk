@@ -29,7 +29,7 @@ export function stateChanges(query: database.Query, events?: ListenEvent[]) {
 
 function fromOnce(query: database.Query): Observable<QueryChange> {
   return from(query.once(ListenEvent.value)).pipe(
-    map((snapshot) => {
+    map(snapshot => {
       const event = ListenEvent.value;
       return { snapshot, prevKey: null, event };
     })
@@ -84,10 +84,10 @@ function buildView(current: QueryChange[], change: QueryChange) {
       if (change.snapshot && change.snapshot.exists()) {
         let prevKey = null;
         change.snapshot.forEach(snapshot => {
-          const action: QueryChange = { 
-            snapshot, 
-            event: ListenEvent.value, 
-            prevKey 
+          const action: QueryChange = {
+            snapshot,
+            event: ListenEvent.value,
+            prevKey
           };
           prevKey = snapshot.key;
           current = [...current, action];

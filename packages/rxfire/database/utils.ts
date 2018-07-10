@@ -27,7 +27,12 @@ export function isNil(obj: any): boolean {
  */
 export function validateEventsArray(events?: ListenEvent[]) {
   if (isNil(events) || events!.length === 0) {
-    events = [ListenEvent.added, ListenEvent.removed, ListenEvent.changed, ListenEvent.moved];
+    events = [
+      ListenEvent.added,
+      ListenEvent.removed,
+      ListenEvent.changed,
+      ListenEvent.moved
+    ];
   }
   return events;
 }

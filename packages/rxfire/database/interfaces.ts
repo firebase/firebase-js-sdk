@@ -22,7 +22,7 @@ export enum ListenEvent {
   changed = 'child_changed',
   moved = 'child_moved',
   value = 'value'
-};
+}
 
 export interface QueryChange {
   snapshot: database.DataSnapshot;
