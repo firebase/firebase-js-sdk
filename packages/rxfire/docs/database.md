@@ -8,7 +8,7 @@ The `object()` function creates an observable that emits object changes.
 |                 |                                          |
 |-----------------|------------------------------------------|
 | **function**    | `object()`                               |
-| **params**      | `database.Reference` or `database.Query` |
+| **params**      | `database.Reference`                     |
 | **import path** | `rxfire/database`                        |
 | **return**      | `Observable<QueryChange>`                |
 
@@ -104,7 +104,7 @@ The `stateChanges()` function creates an observable that emits each time a chang
 | **import path** | `rxfire/database`                                    |
 | **return**      | `Observable<QueryChange>`                          |
 
-#### Example
+#### TypeScript Example
 ```ts
 import { stateChanges, ListenEvent } from 'rxfire/database';
 import { database } from 'firebase';
