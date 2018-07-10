@@ -394,7 +394,7 @@ export class FirestoreClient {
 
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
-        this.persistence.setPrimaryStateListener(isPrimary =>
+        await this.persistence.setPrimaryStateListener(isPrimary =>
           this.syncEngine.applyPrimaryState(isPrimary)
         );
       });
