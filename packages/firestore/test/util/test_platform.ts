@@ -23,14 +23,14 @@ import { Connection } from '../../src/remote/connection';
 import { assert, fail } from '../../src/util/assert';
 
 /**
- * `Window` mock that implements the event and storage API that is used by
+ * `Window` fake that implements the event and storage API that is used by
  * Firestore.
  */
-export class MockWindow {
+export class FakeWindow {
   private readonly storageArea: Storage;
   private storageListener: EventListener = () => {};
 
-  constructor(sharedMockStorage: SharedMockStorage) {
+  constructor(sharedMockStorage: SharedFakeWebStorage) {
     this.storageArea = sharedMockStorage.getStorageArea(event =>
       this.storageListener(event)
     );
@@ -69,9 +69,9 @@ export class MockWindow {
 }
 
 /**
- * `Document` mock that implements the `visibilitychange` API used by Firestore.
+ * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
-export class MockDocument {
+export class FakeDocument {
   private _visibilityState: VisibilityState = 'unloaded';
   private visibilityListener: EventListener | null;
 
@@ -82,7 +82,7 @@ export class MockDocument {
   addEventListener(type: string, listener: EventListener): void {
     assert(
       type === 'visibilitychange',
-      "MockDocument only supports events of type 'visibilitychange'"
+      "FakeDocument only supports events of type 'visibilitychange'"
     );
     this.visibilityListener = listener;
   }
@@ -106,7 +106,7 @@ export class MockDocument {
  * clients. To get a client-specific storage area that implements the WebStorage
  * API, invoke `getStorageArea(storageListener)`.
  */
-export class SharedMockStorage {
+export class SharedFakeWebStorage {
   private readonly data = new Map<string, string>();
   private readonly activeClients: Array<{
     storageListener: EventListener;
@@ -188,27 +188,27 @@ export class SharedMockStorage {
 }
 
 /**
- * Implementation of `Platform` that allows mocking of `document` and `window`.
+ * Implementation of `Platform` that allows faking of `document` and `window`.
  */
-export class MockPlatform implements Platform {
-  readonly mockDocument: MockDocument | null = null;
-  readonly mockWindow: MockWindow | null = null;
+export class TestPlatform implements Platform {
+  readonly mockDocument: FakeDocument | null = null;
+  readonly mockWindow: FakeWindow | null = null;
 
   constructor(
     private readonly basePlatform: Platform,
-    private readonly mockStorage: SharedMockStorage
+    private readonly mockStorage: SharedFakeWebStorage
   ) {
-    this.mockDocument = new MockDocument();
-    this.mockWindow = new MockWindow(this.mockStorage);
+    this.mockDocument = new FakeDocument();
+    this.mockWindow = new FakeWindow(this.mockStorage);
   }
 
   get document(): Document | null {
-    // tslint:disable-next-line:no-any MockWindow doesn't support full Document interface.
+    // tslint:disable-next-line:no-any FakeWindow doesn't support full Document interface.
     return this.mockDocument as any;
   }
 
   get window(): Window | null {
-    // tslint:disable-next-line:no-any MockWindow doesn't support full Window interface.
+    // tslint:disable-next-line:no-any FakeWindow doesn't support full Window interface.
     return this.mockWindow as any;
   }
 

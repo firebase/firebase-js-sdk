@@ -98,7 +98,7 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
-import { MockPlatform, SharedMockStorage } from '../../util/mock_platform';
+import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -383,7 +383,7 @@ abstract class TestRunner {
   private serializer: JsonProtoSerializer;
 
   constructor(
-    protected readonly platform: MockPlatform,
+    protected readonly platform: TestPlatform,
     private sharedWrites: SharedWriteTracker,
     config: SpecConfig
   ) {
@@ -1184,7 +1184,7 @@ export async function runSpec(
   // tslint:disable-next-line:no-console
   console.log('Running spec: ' + name);
 
-  const sharedMockStorage = new SharedMockStorage();
+  const sharedMockStorage = new SharedFakeWebStorage();
 
   // PORTING NOTE: Non multi-client SDKs only support a single test runner.
   const runners: TestRunner[] = [];
@@ -1192,7 +1192,7 @@ export async function runSpec(
 
   const ensureRunner = async clientIndex => {
     if (!runners[clientIndex]) {
-      const platform = new MockPlatform(
+      const platform = new TestPlatform(
         PlatformSupport.getPlatform(),
         sharedMockStorage
       );
