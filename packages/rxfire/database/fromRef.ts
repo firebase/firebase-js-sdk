@@ -17,7 +17,7 @@
 import { database } from 'firebase';
 import { Observable } from 'rxjs';
 import { map, delay, share } from 'rxjs/operators';
-import { ListenEvent, SnapshotPrevKey } from './interfaces';
+import { ListenEvent, QueryChange } from './interfaces';
 
 /**
  * Create an observable from a Database Reference or Database Query.
@@ -26,40 +26,31 @@ import { ListenEvent, SnapshotPrevKey } from './interfaces';
  */
 export function fromRef(
   ref: database.Query,
-  event: ListenEvent,
-  listenType = 'on'
-): Observable<SnapshotPrevKey> {
-  return new Observable<SnapshotPrevKey>(subscriber => {
-    const fn = ref[listenType](
+  event: ListenEvent
+): Observable<QueryChange> {
+  return new Observable<QueryChange>(subscriber => {
+    const fn = ref.on(
       event,
       (snapshot, prevKey) => {
         subscriber.next({ snapshot, prevKey, event });
-        if (listenType == 'once') {
-          subscriber.complete();
-        }
       },
       subscriber.error.bind(subscriber)
     );
-    if (listenType == 'on') {
-      return {
-        unsubscribe() {
-          ref.off(event, fn);
-        }
-      };
-    } else {
-      return { unsubscribe() {} };
-    }
+    return {
+      unsubscribe() {
+        ref.off(event, fn);
+      }
+    };
   }).pipe(
     // Ensures subscribe on observable is async. This handles
     // a quirk in the SDK where on/once callbacks can happen
     // synchronously.
-    delay(0),
-    share()
+    delay(0)
   );
 }
 
 export const unwrap = () =>
-  map((payload: SnapshotPrevKey) => {
+  map((payload: QueryChange) => {
     const { snapshot, prevKey } = payload;
     let key: string | null = null;
     if (snapshot.exists()) {

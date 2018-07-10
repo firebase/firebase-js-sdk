@@ -15,7 +15,7 @@
  */
 
 import { database } from 'firebase';
-import { SnapshotPrevKey } from '../interfaces';
+import { QueryChange, ListenEvent } from '../interfaces';
 import { fromRef } from '../fromRef';
 import { Observable } from 'rxjs';
 
@@ -23,6 +23,6 @@ import { Observable } from 'rxjs';
  * Get the snapshot changes of an object
  * @param query
  */
-export function object(query: database.Query): Observable<SnapshotPrevKey> {
-  return fromRef(query, 'value');
+export function object(query: database.Query): Observable<QueryChange> {
+  return fromRef(query, ListenEvent.value);
 }

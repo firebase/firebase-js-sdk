@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import { ListenEvent } from './interfaces';
+
 export function isNil(obj: any): boolean {
   return obj === undefined || obj === null;
 }
@@ -23,9 +25,9 @@ export function isNil(obj: any): boolean {
  * that is populated with all the Realtime Database child events.
  * @param events
  */
-export function validateEventsArray(events?: any[]) {
+export function validateEventsArray(events?: ListenEvent[]) {
   if (isNil(events) || events!.length === 0) {
-    events = ['child_added', 'child_removed', 'child_changed', 'child_moved'];
+    events = [ListenEvent.added, ListenEvent.removed, ListenEvent.changed, ListenEvent.moved];
   }
   return events;
 }

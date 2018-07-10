@@ -16,15 +16,15 @@
 
 import { database } from 'firebase';
 
-export type QueryFn = (ref: database.Reference) => database.Query;
-export type ChildEvent =
-  | 'child_added'
-  | 'child_removed'
-  | 'child_changed'
-  | 'child_moved';
-export type ListenEvent = 'value' | ChildEvent;
+export enum ListenEvent {
+  added = 'child_added',
+  removed = 'child_removed',
+  changed = 'child_changed',
+  moved = 'child_moved',
+  value = 'value'
+};
 
-export interface SnapshotPrevKey {
+export interface QueryChange {
   snapshot: database.DataSnapshot;
   prevKey: string | null | undefined;
   event: ListenEvent;

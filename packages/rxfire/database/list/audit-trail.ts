@@ -16,22 +16,22 @@
 
 import { database } from 'firebase';
 import { Observable } from 'rxjs';
-import { SnapshotPrevKey, ChildEvent } from '../interfaces';
+import { QueryChange, ListenEvent } from '../interfaces';
 import { fromRef } from '../fromRef';
 import { map, withLatestFrom, scan, skipWhile } from 'rxjs/operators';
-import { stateChanges } from './';
+import { stateChanges } from './index';
 
 interface LoadedMetadata {
-  data: SnapshotPrevKey;
+  data: QueryChange;
   lastKeyToLoad: any;
 }
 
 export function auditTrail(
   query: database.Query,
-  events?: ChildEvent[]
-): Observable<SnapshotPrevKey[]> {
+  events?: ListenEvent[]
+): Observable<QueryChange[]> {
   const auditTrail$ = stateChanges(query, events).pipe(
-    scan<SnapshotPrevKey>((current, changes) => [...current, changes], [])
+    scan<QueryChange>((current, changes) => [...current, changes], [])
   );
   return waitForLoaded(query, auditTrail$);
 }
@@ -40,7 +40,7 @@ function loadedData(query: database.Query): Observable<LoadedMetadata> {
   // Create an observable of loaded values to retrieve the
   // known dataset. This will allow us to know what key to
   // emit the "whole" array at when listening for child events.
-  return fromRef(query, 'value').pipe(
+  return fromRef(query, ListenEvent.value).pipe(
     map(data => {
       // Store the last key in the data set
       let lastKeyToLoad;
@@ -57,7 +57,7 @@ function loadedData(query: database.Query): Observable<LoadedMetadata> {
 
 function waitForLoaded(
   query: database.Query,
-  snap$: Observable<SnapshotPrevKey[]>
+  snap$: Observable<QueryChange[]>
 ) {
   const loaded$ = loadedData(query);
   return loaded$.pipe(
