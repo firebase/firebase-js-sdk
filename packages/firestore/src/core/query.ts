@@ -403,7 +403,7 @@ export abstract class Filter {
       if (op !== RelationOp.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals ' + 'comparisons on null.'
+          'Invalid query. You can only perform equals comparisons on null.'
         );
       }
       return new NullFilter(field);
@@ -411,7 +411,7 @@ export abstract class Filter {
       if (op !== RelationOp.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals ' + 'comparisons on NaN.'
+          'Invalid query. You can only perform equals comparisons on NaN.'
         );
       }
       return new NanFilter(field);
