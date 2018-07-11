@@ -627,7 +627,7 @@ describeSpec('Listens:', [], () => {
   specTest('Query is rejected by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
 
-    return client(0, /* withGcEnabled= */ false)
+    return client(0)
       .becomeVisible()
       .client(1)
       .userListens(query)
@@ -648,7 +648,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, /* withGcEnabled= */ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -676,7 +676,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -703,7 +703,7 @@ describeSpec('Listens:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const query2 = Query.atPath(path('collection'));
 
-    return client(0, /*withGcEnabled=*/ false)
+    return client(0)
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -729,7 +729,7 @@ describeSpec('Listens:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 2000, { key: 'a' });
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -761,7 +761,7 @@ describeSpec('Listens:', [], () => {
       const docA = doc('collection/a', 1000, { key: 'a' });
       const docB = doc('collection/b', 2000, { key: 'b' });
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .expectPrimaryState(true)
         .client(1)
         .userListens(query)
@@ -795,7 +795,7 @@ describeSpec('Listens:', [], () => {
     // Client 1 and Client 3 listen to the same query. When client 1 shuts
     // down, client 2 becomes primary and takes ownership of a query it
     // did not previously listen to.
-    return client(0, /*withGcEnabled=*/ false)
+    return client(0)
       .expectPrimaryState(true)
       .userListens(query)
       .watchAcksFull(query, 1000, docA)
