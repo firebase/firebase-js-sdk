@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// TODO(multitab): Rename this file to `indexeddb_persistence.test.ts`.
+
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -250,8 +252,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('rejects access when synchronization is disabled', () => {
     return withPersistence('clientA', async db1 => {
-      await expect(db1.start(/*synchronizeTabs=*/ false)).to.eventually.be
-        .fulfilled;
+      await db1.start(/*synchronizeTabs=*/ false);
       await withPersistence('clientB', async db2 => {
         await expect(
           db2.start(/*synchronizeTabs=*/ false)
@@ -264,11 +265,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('grants access when synchronization is enabled', async () => {
     return withPersistence('clientA', async db1 => {
-      await expect(db1.start(/*synchronizeTabs=*/ true)).to.eventually.be
-        .fulfilled;
+      await db1.start(/*synchronizeTabs=*/ true);
       await withPersistence('clientB', async db2 => {
-        await expect(db2.start(/*synchronizeTabs=*/ true)).to.eventually.be
-          .fulfilled;
+        await db2.start(/*synchronizeTabs=*/ true);
       });
     });
   });

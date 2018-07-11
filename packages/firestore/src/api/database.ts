@@ -98,9 +98,12 @@ import {
 // underscore to discourage their use.
 // tslint:disable:strip-private-property-underscore
 
+// settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+
+// enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */

@@ -137,8 +137,8 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
-   * @param persistenceSettings Settings object for the suggested persistence
-   *     mode.
+   * @param persistenceSettings Settings object to configure offline
+   *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
    *     offline persistence. This method will reject this if IndexedDB fails to
    *     start for any reason. If usePersistence is false this is
@@ -302,7 +302,7 @@ export class FirestoreClient {
     });
 
     return Promise.resolve().then(() => {
-      const persistence = new IndexedDbPersistence(
+      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
         storagePrefix,
         this.clientId,
         this.platform,
@@ -315,12 +315,10 @@ export class FirestoreClient {
         settings.synchronizeTabs &&
         !WebStorageSharedClientState.isAvailable(this.platform)
       ) {
-        if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
-          throw new FirestoreError(
-            Code.UNIMPLEMENTED,
-            'IndexedDB persistence is only available on platforms that support LocalStorage.'
-          );
-        }
+        throw new FirestoreError(
+          Code.UNIMPLEMENTED,
+          'IndexedDB persistence is only available on platforms that support LocalStorage.'
+        );
       }
 
       this.sharedClientState = settings.synchronizeTabs

@@ -221,6 +221,8 @@ export class IndexedDbPersistence implements Persistence {
           if (canActAsPrimary !== this.isPrimary) {
             this.isPrimary = canActAsPrimary;
             this.queue.enqueue(async () => {
+              // Verify that `shutdown()` hasn't been called yet by the time
+              // we invoke the `primaryStateListener`.
               if (this.started) {
                 return this.primaryStateListener(this.isPrimary);
               }
@@ -287,6 +289,18 @@ export class IndexedDbPersistence implements Persistence {
           }
 
           if (!currentPrimary.allowTabSynchronization) {
+            // Fail the `canActAsPrimary` check if the current leaseholder has
+            // not opted into multi-tab synchronization. If this happens at
+            // client startup, we reject the Promise returned by
+            // `enablePersistence()` and the user can continue to use Firestore
+            // with in-memory persistence.
+            // If this fails during a lease refresh, we will instead block the
+            // AsyncQueue from execution further operations. Note that this is
+            // acceptable since mixing & matching different `synchronizeTabs`
+            // settings is not officially supported.
+            //
+            // TODO(multitab): Remove this check when `synchronizeTabs` can no
+            // longer be turned off.
             throw new FirestoreError(
               Code.FAILED_PRECONDITION,
               PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
@@ -421,7 +435,36 @@ export class IndexedDbPersistence implements Persistence {
             return this.acquireOrExtendPrimaryLease(txn).next(() => result);
           });
       } else {
-        return transactionOperation(txn);
+        return this.verifyAllowTabSynchronization(txn).next(() =>
+          transactionOperation(txn)
+        );
+      }
+    });
+  }
+
+  /**
+   * Verifies that the current tab is the primary leaseholder or alternatively
+   * that the leaseholder has opted into multi-tab synchronization.
+   */
+  // TODO(multitab): Remove this check when `synchronizeTabs` can no longer be
+  // turned off.
+  private verifyAllowTabSynchronization(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const store = ownerStore(txn);
+    return store.get('owner').next(currentPrimary => {
+      const currentLeaseIsValid =
+        currentPrimary !== null &&
+        this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
+        currentPrimary.ownerId !== this.getZombiedClientId();
+
+      if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
+        if (!currentPrimary.allowTabSynchronization) {
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+          );
+        }
       }
     });
   }

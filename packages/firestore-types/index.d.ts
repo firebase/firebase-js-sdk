@@ -57,7 +57,10 @@ export interface Settings {
   timestampsInSnapshots?: boolean;
 }
 
-/** Settings used to configure Firestore persistence. */
+/**
+ * Settings that can be passed to Firestore.enablePersistence() to configure
+ * Firestore persistence.
+ */
 export interface PersistenceSettings {
   /**
    * Whether to synchronize the in-memory state of multiple tabs. Setting this
@@ -66,9 +69,10 @@ export interface PersistenceSettings {
    * across all connected instances.
    *
    * To enable this mode, `synchronizeTabs:true` needs to be set globally in
-   * all active tabs.
+   * all active tabs. If omitted or set to 'false', `enablePersistence()` will
+   * will fail in all but the first tab.
    *
-   * NOTE: This mode is experimental.
+   * NOTE: This mode is experimental and not yet recommended for production use.
    */
   synchronizeTabs?: boolean;
 }
