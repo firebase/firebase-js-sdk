@@ -150,7 +150,7 @@ export class ViewSnapshot {
   ) {}
 
   /** Returns a view snapshot as if all documents in the snapshot were added. */
-  static fromSyncedDocuments(
+  static fromInitialDocuments(
     query: Query,
     documents: DocumentSet,
     fromCache: boolean,

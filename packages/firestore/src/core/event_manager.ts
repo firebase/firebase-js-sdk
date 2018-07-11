@@ -288,7 +288,7 @@ export class QueryListener {
       !this.raisedInitialEvent,
       'Trying to raise initial events for second time'
     );
-    snap = ViewSnapshot.fromSyncedDocuments(
+    snap = ViewSnapshot.fromInitialDocuments(
       snap.query,
       snap.docs,
       snap.fromCache,

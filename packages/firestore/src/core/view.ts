@@ -395,7 +395,7 @@ export class View {
    */
   // PORTING NOTE: Multi-tab only.
   computeInitialSnapshot(): ViewSnapshot {
-    return ViewSnapshot.fromSyncedDocuments(
+    return ViewSnapshot.fromInitialDocuments(
       this.query,
       this.documentSet,
       this.syncState === SyncState.Local,
