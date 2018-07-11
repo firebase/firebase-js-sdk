@@ -1128,7 +1128,7 @@ describeSpec('Writes:', [], () => {
       });
   });
 
-  specTest('Write is sent by newly started client', ['multi-client'], () => {
+  specTest('Write is sent by newly started primary', ['multi-client'], () => {
     return client(0)
       .expectPrimaryState(true)
       .client(1)
@@ -1138,6 +1138,7 @@ describeSpec('Writes:', [], () => {
       .shutdown()
       .client(2)
       .expectPrimaryState(true)
+      .expectNumOutstandingWrites(1)
       .writeAcks('collection/a', 1000, { expectUserCallback: false })
       .client(1)
       .expectUserCallbacks({

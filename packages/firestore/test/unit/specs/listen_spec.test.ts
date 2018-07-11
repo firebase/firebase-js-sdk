@@ -725,7 +725,7 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'Query is re-listened to after primary tab failover',
+    'Listen is re-listened to after primary tab failover',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -758,7 +758,7 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Query is established in new primary tab', ['multi-client'], () => {
+  specTest('Listen is established in new primary tab', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
@@ -787,7 +787,7 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest(
-    'Query is established in newly started client',
+    'Listen is established in newly started primary',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
@@ -795,7 +795,7 @@ describeSpec('Listens:', [], () => {
       const docB = doc('collection/b', 2000, { key: 'b' });
 
       // Client 0 executes a query on behalf of Client 1. When client 0 shuts
-      // down, client 1 starts up and becomes primary, taking ownership of the
+      // down, client 2 starts up and becomes primary, taking ownership of the
       // existing query.
       return client(0)
         .expectPrimaryState(true)
