@@ -43,11 +43,25 @@ export interface Observer<T> {
 }
 
 /**
+ * Interface for view changes processed by the EventManager.
+ */
+export interface ViewHandler {
+  /** Handles new view snapshots. */
+  onChange(snapshots: ViewSnapshot[]): void;
+
+  /** Handles the failure of a query. */
+  onError(query: Query, error: Error): void;
+
+  /** Handles a change in online state. */
+  applyOnlineStateChange(onlineState: OnlineState): void;
+}
+
+/**
  * EventManager is responsible for mapping queries to query event emitters.
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
  */
-export class EventManager {
+export class EventManager implements ViewHandler {
   private queries = new ObjectMap<Query, QueryListenersInfo>(q =>
     q.canonicalId()
   );
@@ -55,10 +69,7 @@ export class EventManager {
   private onlineState: OnlineState = OnlineState.Unknown;
 
   constructor(private syncEngine: SyncEngine) {
-    this.syncEngine.subscribe(
-      this.onChange.bind(this),
-      this.onError.bind(this)
-    );
+    this.syncEngine.subscribe(this);
   }
 
   listen(listener: QueryListener): Promise<TargetId> {

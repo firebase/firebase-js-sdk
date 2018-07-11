@@ -22,6 +22,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { OnlineState } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -107,6 +108,14 @@ export interface Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void;
+
+  /**
+   * Applies an OnlineState change to the persistence layer, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  applyOnlineStateChange(onlineState: OnlineState): void;
 
   /**
    * Returns the IDs of the clients that are currently active. If multi-tab

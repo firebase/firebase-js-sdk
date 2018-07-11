@@ -48,6 +48,7 @@ import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
+import { OnlineState } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -121,6 +122,7 @@ export class IndexedDbPersistence implements Persistence {
   private simpleDb: SimpleDb;
   private started: boolean;
   private isPrimary = false;
+  private onlineState = OnlineState.Unknown;
   private dbName: string;
   private localStoragePrefix: string;
 
@@ -190,36 +192,66 @@ export class IndexedDbPersistence implements Persistence {
     primaryStateListener(this.isPrimary);
   }
 
+  applyOnlineStateChange(onlineState: OnlineState): void {
+    this.onlineState = onlineState;
+
+    // Schedule a primary lease refresh for immediate execution. The eventual
+    // lease update will be propagated via `primaryStateListener`.
+    if (this.started) {
+      this.queue.enqueue(async () => {
+        if (this.started) {
+          return this.updateClientMetadataAndTryBecomePrimary();
+        }
+      });
+    }
+  }
+
   /**
    * Updates the client metadata in IndexedDb and attempts to either obtain or
    * extend the primary lease for the local client. Asynchronously notifies the
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
+  private async updateClientMetadataAndTryBecomePrimary(): Promise<void> {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       const metadataStore = clientMetadataStore(txn);
       return metadataStore
-        .put(new DbClientMetadata(this.clientId, Date.now(), this.inForeground))
+        .put(
+          new DbClientMetadata(
+            this.clientId,
+            Date.now(),
+            this.onlineState,
+            this.inForeground
+          )
+        )
         .next(() => this.canActAsPrimary(txn))
         .next(canActAsPrimary => {
           if (canActAsPrimary !== this.isPrimary) {
             this.isPrimary = canActAsPrimary;
-            this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
-          }
 
-          if (this.isPrimary) {
+            this.queue.enqueue(async () => {
+              if (this.started) {
+                return this.primaryStateListener(this.isPrimary);
+              }
+            });
+
+            if (this.isPrimary) {
+              return this.acquireOrExtendPrimaryLease(txn);
+            } else {
+              return this.releasePrimaryLeaseIfHeld(txn);
+            }
+          } else if (this.isPrimary) {
             return this.acquireOrExtendPrimaryLease(txn);
           }
         });
     });
   }
 
-  private removeClientMetadata(): Promise<void> {
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      const metadataStore = clientMetadataStore(txn);
-      return metadataStore.delete(this.clientId);
-    });
+  private removeClientMetadata(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const metadataStore = clientMetadataStore(txn);
+    return metadataStore.delete(this.clientId);
   }
 
   /**
@@ -262,25 +294,47 @@ export class IndexedDbPersistence implements Persistence {
           this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
           currentPrimary.ownerId !== this.getZombiedClientId();
 
+        const isOffline = this.onlineState === OnlineState.Offline;
+
+        // A client is eligible for the primary lease if:
+        // - its network state is `unknown` or `online` and the client's tab is
+        //   in the foreground.
+        // - its network state is `unknown` or `online` and no other client's
+        //   tab is in the foreground.
+        // - every clients network state is `offline` and the client`s tab is
+        //   in the foreground.
+        // - every clients network state if `offline`  and no other client's
+        //   tab is in the foreground.
         if (currentLeaseIsValid) {
-          return this.isLocalClient(currentPrimary);
+          if (!this.isLocalClient(currentPrimary)) {
+            return false;
+          }
+          if (!isOffline) {
+            return true;
+          }
         }
 
-        // Check if this client is eligible for a primary lease based on its
-        // visibility state and the visibility state of all active clients. A
-        // client can obtain the primary lease if it is either in the foreground
-        // or if this client and all other clients are in the background.
-        if (this.inForeground) {
+        if (!isOffline && this.inForeground) {
           return true;
         }
 
         let canActAsPrimary = true;
         return clientMetadataStore(txn)
-          .iterate((key, value, control) => {
-            if (this.clientId !== value.clientId) {
+          .iterate((key, otherClient, control) => {
+            if (
+              this.clientId !== otherClient.clientId &&
+              this.isWithinMaxAge(otherClient.updateTimeMs)
+            ) {
+              const otherClientHasBetterOnlineState =
+                isOffline && otherClient.onlineState !== OnlineState.Offline;
+              const otherClientHasBetterVisibility =
+                !this.inForeground && otherClient.inForeground;
+              const otherClientHasSameOnlineState =
+                isOffline === (otherClient.onlineState === OnlineState.Offline);
               if (
-                this.isWithinMaxAge(value.updateTimeMs) &&
-                value.inForeground
+                otherClientHasBetterOnlineState ||
+                (otherClientHasBetterVisibility &&
+                  otherClientHasSameOnlineState)
               ) {
                 canActAsPrimary = false;
                 control.done();
@@ -313,8 +367,15 @@ export class IndexedDbPersistence implements Persistence {
     this.clientMetadataRefresher.cancel();
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
-    await this.releasePrimaryLeaseIfHeld();
-    await this.removeClientMetadata();
+    await this.simpleDb.runTransaction(
+      'readwrite',
+      [DbOwner.store, DbClientMetadata.store],
+      txn => {
+        return this.releasePrimaryLeaseIfHeld(txn).next(() =>
+          this.removeClientMetadata(txn)
+        );
+      }
+    );
     this.simpleDb.close();
     if (deleteData) {
       await SimpleDb.delete(this.dbName);
@@ -428,19 +489,19 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /** Checks the primary lease and removes it if we are the current primary. */
-  private releasePrimaryLeaseIfHeld(): Promise<void> {
+  private releasePrimaryLeaseIfHeld(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
     this.isPrimary = false;
 
-    return this.simpleDb.runTransaction('readwrite', [DbOwner.store], txn => {
-      const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-      return store.get('owner').next(primaryClient => {
-        if (this.isLocalClient(primaryClient)) {
-          log.debug(LOG_TAG, 'Releasing primary lease.');
-          return store.delete('owner');
-        } else {
-          return PersistencePromise.resolve();
-        }
-      });
+    const store = ownerStore(txn);
+    return store.get('owner').next(primaryClient => {
+      if (this.isLocalClient(primaryClient)) {
+        log.debug(LOG_TAG, 'Releasing primary lease.');
+        return store.delete('owner');
+      } else {
+        return PersistencePromise.resolve();
+      }
     });
   }
 
@@ -477,6 +538,8 @@ export class IndexedDbPersistence implements Persistence {
         'visibilitychange',
         this.documentVisibilityHandler
       );
+
+      this.inForeground = this.document.visibilityState === 'visible';
     }
   }
 

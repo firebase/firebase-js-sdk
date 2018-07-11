@@ -20,17 +20,31 @@ import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
+  DbOwner,
+  DbOwnerKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
+  SCHEMA_VERSION,
   V1_STORES,
   V2_STORES,
   V3_STORES
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { ClientId } from '../../../src/local/shared_client_state';
+import { DatabaseId } from '../../../src/core/database_info';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { OnlineState } from '../../../src/core/types';
+import { Persistence } from '../../../src/local/persistence';
+import { Deferred } from '../../util/promise';
+import {SharedFakeWebStorage, TestPlatform} from '../../util/test_platform';
 
-const INDEXEDDB_TEST_DATABASE = 'schemaTest';
+const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
+const INDEXEDDB_TEST_DATABASE =
+  INDEXEDDB_TEST_DATABASE_PREFIX + IndexedDbPersistence.MAIN_DATABASE;
 
 function withDb(
   schemaVersion,
@@ -61,6 +75,35 @@ function withDb(
     .then(db => {
       db.close();
     });
+}
+
+async function withPersistence(
+  clientId: ClientId,
+  onlineState: OnlineState,
+  visibilityState: VisibilityState,
+  fn: (persistence: Persistence) => Promise<void>
+): Promise<void> {
+  const partition = new DatabaseId('project');
+  const serializer = new JsonProtoSerializer(partition, {
+    useProto3Json: true
+  });
+  const platform = new TestPlatform(
+    PlatformSupport.getPlatform(),
+    new SharedFakeWebStorage()
+  );
+  const persistence = new IndexedDbPersistence(
+    INDEXEDDB_TEST_DATABASE_PREFIX,
+    clientId,
+    platform,
+    new AsyncQueue(),
+    serializer
+  );
+
+  platform.raiseVisibilityEvent(visibilityState);
+  persistence.applyOnlineStateChange(onlineState);
+
+  await fn(persistence);
+  await persistence.shutdown();
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -207,6 +250,273 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           return p;
         });
       })
+    );
+  });
+});
+
+describe('IndexedDb: canActAsPrimary', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn('No IndexedDB. Skipping canActAsPrimary() tests.');
+    return;
+  }
+
+  async function clearOwner(): Promise<void> {
+    const simpleDb = await SimpleDb.openOrCreate(
+      INDEXEDDB_TEST_DATABASE,
+      SCHEMA_VERSION,
+      createOrUpgradeDb
+    );
+    await simpleDb.runTransaction('readwrite', [DbOwner.store], txn => {
+      const ownerStore = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+      return ownerStore.delete('owner');
+    });
+    simpleDb.close();
+  }
+
+  beforeEach(() => {
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE);
+  });
+
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  interface PrimaryStateExpectation {
+    thisClient: { onlineState: OnlineState; visibilityState: VisibilityState };
+    thatClient: { onlineState: OnlineState; visibilityState: VisibilityState };
+    expectedPrimaryState: boolean;
+  }
+
+  const testExpectations: PrimaryStateExpectation[] = [
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'hidden'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Offline,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: false
+    },
+    {
+      thatClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      thisClient: {
+        onlineState: OnlineState.Online,
+        visibilityState: 'visible'
+      },
+      expectedPrimaryState: true
+    }
+  ];
+
+  for (const expectation of testExpectations) {
+    const testName = `is ${
+      expectation.expectedPrimaryState ? 'eligible' : 'not eligible'
+    } when client is ${OnlineState[expectation.thisClient.onlineState]} and ${
+      expectation.thisClient.visibilityState
+    } and other client is ${
+      OnlineState[expectation.thatClient.onlineState]
+    } and ${expectation.thatClient.visibilityState}`;
+
+    it(testName, () => {
+      return withPersistence(
+        'thatClient',
+        expectation.thatClient.onlineState,
+        expectation.thatClient.visibilityState,
+        async thatPersistence => {
+          await thatPersistence.start();
+          // Clear the current primary holder, since our logic will not revoke
+          // the lease until it expires.
+          await clearOwner();
+
+          await withPersistence(
+            'thisClient',
+            expectation.thisClient.onlineState,
+            expectation.thisClient.visibilityState,
+            async thisPersistence => {
+              await thisPersistence.start();
+              const isPrimary = new Deferred<boolean>();
+              thisPersistence.setPrimaryStateListener(async primaryState => {
+                isPrimary.resolve(primaryState);
+              });
+              expect(await isPrimary.promise).to.eq(
+                expectation.expectedPrimaryState
+              );
+            }
+          );
+        }
+      );
+    });
+  }
+
+  it('is eligible when only client', () => {
+    return withPersistence(
+      'clientA',
+      OnlineState.Online,
+      'hidden',
+      async persistence => {
+        await persistence.start();
+        const isPrimary = new Deferred<boolean>();
+        persistence.setPrimaryStateListener(async primaryState => {
+          isPrimary.resolve(primaryState);
+        });
+        expect(await isPrimary.promise).to.be.true;
+      }
     );
   });
 });

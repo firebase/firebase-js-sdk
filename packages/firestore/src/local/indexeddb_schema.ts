@@ -669,6 +669,8 @@ export class DbClientMetadata {
     public clientId: string,
     /** The last time this state was updated. */
     public updateTimeMs: number,
+    /** The client's local online state. */
+    public onlineState: number,
     /** Whether this client is running in a foreground tab. */
     public inForeground: boolean
   ) {}
