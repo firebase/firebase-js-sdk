@@ -478,7 +478,7 @@ abstract class TestRunner {
     await this.remoteStore.start();
     await this.syncEngine.start();
 
-    this.persistence.setPrimaryStateListener(isPrimary =>
+    await this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
     );
 
@@ -872,15 +872,9 @@ abstract class TestRunner {
       await this.syncEngine.start();
       await this.sharedClientState.start();
 
-      const deferred = new Deferred<void>();
-      // We need to wait for the processing in `applyPrimaryState` to complete,
-      // but `setPrimaryStateListener` doesn't return a promise.
-      this.persistence.setPrimaryStateListener(isPrimary => {
-        return this.syncEngine
-          .applyPrimaryState(isPrimary)
-          .then(deferred.resolve);
-      });
-      await deferred.promise;
+      await this.persistence.setPrimaryStateListener(isPrimary =>
+        this.syncEngine.applyPrimaryState(isPrimary)
+      );
     });
   }
 
