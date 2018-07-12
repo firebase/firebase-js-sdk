@@ -59,6 +59,8 @@ import {
   WebStorageSharedClientState
 } from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
+import { PersistenceSettings } from '../api/database';
+import { assert } from '../util/assert';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -135,13 +137,14 @@ export class FirestoreClient {
    * fallback succeeds we signal success to the async queue even though the
    * start() itself signals failure.
    *
-   * @param usePersistence Whether or not to attempt to enable persistence.
+   * @param persistenceSettings Settings object to configure offline
+   *     persistence.
    * @returns A deferred result indicating the user-visible result of enabling
    *     offline persistence. This method will reject this if IndexedDB fails to
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  start(usePersistence: boolean): Promise<void> {
+  start(persistenceSettings: PersistenceSettings): Promise<void> {
     // We defer our initialization until we get the current user from
     // setUserChangeListener(). We block the async queue until we got the
     // initial user and the initialization is completed. This will prevent
@@ -164,7 +167,7 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        this.initializePersistence(usePersistence, persistenceResult, user)
+        this.initializePersistence(persistenceSettings, persistenceResult, user)
           .then(() => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
@@ -200,7 +203,7 @@ export class FirestoreClient {
    * platform can't possibly support our implementation then this method rejects
    * the persistenceResult and falls back on memory-only persistence.
    *
-   * @param usePersistence indicates whether or not to use offline persistence
+   * @param persistenceSettings Settings object to configure offline persistence
    * @param persistenceResult A deferred result indicating the user-visible
    *     result of enabling offline persistence. This method will reject this if
    *     IndexedDB fails to start for any reason. If usePersistence is false
@@ -210,12 +213,12 @@ export class FirestoreClient {
    *     succeeded.
    */
   private initializePersistence(
-    usePersistence: boolean,
+    persistenceSettings: PersistenceSettings,
     persistenceResult: Deferred<void>,
     user: User
   ): Promise<void> {
-    if (usePersistence) {
-      return this.startIndexedDbPersistence(user)
+    if (persistenceSettings.enabled) {
+      return this.startIndexedDbPersistence(user, persistenceSettings)
         .then(persistenceResult.resolve)
         .catch(error => {
           // Regardless of whether or not the retry succeeds, from an user
@@ -278,7 +281,15 @@ export class FirestoreClient {
    *
    * @returns A promise indicating success or failure.
    */
-  private startIndexedDbPersistence(user: User): Promise<void> {
+  private startIndexedDbPersistence(
+    user: User,
+    settings: PersistenceSettings
+  ): Promise<void> {
+    assert(
+      settings.enabled,
+      'Should only start IndexedDb persitence with offline persistence enabled.'
+    );
+
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
@@ -291,32 +302,35 @@ export class FirestoreClient {
     });
 
     return Promise.resolve().then(() => {
-      this.persistence = new IndexedDbPersistence(
+      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
         storagePrefix,
         this.clientId,
         this.platform,
         this.asyncQueue,
         serializer
       );
-      if (WebStorageSharedClientState.isAvailable(this.platform)) {
-        this.sharedClientState = new WebStorageSharedClientState(
-          this.asyncQueue,
-          this.platform,
-          storagePrefix,
-          this.clientId,
-          user
+      this.persistence = persistence;
+
+      if (
+        settings.synchronizeTabs &&
+        !WebStorageSharedClientState.isAvailable(this.platform)
+      ) {
+        throw new FirestoreError(
+          Code.UNIMPLEMENTED,
+          'IndexedDB persistence is only available on platforms that support LocalStorage.'
         );
-      } else {
-        if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
-          throw new FirestoreError(
-            Code.UNIMPLEMENTED,
-            'IndexedDB persistence is only available on platforms that support LocalStorage.'
-          );
-        }
-        debug(LOG_TAG, 'Starting Persistence in test-only non multi-tab mode');
-        this.sharedClientState = new MemorySharedClientState();
       }
-      return this.persistence.start();
+
+      this.sharedClientState = settings.synchronizeTabs
+        ? new WebStorageSharedClientState(
+            this.asyncQueue,
+            this.platform,
+            storagePrefix,
+            this.clientId,
+            user
+          )
+        : new MemorySharedClientState();
+      return persistence.start(settings.synchronizeTabs);
     });
   }
 
@@ -420,11 +434,11 @@ export class FirestoreClient {
     return this.asyncQueue.enqueue(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
       await this.syncEngine.shutdown();
-      await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
       await this.persistence.shutdown(
         options && options.purgePersistenceWithDataLoss
       );
+      await this.remoteStore.shutdown();
 
       // `removeUserChangeListener` must be called after shutting down the
       // RemoteStore as it will prevent the RemoteStore from retrieving
