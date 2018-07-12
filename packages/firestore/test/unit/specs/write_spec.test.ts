@@ -1158,6 +1158,24 @@ describeSpec('Writes:', [], () => {
       });
   });
 
+  specTest('Write is sent by newly started primary', ['multi-client'], () => {
+    return client(0)
+      .expectPrimaryState(true)
+      .client(1)
+      .expectPrimaryState(false)
+      .userSets('collection/a', { v: 1 })
+      .client(0)
+      .shutdown()
+      .client(2)
+      .expectPrimaryState(true)
+      .expectNumOutstandingWrites(1)
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+  });
+
   specTest(
     'Unresponsive primary ignores acknowledged write',
     ['multi-client'],

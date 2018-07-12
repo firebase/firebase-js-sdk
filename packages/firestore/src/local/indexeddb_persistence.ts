@@ -72,6 +72,10 @@ const ZOMBIED_PRIMARY_LOCALSTORAGE_SUFFIX = 'zombiedClientId';
 const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
   'It might be necessary to refresh the browser tab.';
+const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
+  'Another tab has exclusive access to the persistence layer. ' +
+  'To allow shared access, make sure to invoke ' +
+  '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
@@ -141,6 +145,9 @@ export class IndexedDbPersistence implements Persistence {
   /** The client metadata refresh task. */
   private clientMetadataRefresher: CancelablePromise<void>;
 
+  /** Whether to allow shared multi-tab access to the persistence layer. */
+  private allowTabSynchronization: boolean;
+
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
@@ -158,7 +165,14 @@ export class IndexedDbPersistence implements Persistence {
     this.window = platform.window;
   }
 
-  start(): Promise<void> {
+  /**
+   * Attempt to start IndexedDb persistence.
+   *
+   * @param {boolean} synchronizeTabs Whether to enable shared persistence
+   *     across multiple tabs.
+   * @return {Promise<void>} Whether persistence was enabled.
+   */
+  start(synchronizeTabs?: boolean): Promise<void> {
     if (!IndexedDbPersistence.isAvailable()) {
       this.persistenceError = new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -168,6 +182,7 @@ export class IndexedDbPersistence implements Persistence {
     }
 
     assert(!this.started, 'IndexedDbPersistence double-started!');
+    this.allowTabSynchronization = !!synchronizeTabs;
     this.started = true;
 
     assert(this.window !== null, "Expected 'window' to be defined");
@@ -185,9 +200,11 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void> {
     this.primaryStateListener = primaryStateListener;
-    primaryStateListener(this.isPrimary);
+    return primaryStateListener(this.isPrimary);
   }
 
   /**
@@ -206,7 +223,13 @@ export class IndexedDbPersistence implements Persistence {
           this.isPrimary = canActAsPrimary;
           // Always call the primary state listener, since SyncEngine may have
           // changed the primary state to 'false'.
-          this.queue.enqueue(() => this.primaryStateListener(this.isPrimary));
+          this.queue.enqueue(async () => {
+            // Verify that `shutdown()` hasn't been called yet by the time
+            // we invoke the `primaryStateListener`.
+            if (this.started) {
+              return this.primaryStateListener(this.isPrimary);
+            }
+          });
 
           if (this.isPrimary) {
             return this.acquireOrExtendPrimaryLease(txn);
@@ -263,7 +286,30 @@ export class IndexedDbPersistence implements Persistence {
           currentPrimary.ownerId !== this.getZombiedClientId();
 
         if (currentLeaseIsValid) {
-          return this.isLocalClient(currentPrimary);
+          if (this.isLocalClient(currentPrimary)) {
+            return true;
+          }
+
+          if (!currentPrimary.allowTabSynchronization) {
+            // Fail the `canActAsPrimary` check if the current leaseholder has
+            // not opted into multi-tab synchronization. If this happens at
+            // client startup, we reject the Promise returned by
+            // `enablePersistence()` and the user can continue to use Firestore
+            // with in-memory persistence.
+            // If this fails during a lease refresh, we will instead block the
+            // AsyncQueue from executing further operations. Note that this is
+            // acceptable since mixing & matching different `synchronizeTabs`
+            // settings is not supported.
+            //
+            // TODO(multitab): Remove this check when `synchronizeTabs` can no
+            // longer be turned off.
+            throw new FirestoreError(
+              Code.FAILED_PRECONDITION,
+              PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+            );
+          }
+
+          return false;
         }
 
         // Check if this client is eligible for a primary lease based on its
@@ -310,7 +356,9 @@ export class IndexedDbPersistence implements Persistence {
     // entry to Local Storage first to indicate that we are no longer alive.
     // This will help us when the shutdown handler doesn't run to completion.
     this.started = false;
-    this.clientMetadataRefresher.cancel();
+    if (this.clientMetadataRefresher) {
+      this.clientMetadataRefresher.cancel();
+    }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.releasePrimaryLeaseIfHeld();
@@ -389,7 +437,36 @@ export class IndexedDbPersistence implements Persistence {
             return this.acquireOrExtendPrimaryLease(txn).next(() => result);
           });
       } else {
-        return transactionOperation(txn);
+        return this.verifyAllowTabSynchronization(txn).next(() =>
+          transactionOperation(txn)
+        );
+      }
+    });
+  }
+
+  /**
+   * Verifies that the current tab is the primary leaseholder or alternatively
+   * that the leaseholder has opted into multi-tab synchronization.
+   */
+  // TODO(multitab): Remove this check when `synchronizeTabs` can no longer be
+  // turned off.
+  private verifyAllowTabSynchronization(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const store = ownerStore(txn);
+    return store.get('owner').next(currentPrimary => {
+      const currentLeaseIsValid =
+        currentPrimary !== null &&
+        this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
+        currentPrimary.ownerId !== this.getZombiedClientId();
+
+      if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
+        if (!currentPrimary.allowTabSynchronization) {
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
+          );
+        }
       }
     });
   }
@@ -399,7 +476,11 @@ export class IndexedDbPersistence implements Persistence {
    * method does not verify that the client is eligible for this lease.
    */
   private acquireOrExtendPrimaryLease(txn): PersistencePromise<void> {
-    const newPrimary = new DbOwner(this.clientId, Date.now());
+    const newPrimary = new DbOwner(
+      this.clientId,
+      this.allowTabSynchronization,
+      Date.now()
+    );
     return ownerStore(txn).put('owner', newPrimary);
   }
 

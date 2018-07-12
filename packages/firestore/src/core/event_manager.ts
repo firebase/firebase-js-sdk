@@ -19,7 +19,6 @@ import { SyncEngine } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
-import { DocumentSet } from '../model/document_set';
 import { assert } from '../util/assert';
 import { EventHandler } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -289,28 +288,13 @@ export class QueryListener {
       !this.raisedInitialEvent,
       'Trying to raise initial events for second time'
     );
-    snap = new ViewSnapshot(
+    snap = ViewSnapshot.fromInitialDocuments(
       snap.query,
       snap.docs,
-      DocumentSet.emptySet(snap.docs),
-      QueryListener.getInitialViewChanges(snap),
       snap.fromCache,
-      snap.hasPendingWrites,
-      /* syncChangesState= */ true,
-      /* excludesMetadataChanges= */ false
+      snap.hasPendingWrites
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);
-  }
-
-  /** Returns changes as if all documents in the snap were added. */
-  private static getInitialViewChanges(
-    snap: ViewSnapshot
-  ): DocumentViewChange[] {
-    const result: DocumentViewChange[] = [];
-    snap.docs.forEach(doc => {
-      result.push({ type: ChangeType.Added, doc });
-    });
-    return result;
   }
 }

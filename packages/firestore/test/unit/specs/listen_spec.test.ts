@@ -514,6 +514,35 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  specTest('Query is joined by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    const docC = doc('collection/c', 3000, { key: 'c' });
+
+    return client(0)
+      .expectPrimaryState(true)
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, { fromCache: true })
+      .client(0)
+      .expectListen(query)
+      .watchAcksFull(query, 100, docA)
+      .client(1)
+      .expectEvents(query, { added: [docA] })
+      .client(0)
+      .watchSends({ affects: [query] }, docB)
+      .watchSnapshots(2000)
+      .userListens(query)
+      .expectEvents(query, { added: [docA, docB] })
+      .watchSends({ affects: [query] }, docC)
+      .watchSnapshots(3000)
+      .expectEvents(query, { added: [docC] })
+      .client(1)
+      .expectEvents(query, { added: [docB] })
+      .expectEvents(query, { added: [docC] });
+  });
+
   specTest(
     'Query only raises events in participating clients',
     ['multi-client'],
@@ -598,7 +627,7 @@ describeSpec('Listens:', [], () => {
   specTest('Query is rejected by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
 
-    return client(0, /* withGcEnabled= */ false)
+    return client(0)
       .becomeVisible()
       .client(1)
       .userListens(query)
@@ -619,7 +648,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, /* withGcEnabled= */ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -647,7 +676,7 @@ describeSpec('Listens:', [], () => {
     () => {
       const query = Query.atPath(path('collection'));
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -674,7 +703,7 @@ describeSpec('Listens:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const query2 = Query.atPath(path('collection'));
 
-    return client(0, /*withGcEnabled=*/ false)
+    return client(0)
       .userListens(query1)
       .watchAcksFull(query1, 1000)
       .expectEvents(query1, {})
@@ -700,7 +729,7 @@ describeSpec('Listens:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 2000, { key: 'a' });
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .becomeVisible()
         .client(1)
         .userListens(query)
@@ -725,14 +754,14 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'Query is re-listened to after primary tab failover',
+    'Listen is re-listened to after primary tab failover',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 1000, { key: 'a' });
       const docB = doc('collection/b', 2000, { key: 'b' });
 
-      return client(0, /*withGcEnabled=*/ false)
+      return client(0)
         .expectPrimaryState(true)
         .client(1)
         .userListens(query)
@@ -758,15 +787,15 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest('Query is established in new primary tab', ['multi-client'], () => {
+  specTest('Listen is established in new primary tab', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
 
-    // Client 1 and Client 3 listen to the same query. When client 1 shuts
-    // down, client 2 becomes primary and takes ownership of a query it
+    // Client 0 and Client 2 listen to the same query. When client 0 shuts
+    // down, client 1 becomes primary and takes ownership of a query it
     // did not previously listen to.
-    return client(0, /*withGcEnabled=*/ false)
+    return client(0)
       .expectPrimaryState(true)
       .userListens(query)
       .watchAcksFull(query, 1000, docA)
@@ -841,6 +870,38 @@ describeSpec('Listens:', [], () => {
           .watchAcksFull(query, 1000, docA)
           .expectEvents(query, { added: [docA] })
       );
+    }
+  );
+
+  specTest(
+    'Listen is established in newly started primary',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 2000, { key: 'b' });
+
+      // Client 0 executes a query on behalf of Client 1. When client 0 shuts
+      // down, client 2 starts up and becomes primary, taking ownership of the
+      // existing query.
+      return client(0)
+        .expectPrimaryState(true)
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { fromCache: true })
+        .client(0)
+        .expectListen(query)
+        .watchAcksFull(query, 1000, docA)
+        .client(1)
+        .expectEvents(query, { added: [docA] })
+        .client(0)
+        .shutdown()
+        .client(2)
+        .expectPrimaryState(true)
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000, docB)
+        .client(1)
+        .expectEvents(query, { added: [docB] });
     }
   );
 });
