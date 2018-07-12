@@ -43,21 +43,38 @@ interface ListenRequest extends api.ListenRequest {
 export interface WriteRequest extends api.WriteRequest {
   database?: string;
 }
-
+/**
+ * PersistentStream can be in one of 5 states (each described in detail below)
+ * based on the following state transition diagram:
+ *
+ *          start() called             auth & connection succeeded
+ * INITIAL ----------------> STARTING -----------------------------> OPEN
+ *                             ^  |                                   |
+ *                             |  |                    error occurred |
+ *                             |  \-----------------------------v-----/
+ *                             |                                |
+ *                    backoff  |                                |
+ *                    elapsed  |              start() called    |
+ *                             \--- BACKOFF <---------------- ERROR
+ *
+ * [any state] --------------------------> INITIAL
+ *               stop() called or
+ *               idle timer expired
+ */
 enum PersistentStreamState {
   /**
-   * The streaming RPC is not running and there's no error condition.
+   * The streaming RPC is not yet running and there's no error condition.
    * Calling `start` will start the stream immediately without backoff.
    * While in this state isStarted will return false.
    */
   Initial,
 
   /**
-   * The stream is starting, and is waiting for an auth token to attach to
-   * the initial request. While in this state, isStarted will return
-   * true but isOpen will return false.
+   * The stream is starting, either waiting for an auth token or for the stream
+   * to successfully open. While in this state, isStarted will return true but
+   * isOpen will return false.
    */
-  Auth,
+  Starting,
 
   /**
    * The streaming RPC is up and running. Requests and responses can flow
@@ -68,22 +85,16 @@ enum PersistentStreamState {
   /**
    * The stream encountered an error. The next start attempt will back off.
    * While in this state isStarted() will return false.
-   *
    */
   Error,
 
   /**
    * An in-between state after an error where the stream is waiting before
-   * re-starting. After
-   * waiting is complete, the stream will try to open. While in this
-   * state isStarted() will return YES but isOpen will return false.
+   * re-starting. After waiting is complete, the stream will try to open.
+   * While in this state isStarted() will return true but isOpen will return
+   * false.
    */
-  Backoff,
-
-  /**
-   * The stream has been explicitly stopped; no further events will be emitted.
-   */
-  Stopped
+  Backoff
 }
 
 /**
@@ -125,6 +136,7 @@ const IDLE_TIMEOUT_MS = 60 * 1000;
  *   - Exponential backoff on failure
  *   - Authentication via CredentialsProvider
  *   - Dispatching all callbacks into the shared worker queue
+ *   - Closing idle streams after 60 seconds of inactivity
  *
  * Subclasses of PersistentStream implement serialization of models to and
  * from the JSON representation of the protocol buffers for a specific
@@ -157,16 +169,18 @@ export abstract class PersistentStream<
   private inactivityTimerPromise: CancelablePromise<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
-  protected backoff: ExponentialBackoff;
+  /** A sentinel object used to ignore auth callbacks for prior attempts. */
+  private currentAuthAttempt: object = null;
 
-  protected listener: ListenerType | null = null;
+  protected backoff: ExponentialBackoff;
 
   constructor(
     private queue: AsyncQueue,
     connectionTimerId: TimerId,
     private idleTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider
+    private credentialsProvider: CredentialsProvider,
+    protected listener: ListenerType
   ) {
     this.backoff = new ExponentialBackoff(
       queue,
@@ -187,14 +201,14 @@ export abstract class PersistentStream<
    */
   isStarted(): boolean {
     return (
-      this.state === PersistentStreamState.Backoff ||
-      this.state === PersistentStreamState.Auth ||
-      this.state === PersistentStreamState.Open
+      this.state === PersistentStreamState.Starting ||
+      this.state === PersistentStreamState.Open ||
+      this.state === PersistentStreamState.Backoff
     );
   }
 
   /**
-   * Returns true if the underlying RPC is open (the openHandler has been
+   * Returns true if the underlying RPC is open (the onOpen callback has been
    * called) and the stream is ready for outbound requests.
    */
   isOpen(): boolean {
@@ -206,16 +220,15 @@ export abstract class PersistentStream<
    * not immediately ready for use: onOpen will be invoked when the RPC is ready
    * for outbound requests, at which point isOpen will return true.
    *
-   *  When start returns, isStarted will return true.
+   * When start returns, isStarted will return true.
    */
-  start(listener: ListenerType): void {
+  start(): void {
     if (this.state === PersistentStreamState.Error) {
-      this.performBackoff(listener);
+      this.performBackoff();
       return;
     }
 
     assert(this.state === PersistentStreamState.Initial, 'Already started');
-    this.listener = listener;
     this.auth();
   }
 
@@ -227,7 +240,7 @@ export abstract class PersistentStream<
    */
   stop(): void {
     if (this.isStarted()) {
-      this.close(PersistentStreamState.Stopped);
+      this.close(PersistentStreamState.Initial);
     }
   }
 
@@ -299,8 +312,7 @@ export abstract class PersistentStream<
    * * sets internal stream state to 'finalState';
    * * adjusts the backoff timer based on the error
    *
-   * A new stream can be opened by calling `start` unless `finalState` is set to
-   * `PersistentStreamState.Stopped`.
+   * A new stream can be opened by calling `start`.
    *
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
@@ -309,6 +321,7 @@ export abstract class PersistentStream<
     finalState: PersistentStreamState,
     error?: FirestoreError
   ): Promise<void> {
+    assert(this.isStarted(), 'Only started streams should be closed.');
     assert(
       finalState === PersistentStreamState.Error || isNullOrUndefined(error),
       "Can't provide an error when not in an error state."
@@ -344,19 +357,15 @@ export abstract class PersistentStream<
       this.stream = null;
     }
 
+    // If there was a current auth attempt, make sure we ignore the response.
+    this.currentAuthAttempt = null;
+
     // This state must be assigned before calling onClose() to allow the callback to
     // inhibit backoff or otherwise manipulate the state in its non-started state.
     this.state = finalState;
-    const listener = this.listener!;
 
-    // Clear the listener to avoid bleeding of events from the underlying streams.
-    this.listener = null;
-
-    // If the caller explicitly requested a stream stop, don't notify them of a closing stream (it
-    // could trigger undesirable recovery logic, etc.).
-    if (finalState !== PersistentStreamState.Stopped) {
-      return listener.onClose(error);
-    }
+    // Notify the listener that the stream closed.
+    await this.listener.onClose(error);
   }
 
   /**
@@ -386,19 +395,26 @@ export abstract class PersistentStream<
       'Must be in initial state to auth'
     );
 
-    this.state = PersistentStreamState.Auth;
+    this.state = PersistentStreamState.Starting;
+
+    // Create sentinel object used to identify this auth attempt in case it
+    // is invalidated by a call to stop().
+    const authAttempt = (this.currentAuthAttempt = new Object());
 
     this.credentialsProvider.getToken().then(
       token => {
-        // Normally we'd have to schedule the callback on the AsyncQueue.
-        // However, the following calls are safe to be called outside the
-        // AsyncQueue since they don't chain asynchronous calls
-        this.startStream(token);
+        // Stream can be stopped while waiting for authentication.
+        if (this.currentAuthAttempt === authAttempt) {
+          // Normally we'd have to schedule the callback on the AsyncQueue.
+          // However, the following calls are safe to be called outside the
+          // AsyncQueue since they don't chain asynchronous calls
+          this.startStream(token);
+        }
       },
       (error: Error) => {
         this.queue.enqueue(async () => {
-          if (this.state !== PersistentStreamState.Stopped) {
-            // Stream can be stopped while waiting for authorization.
+          // Stream can be stopped while waiting for authentication.
+          if (this.currentAuthAttempt === authAttempt) {
             const rpcError = new FirestoreError(
               Code.UNKNOWN,
               'Fetching auth token failed: ' + error.message
@@ -411,15 +427,11 @@ export abstract class PersistentStream<
   }
 
   private startStream(token: Token | null): void {
-    if (this.state === PersistentStreamState.Stopped) {
-      // Stream can be stopped while waiting for authorization.
-      return;
-    }
-
     assert(
-      this.state === PersistentStreamState.Auth,
-      'Trying to start stream in a non-auth state'
+      this.state === PersistentStreamState.Starting,
+      'Trying to start stream in a non-starting state'
     );
+
     // Helper function to dispatch to AsyncQueue and make sure that any
     // close will seem instantaneous and events are prevented from being
     // raised after the close call
@@ -435,49 +447,45 @@ export abstract class PersistentStream<
       });
     };
 
-    // Only start stream if listener has not changed
-    if (this.listener !== null) {
-      const currentStream = this.startRpc(token);
-      this.stream = currentStream;
-      this.stream.onOpen(() => {
-        dispatchIfStillActive(currentStream, () => {
-          assert(
-            this.state === PersistentStreamState.Auth,
-            'Expected stream to be in state auth, but was ' + this.state
-          );
-          this.state = PersistentStreamState.Open;
-          return this.listener!.onOpen();
-        });
+    const currentStream = this.startRpc(token);
+    this.stream = currentStream;
+    this.stream.onOpen(() => {
+      dispatchIfStillActive(currentStream, () => {
+        assert(
+          this.state === PersistentStreamState.Starting,
+          'Expected stream to be in state Starting, but was ' + this.state
+        );
+        this.state = PersistentStreamState.Open;
+        return this.listener!.onOpen();
       });
-      this.stream.onClose((error: FirestoreError) => {
-        dispatchIfStillActive(currentStream, () => {
-          return this.handleStreamClose(error);
-        });
+    });
+    this.stream.onClose((error: FirestoreError) => {
+      dispatchIfStillActive(currentStream, () => {
+        return this.handleStreamClose(error);
       });
-      this.stream.onMessage((msg: ReceiveType) => {
-        dispatchIfStillActive(currentStream, () => {
-          return this.onMessage(msg);
-        });
+    });
+    this.stream.onMessage((msg: ReceiveType) => {
+      dispatchIfStillActive(currentStream, () => {
+        return this.onMessage(msg);
       });
-    }
+    });
   }
 
-  private performBackoff(listener: ListenerType): void {
+  private performBackoff(): void {
     assert(
       this.state === PersistentStreamState.Error,
-      'Should only perform backoff in an error case'
+      'Should only perform backoff when in Error state'
     );
     this.state = PersistentStreamState.Backoff;
 
     this.backoff.backoffAndRun(async () => {
-      if (this.state === PersistentStreamState.Stopped) {
-        // We should have canceled the backoff timer when the stream was
-        // closed, but just in case we make this a no-op.
-        return;
-      }
+      assert(
+        this.state === PersistentStreamState.Backoff,
+        'Backoff elapsed but state is now: ' + this.state
+      );
 
       this.state = PersistentStreamState.Initial;
-      this.start(listener);
+      this.start();
       assert(this.isStarted(), 'PersistentStream should have started');
     });
   }
@@ -487,6 +495,8 @@ export abstract class PersistentStream<
     assert(this.isStarted(), "Can't handle server close on non-started stream");
     log.debug(LOG_TAG, `close with error: ${error}`);
 
+    // Null out the stream to make sure we stop handling events for it (see
+    // dispatchIfStillActive()).
     this.stream = null;
 
     // In theory the stream could close cleanly, however, in our current model
@@ -525,14 +535,16 @@ export class PersistentListenStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer
+    private serializer: JsonProtoSerializer,
+    listener: WatchStreamListener
   ) {
     super(
       queue,
       TimerId.ListenStreamConnectionBackoff,
       TimerId.ListenStreamIdle,
       connection,
-      credentials
+      credentials,
+      listener
     );
   }
 
@@ -633,14 +645,16 @@ export class PersistentWriteStream extends PersistentStream<
     queue: AsyncQueue,
     connection: Connection,
     credentials: CredentialsProvider,
-    private serializer: JsonProtoSerializer
+    private serializer: JsonProtoSerializer,
+    listener: WriteStreamListener
   ) {
     super(
       queue,
       TimerId.WriteStreamConnectionBackoff,
       TimerId.WriteStreamIdle,
       connection,
-      credentials
+      credentials,
+      listener
     );
   }
 
@@ -663,9 +677,9 @@ export class PersistentWriteStream extends PersistentStream<
   }
 
   // Override of PersistentStream.start
-  start(listener: WriteStreamListener): void {
+  start(): void {
     this.handshakeComplete_ = false;
-    super.start(listener);
+    super.start();
   }
 
   protected tearDown(): void {
