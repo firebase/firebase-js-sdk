@@ -70,7 +70,7 @@ export interface PersistenceSettings {
    *
    * To enable this mode, `synchronizeTabs:true` needs to be set globally in
    * all active tabs. If omitted or set to 'false', `enablePersistence()` will
-   * will fail in all but the first tab.
+   * fail in all but the first tab.
    *
    * NOTE: This mode is experimental and not yet recommended for production use.
    */

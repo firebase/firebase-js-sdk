@@ -295,9 +295,9 @@ export class IndexedDbPersistence implements Persistence {
             // `enablePersistence()` and the user can continue to use Firestore
             // with in-memory persistence.
             // If this fails during a lease refresh, we will instead block the
-            // AsyncQueue from execution further operations. Note that this is
+            // AsyncQueue from executing further operations. Note that this is
             // acceptable since mixing & matching different `synchronizeTabs`
-            // settings is not officially supported.
+            // settings is not supported.
             //
             // TODO(multitab): Remove this check when `synchronizeTabs` can no
             // longer be turned off.
