@@ -706,8 +706,8 @@ describe('Serializer', () => {
 
     it('TransformMutation (Array transforms)', () => {
       const mutation = transformMutation('docs/1', {
-        a: FieldValue._arrayUnion('a', 2),
-        'bar.baz': FieldValue._arrayRemove({ x: 1 })
+        a: FieldValue.arrayUnion('a', 2),
+        'bar.baz': FieldValue.arrayRemove({ x: 1 })
       });
       const proto: api.Write = {
         transform: {
