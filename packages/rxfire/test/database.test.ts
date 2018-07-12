@@ -22,6 +22,8 @@ import { take, skip, switchMap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { auditTrail } from '../database/list/audit-trail';
 
+export const TEST_PROJECT = require('../../../config/project.json');
+
 const rando = () =>
   Math.random()
     .toString(36)
@@ -74,8 +76,8 @@ describe('RxFire Database', () => {
    */
   beforeEach(() => {
     app = initializeApp({
-      projectId: 'rxfire-test-db',
-      databaseURL: 'https://rxfire-test.firebaseio.com'
+      projectId: TEST_PROJECT.projectId,
+      databaseURL: TEST_PROJECT.databaseURL
     });
     database = app.database();
     database.goOffline();
