@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-import { firestore } from 'firebase/app';
-import { fromDocRef } from '../fromRef';
-import { Observable } from 'rxjs';
+import { ListenEvent } from './interfaces';
 
-export function doc(ref: firestore.DocumentReference) {
-  return fromDocRef(ref);
+export function isNil(obj: any): boolean {
+  return obj === undefined || obj === null;
+}
+
+/**
+ * Check the length of the provided array. If it is empty return an array
+ * that is populated with all the Realtime Database child events.
+ * @param events
+ */
+export function validateEventsArray(events?: ListenEvent[]) {
+  if (isNil(events) || events!.length === 0) {
+    events = [
+      ListenEvent.added,
+      ListenEvent.removed,
+      ListenEvent.changed,
+      ListenEvent.moved
+    ];
+  }
+  return events;
 }
