@@ -60,7 +60,6 @@ export function isPermanentError(code: Code): boolean {
     case Code.UNAVAILABLE:
     // Unauthenticated means something went wrong with our token and we need
     // to retry with new credentials which will happen automatically.
-    // TODO(b/37325376): Give up after second unauthenticated error.
     case Code.UNAUTHENTICATED:
       return false;
     case Code.INVALID_ARGUMENT:

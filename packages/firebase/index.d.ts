@@ -125,7 +125,7 @@ declare namespace firebase {
 declare namespace firebase.app {
   interface App {
     auth(): firebase.auth.Auth;
-    database(): firebase.database.Database;
+    database(url?: string): firebase.database.Database;
     delete(): Promise<any>;
     messaging(): firebase.messaging.Messaging;
     name: string;

@@ -1830,6 +1830,7 @@ fireauth.Auth.prototype.delete = function() {
   // Unsubscribe from Auth event handling.
   if (this.authEventManager_) {
     this.authEventManager_.unsubscribe(this);
+    this.authEventManager_.clearRedirectResult();
   }
   return firebase.Promise.resolve();
 };

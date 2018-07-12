@@ -29,3 +29,6 @@ packages/auth-types  @bojeil-google @wti806
 
 # Testing Code
 packages/testing  @tonymeng @ryanpbrewster
+
+# RxFire Code
+packages/rxfire @davideast
