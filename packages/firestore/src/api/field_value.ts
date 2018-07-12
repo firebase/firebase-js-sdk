@@ -36,16 +36,14 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return ServerTimestampFieldValueImpl.instance;
   }
 
-  // TODO(array-features): Expose this once backend support lands.
-  static _arrayUnion(...elements: AnyJs[]): FieldValueImpl {
+  static arrayUnion(...elements: AnyJs[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayUnionFieldValueImpl(elements);
   }
 
-  // TODO(array-features): Expose this once backend support lands.
-  static _arrayRemove(...elements: AnyJs[]): FieldValueImpl {
+  static arrayRemove(...elements: AnyJs[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
