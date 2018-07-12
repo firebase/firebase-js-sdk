@@ -22,7 +22,6 @@ import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  arrayContainsOp,
   withTestCollection,
   withTestDb,
   withTestDoc,
@@ -494,7 +493,7 @@ apiDescribe('Database', persistence => {
     it('inequality and array-contains on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', arrayContainsOp, 'cat')
+          coll.where('x', '>=', 32).where('y', 'array-contains', 'cat')
         ).not.to.throw();
       });
     });
@@ -532,7 +531,7 @@ apiDescribe('Database', persistence => {
     it('array-contains different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.orderBy('x').where('y', arrayContainsOp, 'cat')
+          coll.orderBy('x').where('y', 'array-contains', 'cat')
         ).not.to.throw();
       });
     });
