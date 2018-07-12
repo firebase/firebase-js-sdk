@@ -21,7 +21,7 @@ import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc, withTestDb } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 
-// tslint:disable-next-line:no-any variable-name Type alias can be capitalized.
+// tslint:disable-next-line:variable-name Type alias can be capitalized.
 const FieldValue = firebase.firestore.FieldValue;
 
 /**
