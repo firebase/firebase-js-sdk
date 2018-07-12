@@ -13,7 +13,8 @@
     "firebase",
     "realtime",
     "storage",
-    "rxjs"
+    "rxjs",
+    "notifications"
   ],
   "repository": {
     "type": "git",
@@ -29,8 +30,7 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
-  "react-native": "dist/index.rn.cjs.js",
-  "dependencies": {
+  "peerDependencies": {
     "firebase": "5.2.0",
     "rxjs": "6.2.0"
   },
