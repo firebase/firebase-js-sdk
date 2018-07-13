@@ -75,19 +75,20 @@ export function initializeFirestoreTestApp(options: any): FirebaseApp {
     throw new Error('auth must be an object');
   }
   var header = {
-    alg: "RS256",
-    kid: "fakekid"
+    alg: 'RS256',
+    kid: 'fakekid'
   };
   var fakeToken = [
-    util.base64.encodeString(JSON.stringify(header),/*webSafe=*/true),
-    util.base64.encodeString(JSON.stringify(options.auth),/*webSafe=*/true),
-    "fakesignature"
-  ].join(".");
-  return firebase.initializeApp({
+    util.base64.encodeString(JSON.stringify(header), /*webSafe=*/ true),
+    util.base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ true),
+    'fakesignature'
+  ].join('.');
+  return firebase.initializeApp(
+    {
       projectId: options.projectId,
       tokenOverride: fakeToken
     },
-    'app-' + new Date().getTime() + "-" + Math.random()
+    'app-' + new Date().getTime() + '-' + Math.random()
   );
 }
 

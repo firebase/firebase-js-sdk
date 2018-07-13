@@ -18,7 +18,10 @@ import { User } from '../auth/user';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { FirebaseApp } from '@firebase/app-types';
-import { _FirebaseApp, FirebaseAuthTokenData } from '@firebase/app-types/private';
+import {
+  _FirebaseApp,
+  FirebaseAuthTokenData
+} from '@firebase/app-types/private';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
@@ -188,29 +191,27 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     } else {
       token = (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh);
     }
-    return token.then(
-      tokenData => {
-        // Cancel the request since the user changed while the request was
-        // outstanding so the response is likely for a previous user (which
-        // user, we can't be sure).
-        if (this.userCounter !== initialUserCounter) {
-          throw new FirestoreError(
-            Code.ABORTED,
-            'getToken aborted due to uid change.'
+    return token.then(tokenData => {
+      // Cancel the request since the user changed while the request was
+      // outstanding so the response is likely for a previous user (which
+      // user, we can't be sure).
+      if (this.userCounter !== initialUserCounter) {
+        throw new FirestoreError(
+          Code.ABORTED,
+          'getToken aborted due to uid change.'
+        );
+      } else {
+        if (tokenData) {
+          assert(
+            typeof tokenData.accessToken === 'string',
+            'Invalid tokenData returned from getToken():' + tokenData
           );
+          return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
-          if (tokenData) {
-            assert(
-              typeof tokenData.accessToken === 'string',
-              'Invalid tokenData returned from getToken():' + tokenData
-            );
-            return new OAuthToken(tokenData.accessToken, this.currentUser);
-          } else {
-            return null;
-          }
+          return null;
         }
       }
-    );
+    });
   }
 
   invalidateToken(): void {
