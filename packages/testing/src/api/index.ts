@@ -76,7 +76,9 @@ export type FirestoreTestAppOptions = {
   projectId: string;
   auth: Object;
 };
-export function initializeFirestoreTestApp(options: FirestoreTestAppOptions): FirebaseApp {
+export function initializeFirestoreTestApp(
+  options: FirestoreTestAppOptions
+): FirebaseApp {
   const header = {
     alg: 'RS256',
     kid: 'fakekid'

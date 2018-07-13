@@ -83,16 +83,22 @@ describe('Testing Module Tests', function() {
     });
     let token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.any.keys('accessToken');
-    let claims = base64.decodeString(token.accessToken.split('.')[3],/*webSafe=*/true);
+    let claims = base64.decodeString(
+      token.accessToken.split('.')[3],
+      /*webSafe=*/ true
+    );
     expect(claims).to.equal('{}');
 
     app = firebase.initializeFirestoreTestApp({
       projectId: 'foo',
       auth: { uid: 'alice' }
     });
-    token = await (app as any).INTERNAL.getToken()
+    token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.any.keys('accessToken');
-    claims = base64.decodeString(token.accessToken.split('.')[3],/*webSafe=*/true);
+    claims = base64.decodeString(
+      token.accessToken.split('.')[3],
+      /*webSafe=*/ true
+    );
     expect(claims).to.equal('{"uid":"alice"}');
   });
 
