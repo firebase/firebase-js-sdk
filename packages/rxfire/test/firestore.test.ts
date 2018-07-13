@@ -18,14 +18,13 @@ import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
 import {
   collection,
-  doc,
   docChanges,
   sortedChanges,
   auditTrail,
-  unwrap
+  docData,
+  collectionData
 } from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
-import { Observable } from '@firebase/util';
 
 const createId = () =>
   Math.random()
@@ -300,14 +299,15 @@ describe('RxFire Firestore', () => {
     });
   });
 
-  describe('unwrap operator', () => {
+  describe('Data Mapping Functions', () => {
     /**
      * The `unwrap(id)` method will map a collection to its data payload and map the doc ID to a the specificed key.
      */
-    it('should map a QueryDocumentSnapshot[] to an array of plain objects', (done: MochaDone) => {
+    it('collectionData should map a QueryDocumentSnapshot[] to an array of plain objects', (done: MochaDone) => {
       const { colRef } = seedTest(firestore);
 
-      const unwrapped = collection(colRef).pipe(unwrap('userId'));
+      // const unwrapped = collection(colRef).pipe(unwrap('userId'));
+      const unwrapped = collectionData(colRef, 'userId');
 
       unwrapped.subscribe(val => {
         const expectedDoc = {
@@ -320,10 +320,11 @@ describe('RxFire Firestore', () => {
       });
     });
 
-    it('should map a QueryDocumentSnapshot to a plain object', (done: MochaDone) => {
+    it('docData should map a QueryDocumentSnapshot to a plain object', (done: MochaDone) => {
       const { davidDoc } = seedTest(firestore);
 
-      const unwrapped = doc(davidDoc).pipe(unwrap('UID'));
+      // const unwrapped = doc(davidDoc).pipe(unwrap('UID'));
+      const unwrapped = docData(davidDoc, 'UID');
 
       unwrapped.subscribe(val => {
         const expectedDoc = {
