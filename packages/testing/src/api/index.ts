@@ -18,7 +18,7 @@ import { firebase } from '@firebase/app';
 import * as admin from 'firebase-admin';
 import request from 'request-promise';
 import * as fs from 'fs';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
 
 const DBURL = 'http://localhost:9000';
@@ -35,50 +35,48 @@ class FakeCredentials {
   }
 }
 
-export function apps(): (admin.app.App | null)[] {
+export function adminApps(): (admin.app.App | null)[] {
   return admin.apps;
 }
 
-export function firestoreApps(): (FirebaseApp | null)[] {
+export function apps(): (FirebaseApp | null)[] {
   return firebase.apps;
 }
 
-export function initializeAdminApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
-  }
+type AdminAppOptions = {
+  databaseName: string;
+}
+
+export function initializeAdminApp(options: AdminAppOptions): admin.app.App {
+  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
   return admin.initializeApp(
     {
       credential: new FakeCredentials(),
       databaseURL: DBURL + '?ns=' + options.databaseName
     },
-    'app-' + (new Date().getTime() + Math.random())
+    appName
   );
 }
 
-export type TestAppOptions = {
+export type DatabaseAppOptions = {
   databaseName: string;
-  auth: Object;
-};
-export function initializeTestApp(options: TestAppOptions): admin.app.App {
-  // if options.auth is not present, we will construct an app with auth == null
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
-      databaseURL: DBURL + '?ns=' + options.databaseName,
-      databaseAuthVariableOverride: options.auth || null
-    },
-    'app-' + (new Date().getTime() + Math.random())
-  );
+  auth: object;
 }
-
-export type FirestoreTestAppOptions = {
+export type FirestoreAppOptions = {
   projectId: string;
-  auth: Object;
-};
-export function initializeFirestoreTestApp(
-  options: FirestoreTestAppOptions
-): FirebaseApp {
+  auth: object;
+}
+export function initializeTestApp(options: DatabaseAppOptions | FirestoreAppOptions): FirebaseApp {
+  let appOptions: FirebaseOptions;
+  if ('databaseName' in options) {
+    appOptions = {
+      databaseURL: DBURL + '?ns=' + options.databaseName
+    };
+  } else if ('projectId' in options) {
+    appOptions = {
+      projectId: options.projectId
+    };
+  }
   const header = {
     alg: 'RS256',
     kid: 'fakekid'
@@ -88,10 +86,8 @@ export function initializeFirestoreTestApp(
     base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ false),
     'fakesignature'
   ].join('.');
-  const app = firebase.initializeApp(
-    { projectId: options.projectId },
-    'app-' + new Date().getTime() + '-' + Math.random()
-  );
+  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
+  const app = firebase.initializeApp(appOptions, appName);
   // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
   (app as any).INTERNAL.getToken = () =>
     Promise.resolve({ accessToken: fakeToken });
