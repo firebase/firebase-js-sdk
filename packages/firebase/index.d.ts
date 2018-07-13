@@ -125,7 +125,7 @@ declare namespace firebase {
 declare namespace firebase.app {
   interface App {
     auth(): firebase.auth.Auth;
-    database(): firebase.database.Database;
+    database(url?: string): firebase.database.Database;
     delete(): Promise<any>;
     messaging(): firebase.messaging.Messaging;
     name: string;
@@ -1559,10 +1559,9 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', and '>'.
+   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
    */
-  // TODO(array-features): Add 'array-contains' once backend support lands.
-  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
+  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1942,8 +1941,7 @@ declare namespace firebase.firestore {
      * @param elements The elements to union into the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    // TODO(array-features): Expose this once backend support lands.
-    //static arrayUnion(...elements: any[]): FieldValue;
+    static arrayUnion(...elements: any[]): FieldValue;
 
     /**
      * Returns a special value that can be used with set() or update() that tells
@@ -1955,8 +1953,7 @@ declare namespace firebase.firestore {
      * @param elements The elements to remove from the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    // TODO(array-features): Expose this once backend support lands.
-    //static arrayRemove(...elements: any[]): FieldValue;
+    static arrayRemove(...elements: any[]): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.
