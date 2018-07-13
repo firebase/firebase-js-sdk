@@ -1,4 +1,3 @@
-///<reference path="../../util/test_platform.ts"/>
 /**
  * Copyright 2017 Google Inc.
  *
@@ -1012,8 +1011,8 @@ abstract class TestRunner {
     if (this.expectedActiveTargets) {
       if (!obj.isEmpty(this.expectedActiveTargets)) {
         await this.connection.waitForWatchOpen();
+        await this.queue.drain();
       }
-      await this.queue.drain();
     }
 
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);

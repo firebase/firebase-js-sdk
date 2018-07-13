@@ -565,16 +565,19 @@ export class RemoteStore implements TargetMetadataProvider {
             this.writeStream.writeMutations(batch.mutations);
           }
         },
-        err => {
-          if (err.code === Code.FAILED_PRECONDITION) {
-            // We have temporarily lost our primary lease. If we recover,
-            // Sync Engine will re-enable the network.
-            return this.disableNetwork();
-          } else {
-            return Promise.reject(err);
-          }
-        }
+        err => this.tryRecoverFromPrimaryLeaseLoss(err)
       );
+  }
+
+  private tryRecoverFromPrimaryLeaseLoss(err: FirestoreError): void {
+    if (err.code === Code.FAILED_PRECONDITION) {
+      // We have temporarily lost our primary lease. If we recover,
+      // Sync Engine will re-enable the network.
+      this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Unknown);
+    } else {
+      throw err;
+    }
   }
 
   private onMutationResult(
@@ -646,15 +649,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(emptyByteString())
-        .catch(err => {
-          if (err.code === Code.FAILED_PRECONDITION) {
-            // We have temporarily lost our primary lease. If we recover,
-            // Sync Engine will re-enable the network.
-            return this.disableNetwork();
-          } else {
-            return Promise.reject(err);
-          }
-        });
+        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.

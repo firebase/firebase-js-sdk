@@ -100,9 +100,9 @@ export interface Persistence {
   shutdown(deleteData?: boolean): Promise<void>;
 
   /**
-   * Registers a listener that gets called when the primary state of the
-   * instance changes. Upon registering, this listener is invoked immediately
-   * with the current primary state.
+   * Registers a listener that gets called immediately wih the current primary
+   * state and then periodically as the lease is verified (likely with the same
+   * state).
    *
    * PORTING NOTE: This is only used for Web multi-tab.
    */

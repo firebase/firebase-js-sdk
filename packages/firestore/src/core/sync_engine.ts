@@ -289,11 +289,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
       if (!targetRemainsActive) {
         this.remoteStore.unlisten(queryView.targetId);
-        await this.removeAndCleanupQuery(queryView);
-        return this.localStore
+        await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
+          .then(() => this.removeAndCleanupQuery(queryView))
           .then(() => this.localStore.collectGarbage())
-          .catch(err => this.tryRecoverClient(err));
+          .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
       }
     } else {
       await this.removeAndCleanupQuery(queryView);
@@ -399,7 +399,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(changes => {
         return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
       })
-      .catch(err => this.tryRecoverClient(err));
+      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
   }
 
   /**
@@ -469,11 +469,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     } else {
       const queryView = this.queryViewsByTarget[targetId];
       assert(!!queryView, 'Unknown targetId: ' + targetId);
-      await this.removeAndCleanupQuery(queryView);
-      await this.localStore.releaseQuery(
-        queryView.query,
-        /* keepPersistedQueryData */ false
-      );
+      await this.localStore
+        .releaseQuery(queryView.query, /* keepPersistedQueryData */ false)
+        .then(() => this.removeAndCleanupQuery(queryView))
+        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
       this.errorHandler!(queryView.query, err);
     }
   }
@@ -505,10 +504,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
     } else if (batchState === 'acknowledged' || batchState === 'rejected') {
-      // If we receive a notification of an `acknowledged` or `rejected` batch
-      // via Web Storage, we are either already secondary or another tab has
-      // taken the primary lease.
-      await this.applyPrimaryState(false);
+      if (this.isPrimary) {
+        // If we receive a notification of an `acknowledged` or `rejected` batch
+        // via Web Storage, we are either already secondary or another tab has
+        // taken the primary lease.
+        log.debug(
+          LOG_TAG,
+          'Unexpectedly received mutation batch notification when already primary. Releasing primary lease.'
+        );
+        await this.applyPrimaryState(false);
+      }
 
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
@@ -542,7 +547,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.tryRecoverClient(err));
+      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -561,7 +566,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.tryRecoverClient(err));
+      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
   }
 
   private addMutationCallback(
@@ -738,7 +743,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       await this.localStore
         .collectGarbage()
-        .catch(err => this.tryRecoverClient(err));
+        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
     }
   }
 
@@ -746,14 +751,20 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * Marks the client as secondary if an IndexedDb operation fails because the
    * primary lease has been taken by another client. This can happen when the
    * client is temporarily CPU throttled and fails to renew its lease in time,
-   * in which we treat the current client as secondary. We can always revert
-   * back to primary status via the lease refresh in our persistence layer.
+   * in which case we treat the current client as secondary. We can always
+   * regain our primary lease via the lease refresh in our persistence layer.
    *
-   * @param err An error returned by an IndexedDb operation.
+   * @param err An error returned by a LocalStore operation.
    * @return A Promise that resolves after we recovered, or the original error.
    */
-  private async tryRecoverClient(err: FirestoreError): Promise<void> {
+  private async tryRecoverFromPrimaryLeaseLoss(
+    err: FirestoreError
+  ): Promise<void> {
     if (err.code === Code.FAILED_PRECONDITION) {
+      log.debug(
+        LOG_TAG,
+        'Unexpectedly lost primary lease, reverting to secondary'
+      );
       return this.applyPrimaryState(false);
     } else {
       throw err;
@@ -830,6 +841,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.isPrimary = false;
       await this.remoteStore.disableNetwork();
       objUtils.forEachNumber(this.queryViewsByTarget, targetId => {
+        // TODO(multitab): Remove query views for non-local queries.
         this.remoteStore.unlisten(targetId);
       });
     }
@@ -849,6 +861,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via Web Storage, we are
       // either already secondary or another tab has taken the primary lease.
+      log.debug(
+        LOG_TAG,
+        'Unexpectedly received query state notification when already primary. Releasing primary lease.'
+      );
       await this.applyPrimaryState(false);
     }
 
@@ -912,11 +928,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // removed if it has been rejected by the backend.
       if (queryView) {
         this.remoteStore.unlisten(targetId);
-        await this.removeAndCleanupQuery(queryView);
-        await this.localStore.releaseQuery(
-          queryView.query,
-          /*keepPersistedQueryData=*/ false
-        );
+        await this.localStore
+          .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
+          .then(() => this.removeAndCleanupQuery(queryView))
+          .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
       }
     }
   }
