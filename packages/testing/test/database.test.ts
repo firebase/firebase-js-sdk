@@ -84,8 +84,8 @@ describe('Testing Module Tests', function() {
     let token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.any.keys('accessToken');
     let claims = base64.decodeString(
-      token.accessToken.split('.')[3],
-      /*webSafe=*/ true
+      token.accessToken.split('.')[1],
+      /*webSafe=*/ false
     );
     expect(claims).to.equal('{}');
 
@@ -96,8 +96,8 @@ describe('Testing Module Tests', function() {
     token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.any.keys('accessToken');
     claims = base64.decodeString(
-      token.accessToken.split('.')[3],
-      /*webSafe=*/ true
+      token.accessToken.split('.')[1],
+      /*webSafe=*/ false
     );
     expect(claims).to.equal('{"uid":"alice"}');
   });

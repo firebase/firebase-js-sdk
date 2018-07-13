@@ -84,8 +84,8 @@ export function initializeFirestoreTestApp(
     kid: 'fakekid'
   };
   const fakeToken = [
-    base64.encodeString(JSON.stringify(header), /*webSafe=*/ true),
-    base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ true),
+    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
+    base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ false),
     'fakesignature'
   ].join('.');
   const app = firebase.initializeApp(
