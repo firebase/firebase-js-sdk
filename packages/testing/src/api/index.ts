@@ -58,17 +58,12 @@ export function initializeAdminApp(options: AdminAppOptions): admin.app.App {
   );
 }
 
-export type DatabaseAppOptions = {
-  databaseName: string;
+export type AppOptions = {
+  databaseName?: string;
+  projectId?: string;
   auth: object;
-};
-export type FirestoreAppOptions = {
-  projectId: string;
-  auth: object;
-};
-export function initializeTestApp(
-  options: DatabaseAppOptions | FirestoreAppOptions
-): FirebaseApp {
+}
+export function initializeTestApp(options: AppOptions): FirebaseApp {
   let appOptions: FirebaseOptions;
   if ('databaseName' in options) {
     appOptions = {
@@ -78,6 +73,8 @@ export function initializeTestApp(
     appOptions = {
       projectId: options.projectId
     };
+  } else {
+    throw new Error("neither databaseName or projectId were specified");
   }
   const header = {
     alg: 'RS256',

@@ -26,6 +26,5 @@ export {
   assertSucceeds,
   initializeAdminApp,
   initializeTestApp,
-  initializeFirestoreTestApp,
   loadDatabaseRules
 } from './src/api';
