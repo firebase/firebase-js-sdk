@@ -19,7 +19,7 @@ import * as admin from 'firebase-admin';
 import request from 'request-promise';
 import * as fs from 'fs';
 import { FirebaseApp } from '@firebase/app-types';
-import * as util from '@firebase/util';
+import { base64 } from '@firebase/util';
 
 const DBURL = 'http://localhost:9000';
 
@@ -79,17 +79,19 @@ export function initializeFirestoreTestApp(options: any): FirebaseApp {
     kid: 'fakekid'
   };
   var fakeToken = [
-    util.base64.encodeString(JSON.stringify(header), /*webSafe=*/ true),
-    util.base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ true),
+    base64.encodeString(JSON.stringify(header), /*webSafe=*/ true),
+    base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ true),
     'fakesignature'
   ].join('.');
-  return firebase.initializeApp(
+  let app = firebase.initializeApp(
     {
       projectId: options.projectId,
       tokenOverride: fakeToken
     },
     'app-' + new Date().getTime() + '-' + Math.random()
   );
+  (app as any).INTERNAL.getToken = () => Promise.resolve({ accessToken: fakeToken });
+  return app;
 }
 
 export type LoadDatabaseRulesOptions = {

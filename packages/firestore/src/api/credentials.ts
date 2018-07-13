@@ -148,8 +148,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   private forceRefresh = false;
 
-  private tokenOverride: string = null;
-
   constructor(private readonly app: FirebaseApp) {
     // We listen for token changes but all we really care about is knowing when
     // the uid may have changed.
@@ -165,7 +163,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     };
 
     this.userCounter = 0;
-    this.tokenOverride = app.options.tokenOverride;
 
     // Will fire at least once where we set this.currentUser
     (this.app as _FirebaseApp).INTERNAL.addAuthTokenListener(
@@ -185,13 +182,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     const initialUserCounter = this.userCounter;
     const forceRefresh = this.forceRefresh;
     this.forceRefresh = false;
-    var token: Promise<FirebaseAuthTokenData>;
-    if (this.tokenOverride != null) {
-      token = Promise.resolve({ accessToken: this.tokenOverride });
-    } else {
-      token = (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh);
-    }
-    return token.then(tokenData => {
+    return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(tokenData => {
       // Cancel the request since the user changed while the request was
       // outstanding so the response is likely for a previous user (which
       // user, we can't be sure).
