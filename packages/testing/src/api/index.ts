@@ -90,7 +90,8 @@ export function initializeFirestoreTestApp(options: any): FirebaseApp {
     },
     'app-' + new Date().getTime() + '-' + Math.random()
   );
-  (app as any).INTERNAL.getToken = () => Promise.resolve({ accessToken: fakeToken });
+  (app as any).INTERNAL.getToken = () =>
+    Promise.resolve({ accessToken: fakeToken });
   return app;
 }
 

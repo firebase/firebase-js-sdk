@@ -182,27 +182,29 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     const initialUserCounter = this.userCounter;
     const forceRefresh = this.forceRefresh;
     this.forceRefresh = false;
-    return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(tokenData => {
-      // Cancel the request since the user changed while the request was
-      // outstanding so the response is likely for a previous user (which
-      // user, we can't be sure).
-      if (this.userCounter !== initialUserCounter) {
-        throw new FirestoreError(
-          Code.ABORTED,
-          'getToken aborted due to uid change.'
-        );
-      } else {
-        if (tokenData) {
-          assert(
-            typeof tokenData.accessToken === 'string',
-            'Invalid tokenData returned from getToken():' + tokenData
+    return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(
+      tokenData => {
+        // Cancel the request since the user changed while the request was
+        // outstanding so the response is likely for a previous user (which
+        // user, we can't be sure).
+        if (this.userCounter !== initialUserCounter) {
+          throw new FirestoreError(
+            Code.ABORTED,
+            'getToken aborted due to uid change.'
           );
-          return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
-          return null;
+          if (tokenData) {
+            assert(
+              typeof tokenData.accessToken === 'string',
+              'Invalid tokenData returned from getToken():' + tokenData
+            );
+            return new OAuthToken(tokenData.accessToken, this.currentUser);
+          } else {
+            return null;
+          }
         }
       }
-    });
+    );
   }
 
   invalidateToken(): void {
