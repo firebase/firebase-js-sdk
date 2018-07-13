@@ -16,6 +16,7 @@
 
 import { expect } from 'chai';
 import * as firebase from '../src/api';
+import { base64 } from '@firebase/util';
 
 describe('Testing Module Tests', function() {
   it('assertSucceeds() iff success', async function() {
@@ -60,17 +61,8 @@ describe('Testing Module Tests', function() {
     expect(app.options).to.not.have.any.keys('databaseAuthVariableOverride');
   });
 
-  it('initializeTestApp() throws if no databaseName', function() {
-    expect(firebase.initializeTestApp.bind(null, {})).to.throw(
-      /databaseName not specified/
-    );
-    expect(
-      firebase.initializeTestApp.bind(null, { databaseName: 'foo' })
-    ).to.not.throw();
-  });
-
   it('initializeTestApp() uses specified auth.', function() {
-    let app = firebase.initializeTestApp({ databaseName: 'foo' });
+    let app = firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
     expect(app.options).to.have.any.keys('databaseAuthVariableOverride');
 
     app = firebase.initializeTestApp({
@@ -84,45 +76,24 @@ describe('Testing Module Tests', function() {
     );
   });
 
-  it('initializeFirestoreTestApp() throws if no projectId', function() {
-    expect(
-      firebase.initializeFirestoreTestApp.bind(null, { auth: {} })
-    ).to.throw(/projectId not specified/);
-    expect(
-      firebase.initializeFirestoreTestApp.bind(null, {
-        projectId: 'foo',
-        auth: {}
-      })
-    ).to.not.throw();
-  });
-
-  it('initializeFirestoreTestApp() throws if auth is not an object', function() {
-    expect(
-      firebase.initializeFirestoreTestApp.bind(null, {
-        projectId: 'a',
-        auth: 'b'
-      })
-    ).to.throw(/auth must be an object/);
-    expect(
-      firebase.initializeFirestoreTestApp.bind(null, {
-        projectId: 'a',
-        auth: {}
-      })
-    ).to.not.throw();
-  });
-
-  it('initializeFirestoreTestApp() uses specified auth.', function() {
+  it('initializeFirestoreTestApp() uses specified auth.', async function() {
     let app = firebase.initializeFirestoreTestApp({
       projectId: 'foo',
       auth: {}
     });
-    expect(app.options).to.have.any.keys('tokenOverride');
+    let token = await (app as any).INTERNAL.getToken();
+    expect(token).to.have.any.keys('accessToken');
+    let claims = base64.decodeString(token.accessToken.split('.')[3],/*webSafe=*/true);
+    expect(claims).to.equal('{}');
 
     app = firebase.initializeFirestoreTestApp({
       projectId: 'foo',
       auth: { uid: 'alice' }
     });
-    expect(app.options).to.have.any.keys('tokenOverride');
+    token = await (app as any).INTERNAL.getToken()
+    expect(token).to.have.any.keys('accessToken');
+    claims = base64.decodeString(token.accessToken.split('.')[3],/*webSafe=*/true);
+    expect(claims).to.equal('{"uid":"alice"}');
   });
 
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
@@ -149,13 +120,27 @@ describe('Testing Module Tests', function() {
     ).to.throw(/Could not find file/);
   });
 
-  it('apps() returns all created apps', async function() {
+  it('apps() returns all apps created except by initializeFirestoreTestApp', async function() {
     const numApps = firebase.apps().length;
     await firebase.initializeAdminApp({ databaseName: 'foo' });
     expect(firebase.apps().length).to.equal(numApps + 1);
     await firebase.initializeAdminApp({ databaseName: 'foo' });
     expect(firebase.apps().length).to.equal(numApps + 2);
-    await firebase.initializeTestApp({ databaseName: 'foo' });
+    await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
     expect(firebase.apps().length).to.equal(numApps + 3);
+    await firebase.initializeFirestoreTestApp({ projectId: 'foo', auth: {} });
+    expect(firebase.apps().length).to.equal(numApps + 3);
+  });
+
+  it('firestoreApps() returns only apps created with initializeFirestoreTestApp', async function() {
+    const numApps = firebase.firestoreApps().length;
+    await firebase.initializeAdminApp({ databaseName: 'foo' });
+    expect(firebase.firestoreApps().length).to.equal(numApps + 0);
+    await firebase.initializeAdminApp({ databaseName: 'foo' });
+    expect(firebase.firestoreApps().length).to.equal(numApps + 0);
+    await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
+    expect(firebase.firestoreApps().length).to.equal(numApps + 0);
+    await firebase.initializeFirestoreTestApp({ projectId: 'foo', auth: {} });
+    expect(firebase.firestoreApps().length).to.equal(numApps + 1);
   });
 });

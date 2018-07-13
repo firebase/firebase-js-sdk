@@ -39,6 +39,10 @@ export function apps(): (admin.app.App | null)[] {
   return admin.apps;
 }
 
+export function firestoreApps(): (FirebaseApp | null)[] {
+  return firebase.apps;
+}
+
 export function initializeAdminApp(options: any): admin.app.App {
   if (!('databaseName' in options)) {
     throw new Error('databaseName not specified');
@@ -52,10 +56,11 @@ export function initializeAdminApp(options: any): admin.app.App {
   );
 }
 
-export function initializeTestApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
-  }
+export type TestAppOptions = {
+  databaseName: string;
+  auth: Object;
+};
+export function initializeTestApp(options: TestAppOptions): admin.app.App {
   // if options.auth is not present, we will construct an app with auth == null
   return admin.initializeApp(
     {
@@ -67,29 +72,25 @@ export function initializeTestApp(options: any): admin.app.App {
   );
 }
 
-export function initializeFirestoreTestApp(options: any): FirebaseApp {
-  if (!('projectId' in options)) {
-    throw new Error('projectId not specified');
-  }
-  if (typeof options.auth != 'object') {
-    throw new Error('auth must be an object');
-  }
-  var header = {
+export type FirestoreTestAppOptions = {
+  projectId: string;
+  auth: Object;
+};
+export function initializeFirestoreTestApp(options: FirestoreTestAppOptions): FirebaseApp {
+  const header = {
     alg: 'RS256',
     kid: 'fakekid'
   };
-  var fakeToken = [
+  const fakeToken = [
     base64.encodeString(JSON.stringify(header), /*webSafe=*/ true),
     base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ true),
     'fakesignature'
   ].join('.');
-  let app = firebase.initializeApp(
-    {
-      projectId: options.projectId,
-      tokenOverride: fakeToken
-    },
+  const app = firebase.initializeApp(
+    { projectId: options.projectId },
     'app-' + new Date().getTime() + '-' + Math.random()
   );
+  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
   (app as any).INTERNAL.getToken = () =>
     Promise.resolve({ accessToken: fakeToken });
   return app;
