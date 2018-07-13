@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import { firebase } from '@firebase/app';
 import * as admin from 'firebase-admin';
 import request from 'request-promise';
 import * as fs from 'fs';
+import { FirebaseApp } from '@firebase/app-types';
+import * as util from '@firebase/util';
 
 const DBURL = 'http://localhost:9000';
 
@@ -61,6 +64,30 @@ export function initializeTestApp(options: any): admin.app.App {
       databaseAuthVariableOverride: options.auth || null
     },
     'app-' + (new Date().getTime() + Math.random())
+  );
+}
+
+export function initializeFirestoreTestApp(options: any): FirebaseApp {
+  if (!('projectId' in options)) {
+    throw new Error('projectId not specified');
+  }
+  if (typeof options.auth != 'object') {
+    throw new Error('auth must be an object');
+  }
+  var header = {
+    alg: "RS256",
+    kid: "fakekid"
+  };
+  var fakeToken = [
+    util.base64.encodeString(JSON.stringify(header),/*webSafe=*/true),
+    util.base64.encodeString(JSON.stringify(options.auth),/*webSafe=*/true),
+    "fakesignature"
+  ].join(".");
+  return firebase.initializeApp({
+      projectId: options.projectId,
+      tokenOverride: fakeToken
+    },
+    'app-' + new Date().getTime() + "-" + Math.random()
   );
 }
 

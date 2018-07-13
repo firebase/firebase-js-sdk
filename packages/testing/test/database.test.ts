@@ -84,6 +84,32 @@ describe('Testing Module Tests', function() {
     );
   });
 
+  it('initializeFirestoreTestApp() throws if no projectId', function() {
+    expect(firebase.initializeFirestoreTestApp.bind(null, { auth: {} })).to.throw(
+      /projectId not specified/
+    );
+    expect(
+      firebase.initializeFirestoreTestApp.bind(null, { projectId: 'foo', auth: {} })
+    ).to.not.throw();
+  });
+
+  it('initializeFirestoreTestApp() throws if auth is not an object', function() {
+    expect(firebase.initializeFirestoreTestApp.bind(null, { projectId: 'a', auth: 'b' })).to.throw(
+      /auth must be an object/
+    );
+    expect(
+      firebase.initializeFirestoreTestApp.bind(null, { projectId: 'a', auth: {} })
+    ).to.not.throw();
+  });
+
+  it('initializeFirestoreTestApp() uses specified auth.', function() {
+    let app = firebase.initializeFirestoreTestApp({ projectId: 'foo', auth: {} });
+    expect(app.options).to.have.any.keys('tokenOverride');
+
+    app = firebase.initializeFirestoreTestApp({ projectId: 'foo', auth: { uid: 'alice' }});
+    expect(app.options).to.have.any.keys('tokenOverride');
+  });
+
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
     expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
