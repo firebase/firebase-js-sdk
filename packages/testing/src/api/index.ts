@@ -45,7 +45,7 @@ export function apps(): (FirebaseApp | null)[] {
 
 type AdminAppOptions = {
   databaseName: string;
-}
+};
 
 export function initializeAdminApp(options: AdminAppOptions): admin.app.App {
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
@@ -61,12 +61,14 @@ export function initializeAdminApp(options: AdminAppOptions): admin.app.App {
 export type DatabaseAppOptions = {
   databaseName: string;
   auth: object;
-}
+};
 export type FirestoreAppOptions = {
   projectId: string;
   auth: object;
-}
-export function initializeTestApp(options: DatabaseAppOptions | FirestoreAppOptions): FirebaseApp {
+};
+export function initializeTestApp(
+  options: DatabaseAppOptions | FirestoreAppOptions
+): FirebaseApp {
   let appOptions: FirebaseOptions;
   if ('databaseName' in options) {
     appOptions = {
