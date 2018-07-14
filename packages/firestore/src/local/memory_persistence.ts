@@ -71,9 +71,11 @@ export class MemoryPersistence implements Persistence {
     return [this.clientId];
   }
 
-  setPrimaryStateListener(primaryStateListener: PrimaryStateListener): void {
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void> {
     // All clients using memory persistence act as primary.
-    primaryStateListener(true);
+    return primaryStateListener(true);
   }
 
   applyOnlineStateChange(onlineState: OnlineState): void {

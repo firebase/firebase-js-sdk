@@ -149,6 +149,30 @@ export class ViewSnapshot {
     readonly excludesMetadataChanges: boolean
   ) {}
 
+  /** Returns a view snapshot as if all documents in the snapshot were added. */
+  static fromInitialDocuments(
+    query: Query,
+    documents: DocumentSet,
+    fromCache: boolean,
+    hasPendingWrites: boolean
+  ): ViewSnapshot {
+    const changeSet = new DocumentChangeSet();
+    documents.forEach(doc => {
+      changeSet.track({ type: ChangeType.Added, doc });
+    });
+
+    return new ViewSnapshot(
+      query,
+      documents,
+      DocumentSet.emptySet(documents),
+      changeSet.getChanges(),
+      fromCache,
+      hasPendingWrites,
+      /* syncStateChanged */ true,
+      /* excludesMetadataChanges= */ false
+    );
+  }
+
   isEqual(other: ViewSnapshot): boolean {
     if (
       this.fromCache !== other.fromCache ||

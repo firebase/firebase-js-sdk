@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+// TODO(multitab): Rename this file to `indexeddb_persistence.test.ts`.
+
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
@@ -38,9 +40,8 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { OnlineState } from '../../../src/core/types';
-import { Persistence } from '../../../src/local/persistence';
 import { Deferred } from '../../util/promise';
-import {SharedFakeWebStorage, TestPlatform} from '../../util/test_platform';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 
 const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
 const INDEXEDDB_TEST_DATABASE =
@@ -81,12 +82,13 @@ async function withPersistence(
   clientId: ClientId,
   onlineState: OnlineState,
   visibilityState: VisibilityState,
-  fn: (persistence: Persistence) => Promise<void>
+  fn: (persistence: IndexedDbPersistence) => Promise<void>
 ): Promise<void> {
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
+
   const platform = new TestPlatform(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
@@ -516,6 +518,59 @@ describe('IndexedDb: canActAsPrimary', () => {
           isPrimary.resolve(primaryState);
         });
         expect(await isPrimary.promise).to.be.true;
+      }
+    );
+  });
+});
+
+describe('IndexedDb: allowTabSynchronization', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn('No IndexedDB. Skipping allowTabSynchronization tests.');
+    return;
+  }
+
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  it('rejects access when synchronization is disabled', () => {
+    return withPersistence(
+      'clientA',
+      OnlineState.Online,
+      'visible',
+      async db1 => {
+        await db1.start(/*synchronizeTabs=*/ false);
+        await withPersistence(
+          'clientB',
+          OnlineState.Online,
+          'visible',
+          async db2 => {
+            await expect(
+              db2.start(/*synchronizeTabs=*/ false)
+            ).to.eventually.be.rejectedWith(
+              'Another tab has exclusive access to the persistence layer.'
+            );
+          }
+        );
+      }
+    );
+  });
+
+  it('grants access when synchronization is enabled', async () => {
+    return withPersistence(
+      'clientA',
+      OnlineState.Online,
+      'visible',
+      async db1 => {
+        await db1.start(/*synchronizeTabs=*/ true);
+        await withPersistence(
+          'clientB',
+          OnlineState.Online,
+          'visible',
+          async db2 => {
+            await db2.start(/*synchronizeTabs=*/ true);
+          }
+        );
       }
     );
   });

@@ -310,7 +310,7 @@ export class SimpleDbTransaction {
     if (!this.aborted) {
       debug(
         LOG_TAG,
-        'Aborting transaction: %s',
+        'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
       );
       this.aborted = true;

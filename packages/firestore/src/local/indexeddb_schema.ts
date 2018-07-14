@@ -113,7 +113,12 @@ export class DbOwner {
   /** Name of the IndexedDb object store. */
   static store = 'owner';
 
-  constructor(public ownerId: string, public leaseTimestampMs: number) {}
+  constructor(
+    public ownerId: string,
+    /** Whether to allow shared access from multiple tabs. */
+    public allowTabSynchronization: boolean,
+    public leaseTimestampMs: number
+  ) {}
 }
 
 function createOwnerStore(db: IDBDatabase): void {

@@ -472,6 +472,8 @@ abstract class TestRunner {
     serializer: JsonProtoSerializer
   ): Persistence;
 
+  protected abstract startPersistence(persistence: Persistence): Promise<void>;
+
   protected abstract getSharedClientState(): SharedClientState;
 
   get isPrimaryClient(): boolean {
@@ -480,20 +482,14 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.connection.reset();
-    await this.persistence.start();
+    await this.startPersistence(this.persistence);
     await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
 
-    const deferred = new Deferred<void>();
-    // We need to wait for the processing in `applyPrimaryState` to complete,
-    // but `setPrimaryStateListener` doesn't return a promise.
-    this.persistence.setPrimaryStateListener(isPrimary => {
-      return this.syncEngine
-        .applyPrimaryState(isPrimary)
-        .then(() => deferred.resolve());
-    });
-    await deferred.promise;
+    await this.persistence.setPrimaryStateListener(isPrimary =>
+      this.syncEngine.applyPrimaryState(isPrimary)
+    );
 
     this.started = true;
   }
@@ -883,15 +879,9 @@ abstract class TestRunner {
       await this.remoteStore.start();
       await this.sharedClientState.start();
 
-      const deferred = new Deferred<void>();
-      // We need to wait for the processing in `applyPrimaryState` to complete,
-      // but `setPrimaryStateListener` doesn't return a promise.
-      this.persistence.setPrimaryStateListener(isPrimary => {
-        return this.syncEngine
-          .applyPrimaryState(isPrimary)
-          .then(deferred.resolve);
-      });
-      await deferred.promise;
+      await this.persistence.setPrimaryStateListener(isPrimary =>
+        this.syncEngine.applyPrimaryState(isPrimary)
+      );
     });
   }
 
@@ -1146,6 +1136,10 @@ class MemoryTestRunner extends TestRunner {
   protected getSharedClientState(): SharedClientState {
     return new MemorySharedClientState();
   }
+
+  protected startPersistence(persistence: Persistence): Promise<void> {
+    return persistence.start();
+  }
 }
 
 /**
@@ -1172,6 +1166,12 @@ class IndexedDbTestRunner extends TestRunner {
       IndexedDbTestRunner.TEST_DB_NAME,
       this.clientId,
       this.user
+    );
+  }
+
+  protected startPersistence(persistence: Persistence): Promise<void> {
+    return (persistence as IndexedDbPersistence).start(
+      /*synchronizeTabs=*/ true
     );
   }
 

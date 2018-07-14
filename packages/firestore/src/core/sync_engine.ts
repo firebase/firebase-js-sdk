@@ -167,28 +167,40 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the targetId of the query.
    */
-  listen(query: Query): Promise<TargetId> {
+  async listen(query: Query): Promise<TargetId> {
     this.assertSubscribed('listen()');
-    assert(
-      !this.queryViewsByQuery.has(query),
-      'We already listen to the query: ' + query
-    );
 
-    return this.localStore.allocateQuery(query).then(queryData => {
+    let targetId;
+    let viewSnapshot;
+
+    const queryView = this.queryViewsByQuery.get(query);
+    if (queryView) {
+      // PORTING NOTE: With Mult-Tab Web, it is possible that a query view
+      // already exists when EventManager calls us for the first time. This
+      // happens when the primary tab is already listening to this query on
+      // behalf of another tab and the user of the primary also starts listening
+      // to the query. EventManager will not have an assigned target ID in this
+      // case and calls `listen` to obtain this ID.
+      targetId = queryView.targetId;
+      this.sharedClientState.addLocalQueryTarget(targetId);
+      viewSnapshot = queryView.view.computeInitialSnapshot();
+    } else {
+      const queryData = await this.localStore.allocateQuery(query);
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
       );
-      return this.initializeViewAndComputeInitialSnapshot(
+      targetId = queryData.targetId;
+      viewSnapshot = await this.initializeViewAndComputeInitialSnapshot(
         queryData,
         status === 'current'
-      ).then(viewSnapshot => {
-        if (this.isPrimary) {
-          this.remoteStore.listen(queryData);
-        }
-        this.viewHandler!.onChange([viewSnapshot]);
-        return queryData.targetId;
-      });
-    });
+      );
+      if (this.isPrimary) {
+        this.remoteStore.listen(queryData);
+      }
+    }
+
+    this.viewHandler!.onChange([viewSnapshot]);
+    return targetId;
   }
 
   private initializeViewAndComputeInitialSnapshot(
@@ -398,6 +410,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           'OnlineState should not affect limbo documents.'
         );
         if (viewChange.snapshot) {
+          // TODO: DO I NEED THIS?
           if (this.isPrimary) {
             this.sharedClientState.trackQueryUpdate(
               queryView.targetId,
@@ -782,10 +795,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await p;
     } else if (isPrimary === false && this.isPrimary !== false) {
-      this.isPrimary = false;
+      if (this.isPrimary) {
+        // Do not use this client's online state in any other client.
+        this.sharedClientState.setOnlineState(OnlineState.Unknown);
+      }
 
-      // Do not use this client's online state in any other client.
-      this.sharedClientState.setOnlineState(OnlineState.Unknown);
+      this.isPrimary = false;
 
       objUtils.forEachNumber(this.queryViewsByTarget, targetId => {
         this.remoteStore.unlisten(targetId);
