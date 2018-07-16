@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
+import { firebase } from '@firebase/app';
 import request from 'request-promise';
 import * as fs from 'fs';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { base64 } from '@firebase/util';
 
 const DBURL = 'http://localhost:9000';
 
@@ -32,36 +34,43 @@ class FakeCredentials {
   }
 }
 
-export function apps(): (admin.app.App | null)[] {
-  return admin.apps;
+export function apps(): (FirebaseApp | null)[] {
+  return firebase.apps;
 }
 
-export function initializeAdminApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
-  }
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
+export type AppOptions = {
+  databaseName?: string;
+  projectId?: string;
+  auth: object;
+};
+export function initializeTestApp(options: AppOptions): FirebaseApp {
+  let appOptions: FirebaseOptions;
+  if ('databaseName' in options) {
+    appOptions = {
       databaseURL: DBURL + '?ns=' + options.databaseName
-    },
-    'app-' + (new Date().getTime() + Math.random())
-  );
-}
-
-export function initializeTestApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
+    };
+  } else if ('projectId' in options) {
+    appOptions = {
+      projectId: options.projectId
+    };
+  } else {
+    throw new Error('neither databaseName or projectId were specified');
   }
-  // if options.auth is not present, we will construct an app with auth == null
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
-      databaseURL: DBURL + '?ns=' + options.databaseName,
-      databaseAuthVariableOverride: options.auth || null
-    },
-    'app-' + (new Date().getTime() + Math.random())
-  );
+  const header = {
+    alg: 'RS256',
+    kid: 'fakekid'
+  };
+  const fakeToken = [
+    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
+    base64.encodeString(JSON.stringify(options.auth), /*webSafe=*/ false),
+    'fakesignature'
+  ].join('.');
+  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
+  const app = firebase.initializeApp(appOptions, appName);
+  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
+  (app as any).INTERNAL.getToken = () =>
+    Promise.resolve({ accessToken: fakeToken });
+  return app;
 }
 
 export type LoadDatabaseRulesOptions = {
