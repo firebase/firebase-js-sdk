@@ -47,11 +47,6 @@ describe('Testing Module Tests', function() {
     });
   });
 
-  it('initializeAdminApp() provides admin', function() {
-    const app = firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(app.options).to.not.have.any.keys('databaseAuthVariableOverride');
-  });
-
   it('initializeTestApp() with DatabaseAppOptions uses specified auth.', async function() {
     let app = firebase.initializeTestApp({
       projectId: 'foo',
@@ -128,23 +123,11 @@ describe('Testing Module Tests', function() {
     ).to.throw(/Could not find file/);
   });
 
-  it('adminApps() returns only apps created with initializeAdminApp', async function() {
+  it('apps() returns apps created with initializeTestApp', async function() {
     const numApps = firebase.apps().length;
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(firebase.adminApps().length).to.equal(numApps + 1);
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(firebase.adminApps().length).to.equal(numApps + 2);
-    await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
-    expect(firebase.adminApps().length).to.equal(numApps + 2);
-  });
-
-  it('apps() returns only apps created with initializeTestApp', async function() {
-    const numApps = firebase.apps().length;
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(firebase.apps().length).to.equal(numApps + 0);
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(firebase.apps().length).to.equal(numApps + 0);
     await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
     expect(firebase.apps().length).to.equal(numApps + 1);
+    await firebase.initializeTestApp({ databaseName: 'bar', auth: {} });
+    expect(firebase.apps().length).to.equal(numApps + 2);
   });
 });

@@ -15,7 +15,6 @@
  */
 
 import { firebase } from '@firebase/app';
-import * as admin from 'firebase-admin';
 import request from 'request-promise';
 import * as fs from 'fs';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
@@ -35,27 +34,8 @@ class FakeCredentials {
   }
 }
 
-export function adminApps(): (admin.app.App | null)[] {
-  return admin.apps;
-}
-
 export function apps(): (FirebaseApp | null)[] {
   return firebase.apps;
-}
-
-type AdminAppOptions = {
-  databaseName: string;
-};
-
-export function initializeAdminApp(options: AdminAppOptions): admin.app.App {
-  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
-      databaseURL: DBURL + '?ns=' + options.databaseName
-    },
-    appName
-  );
 }
 
 export type AppOptions = {
