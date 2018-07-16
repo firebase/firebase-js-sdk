@@ -25,6 +25,8 @@ import {
 } from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
 
+export const TEST_PROJECT = require('../../../config/project.json');
+
 const createId = () =>
   Math.random()
     .toString(36)
@@ -78,7 +80,7 @@ describe('RxFire Firestore', () => {
    * offline.
    */
   beforeEach(() => {
-    app = initializeApp({ projectId: 'rxfire-test' });
+    app = initializeApp({ projectId: TEST_PROJECT.projectId });
     firestore = app.firestore();
     firestore.settings({ timestampsInSnapshots: true });
     firestore.disableNetwork();

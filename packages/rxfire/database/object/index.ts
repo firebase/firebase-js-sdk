@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-import { firestore } from 'firebase/app';
-import { fromDocRef } from '../fromRef';
+import { database } from 'firebase';
+import { QueryChange, ListenEvent } from '../interfaces';
+import { fromRef } from '../fromRef';
 import { Observable } from 'rxjs';
 
-export function doc(ref: firestore.DocumentReference) {
-  return fromDocRef(ref);
+/**
+ * Get the snapshot changes of an object
+ * @param query
+ */
+export function object(query: database.Query): Observable<QueryChange> {
+  return fromRef(query, ListenEvent.value);
 }
