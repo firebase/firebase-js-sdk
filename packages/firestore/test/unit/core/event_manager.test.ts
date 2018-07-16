@@ -117,7 +117,7 @@ describe('EventManager', () => {
     const viewSnap1: any = { query: query1 };
     // tslint:disable-next-line:no-any mock ViewSnapshot.
     const viewSnap2: any = { query: query2 };
-    eventManager.onChange([viewSnap1, viewSnap2]);
+    eventManager.onWatchChange([viewSnap1, viewSnap2]);
 
     expect(eventOrder).to.deep.equal([
       'listenable1',
@@ -126,7 +126,7 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward applyOnlineStateChange calls', () => {
+  it('will forward setNetworkEnabled calls', () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
@@ -139,7 +139,7 @@ describe('EventManager', () => {
 
     eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.applyOnlineStateChange(OnlineState.Online);
+    eventManager.onOnlineStateChange(OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
   });
 });

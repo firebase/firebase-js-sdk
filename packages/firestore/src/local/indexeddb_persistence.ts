@@ -48,7 +48,6 @@ import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
-import { OnlineState } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -126,7 +125,7 @@ export class IndexedDbPersistence implements Persistence {
   private simpleDb: SimpleDb;
   private started: boolean;
   private isPrimary = false;
-  private onlineState = OnlineState.Unknown;
+  private networkEnabled = true;
   private dbName: string;
   private localStoragePrefix: string;
 
@@ -209,15 +208,14 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
-  applyOnlineStateChange(onlineState: OnlineState): void {
-    this.onlineState = onlineState;
-
-    // Schedule a primary lease refresh for immediate execution. The eventual
-    // lease update will be propagated via `primaryStateListener`.
-    if (this.started) {
+  setNetworkEnabled(networkEnabled: boolean): void {
+    if (this.networkEnabled !== networkEnabled) {
+      this.networkEnabled = networkEnabled;
+      // Schedule a primary lease refresh for immediate execution. The eventual
+      // lease update will be propagated via `primaryStateListener`.
       this.queue.enqueue(async () => {
         if (this.started) {
-          return this.updateClientMetadataAndTryBecomePrimary();
+          await this.updateClientMetadataAndTryBecomePrimary();
         }
       });
     }
@@ -229,7 +227,7 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private async updateClientMetadataAndTryBecomePrimary(): Promise<void> {
+  private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       const metadataStore = clientMetadataStore(txn);
       return metadataStore
@@ -237,7 +235,7 @@ export class IndexedDbPersistence implements Persistence {
           new DbClientMetadata(
             this.clientId,
             Date.now(),
-            this.onlineState,
+            this.networkEnabled,
             this.inForeground
           )
         )
@@ -245,7 +243,6 @@ export class IndexedDbPersistence implements Persistence {
         .next(canActAsPrimary => {
           if (canActAsPrimary !== this.isPrimary) {
             this.isPrimary = canActAsPrimary;
-
             this.queue.enqueue(async () => {
               // Verify that `shutdown()` hasn't been called yet by the time
               // we invoke the `primaryStateListener`.
@@ -313,23 +310,20 @@ export class IndexedDbPersistence implements Persistence {
           this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
           currentPrimary.ownerId !== this.getZombiedClientId();
 
-        const isOffline = this.onlineState === OnlineState.Offline;
-
         // A client is eligible for the primary lease if:
-        // - its network state is `unknown` or `online` and the client's tab is
-        //   in the foreground.
-        // - its network state is `unknown` or `online` and no other client's
-        //   tab is in the foreground.
-        // - every clients network state is `offline` and the client`s tab is
-        //   in the foreground.
-        // - every clients network state if `offline`  and no other client's
-        //   tab is in the foreground.
+        // - its network is enabled and the client's tab is in the foreground.
+        // - its network is enabled and no other client's tab is in the
+        //   foreground.
+        // - every clients network is disabled and the client's tab is in the
+        //   foreground.
+        // - every clients network is disabled and no other client's tab is in
+        //   the foreground.
         if (currentLeaseIsValid) {
-          if (this.isLocalClient(currentPrimary)) {
-            if (!isOffline) {
-              return true;
-            }
-          } else {
+          if (this.isLocalClient(currentPrimary) && this.networkEnabled) {
+            return true;
+          }
+
+          if (!this.isLocalClient(currentPrimary)) {
             if (!currentPrimary.allowTabSynchronization) {
               // Fail the `canActAsPrimary` check if the current leaseholder has
               // not opted into multi-tab synchronization. If this happens at
@@ -353,7 +347,7 @@ export class IndexedDbPersistence implements Persistence {
           }
         }
 
-        if (!isOffline && this.inForeground) {
+        if (this.networkEnabled && this.inForeground) {
           return true;
         }
 
@@ -364,14 +358,14 @@ export class IndexedDbPersistence implements Persistence {
               this.clientId !== otherClient.clientId &&
               this.isWithinMaxAge(otherClient.updateTimeMs)
             ) {
-              const otherClientHasBetterOnlineState =
-                isOffline && otherClient.onlineState !== OnlineState.Offline;
+              const otherClientHasBetterNetworkState =
+                !this.networkEnabled && otherClient.networkEnabled;
               const otherClientHasBetterVisibility =
                 !this.inForeground && otherClient.inForeground;
               const otherClientHasSameOnlineState =
-                isOffline === (otherClient.onlineState === OnlineState.Offline);
+                this.networkEnabled === otherClient.networkEnabled;
               if (
-                otherClientHasBetterOnlineState ||
+                otherClientHasBetterNetworkState ||
                 (otherClientHasBetterVisibility &&
                   otherClientHasSameOnlineState)
               ) {

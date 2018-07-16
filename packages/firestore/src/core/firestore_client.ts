@@ -371,13 +371,16 @@ export class FirestoreClient {
           serializer
         );
 
-        const remoteStoreOnlineStateChangedHandler = onlineState => {
+        const remoteStoreOnlineStateChangedHandler = onlineState =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.RemoteStore
           );
-          this.persistence.applyOnlineStateChange(onlineState);
-        };
+        const sharedClientStateOnlineStateChangedHandler = onlineState =>
+          this.syncEngine.applyOnlineStateChange(
+            onlineState,
+            OnlineStateSource.RemoteStore
+          );
 
         this.remoteStore = new RemoteStore(
           this.localStore,
@@ -393,12 +396,7 @@ export class FirestoreClient {
           user
         );
 
-        this.sharedClientState.onlineStateHandler = onlineState => {
-          this.syncEngine.applyOnlineStateChange(
-            onlineState,
-            OnlineStateSource.SharedClientState
-          );
-        };
+        this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
         // Set up wiring between sync engine and other components
         this.remoteStore.syncEngine = this.syncEngine;

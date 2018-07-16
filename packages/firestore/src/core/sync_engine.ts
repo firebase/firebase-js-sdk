@@ -68,7 +68,6 @@ import {
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
 import * as objUtils from '../util/obj';
-import { ViewHandler } from './event_manager';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -104,6 +103,21 @@ class QueryView {
 }
 
 /**
+ * Interface implemented by EventManager to handle notifications from
+ * SyncEngine.
+ */
+export interface SyncEngineListener {
+  /** Handles new view snapshots. */
+  onWatchChange(snapshots: ViewSnapshot[]): void;
+
+  /** Handles the failure of a query. */
+  onWatchError(query: Query, error: Error): void;
+
+  /** Handles a change in online state. */
+  onOnlineStateChange(onlineState: OnlineState): void;
+}
+
+/**
  * SyncEngine is the central controller in the client SDK architecture. It is
  * the glue code between the EventManager, LocalStore, and RemoteStore. Some of
  * SyncEngine's responsibilities include:
@@ -118,7 +132,7 @@ class QueryView {
  * global async queue.
  */
 export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
-  private viewHandler: ViewHandler | null = null;
+  private syncEngineListener: SyncEngineListener | null = null;
 
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
@@ -140,6 +154,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // startup. In the interim, a client should only be considered primary if
   // `isPrimary` is true.
   private isPrimary: undefined | boolean = undefined;
+  private onlineState: OnlineState = OnlineState.Unknown;
 
   constructor(
     private localStore: LocalStore,
@@ -154,11 +169,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.isPrimary === true;
   }
 
-  /** Subscribes view and error handler. Can be called only once. */
-  subscribe(viewHandler: ViewHandler): void {
-    assert(viewHandler !== null, 'View handler cannot be null');
-    assert(this.viewHandler === null, 'SyncEngine already has a subscriber.');
-    this.viewHandler = viewHandler;
+  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
+  subscribe(syncEngineListener: SyncEngineListener): void {
+    assert(syncEngineListener !== null, 'SyncEngine listener cannot be null');
+    assert(
+      this.syncEngineListener === null,
+      'SyncEngine already has a subscriber.'
+    );
+    this.syncEngineListener = syncEngineListener;
     this.limboCollector.addGarbageSource(this.limboDocumentRefs);
   }
 
@@ -199,7 +217,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     }
 
-    this.viewHandler!.onChange([viewSnapshot]);
+    this.syncEngineListener!.onWatchChange([viewSnapshot]);
     return targetId;
   }
 
@@ -217,7 +235,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           const viewDocChanges = view.computeDocChanges(docs);
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
-            current
+            current && this.onlineState !== OnlineState.Offline
           );
           const viewChange = view.applyChanges(
             viewDocChanges,
@@ -401,7 +419,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // online state (the local client may go offline, even though the primary
     // tab remains online) and only apply the primary tab's online state from
     // SharedClientState.
-    if (this.isPrimary || source === OnlineStateSource.SharedClientState) {
+    if (
+      (this.isPrimary && source === OnlineStateSource.RemoteStore) ||
+      (!this.isPrimary && source === OnlineStateSource.SharedClientState)
+    ) {
       const newViewSnapshots = [] as ViewSnapshot[];
       this.queryViewsByQuery.forEach((query, queryView) => {
         const viewChange = queryView.view.applyOnlineStateChange(onlineState);
@@ -410,22 +431,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           'OnlineState should not affect limbo documents.'
         );
         if (viewChange.snapshot) {
-          // TODO: DO I NEED THIS?
-          if (this.isPrimary) {
-            this.sharedClientState.trackQueryUpdate(
-              queryView.targetId,
-              viewChange.snapshot.fromCache ? 'not-current' : 'current'
-            );
-          }
           newViewSnapshots.push(viewChange.snapshot);
         }
       });
-      this.viewHandler!.applyOnlineStateChange(onlineState);
-      this.viewHandler!.onChange(newViewSnapshots);
-    }
+      this.syncEngineListener!.onOnlineStateChange(onlineState);
+      this.syncEngineListener!.onWatchChange(newViewSnapshots);
 
-    if (this.isPrimary) {
-      this.sharedClientState.setOnlineState(onlineState);
+      this.onlineState = onlineState;
+      if (this.isPrimary) {
+        this.sharedClientState.setOnlineState(onlineState);
+      }
     }
   }
 
@@ -473,7 +488,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         queryView.query,
         /* keepPersistedQueryData */ false
       );
-      this.viewHandler!.onError(queryView.query, err);
+      this.syncEngineListener!.onWatchError(queryView.query, err);
     }
   }
 
@@ -722,7 +737,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     });
 
     await Promise.all(queriesProcessed);
-    this.viewHandler.onChange(newSnaps);
+    this.syncEngineListener.onWatchChange(newSnaps);
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
     // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
@@ -732,7 +747,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   private assertSubscribed(fnName: string): void {
     assert(
-      this.viewHandler !== null,
+      this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
     );
   }
@@ -795,14 +810,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       });
       await p;
     } else if (isPrimary === false && this.isPrimary !== false) {
-      if (this.isPrimary) {
-        // Do not use this client's online state in any other client.
-        this.sharedClientState.setOnlineState(OnlineState.Unknown);
-      }
-
       this.isPrimary = false;
 
       objUtils.forEachNumber(this.queryViewsByTarget, targetId => {
+        // TODO(multitab): Remove query views for non-local queries.
         this.remoteStore.unlisten(targetId);
       });
 
@@ -842,7 +853,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             queryView.query,
             /*keepPersistedQueryData=*/ true
           );
-          this.viewHandler!.onError(queryView.query, error);
+          this.syncEngineListener!.onWatchError(queryView.query, error);
           break;
         }
         default:
@@ -890,11 +901,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  async enableNetwork(): Promise<void> {
+  enableNetwork(): Promise<void> {
+    this.localStore.enableNetwork();
     return this.remoteStore.enableNetwork();
   }
 
-  async disableNetwork(): Promise<void> {
+  disableNetwork(): Promise<void> {
+    this.localStore.disableNetwork();
     return this.remoteStore.disableNetwork();
   }
 

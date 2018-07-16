@@ -15,7 +15,7 @@
  */
 
 import { Query } from './query';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
@@ -42,25 +42,11 @@ export interface Observer<T> {
 }
 
 /**
- * Interface for view changes processed by the EventManager.
- */
-export interface ViewHandler {
-  /** Handles new view snapshots. */
-  onChange(snapshots: ViewSnapshot[]): void;
-
-  /** Handles the failure of a query. */
-  onError(query: Query, error: Error): void;
-
-  /** Handles a change in online state. */
-  applyOnlineStateChange(onlineState: OnlineState): void;
-}
-
-/**
  * EventManager is responsible for mapping queries to query event emitters.
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
  */
-export class EventManager implements ViewHandler {
+export class EventManager implements SyncEngineListener {
   private queries = new ObjectMap<Query, QueryListenersInfo>(q =>
     q.canonicalId()
   );
@@ -116,7 +102,7 @@ export class EventManager implements ViewHandler {
     }
   }
 
-  onChange(viewSnaps: ViewSnapshot[]): void {
+  onWatchChange(viewSnaps: ViewSnapshot[]): void {
     for (const viewSnap of viewSnaps) {
       const query = viewSnap.query;
       const queryInfo = this.queries.get(query);
@@ -129,7 +115,7 @@ export class EventManager implements ViewHandler {
     }
   }
 
-  onError(query: Query, error: Error): void {
+  onWatchError(query: Query, error: Error): void {
     const queryInfo = this.queries.get(query);
     if (queryInfo) {
       for (const listener of queryInfo.listeners) {
@@ -142,7 +128,7 @@ export class EventManager implements ViewHandler {
     this.queries.delete(query);
   }
 
-  applyOnlineStateChange(onlineState: OnlineState): void {
+  onOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
     this.queries.forEach((_, queryInfo) => {
       for (const listener of queryInfo.listeners) {

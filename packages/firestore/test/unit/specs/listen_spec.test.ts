@@ -780,6 +780,22 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
+    "Offline state doesn't persist if primary is shut down",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return client(0)
+        .userListens(query)
+        .disableNetwork()
+        .expectEvents(query, { fromCache: true })
+        .shutdown()
+        .client(1)
+        .userListens(query); // No event since the online state is 'Unknown'.
+    }
+  );
+
+  specTest(
     'Listen is re-listened to after primary tab failover',
     ['multi-client'],
     () => {

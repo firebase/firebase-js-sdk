@@ -435,7 +435,14 @@ abstract class TestRunner {
         onlineState,
         OnlineStateSource.RemoteStore
       );
-      this.persistence.applyOnlineStateChange(onlineState);
+    };
+    const sharedClientStateOnlineStateChangedHandler = (
+      onlineState: OnlineState
+    ) => {
+      this.syncEngine.applyOnlineStateChange(
+        onlineState,
+        OnlineStateSource.SharedClientState
+      );
     };
     this.remoteStore = new RemoteStore(
       this.localStore,
@@ -453,11 +460,7 @@ abstract class TestRunner {
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
-    this.sharedClientState.onlineStateHandler = onlineState =>
-      this.syncEngine.applyOnlineStateChange(
-        onlineState,
-        OnlineStateSource.SharedClientState
-      );
+    this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
     this.eventManager = new EventManager(this.syncEngine);
   }

@@ -810,6 +810,16 @@ export class LocalStore {
     this.mutationQueue.removeCachedMutationKeys(batchId);
   }
 
+  // PORTING NOTE: Multi-tab only.
+  enableNetwork(): void {
+    this.persistence.setNetworkEnabled(true);
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  disableNetwork(): void {
+    this.persistence.setNetworkEnabled(false);
+  }
+
   private releaseHeldBatchResults(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer

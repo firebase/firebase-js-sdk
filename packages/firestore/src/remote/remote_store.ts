@@ -114,7 +114,7 @@ export class RemoteStore implements TargetMetadataProvider {
   private writeStream: PersistentWriteStream = null;
   private watchChangeAggregator: WatchChangeAggregator = null;
 
-  private networkEnabled = true;
+  private networkAllowed = true;
   private isPrimary = false;
 
   private onlineStateTracker: OnlineStateTracker;
@@ -157,11 +157,11 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /** Re-enables the network. Idempotent. */
   enableNetwork(): Promise<void> {
-    this.networkEnabled = true;
-
     if (this.isNetworkEnabled()) {
       return Promise.resolve();
     }
+
+    this.networkAllowed = true;
 
     // Create new streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream();
@@ -186,7 +186,8 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
-    this.networkEnabled = false;
+    this.networkAllowed = false;
+
     this.disableNetworkInternal();
     // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
@@ -694,7 +695,7 @@ export class RemoteStore implements TargetMetadataProvider {
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
 
-    if (isPrimary && this.networkEnabled) {
+    if (isPrimary && this.networkAllowed) {
       await this.enableNetwork();
     } else if (!isPrimary && this.isNetworkEnabled()) {
       this.disableNetworkInternal();

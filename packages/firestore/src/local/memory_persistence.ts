@@ -31,7 +31,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { OnlineState } from '../core/types';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -78,7 +77,7 @@ export class MemoryPersistence implements Persistence {
     return primaryStateListener(true);
   }
 
-  applyOnlineStateChange(onlineState: OnlineState): void {
+  setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }
 
