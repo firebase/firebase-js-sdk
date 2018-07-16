@@ -130,7 +130,9 @@ export class SyncEngine implements RemoteSyncer {
     private localStore: LocalStore,
     private remoteStore: RemoteStore,
     private currentUser: User
-  ) {}
+  ) {
+    this.limboCollector.addGarbageSource(this.limboDocumentRefs);
+  }
 
   /** Subscribes view and error handler. Can be called only once. */
   subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
@@ -144,7 +146,6 @@ export class SyncEngine implements RemoteSyncer {
     );
     this.viewHandler = viewHandler;
     this.errorHandler = errorHandler;
-    this.limboCollector.addGarbageSource(this.limboDocumentRefs);
   }
 
   /**
