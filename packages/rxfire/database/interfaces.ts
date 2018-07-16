@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-import { firestore } from 'firebase/app';
-import { fromDocRef } from '../fromRef';
-import { Observable } from 'rxjs';
+import { database } from 'firebase';
 
-export function doc(ref: firestore.DocumentReference) {
-  return fromDocRef(ref);
+export enum ListenEvent {
+  added = 'child_added',
+  removed = 'child_removed',
+  changed = 'child_changed',
+  moved = 'child_moved',
+  value = 'value'
+}
+
+export interface QueryChange {
+  snapshot: database.DataSnapshot;
+  prevKey: string | null | undefined;
+  event: ListenEvent;
 }

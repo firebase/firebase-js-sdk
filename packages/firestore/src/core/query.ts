@@ -390,10 +390,35 @@ export class Query {
   }
 }
 
-export interface Filter {
-  matches(doc: Document): boolean;
-  canonicalId(): string;
-  isEqual(filter: Filter): boolean;
+export abstract class Filter {
+  abstract matches(doc: Document): boolean;
+  abstract canonicalId(): string;
+  abstract isEqual(filter: Filter): boolean;
+
+  /**
+   * Creates a filter based on the provided arguments.
+   */
+  static create(field: FieldPath, op: RelationOp, value: FieldValue): Filter {
+    if (value.isEqual(NullValue.INSTANCE)) {
+      if (op !== RelationOp.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+      }
+      return new NullFilter(field);
+    } else if (value.isEqual(DoubleValue.NAN)) {
+      if (op !== RelationOp.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+      }
+      return new NanFilter(field);
+    } else {
+      return new RelationFilter(field, op, value);
+    }
+  }
 }
 
 export class RelationOp {
@@ -434,12 +459,14 @@ export class RelationOp {
   }
 }
 
-export class RelationFilter implements Filter {
+export class RelationFilter extends Filter {
   constructor(
     public field: FieldPath,
     public op: RelationOp,
     public value: FieldValue
-  ) {}
+  ) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     if (this.field.isKeyField()) {
@@ -528,8 +555,10 @@ export class RelationFilter implements Filter {
 /**
  * Filter that matches 'null' values.
  */
-export class NullFilter implements Filter {
-  constructor(public field: FieldPath) {}
+export class NullFilter extends Filter {
+  constructor(public field: FieldPath) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     const val = doc.field(this.field);
@@ -556,8 +585,10 @@ export class NullFilter implements Filter {
 /**
  * Filter that matches 'NaN' values.
  */
-export class NanFilter implements Filter {
-  constructor(public field: FieldPath) {}
+export class NanFilter extends Filter {
+  constructor(public field: FieldPath) {
+    super();
+  }
 
   matches(doc: Document): boolean {
     const val = doc.field(this.field).value();
@@ -578,35 +609,6 @@ export class NanFilter implements Filter {
     } else {
       return false;
     }
-  }
-}
-
-/**
- * Creates a filter based on the provided arguments.
- */
-export function fieldFilter(
-  field: FieldPath,
-  op: RelationOp,
-  value: FieldValue
-): Filter {
-  if (value.isEqual(NullValue.INSTANCE)) {
-    if (op !== RelationOp.EQUAL) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. You can only perform equals ' + 'comparisons on null.'
-      );
-    }
-    return new NullFilter(field);
-  } else if (value.isEqual(DoubleValue.NAN)) {
-    if (op !== RelationOp.EQUAL) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Invalid query. You can only perform equals ' + 'comparisons on NaN.'
-      );
-    }
-    return new NanFilter(field);
-  } else {
-    return new RelationFilter(field, op, value);
   }
 }
 

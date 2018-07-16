@@ -21,9 +21,8 @@ import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc, withTestDb } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 
-// TODO(array-features): Remove "as any"
-// tslint:disable-next-line:no-any variable-name Type alias can be capitalized.
-const FieldValue = firebase.firestore.FieldValue as any;
+// tslint:disable-next-line:variable-name Type alias can be capitalized.
+const FieldValue = firebase.firestore.FieldValue;
 
 /**
  * Note: Transforms are tested pretty thoroughly in server_timestamp.test.ts
@@ -31,10 +30,7 @@ const FieldValue = firebase.firestore.FieldValue as any;
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-// TODO(array-features): Enable these tests once the feature is available in
-// prod. For now you can run these tests using:
-// yarn test:browser --integration --local
-apiDescribe.skip('Array Transforms:', persistence => {
+apiDescribe('Array Transforms:', persistence => {
   // A document reference to read and write to.
   let docRef: firestore.DocumentReference;
 
@@ -87,7 +83,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
 
   it('create document with arrayUnion()', async () => {
     await withTestSetup(async () => {
-      await docRef.set({ array: FieldValue._arrayUnion(1, 2) });
+      await docRef.set({ array: FieldValue.arrayUnion(1, 2) });
       expectLocalAndRemoteEvent({ array: [1, 2] });
     });
   });
@@ -95,7 +91,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
   it('append to array via update()', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [1, 3] });
-      await docRef.update({ array: FieldValue._arrayUnion(2, 1, 4) });
+      await docRef.update({ array: FieldValue.arrayUnion(2, 1, 4) });
       await expectLocalAndRemoteEvent({ array: [1, 3, 2, 4] });
     });
   });
@@ -104,7 +100,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [1, 3] });
       await docRef.set(
-        { array: FieldValue._arrayUnion(2, 1, 4) },
+        { array: FieldValue.arrayUnion(2, 1, 4) },
         { merge: true }
       );
       await expectLocalAndRemoteEvent({ array: [1, 3, 2, 4] });
@@ -115,7 +111,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [{ a: 'hi' }] });
       await docRef.update({
-        array: FieldValue._arrayUnion({ a: 'hi' }, { a: 'bye' })
+        array: FieldValue.arrayUnion({ a: 'hi' }, { a: 'bye' })
       });
       await expectLocalAndRemoteEvent({ array: [{ a: 'hi' }, { a: 'bye' }] });
     });
@@ -124,7 +120,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
   it('remove from array via update()', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [1, 3, 1, 3] });
-      await docRef.update({ array: FieldValue._arrayRemove(1, 4) });
+      await docRef.update({ array: FieldValue.arrayRemove(1, 4) });
       await expectLocalAndRemoteEvent({ array: [3, 3] });
     });
   });
@@ -133,7 +129,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [1, 3, 1, 3] });
       await docRef.set(
-        { array: FieldValue._arrayRemove(1, 4) },
+        { array: FieldValue.arrayRemove(1, 4) },
         { merge: true }
       );
       await expectLocalAndRemoteEvent({ array: [3, 3] });
@@ -143,7 +139,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
   it('remove object from array via update()', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ array: [{ a: 'hi' }, { a: 'bye' }] });
-      await docRef.update({ array: FieldValue._arrayRemove({ a: 'hi' }) });
+      await docRef.update({ array: FieldValue.arrayRemove({ a: 'hi' }) });
       await expectLocalAndRemoteEvent({ array: [{ a: 'bye' }] });
     });
   });
@@ -158,7 +154,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
   (persistence ? describe : describe.skip)('Server Application: ', () => {
     it('set() with no cached base doc', async () => {
       await withTestDoc(persistence, async docRef => {
-        await docRef.set({ array: FieldValue._arrayUnion(1, 2) });
+        await docRef.set({ array: FieldValue.arrayUnion(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
         expect(snapshot.data()).to.deep.equal({ array: [1, 2] });
       });
@@ -175,7 +171,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
 
       await withTestDb(persistence, async db => {
         const docRef = db.doc(path);
-        await docRef.update({ array: FieldValue._arrayUnion(1, 2) });
+        await docRef.update({ array: FieldValue.arrayUnion(1, 2) });
 
         // Nothing should be cached since it was an update and we had no base
         // doc.
@@ -202,7 +198,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
       await withTestDb(persistence, async db => {
         const docRef = db.doc(path);
         await docRef.set(
-          { array: FieldValue._arrayUnion(1, 2) },
+          { array: FieldValue.arrayUnion(1, 2) },
           { merge: true }
         );
 
@@ -215,7 +211,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
     it('update() with cached base doc using arrayUnion()', async () => {
       await withTestDoc(persistence, async docRef => {
         await docRef.set({ array: [42] });
-        await docRef.update({ array: FieldValue._arrayUnion(1, 2) });
+        await docRef.update({ array: FieldValue.arrayUnion(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
         expect(snapshot.data()).to.deep.equal({ array: [42, 1, 2] });
       });
@@ -224,7 +220,7 @@ apiDescribe.skip('Array Transforms:', persistence => {
     it('update() with cached base doc using arrayRemove()', async () => {
       await withTestDoc(persistence, async docRef => {
         await docRef.set({ array: [42, 1, 2] });
-        await docRef.update({ array: FieldValue._arrayRemove(1, 2) });
+        await docRef.update({ array: FieldValue.arrayRemove(1, 2) });
         const snapshot = await docRef.get({ source: 'cache' });
         expect(snapshot.data()).to.deep.equal({ array: [42] });
       });

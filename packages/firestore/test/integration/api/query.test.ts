@@ -24,8 +24,7 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
-  withTestCollection,
-  arrayContainsOp
+  withTestCollection
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
@@ -536,9 +535,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // TODO(array-features): Enable once backend support lands.
-  // tslint:disable-next-line:ban
-  it.skip('can use array-contains filters', async () => {
+  it('can use array-contains filters', async () => {
     const testDocs = {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
@@ -548,26 +545,10 @@ apiDescribe('Queries', persistence => {
 
     await withTestCollection(persistence, testDocs, async coll => {
       // Search for 42
-      let snapshot = await coll.where('array', arrayContainsOp, 42).get();
+      const snapshot = await coll.where('array', 'array-contains', 42).get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { array: [42] },
         { array: ['a', 42, 'c'] },
-        { array: [42], array2: ['bingo'] }
-      ]);
-
-      // Search for "array" to contain both @42 and "a".
-      snapshot = await coll
-        .where('array', arrayContainsOp, 42)
-        .where('array', arrayContainsOp, 'a')
-        .get();
-      expect(toDataArray(snapshot)).to.deep.equal([{ array: ['a', 42, 'c'] }]);
-
-      // Search two different array fields ("array" contains 42 and "array2" contains "bingo").
-      snapshot = await coll
-        .where('array', arrayContainsOp, 42)
-        .where('array2', arrayContainsOp, 'bingo')
-        .get();
-      expect(toDataArray(snapshot)).to.deep.equal([
         { array: [42], array2: ['bingo'] }
       ]);
 
