@@ -271,19 +271,14 @@ describeSpec('Listens:', [], () => {
         // (the document falls out) and send us a snapshot that's ahead of
         // docAv3 (which is already in our cache).
         .userListens(visibleQuery, 'resume-token-1000')
-        .watchAcks(visibleQuery)
-        .watchSends({ affects: [visibleQuery] }, docAv2)
-        .watchSnapshots(5000)
-        .watchSends({ affects: [visibleQuery] }, docAv3)
-        .watchCurrents(visibleQuery, 'resume-token-5000')
-        .watchSnapshots(6000)
+        .watchAcksFull(visibleQuery, 5000, docAv2)
         .expectEvents(visibleQuery, { fromCache: false })
         .userUnlistens(visibleQuery)
         .watchRemoves(visibleQuery)
         // Listen to allQuery again and make sure we still get docAv3.
         .userListens(allQuery, 'resume-token-4000')
         .expectEvents(allQuery, { added: [docAv3], fromCache: true })
-        .watchAcksFull(allQuery, 7000)
+        .watchAcksFull(allQuery, 6000)
         .expectEvents(allQuery, { fromCache: false })
     );
   });
