@@ -26,7 +26,7 @@ import {
   DocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
@@ -467,8 +467,13 @@ export class LocalStore {
             // cache, though we make an exception for SnapshotVersion.MIN which
             // can happen for manufactured events (e.g. in the case of a limbo
             // document resolution failing).
+            //
+            // Also disregard any existing NoDocument. These documents can have
+            // synthesized versions based on read times after any actual
+            // committed version on the server.
             if (
               existingDoc == null ||
+              (existingDoc instanceof NoDocument) ||
               doc.version.isEqual(SnapshotVersion.MIN) ||
               doc.version.compareTo(existingDoc.version) >= 0
             ) {
