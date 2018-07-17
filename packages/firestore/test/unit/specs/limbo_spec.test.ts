@@ -236,10 +236,7 @@ describeSpec('Limbo Documents:', [], () => {
         .watchAcks(docBQuery)
         .watchSends({ affects: [docBQuery] }, docB)
 
-        // TODO(b/72533250): If you uncomment this totally valid watch
-        // snapshot, then the test fails because the subsequent CURRENT below
-        // is turned into a delete of docB.
-        //.watchSnapshots(2000)
+        .watchSnapshots(2000)
 
         // Additionally CURRENT the query (should have no effect)
         .watchCurrents(docBQuery, 'resume-token-3000')
