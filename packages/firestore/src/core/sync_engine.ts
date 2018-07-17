@@ -504,16 +504,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
     } else if (batchState === 'acknowledged' || batchState === 'rejected') {
-      if (this.isPrimary) {
-        // If we receive a notification of an `acknowledged` or `rejected` batch
-        // via Web Storage, we are either already secondary or another tab has
-        // taken the primary lease.
-        log.debug(
-          LOG_TAG,
-          'Unexpectedly received mutation batch notification when already primary. Releasing primary lease.'
-        );
-        await this.applyPrimaryState(false);
-      }
+      // if (this.isPrimary) {
+      //   // If we receive a notification of an `acknowledged` or `rejected` batch
+      //   // via Web Storage, we are either already secondary or another tab has
+      //   // taken the primary lease.
+      //   log.debug(
+      //     LOG_TAG,
+      //     'Unexpectedly received mutation batch notification when already primary. Releasing primary lease.'
+      //   );
+      //   await this.applyPrimaryState(false);
+      // }
 
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
@@ -842,6 +842,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       await this.remoteStore.disableNetwork();
       objUtils.forEachNumber(this.queryViewsByTarget, targetId => {
         // TODO(multitab): Remove query views for non-local queries.
+
+        const queryView = this.queryViewsByTarget[targetId];
+        const viewChange = queryView.view.clearLimboDocuments();
+        if (viewChange.snapshot) {
+          this.viewHandler!([viewChange.snapshot]);
+        }
         this.remoteStore.unlisten(targetId);
       });
     }
@@ -858,15 +864,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
-    if (this.isPrimary) {
-      // If we receive a target state notification via Web Storage, we are
-      // either already secondary or another tab has taken the primary lease.
-      log.debug(
-        LOG_TAG,
-        'Unexpectedly received query state notification when already primary. Releasing primary lease.'
-      );
-      await this.applyPrimaryState(false);
-    }
+    // if (this.isPrimary) {
+    //   // If we receive a target state notification via Web Storage, we are
+    //   // either already secondary or another tab has taken the primary lease.
+    //   log.debug(
+    //     LOG_TAG,
+    //     'Unexpectedly received query state notification when already primary. Releasing primary lease.'
+    //   );
+    //   await this.applyPrimaryState(false);
+    // }
 
     if (this.queryViewsByTarget[targetId]) {
       switch (state) {

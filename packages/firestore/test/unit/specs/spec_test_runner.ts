@@ -950,7 +950,10 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('isPrimary' in expectation) {
-        expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
+        expect(this.syncEngine.isPrimaryClient).to.eq(
+          expectation.isPrimary!,
+          'isPrimary'
+        );
       }
       if ('userCallbacks' in expectation) {
         expect(this.acknowledgedDocs).to.have.members(

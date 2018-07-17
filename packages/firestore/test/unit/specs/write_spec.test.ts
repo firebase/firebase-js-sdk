@@ -1128,35 +1128,43 @@ describeSpec('Writes:', [], () => {
       });
   });
 
-  specTest('Mutation recovers after primary takeover', ['multi-client'], () => {
-    const query = Query.atPath(path('collection'));
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { k: 'a' },
-      { hasLocalMutations: true }
-    );
-    const docA = doc('collection/a', 1000, { k: 'a' });
+  specTest(
+    'Mutation recovers after primary takeover',
+    ['exclusive', 'multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docALocal = doc(
+        'collection/a',
+        0,
+        { k: 'a' },
+        { hasLocalMutations: true }
+      );
+      const docA = doc('collection/a', 1000, { k: 'a' });
 
-    return client(0)
-      .expectPrimaryState(true)
-      .userSets('collection/a', { k: 'a' })
-      .client(1)
-      .userListens(query)
-      .expectEvents(query, {
-        added: [docALocal],
-        hasPendingWrites: true,
-        fromCache: true
-      })
-      .stealPrimaryLease()
-      .writeAcks('collection/a', 1000, { expectUserCallback: false })
-      .watchAcksFull(query, 1000, docA)
-      .expectEvents(query, { metadata: [docA] })
-      .client(0)
-      .expectUserCallbacks({
-        acknowledged: ['collection/a']
-      });
-  });
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .userSets('collection/a', { k: 'a' })
+          .client(1)
+          .userListens(query)
+          .expectEvents(query, {
+            added: [docALocal],
+            hasPendingWrites: true,
+            fromCache: true
+          })
+          .stealPrimaryLease()
+          .writeAcks('collection/a', 1000, { expectUserCallback: false })
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { metadata: [docA] })
+          // Client 0 sends the query into limbo since it doesn't know about docA
+          .expectEvents(query, { fromCache: true })
+          .client(0)
+          .expectUserCallbacks({
+            acknowledged: ['collection/a']
+          })
+      );
+    }
+  );
 
   specTest('Write is sent by newly started primary', ['multi-client'], () => {
     return client(0)

@@ -402,6 +402,31 @@ export class View {
       !this.mutatedKeys.isEmpty()
     );
   }
+
+  clearLimboDocuments(): ViewChange {
+    this.limboDocuments = documentKeySet();
+    const synced = this.current;
+    const newSyncState = synced ? SyncState.Synced : SyncState.Local;
+    const syncStateChanged = newSyncState !== this.syncState;
+
+    if (syncStateChanged) {
+      this.syncState = newSyncState;
+
+      const snap: ViewSnapshot = new ViewSnapshot(
+        this.query,
+        this.documentSet,
+        this.documentSet,
+        [],
+        this.syncState === SyncState.Local,
+        !this.mutatedKeys.isEmpty(),
+        syncStateChanged,
+        /* excludesMetadataChanges= */ false
+      );
+      return { snapshot: snap, limboChanges: [] };
+    } else {
+      return { limboChanges: [] };
+    }
+  }
 }
 
 function compareChangeType(c1: ChangeType, c2: ChangeType): number {
