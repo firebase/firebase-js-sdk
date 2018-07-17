@@ -283,6 +283,37 @@ describeSpec('Listens:', [], () => {
     );
   });
 
+  specTest('Deleted documents in cache are fixed', [], () => {
+    const allQuery = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { key: 'a' });
+    const docDeleted = deletedDoc('collection/a', 2000);
+
+    return (
+      spec()
+        // Presuppose an initial state where the remote document cache has a
+        // broken synthesized delete at a timestamp later than the true version
+        // of the document. This requires both adding and later removing the
+        // document in order to force the watch change aggregator to propagate
+        // the deletion.
+        .withGCEnabled(false)
+        .userListens(allQuery)
+        .watchAcksFull(allQuery, 1000, docAv1)
+        .expectEvents(allQuery, { added: [docAv1], fromCache: false })
+        .watchSends({ removed: [allQuery] }, docDeleted)
+        .watchSnapshots(2000, [allQuery], 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(allQuery, { removed: [docAv1], fromCache: false })
+        .userUnlistens(allQuery)
+        .watchRemoves(allQuery)
+
+        // Now when the client listens expect the cached NoDocument to be
+        // discarded because the global snapshot version exceeds what came before.
+        .userListens(allQuery, 'resume-token-2000')
+        .watchAcksFull(allQuery, 3000, docAv1)
+        .expectEvents(allQuery, { added: [docAv1], fromCache: false })
+    );
+  });
+
   specTest('Listens are reestablished after network disconnect', [], () => {
     const expectRequestCount = requestCounts =>
       requestCounts.addTarget + requestCounts.removeTarget;
