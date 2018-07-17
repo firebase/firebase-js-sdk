@@ -458,40 +458,6 @@ export class LocalStore {
         }
       );
 
-      let changedDocKeys = documentKeySet();
-      remoteEvent.documentUpdates.forEach((key, doc) => {
-        changedDocKeys = changedDocKeys.add(key);
-        promises.push(
-          documentBuffer.getEntry(txn, key).next(existingDoc => {
-            // Make sure we don't apply an old document version to the remote
-            // cache, though we make an exception for SnapshotVersion.MIN which
-            // can happen for manufactured events (e.g. in the case of a limbo
-            // document resolution failing).
-            if (
-              existingDoc == null ||
-              doc.version.isEqual(SnapshotVersion.MIN) ||
-              doc.version.compareTo(existingDoc.version) >= 0
-            ) {
-              documentBuffer.addEntry(doc);
-            } else {
-              log.debug(
-                LOG_TAG,
-                'Ignoring outdated watch update for ',
-                key,
-                '. Current version:',
-                existingDoc.version,
-                ' Watch version:',
-                doc.version
-              );
-            }
-
-            // The document might be garbage because it was unreferenced by
-            // everything. Make sure to mark it as garbage if it is...
-            this.garbageCollector.addPotentialGarbageKey(key);
-          })
-        );
-      });
-
       // HACK: The only reason we allow a null snapshot version is so that we
       // can synthesize remote events when we get permission denied errors while
       // trying to resolve the state of a locally cached document that is in
@@ -510,6 +476,13 @@ export class LocalStore {
           this.queryCache.setLastRemoteSnapshotVersion(txn, remoteVersion)
         );
       }
+
+      let changedDocKeys = documentKeySet();
+      remoteEvent.documentUpdates.forEach((key, doc) => {
+        changedDocKeys = changedDocKeys.add(key);
+        documentBuffer.addEntry(doc);
+        this.garbageCollector.addPotentialGarbageKey(key);
+      });
 
       let releasedWriteKeys: DocumentKeySet;
       return PersistencePromise.waitFor(promises)
