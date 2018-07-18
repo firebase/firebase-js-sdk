@@ -433,23 +433,18 @@ export class LocalStore {
           let queryData = this.targetIds[targetId];
           if (!queryData) return;
 
-          // When a change is current and contains updates (either add or
-          // modify) we can completely trust these updates as authoritative.
-          //
-          // If the change is not current, then watch may have issued a global
-          // snapshot even though still catching up on this target.
+          // When a global snapshot contains updates (either add or modify) we
+          // can completely trust these updates as authoritative.
           //
           // If the document is only updated while removing it from a target
           // then watch isn't obligated to send the absolute latest version: it
           // can send the first version that caused the document not to match.
-          if (change.current) {
-            change.addedDocuments.forEach(key => {
-              authoritativeUpdates = authoritativeUpdates.add(key);
-            });
-            change.modifiedDocuments.forEach(key => {
-              authoritativeUpdates = authoritativeUpdates.add(key);
-            });
-          }
+          change.addedDocuments.forEach(key => {
+            authoritativeUpdates = authoritativeUpdates.add(key);
+          });
+          change.modifiedDocuments.forEach(key => {
+            authoritativeUpdates = authoritativeUpdates.add(key);
+          });
 
           promises.push(
             this.queryCache
