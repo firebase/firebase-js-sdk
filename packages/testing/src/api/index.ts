@@ -23,7 +23,7 @@ import { base64 } from '@firebase/util';
 /** The default url for the local database emulator. */
 const DBURL = 'http://localhost:9000';
 /** Passing this in tells the emulator to treat you as an admin. */
-const ADMIN_TOKEN = "owner";
+const ADMIN_TOKEN = 'owner';
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
   // Unsecured JWTs use "none" as the algorithm.
@@ -33,7 +33,7 @@ function createUnsecuredJwt(auth: object): string {
   };
   (auth as any).iat = 0;
   // Unsecured JWTs use the empty string as a signature.
-  const signature = "";
+  const signature = '';
   return [
     base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
     base64.encodeString(JSON.stringify(auth), /*webSafe=*/ false),
