@@ -73,7 +73,7 @@ describe('Testing Module Tests', function() {
     expect(claims).to.equal('{"uid":"alice"}');
   });
 
-  it('initializeTestApp() with FirestoreAppOptions uses specified auth.', async function() {
+  it('initializeTestApp() uses specified auth.', async function() {
     let app = firebase.initializeTestApp({
       projectId: 'foo',
       auth: {}
