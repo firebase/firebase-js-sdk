@@ -26,7 +26,7 @@ import {
   DocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
@@ -425,12 +425,20 @@ export class LocalStore {
     const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
     return this.persistence.runTransaction('Apply remote event', txn => {
       const promises = [] as Array<PersistencePromise<void>>;
+      let updatedDocuments = documentKeySet();
       objUtils.forEachNumber(
         remoteEvent.targetChanges,
         (targetId: TargetId, change: TargetChange) => {
           // Do not ref/unref unassigned targetIds - it may lead to leaks.
           let queryData = this.targetIds[targetId];
           if (!queryData) return;
+
+          change.addedDocuments.forEach(key => {
+            updatedDocuments = updatedDocuments.add(key);
+          });
+          change.modifiedDocuments.forEach(key => {
+            updatedDocuments = updatedDocuments.add(key);
+          });
 
           promises.push(
             this.queryCache
@@ -473,8 +481,8 @@ export class LocalStore {
             // committed version on the server.
             if (
               existingDoc == null ||
-              (existingDoc instanceof NoDocument) ||
               doc.version.isEqual(SnapshotVersion.MIN) ||
+              updatedDocuments.has(doc.key) ||
               doc.version.compareTo(existingDoc.version) >= 0
             ) {
               documentBuffer.addEntry(doc);
