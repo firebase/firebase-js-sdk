@@ -332,7 +332,7 @@ export class SyncEngine implements RemoteSyncer {
         );
         if (targetChange.addedDocuments.size > 0) {
           limboResolution.receivedDocument = true;
-        } else if (targetChange.removedDocuments.size > 0) {
+        } else if (targetChange.modifiedDocuments.size > 0) {
           assert(
             limboResolution.receivedDocument,
             'Received change for limbo target document without add.'
