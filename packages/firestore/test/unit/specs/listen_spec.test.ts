@@ -815,14 +815,12 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, { added: [docB] });
   });
 
-  specTest('Query recovers after primary takeover', ['multi-client'], () => {
+  specTest('Query recovers after primary takeover', ['exclusive','multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
     const docC = doc('collection/c', 3000, { key: 'c' });
 
-    // TODO(multitab): Once #994 is merged, the query in this test should flip
-    // back to `fromCache:false` even without docC
     return (
       client(0)
         .expectPrimaryState(true)
@@ -836,19 +834,17 @@ describeSpec('Listens:', [], () => {
         .expectListen(query, 'resume-token-1000')
         .watchAcksFull(query, 2000, docB)
         .expectEvents(query, { added: [docB] })
-        // Client 0 sends the query into limbo since it does not know about docB,
-        // but it still thinks it is primary.
-        .expectEvents(query, { fromCache: true })
         .client(0)
-        .expectEvents(query, { added: [docB], fromCache: true })
-        .expectLimboDocs(docB.key)
+        // Client 0 ignores all events until it transitions to secondary
         .client(1)
         .watchSends({ affects: [query] }, docC)
         .watchSnapshots(3000)
         .expectEvents(query, { added: [docC] })
         .client(0)
+          .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
-        .expectEvents(query, { added: [docC] })
+        .expectEvents(query, { fromCache: true})
+          .expectEvents(query, { added: [docB, docC], fromCache:true })
     );
   });
 

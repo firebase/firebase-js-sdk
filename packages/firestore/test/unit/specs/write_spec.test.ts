@@ -1130,7 +1130,7 @@ describeSpec('Writes:', [], () => {
 
   specTest(
     'Mutation recovers after primary takeover',
-    ['exclusive', 'multi-client'],
+    ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(
@@ -1156,8 +1156,6 @@ describeSpec('Writes:', [], () => {
           .writeAcks('collection/a', 1000, { expectUserCallback: false })
           .watchAcksFull(query, 1000, docA)
           .expectEvents(query, { metadata: [docA] })
-          // Client 0 sends the query into limbo since it doesn't know about docA
-          .expectEvents(query, { fromCache: true })
           .client(0)
           .expectUserCallbacks({
             acknowledged: ['collection/a']

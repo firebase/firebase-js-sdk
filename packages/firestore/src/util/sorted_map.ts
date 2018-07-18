@@ -16,6 +16,7 @@
 
 import { assert, fail } from './assert';
 import { AnyJs } from './misc';
+import {SortedSet} from './sorted_set';
 
 /*
  * Implementation of an immutable SortedMap using a Left-leaning

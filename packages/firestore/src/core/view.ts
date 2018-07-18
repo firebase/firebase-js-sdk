@@ -384,8 +384,19 @@ export class View {
   }
 
   // PORTING NOTE: Multi-tab only.
-  synchronizeWithRemoteKeys(remoteKeys: DocumentKeySet): void {
-    this._syncedDocuments = remoteKeys;
+  synchronizeWithRemoteDocuments(remoteDocs: MaybeDocumentMap): ViewChange {
+
+    this.limboDocuments = documentKeySet();
+    const docChanges = this.computeDocChanges(remoteDocs);
+    const viewChange =  this.applyChanges(docChanges, false);
+
+    let keys = documentKeySet();
+
+    remoteDocs.forEach(key => {
+      keys = keys.add(key);
+    });
+    this._syncedDocuments = keys;
+    return viewChange;
   }
 
   /**
