@@ -434,7 +434,10 @@ export class LocalStore {
           if (!queryData) return;
 
           // When a global snapshot contains updates (either add or modify) we
-          // can completely trust these updates as authoritative.
+          // can completely trust these updates as authoritative and blindly
+          // apply them to our cache (as a defensive measure to promote
+          // self-healing in the unfortunate case that our cache is ever somehow
+          // corrupted / out-of-sync).
           //
           // If the document is only updated while removing it from a target
           // then watch isn't obligated to send the absolute latest version: it

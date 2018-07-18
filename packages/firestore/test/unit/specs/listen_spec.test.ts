@@ -334,6 +334,8 @@ describeSpec('Listens:', [], () => {
 
   specTest('Deleted documents in cache are fixed', [], () => {
     const allQuery = Query.atPath(path('collection'));
+    const setupQuery = allQuery.addFilter(filter('key', '==', 'a'));
+
     const docAv1 = doc('collection/a', 1000, { key: 'a' });
     const docDeleted = deletedDoc('collection/a', 2000);
 
@@ -345,19 +347,20 @@ describeSpec('Listens:', [], () => {
         // document in order to force the watch change aggregator to propagate
         // the deletion.
         .withGCEnabled(false)
-        .userListens(allQuery)
-        .watchAcksFull(allQuery, 1000, docAv1)
-        .expectEvents(allQuery, { added: [docAv1], fromCache: false })
-        .watchSends({ removed: [allQuery] }, docDeleted)
-        .watchSnapshots(2000, [allQuery], 'resume-token-2000')
+        .userListens(setupQuery)
+        .watchAcksFull(setupQuery, 1000, docAv1)
+        .expectEvents(setupQuery, { added: [docAv1], fromCache: false })
+        .watchSends({ removed: [setupQuery] }, docDeleted)
+        .watchSnapshots(2000, [setupQuery], 'resume-token-2000')
         .watchSnapshots(2000)
-        .expectEvents(allQuery, { removed: [docAv1], fromCache: false })
-        .userUnlistens(allQuery)
-        .watchRemoves(allQuery)
+        .expectEvents(setupQuery, { removed: [docAv1], fromCache: false })
+        .userUnlistens(setupQuery)
+        .watchRemoves(setupQuery)
 
         // Now when the client listens expect the cached NoDocument to be
-        // discarded because the global snapshot version exceeds what came before.
-        .userListens(allQuery, 'resume-token-2000')
+        // discarded because the global snapshot version exceeds what came
+        // before.
+        .userListens(allQuery)
         .watchAcksFull(allQuery, 3000, docAv1)
         .expectEvents(allQuery, { added: [docAv1], fromCache: false })
     );

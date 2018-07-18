@@ -443,9 +443,6 @@ abstract class TestRunner {
   }
 
   private doStep(step: SpecStep): Promise<void> {
-    // tslint:disable-next-line:no-console
-    console.log('  step: ' + JSON.stringify(step));
-
     if ('userListen' in step) {
       return this.doListen(step.userListen!);
     } else if ('userUnlisten' in step) {
