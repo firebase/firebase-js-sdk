@@ -279,209 +279,63 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
 
-  interface PrimaryStateTestCases {
-    thisClient: { networkEnabled: boolean; visibilityState: VisibilityState };
-    thatClient: { networkEnabled: boolean; visibilityState: VisibilityState };
-    expectedPrimaryState: boolean;
-  }
+  const visible: VisibilityState = 'visible';
+  const hidden: VisibilityState = 'hidden';
+  const networkEnabled = true;
+  const networkDisabled = false;
+  const primary = true;
+  const secondary = false;
 
-  const testCases: PrimaryStateTestCases[] = [
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'hidden'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: false,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: false
-    },
-    {
-      thatClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      thisClient: {
-        networkEnabled: true,
-        visibilityState: 'visible'
-      },
-      expectedPrimaryState: true
-    }
+  type ExpectedPrimaryStateTestCase = [
+    boolean,
+    VisibilityState,
+    boolean,
+    VisibilityState,
+    boolean
+  ];
+
+  const testCases: ExpectedPrimaryStateTestCase[] = [
+    [networkDisabled, hidden, networkDisabled, hidden, primary],
+    [networkDisabled, hidden, networkDisabled, visible, primary],
+    [networkDisabled, hidden, networkEnabled, hidden, primary],
+    [networkDisabled, hidden, networkEnabled, visible, primary],
+    [networkDisabled, visible, networkDisabled, hidden, secondary],
+    [networkDisabled, visible, networkDisabled, visible, primary],
+    [networkDisabled, visible, networkEnabled, hidden, primary],
+    [networkDisabled, visible, networkEnabled, visible, primary],
+    [networkEnabled, hidden, networkDisabled, hidden, secondary],
+    [networkEnabled, hidden, networkDisabled, visible, secondary],
+    [networkEnabled, hidden, networkEnabled, hidden, primary],
+    [networkEnabled, hidden, networkEnabled, visible, primary],
+    [networkEnabled, visible, networkDisabled, hidden, secondary],
+    [networkEnabled, visible, networkDisabled, visible, secondary],
+    [networkEnabled, visible, networkEnabled, hidden, secondary],
+    [networkEnabled, visible, networkEnabled, visible, primary]
   ];
 
   for (const testCase of testCases) {
+    const [
+      thatNetwork,
+      thatVisibility,
+      thisNetwork,
+      thisVisibility,
+      primaryState
+    ] = testCase;
     const testName = `is ${
-      testCase.expectedPrimaryState ? 'eligible' : 'not eligible'
+      primaryState ? 'eligible' : 'not eligible'
     } when client is ${
-      testCase.thisClient.networkEnabled ? 'online' : 'offline'
-    } and ${testCase.thisClient.visibilityState} and other client is ${
-      testCase.thatClient.networkEnabled ? 'online' : 'offline'
-    } and ${testCase.thatClient.visibilityState}`;
+      thisNetwork ? 'online' : 'offline'
+    } and ${thisVisibility} and other client is ${
+      thatNetwork ? 'online' : 'offline'
+    } and ${thatVisibility}`;
 
     it(testName, () => {
       return withPersistence(
         'thatClient',
         async (thatPersistence, thatPlatform, thatQueue) => {
           await thatPersistence.start();
-          thatPlatform.raiseVisibilityEvent(
-            testCase.thatClient.visibilityState
-          );
-          thatPersistence.setNetworkEnabled(testCase.thatClient.networkEnabled);
+          thatPlatform.raiseVisibilityEvent(thatVisibility);
+          thatPersistence.setNetworkEnabled(thatNetwork);
           await thatQueue.drain();
 
           // Clear the current primary holder, since our logic will not revoke
@@ -492,12 +346,8 @@ describe('IndexedDb: canActAsPrimary', () => {
             'thisClient',
             async (thisPersistence, thisPlatform, thisQueue) => {
               await thisPersistence.start();
-              thisPlatform.raiseVisibilityEvent(
-                testCase.thisClient.visibilityState
-              );
-              thisPersistence.setNetworkEnabled(
-                testCase.thisClient.networkEnabled
-              );
+              thisPlatform.raiseVisibilityEvent(thisVisibility);
+              thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
 
               let isPrimary: boolean;
@@ -506,7 +356,7 @@ describe('IndexedDb: canActAsPrimary', () => {
                   isPrimary = primaryState;
                 }
               );
-              expect(isPrimary).to.eq(testCase.expectedPrimaryState);
+              expect(isPrimary).to.eq(primaryState);
             }
           );
         }

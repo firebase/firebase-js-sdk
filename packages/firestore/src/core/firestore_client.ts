@@ -379,7 +379,7 @@ export class FirestoreClient {
         const sharedClientStateOnlineStateChangedHandler = onlineState =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
-            OnlineStateSource.RemoteStore
+            OnlineStateSource.SharedClientState
           );
 
         this.remoteStore = new RemoteStore(

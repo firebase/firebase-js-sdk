@@ -717,7 +717,7 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest(
-    'New client becomes primary if no client is online',
+    'New client becomes primary if no client has its network enabled',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));

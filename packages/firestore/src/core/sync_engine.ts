@@ -902,12 +902,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   enableNetwork(): Promise<void> {
-    this.localStore.enableNetwork();
+    this.localStore.setNetworkEnabled(true);
     return this.remoteStore.enableNetwork();
   }
 
   disableNetwork(): Promise<void> {
-    this.localStore.disableNetwork();
+    this.localStore.setNetworkEnabled(false);
     return this.remoteStore.disableNetwork();
   }
 

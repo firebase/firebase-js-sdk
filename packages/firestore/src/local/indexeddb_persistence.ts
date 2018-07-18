@@ -241,8 +241,10 @@ export class IndexedDbPersistence implements Persistence {
         )
         .next(() => this.canActAsPrimary(txn))
         .next(canActAsPrimary => {
-          if (canActAsPrimary !== this.isPrimary) {
-            this.isPrimary = canActAsPrimary;
+          const wasPrimary = this.isPrimary;
+          this.isPrimary = canActAsPrimary;
+
+          if (wasPrimary !== this.isPrimary) {
             this.queue.enqueue(async () => {
               // Verify that `shutdown()` hasn't been called yet by the time
               // we invoke the `primaryStateListener`.
@@ -250,12 +252,10 @@ export class IndexedDbPersistence implements Persistence {
                 return this.primaryStateListener(this.isPrimary);
               }
             });
+          }
 
-            if (this.isPrimary) {
-              return this.acquireOrExtendPrimaryLease(txn);
-            } else {
-              return this.releasePrimaryLeaseIfHeld(txn);
-            }
+          if (wasPrimary && !this.isPrimary) {
+            return this.releasePrimaryLeaseIfHeld(txn);
           } else if (this.isPrimary) {
             return this.acquireOrExtendPrimaryLease(txn);
           }
@@ -362,12 +362,12 @@ export class IndexedDbPersistence implements Persistence {
                 !this.networkEnabled && otherClient.networkEnabled;
               const otherClientHasBetterVisibility =
                 !this.inForeground && otherClient.inForeground;
-              const otherClientHasSameOnlineState =
+              const otherClientHasSameNetworkState =
                 this.networkEnabled === otherClient.networkEnabled;
               if (
                 otherClientHasBetterNetworkState ||
                 (otherClientHasBetterVisibility &&
-                  otherClientHasSameOnlineState)
+                  otherClientHasSameNetworkState)
               ) {
                 canActAsPrimary = false;
                 control.done();

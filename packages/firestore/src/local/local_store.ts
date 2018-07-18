@@ -811,13 +811,8 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  enableNetwork(): void {
-    this.persistence.setNetworkEnabled(true);
-  }
-
-  // PORTING NOTE: Multi-tab only.
-  disableNetwork(): void {
-    this.persistence.setNetworkEnabled(false);
+  setNetworkEnabled(networkEnabled: boolean): void {
+    this.persistence.setNetworkEnabled(networkEnabled);
   }
 
   private releaseHeldBatchResults(

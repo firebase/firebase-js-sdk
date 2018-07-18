@@ -114,6 +114,12 @@ export class RemoteStore implements TargetMetadataProvider {
   private writeStream: PersistentWriteStream = null;
   private watchChangeAggregator: WatchChangeAggregator = null;
 
+  /**
+   * Set to true by enableNetwork() and false by disableNetwork() and indicates
+   * the user-preferred network state. A network connection is only established
+   * if `networkAllowed` is true, the client is primary and there are
+   * outstanding mutations or active listens.
+   */
   private networkAllowed = true;
   private isPrimary = false;
 
@@ -152,33 +158,35 @@ export class RemoteStore implements TargetMetadataProvider {
       (this.watchStream == null) === (this.writeStream == null),
       'WatchStream and WriteStream should both be null or non-null'
     );
-    return this.isPrimary && this.watchStream != null;
+    return this.watchStream != null;
   }
 
   /** Re-enables the network. Idempotent. */
-  enableNetwork(): Promise<void> {
-    if (this.isNetworkEnabled()) {
-      return Promise.resolve();
-    }
-
+  async enableNetwork(): Promise<void> {
     this.networkAllowed = true;
 
-    // Create new streams (but note they're not started yet).
-    this.watchStream = this.datastore.newPersistentWatchStream();
-    this.writeStream = this.datastore.newPersistentWriteStream();
-
-    // Load any saved stream token from persistent storage
-    return this.localStore.getLastStreamToken().then(token => {
-      this.writeStream.lastStreamToken = token;
-
-      if (this.shouldStartWatchStream()) {
-        this.startWatchStream();
-      } else {
-        this.onlineStateTracker.set(OnlineState.Unknown);
+    if (this.isPrimary) {
+      if (this.isNetworkEnabled()) {
+        return;
       }
 
-      return this.fillWritePipeline(); // This may start the writeStream.
-    });
+      // Create new streams (but note they're not started yet).
+      this.watchStream = this.datastore.newPersistentWatchStream();
+      this.writeStream = this.datastore.newPersistentWriteStream();
+
+      // Load any saved stream token from persistent storage
+      return this.localStore.getLastStreamToken().then(token => {
+        this.writeStream.lastStreamToken = token;
+
+        if (this.shouldStartWatchStream()) {
+          this.startWatchStream();
+        } else {
+          this.onlineStateTracker.set(OnlineState.Unknown);
+        }
+
+        return this.fillWritePipeline(); // This may start the writeStream.
+      });
+    }
   }
 
   /**
