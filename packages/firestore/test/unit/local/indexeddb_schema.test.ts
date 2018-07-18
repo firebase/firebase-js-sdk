@@ -22,9 +22,12 @@ import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
+  DbOwner,
+  DbOwnerKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
+  SCHEMA_VERSION,
   V1_STORES,
   V2_STORES,
   V3_STORES
@@ -36,6 +39,7 @@ import { DatabaseId } from '../../../src/core/database_info';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 
 const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
 const INDEXEDDB_TEST_DATABASE =
@@ -74,21 +78,31 @@ function withDb(
 
 async function withPersistence(
   clientId: ClientId,
-  fn: (persistence: IndexedDbPersistence) => Promise<void>
+  fn: (
+    persistence: IndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
 ): Promise<void> {
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
+
+  const queue = new AsyncQueue();
+  const platform = new TestPlatform(
+    PlatformSupport.getPlatform(),
+    new SharedFakeWebStorage()
+  );
   const persistence = new IndexedDbPersistence(
     INDEXEDDB_TEST_DATABASE_PREFIX,
     clientId,
-    PlatformSupport.getPlatform(),
-    new AsyncQueue(),
+    platform,
+    queue,
     serializer
   );
 
-  await fn(persistence);
+  await fn(persistence, platform, queue);
   await persistence.shutdown();
 }
 
@@ -237,6 +251,132 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         });
       })
     );
+  });
+});
+
+describe('IndexedDb: canActAsPrimary', () => {
+  if (!IndexedDbPersistence.isAvailable()) {
+    console.warn('No IndexedDB. Skipping canActAsPrimary() tests.');
+    return;
+  }
+
+  async function clearOwner(): Promise<void> {
+    const simpleDb = await SimpleDb.openOrCreate(
+      INDEXEDDB_TEST_DATABASE,
+      SCHEMA_VERSION,
+      createOrUpgradeDb
+    );
+    await simpleDb.runTransaction('readwrite', [DbOwner.store], txn => {
+      const ownerStore = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+      return ownerStore.delete('owner');
+    });
+    simpleDb.close();
+  }
+
+  beforeEach(() => {
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE);
+  });
+
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+
+  const visible: VisibilityState = 'visible';
+  const hidden: VisibilityState = 'hidden';
+  const networkEnabled = true;
+  const networkDisabled = false;
+  const primary = true;
+  const secondary = false;
+
+  type ExpectedPrimaryStateTestCase = [
+    boolean,
+    VisibilityState,
+    boolean,
+    VisibilityState,
+    boolean
+  ];
+
+  const testCases: ExpectedPrimaryStateTestCase[] = [
+    [networkDisabled, hidden, networkDisabled, hidden, primary],
+    [networkDisabled, hidden, networkDisabled, visible, primary],
+    [networkDisabled, hidden, networkEnabled, hidden, primary],
+    [networkDisabled, hidden, networkEnabled, visible, primary],
+    [networkDisabled, visible, networkDisabled, hidden, secondary],
+    [networkDisabled, visible, networkDisabled, visible, primary],
+    [networkDisabled, visible, networkEnabled, hidden, primary],
+    [networkDisabled, visible, networkEnabled, visible, primary],
+    [networkEnabled, hidden, networkDisabled, hidden, secondary],
+    [networkEnabled, hidden, networkDisabled, visible, secondary],
+    [networkEnabled, hidden, networkEnabled, hidden, primary],
+    [networkEnabled, hidden, networkEnabled, visible, primary],
+    [networkEnabled, visible, networkDisabled, hidden, secondary],
+    [networkEnabled, visible, networkDisabled, visible, secondary],
+    [networkEnabled, visible, networkEnabled, hidden, secondary],
+    [networkEnabled, visible, networkEnabled, visible, primary]
+  ];
+
+  for (const testCase of testCases) {
+    const [
+      thatNetwork,
+      thatVisibility,
+      thisNetwork,
+      thisVisibility,
+      primaryState
+    ] = testCase;
+    const testName = `is ${
+      primaryState ? 'eligible' : 'not eligible'
+    } when client is ${
+      thisNetwork ? 'online' : 'offline'
+    } and ${thisVisibility} and other client is ${
+      thatNetwork ? 'online' : 'offline'
+    } and ${thatVisibility}`;
+
+    it(testName, () => {
+      return withPersistence(
+        'thatClient',
+        async (thatPersistence, thatPlatform, thatQueue) => {
+          await thatPersistence.start();
+          thatPlatform.raiseVisibilityEvent(thatVisibility);
+          thatPersistence.setNetworkEnabled(thatNetwork);
+          await thatQueue.drain();
+
+          // Clear the current primary holder, since our logic will not revoke
+          // the lease until it expires.
+          await clearOwner();
+
+          await withPersistence(
+            'thisClient',
+            async (thisPersistence, thisPlatform, thisQueue) => {
+              await thisPersistence.start();
+              thisPlatform.raiseVisibilityEvent(thisVisibility);
+              thisPersistence.setNetworkEnabled(thisNetwork);
+              await thisQueue.drain();
+
+              let isPrimary: boolean;
+              await thisPersistence.setPrimaryStateListener(
+                async primaryState => {
+                  isPrimary = primaryState;
+                }
+              );
+              expect(isPrimary).to.eq(primaryState);
+            }
+          );
+        }
+      );
+    });
+  }
+
+  it('is eligible when only client', () => {
+    return withPersistence('clientA', async (persistence, platform, queue) => {
+      await persistence.start();
+      platform.raiseVisibilityEvent('hidden');
+      persistence.setNetworkEnabled(false);
+      await queue.drain();
+
+      let isPrimary: boolean;
+      await persistence.setPrimaryStateListener(async primaryState => {
+        isPrimary = primaryState;
+      });
+      expect(isPrimary).to.be.true;
+    });
   });
 });
 

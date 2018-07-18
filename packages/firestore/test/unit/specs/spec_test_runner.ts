@@ -29,6 +29,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   OnlineState,
+  OnlineStateSource,
   ProtoByteString,
   TargetId
 } from '../../../src/core/types';
@@ -429,15 +430,25 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const onlineStateChangedHandler = (onlineState: OnlineState) => {
-      this.syncEngine.applyOnlineStateChange(onlineState);
-      this.eventManager.applyOnlineStateChange(onlineState);
+    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState) => {
+      this.syncEngine.applyOnlineStateChange(
+        onlineState,
+        OnlineStateSource.RemoteStore
+      );
+    };
+    const sharedClientStateOnlineStateChangedHandler = (
+      onlineState: OnlineState
+    ) => {
+      this.syncEngine.applyOnlineStateChange(
+        onlineState,
+        OnlineStateSource.SharedClientState
+      );
     };
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
       this.queue,
-      onlineStateChangedHandler
+      remoteStoreOnlineStateChangedHandler
     );
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -449,7 +460,7 @@ abstract class TestRunner {
     // Set up wiring between sync engine and other components
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
-    this.sharedClientState.onlineStateHandler = onlineStateChangedHandler;
+    this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
     this.eventManager = new EventManager(this.syncEngine);
   }
@@ -478,7 +489,6 @@ abstract class TestRunner {
     await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
-    await this.syncEngine.start();
 
     await this.persistence.setPrimaryStateListener(isPrimary =>
       this.syncEngine.applyPrimaryState(isPrimary)
@@ -849,7 +859,6 @@ abstract class TestRunner {
   }
 
   private async doShutdown(): Promise<void> {
-    await this.syncEngine.shutdown();
     await this.remoteStore.shutdown();
     await this.sharedClientState.shutdown();
     // We don't delete the persisted data here since multi-clients may still
@@ -871,7 +880,6 @@ abstract class TestRunner {
     await this.queue.enqueue(async () => {
       await this.localStore.start();
       await this.remoteStore.start();
-      await this.syncEngine.start();
       await this.sharedClientState.start();
 
       await this.persistence.setPrimaryStateListener(isPrimary =>

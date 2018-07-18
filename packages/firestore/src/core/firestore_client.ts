@@ -51,7 +51,7 @@ import { Deferred } from '../util/promise';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
 import { Transaction } from './transaction';
-import { OnlineState } from './types';
+import { OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
   MemorySharedClientState,
@@ -371,16 +371,22 @@ export class FirestoreClient {
           serializer
         );
 
-        const onlineStateChangedHandler = (onlineState: OnlineState) => {
-          this.syncEngine.applyOnlineStateChange(onlineState);
-          this.eventMgr.applyOnlineStateChange(onlineState);
-        };
+        const remoteStoreOnlineStateChangedHandler = onlineState =>
+          this.syncEngine.applyOnlineStateChange(
+            onlineState,
+            OnlineStateSource.RemoteStore
+          );
+        const sharedClientStateOnlineStateChangedHandler = onlineState =>
+          this.syncEngine.applyOnlineStateChange(
+            onlineState,
+            OnlineStateSource.SharedClientState
+          );
 
         this.remoteStore = new RemoteStore(
           this.localStore,
           datastore,
           this.asyncQueue,
-          onlineStateChangedHandler
+          remoteStoreOnlineStateChangedHandler
         );
 
         this.syncEngine = new SyncEngine(
@@ -390,7 +396,7 @@ export class FirestoreClient {
           user
         );
 
-        this.sharedClientState.onlineStateHandler = onlineStateChangedHandler;
+        this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
         // Set up wiring between sync engine and other components
         this.remoteStore.syncEngine = this.syncEngine;
@@ -404,7 +410,6 @@ export class FirestoreClient {
         await this.localStore.start();
         await this.sharedClientState.start();
         await this.remoteStore.start();
-        await this.syncEngine.start();
 
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
@@ -433,12 +438,11 @@ export class FirestoreClient {
   }): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      await this.syncEngine.shutdown();
+      await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
       await this.persistence.shutdown(
         options && options.purgePersistenceWithDataLoss
       );
-      await this.remoteStore.shutdown();
 
       // `removeUserChangeListener` must be called after shutting down the
       // RemoteStore as it will prevent the RemoteStore from retrieving

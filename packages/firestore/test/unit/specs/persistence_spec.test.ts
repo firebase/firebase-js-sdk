@@ -240,4 +240,39 @@ describeSpec('Persistence:', [], () => {
         .expectPrimaryState(true)
     );
   });
+
+  specTest('Primary lease bound to network state', ['multi-client'], () => {
+    return (
+      client(0)
+        // If there is only a single tab, the online state is ignored and the
+        // tab is always primary
+        .expectPrimaryState(true)
+        .disableNetwork()
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .client(0)
+        // If the primary tab is offline, and another tab becomes active, the
+        // primary tab releases its primary lease.
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(false)
+        .client(1)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .disableNetwork()
+        // If all tabs are offline, the primary lease is retained.
+        .expectPrimaryState(true)
+        .client(0)
+        .enableNetwork()
+        .expectPrimaryState(false)
+        .client(1)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        // The offline primary tab releases its lease since another tab is now
+        // online.
+        .expectPrimaryState(false)
+        .client(0)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+    );
+  });
 });

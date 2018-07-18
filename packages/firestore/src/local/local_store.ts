@@ -809,6 +809,11 @@ export class LocalStore {
     this.mutationQueue.removeCachedMutationKeys(batchId);
   }
 
+  // PORTING NOTE: Multi-tab only.
+  setNetworkEnabled(networkEnabled: boolean): void {
+    this.persistence.setNetworkEnabled(networkEnabled);
+  }
+
   private releaseHeldBatchResults(
     txn: PersistenceTransaction,
     documentBuffer: RemoteDocumentChangeBuffer
