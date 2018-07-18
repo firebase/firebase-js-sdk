@@ -283,6 +283,50 @@ describeSpec('Listens:', [], () => {
     );
   });
 
+  specTest('Individual (deleted) documents cannot revert', [], () => {
+    const allQuery = Query.atPath(path('collection'));
+    const visibleQuery = Query.atPath(path('collection')).addFilter(
+      filter('visible', '==', true)
+    );
+    const docAv1 = doc('collection/a', 1000, { visible: true, v: 'v1000' });
+    const docAv2 = doc('collection/a', 2000, { visible: false, v: 'v2000' });
+    const docAv3 = deletedDoc('collection/a', 3000);
+
+    return (
+      spec()
+        // Disable GC so the cache persists across listens.
+        .withGCEnabled(false)
+        .userListens(visibleQuery)
+        .watchAcksFull(visibleQuery, 1000, docAv1)
+        .expectEvents(visibleQuery, { added: [docAv1] })
+        .userUnlistens(visibleQuery)
+        .watchRemoves(visibleQuery)
+        .userListens(allQuery)
+        .expectEvents(allQuery, { added: [docAv1], fromCache: true })
+        .watchAcks(allQuery)
+        .watchSends( { removed: [allQuery]}, docAv3)
+        .watchCurrents(allQuery, 'resume-token-3000')
+        .watchSnapshots(3000)
+        .expectEvents(allQuery, { removed: [docAv1], fromCache: false })
+        .userUnlistens(allQuery)
+        .watchRemoves(allQuery)
+        // Supposing we sent a resume token for visibleQuery, watch could catch
+        // us up to docAV2 since that's the last relevant change to the query
+        // (the document falls out) and send us a snapshot that's ahead of
+        // docAv3 (which is already in our cache).
+        .userListens(visibleQuery, 'resume-token-1000')
+        .watchAcksFull(visibleQuery, 5000, docAv2)
+        .expectEvents(visibleQuery, { fromCache: false })
+        .userUnlistens(visibleQuery)
+        .watchRemoves(visibleQuery)
+        // Listen to allQuery again and make sure we still get no docs.
+        .userListens(allQuery, 'resume-token-4000')
+        .expectEvents(allQuery, { fromCache: true })
+        .watchAcksFull(allQuery, 6000)
+        .expectEvents(allQuery, { fromCache: false })
+    );
+  });
+
   specTest('Deleted documents in cache are fixed', [], () => {
     const allQuery = Query.atPath(path('collection'));
     const docAv1 = doc('collection/a', 1000, { key: 'a' });
