@@ -36,6 +36,7 @@ import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
+import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -92,6 +93,19 @@ class QueryView {
   ) {}
 }
 
+/** Tracks a limbo resolution. */
+class LimboResolution {
+  constructor(public key: DocumentKey) {}
+
+  /**
+   * Set to true once we've received a document. This is used in
+   * targetContainsDocument() and ultimately used by WatchChangeAggregator to
+   * decide whether it needs to manufacture a delete event for the target once
+   * the target is CURRENT.
+   */
+  receivedDocument: boolean;
+}
+
 /**
  * SyncEngine is the central controller in the client SDK architecture. It is
  * the glue code between the EventManager, LocalStore, and RemoteStore. Some of
@@ -117,7 +131,9 @@ export class SyncEngine implements RemoteSyncer {
   private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
-  private limboKeysByTarget: { [targetId: number]: DocumentKey } = {};
+  private limboResolutionsByTarget: {
+    [targetId: number]: LimboResolution;
+  } = {};
   private limboDocumentRefs = new ReferenceSet();
   private limboCollector = new EagerGarbageCollector();
   /** Stores user completion handlers, indexed by User and BatchId. */
@@ -301,6 +317,38 @@ export class SyncEngine implements RemoteSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
+    // Update `receivedDocument` as appropriate for any limbo targets.
+    objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
+      const limboResolution = this.limboResolutionsByTarget[targetId];
+      if (limboResolution) {
+        // Since this is a limbo resolution lookup, it's for a single document
+        // and it could be added, modified, or removed, but not a combination.
+        assert(
+          targetChange.addedDocuments.size +
+            targetChange.modifiedDocuments.size +
+            targetChange.removedDocuments.size <=
+            1,
+          'Limbo resolution for single document contains multiple changes.'
+        );
+        if (targetChange.addedDocuments.size > 0) {
+          limboResolution.receivedDocument = true;
+        } else if (targetChange.modifiedDocuments.size > 0) {
+          assert(
+            limboResolution.receivedDocument,
+            'Received change for limbo target document without add.'
+          );
+        } else if (targetChange.removedDocuments.size > 0) {
+          assert(
+            limboResolution.receivedDocument,
+            'Received remove for limbo target document without add.'
+          );
+          limboResolution.receivedDocument = false;
+        } else {
+          // This was probably just a CURRENT targetChange or similar.
+        }
+      }
+    });
+
     return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
       return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
     });
@@ -327,12 +375,13 @@ export class SyncEngine implements RemoteSyncer {
 
   rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
     this.assertSubscribed('rejectListens()');
-    const limboKey = this.limboKeysByTarget[targetId];
+    const limboResolution = this.limboResolutionsByTarget[targetId];
+    const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
       // Since this query failed, we won't want to manually unlisten to it.
       // So go ahead and remove it from bookkeeping.
       this.limboTargetsByKey = this.limboTargetsByKey.remove(limboKey);
-      delete this.limboKeysByTarget[targetId];
+      delete this.limboResolutionsByTarget[targetId];
 
       // TODO(klimt): We really only should do the following on permission
       // denied errors, but we don't have the cause code here.
@@ -476,7 +525,7 @@ export class SyncEngine implements RemoteSyncer {
       log.debug(LOG_TAG, 'New document in limbo: ' + key);
       const limboTargetId = this.targetIdGenerator.next();
       const query = Query.atPath(key.path);
-      this.limboKeysByTarget[limboTargetId] = key;
+      this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
         new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
       );
@@ -501,7 +550,7 @@ export class SyncEngine implements RemoteSyncer {
           }
           this.remoteStore.unlisten(limboTargetId);
           this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
-          delete this.limboKeysByTarget[limboTargetId];
+          delete this.limboResolutionsByTarget[limboTargetId];
         });
       })
       .toPromise();
@@ -588,8 +637,13 @@ export class SyncEngine implements RemoteSyncer {
   }
 
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {
-    return this.queryViewsByTarget[targetId]
-      ? this.queryViewsByTarget[targetId].view.syncedDocuments
-      : documentKeySet();
+    const limboResolution = this.limboResolutionsByTarget[targetId];
+    if (limboResolution && limboResolution.receivedDocument) {
+      return documentKeySet().add(limboResolution.key);
+    } else {
+      return this.queryViewsByTarget[targetId]
+        ? this.queryViewsByTarget[targetId].view.syncedDocuments
+        : documentKeySet();
+    }
   }
 }
