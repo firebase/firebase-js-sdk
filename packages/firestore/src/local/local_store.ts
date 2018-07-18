@@ -425,12 +425,29 @@ export class LocalStore {
     const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
     return this.persistence.runTransaction('Apply remote event', txn => {
       const promises = [] as Array<PersistencePromise<void>>;
+      let authoritativeUpdates = documentKeySet();
       objUtils.forEachNumber(
         remoteEvent.targetChanges,
         (targetId: TargetId, change: TargetChange) => {
           // Do not ref/unref unassigned targetIds - it may lead to leaks.
           let queryData = this.targetIds[targetId];
           if (!queryData) return;
+
+          // When a global snapshot contains updates (either add or modify) we
+          // can completely trust these updates as authoritative and blindly
+          // apply them to our cache (as a defensive measure to promote
+          // self-healing in the unfortunate case that our cache is ever somehow
+          // corrupted / out-of-sync).
+          //
+          // If the document is only updated while removing it from a target
+          // then watch isn't obligated to send the absolute latest version: it
+          // can send the first version that caused the document not to match.
+          change.addedDocuments.forEach(key => {
+            authoritativeUpdates = authoritativeUpdates.add(key);
+          });
+          change.modifiedDocuments.forEach(key => {
+            authoritativeUpdates = authoritativeUpdates.add(key);
+          });
 
           promises.push(
             this.queryCache
@@ -463,13 +480,15 @@ export class LocalStore {
         changedDocKeys = changedDocKeys.add(key);
         promises.push(
           documentBuffer.getEntry(txn, key).next(existingDoc => {
-            // Make sure we don't apply an old document version to the remote
-            // cache, though we make an exception for SnapshotVersion.MIN which
-            // can happen for manufactured events (e.g. in the case of a limbo
-            // document resolution failing).
+            // If a document update isn't authoritative, make sure we don't
+            // apply an old document version to the remote cache. We make an
+            // exception for SnapshotVersion.MIN which can happen for
+            // manufactured events (e.g. in the case of a limbo document
+            // resolution failing).
             if (
               existingDoc == null ||
               doc.version.isEqual(SnapshotVersion.MIN) ||
+              authoritativeUpdates.has(doc.key) ||
               doc.version.compareTo(existingDoc.version) >= 0
             ) {
               documentBuffer.addEntry(doc);
