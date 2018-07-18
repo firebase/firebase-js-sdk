@@ -75,7 +75,7 @@ const PRIMARY_LEASE_LOST_ERROR_MSG =
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Another tab has exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
+  '`enablePersistence()` with `experimentalTabSynchronization:true` in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
