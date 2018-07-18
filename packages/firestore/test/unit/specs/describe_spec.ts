@@ -139,26 +139,29 @@ export function specTest(
         return spec.runAsTest(fullName, usePersistence);
       });
     }
-    return;
+  } else {
+    assert(
+      tags.indexOf(EXCLUSIVE_TAG) === -1,
+      "The 'exclusive' tag is only supported for development and should not be exported to other platforms."
+    );
+    const spec = builder();
+
+    const specJSON = spec.toJSON();
+
+    const json = {
+      describeName,
+      itName: name,
+      tags,
+      comment,
+      config: specJSON.config,
+      steps: specJSON.steps
+    };
+
+    if (name in specsInThisTest) {
+      throw new Error('duplicate spec test: "' + name + '"');
+    }
+    specsInThisTest[name] = json;
   }
-
-  const spec = builder();
-
-  const specJSON = spec.toJSON();
-
-  const json = {
-    describeName,
-    itName: name,
-    tags,
-    comment,
-    config: specJSON.config,
-    steps: specJSON.steps
-  };
-
-  if (name in specsInThisTest) {
-    throw new Error('duplicate spec test: "' + name + '"');
-  }
-  specsInThisTest[name] = json;
 }
 
 /**
