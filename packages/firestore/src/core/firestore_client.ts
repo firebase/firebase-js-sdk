@@ -312,7 +312,7 @@ export class FirestoreClient {
       this.persistence = persistence;
 
       if (
-        settings.synchronizeTabs &&
+        settings.experimentalTabSynchronization &&
         !WebStorageSharedClientState.isAvailable(this.platform)
       ) {
         throw new FirestoreError(
@@ -321,7 +321,7 @@ export class FirestoreClient {
         );
       }
 
-      this.sharedClientState = settings.synchronizeTabs
+      this.sharedClientState = settings.experimentalTabSynchronization
         ? new WebStorageSharedClientState(
             this.asyncQueue,
             this.platform,
@@ -330,7 +330,7 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
-      return persistence.start(settings.synchronizeTabs);
+      return persistence.start(settings.experimentalTabSynchronization);
     });
   }
 
