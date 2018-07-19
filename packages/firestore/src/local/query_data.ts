@@ -62,7 +62,7 @@ export class QueryData {
    * Creates a new query data instance with an updated snapshot version and
    * resume token.
    */
-  update(updated: {
+  copy(updated: {
     resumeToken: ProtoByteString;
     snapshotVersion: SnapshotVersion;
   }): QueryData {
