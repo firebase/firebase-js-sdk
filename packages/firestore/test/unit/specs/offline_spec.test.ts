@@ -83,6 +83,7 @@ describeSpec('Offline:', [], () => {
           // If the next (already scheduled) connection attempt fails, we'll move
           // to unknown since there are no listeners, and stop trying to connect.
           .watchStreamCloses(Code.UNAVAILABLE)
+          .runTimer(TimerId.ListenStreamIdle)
           // Suppose sometime later we listen again, it should take two failures
           // before we get cached data.
           .userListens(query)
@@ -92,6 +93,40 @@ describeSpec('Offline:', [], () => {
             fromCache: true,
             hasPendingWrites: false
           })
+      );
+    }
+  );
+
+  specTest(
+    'Removing all listeners does not delay "Offline" status on next listen',
+    [],
+    () => {
+      const query = Query.atPath(path('collection'));
+      return (
+        spec()
+          .userListens(query)
+          // getting two errors triggers offline state
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .expectEvents(query, {
+            fromCache: true,
+            hasPendingWrites: false
+          })
+          // Remove listen.
+          .userUnlistens(query)
+          // If the next (already scheduled) connection attempt fails, we'll move
+          // to unknown since there are no listeners, and stop trying to connect.
+          .watchStreamCloses(Code.UNAVAILABLE)
+          // Suppose immediately we listen again, it should take no time before
+          // we get cached data.
+          .userListens(query)
+          .expectEvents(query, {
+            fromCache: true,
+            hasPendingWrites: false
+          })
+          // no further events
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE)
       );
     }
   );

@@ -166,7 +166,8 @@ export abstract class PersistentStream<
     connectionTimerId: TimerId,
     private idleTimerId: TimerId,
     protected connection: Connection,
-    private credentialsProvider: CredentialsProvider
+    private credentialsProvider: CredentialsProvider,
+    protected closeAfterError: boolean
   ) {
     this.backoff = new ExponentialBackoff(
       queue,
@@ -199,6 +200,15 @@ export abstract class PersistentStream<
    */
   isOpen(): boolean {
     return this.state === PersistentStreamState.Open;
+  }
+
+  /**
+   * Returns true if the underlying RPC can timeout. There are two cases:
+   *   1) The RPC is open and there is no activity;
+   *   2) The RPC failed and we are re-trying connection.
+   */
+  canTimeout(): boolean {
+    return this.isOpen() || (!this.closeAfterError && this.isStarted());
   }
 
   /**
@@ -253,17 +263,22 @@ export abstract class PersistentStream<
    * be in a !isStarted() state, requiring the caller to start the stream again
    * before further use.
    *
-   * Only streams that are in state 'Open' can be marked idle, as all other
-   * states imply pending network operations.
+   * Only streams that are in state 'Open' or re-trying can be marked idle, as
+   * all other states imply pending network operations.
+   *
+   * @param listener the listener to call on close event.
    */
-  markIdle(): void {
+  markIdle(listener?: ListenerType): void {
+    if (isNullOrUndefined(listener)) {
+      listener = this.listener;
+    }
     // Starts the idle time if we are in state 'Open' and are not yet already
     // running a timer (in which case the previous idle timeout still applies).
-    if (this.isOpen() && this.inactivityTimerPromise === null) {
+    if (this.canTimeout() && this.inactivityTimerPromise === null) {
       this.inactivityTimerPromise = this.queue.enqueueAfterDelay(
         this.idleTimerId,
         IDLE_TIMEOUT_MS,
-        () => this.handleIdleCloseTimer()
+        () => this.handleIdleCloseTimer(this.listener)
       );
     }
   }
@@ -275,11 +290,15 @@ export abstract class PersistentStream<
   }
 
   /** Called by the idle timer when the stream should close due to inactivity. */
-  private async handleIdleCloseTimer(): Promise<void> {
-    if (this.isOpen()) {
+  private async handleIdleCloseTimer(listener: ListenerType): Promise<void> {
+    if (this.canTimeout()) {
       // When timing out an idle stream there's no reason to force the stream into backoff when
       // it restarts so set the stream state to Initial instead of Error.
-      return this.close(PersistentStreamState.Initial);
+      return this.close(
+        PersistentStreamState.Initial,
+        /* error= */ null,
+        listener
+      );
     }
   }
 
@@ -304,22 +323,26 @@ export abstract class PersistentStream<
    *
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
+   * @param listener the stream listener to use.
    */
   private async close(
     finalState: PersistentStreamState,
-    error?: FirestoreError
+    error?: FirestoreError,
+    listener?: ListenerType
   ): Promise<void> {
     assert(
       finalState === PersistentStreamState.Error || isNullOrUndefined(error),
       "Can't provide an error when not in an error state."
     );
 
-    // The stream will be closed so we don't need our idle close timer anymore.
-    this.cancelIdleCheck();
+    if (this.closeAfterError || finalState !== PersistentStreamState.Error) {
+      // The stream will be closed so we don't need our idle close timer anymore.
+      this.cancelIdleCheck();
 
-    // Ensure we don't leave a pending backoff operation queued (in case close()
-    // was called while we were waiting to reconnect).
-    this.backoff.cancel();
+      // Ensure we don't leave a pending backoff operation queued (in case close()
+      // was called while we were waiting to reconnect).
+      this.backoff.cancel();
+    }
 
     if (finalState !== PersistentStreamState.Error) {
       // If this is an intentional close ensure we don't delay our next connection attempt.
@@ -347,7 +370,9 @@ export abstract class PersistentStream<
     // This state must be assigned before calling onClose() to allow the callback to
     // inhibit backoff or otherwise manipulate the state in its non-started state.
     this.state = finalState;
-    const listener = this.listener!;
+    if (isNullOrUndefined(listener)) {
+      listener = this.listener!;
+    }
 
     // Clear the listener to avoid bleeding of events from the underlying streams.
     this.listener = null;
@@ -532,7 +557,8 @@ export class PersistentListenStream extends PersistentStream<
       TimerId.ListenStreamConnectionBackoff,
       TimerId.ListenStreamIdle,
       connection,
-      credentials
+      credentials,
+      /* closeAfterError= */ false
     );
   }
 
@@ -640,7 +666,8 @@ export class PersistentWriteStream extends PersistentStream<
       TimerId.WriteStreamConnectionBackoff,
       TimerId.WriteStreamIdle,
       connection,
-      credentials
+      credentials,
+      /* closeAfterError= */ true
     );
   }
 

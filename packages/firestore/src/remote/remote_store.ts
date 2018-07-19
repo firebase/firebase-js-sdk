@@ -244,9 +244,17 @@ export class RemoteStore implements TargetMetadataProvider {
     delete this.listenTargets[targetId];
     if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
-      if (objUtils.isEmpty(this.listenTargets)) {
-        this.watchStream.markIdle();
-      }
+    }
+    if (
+      this.isNetworkEnabled() &&
+      this.watchStream.canTimeout() &&
+      objUtils.isEmpty(this.listenTargets)
+    ) {
+      this.watchStream.markIdle({
+        onOpen: null,
+        onClose: this.onWatchStreamClose.bind(this),
+        onWatchChange: null
+      });
     }
   }
 
@@ -280,10 +288,22 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private startWatchStream(): void {
-    assert(
-      this.shouldStartWatchStream(),
-      'startWriteStream() called when shouldStartWatchStream() is false.'
-    );
+    this.startWatchStreamAfterError(/* afterError= */ false);
+  }
+
+  private startWatchStreamAfterError(afterError: boolean): void {
+    if (afterError) {
+      assert(
+        this.shouldStartWatchStreamAfterError(),
+        'startWriteStream() called when shouldStartWatchStreamAfterError() ' +
+          'is false.'
+      );
+    } else {
+      assert(
+        this.shouldStartWatchStream(),
+        'startWriteStream() called when shouldStartWatchStream() is false.'
+      );
+    }
 
     this.watchChangeAggregator = new WatchChangeAggregator(this);
     this.watchStream.start({
@@ -300,10 +320,20 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private shouldStartWatchStream(): boolean {
     return (
-      this.isNetworkEnabled() &&
-      !this.watchStream.isStarted() &&
+      this.shouldStartWatchStreamAfterError() &&
       !objUtils.isEmpty(this.listenTargets)
     );
+  }
+
+  /**
+   * Returns whether the watch stream should be started after an error. Similar
+   * to {@link shouldStartWatchStream} except this one does not check whether
+   * there are active listen targets. For certain cases, even there is no
+   * listener, we may still want to keep the watch stream live, see
+   * https://github.com/firebase/firebase-ios-sdk/issues/1165.
+   */
+  private shouldStartWatchStreamAfterError(): boolean {
+    return this.isNetworkEnabled() && !this.watchStream.isStarted();
   }
 
   private cleanUpWatchStreamState(): void {
@@ -326,20 +356,25 @@ export class RemoteStore implements TargetMetadataProvider {
 
     this.cleanUpWatchStreamState();
 
-    // If we still need the watch stream, retry the connection.
-    if (this.shouldStartWatchStream()) {
-      // There should generally be an error if the watch stream was closed when
-      // it's still needed, but it's not quite worth asserting.
-      if (error) {
+    if (error) {
+      // If we still need the watch stream, retry the connection.
+      if (this.shouldStartWatchStreamAfterError()) {
         this.onlineStateTracker.handleWatchStreamFailure(error);
+        this.startWatchStreamAfterError(/* afterError=*/ true);
+      } else {
+        // No need to restart watch stream. The online state is set to unknown.
+        this.onlineStateTracker.set(OnlineState.Unknown);
       }
-
-      this.startWatchStream();
     } else {
-      // No need to restart watch stream because there are no active targets.
-      // The online state is set to unknown because there is no active attempt
-      // at establishing a connection
-      this.onlineStateTracker.set(OnlineState.Unknown);
+      // If we still need the watch stream, retry the connection.
+      if (this.shouldStartWatchStream()) {
+        this.startWatchStream();
+      } else {
+        // No need to restart watch stream because there are no active targets.
+        // The online state is set to unknown because there is no active attempt
+        // at establishing a connection
+        this.onlineStateTracker.set(OnlineState.Unknown);
+      }
     }
   }
 
