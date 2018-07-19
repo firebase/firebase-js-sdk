@@ -277,9 +277,7 @@ export class SimpleDbTransaction {
     mode: IDBTransactionMode,
     objectStoreNames: string[]
   ): SimpleDbTransaction {
-    return new SimpleDbTransaction(
-      db.transaction(objectStoreNames, mode)
-    );
+    return new SimpleDbTransaction(db.transaction(objectStoreNames, mode));
   }
 
   constructor(private readonly transaction: IDBTransaction) {
