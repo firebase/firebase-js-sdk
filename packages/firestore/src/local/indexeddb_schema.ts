@@ -68,12 +68,15 @@ export function createOrUpgradeDb(
     );
   }
 
-  // Brand new clients don't need to drop and recreate--only clients that
-  // potentially have corrupt data.
-  if (fromVersion !== 0 && fromVersion < 3 && toVersion >= 3) {
-    dropQueryCache(db);
-    createQueryCache(db);
-  }
+  p = p.next(() => {
+    // Brand new clients don't need to drop and recreate--only clients that
+    // potentially have corrupt data.
+    if (fromVersion !== 0 && fromVersion < 3 && toVersion >= 3) {
+      dropQueryCache(db);
+      createQueryCache(db);
+    }
+  });
+
   return p;
 }
 

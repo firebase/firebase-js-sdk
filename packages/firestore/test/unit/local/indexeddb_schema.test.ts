@@ -157,7 +157,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbMutationBatch.store
           );
 
-          return PersistencePromise.resolve().next(() =>
+          return (
             targets
               // tslint:disable-next-line:no-any
               .put({ targetId, canonicalId: 'foo' } as any)
@@ -180,8 +180,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               DbMutationBatch.store
             );
 
-            return PersistencePromise.resolve()
-              .next(() => targets.get(targetId))
+            return targets
+              .get(targetId)
               .next(target => {
                 // The target should have been dropped
                 expect(target).to.be.null;
