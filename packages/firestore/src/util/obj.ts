@@ -39,6 +39,15 @@ export function size<V>(obj: Dict<V>): number {
   return count;
 }
 
+/** Extracts the numeric indices from a dictionary. */
+export function indices<V>(obj: Dict<V>): number[] {
+  return Object.keys(obj).map(key => {
+    const numberKey = Number(key);
+    assert(!isNaN(numberKey), `Cannot convert ${key} to an index.`);
+    return numberKey;
+  });
+}
+
 /** Returns the given value if it's defined or the defaultValue otherwise. */
 export function defaulted<V>(value: V | undefined, defaultValue: V): V {
   return value !== undefined ? value : defaultValue;

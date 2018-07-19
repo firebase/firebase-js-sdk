@@ -244,15 +244,15 @@ export class IndexedDbPersistence implements Persistence {
           const wasPrimary = this.isPrimary;
           this.isPrimary = canActAsPrimary;
 
-          // Always call the primary state listener, since SyncEngine may have
-          // changed the primary state to 'false'.
-          this.queue.enqueue(async () => {
-            // Verify that `shutdown()` hasn't been called yet by the time
-            // we invoke the `primaryStateListener`.
-            if (this.started) {
-              return this.primaryStateListener(this.isPrimary);
-            }
-          });
+          if (wasPrimary !== this.isPrimary) {
+            this.queue.enqueue(async () => {
+              // Verify that `shutdown()` hasn't been called yet by the time
+              // we invoke the `primaryStateListener`.
+              if (this.started) {
+                return this.primaryStateListener(this.isPrimary);
+              }
+            });
+          }
 
           if (wasPrimary && !this.isPrimary) {
             return this.releasePrimaryLeaseIfHeld(txn);
@@ -734,6 +734,12 @@ export class IndexedDbPersistence implements Persistence {
   }
 }
 
+export function isPrimaryLeaseLostError(err: FirestoreError) : boolean {
+  return (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  );
+}
 /**
  * Helper to get a typed SimpleDbStore for the owner object store.
  */

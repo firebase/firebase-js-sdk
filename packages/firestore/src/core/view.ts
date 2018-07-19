@@ -384,19 +384,23 @@ export class View {
   }
 
   // PORTING NOTE: Multi-tab only.
-  synchronizeWithRemoteDocuments(remoteDocs: MaybeDocumentMap): ViewChange {
+  synchronizeWithPersistedState(
+    localDocs: MaybeDocumentMap,
+    remoteKeys: DocumentKeySet,
+    resetLimboDocuments: boolean,
+    resetCurrent: boolean
+  ): ViewChange {
+    if (resetLimboDocuments) {
+      this.limboDocuments = documentKeySet();
+    }
 
-    this.limboDocuments = documentKeySet();
-    const docChanges = this.computeDocChanges(remoteDocs);
-    const viewChange =  this.applyChanges(docChanges, false);
+    if (resetCurrent) {
+      this.current = false;
+    }
 
-    let keys = documentKeySet();
-
-    remoteDocs.forEach(key => {
-      keys = keys.add(key);
-    });
-    this._syncedDocuments = keys;
-    return viewChange;
+    this._syncedDocuments = remoteKeys;
+    const docChanges = this.computeDocChanges(localDocs);
+    return this.applyChanges(docChanges, resetLimboDocuments);
   }
 
   /**
@@ -412,31 +416,6 @@ export class View {
       this.syncState === SyncState.Local,
       !this.mutatedKeys.isEmpty()
     );
-  }
-
-  clearLimboDocuments(): ViewChange {
-    this.limboDocuments = documentKeySet();
-    const synced = this.current;
-    const newSyncState = synced ? SyncState.Synced : SyncState.Local;
-    const syncStateChanged = newSyncState !== this.syncState;
-
-    if (syncStateChanged) {
-      this.syncState = newSyncState;
-
-      const snap: ViewSnapshot = new ViewSnapshot(
-        this.query,
-        this.documentSet,
-        this.documentSet,
-        [],
-        this.syncState === SyncState.Local,
-        !this.mutatedKeys.isEmpty(),
-        syncStateChanged,
-        /* excludesMetadataChanges= */ false
-      );
-      return { snapshot: snap, limboChanges: [] };
-    } else {
-      return { limboChanges: [] };
-    }
   }
 }
 

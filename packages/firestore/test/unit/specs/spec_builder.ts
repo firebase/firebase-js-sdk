@@ -80,11 +80,19 @@ export class ClientMemoryState {
     this.reset();
   }
 
+  /** Reset all internal memory state (as done during a client restart). */
   reset(): void {
     this.queryMapping = {};
     this.limboMapping = {};
     this.activeTargets = {};
     this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
+  }
+
+  /**
+   * Reset the internal limbo mapping (as done during a primary lease failover).
+   */
+  resetLimboMapping(): void {
+    this.limboMapping = {};
   }
 }
 
@@ -936,6 +944,14 @@ export class MultiClientSpecBuilder extends SpecBuilder {
         isPrimary: true
       }
     };
+
+    // HACK: SyncEngine resets its limbo mapping when it gains the primary
+    // lease. The SpecTests need to also clear their mapping, but when we parse
+    // the spec tests, we don't know when the primary lease transition happens.
+    // It is likely going to happen right after `stealPrimaryLease`, so we are
+    // clearing the limbo mapping here.
+    this.clientState.resetLimboMapping();
+
     return this;
   }
 

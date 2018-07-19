@@ -328,9 +328,52 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
-  //YES WRITE THIS
+  specTest(
+    'Limbo documents survive primary state transitions',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+      const docB = doc('collection/b', 1001, { key: 'b' });
+      const docC = doc('collection/c', 1002, { key: 'c' });
+      const deletedDocB = deletedDoc('collection/b', 1006);
+      const deletedDocC = deletedDoc('collection/c', 1008);
 
-  // TODO(multitab): We need a test case that verifies that a primary client
-  // that loses its primary lease while documents are in limbo correctly handles
-  // these documents even when it picks up its lease again.
+      return (
+        client(0, false)
+          .expectPrimaryState(true)
+          .userListens(query)
+          .watchAcksFull(query, 1002, docA, docB, docC)
+          .expectEvents(query, { added: [docA, docB, docC] })
+          .watchRemovesDoc(docB.key, query)
+          .watchRemovesDoc(docC.key, query)
+          .watchSnapshots(1003)
+          .expectEvents(query, { fromCache: true })
+          .expectLimboDocs(docB.key, docC.key)
+          .client(1)
+          .stealPrimaryLease()
+          .client(0)
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(false)
+          .expectLimboDocs()
+          .client(1)
+          // TODO(37254270): This should be 'resume-token-1003' from the last
+          // global snapshot.
+          .expectListen(query, 'resume-token-1002')
+          .watchAcksFull(query, 1005)
+          .expectLimboDocs(docB.key, docC.key)
+          .ackLimbo(1006, deletedDocB)
+          .expectLimboDocs(docC.key)
+          .client(0)
+          .expectEvents(query, { removed: [docB], fromCache: true })
+          .stealPrimaryLease()
+          .expectListen(query, 'resume-token-1005')
+          .watchAcksFull(query, 1007)
+          .expectLimboDocs(docC.key)
+          .ackLimbo(1007, deletedDocC)
+          .expectLimboDocs()
+          .expectEvents(query, { removed: [docC] })
+      );
+    }
+  );
 });

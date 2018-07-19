@@ -51,6 +51,7 @@ import {
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { DocumentKeySet } from '../model/collections';
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -573,19 +574,17 @@ export class RemoteStore implements TargetMetadataProvider {
     // Record the stream token.
     return this.localStore
       .setLastStreamToken(this.writeStream.lastStreamToken)
-      .then(
-        () => {
-          // Send the write pipeline now that the stream is established.
-          for (const batch of this.writePipeline) {
-            this.writeStream.writeMutations(batch.mutations);
-          }
-        },
-        err => this.tryRecoverFromPrimaryLeaseLoss(err)
-      );
+      .then(() => {
+        // Send the write pipeline now that the stream is established.
+        for (const batch of this.writePipeline) {
+          this.writeStream.writeMutations(batch.mutations);
+        }
+      })
+      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
   }
 
   private tryRecoverFromPrimaryLeaseLoss(err: FirestoreError): void {
-    if (err.code === Code.FAILED_PRECONDITION) {
+    if (isPrimaryLeaseLostError(err)) {
       // We have temporarily lost our primary lease. If we recover,
       // Sync Engine will re-enable the network.
       this.disableNetworkInternal();

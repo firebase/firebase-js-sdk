@@ -1019,11 +1019,9 @@ abstract class TestRunner {
     // without any direct user interaction.
     // TODO(multitab): Refactor so this is only executed after primary tab
     // change
-    if (this.expectedActiveTargets) {
-      if (!obj.isEmpty(this.expectedActiveTargets)) {
-        await this.connection.waitForWatchOpen();
-        await this.queue.drain();
-      }
+    if (!obj.isEmpty(this.expectedActiveTargets)) {
+      await this.connection.waitForWatchOpen();
+      await this.queue.drain();
     }
 
     const actualTargets = obj.shallowCopy(this.connection.activeTargets);
@@ -1408,7 +1406,7 @@ export type SpecWriteAck = {
   version: TestSnapshotVersion;
   /**
    * Whether we should keep the write in our internal queue. This should only
-   * be set to true if the client ignores the write (e.g. a secondary client
+   * be set to 'true' if the client ignores the write (e.g. a secondary client
    * which ignores write acknowledgments).
    */
   // PORTING NOTE: Multi-Tab only.
@@ -1420,10 +1418,9 @@ export type SpecWriteFailure = {
   error: SpecError;
   /**
    * Whether we should keep the write in our internal queue. This should be set
-   * to true for transient errors or if the client ignores the failure
+   * to 'true' for transient errors or if the client ignores the failure
    * (e.g. a secondary client which ignores write rejections).
    */
-  // PORTING NOTE: Multi-Tab only.
   keepInQueue: boolean;
 };
 

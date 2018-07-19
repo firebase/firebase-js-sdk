@@ -819,6 +819,7 @@ describeSpec('Listens:', [], () => {
         .shutdown()
         .client(1)
         .runTimer(TimerId.ClientMetadataRefresh)
+        .expectEvents(query, { fromCache: true })
         .expectPrimaryState(true)
         .expectListen(query, 'resume-token-1000')
         .watchAcksFull(query, 2000, docB)
@@ -856,7 +857,7 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, { added: [docB] });
   });
 
-  specTest('Query recovers after primary takeover', ['exclusive','multi-client'], () => {
+  specTest('Query recovers after primary takeover', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const docB = doc('collection/b', 2000, { key: 'b' });
@@ -872,6 +873,7 @@ describeSpec('Listens:', [], () => {
         .userListens(query)
         .expectEvents(query, { added: [docA] })
         .stealPrimaryLease()
+        .expectEvents(query, { fromCache: true })
         .expectListen(query, 'resume-token-1000')
         .watchAcksFull(query, 2000, docB)
         .expectEvents(query, { added: [docB] })
@@ -882,10 +884,9 @@ describeSpec('Listens:', [], () => {
         .watchSnapshots(3000)
         .expectEvents(query, { added: [docC] })
         .client(0)
-          .runTimer(TimerId.ClientMetadataRefresh)
+        .runTimer(TimerId.ClientMetadataRefresh)
         .expectPrimaryState(false)
-        .expectEvents(query, { fromCache: true})
-          .expectEvents(query, { added: [docB, docC], fromCache:true })
+        .expectEvents(query, { added: [docB, docC] })
     );
   });
 
@@ -901,7 +902,6 @@ describeSpec('Listens:', [], () => {
           .expectPrimaryState(true)
           .client(1)
           .userListens(query)
-          .expectEvents(query, { fromCache: true })
           .client(0)
           .expectListen(query)
           .client(1)
@@ -910,7 +910,6 @@ describeSpec('Listens:', [], () => {
           // Send a watch update to client 0, who is longer primary (but doesn't
           // know it yet). The watch update gets ignored.
           .watchAcksFull(query, 1000, docA)
-          .expectPrimaryState(false)
           .client(1)
           .expectListen(query)
           .watchAcksFull(query, 1000, docA)
