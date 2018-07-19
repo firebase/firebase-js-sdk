@@ -424,7 +424,10 @@ export class RemoteStore implements TargetMetadataProvider {
 
       // Clear the resume token for the query, since we're in a known mismatch
       // state.
-      this.listenTargets[targetId] = queryData.copy({snapshotVersion: queryData.snapshotVersion, resumeToken: emptyByteString()});
+      this.listenTargets[targetId] = queryData.copy({
+        snapshotVersion: queryData.snapshotVersion,
+        resumeToken: emptyByteString()
+      });
 
       // Cause a hard reset by unwatching and rewatching immediately, but
       // deliberately don't send a resume token so that we get a full update.
