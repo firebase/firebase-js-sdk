@@ -19,9 +19,12 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ALL_STORES,
   createOrUpgradeDb,
+  DbMutationBatch,
+  DbMutationBatchKey,
   DbTarget,
   DbTargetGlobal,
-  DbTargetGlobalKey
+  DbTargetGlobalKey,
+  DbTargetKey
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -134,5 +137,64 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         });
       })
     );
+  });
+
+  it('drops the query cache from 2 to 3', () => {
+    const userId = 'user';
+    const batchId = 1;
+    const targetId = 2;
+
+    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, []);
+
+    return withDb(2, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction(
+        'readwrite',
+        [DbTarget.store, DbMutationBatch.store],
+        txn => {
+          const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+          const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
+            DbMutationBatch.store
+          );
+
+          return (
+            targets
+              // tslint:disable-next-line:no-any
+              .put({ targetId, canonicalId: 'foo' } as any)
+              .next(() => mutations.put(expectedMutation))
+          );
+        }
+      );
+    }).then(() => {
+      return withDb(3, db => {
+        expect(db.version).to.equal(3);
+        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+
+        const sdb = new SimpleDb(db);
+        return sdb.runTransaction(
+          'readwrite',
+          [DbTarget.store, DbMutationBatch.store],
+          txn => {
+            const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+            const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
+              DbMutationBatch.store
+            );
+
+            return targets
+              .get(targetId)
+              .next(target => {
+                // The target should have been dropped
+                expect(target).to.be.null;
+              })
+              .next(() => mutations.get([userId, batchId]))
+              .next(mutation => {
+                // Mutations should be unaffected.
+                expect(mutation.userId).to.equal(userId);
+                expect(mutation.batchId).to.equal(batchId);
+              });
+          }
+        );
+      });
+    });
   });
 });
