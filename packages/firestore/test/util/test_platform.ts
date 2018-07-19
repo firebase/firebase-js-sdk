@@ -146,7 +146,7 @@ export class SharedFakeWebStorage {
   }
 
   private getItem(key: string): string | null {
-    return this.data.get(key);
+    return this.data.has(key) ? this.data.get(key) : null;
   }
 
   private key(index: number): string | null {
