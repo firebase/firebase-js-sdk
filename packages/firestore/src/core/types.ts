@@ -63,3 +63,9 @@ export enum OnlineState {
    */
   Offline
 }
+
+/** The source of an online state event. */
+export enum OnlineStateSource {
+  RemoteStore,
+  SharedClientState
+}

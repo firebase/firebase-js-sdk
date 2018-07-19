@@ -469,7 +469,6 @@ describeSpec('Listens:', [], () => {
       .becomeVisible()
       .client(1)
       .userListens(query)
-      .expectEvents(query, { fromCache: true })
       .client(0)
       .expectListen(query)
       .watchAcks(query)
@@ -524,7 +523,6 @@ describeSpec('Listens:', [], () => {
       .expectPrimaryState(true)
       .client(1)
       .userListens(query)
-      .expectEvents(query, { fromCache: true })
       .client(0)
       .expectListen(query)
       .watchAcksFull(query, 100, docA)
@@ -555,10 +553,8 @@ describeSpec('Listens:', [], () => {
         .client(1)
         .client(2)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(3)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0) // No events
         .expectListen(query)
         .watchAcksFull(query, 1000, docA)
@@ -604,7 +600,6 @@ describeSpec('Listens:', [], () => {
       .becomeVisible()
       .client(1)
       .userListens(query)
-      .expectEvents(query, { fromCache: true })
       .client(0)
       .expectListen(query)
       .watchAcksFull(query, 1000, docA)
@@ -631,7 +626,6 @@ describeSpec('Listens:', [], () => {
       .becomeVisible()
       .client(1)
       .userListens(query)
-      .expectEvents(query, { fromCache: true })
       .client(0)
       .expectListen(query)
       .watchRemoves(
@@ -652,7 +646,6 @@ describeSpec('Listens:', [], () => {
         .becomeVisible()
         .client(1)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
         .watchRemoves(
@@ -680,7 +673,6 @@ describeSpec('Listens:', [], () => {
         .becomeVisible()
         .client(1)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000)
@@ -703,24 +695,55 @@ describeSpec('Listens:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const query2 = Query.atPath(path('collection'));
 
-    return client(0)
-      .userListens(query1)
-      .watchAcksFull(query1, 1000)
-      .expectEvents(query1, {})
-      .client(1)
-      .userListens(query1)
-      .expectEvents(query1, {})
-      .client(0)
-      .disableNetwork()
-      .expectEvents(query1, { fromCache: true })
-      .client(1)
-      .expectEvents(query1, { fromCache: true })
-      .client(2)
-      .userListens(query1)
-      .expectEvents(query1, { fromCache: true })
-      .userListens(query2)
-      .expectEvents(query2, { fromCache: true });
+    return (
+      client(0)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000)
+        .expectEvents(query1, {})
+        .client(1)
+        // Prevent client 0 from releasing its primary lease.
+        .disableNetwork()
+        .userListens(query1)
+        .expectEvents(query1, {})
+        .client(0)
+        .disableNetwork()
+        .expectEvents(query1, { fromCache: true })
+        .client(2)
+        .userListens(query1)
+        .expectEvents(query1, { fromCache: true })
+        .userListens(query2)
+        .expectEvents(query2, { fromCache: true })
+    );
   });
+
+  specTest(
+    'New client becomes primary if no client has its network enabled',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, {})
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {})
+        .client(0)
+        .disableNetwork()
+        .expectEvents(query, { fromCache: true })
+        .client(1)
+        .expectEvents(query, { fromCache: true })
+        .client(2)
+        .expectListen(query, 'resume-token-1000')
+        .expectPrimaryState(true)
+        .watchAcksFull(query, 2000)
+        .client(0)
+        .expectEvents(query, {})
+        .client(1)
+        .expectEvents(query, {});
+    }
+  );
 
   specTest(
     "Secondary client's online state is ignored",
@@ -729,27 +752,46 @@ describeSpec('Listens:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 2000, { key: 'a' });
 
+      return (
+        client(0)
+          .becomeVisible()
+          .client(1)
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .watchAcksFull(query, 1000)
+          .client(1)
+          .expectEvents(query, {})
+          .disableNetwork() // Ignored since this is the secondary client.
+          .client(0)
+          .watchSends({ affects: [query] }, docA)
+          .watchSnapshots(2000)
+          .client(1)
+          .expectEvents(query, { added: [docA] })
+          .client(0)
+          .disableNetwork()
+          // Client remains primary since all clients are offline.
+          .expectPrimaryState(true)
+          .client(1)
+          .expectEvents(query, { fromCache: true })
+          .expectPrimaryState(false)
+      );
+    }
+  );
+
+  specTest(
+    "Offline state doesn't persist if primary is shut down",
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+
       return client(0)
-        .becomeVisible()
-        .client(1)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
-        .client(0)
-        .expectListen(query)
-        .watchAcksFull(query, 1000)
-        .client(1)
-        .expectEvents(query, {})
-        .disableNetwork() // Ignored since this is the secondary client.
-        .client(0)
-        .watchSends({ affects: [query] }, docA)
-        .watchSnapshots(2000)
-        .client(1)
-        .expectEvents(query, { added: [docA] })
-        .client(0)
         .disableNetwork()
-        .client(1)
         .expectEvents(query, { fromCache: true })
-        .enableNetwork();
+        .shutdown()
+        .client(1)
+        .userListens(query); // No event since the online state is 'Unknown'.
     }
   );
 
@@ -765,7 +807,6 @@ describeSpec('Listens:', [], () => {
         .expectPrimaryState(true)
         .client(1)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000, docA)
@@ -893,7 +934,6 @@ describeSpec('Listens:', [], () => {
         .expectPrimaryState(true)
         .client(1)
         .userListens(query)
-        .expectEvents(query, { fromCache: true })
         .client(0)
         .expectListen(query)
         .watchAcksFull(query, 1000, docA)

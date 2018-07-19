@@ -77,6 +77,10 @@ export class MemoryPersistence implements Persistence {
     return primaryStateListener(true);
   }
 
+  setNetworkEnabled(networkEnabled: boolean): void {
+    // No op.
+  }
+
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {

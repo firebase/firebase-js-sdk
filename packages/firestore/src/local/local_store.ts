@@ -648,7 +648,6 @@ export class LocalStore {
    * @returns The next mutation or null if there wasn't one.
    */
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
-    // TODO(multitab): This needs to run in O(1).
     return this.persistence.runTransaction(
       'Get next mutation batch',
       false,
@@ -808,6 +807,11 @@ export class LocalStore {
   // PORTING NOTE: Multi-tab only.
   removeCachedMutationBatchMetadata(batchId: BatchId): void {
     this.mutationQueue.removeCachedMutationKeys(batchId);
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  setNetworkEnabled(networkEnabled: boolean): void {
+    this.persistence.setNetworkEnabled(networkEnabled);
   }
 
   private releaseHeldBatchResults(

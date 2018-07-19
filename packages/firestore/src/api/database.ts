@@ -208,7 +208,7 @@ class FirestoreConfig {
  */
 export class PersistenceSettings {
   /** Whether to enable multi-tab synchronization. */
-  synchronizeTabs: boolean;
+  experimentalTabSynchronization: boolean;
 
   constructor(
     readonly enabled: boolean,
@@ -219,8 +219,8 @@ export class PersistenceSettings {
       'Can only provide PersistenceSettings with persistence enabled'
     );
     settings = settings || {};
-    this.synchronizeTabs = objUtils.defaulted(
-      settings.synchronizeTabs,
+    this.experimentalTabSynchronization = objUtils.defaulted(
+      settings.experimentalTabSynchronization,
       DEFAULT_SYNCHRONIZE_TABS
     );
   }
@@ -228,7 +228,8 @@ export class PersistenceSettings {
   isEqual(other: PersistenceSettings): boolean {
     return (
       this.enabled === other.enabled &&
-      this.synchronizeTabs === other.synchronizeTabs
+      this.experimentalTabSynchronization ===
+        other.experimentalTabSynchronization
     );
   }
 }

@@ -674,6 +674,8 @@ export class DbClientMetadata {
     public clientId: string,
     /** The last time this state was updated. */
     public updateTimeMs: number,
+    /** Whether the client's network connection is enabled. */
+    public networkEnabled: boolean,
     /** Whether this client is running in a foreground tab. */
     public inForeground: boolean
   ) {}

@@ -15,7 +15,7 @@
  */
 
 import { Query } from './query';
-import { SyncEngine } from './sync_engine';
+import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
@@ -46,7 +46,7 @@ export interface Observer<T> {
  * It handles "fan-out". -- Identical queries will re-use the same watch on the
  * backend.
  */
-export class EventManager {
+export class EventManager implements SyncEngineListener {
   private queries = new ObjectMap<Query, QueryListenersInfo>(q =>
     q.canonicalId()
   );
@@ -54,10 +54,7 @@ export class EventManager {
   private onlineState: OnlineState = OnlineState.Unknown;
 
   constructor(private syncEngine: SyncEngine) {
-    this.syncEngine.subscribe(
-      this.onChange.bind(this),
-      this.onError.bind(this)
-    );
+    this.syncEngine.subscribe(this);
   }
 
   listen(listener: QueryListener): Promise<TargetId> {
@@ -105,7 +102,7 @@ export class EventManager {
     }
   }
 
-  onChange(viewSnaps: ViewSnapshot[]): void {
+  onWatchChange(viewSnaps: ViewSnapshot[]): void {
     for (const viewSnap of viewSnaps) {
       const query = viewSnap.query;
       const queryInfo = this.queries.get(query);
@@ -118,7 +115,7 @@ export class EventManager {
     }
   }
 
-  onError(query: Query, error: Error): void {
+  onWatchError(query: Query, error: Error): void {
     const queryInfo = this.queries.get(query);
     if (queryInfo) {
       for (const listener of queryInfo.listeners) {
@@ -131,7 +128,7 @@ export class EventManager {
     this.queries.delete(query);
   }
 
-  applyOnlineStateChange(onlineState: OnlineState): void {
+  onOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
     this.queries.forEach((_, queryInfo) => {
       for (const listener of queryInfo.listeners) {
