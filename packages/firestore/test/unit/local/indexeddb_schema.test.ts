@@ -98,16 +98,16 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     const expectedMutation = new DbMutationBatch(userId, batchId, 1000, []);
     const dummyTargetGlobal = new DbTargetGlobal(
-      1,
-      1,
-      new DbTimestamp(1, 1),
-      1
+      /*highestTargetId=*/ 1,
+      /*highestListenSequencNumber=*/ 1,
+      /*lastRemoteSnapshotVersion=*/ new DbTimestamp(1, 1),
+      /*targetCount=*/ 1
     );
     const resetTargetGlobal = new DbTargetGlobal(
-      0,
-      0,
-      SnapshotVersion.MIN.toTimestamp(),
-      0
+      /*highestTargetId=*/ 0,
+      /*highestListenSequencNumber=*/ 0,
+      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.MIN.toTimestamp(),
+      /*targetCount=*/ 0
     );
 
     return withDb(2, db => {
