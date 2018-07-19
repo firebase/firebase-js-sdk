@@ -5,6 +5,11 @@
 - [feature] Added `'array-contains'` query operator for use with `.where()` to
   find documents where an array field contains a specific element.
 
+# 0.5.7
+- [fixed] Fixed an issue where the documents could be cached as deleted when
+  they should not have been, leading to queries returning fewer results than
+  they should (firebase/firebase-ios-sdk#1548).
+
 # 0.5.0
 - [changed] Merged the `includeQueryMetadataChanges` and
   `includeDocumentMetadataChanges` options passed to `Query.onSnapshot()` into
