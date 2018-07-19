@@ -30,8 +30,11 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
  *    Cache
  * 2. Added targetCount to targetGlobal row.
+ * 3. Dropped and re-created Query Cache to deal with cache corruption related
+ *    to limbo resolution. Addresses
+ *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Performs database creation and schema upgrades.
@@ -46,11 +49,8 @@ export function createOrUpgradeDb(
   fromVersion: number,
   toVersion: number
 ): PersistencePromise<void> {
-  // This function currently supports migrating to schema version 1 (Mutation
-  // Queue, Query and Remote Document Cache) and schema version 2 (Query
-  // counting).
   assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
     'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
 
@@ -67,6 +67,16 @@ export function createOrUpgradeDb(
       saveTargetCount(txn, targetGlobal)
     );
   }
+
+  p = p.next(() => {
+    // Brand new clients don't need to drop and recreate--only clients that
+    // potentially have corrupt data.
+    if (fromVersion !== 0 && fromVersion < 3 && toVersion >= 3) {
+      dropQueryCache(db);
+      createQueryCache(db);
+    }
+  });
+
   return p;
 }
 
@@ -505,6 +515,12 @@ function createQueryCache(db: IDBDatabase): void {
     { unique: true }
   );
   db.createObjectStore(DbTargetGlobal.store);
+}
+
+function dropQueryCache(db: IDBDatabase): void {
+  db.deleteObjectStore(DbTargetDocument.store);
+  db.deleteObjectStore(DbTarget.store);
+  db.deleteObjectStore(DbTargetGlobal.store);
 }
 
 /**
