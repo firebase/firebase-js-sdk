@@ -70,8 +70,12 @@ export class QueryData {
       this.query,
       this.targetId,
       this.purpose,
-      overwrite.snapshotVersion === undefined ? this.snapshotVersion : overwrite.snapshotVersion,
-      overwrite.resumeToken === undefined ? this.resumeToken : overwwrite.resumeToken
+      overwrite.snapshotVersion === undefined
+        ? this.snapshotVersion
+        : overwrite.snapshotVersion,
+      overwrite.resumeToken === undefined
+        ? this.resumeToken
+        : overwwrite.resumeToken
     );
   }
 
