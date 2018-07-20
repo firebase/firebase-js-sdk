@@ -64,18 +64,17 @@ describe('Testing Module Tests', function() {
     });
     const token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.keys('accessToken');
-    const claims = JSON.parse(base64.decodeString(
-      token.accessToken.split('.')[1],
-      /*webSafe=*/ false
-    ));
-    expect(claims).to.have.property("uid", auth.uid);
+    const claims = JSON.parse(
+      base64.decodeString(token.accessToken.split('.')[1], /*webSafe=*/ false)
+    );
+    expect(claims).to.have.property('uid', auth.uid);
   });
 
   it('initializeAdminApp() sets the access token to "owner"', async function() {
     const app = firebase.initializeAdminApp({ projectId: 'foo' });
     const token = await (app as any).INTERNAL.getToken();
     expect(token).to.have.keys('accessToken');
-    expect(token.accessToken).to.be.string("owner");
+    expect(token.accessToken).to.be.string('owner');
   });
 
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {

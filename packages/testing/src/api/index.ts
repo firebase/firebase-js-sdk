@@ -55,7 +55,8 @@ export function initializeTestApp(options: AppOptions): FirebaseApp {
   return initializeApp(
     options.auth ? createUnsecuredJwt(options.auth) : null,
     options.databaseName,
-    options.projectId);
+    options.projectId
+  );
 }
 
 export type AdminAppOptions = {
@@ -67,7 +68,11 @@ export function initializeAdminApp(options: AdminAppOptions): FirebaseApp {
   return initializeApp(ADMIN_TOKEN, options.databaseName, options.projectId);
 }
 
-function initializeApp(accessToken?: string, databaseName?: string, projectId?: string): FirebaseApp {
+function initializeApp(
+  accessToken?: string,
+  databaseName?: string,
+  projectId?: string
+): FirebaseApp {
   let appOptions: FirebaseOptions = {};
   if (databaseName) {
     appOptions = {
