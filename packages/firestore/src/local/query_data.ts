@@ -39,39 +39,39 @@ export enum QueryPurpose {
 export class QueryData {
   constructor(
     /** The query being listened to. */
-    public query: Query,
+    readonly query: Query,
     /**
      * The target ID to which the query corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
-    public targetId: TargetId,
+    readonly targetId: TargetId,
     /** The purpose of the query. */
-    public purpose: QueryPurpose,
+    readonly purpose: QueryPurpose,
     /** The latest snapshot version seen for this target. */
-    public snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
      * An opaque, server-assigned token that allows watching a query to be
      * resumed after disconnecting without retransmitting all the data that
      * matches the query. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
-    public resumeToken: ProtoByteString = emptyByteString()
+    readonly resumeToken: ProtoByteString = emptyByteString()
   ) {}
 
   /**
    * Creates a new query data instance with an updated snapshot version and
    * resume token.
    */
-  update(updated: {
-    resumeToken: ProtoByteString;
-    snapshotVersion: SnapshotVersion;
+  copy(overwrite: {
+    resumeToken?: ProtoByteString;
+    snapshotVersion?: SnapshotVersion;
   }): QueryData {
     return new QueryData(
       this.query,
       this.targetId,
       this.purpose,
-      updated.snapshotVersion,
-      updated.resumeToken
+      overwrite.snapshotVersion || this.snapshotVersion,
+      overwrite.resumeToken || this.resumeToken
     );
   }
 

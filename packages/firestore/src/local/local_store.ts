@@ -465,7 +465,7 @@ export class LocalStore {
           // any preexisting value.
           const resumeToken = change.resumeToken;
           if (resumeToken.length > 0) {
-            queryData = queryData.update({
+            queryData = queryData.copy({
               resumeToken,
               snapshotVersion: remoteEvent.snapshotVersion
             });
