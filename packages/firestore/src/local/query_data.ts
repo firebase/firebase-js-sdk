@@ -62,16 +62,16 @@ export class QueryData {
    * Creates a new query data instance with an updated snapshot version and
    * resume token.
    */
-  copy(updated: {
-    resumeToken: ProtoByteString;
-    snapshotVersion: SnapshotVersion;
+  copy(overwrite: {
+    resumeToken?: ProtoByteString;
+    snapshotVersion?: SnapshotVersion;
   }): QueryData {
     return new QueryData(
       this.query,
       this.targetId,
       this.purpose,
-      updated.snapshotVersion,
-      updated.resumeToken
+      overwrite.snapshotVersion || this.snapshotVersion,
+      overwrite.resumeToken || this.resumeToken
     );
   }
 
