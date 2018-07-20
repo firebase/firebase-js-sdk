@@ -48,16 +48,14 @@ export function apps(): (FirebaseApp | null)[] {
 export type AppOptions = {
   databaseName?: string;
   projectId?: string;
-  auth: object;
+  auth?: object;
 };
 /** Construct a FirebaseApp authenticated with options.auth. */
 export function initializeTestApp(options: AppOptions): FirebaseApp {
-  const app = initializeApp(options.databaseName, options.projectId);
-  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
-  const unsecuredJwt = createUnsecuredJwt(options.auth);
-  (app as any).INTERNAL.getToken = () =>
-    Promise.resolve({ accessToken: unsecuredJwt });
-  return app;
+  return initializeApp(
+    options.auth ? createUnsecuredJwt(options.auth) : null,
+    options.databaseName,
+    options.projectId);
 }
 
 export type AdminAppOptions = {
@@ -66,14 +64,10 @@ export type AdminAppOptions = {
 };
 /** Construct a FirebaseApp authenticated as an admin user. */
 export function initializeAdminApp(options: AdminAppOptions): FirebaseApp {
-  const app = initializeApp(options.databaseName, options.projectId);
-  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
-  (app as any).INTERNAL.getToken = () =>
-    Promise.resolve({ accessToken: ADMIN_TOKEN });
-  return app;
+  return initializeApp(ADMIN_TOKEN, options.databaseName, options.projectId);
 }
 
-function initializeApp(databaseName?: string, projectId?: string): FirebaseApp {
+function initializeApp(accessToken?: string, databaseName?: string, projectId?: string): FirebaseApp {
   let appOptions: FirebaseOptions = {};
   if (databaseName) {
     appOptions = {
@@ -87,7 +81,13 @@ function initializeApp(databaseName?: string, projectId?: string): FirebaseApp {
     throw new Error('neither databaseName or projectId were specified');
   }
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
-  return firebase.initializeApp(appOptions, appName);
+  let app = firebase.initializeApp(appOptions, appName);
+  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
+  if (accessToken) {
+    (app as any).INTERNAL.getToken = () =>
+      Promise.resolve({ accessToken: accessToken });
+  }
+  return app;
 }
 
 export type LoadDatabaseRulesOptions = {
