@@ -585,10 +585,10 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private tryRecoverFromPrimaryLeaseLoss(err: FirestoreError): void {
     if (isPrimaryLeaseLostError(err)) {
-      // We have temporarily lost our primary lease. If we recover,
-      // Sync Engine will re-enable the network.
-      this.disableNetworkInternal();
-      this.onlineStateTracker.set(OnlineState.Unknown);
+      log.debug(
+          LOG_TAG,
+          'Unexpectedly lost primary lease, attempting to recover'
+      );
     } else {
       throw err;
     }

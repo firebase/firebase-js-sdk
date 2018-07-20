@@ -789,9 +789,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (isPrimaryLeaseLostError(err)) {
       log.debug(
         LOG_TAG,
-        'Unexpectedly lost primary lease, reverting to secondary'
+        'Unexpectedly lost primary lease, attempting to recover'
       );
-      return this.applyPrimaryState(false);
     } else {
       throw err;
     }
