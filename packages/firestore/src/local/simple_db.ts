@@ -274,12 +274,10 @@ export class SimpleDbTransaction {
 
   static open(
     db: IDBDatabase,
-    mode: string,
+    mode: IDBTransactionMode,
     objectStoreNames: string[]
   ): SimpleDbTransaction {
-    return new SimpleDbTransaction(
-      db.transaction(objectStoreNames, mode as AnyDuringMigration)
-    );
+    return new SimpleDbTransaction(db.transaction(objectStoreNames, mode));
   }
 
   constructor(private readonly transaction: IDBTransaction) {
