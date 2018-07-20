@@ -734,7 +734,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 }
 
-export function isPrimaryLeaseLostError(err: FirestoreError) : boolean {
+export function isPrimaryLeaseLostError(err: FirestoreError): boolean {
   return (
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG

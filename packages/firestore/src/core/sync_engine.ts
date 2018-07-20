@@ -855,7 +855,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // PORTING NOTE: Multi-tab only.
-  private resetLimboDocuments() : void {
+  private resetLimboDocuments(): void {
     objUtils.forEachNumber(this.limboKeysByTarget, targetId => {
       this.remoteStore.unlisten(targetId);
     });
@@ -870,7 +870,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * Raises snapshots for any changes that affect the current client.
    */
   // PORTING NOTE: Multi-tab only.
-  private synchronizeQueryViewsAndRaiseSnapshots(targets: TargetId[]): Promise<QueryData[]> {
+  private synchronizeQueryViewsAndRaiseSnapshots(
+    targets: TargetId[]
+  ): Promise<QueryData[]> {
     let p = Promise.resolve();
     const activeQueries: QueryData[] = [];
     for (const targetId of targets) {
@@ -921,10 +923,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       // If we receive a target state notification via WebStorage, we are
       // either already secondary or another tab has taken the primary lease.
-      log.debug(
-        LOG_TAG,
-        'Ignoring unexpected query state notification.'
-      );
+      log.debug(LOG_TAG, 'Ignoring unexpected query state notification.');
       return;
     }
 
