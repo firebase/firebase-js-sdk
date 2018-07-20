@@ -31,7 +31,8 @@ function createUnsecuredJwt(auth: object): string {
     alg: 'none',
     kid: 'fakekid'
   };
-  (auth as any).iat = 0;
+  // Ensure that the auth payload has a value for 'iat'.
+  (auth as any).iat = (auth as any).iat || 0;
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
