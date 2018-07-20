@@ -42,7 +42,6 @@ import {
   clearWebStorage,
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
-import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { PlatformSupport } from '../../../src/platform/platform';
 import * as objUtils from '../../../src/util/obj';
 import { targetIdSet } from '../../../src/model/collections';
@@ -174,6 +173,7 @@ describe('WebStorageSharedClientState', () => {
   let clientSyncer: TestSharedClientSyncer;
 
   let previousAddEventListener;
+  let previousRemoveEventListener;
 
   let localStorageCallbacks = [];
 
@@ -192,6 +192,7 @@ describe('WebStorageSharedClientState', () => {
     localStorageCallbacks = [];
 
     previousAddEventListener = window.addEventListener;
+    previousRemoveEventListener = window.removeEventListener;
 
     // We capture the listener here so that we can invoke it from the local
     // client. If we directly relied on LocalStorage listeners, we would not
@@ -200,12 +201,13 @@ describe('WebStorageSharedClientState', () => {
       expect(type).to.equal('storage');
       localStorageCallbacks.push(callback);
     };
+    window.removeEventListener = () => {};
 
     primaryClientId = AutoId.newId();
     queue = new AsyncQueue();
     sharedClientState = new WebStorageSharedClientState(
       queue,
-      new BrowserPlatform(),
+      PlatformSupport.getPlatform(),
       TEST_PERSISTENCE_PREFIX,
       primaryClientId,
       AUTHENTICATED_USER
@@ -220,6 +222,7 @@ describe('WebStorageSharedClientState', () => {
   afterEach(() => {
     sharedClientState.shutdown();
     window.addEventListener = previousAddEventListener;
+    window.removeEventListener = previousRemoveEventListener;
   });
 
   function assertClientState(

@@ -27,27 +27,35 @@ import { assert, fail } from '../../src/util/assert';
  * Firestore.
  */
 export class FakeWindow {
-  private readonly storageArea: Storage;
-  private storageListener: EventListener = () => {};
+  private readonly fakeStorageArea: Storage;
+  private readonly fakeIndexedDb: IDBFactory;
 
-  constructor(sharedMockStorage: SharedFakeWebStorage) {
-    this.storageArea = sharedMockStorage.getStorageArea(event =>
-      this.storageListener(event)
-    );
+  private storageListeners: EventListener[] = [];
+
+  constructor(
+    sharedFakeStorage: SharedFakeWebStorage,
+    fakeIndexedDb?: IDBFactory
+  ) {
+    this.fakeStorageArea = sharedFakeStorage.getStorageArea(event => {
+      for (const listener of this.storageListeners) {
+        listener(event);
+      }
+    });
+    this.fakeIndexedDb = fakeIndexedDb || window.indexedDB;
   }
 
   get localStorage(): Storage {
-    return this.storageArea;
+    return this.fakeStorageArea;
   }
 
   get indexedDB(): IDBFactory {
-    return window.indexedDB;
+    return this.fakeIndexedDb;
   }
 
   addEventListener(type: string, listener: EventListener): void {
     switch (type) {
       case 'storage':
-        this.storageListener = listener;
+        this.storageListeners.push(listener);
         break;
       case 'unload':
         // The spec tests currently do not rely on 'unload' listeners.
@@ -59,11 +67,15 @@ export class FakeWindow {
 
   removeEventListener(type: string, listener: EventListener): void {
     if (type === 'storage') {
-      assert(
-        this.storageListener === listener,
-        "Listener passed to 'removeEventListener' doesn't match the current listener."
+      const oldCount = this.storageListeners.length;
+      this.storageListeners = this.storageListeners.filter(
+        registeredListener => listener !== registeredListener
       );
-      this.storageListener = () => {};
+      const newCount = this.storageListeners.length;
+      assert(
+        newCount === oldCount - 1,
+        "Listener passed to 'removeEventListener' doesn't match any registered listener."
+      );
     }
   }
 }
@@ -150,7 +162,8 @@ export class SharedFakeWebStorage {
   }
 
   private key(index: number): string | null {
-    return Array.from(this.data.keys())[index];
+    const key = Array.from(this.data.keys())[index];
+    return key !== undefined ? key : null;
   }
 
   private removeItem(key: string): void {
