@@ -75,7 +75,7 @@ export class QueryData {
         : overwrite.snapshotVersion,
       overwrite.resumeToken === undefined
         ? this.resumeToken
-        : overwwrite.resumeToken
+        : overwrite.resumeToken
     );
   }
 
