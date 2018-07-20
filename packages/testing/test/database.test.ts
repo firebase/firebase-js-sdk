@@ -47,56 +47,35 @@ describe('Testing Module Tests', function() {
     });
   });
 
-  it('initializeTestApp() with DatabaseAppOptions uses specified auth.', async function() {
-    let app = firebase.initializeTestApp({
+  it('initializeTestApp() with auth=null does not set access token', async function() {
+    const app = firebase.initializeTestApp({
       projectId: 'foo',
-      auth: {}
+      auth: null
     });
-    let token = await (app as any).INTERNAL.getToken();
-    expect(token).to.have.any.keys('accessToken');
-    let claims = base64.decodeString(
-      token.accessToken.split('.')[1],
-      /*webSafe=*/ false
-    );
-    expect(claims).to.equal('{}');
-
-    app = firebase.initializeTestApp({
-      projectId: 'foo',
-      auth: { uid: 'alice' }
-    });
-    token = await (app as any).INTERNAL.getToken();
-    expect(token).to.have.any.keys('accessToken');
-    claims = base64.decodeString(
-      token.accessToken.split('.')[1],
-      /*webSafe=*/ false
-    );
-    expect(claims).to.equal('{"uid":"alice"}');
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.be.null;
   });
 
-  it('initializeTestApp() with FirestoreAppOptions uses specified auth.', async function() {
-    let app = firebase.initializeTestApp({
+  it('initializeTestApp() with auth sets the correct access token', async function() {
+    const auth = { uid: 'alice' };
+    const app = firebase.initializeTestApp({
       projectId: 'foo',
-      auth: {}
+      auth: auth
     });
-    let token = await (app as any).INTERNAL.getToken();
-    expect(token).to.have.any.keys('accessToken');
-    let claims = base64.decodeString(
-      token.accessToken.split('.')[1],
-      /*webSafe=*/ false
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.have.keys('accessToken');
+    const claims = JSON.parse(
+      base64.decodeString(token.accessToken.split('.')[1], /*webSafe=*/ false)
     );
-    expect(claims).to.equal('{}');
+    // We add an 'iat' field.
+    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0 });
+  });
 
-    app = firebase.initializeTestApp({
-      projectId: 'foo',
-      auth: { uid: 'alice' }
-    });
-    token = await (app as any).INTERNAL.getToken();
-    expect(token).to.have.any.keys('accessToken');
-    claims = base64.decodeString(
-      token.accessToken.split('.')[1],
-      /*webSafe=*/ false
-    );
-    expect(claims).to.equal('{"uid":"alice"}');
+  it('initializeAdminApp() sets the access token to "owner"', async function() {
+    const app = firebase.initializeAdminApp({ projectId: 'foo' });
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.have.keys('accessToken');
+    expect(token.accessToken).to.be.string('owner');
   });
 
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
