@@ -405,7 +405,7 @@ export class RemoteStore implements TargetMetadataProvider {
         const queryData = this.listenTargets[targetId];
         // A watched target might have been removed already.
         if (queryData) {
-          this.listenTargets[targetId] = queryData.update({
+          this.listenTargets[targetId] = queryData.copy({
             resumeToken: change.resumeToken,
             snapshotVersion
           });
@@ -424,7 +424,9 @@ export class RemoteStore implements TargetMetadataProvider {
 
       // Clear the resume token for the query, since we're in a known mismatch
       // state.
-      queryData.resumeToken = emptyByteString();
+      this.listenTargets[targetId] = queryData.copy({
+        resumeToken: emptyByteString()
+      });
 
       // Cause a hard reset by unwatching and rewatching immediately, but
       // deliberately don't send a resume token so that we get a full update.

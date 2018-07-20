@@ -29,9 +29,13 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * Schema Version for the Web client:
  * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
  *    Cache
- * 2. Added targetCount to targetGlobal row.
+ * 2. Used to ensure a targetGlobal object exists and add targetCount to it. No
+ *    longer required because migration 3 unconditionally clears it.
+ * 3. Dropped and re-created Query Cache to deal with cache corruption related
+ *    to limbo resolution. Addresses
+ *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Performs database creation and schema upgrades.
@@ -46,11 +50,8 @@ export function createOrUpgradeDb(
   fromVersion: number,
   toVersion: number
 ): PersistencePromise<void> {
-  // This function currently supports migrating to schema version 1 (Mutation
-  // Queue, Query and Remote Document Cache) and schema version 2 (Query
-  // counting).
   assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 2,
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
     'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
 
@@ -61,12 +62,20 @@ export function createOrUpgradeDb(
     createRemoteDocumentCache(db);
   }
 
+  // Migration 2 to populate the targetGlobal object no longer needed since
+  // migration 3 unconditionally clears it.
+
   let p = PersistencePromise.resolve();
-  if (fromVersion < 2 && toVersion >= 2) {
-    p = ensureTargetGlobalExists(txn).next(targetGlobal =>
-      saveTargetCount(txn, targetGlobal)
-    );
+  if (fromVersion < 3 && toVersion >= 3) {
+    // Brand new clients don't need to drop and recreate--only clients that
+    // potentially have corrupt data.
+    if (fromVersion !== 0) {
+      dropQueryCache(db);
+      createQueryCache(db);
+    }
+    p = p.next(() => writeEmptyTargetGlobalEntry(txn));
   }
+
   return p;
 }
 
@@ -507,49 +516,30 @@ function createQueryCache(db: IDBDatabase): void {
   db.createObjectStore(DbTargetGlobal.store);
 }
 
+function dropQueryCache(db: IDBDatabase): void {
+  db.deleteObjectStore(DbTargetDocument.store);
+  db.deleteObjectStore(DbTarget.store);
+  db.deleteObjectStore(DbTargetGlobal.store);
+}
+
 /**
- * Counts the number of targets persisted and adds that value to the target
- * global singleton.
+ * Creates the target global singleton row.
+ *
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function saveTargetCount(
-  txn: SimpleDbTransaction,
-  metadata: DbTargetGlobal
+function writeEmptyTargetGlobalEntry(
+  txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
     DbTargetGlobal.store
   );
-  const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-  return targetStore.count().next(count => {
-    metadata.targetCount = count;
-    return globalStore.put(DbTargetGlobal.key, metadata);
-  });
-}
-
-/**
- * Ensures that the target global singleton row exists by adding it if it's
- * missing.
- *
- * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- */
-function ensureTargetGlobalExists(
-  txn: SimpleDbTransaction
-): PersistencePromise<DbTargetGlobal> {
-  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-    DbTargetGlobal.store
+  const metadata = new DbTargetGlobal(
+    /*highestTargetId=*/ 0,
+    /*lastListenSequenceNumber=*/ 0,
+    SnapshotVersion.MIN.toTimestamp(),
+    /*targetCount=*/ 0
   );
-  return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    if (metadata != null) {
-      return PersistencePromise.resolve(metadata);
-    } else {
-      metadata = new DbTargetGlobal(
-        /*highestTargetId=*/ 0,
-        /*lastListenSequenceNumber=*/ 0,
-        SnapshotVersion.MIN.toTimestamp(),
-        /*targetCount=*/ 0
-      );
-      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
-    }
-  });
+  return globalStore.put(DbTargetGlobal.key, metadata);
 }
 
 /**
