@@ -41,7 +41,8 @@ export class FakeWindow {
         listener(event);
       }
     });
-    this.fakeIndexedDb = fakeIndexedDb || (typeof window !== 'undefined' && window.indexedDB);
+    this.fakeIndexedDb =
+      fakeIndexedDb || (typeof window !== 'undefined' && window.indexedDB);
   }
 
   get localStorage(): Storage {
