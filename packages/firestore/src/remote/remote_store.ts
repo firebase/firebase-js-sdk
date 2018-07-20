@@ -586,8 +586,8 @@ export class RemoteStore implements TargetMetadataProvider {
   private tryRecoverFromPrimaryLeaseLoss(err: FirestoreError): void {
     if (isPrimaryLeaseLostError(err)) {
       log.debug(
-          LOG_TAG,
-          'Unexpectedly lost primary lease, attempting to recover'
+        LOG_TAG,
+        'Unexpectedly lost primary lease, attempting to recover'
       );
     } else {
       throw err;
