@@ -40,11 +40,9 @@ export function size<V>(obj: Dict<V>): number {
 }
 
 /** Extracts the numeric indices from a dictionary. */
-export function indices<V>(obj: Dict<V>): number[] {
+export function indices<V>(obj: { [numberKey: number]: V }): number[] {
   return Object.keys(obj).map(key => {
-    const numberKey = Number(key);
-    assert(!isNaN(numberKey), `Cannot convert ${key} to an index.`);
-    return numberKey;
+    return Number(key);
   });
 }
 

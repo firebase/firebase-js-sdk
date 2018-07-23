@@ -276,26 +276,26 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   // PORTING NOTE: Multi-tab only.
   private synchronizeViewAndComputeSnapshot(
-    query: Query,
-    targetId: TargetId
+    queryView: QueryView
   ): Promise<ViewChange> {
-    return this.localStore.executeQuery(query).then(async docs => {
+    return this.localStore.executeQuery(queryView.query).then(async docs => {
       return this.localStore
-        .remoteDocumentKeys(targetId)
+        .remoteDocumentKeys(queryView.targetId)
         .then(async remoteKeys => {
-          const queryView = this.queryViewsByTarget[targetId];
-          assert(!!queryView, 'Cannot reconcile missing view');
-          const viewChange = queryView.view.synchronizeWithPersistedState(
+          // We do not update our tracking of limbo documents since
+          //`resetCurrent` will set `current` to false for the querie's view
+          // (and won't return any limbo documents). We also explicitly don't
+          // track limbo documents as secondary.
+          const viewSnapshot = queryView.view.synchronizeWithPersistedState(
             docs,
             remoteKeys,
-            /* resetLimboDocuments= */ this.isPrimary,
             /* resetCurrent= */ this.isPrimary
           );
-          await this.updateTrackedLimbos(
-            queryView.targetId,
-            viewChange.limboChanges
+          assert(
+            !this.isPrimary || viewSnapshot.limboChanges.length === 0,
+            'Received limboChanges when query is not CURRENT.'
           );
-          return viewChange;
+          return viewSnapshot;
         });
     });
   }
@@ -787,10 +787,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     err: FirestoreError
   ): Promise<void> {
     if (isPrimaryLeaseLostError(err)) {
-      log.debug(
-        LOG_TAG,
-        'Unexpectedly lost primary lease, attempting to recover'
-      );
+      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
     } else {
       throw err;
     }
@@ -865,8 +862,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   /**
-   * Reconcile the local query views with those the state from persistence.
-   * Raises snapshots for any changes that affect the current client.
+   * Reconcile the query views of the provided query targets with the state from
+   * persistence. Raises snapshots for any changes that affect the local
+   * client and returns the updated state of all target's query data.
    */
   // PORTING NOTE: Multi-tab only.
   private synchronizeQueryViewsAndRaiseSnapshots(
@@ -874,38 +872,50 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<QueryData[]> {
     let p = Promise.resolve();
     const activeQueries: QueryData[] = [];
+    const newViewSnapshots: ViewSnapshot[] = [];
     for (const targetId of targets) {
+      // TODO(multitab): We should mark queries NON-CURRENT when the primary tab
+      // re-computes its views.
       p = p.then(async () => {
-        let queryData;
-        const query = await this.localStore.getQueryForTarget(targetId);
-        if (this.queryViewsByTarget[targetId] === undefined) {
+        let queryData: QueryData;
+        const queryView = this.queryViewsByTarget[targetId];
+        if (queryView) {
+          // For queries that have a local View, we need to update their state
+          // in LocalStore (as the resume token and the snapshot version
+          // might have changed) and reconcile their views with the persisted
+          // state (the list of syncedDocuments may have gotten out of sync).
+          await this.localStore.releaseQuery(
+            queryView.query,
+            /*keepPersistedQueryData=*/ true
+          );
+          queryData = await this.localStore.allocateQuery(queryView.query);
+          const viewChange = await this.synchronizeViewAndComputeSnapshot(
+            queryView
+          );
+          if (viewChange.snapshot) {
+            newViewSnapshots.push(viewChange.snapshot);
+          }
+        } else {
           assert(
             this.isPrimary,
             'A secondary tab should never have an active query without an active view.'
           );
           // For queries that never executed on this client, we need to
           // allocate the query in LocalStore and initialize a new View.
+          const query = await this.localStore.getQueryForTarget(targetId);
           queryData = await this.localStore.allocateQuery(query);
-          await this.initializeViewAndComputeSnapshot(queryData, false);
-        } else {
-          // For queries that have a local View, we need to update their state
-          // in LocalStore (as the resume token and the snapshot version
-          // might have changed) and reconcile their views with the persisted
-          // state (the list of syncedDocuments may have gotten out of sync).
-          await this.localStore.releaseQuery(query, true);
-          queryData = await this.localStore.allocateQuery(query);
-          const viewChange = await this.synchronizeViewAndComputeSnapshot(
-            query,
-            queryData.targetId
+          await this.initializeViewAndComputeSnapshot(
+            queryData,
+            /*current=*/ false
           );
-          if (viewChange.snapshot) {
-            this.syncEngineListener!.onWatchChange([viewChange.snapshot]);
-          }
         }
         activeQueries.push(queryData);
       });
     }
-    return p.then(() => activeQueries);
+    return p.then(() => {
+      this.syncEngineListener!.onWatchChange(newViewSnapshots);
+      return activeQueries;
+    });
   }
 
   // PORTING NOTE: Multi-tab only

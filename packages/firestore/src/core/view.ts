@@ -383,24 +383,41 @@ export class View {
     return changes;
   }
 
+  /**
+   * Update the in-memory state of the current view with the state read from
+   * persistence.
+   *
+   * We update the query view whenever a client's primary status changes:
+   * - When a client transitions from primary to secondary, it can miss
+   *   LocalStorage updates and its query views may temporarily not be
+   *   synchronized with the state on disk.
+   * - For secondary to primary transitions, the client needs to update the list
+   *   of `syncedDocuments` since secondary clients update their query views
+   *   based purely on synthesized RemoteEvents.
+   *
+   * @param localDocs - The documents that match the query according to the
+   * LocalStore.
+   * @param {DocumentKeySet} remoteKeys - The keys of the documents that match
+   * the query according to the backend.
+   * @param {boolean} resetCurrent - Whether we should flip `CURRENT` back to
+   * false, since the query will be re-listened to.
+   *
+   * @return The ViewChange that resulted from this synchronization.
+   */
   // PORTING NOTE: Multi-tab only.
   synchronizeWithPersistedState(
     localDocs: MaybeDocumentMap,
     remoteKeys: DocumentKeySet,
-    resetLimboDocuments: boolean,
     resetCurrent: boolean
   ): ViewChange {
-    if (resetLimboDocuments) {
-      this.limboDocuments = documentKeySet();
-    }
-
     if (resetCurrent) {
       this.current = false;
     }
 
     this._syncedDocuments = remoteKeys;
+    this.limboDocuments = documentKeySet();
     const docChanges = this.computeDocChanges(localDocs);
-    return this.applyChanges(docChanges, resetLimboDocuments);
+    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
   }
 
   /**
