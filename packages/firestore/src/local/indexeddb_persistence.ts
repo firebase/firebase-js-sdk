@@ -34,11 +34,13 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { Persistence } from './persistence';
+import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbTransaction } from './simple_db';
+import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -58,6 +60,13 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
   ' persistence has been disabled.';
+
+export class IndexedDbTransaction {
+  constructor(
+    readonly simpleDbTransaction: SimpleDbTransaction, 
+    readonly currentSequenceNumber: ListenSequenceNumber
+  ) {}
+}
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -114,10 +123,15 @@ export class IndexedDbPersistence implements Persistence {
 
   private serializer: LocalSerializer;
 
+  private queryCache: IndexedDbQueryCache;
+
+  private listenSequence: ListenSequence;
+
   constructor(prefix: string, serializer: JsonProtoSerializer) {
     this.dbName = prefix + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.localStoragePrefix = prefix;
+    this.queryCache = new IndexedDbQueryCache(this.serializer);
   }
 
   start(): Promise<void> {
@@ -140,6 +154,12 @@ export class IndexedDbPersistence implements Persistence {
       .then(() => {
         this.scheduleOwnerLeaseRefreshes();
         this.attachWindowUnloadHook();
+      }).then(() => this.simpleDb.runTransaction(
+        'readonly', 
+        ALL_STORES,
+        (txn) => this.queryCache.start(txn)
+      )).then(() => {
+        //this.listenSequence = new ListenSequence(this.queryCache.getHighestSequenceNumber);
       });
   }
 
@@ -161,7 +181,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getQueryCache(): QueryCache {
-    return new IndexedDbQueryCache(this.serializer);
+    return this.queryCache;
   }
 
   getRemoteDocumentCache(): RemoteDocumentCache {
@@ -170,7 +190,7 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: SimpleDbTransaction) => PersistencePromise<T>
+    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
   ): Promise<T> {
     if (this.persistenceError) {
       return Promise.reject(this.persistenceError);
@@ -180,9 +200,11 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
+    return this.simpleDb.runTransaction('readwrite', ALL_STORES, simpleDbTxn => {
       // Verify that we still have the owner lease as part of every transaction.
-      return this.ensureOwnerLease(txn).next(() => operation(txn));
+      const sequenceNumber = this.listenSequence.next();
+      const txn = new IndexedDbTransaction(simpleDbTxn, sequenceNumber);
+      return this.ensureOwnerLease(txn.simpleDbTransaction).next(() => operation(txn));
     });
   }
 
@@ -320,7 +342,7 @@ export class IndexedDbPersistence implements Persistence {
     // would increase the chances of us not refreshing on time if the queue is
     // backed up for some reason.
     this.ownerLeaseRefreshHandle = setInterval(() => {
-      const txResult = this.runTransaction('Refresh owner timestamp', txn => {
+      const txResult = this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
         // NOTE: We don't need to validate the current owner contents, since
         // runTransaction does that automatically.
         const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);

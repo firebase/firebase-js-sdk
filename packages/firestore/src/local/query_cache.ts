@@ -33,7 +33,7 @@ export interface QueryCache extends GarbageSource {
   /**
    * Starts up the query cache.
    */
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
+  //start(transaction: PersistenceTransaction): PersistencePromise<void>;
 
   /**
    * Returns the highest target ID of any query in the cache. Typically called

@@ -166,6 +166,8 @@ export class LocalStore {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.queryCache = persistence.getQueryCache();
+    const targetId = this.queryCache.getHighestTargetId();
+    this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue
@@ -178,7 +180,7 @@ export class LocalStore {
   /** Performs any initial startup actions required by the local store. */
   start(): Promise<void> {
     return this.persistence.runTransaction('Start LocalStore', txn => {
-      return this.startMutationQueue(txn).next(() => this.startQueryCache(txn));
+      return this.startMutationQueue(txn);
     });
   }
 
@@ -230,14 +232,14 @@ export class LocalStore {
     });
   }
 
-  private startQueryCache(
+  /*private startQueryCache(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     return this.queryCache.start(txn).next(() => {
       const targetId = this.queryCache.getHighestTargetId();
       this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     });
-  }
+  }*/
 
   private startMutationQueue(
     txn: PersistenceTransaction
@@ -467,7 +469,8 @@ export class LocalStore {
           if (resumeToken.length > 0) {
             queryData = queryData.copy({
               resumeToken,
-              snapshotVersion: remoteEvent.snapshotVersion
+              snapshotVersion: remoteEvent.snapshotVersion,
+              sequenceNumber: txn.currentSequenceNumber
             });
             this.targetIds[targetId] = queryData;
             promises.push(this.queryCache.updateQueryData(txn, queryData));
@@ -621,7 +624,7 @@ export class LocalStore {
             return PersistencePromise.resolve();
           } else {
             const targetId = this.targetIdGenerator.next();
-            queryData = new QueryData(query, targetId, QueryPurpose.Listen);
+            queryData = new QueryData(query, targetId, txn.currentSequenceNumber, QueryPurpose.Listen);
             return this.queryCache.addQueryData(txn, queryData);
           }
         })

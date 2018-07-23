@@ -41,6 +41,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDb, SimpleDbStore } from './simple_db';
+import { IndexedDbTransaction } from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -564,7 +565,7 @@ function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
   return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
-    txn,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbMutationBatch.store
   );
 }
@@ -576,7 +577,7 @@ function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
   return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
-    txn,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbDocumentMutation.store
   );
 }
@@ -588,7 +589,7 @@ function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
   return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
-    txn,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbMutationQueue.store
   );
 }

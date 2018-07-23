@@ -23,6 +23,7 @@ import { SCHEMA_VERSION } from './indexeddb_schema';
 import { Deferred } from '../util/promise';
 import { PersistenceTransaction } from './persistence';
 import { Code, FirestoreError } from '../util/error';
+import { ListenSequenceNumber } from '../core/types';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -150,7 +151,7 @@ export class SimpleDb {
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
   static getStore<KeyType extends IDBValidKey, ValueType>(
-    txn: PersistenceTransaction,
+    txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
     if (txn instanceof SimpleDbTransaction) {
@@ -277,7 +278,9 @@ export class SimpleDbTransaction {
     mode: IDBTransactionMode,
     objectStoreNames: string[]
   ): SimpleDbTransaction {
-    return new SimpleDbTransaction(db.transaction(objectStoreNames, mode));
+    return new SimpleDbTransaction(
+      db.transaction(objectStoreNames, mode)
+    );
   }
 
   constructor(private readonly transaction: IDBTransaction) {

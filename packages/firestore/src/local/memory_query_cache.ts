@@ -47,11 +47,6 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetCount = 0;
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // Nothing to do.
-    return PersistencePromise.resolve();
-  }
-
   getLastRemoteSnapshotVersion(): SnapshotVersion {
     return this.lastRemoteSnapshotVersion;
   }

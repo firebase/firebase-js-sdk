@@ -46,7 +46,13 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
+import {
+  BatchId,
+  OnlineState,
+  ProtoByteString,
+  TargetId,
+  ListenSequenceNumber
+} from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -56,6 +62,7 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { SortedSet } from '../util/sorted_set';
+import { ListenSequence } from './listen_sequence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -527,7 +534,12 @@ export class SyncEngine implements RemoteSyncer {
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
+        new QueryData(
+          query,
+          limboTargetId,
+          ListenSequence.IRRELEVANT,
+          QueryPurpose.LimboResolution
+        )
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,

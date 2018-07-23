@@ -38,7 +38,8 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { SimpleDb, SimpleDbStore } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { IndexedDbTransaction } from './indexeddb_persistence';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
@@ -57,7 +58,7 @@ export class IndexedDbQueryCache implements QueryCache {
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+  start(transaction: SimpleDbTransaction): PersistencePromise<void> {
     return globalTargetStore(transaction)
       .get(DbTargetGlobal.key)
       .next(metadata => {
@@ -335,17 +336,21 @@ export class IndexedDbQueryCache implements QueryCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return SimpleDb.getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
+  return SimpleDb.getStore<DbTargetKey, DbTarget>(
+    (txn as IndexedDbTransaction).simpleDbTransaction, 
+    DbTarget.store
+  );
 }
 
 /**
  * Helper to get a typed SimpleDbStore for the target globals object store.
  */
 function globalTargetStore(
-  txn: PersistenceTransaction
+  txn: PersistenceTransaction | SimpleDbTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
+  const simpleDbTransaction = txn instanceof SimpleDbTransaction ? txn : (txn as IndexedDbTransaction).simpleDbTransaction;
   return SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    txn,
+    simpleDbTransaction,
     DbTargetGlobal.store
   );
 }
@@ -357,7 +362,7 @@ function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
   return SimpleDb.getStore<DbTargetDocumentKey, DbTargetDocument>(
-    txn,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbTargetDocument.store
   );
 }

@@ -20,6 +20,7 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
+import { IndexedDbTransaction } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -89,7 +90,7 @@ function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
   return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
-    txn,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbRemoteDocument.store
   );
 }
