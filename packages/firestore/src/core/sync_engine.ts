@@ -278,7 +278,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private synchronizeViewAndComputeSnapshot(
     queryView: QueryView
   ): Promise<ViewChange> {
-    return this.localStore.executeQuery(queryView.query).then( docs => {
+    return this.localStore.executeQuery(queryView.query).then(docs => {
       return this.localStore
         .remoteDocumentKeys(queryView.targetId)
         .then(async remoteKeys => {
