@@ -51,6 +51,7 @@ import {
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { DocumentKeySet } from '../model/collections';
+import { PersistenceTransaction } from '../local/persistence';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -117,7 +118,7 @@ export class RemoteStore implements TargetMetadataProvider {
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
      */
-    private localStore: LocalStore,
+    private localStore: LocalStore<PersistenceTransaction>,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
     asyncQueue: AsyncQueue,

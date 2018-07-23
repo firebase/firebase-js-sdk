@@ -1,5 +1,3 @@
-import { ListenSequenceNumber } from './types';
-
 /**
  * Copyright 2018 Google Inc.
  *
@@ -15,6 +13,8 @@ import { ListenSequenceNumber } from './types';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+ import { ListenSequenceNumber } from './types';
 
 export class ListenSequence {
   static readonly IRRELEVANT = -1;

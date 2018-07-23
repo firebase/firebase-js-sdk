@@ -70,7 +70,7 @@ export interface PersistenceTransaction {
  * writes in order to avoid relying on being able to read back uncommitted
  * writes.
  */
-export interface Persistence {
+export interface Persistence<TransactionType extends PersistenceTransaction> {
   /**
    * Starts persistent storage, opening the database or similar.
    *
@@ -96,7 +96,7 @@ export interface Persistence {
    * extent possible (e.g. in the case of uid switching from
    * sally=>jack=>sally, sally's mutation queue will be preserved).
    */
-  getMutationQueue(user: User): MutationQueue;
+  getMutationQueue(user: User): MutationQueue<TransactionType>;
 
   /**
    * Returns a QueryCache representing the persisted cache of queries.
@@ -105,7 +105,7 @@ export interface Persistence {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryCache(): QueryCache;
+  getQueryCache(): QueryCache<TransactionType>;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote
@@ -115,7 +115,7 @@ export interface Persistence {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getRemoteDocumentCache(): RemoteDocumentCache;
+  getRemoteDocumentCache(): RemoteDocumentCache<TransactionType>;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes
@@ -135,7 +135,7 @@ export interface Persistence {
   runTransaction<T>(
     action: string,
     transactionOperation: (
-      transaction: PersistenceTransaction
+      transaction: TransactionType
     ) => PersistencePromise<T>
   ): Promise<T>;
 }

@@ -30,7 +30,7 @@ import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
-import { Persistence } from '../local/persistence';
+import { Persistence, PersistenceTransaction } from '../local/persistence';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -76,8 +76,9 @@ export class FirestoreClient {
   // undefined checks.
   private eventMgr: EventManager;
   private garbageCollector: GarbageCollector;
-  private persistence: Persistence;
-  private localStore: LocalStore;
+  // TODO(gsoltis): wrap these two together to enforce the same parametrized type
+  private persistence: Persistence<PersistenceTransaction>;
+  private localStore: LocalStore<PersistenceTransaction>;
   private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
 

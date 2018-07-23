@@ -26,7 +26,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 /** A queue of mutations to apply to the remote store. */
-export interface MutationQueue extends GarbageSource {
+export interface MutationQueue<TransactionType extends PersistenceTransaction> extends GarbageSource {
   /**
    * Starts the mutation queue, performing any initial reads that might be
    * required to establish invariants, etc.
@@ -36,10 +36,10 @@ export interface MutationQueue extends GarbageSource {
    * local store from creating new batches that the mutation queue would
    * consider erroneously acknowledged.
    */
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
+  start(transaction: TransactionType): PersistencePromise<void>;
 
   /** Returns true if this queue contains no mutation batches. */
-  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
+  checkEmpty(transaction: TransactionType): PersistencePromise<boolean>;
 
   /**
    * Returns the next BatchId that will be assigned to a new mutation batch.
@@ -49,7 +49,7 @@ export interface MutationQueue extends GarbageSource {
    * highestAcknowledgedBatchId is less than nextBatchId.
    */
   getNextBatchId(
-    transaction: PersistenceTransaction
+    transaction: TransactionType
   ): PersistencePromise<BatchId>;
 
   /**
@@ -58,39 +58,39 @@ export interface MutationQueue extends GarbageSource {
    * BATCHID_UNKNOWN.
    */
   getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
+    transaction: TransactionType
   ): PersistencePromise<BatchId>;
 
   /**
    * Acknowledges the given batch.
    */
   acknowledgeBatch(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     batch: MutationBatch,
     streamToken: ProtoByteString
   ): PersistencePromise<void>;
 
   /** Returns the current stream token for this mutation queue. */
   getLastStreamToken(
-    transaction: PersistenceTransaction
+    transaction: TransactionType
   ): PersistencePromise<ProtoByteString>;
 
   /** Sets the stream token for this mutation queue. */
   setLastStreamToken(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     streamToken: ProtoByteString
   ): PersistencePromise<void>;
 
   /** Creates a new mutation batch and adds it to this mutation queue. */
   addMutationBatch(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch>;
 
   /** Loads the mutation batch with the given batchId. */
   lookupMutationBatch(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
 
@@ -104,7 +104,7 @@ export interface MutationQueue extends GarbageSource {
    * @return the next mutation or null if there wasn't one.
    */
   getNextMutationBatchAfterBatchId(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
 
@@ -112,7 +112,7 @@ export interface MutationQueue extends GarbageSource {
   // TODO(mikelehen): PERF: Current consumer only needs mutated keys; if we can
   // provide that cheaply, we should replace this.
   getAllMutationBatches(
-    transaction: PersistenceTransaction
+    transaction: TransactionType
   ): PersistencePromise<MutationBatch[]>;
 
   /**
@@ -129,7 +129,7 @@ export interface MutationQueue extends GarbageSource {
   // TODO(mcg): This should really return an enumerator and the caller should be
   // adjusted to only loop through these once.
   getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     batchId: BatchId
   ): PersistencePromise<MutationBatch[]>;
 
@@ -146,7 +146,7 @@ export interface MutationQueue extends GarbageSource {
   // TODO(mcg): This should really return an enumerator
   // also for b/32992024, all backing stores should really index by document key
   getAllMutationBatchesAffectingDocumentKey(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]>;
 
@@ -166,7 +166,7 @@ export interface MutationQueue extends GarbageSource {
   // TODO(mikelehen): This should perhaps return an enumerator, though I'm not
   // sure we can avoid loading them all in memory.
   getAllMutationBatchesAffectingQuery(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     query: Query
   ): PersistencePromise<MutationBatch[]>;
 
@@ -182,7 +182,7 @@ export interface MutationQueue extends GarbageSource {
    * getAllMutationBatchesThroughBatchId()
    */
   removeMutationBatches(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     batches: MutationBatch[]
   ): PersistencePromise<void>;
 
@@ -191,6 +191,6 @@ export interface MutationQueue extends GarbageSource {
    * leaks, if possible.
    */
   performConsistencyCheck(
-    transaction: PersistenceTransaction
+    transaction: TransactionType
   ): PersistencePromise<void>;
 }

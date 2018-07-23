@@ -27,11 +27,11 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore } from './simple_db';
 
-export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
+export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache<IndexedDbTransaction> {
   constructor(private serializer: LocalSerializer) {}
 
   addEntry(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     maybeDocument: MaybeDocument
   ): PersistencePromise<void> {
     return remoteDocumentsStore(transaction).put(
@@ -41,14 +41,14 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   removeEntry(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
     return remoteDocumentsStore(transaction).delete(dbKey(documentKey));
   }
 
   getEntry(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     return remoteDocumentsStore(transaction)
@@ -61,7 +61,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
     let results = documentMap();
@@ -87,10 +87,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
  * Helper to get a typed SimpleDbStore for the remoteDocuments object store.
  */
 function remoteDocumentsStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
   return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+    txn.simpleDbTransaction,
     DbRemoteDocument.store
   );
 }

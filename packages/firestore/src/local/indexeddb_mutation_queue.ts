@@ -44,7 +44,7 @@ import { SimpleDb, SimpleDbStore } from './simple_db';
 import { IndexedDbTransaction } from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
-export class IndexedDbMutationQueue implements MutationQueue {
+export class IndexedDbMutationQueue implements MutationQueue<IndexedDbTransaction> {
   /**
    * Next value to use when assigning sequential IDs to each mutation batch.
    *
@@ -88,7 +88,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return new IndexedDbMutationQueue(userId, serializer);
   }
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+  start(transaction: IndexedDbTransaction): PersistencePromise<void> {
     return IndexedDbMutationQueue.loadNextBatchIdFromDb(transaction)
       .next(nextBatchId => {
         this.nextBatchId = nextBatchId;
@@ -130,7 +130,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
    * are no mutations returns 0. Note that batch IDs are global.
    */
   static loadNextBatchIdFromDb(
-    txn: PersistenceTransaction
+    txn: IndexedDbTransaction
   ): PersistencePromise<BatchId> {
     let maxBatchId = BATCHID_UNKNOWN;
     return mutationsStore(txn)
@@ -153,7 +153,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => maxBatchId + 1);
   }
 
-  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
+  checkEmpty(transaction: IndexedDbTransaction): PersistencePromise<boolean> {
     let empty = true;
     const range = IDBKeyRange.bound(
       this.keyForBatchId(Number.NEGATIVE_INFINITY),
@@ -168,19 +168,19 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getNextBatchId(
-    transaction: PersistenceTransaction
+    transaction: IndexedDbTransaction
   ): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.nextBatchId);
   }
 
   getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
+    transaction: IndexedDbTransaction
   ): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.metadata.lastAcknowledgedBatchId);
   }
 
   acknowledgeBatch(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     batch: MutationBatch,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
@@ -197,13 +197,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getLastStreamToken(
-    transaction: PersistenceTransaction
+    transaction: IndexedDbTransaction
   ): PersistencePromise<ProtoByteString> {
     return PersistencePromise.resolve(this.metadata.lastStreamToken);
   }
 
   setLastStreamToken(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     this.metadata.lastStreamToken = convertStreamToken(streamToken);
@@ -211,7 +211,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   addMutationBatch(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
@@ -246,7 +246,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   lookupMutationBatch(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return mutationsStore(transaction)
@@ -258,7 +258,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getNextMutationBatchAfterBatchId(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
@@ -284,7 +284,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatches(
-    transaction: PersistenceTransaction
+    transaction: IndexedDbTransaction
   ): PersistencePromise<MutationBatch[]> {
     const range = IDBKeyRange.bound(
       this.keyForBatchId(BATCHID_UNKNOWN),
@@ -298,7 +298,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch[]> {
     const range = IDBKeyRange.bound(
@@ -313,7 +313,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatchesAffectingDocumentKey(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]> {
     // Scan the document-mutation index starting with a prefix starting with
@@ -364,7 +364,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatchesAffectingQuery(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     assert(
@@ -440,7 +440,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   removeMutationBatches(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<void> {
     const txn = mutationsStore(transaction);
@@ -479,7 +479,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   performConsistencyCheck(
-    txn: PersistenceTransaction
+    txn: IndexedDbTransaction
   ): PersistencePromise<void> {
     return this.checkEmpty(txn).next(empty => {
       if (!empty) {
@@ -518,7 +518,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   }
 
   containsKey(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     const indexKey = DbDocumentMutation.prefixForPath(this.userId, key.path);
@@ -562,7 +562,7 @@ function convertStreamToken(token: ProtoByteString): string {
  * Helper to get a typed SimpleDbStore for the mutations object store.
  */
 function mutationsStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
   return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
     (txn as IndexedDbTransaction).simpleDbTransaction,
@@ -574,7 +574,7 @@ function mutationsStore(
  * Helper to get a typed SimpleDbStore for the mutationQueues object store.
  */
 function documentMutationsStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
   return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
     (txn as IndexedDbTransaction).simpleDbTransaction,
@@ -586,7 +586,7 @@ function documentMutationsStore(
  * Helper to get a typed SimpleDbStore for the mutationQueues object store.
  */
 function mutationQueuesStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
   return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
     (txn as IndexedDbTransaction).simpleDbTransaction,

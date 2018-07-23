@@ -97,7 +97,7 @@ export class IndexedDbTransaction {
  * which acts as an indicator that another tab should go ahead and take the
  * owner lease immediately regardless of the current lease timestamp.
  */
-export class IndexedDbPersistence implements Persistence {
+export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.
@@ -176,21 +176,21 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getMutationQueue(user: User): MutationQueue<IndexedDbTransaction> {
     return IndexedDbMutationQueue.forUser(user, this.serializer);
   }
 
-  getQueryCache(): QueryCache {
+  getQueryCache(): QueryCache<IndexedDbTransaction> {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache {
+  getRemoteDocumentCache(): RemoteDocumentCache<IndexedDbTransaction> {
     return new IndexedDbRemoteDocumentCache(this.serializer);
   }
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
+    operation: (transaction: IndexedDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
     if (this.persistenceError) {
       return Promise.reject(this.persistenceError);

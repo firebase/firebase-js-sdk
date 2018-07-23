@@ -63,6 +63,7 @@ import {
 import { ViewSnapshot } from './view_snapshot';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
+import { PersistenceTransaction } from '../local/persistence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -150,7 +151,7 @@ export class SyncEngine implements RemoteSyncer {
   private targetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   constructor(
-    private localStore: LocalStore,
+    private localStore: LocalStore<PersistenceTransaction>,
     private remoteStore: RemoteStore,
     private currentUser: User
   ) {

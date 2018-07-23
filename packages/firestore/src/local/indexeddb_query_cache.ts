@@ -41,7 +41,7 @@ import { QueryData } from './query_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { IndexedDbTransaction } from './indexeddb_persistence';
 
-export class IndexedDbQueryCache implements QueryCache {
+export class IndexedDbQueryCache implements QueryCache<IndexedDbTransaction> {
   constructor(private serializer: LocalSerializer) {}
 
   /**
@@ -84,19 +84,19 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   setLastRemoteSnapshotVersion(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     snapshotVersion: SnapshotVersion
   ): PersistencePromise<void> {
     this.lastRemoteSnapshotVersion = snapshotVersion;
     this.metadata.lastRemoteSnapshotVersion = snapshotVersion.toTimestamp();
-    return globalTargetStore(transaction).put(
+    return globalTargetStore(transaction.simpleDbTransaction).put(
       DbTargetGlobal.key,
       this.metadata
     );
   }
 
   addQueryData(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     return this.saveQueryData(transaction, queryData).next(() => {
@@ -107,7 +107,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   updateQueryData(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     return this.saveQueryData(transaction, queryData).next(() => {
@@ -120,7 +120,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   removeQueryData(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(this.metadata.targetCount > 0, 'Removing from an empty query cache');
@@ -133,16 +133,16 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   private saveMetadata(
-    transaction: PersistenceTransaction
+    transaction: IndexedDbTransaction
   ): PersistencePromise<void> {
-    return globalTargetStore(transaction).put(
+    return globalTargetStore(transaction.simpleDbTransaction).put(
       DbTargetGlobal.key,
       this.metadata
     );
   }
 
   private saveQueryData(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
@@ -169,7 +169,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   getQueryData(
-    transaction: PersistenceTransaction,
+    transaction: IndexedDbTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
     // Iterating by the canonicalId may yield more than one result because
@@ -198,7 +198,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   addMatchingKeys(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
   ): PersistencePromise<void> {
@@ -214,7 +214,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   removeMatchingKeys(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
   ): PersistencePromise<void> {
@@ -233,7 +233,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   removeMatchingKeysForTargetId(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     targetId: TargetId
   ): PersistencePromise<void> {
     const store = documentTargetStore(txn);
@@ -249,7 +249,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   private notifyGCForRemovedKeys(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     range: IDBKeyRange
   ): PersistencePromise<void> {
     const store = documentTargetStore(txn);
@@ -273,7 +273,7 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   getMatchingKeysForTargetId(
-    txn: PersistenceTransaction,
+    txn: IndexedDbTransaction,
     targetId: TargetId
   ): PersistencePromise<DocumentKeySet> {
     const range = IDBKeyRange.bound(
@@ -298,8 +298,10 @@ export class IndexedDbQueryCache implements QueryCache {
     this.garbageCollector = gc;
   }
 
+  // TODO(gsoltis): we can let the compiler assert that txn !== null if we
+  // drop null from the type bounds on txn.
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: IndexedDbTransaction | null,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     assert(
@@ -334,10 +336,10 @@ export class IndexedDbQueryCache implements QueryCache {
  * Helper to get a typed SimpleDbStore for the queries object store.
  */
 function targetsStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
   return SimpleDb.getStore<DbTargetKey, DbTarget>(
-    (txn as IndexedDbTransaction).simpleDbTransaction, 
+    txn.simpleDbTransaction, 
     DbTarget.store
   );
 }
@@ -346,11 +348,10 @@ function targetsStore(
  * Helper to get a typed SimpleDbStore for the target globals object store.
  */
 function globalTargetStore(
-  txn: PersistenceTransaction | SimpleDbTransaction
+  txn: SimpleDbTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  const simpleDbTransaction = txn instanceof SimpleDbTransaction ? txn : (txn as IndexedDbTransaction).simpleDbTransaction;
   return SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    simpleDbTransaction,
+    txn,
     DbTargetGlobal.store
   );
 }
@@ -359,10 +360,10 @@ function globalTargetStore(
  * Helper to get a typed SimpleDbStore for the document target object store.
  */
 function documentTargetStore(
-  txn: PersistenceTransaction
+  txn: IndexedDbTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
   return SimpleDb.getStore<DbTargetDocumentKey, DbTargetDocument>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+    txn.simpleDbTransaction,
     DbTargetDocument.store
   );
 }

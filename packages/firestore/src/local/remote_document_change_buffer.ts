@@ -23,6 +23,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 
+// TODO(gsoltis): delete this class.
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
  * It can be used to batch up a set of changes to be written to the cache, but
@@ -35,10 +36,10 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * read-your-own-writes capability, this class is not technically needed, but
  * has been preserved as a convenience and to aid portability.
  */
-export class RemoteDocumentChangeBuffer {
+export class RemoteDocumentChangeBuffer<TransactionType extends PersistenceTransaction> {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
 
-  constructor(private remoteDocumentCache: RemoteDocumentCache) {}
+  constructor(private remoteDocumentCache: RemoteDocumentCache<TransactionType>) {}
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
   addEntry(maybeDocument: MaybeDocument): void {
@@ -60,7 +61,7 @@ export class RemoteDocumentChangeBuffer {
    * cached.
    */
   getEntry(
-    transaction: PersistenceTransaction,
+    transaction: TransactionType,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     const changes = this.assertChanges();
@@ -77,7 +78,7 @@ export class RemoteDocumentChangeBuffer {
    * Applies buffered changes to the underlying RemoteDocumentCache, using
    * the provided transaction.
    */
-  apply(transaction: PersistenceTransaction): PersistencePromise<void> {
+  apply(transaction: TransactionType): PersistencePromise<void> {
     const changes = this.assertChanges();
 
     const promises: Array<PersistencePromise<void>> = [];

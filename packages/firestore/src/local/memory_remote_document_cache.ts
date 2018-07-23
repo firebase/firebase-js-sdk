@@ -26,12 +26,13 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { MemoryPersistenceTransaction } from './memory_persistence';
 
-export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
+export class MemoryRemoteDocumentCache implements RemoteDocumentCache<MemoryPersistenceTransaction> {
   private docs = maybeDocumentMap();
 
   addEntry(
-    transaction: PersistenceTransaction,
+    transaction: MemoryPersistenceTransaction,
     maybeDocument: MaybeDocument
   ): PersistencePromise<void> {
     this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
@@ -39,7 +40,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   removeEntry(
-    transaction: PersistenceTransaction,
+    transaction: MemoryPersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
     this.docs = this.docs.remove(documentKey);
@@ -47,14 +48,14 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   getEntry(
-    transaction: PersistenceTransaction,
+    transaction: MemoryPersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     return PersistencePromise.resolve(this.docs.get(documentKey));
   }
 
   getDocumentsMatchingQuery(
-    transaction: PersistenceTransaction,
+    transaction: MemoryPersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
     let results = documentMap();

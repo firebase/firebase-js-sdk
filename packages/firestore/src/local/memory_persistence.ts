@@ -35,7 +35,7 @@ const LOG_TAG = 'MemoryPersistence';
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
  */
-export class MemoryPersistence implements Persistence {
+export class MemoryPersistence implements Persistence<MemoryPersistenceTransaction> {
   /**
    * Note that these are retained here to make it easier to write tests
    * affecting both the in-memory and IndexedDB-backed persistence layers. Tests
@@ -43,7 +43,7 @@ export class MemoryPersistence implements Persistence {
    * will make the in-memory persistence layer behave as if it were actually
    * persisting values.
    */
-  private mutationQueues: { [user: string]: MutationQueue } = {};
+  private mutationQueues: { [user: string]: MutationQueue<MemoryPersistenceTransaction> } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
 
@@ -61,7 +61,7 @@ export class MemoryPersistence implements Persistence {
     this.started = false;
   }
 
-  getMutationQueue(user: User): MutationQueue {
+  getMutationQueue(user: User): MutationQueue<MemoryPersistenceTransaction> {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
       queue = new MemoryMutationQueue();
@@ -70,17 +70,17 @@ export class MemoryPersistence implements Persistence {
     return queue;
   }
 
-  getQueryCache(): QueryCache {
+  getQueryCache(): QueryCache<MemoryPersistenceTransaction> {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache {
+  getRemoteDocumentCache(): RemoteDocumentCache<MemoryPersistenceTransaction> {
     return this.remoteDocumentCache;
   }
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
+    operation: (transaction: MemoryPersistenceTransaction) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
     return operation(new MemoryPersistenceTransaction()).toPromise();
@@ -88,7 +88,7 @@ export class MemoryPersistence implements Persistence {
 }
 
 /** Dummy class since memory persistence doesn't actually use transactions. */
-class MemoryPersistenceTransaction implements PersistenceTransaction {
+export class MemoryPersistenceTransaction implements PersistenceTransaction {
   get currentSequenceNumber(): ListenSequenceNumber {
     return ListenSequence.IRRELEVANT;
   }

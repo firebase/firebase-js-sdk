@@ -34,7 +34,7 @@ import {
   RelationOp
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { ProtoByteString, TargetId } from '../../src/core/types';
+import { ProtoByteString, TargetId, ListenSequenceNumber } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -240,10 +240,11 @@ export function bound(
 
 export function queryData(
   targetId: TargetId,
+  sequenceNumber: ListenSequenceNumber,
   queryPurpose: QueryPurpose,
   path: string
 ): QueryData {
-  return new QueryData(query(path)._query, targetId, queryPurpose);
+  return new QueryData(query(path)._query, targetId, sequenceNumber, queryPurpose);
 }
 
 export function docAddedRemoteEvent(
@@ -264,7 +265,7 @@ export function docAddedRemoteEvent(
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getQueryDataForTarget: targetId =>
-      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+      queryData(targetId, 0, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
@@ -288,7 +289,7 @@ export function docUpdateRemoteEvent(
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => keys(doc),
     getQueryDataForTarget: targetId =>
-      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+      queryData(targetId, 0, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
