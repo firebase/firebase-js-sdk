@@ -397,10 +397,10 @@ export class View {
    *
    * @param localDocs - The documents that match the query according to the
    * LocalStore.
-   * @param {DocumentKeySet} remoteKeys - The keys of the documents that match
-   * the query according to the backend.
-   * @param {boolean} resetCurrent - Whether we should flip `CURRENT` back to
-   * false, since the query will be re-listened to.
+   * @param remoteKeys - The keys of the documents that match the query
+   * according to the backend.
+   * @param resetCurrent - Whether we should flip `CURRENT` back to 'false',
+   * since the query will be re-listened to.
    *
    * @return The ViewChange that resulted from this synchronization.
    */
