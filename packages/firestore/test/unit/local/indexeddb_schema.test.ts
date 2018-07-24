@@ -22,6 +22,7 @@ import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
+<<<<<<< HEAD
   DbOwner,
   DbOwnerKey,
   DbTarget,
@@ -40,6 +41,16 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
+=======
+  DbTarget,
+  DbTargetGlobal,
+  DbTargetGlobalKey,
+  DbTargetKey,
+  DbTimestamp
+} from '../../../src/local/indexeddb_schema';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+>>>>>>> master
 
 const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
 const INDEXEDDB_TEST_DATABASE =
@@ -115,17 +126,6 @@ function getAllObjectStores(db: IDBDatabase): string[] {
   return objectStores;
 }
 
-function getTargetCount(db: IDBDatabase): Promise<number> {
-  const sdb = new SimpleDb(db);
-  return sdb
-    .runTransaction('readonly', [DbTargetGlobal.store], txn =>
-      txn
-        .store<DbTargetGlobalKey, DbTargetGlobal>(DbTargetGlobal.store)
-        .get(DbTargetGlobal.key)
-    )
-    .then(metadata => metadata.targetCount);
-}
-
 describe('IndexedDbSchema: createOrUpgradeDb', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping createOrUpgradeDb() tests.');
@@ -144,6 +144,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
+<<<<<<< HEAD
   it('can install schema version 2', () => {
     return withDb(2, db => {
       expect(db.version).to.equal(2);
@@ -167,15 +168,52 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from schema version 1 to 2', () => {
     const expectedTargetCount = 5;
     return withDb(1, db => {
+=======
+  it('drops the query cache from 2 to 3', () => {
+    const userId = 'user';
+    const batchId = 1;
+    const targetId = 2;
+
+    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, []);
+    const dummyTargetGlobal = new DbTargetGlobal(
+      /*highestTargetId=*/ 1,
+      /*highestListenSequencNumber=*/ 1,
+      /*lastRemoteSnapshotVersion=*/ new DbTimestamp(1, 1),
+      /*targetCount=*/ 1
+    );
+    const resetTargetGlobal = new DbTargetGlobal(
+      /*highestTargetId=*/ 0,
+      /*highestListenSequencNumber=*/ 0,
+      /*lastRemoteSnapshotVersion=*/ SnapshotVersion.MIN.toTimestamp(),
+      /*targetCount=*/ 0
+    );
+
+    return withDb(2, db => {
+>>>>>>> master
       const sdb = new SimpleDb(db);
-      // Now that we have all of the stores, add some targets so the next
-      // migration can count them.
-      return sdb.runTransaction('readwrite', [DbTarget.store], txn => {
-        const store = txn.store(DbTarget.store);
-        let p = PersistencePromise.resolve();
-        for (let i = 0; i < expectedTargetCount; i++) {
-          p = p.next(() => store.put({ targetId: i }));
+      return sdb.runTransaction(
+        'readwrite',
+        [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
+        txn => {
+          const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+          const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+            DbTargetGlobal.store
+          );
+          const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
+            DbMutationBatch.store
+          );
+
+          return (
+            targets
+              // tslint:disable-next-line:no-any
+              .put({ targetId, canonicalId: 'foo' } as any)
+              .next(() =>
+                targetGlobal.put(DbTargetGlobal.key, dummyTargetGlobal)
+              )
+              .next(() => mutations.put(expectedMutation))
+          );
         }
+<<<<<<< HEAD
         return p;
       });
     }).then(() =>
@@ -187,6 +225,51 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         });
       })
     );
+=======
+      );
+    }).then(() => {
+      return withDb(3, db => {
+        expect(db.version).to.equal(3);
+        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+
+        const sdb = new SimpleDb(db);
+        return sdb.runTransaction(
+          'readwrite',
+          [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
+          txn => {
+            const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
+            const targetGlobal = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+              DbTargetGlobal.store
+            );
+            const mutations = txn.store<DbMutationBatchKey, DbMutationBatch>(
+              DbMutationBatch.store
+            );
+
+            return targets
+              .get(targetId)
+              .next(target => {
+                // The target should have been dropped
+                expect(target).to.be.null;
+              })
+              .next(() => targetGlobal.get(DbTargetGlobal.key))
+              .next(targetGlobalEntry => {
+                // Target Global should exist but be cleared.
+                // HACK: round-trip through JSON to clear types, like IndexedDb
+                // does.
+                const expected = JSON.parse(JSON.stringify(resetTargetGlobal));
+                expect(targetGlobalEntry).to.deep.equal(expected);
+              })
+              .next(() => mutations.get([userId, batchId]))
+              .next(mutation => {
+                // Mutations should be unaffected.
+                expect(mutation.userId).to.equal(userId);
+                expect(mutation.batchId).to.equal(batchId);
+              });
+          }
+        );
+      });
+    });
+>>>>>>> master
   });
 
   it('can upgrade from schema version 2 to 3', () => {

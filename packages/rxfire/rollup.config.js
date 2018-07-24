@@ -25,12 +25,14 @@ import authPkg from './auth/package.json';
 import storagePkg from './storage/package.json';
 import functionsPkg from './functions/package.json';
 import firestorePkg from './firestore/package.json';
+import databasePkg from './database/package.json';
 
 const pkgsByName = {
   auth: authPkg,
   storage: storagePkg,
   functions: functionsPkg,
-  firestore: firestorePkg
+  firestore: firestorePkg,
+  database: databasePkg
 };
 
 const plugins = [
@@ -48,7 +50,7 @@ const external = [...Object.keys(pkg.dependencies || {}), 'rxjs/operators'];
  */
 const GLOBAL_NAME = 'rxfire';
 
-const components = ['auth', 'storage', 'functions', 'firestore'];
+const components = ['auth', 'storage', 'functions', 'firestore', 'database'];
 const componentBuilds = components
   .map(component => {
     const pkg = pkgsByName[component];

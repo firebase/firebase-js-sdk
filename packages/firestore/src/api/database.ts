@@ -25,7 +25,6 @@ import { FirestoreClient } from '../core/firestore_client';
 import {
   Bound,
   Direction,
-  fieldFilter,
   Filter,
   OrderBy,
   Query as InternalQuery,
@@ -1373,7 +1372,7 @@ export class Query implements firestore.Query {
         value
       );
     }
-    const filter = fieldFilter(fieldPath, relationOp, fieldValue);
+    const filter = Filter.create(fieldPath, relationOp, fieldValue);
     this.validateNewFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }

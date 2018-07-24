@@ -293,8 +293,3 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);
 }
-
-// TODO(array-features): This exists just so we don't have to do the cast
-// repeatedly. Once we Expose 'array-contains' publicly we can remove it and
-// just use 'array-contains' in all the tests.
-export const arrayContainsOp = 'array-contains' as firestore.WhereFilterOp;

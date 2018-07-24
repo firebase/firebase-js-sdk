@@ -24,8 +24,7 @@ import {
   apiDescribe,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb,
-  arrayContainsOp
+  withTestDb
 } from '../util/helpers';
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
@@ -596,14 +595,13 @@ apiDescribe('Validation:', persistence => {
   );
 
   describe('Array transforms', () => {
-    // TODO(array-features): Remove "as any"
     // tslint:disable-next-line:variable-name Type alias can be capitalized.
-    const FieldValue = firebase.firestore.FieldValue as any;
+    const FieldValue = firebase.firestore.FieldValue;
 
     validationIt(persistence, 'fail in queries', db => {
       const collection = db.collection('test');
       expect(() =>
-        collection.where('test', '==', { test: FieldValue._arrayUnion(1) })
+        collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayUnion() can only be used with update() and set() ' +
@@ -611,7 +609,7 @@ apiDescribe('Validation:', persistence => {
       );
 
       expect(() =>
-        collection.where('test', '==', { test: FieldValue._arrayRemove(1) })
+        collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
           'FieldValue.arrayRemove() can only be used with update() and set() ' +
@@ -622,14 +620,14 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'reject invalid elements', db => {
       const doc = db.collection('test').doc();
       expect(() =>
-        doc.set({ x: FieldValue._arrayUnion(1, new TestClass('foo')) })
+        doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
       ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
       );
 
       expect(() =>
-        doc.set({ x: FieldValue._arrayRemove(1, new TestClass('foo')) })
+        doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
       ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Unsupported field value: a custom TestClass object'
@@ -640,14 +638,14 @@ apiDescribe('Validation:', persistence => {
       const doc = db.collection('test').doc();
       // This would result in a directly nested array which is not supported.
       expect(() =>
-        doc.set({ x: FieldValue._arrayUnion(1, ['nested']) })
+        doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
       ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
           'Nested arrays are not supported'
       );
 
       expect(() =>
-        doc.set({ x: FieldValue._arrayRemove(1, ['nested']) })
+        doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
       ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
           'Nested arrays are not supported'
@@ -676,7 +674,7 @@ apiDescribe('Validation:', persistence => {
         expect(() => collection.where('a', '>', null)).to.throw(
           'Invalid query. You can only perform equals comparisons on null.'
         );
-        expect(() => collection.where('a', arrayContainsOp, null)).to.throw(
+        expect(() => collection.where('a', 'array-contains', null)).to.throw(
           'Invalid query. You can only perform equals comparisons on null.'
         );
 
@@ -684,7 +682,7 @@ apiDescribe('Validation:', persistence => {
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
         expect(() =>
-          collection.where('a', arrayContainsOp, Number.NaN)
+          collection.where('a', 'array-contains', Number.NaN)
         ).to.throw(
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
@@ -797,8 +795,8 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', arrayContainsOp, 1)
-            .where('foo', arrayContainsOp, 2)
+            .where('foo', 'array-contains', 1)
+            .where('foo', 'array-contains', 2)
         ).to.throw(
           'Invalid query. Queries only support a single array-contains filter.'
         );
@@ -859,7 +857,7 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           collection.where(
             firebase.firestore.FieldPath.documentId(),
-            arrayContainsOp,
+            'array-contains',
             1
           )
         ).to.throw(
