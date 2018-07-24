@@ -253,7 +253,74 @@ describeSpec('Limbo Documents:', [], () => {
     );
   });
 
-<<<<<<< HEAD
+  // Same as above test, except docB no longer exists so we do not get a
+  // documentUpdate for it during limbo resolution, so a delete should be
+  // synthesized.
+  specTest(
+    'Limbo resolution handles snapshot before CURRENT [no document update]',
+    [],
+    () => {
+      const fullQuery = Query.atPath(path('collection'));
+      const limitQuery = Query.atPath(path('collection'))
+        .addFilter(filter('include', '==', true))
+        .withLimit(1);
+      const docA = doc('collection/a', 1000, { key: 'a', include: true });
+      const docB = doc('collection/b', 1000, { key: 'b', include: true });
+      const docBQuery = Query.atPath(docB.key.path);
+      return (
+        spec()
+          // No GC so we can keep the cache populated.
+          .withGCEnabled(false)
+
+          // Full query to populate the cache with docA and docB
+          .userListens(fullQuery)
+          .watchAcksFull(fullQuery, 1000, docA, docB)
+          .expectEvents(fullQuery, {
+            added: [docA, docB]
+          })
+          .userUnlistens(fullQuery)
+
+          // Perform limit(1) query.
+          .userListens(limitQuery)
+          .expectEvents(limitQuery, {
+            added: [docA],
+            fromCache: true
+          })
+          .watchAcksFull(limitQuery, 2000, docA)
+          .expectEvents(limitQuery, {
+            fromCache: false
+          })
+
+          // Edit docA so it no longer matches the query and we pull in docB
+          // from cache.
+          .userPatches('collection/a', { include: false })
+          .expectEvents(limitQuery, {
+            removed: [docA],
+            added: [docB],
+            fromCache: true
+          })
+          // docB is in limbo since we haven't gotten the watch update to pull
+          // it in yet.
+          .expectLimboDocs(docB.key)
+
+          // Suppose docB was actually deleted server-side and so we receive an
+          // ack, a snapshot, CURRENT, and then another snapshot. This should
+          // resolve the limbo resolution and docB should disappear.
+          .watchAcks(docBQuery)
+          .watchSnapshots(2000)
+          .watchCurrents(docBQuery, 'resume-token-3000')
+          .watchSnapshots(3000)
+          .expectLimboDocs()
+          .expectEvents(limitQuery, { removed: [docB], fromCache: false })
+
+          // Watch catches up to the local write to docA, and broadcasts its
+          // removal.
+          .watchSends({ removed: [limitQuery] }, docA)
+          .watchSnapshots(4000)
+      );
+    }
+  );
+
   specTest(
     'Limbo docs are resolved by primary client',
     ['multi-client'],
@@ -329,73 +396,4 @@ describeSpec('Limbo Documents:', [], () => {
   // TODO(multitab): We need a test case that verifies that a primary client
   // that loses its primary lease while documents are in limbo correctly handles
   // these documents even when it picks up its lease again.
-=======
-  // Same as above test, except docB no longer exists so we do not get a
-  // documentUpdate for it during limbo resolution, so a delete should be
-  // synthesized.
-  specTest(
-    'Limbo resolution handles snapshot before CURRENT [no document update]',
-    [],
-    () => {
-      const fullQuery = Query.atPath(path('collection'));
-      const limitQuery = Query.atPath(path('collection'))
-        .addFilter(filter('include', '==', true))
-        .withLimit(1);
-      const docA = doc('collection/a', 1000, { key: 'a', include: true });
-      const docB = doc('collection/b', 1000, { key: 'b', include: true });
-      const docBQuery = Query.atPath(docB.key.path);
-      return (
-        spec()
-          // No GC so we can keep the cache populated.
-          .withGCEnabled(false)
-
-          // Full query to populate the cache with docA and docB
-          .userListens(fullQuery)
-          .watchAcksFull(fullQuery, 1000, docA, docB)
-          .expectEvents(fullQuery, {
-            added: [docA, docB]
-          })
-          .userUnlistens(fullQuery)
-
-          // Perform limit(1) query.
-          .userListens(limitQuery)
-          .expectEvents(limitQuery, {
-            added: [docA],
-            fromCache: true
-          })
-          .watchAcksFull(limitQuery, 2000, docA)
-          .expectEvents(limitQuery, {
-            fromCache: false
-          })
-
-          // Edit docA so it no longer matches the query and we pull in docB
-          // from cache.
-          .userPatches('collection/a', { include: false })
-          .expectEvents(limitQuery, {
-            removed: [docA],
-            added: [docB],
-            fromCache: true
-          })
-          // docB is in limbo since we haven't gotten the watch update to pull
-          // it in yet.
-          .expectLimboDocs(docB.key)
-
-          // Suppose docB was actually deleted server-side and so we receive an
-          // ack, a snapshot, CURRENT, and then another snapshot. This should
-          // resolve the limbo resolution and docB should disappear.
-          .watchAcks(docBQuery)
-          .watchSnapshots(2000)
-          .watchCurrents(docBQuery, 'resume-token-3000')
-          .watchSnapshots(3000)
-          .expectLimboDocs()
-          .expectEvents(limitQuery, { removed: [docB], fromCache: false })
-
-          // Watch catches up to the local write to docA, and broadcasts its
-          // removal.
-          .watchSends({ removed: [limitQuery] }, docA)
-          .watchSnapshots(4000)
-      );
-    }
-  );
->>>>>>> master
 });

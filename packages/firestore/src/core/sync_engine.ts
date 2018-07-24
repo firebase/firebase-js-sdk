@@ -36,7 +36,6 @@ import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -194,13 +193,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.syncEngineListener === null,
       'SyncEngine already has a subscriber.'
     );
-<<<<<<< HEAD
     this.syncEngineListener = syncEngineListener;
-    this.limboCollector.addGarbageSource(this.limboDocumentRefs);
-=======
-    this.viewHandler = viewHandler;
-    this.errorHandler = errorHandler;
->>>>>>> master
   }
 
   /**
@@ -501,16 +494,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   async rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
     this.assertSubscribed('rejectListens()');
-<<<<<<< HEAD
 
     // PORTING NOTE: Multi-tab only.
     this.sharedClientState.trackQueryUpdate(targetId, 'rejected', err);
 
-    const limboKey = this.limboKeysByTarget[targetId];
-=======
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
->>>>>>> master
+
     if (limboKey) {
       // Since this query failed, we won't want to manually unlisten to it.
       // So go ahead and remove it from bookkeeping.
