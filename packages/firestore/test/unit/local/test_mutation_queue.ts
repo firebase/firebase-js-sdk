@@ -19,7 +19,7 @@ import { Query } from '../../../src/core/query';
 import { BatchId, ProtoByteString } from '../../../src/core/types';
 import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import { Persistence } from '../../../src/local/persistence';
+import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
@@ -30,8 +30,8 @@ import { AnyDuringMigration } from '../../../src/util/misc';
  * A wrapper around a MutationQueue that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestMutationQueue {
-  constructor(public persistence: Persistence, public queue: MutationQueue) {}
+export class TestMutationQueue<TransactionType extends PersistenceTransaction> {
+  constructor(public persistence: Persistence<TransactionType>, public queue: MutationQueue<TransactionType>) {}
 
   start(): Promise<void> {
     return this.persistence.runTransaction('start', txn => {

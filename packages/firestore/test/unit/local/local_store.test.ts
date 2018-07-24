@@ -24,7 +24,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
-import { Persistence } from '../../../src/local/persistence';
+import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
 import {
   documentKeySet,
   DocumentMap,
@@ -73,7 +73,7 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore) {}
+  constructor(public localStore: LocalStore<PersistenceTransaction>) {}
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
@@ -270,11 +270,11 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
-function genericLocalStoreTests(
-  getPersistence: () => Promise<Persistence>
+function genericLocalStoreTests<TransactionType extends PersistenceTransaction>(
+  getPersistence: () => Promise<Persistence<TransactionType>>
 ): void {
-  let persistence: Persistence;
-  let localStore: LocalStore;
+  let persistence: Persistence<TransactionType>;
+  let localStore: LocalStore<TransactionType>;
 
   beforeEach(() => {
     return getPersistence().then(p => {

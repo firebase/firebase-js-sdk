@@ -34,7 +34,7 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import { Persistence } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -159,7 +159,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
         ALL_STORES,
         (txn) => this.queryCache.start(txn)
       )).then(() => {
-        //this.listenSequence = new ListenSequence(this.queryCache.getHighestSequenceNumber);
+        this.listenSequence = new ListenSequence(this.queryCache.getHighestListenSequenceNumber());
       });
   }
 

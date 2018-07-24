@@ -19,8 +19,8 @@ import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { Persistence } from '../../../src/local/persistence';
+import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
+import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -35,17 +35,8 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
 
-let persistence: Persistence;
-let cache: TestQueryCache;
-
 describe('MemoryQueryCache', () => {
-  beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
-      persistence = p;
-    });
-  });
-
-  genericQueryCacheTests();
+  genericQueryCacheTests(persistenceHelpers.testMemoryPersistence);
 });
 
 describe('IndexedDbQueryCache', () => {
@@ -54,22 +45,23 @@ describe('IndexedDbQueryCache', () => {
     return;
   }
 
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
-    });
+  const persistencePromise: Promise<Persistence<IndexedDbTransaction>> = persistenceHelpers.testIndexedDbPersistence();
+  let persistence: Persistence<IndexedDbTransaction>;
+  beforeEach(async () => {
+    persistence = await persistencePromise;
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
-  genericQueryCacheTests();
+  genericQueryCacheTests(() => persistencePromise);
 });
 
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests(): void {
+function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
   addEqualityMatcher();
+  let cache: TestQueryCache<TransactionType>;
 
   const QUERY_ROOMS = Query.atPath(path('rooms'));
   const QUERY_HALLS = Query.atPath(path('halls'));
@@ -92,15 +84,18 @@ function genericQueryCacheTests(): void {
     return new QueryData(
       query,
       targetId,
+      0,
       QueryPurpose.Listen,
       snapshotVersion,
       resumeToken
     );
   }
 
+  let persistence: Persistence<TransactionType>;
   beforeEach(async () => {
+    persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
-    await cache.start();
+    //await cache.start();
   });
 
   it('returns null for query not in cache', () => {
@@ -318,7 +313,7 @@ function genericQueryCacheTests(): void {
       persistence,
       persistence.getQueryCache()
     );
-    await otherCache.start();
+    //await otherCache.start();
     expect(otherCache.getHighestTargetId()).to.deep.equal(42);
   });
 
@@ -339,11 +334,13 @@ function genericQueryCacheTests(): void {
           persistence,
           persistence.getQueryCache()
         );
-        return otherCache.start().then(() => {
+        expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+          version(42));
+        /*return otherCache.start().then(() => {
           expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
             version(42)
           );
-        });
+        });*/
       });
   });
 }

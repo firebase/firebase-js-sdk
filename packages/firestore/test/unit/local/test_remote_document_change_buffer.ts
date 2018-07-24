@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Persistence } from '../../../src/local/persistence';
+import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -23,10 +23,10 @@ import { DocumentKey } from '../../../src/model/document_key';
  * A wrapper around a RemoteDocumentChangeBuffer that automatically creates a
  * transaction around operations to reduce test boilerplate.
  */
-export class TestRemoteDocumentChangeBuffer {
+export class TestRemoteDocumentChangeBuffer<TransactionType extends PersistenceTransaction> {
   constructor(
-    public persistence: Persistence,
-    public buffer: RemoteDocumentChangeBuffer
+    public persistence: Persistence<TransactionType>,
+    public buffer: RemoteDocumentChangeBuffer<TransactionType>
   ) {}
 
   addEntry(maybeDocument: MaybeDocument): void {

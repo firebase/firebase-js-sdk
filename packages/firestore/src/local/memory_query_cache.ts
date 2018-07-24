@@ -16,19 +16,19 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { TargetId, ListenSequenceNumber } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
 import { GarbageCollector } from './garbage_collector';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
 import { MemoryPersistenceTransaction } from './memory_persistence';
+import { ListenSequence } from '../core/listen_sequence';
 
 export class MemoryQueryCache implements QueryCache<MemoryPersistenceTransaction> {
   /**
@@ -54,6 +54,10 @@ export class MemoryQueryCache implements QueryCache<MemoryPersistenceTransaction
 
   getHighestTargetId(): TargetId {
     return this.highestTargetId;
+  }
+
+  getHighestListenSequenceNumber(): ListenSequenceNumber {
+    return ListenSequence.IRRELEVANT;
   }
 
   setLastRemoteSnapshotVersion(

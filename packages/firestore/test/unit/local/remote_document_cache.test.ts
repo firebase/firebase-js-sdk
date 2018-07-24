@@ -16,25 +16,16 @@
 
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { Persistence } from '../../../src/local/persistence';
+import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
+import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
 import { MaybeDocument } from '../../../src/model/document';
 import { deletedDoc, doc, expectEqual, key, path } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
-let persistence: Persistence;
-let cache: TestRemoteDocumentCache;
-
 describe('MemoryRemoteDocumentCache', () => {
-  beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
-      persistence = p;
-    });
-  });
-
-  genericRemoteDocumentCacheTests();
+  genericRemoteDocumentCacheTests(persistenceHelpers.testMemoryPersistence);
 });
 
 describe('IndexedDbRemoteDocumentCache', () => {
@@ -43,27 +34,30 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
-    });
+  const persistencePromise: Promise<Persistence<IndexedDbTransaction>> = persistenceHelpers.testIndexedDbPersistence();
+  let persistence: Persistence<IndexedDbTransaction>;
+  beforeEach(async () => {
+    persistence = await persistencePromise;
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
-  genericRemoteDocumentCacheTests();
+  genericRemoteDocumentCacheTests(() => persistencePromise);
 });
 
 /**
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests(): void {
+function genericRemoteDocumentCacheTests<TransactionType extends PersistenceTransaction>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
   // Helpers for use throughout tests.
   const DOC_PATH = 'a/b';
   const LONG_DOC_PATH = 'a/b/c/d/e/f';
   const DOC_DATA = { a: 1, b: 2 };
   const VERSION = 42;
+
+  let persistence: Persistence<TransactionType>;
+  let cache: TestRemoteDocumentCache<TransactionType>;
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
     return cache
@@ -76,7 +70,8 @@ function genericRemoteDocumentCacheTests(): void {
       });
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    persistence = await persistencePromise();
     cache = new TestRemoteDocumentCache(
       persistence,
       persistence.getRemoteDocumentCache()

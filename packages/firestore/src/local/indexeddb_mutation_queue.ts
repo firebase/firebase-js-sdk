@@ -38,7 +38,6 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDb, SimpleDbStore } from './simple_db';
 import { IndexedDbTransaction } from './indexeddb_persistence';

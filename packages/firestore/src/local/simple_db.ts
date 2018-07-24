@@ -17,13 +17,10 @@
 import { assert, fail } from '../util/assert';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
-
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { Deferred } from '../util/promise';
-import { PersistenceTransaction } from './persistence';
 import { Code, FirestoreError } from '../util/error';
-import { ListenSequenceNumber } from '../core/types';
 
 const LOG_TAG = 'SimpleDb';
 

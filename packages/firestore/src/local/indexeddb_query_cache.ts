@@ -17,7 +17,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { TargetId, ListenSequenceNumber } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
@@ -34,7 +34,6 @@ import {
   DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
@@ -53,7 +52,7 @@ export class IndexedDbQueryCache implements QueryCache<IndexedDbTransaction> {
   /**
    * A cached copy of the metadata for the query cache.
    */
-  private metadata = null;
+  private metadata: DbTargetGlobal = null;
 
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
@@ -77,6 +76,10 @@ export class IndexedDbQueryCache implements QueryCache<IndexedDbTransaction> {
 
   getHighestTargetId(): TargetId {
     return this.metadata.highestTargetId;
+  }
+
+  getHighestListenSequenceNumber(): ListenSequenceNumber {
+    return this.metadata.highestListenSequenceNumber;
   }
 
   getLastRemoteSnapshotVersion(): SnapshotVersion {
