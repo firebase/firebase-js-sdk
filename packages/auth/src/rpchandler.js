@@ -224,6 +224,7 @@ fireauth.RpcHandler.ServerError = {
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
   PASSWORD_LOGIN_DISABLED: 'PASSWORD_LOGIN_DISABLED',
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+  RESET_PASSWORD_EXCEED_LIMIT: 'RESET_PASSWORD_EXCEED_LIMIT',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'TOO_MANY_ATTEMPTS_TRY_LATER',
@@ -2231,6 +2232,8 @@ fireauth.RpcHandler.getDeveloperError_ =
   // Send Password reset email errors:
   errorMap[fireauth.RpcHandler.ServerError.EMAIL_NOT_FOUND] =
       fireauth.authenum.Error.USER_DELETED;
+  errorMap[fireauth.RpcHandler.ServerError.RESET_PASSWORD_EXCEED_LIMIT] =
+      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;    
 
   // Reset password errors:
   errorMap[fireauth.RpcHandler.ServerError.EXPIRED_OOB_CODE] =
