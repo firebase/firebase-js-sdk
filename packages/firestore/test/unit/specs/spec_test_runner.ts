@@ -339,7 +339,7 @@ abstract class TestRunner {
   private datastore: Datastore;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
-  private persistence: Persistence;
+  private persistence: Promise<Persistence>;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -356,26 +356,29 @@ abstract class TestRunner {
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = this.getPersistence(this.serializer);
+    this.persistence = new Promise(resolve => {
+      const p = this.getPersistence(this.serializer);
+      p.start().then(() => resolve(p));
+    });
 
     this.useGarbageCollection = config.useGarbageCollection;
 
-    this.init();
+    this.queue = new AsyncQueue();
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
   }
 
-  private init(): void {
+  async start(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.localStore = new LocalStore(
-      this.persistence,
+      await this.persistence,
       this.user,
       garbageCollector
     );
+    await this.localStore.start();
 
-    this.queue = new AsyncQueue();
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -393,6 +396,7 @@ abstract class TestRunner {
       this.queue,
       onlineStateChangedHandler
     );
+    await this.remoteStore.start();
 
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -417,16 +421,9 @@ abstract class TestRunner {
   ): Persistence;
   protected abstract destroyPersistence(): Promise<void>;
 
-  async start(): Promise<void> {
-    this.connection.reset();
-    await this.persistence.start();
-    await this.localStore.start();
-    await this.remoteStore.start();
-  }
-
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown(/* deleteData= */ true);
+    await (await this.persistence).shutdown(/* deleteData= */ true);
     await this.destroyPersistence();
   }
 
@@ -784,13 +781,10 @@ abstract class TestRunner {
     // No local store to shutdown.
     await this.remoteStore.shutdown();
 
-    this.init();
-
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
     await this.queue.enqueue(async () => {
-      await this.localStore.start();
-      await this.remoteStore.start();
+      await this.start();
     });
   }
 

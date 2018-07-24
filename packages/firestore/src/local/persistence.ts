@@ -76,6 +76,11 @@ export interface Persistence {
   start(): Promise<void>;
 
   /**
+   * Whether or not this persistence instance has been started.
+   */
+  readonly started: boolean;
+
+  /**
    * Releases any resources held during eager shutdown.
    *
    * @param deleteData Whether to delete the persisted data. This causes

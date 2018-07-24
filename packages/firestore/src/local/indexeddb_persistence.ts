@@ -96,7 +96,10 @@ export class IndexedDbPersistence implements Persistence {
   static MAIN_DATABASE = 'main';
 
   private simpleDb: SimpleDb;
-  private started: boolean;
+  private hasStarted: boolean;
+  get started(): boolean {
+    return this.hasStarted;
+  }
   private dbName: string;
   private localStoragePrefix: string;
   private ownerId: string = this.generateOwnerId();
@@ -130,7 +133,6 @@ export class IndexedDbPersistence implements Persistence {
     }
 
     assert(!this.started, 'IndexedDbPersistence double-started!');
-    this.started = true;
 
     return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
@@ -140,12 +142,14 @@ export class IndexedDbPersistence implements Persistence {
       .then(() => {
         this.scheduleOwnerLeaseRefreshes();
         this.attachWindowUnloadHook();
+      }).then(() => {
+        this.hasStarted = true;
       });
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
     assert(this.started, 'IndexedDbPersistence shutdown without start!');
-    this.started = false;
+    this.hasStarted = false;
     this.detachWindowUnloadHook();
     this.stopOwnerLeaseRefreshes();
     return this.releaseOwnerLease().then(() => {

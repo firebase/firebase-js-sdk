@@ -163,6 +163,10 @@ export class LocalStore {
      */
     private garbageCollector: GarbageCollector
   ) {
+    assert(
+      persistence.started,
+      'Local Store passed an unstarted persistence implementation'
+    );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.queryCache = persistence.getQueryCache();
