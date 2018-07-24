@@ -142,7 +142,8 @@ export class IndexedDbPersistence implements Persistence {
       .then(() => {
         this.scheduleOwnerLeaseRefreshes();
         this.attachWindowUnloadHook();
-      }).then(() => {
+      })
+      .then(() => {
         this.hasStarted = true;
       });
   }
