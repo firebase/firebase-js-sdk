@@ -18,6 +18,7 @@ import { firestore } from 'firebase/app';
 import { fromCollectionRef } from '../fromRef';
 import { Observable } from 'rxjs';
 import { map, filter, scan } from 'rxjs/operators';
+import { snapToData } from '../document';
 
 const ALL_EVENTS: firestore.DocumentChangeType[] = [
   'added',
@@ -164,5 +165,20 @@ export function auditTrail(
 ): Observable<firestore.DocumentChange[]> {
   return docChanges(query, events).pipe(
     scan((current, action) => [...current, ...action], [])
+  );
+}
+
+/**
+ * Returns a stream of documents mapped to their data payload, and optionally the document ID
+ * @param query
+ */
+export function collectionData<T>(
+  query: firestore.Query,
+  idField?: string
+): Observable<T[]> {
+  return collection(query).pipe(
+    map(arr => {
+      return arr.map(snap => snapToData(snap, idField) as T);
+    })
   );
 }

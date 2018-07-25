@@ -16,8 +16,30 @@
 
 import { firestore } from 'firebase/app';
 import { fromDocRef } from '../fromRef';
+import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
 export function doc(ref: firestore.DocumentReference) {
   return fromDocRef(ref);
+}
+
+/**
+ * Returns a stream of a document, mapped to its data payload and optionally the docuument ID
+ * @param query
+ */
+export function docData<T>(
+  ref: firestore.DocumentReference,
+  idField?: string
+): Observable<T> {
+  return doc(ref).pipe(map(snap => snapToData(snap, idField) as T));
+}
+
+export function snapToData(
+  snapshot: firestore.QueryDocumentSnapshot,
+  idField?: string
+) {
+  return {
+    ...snapshot.data(),
+    ...(idField ? { [idField]: snapshot.id } : null)
+  };
 }
