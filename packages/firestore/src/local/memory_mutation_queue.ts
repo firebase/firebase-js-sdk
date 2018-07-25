@@ -17,6 +17,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId, ProtoByteString } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
@@ -235,6 +236,29 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<MutationBatch[]> {
     const start = new DocReference(documentKey, 0);
     const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
+    const result: MutationBatch[] = [];
+    this.batchesByDocumentKey.forEachInRange([start, end], ref => {
+      assert(
+        documentKey.isEqual(ref.key),
+        "Should only iterate over a single key's batches"
+      );
+      const batch = this.findMutationBatch(ref.targetOrBatchId);
+      assert(
+        batch !== null,
+        'Batches in the index must exist in the main table'
+      );
+      result.push(batch!);
+    });
+
+    return PersistencePromise.resolve(result);
+  }
+
+  getAllMutationBatchesAffectingDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<MutationBatch[]> {
+    const start = new DocReference(documentKeys.first(), 0);
+    const end = new DocReference(documentKeys.last(), 0);
     const result: MutationBatch[] = [];
     this.batchesByDocumentKey.forEachInRange([start, end], ref => {
       assert(

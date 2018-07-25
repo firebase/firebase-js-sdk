@@ -140,6 +140,8 @@ export interface MutationQueue extends GarbageSource {
    * document key, so when looping through the batch you'll need to check that
    * the mutation itself matches the key.
    *
+   * Batches are guaranteed to be in sorted order.
+   *
    * Note that because of this requirement implementations are free to return
    * mutation batches that don't contain the document key at all if it's
    * convenient.
@@ -157,6 +159,8 @@ export interface MutationQueue extends GarbageSource {
    * each key, so when looping through the batch you'll need to
    * check that the mutation itself matches the key.
    *
+   * Batches are guaranteed to be in sorted order.
+   *
    * Note that because of this requirement implementations are free to return
    * mutation batches that don't contain any of the document keys at all if it's
    * convenient.
@@ -173,6 +177,8 @@ export interface MutationQueue extends GarbageSource {
    * query. Not all mutations in a batch will necessarily affect the query, so
    * when looping through the batch you'll need to check that the mutation
    * itself matches the query.
+   *
+   * Batches are guaranteed to be in sorted order.
    *
    * Note that because of this requirement implementations are free to return
    * mutation batches that don't match the query at all if it's convenient.

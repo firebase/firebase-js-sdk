@@ -373,7 +373,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     );
     const maxKey = DbDocumentMutation.prefixForPath(
       this.userId,
-      documentKeys.first().path
+      documentKeys.last().path
     );
     const keyRange = IDBKeyRange.bound(minKey, maxKey);
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
