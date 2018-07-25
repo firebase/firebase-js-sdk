@@ -535,18 +535,12 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
     if (options.index) {
       const index = this.store.index(options.index);
       if (options.keysOnly) {
-        return index.openKeyCursor(
-          options.range,
-          direction
-        );
+        return index.openKeyCursor(options.range, direction);
       } else {
         return index.openCursor(options.range, direction);
       }
     } else {
-      return this.store.openCursor(
-        options.range,
-        direction
-      );
+      return this.store.openCursor(options.range, direction);
     }
   }
 }

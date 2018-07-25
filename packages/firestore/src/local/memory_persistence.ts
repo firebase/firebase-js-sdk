@@ -90,7 +90,7 @@ export class MemoryPersistence
   }
 }
 
-/** 
+/**
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */

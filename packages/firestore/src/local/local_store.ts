@@ -230,9 +230,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
     });
   }
 
-  private startQueryCache(
-    txn: TransactionType
-  ): PersistencePromise<void> {
+  private startQueryCache(txn: TransactionType): PersistencePromise<void> {
     return this.queryCache.start(txn).next(() => {
       const targetId = this.queryCache.getHighestTargetId();
       this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);

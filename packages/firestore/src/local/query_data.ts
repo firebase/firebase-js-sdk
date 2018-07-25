@@ -70,10 +70,10 @@ export class QueryData {
       this.query,
       this.targetId,
       this.purpose,
-      overwrite.snapshotVersion === undefined 
+      overwrite.snapshotVersion === undefined
         ? this.snapshotVersion
         : overwrite.snapshotVersion,
-      overwrite.resumeToken === undefined 
+      overwrite.resumeToken === undefined
         ? this.resumeToken
         : overwrite.resumeToken
     );
