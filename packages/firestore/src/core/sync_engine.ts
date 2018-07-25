@@ -523,7 +523,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
-
     if (limboKey) {
       // Since this query failed, we won't want to manually unlisten to it.
       // So go ahead and remove it from bookkeeping.
