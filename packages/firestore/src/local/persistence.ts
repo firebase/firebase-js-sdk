@@ -69,16 +69,16 @@ export interface PersistenceTransaction {}
  */
 export interface Persistence {
   /**
+   * Whether or not this persistence instance has been started.
+   */
+  readonly started: boolean;
+
+  /**
    * Starts persistent storage, opening the database or similar.
    *
    * Throws an exception if the database could not be opened.
    */
   start(): Promise<void>;
-
-  /**
-   * Whether or not this persistence instance has been started.
-   */
-  readonly started: boolean;
 
   /**
    * Releases any resources held during eager shutdown.

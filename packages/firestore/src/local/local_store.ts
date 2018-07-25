@@ -165,7 +165,7 @@ export class LocalStore {
   ) {
     assert(
       persistence.started,
-      'Local Store passed an unstarted persistence implementation'
+      'LocalStore was passed an unstarted persistence implementation'
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();

@@ -45,21 +45,22 @@ export class MemoryPersistence implements Persistence {
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
 
-  private hasStarted = false;
-  get started(): boolean {
-    return this.hasStarted;
-  }
+  private _started = false;
 
   async start(): Promise<void> {
     // No durable state to read on startup.
-    assert(!this.hasStarted, 'MemoryPersistence double-started!');
-    this.hasStarted = true;
+    assert(!this._started, 'MemoryPersistence double-started!');
+    this._started = true;
   }
 
   async shutdown(deleteData?: boolean): Promise<void> {
     // No durable state to ensure is closed on shutdown.
-    assert(this.hasStarted, 'MemoryPersistence shutdown without start!');
-    this.hasStarted = false;
+    assert(this._started, 'MemoryPersistence shutdown without start!');
+    this._started = false;
+  }
+
+  get started(): boolean {
+    return this._started;
   }
 
   getMutationQueue(user: User): MutationQueue {

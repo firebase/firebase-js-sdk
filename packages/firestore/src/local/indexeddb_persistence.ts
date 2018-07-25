@@ -96,10 +96,7 @@ export class IndexedDbPersistence implements Persistence {
   static MAIN_DATABASE = 'main';
 
   private simpleDb: SimpleDb;
-  private hasStarted: boolean;
-  get started(): boolean {
-    return this.hasStarted;
-  }
+  private _started = false;
   private dbName: string;
   private localStoragePrefix: string;
   private ownerId: string = this.generateOwnerId();
@@ -144,13 +141,13 @@ export class IndexedDbPersistence implements Persistence {
         this.attachWindowUnloadHook();
       })
       .then(() => {
-        this.hasStarted = true;
+        this._started = true;
       });
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
     assert(this.started, 'IndexedDbPersistence shutdown without start!');
-    this.hasStarted = false;
+    this._started = false;
     this.detachWindowUnloadHook();
     this.stopOwnerLeaseRefreshes();
     return this.releaseOwnerLease().then(() => {
@@ -159,6 +156,10 @@ export class IndexedDbPersistence implements Persistence {
         return SimpleDb.delete(this.dbName);
       }
     });
+  }
+
+  get started(): boolean {
+    return this._started;
   }
 
   getMutationQueue(user: User): MutationQueue {

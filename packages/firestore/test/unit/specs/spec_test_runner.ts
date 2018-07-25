@@ -339,7 +339,7 @@ abstract class TestRunner {
   private datastore: Datastore;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
-  private persistence: Promise<Persistence>;
+  private persistence: Persistence;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -356,10 +356,6 @@ abstract class TestRunner {
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = new Promise(resolve => {
-      const p = this.getPersistence(this.serializer);
-      p.start().then(() => resolve(p));
-    });
 
     this.useGarbageCollection = config.useGarbageCollection;
 
@@ -370,10 +366,16 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
+    this.persistence = this.getPersistence(this.serializer);
+    await this.persistence.start();
+    await this.init();
+  }
+
+  async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.localStore = new LocalStore(
-      await this.persistence,
+      this.persistence,
       this.user,
       garbageCollector
     );
@@ -423,7 +425,7 @@ abstract class TestRunner {
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
-    await (await this.persistence).shutdown(/* deleteData= */ true);
+    await this.persistence.shutdown(/* deleteData= */ true);
     await this.destroyPersistence();
   }
 
@@ -784,7 +786,7 @@ abstract class TestRunner {
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
     await this.queue.enqueue(async () => {
-      await this.start();
+      await this.init();
     });
   }
 
