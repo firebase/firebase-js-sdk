@@ -939,6 +939,66 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, { added: [docB] });
   });
 
+  specTest('Query recovers after primary takeover', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    const docC = doc('collection/c', 3000, { key: 'c' });
+
+    return (
+      client(0)
+        .expectPrimaryState(true)
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, { added: [docA] })
+        .stealPrimaryLease()
+        .expectListen(query, 'resume-token-1000')
+        .watchAcksFull(query, 2000, docB)
+        .expectEvents(query, { added: [docB] })
+        .client(0)
+        // Client 0 ignores all events until it transitions to secondary
+        .client(1)
+        .watchSends({ affects: [query] }, docC)
+        .watchSnapshots(3000)
+        .expectEvents(query, { added: [docC] })
+        .client(0)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(false)
+        .expectEvents(query, { added: [docB, docC] })
+    );
+  });
+
+  specTest(
+    'Unresponsive primary ignores watch update',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          .client(1)
+          .userListens(query)
+          .client(0)
+          .expectListen(query)
+          .client(1)
+          .stealPrimaryLease()
+          .client(0)
+          // Send a watch update to client 0, who is longer primary (but doesn't
+          // know it yet). The watch update gets ignored.
+          .watchAcksFull(query, 1000, docA)
+          .client(1)
+          .expectListen(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
+      );
+    }
+  );
+
   specTest(
     'Listen is established in newly started primary',
     ['multi-client'],

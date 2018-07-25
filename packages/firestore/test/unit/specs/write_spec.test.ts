@@ -1128,6 +1128,36 @@ describeSpec('Writes:', [], () => {
       });
   });
 
+  specTest('Mutation recovers after primary takeover', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { k: 'a' },
+      { hasLocalMutations: true }
+    );
+    const docA = doc('collection/a', 1000, { k: 'a' });
+
+    return client(0)
+      .expectPrimaryState(true)
+      .userSets('collection/a', { k: 'a' })
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        added: [docALocal],
+        hasPendingWrites: true,
+        fromCache: true
+      })
+      .stealPrimaryLease()
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { metadata: [docA] })
+      .client(0)
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+  });
+
   specTest('Write is sent by newly started primary', ['multi-client'], () => {
     return client(0)
       .expectPrimaryState(true)
@@ -1145,4 +1175,74 @@ describeSpec('Writes:', [], () => {
         acknowledged: ['collection/a']
       });
   });
+
+  specTest(
+    'Unresponsive primary ignores acknowledged write',
+    ['multi-client'],
+    () => {
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Send initial write to open the write stream
+          .userSets('collection/a', { k: 'a' })
+          .writeAcks('collection/a', 1000)
+          .client(1)
+          .userSets('collection/b', { k: 'b' })
+          .client(2)
+          .stealPrimaryLease()
+          .client(0)
+          // Client 2 is now the primary client, and client 0 ignores the write
+          // acknowledgement.
+          .writeAcks('collection/b', 2000, {
+            expectUserCallback: false,
+            keepInQueue: true
+          })
+          .client(2)
+          .writeAcks('collection/b', 2000, { expectUserCallback: false })
+          .client(1)
+          .expectUserCallbacks({
+            acknowledged: ['collection/b']
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Unresponsive primary ignores rejected write',
+    ['multi-client'],
+    () => {
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Send initial write to open the write stream
+          .userSets('collection/a', { k: 'a' })
+          .writeAcks('collection/a', 1000)
+          .client(1)
+          .userSets('collection/b', { k: 'b' })
+          .client(2)
+          .stealPrimaryLease()
+          .client(0)
+          // Client 2 is now the primary client, and client 0 ignores the rejected
+          // write.
+          .failWrite(
+            'collection/b',
+            new RpcError(Code.FAILED_PRECONDITION, 'Write error'),
+            {
+              expectUserCallback: false,
+              keepInQueue: true
+            }
+          )
+          .client(2)
+          .failWrite(
+            'collection/b',
+            new RpcError(Code.FAILED_PRECONDITION, 'Write error'),
+            { expectUserCallback: false }
+          )
+          .client(1)
+          .expectUserCallbacks({
+            rejected: ['collection/b']
+          })
+      );
+    }
+  );
 });

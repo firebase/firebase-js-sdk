@@ -51,6 +51,7 @@ import {
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { DocumentKeySet } from '../model/collections';
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -580,7 +581,24 @@ export class RemoteStore implements TargetMetadataProvider {
         for (const batch of this.writePipeline) {
           this.writeStream.writeMutations(batch.mutations);
         }
-      });
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+  }
+
+  /**
+   * Verifies the error thrown by an LocalStore operation. If a LocalStore
+   * operation fails because the primary lease has been taken by another client,
+   * we ignore the error. All other errors are re-thrown.
+   *
+   * @param err An error returned by a LocalStore operation.
+   * @return A Promise that resolves after we recovered, or the original error.
+   */
+  private ignoreIfPrimaryLeaseLoss(err: FirestoreError): void {
+    if (isPrimaryLeaseLostError(err)) {
+      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    } else {
+      throw err;
+    }
   }
 
   private onMutationResult(
@@ -650,7 +668,9 @@ export class RemoteStore implements TargetMetadataProvider {
       );
       this.writeStream.lastStreamToken = emptyByteString();
 
-      return this.localStore.setLastStreamToken(emptyByteString());
+      return this.localStore
+        .setLastStreamToken(emptyByteString())
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.

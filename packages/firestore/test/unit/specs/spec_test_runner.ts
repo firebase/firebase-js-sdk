@@ -60,10 +60,7 @@ import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { WriteRequest } from '../../../src/remote/persistent_stream';
 import { RemoteStore } from '../../../src/remote/remote_store';
-import {
-  isPermanentError,
-  mapCodeFromRpcCode
-} from '../../../src/remote/rpc_error';
+import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { StreamBridge } from '../../../src/remote/stream_bridge';
 import {
@@ -99,6 +96,12 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
+import {
+  createOrUpgradeDb,
+  DbOwner,
+  DbOwnerKey,
+  SCHEMA_VERSION
+} from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
 
 class MockConnection implements Connection {
@@ -811,7 +814,9 @@ abstract class TestRunner {
 
   private doWriteAck(writeAck: SpecWriteAck): Promise<void> {
     const updateTime = this.serializer.toVersion(version(writeAck.version));
-    const nextMutation = this.sharedWrites.shift();
+    const nextMutation = writeAck.keepInQueue
+      ? this.sharedWrites.peek()
+      : this.sharedWrites.shift();
     return this.validateNextWriteRequest(nextMutation).then(() => {
       this.connection.ackWrite(updateTime, [{ updateTime }]);
     });
@@ -823,14 +828,10 @@ abstract class TestRunner {
       mapCodeFromRpcCode(specError.code),
       specError.message
     );
-    const nextMutation = this.sharedWrites.peek();
+    const nextMutation = writeFailure.keepInQueue
+      ? this.sharedWrites.peek()
+      : this.sharedWrites.shift();
     return this.validateNextWriteRequest(nextMutation).then(() => {
-      // If this is a permanent error, the write is not expected to be sent
-      // again.
-      if (isPermanentError(error.code)) {
-        this.sharedWrites.shift();
-      }
-
       this.connection.failWrite(error);
     });
   }
@@ -888,10 +889,16 @@ abstract class TestRunner {
     });
   }
 
-  private doApplyClientState(state: SpecClientState): Promise<void> {
+  private async doApplyClientState(state: SpecClientState): Promise<void> {
     if (state.visibility) {
       this.platform.raiseVisibilityEvent(state.visibility!);
     }
+
+    if (state.primary) {
+      await writeOwnerToIndexedDb(this.clientId);
+      await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
+    }
+
     return Promise.resolve();
   }
 
@@ -951,7 +958,10 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('isPrimary' in expectation) {
-        expect(this.syncEngine.isPrimaryClient).to.eq(expectation.isPrimary!);
+        expect(this.syncEngine.isPrimaryClient).to.eq(
+          expectation.isPrimary!,
+          'isPrimary'
+        );
       }
       if ('userCallbacks' in expectation) {
         expect(this.acknowledgedDocs).to.have.members(
@@ -1394,11 +1404,24 @@ export type SpecWatchStreamClose = {
 export type SpecWriteAck = {
   /** The version the backend uses to ack the write. */
   version: TestSnapshotVersion;
+  /**
+   * Whether we should keep the write in our internal queue. This should only
+   * be set to 'true' if the client ignores the write (e.g. a secondary client
+   * which ignores write acknowledgments).
+   */
+  // PORTING NOTE: Multi-Tab only.
+  keepInQueue: boolean;
 };
 
 export type SpecWriteFailure = {
   /** The error the backend uses to fail the write. */
   error: SpecError;
+  /**
+   * Whether we should keep the write in our internal queue. This should be set
+   * to 'true' for transient errors or if the client ignores the failure
+   * (e.g. a secondary client which ignores write rejections).
+   */
+  keepInQueue: boolean;
 };
 
 export interface SpecWatchEntity {
@@ -1418,6 +1441,8 @@ export interface SpecWatchEntity {
 export type SpecClientState = {
   /** The visibility state of the browser tab running the client. */
   visibility?: VisibilityState;
+  /** Whether this tab should try to forcefully become primary. */
+  primary?: true;
 };
 
 /**
@@ -1503,4 +1528,20 @@ export interface StateExpectation {
     acknowledgedDocs: string[];
     rejectedDocs: string[];
   };
+}
+
+async function writeOwnerToIndexedDb(clientId: ClientId): Promise<void> {
+  const db = await SimpleDb.openOrCreate(
+    IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
+    SCHEMA_VERSION,
+    createOrUpgradeDb
+  );
+  await db.runTransaction('readwrite', ['owner'], txn => {
+    const owner = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+    return owner.put(
+      'owner',
+      new DbOwner(clientId, /* allowTabSynchronization=*/ true, Date.now())
+    );
+  });
+  db.close();
 }

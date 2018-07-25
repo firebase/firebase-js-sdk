@@ -478,6 +478,8 @@ export class IndexedDbPersistence implements Persistence {
               log.error(
                 `Failed to obtain primary lease for action '${action}'.`
               );
+              this.isPrimary = false;
+              this.queue.enqueue(() => this.primaryStateListener(false));
               throw new FirestoreError(
                 Code.FAILED_PRECONDITION,
                 PRIMARY_LEASE_LOST_ERROR_MSG
@@ -734,6 +736,12 @@ export class IndexedDbPersistence implements Persistence {
   }
 }
 
+export function isPrimaryLeaseLostError(err: FirestoreError): boolean {
+  return (
+    err.code === Code.FAILED_PRECONDITION &&
+    err.message === PRIMARY_LEASE_LOST_ERROR_MSG
+  );
+}
 /**
  * Helper to get a typed SimpleDbStore for the owner object store.
  */
