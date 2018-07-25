@@ -258,22 +258,16 @@ export class MemoryMutationQueue implements MutationQueue {
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]> {
     const start = new DocReference(documentKeys.first(), 0);
-    const end = new DocReference(documentKeys.last(), 0);
-    const result: MutationBatch[] = [];
+    const end = new DocReference(documentKeys.last(), Number.POSITIVE_INFINITY);
+    let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
+
     this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-      assert(
-        documentKey.isEqual(ref.key),
-        "Should only iterate over a single key's batches"
-      );
-      const batch = this.findMutationBatch(ref.targetOrBatchId);
-      assert(
-        batch !== null,
-        'Batches in the index must exist in the main table'
-      );
-      result.push(batch!);
+      if (documentKeys.has(ref.key)) {
+        uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
+      }
     });
 
-    return PersistencePromise.resolve(result);
+    return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
   }
 
   getAllMutationBatchesAffectingQuery(
@@ -317,16 +311,20 @@ export class MemoryMutationQueue implements MutationQueue {
       }
     }, start);
 
+    return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
+  }
+
+  private findMutationBatches(batchIDs: SortedSet<number>) : MutationBatch[] {
     // Construct an array of matching batches, sorted by batchID to ensure that
     // multiple mutations affecting the same document key are applied in order.
     const result: MutationBatch[] = [];
-    uniqueBatchIDs.forEach(batchId => {
+    batchIDs.forEach(batchId => {
       const batch = this.findMutationBatch(batchId);
       if (batch !== null) {
         result.push(batch);
       }
     });
-    return PersistencePromise.resolve(result);
+    return result;
   }
 
   removeMutationBatches(
