@@ -195,6 +195,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.syncEngineListener === null,
       'SyncEngine already has a subscriber.'
     );
+
     this.syncEngineListener = syncEngineListener;
   }
 
