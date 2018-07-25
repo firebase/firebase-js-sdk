@@ -77,8 +77,6 @@ export function createOrUpgradeDb(
     p = p.next(() => writeEmptyTargetGlobalEntry(txn));
   }
 
-
-
   if (fromVersion < 4 && toVersion >= 4) {
     if (fromVersion !== 0) {
       // Schema version 3 uses auto-generated keys to generate globally unique
