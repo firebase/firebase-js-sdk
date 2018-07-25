@@ -57,25 +57,26 @@ export interface Settings {
   timestampsInSnapshots?: boolean;
 }
 
-/**
- * Settings that can be passed to Firestore.enablePersistence() to configure
- * Firestore persistence.
- */
-export interface PersistenceSettings {
-  /**
-   * Whether to synchronize the in-memory state of multiple tabs. Setting this
-   * to 'true' in all open tabs enables shared access to local persistence,
-   * shared execution of queries and latency-compensated local document updates
-   * across all connected instances.
-   *
-   * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-   * globally in all active tabs. If omitted or set to 'false',
-   * `enablePersistence()` will fail in all but the first tab.
-   *
-   * NOTE: This mode is not yet recommended for production use.
-   */
-  experimentalTabSynchronization?: boolean;
-}
+// TODO(multitab): Uncomment when multi-tab is released publicly.
+// /**
+//  * Settings that can be passed to Firestore.enablePersistence() to configure
+//  * Firestore persistence.
+//  */
+// export interface PersistenceSettings {
+//   /**
+//    * Whether to synchronize the in-memory state of multiple tabs. Setting this
+//    * to 'true' in all open tabs enables shared access to local persistence,
+//    * shared execution of queries and latency-compensated local document updates
+//    * across all connected instances.
+//    *
+//    * To enable this mode, `experimentalTabSynchronization:true` needs to be set
+//    * globally in all active tabs. If omitted or set to 'false',
+//    * `enablePersistence()` will fail in all but the first tab.
+//    *
+//    * NOTE: This mode is not yet recommended for production use.
+//    */
+//   experimentalTabSynchronization?: boolean;
+// }
 
 export type LogLevel = 'debug' | 'error' | 'silent';
 
@@ -111,11 +112,33 @@ export class FirebaseFirestore {
    *   * unimplemented: The browser is incompatible with the offline
    *     persistence implementation.
    *
-   * @param settings Optional settings object to configure persistence.
    * @return A promise that represents successfully enabling persistent
    * storage.
    */
-  enablePersistence(settings?: PersistenceSettings): Promise<void>;
+  enablePersistence(): Promise<void>;
+
+  // TODO(multitab): Uncomment when multi-tab is released publicly.
+  // /**
+  //  * Attempts to enable persistent storage, if possible.
+  //  *
+  //  * Must be called before any other methods (other than settings()).
+  //  *
+  //  * If this fails, enablePersistence() will reject the promise it returns.
+  //  * Note that even after this failure, the firestore instance will remain
+  //  * usable, however offline persistence will be disabled.
+  //  *
+  //  * There are several reasons why this can fail, which can be identified by
+  //  * the `code` on the error.
+  //  *
+  //  *   * failed-precondition: The app is already open in another browser tab.
+  //  *   * unimplemented: The browser is incompatible with the offline
+  //  *     persistence implementation.
+  //  *
+  //  * @param settings Optional settings object to configure persistence.
+  //  * @return A promise that represents successfully enabling persistent
+  //  * storage.
+  //  */
+  // enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
   /**
    * Gets a `CollectionReference` instance that refers to the collection at
@@ -868,10 +891,9 @@ export type OrderByDirection = 'desc' | 'asc';
 
 /**
  * Filter conditions in a `Query.where()` clause are specified using the
- * strings '<', '<=', '==', '>=', and '>'.
+ * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
  */
-// TODO(array-features): Add 'array-contains' once backend support lands.
-export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
+export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1247,8 +1269,7 @@ export class FieldValue {
    * @param elements The elements to union into the array.
    * @return The FieldValue sentinel for use in a call to set() or update().
    */
-  // TODO(array-features): Expose this once backend support lands.
-  //static arrayUnion(...elements: any[]): FieldValue;
+  static arrayUnion(...elements: any[]): FieldValue;
 
   /**
    * Returns a special value that can be used with set() or update() that tells
@@ -1260,8 +1281,7 @@ export class FieldValue {
    * @param elements The elements to remove from the array.
    * @return The FieldValue sentinel for use in a call to set() or update().
    */
-  // TODO(array-features): Expose this once backend support lands.
-  //static arrayRemove(...elements: any[]): FieldValue;
+  static arrayRemove(...elements: any[]): FieldValue;
 
   /**
    * Returns true if this `FieldValue` is equal to the provided one.

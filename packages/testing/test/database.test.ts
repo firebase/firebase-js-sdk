@@ -16,6 +16,7 @@
 
 import { expect } from 'chai';
 import * as firebase from '../src/api';
+import { base64 } from '@firebase/util';
 
 describe('Testing Module Tests', function() {
   it('assertSucceeds() iff success', async function() {
@@ -46,42 +47,35 @@ describe('Testing Module Tests', function() {
     });
   });
 
-  it('initializeAdminApp() throws if no databaseName', function() {
-    expect(firebase.initializeAdminApp.bind(null, {})).to.throw(
-      /databaseName not specified/
-    );
-    expect(
-      firebase.initializeAdminApp.bind(null, { databaseName: 'foo' })
-    ).to.not.throw();
-  });
-
-  it('initializeAdminApp() provides admin', function() {
-    const app = firebase.initializeAdminApp({ databaseName: 'foo' });
-    expect(app.options).to.not.have.any.keys('databaseAuthVariableOverride');
-  });
-
-  it('initializeTestApp() throws if no databaseName', function() {
-    expect(firebase.initializeTestApp.bind(null, {})).to.throw(
-      /databaseName not specified/
-    );
-    expect(
-      firebase.initializeTestApp.bind(null, { databaseName: 'foo' })
-    ).to.not.throw();
-  });
-
-  it('initializeTestApp() uses specified auth.', function() {
-    let app = firebase.initializeTestApp({ databaseName: 'foo' });
-    expect(app.options).to.have.any.keys('databaseAuthVariableOverride');
-
-    app = firebase.initializeTestApp({
-      databaseName: 'foo',
-      auth: { uid: 'alice' }
+  it('initializeTestApp() with auth=null does not set access token', async function() {
+    const app = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: null
     });
-    expect(app.options).to.have.any.keys('databaseAuthVariableOverride');
-    expect(app.options.databaseAuthVariableOverride).to.have.all.keys('uid');
-    expect(app.options.databaseAuthVariableOverride['uid']).to.be.equal(
-      'alice'
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.be.null;
+  });
+
+  it('initializeTestApp() with auth sets the correct access token', async function() {
+    const auth = { uid: 'alice' };
+    const app = firebase.initializeTestApp({
+      projectId: 'foo',
+      auth: auth
+    });
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.have.keys('accessToken');
+    const claims = JSON.parse(
+      base64.decodeString(token.accessToken.split('.')[1], /*webSafe=*/ false)
     );
+    // We add an 'iat' field.
+    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0 });
+  });
+
+  it('initializeAdminApp() sets the access token to "owner"', async function() {
+    const app = firebase.initializeAdminApp({ projectId: 'foo' });
+    const token = await (app as any).INTERNAL.getToken();
+    expect(token).to.have.keys('accessToken');
+    expect(token.accessToken).to.be.string('owner');
   });
 
   it('loadDatabaseRules() throws if no databaseName or rulesPath', async function() {
@@ -108,13 +102,11 @@ describe('Testing Module Tests', function() {
     ).to.throw(/Could not find file/);
   });
 
-  it('apps() returns all created apps', async function() {
+  it('apps() returns apps created with initializeTestApp', async function() {
     const numApps = firebase.apps().length;
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
+    await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
     expect(firebase.apps().length).to.equal(numApps + 1);
-    await firebase.initializeAdminApp({ databaseName: 'foo' });
+    await firebase.initializeTestApp({ databaseName: 'bar', auth: {} });
     expect(firebase.apps().length).to.equal(numApps + 2);
-    await firebase.initializeTestApp({ databaseName: 'foo' });
-    expect(firebase.apps().length).to.equal(numApps + 3);
   });
 });

@@ -29,7 +29,6 @@ import {
   OnlineState,
   TargetId
 } from '../../../src/core/types';
-import { BrowserPlatform } from '../../../src/platform_browser/browser_platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { User } from '../../../src/auth/user';
 import {
@@ -122,7 +121,7 @@ export async function populateWebStorage(
   // NOTE: We don't call shutdown() on it because that would delete the data.
   const secondaryClientState = new WebStorageSharedClientState(
     new AsyncQueue(),
-    new BrowserPlatform(),
+    PlatformSupport.getPlatform(),
     TEST_PERSISTENCE_PREFIX,
     existingClientId,
     user

@@ -668,8 +668,7 @@ describe('RemoteEvent', () => {
       WatchTargetChangeState.Current,
       [1, 2]
     );
-    const targets = listens(1, 2);
-    targets[2].purpose = QueryPurpose.LimboResolution;
+    const targets = { ...listens(1), ...limboListens(2) };
 
     const event = createRemoteEvent({
       snapshotVersion: 1,

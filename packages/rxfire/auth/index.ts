@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { auth, User } from 'firebase/app';
+import { auth, User } from 'firebase';
 import { Observable, from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 
@@ -47,7 +47,7 @@ export function user(auth: auth.Auth): Observable<User> {
  * sign-out, and token refresh events
  * @param auth firebase.auth.Auth
  */
-export function idToken(auth: auth.Auth) {
+export function idToken(auth: auth.Auth): Observable<string | null> {
   return user(auth).pipe(
     switchMap(user => (user ? from(user.getIdToken()) : of(null)))
   );
