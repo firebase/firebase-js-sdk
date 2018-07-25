@@ -241,9 +241,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
     });
   }*/
 
-  private startMutationQueue(
-    txn: TransactionType
-  ): PersistencePromise<void> {
+  private startMutationQueue(txn: TransactionType): PersistencePromise<void> {
     return this.mutationQueue
       .start(txn)
       .next(() => {

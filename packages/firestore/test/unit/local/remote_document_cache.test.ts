@@ -16,8 +16,14 @@
 
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
-import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from '../../../src/local/indexeddb_persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { MaybeDocument } from '../../../src/model/document';
 import { deletedDoc, doc, expectEqual, key, path } from '../../util/helpers';
 
@@ -34,7 +40,9 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-  const persistencePromise: Promise<Persistence<IndexedDbTransaction>> = persistenceHelpers.testIndexedDbPersistence();
+  const persistencePromise: Promise<
+    Persistence<IndexedDbTransaction>
+  > = persistenceHelpers.testIndexedDbPersistence();
   let persistence: Persistence<IndexedDbTransaction>;
   beforeEach(async () => {
     persistence = await persistencePromise;
@@ -49,7 +57,9 @@ describe('IndexedDbRemoteDocumentCache', () => {
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests<TransactionType extends PersistenceTransaction>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
+function genericRemoteDocumentCacheTests<
+  TransactionType extends PersistenceTransaction
+>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
   // Helpers for use throughout tests.
   const DOC_PATH = 'a/b';
   const LONG_DOC_PATH = 'a/b/c/d/e/f';

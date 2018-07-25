@@ -20,9 +20,15 @@ import { Query } from '../../../src/core/query';
 import { BatchId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
-import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
@@ -51,7 +57,9 @@ describe('IndexedDbMutationQueue', () => {
     return;
   }
 
-  const persistencePromise: Promise<Persistence<IndexedDbTransaction>> = persistenceHelpers.testIndexedDbPersistence();
+  const persistencePromise: Promise<
+    Persistence<IndexedDbTransaction>
+  > = persistenceHelpers.testIndexedDbPersistence();
   let persistence: Persistence<IndexedDbTransaction>;
   beforeEach(async () => {
     persistence = await persistencePromise;
@@ -72,9 +80,10 @@ describe('IndexedDbMutationQueue', () => {
 
     function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
       return persistence.runTransaction('addDummyBatch', transaction => {
-        const store = transaction.simpleDbTransaction.store<[string, number], DbMutationBatch>(
-          DbMutationBatch.store
-        );
+        const store = transaction.simpleDbTransaction.store<
+          [string, number],
+          DbMutationBatch
+        >(DbMutationBatch.store);
         const localWriteTime = Date.now();
         return store.put(
           new DbMutationBatch(userId, batchId, localWriteTime, [])
@@ -109,7 +118,9 @@ describe('IndexedDbMutationQueue', () => {
  * Defines the set of tests to run against both mutation queue
  * implementations.
  */
-function genericMutationQueueTests<TransactionType extends PersistenceTransaction>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
+function genericMutationQueueTests<
+  TransactionType extends PersistenceTransaction
+>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
   addEqualityMatcher();
 
   let persistence: Persistence<TransactionType>;

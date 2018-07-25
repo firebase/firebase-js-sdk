@@ -19,8 +19,14 @@ import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from '../../../src/local/indexeddb_persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -45,7 +51,9 @@ describe('IndexedDbQueryCache', () => {
     return;
   }
 
-  const persistencePromise: Promise<Persistence<IndexedDbTransaction>> = persistenceHelpers.testIndexedDbPersistence();
+  const persistencePromise: Promise<
+    Persistence<IndexedDbTransaction>
+  > = persistenceHelpers.testIndexedDbPersistence();
   let persistence: Persistence<IndexedDbTransaction>;
   beforeEach(async () => {
     persistence = await persistencePromise;
@@ -59,7 +67,9 @@ describe('IndexedDbQueryCache', () => {
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
+function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
+  persistencePromise: () => Promise<Persistence<TransactionType>>
+): void {
   addEqualityMatcher();
   let cache: TestQueryCache<TransactionType>;
 
@@ -334,7 +344,8 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
           persistence.getQueryCache()
         );
         expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
-          version(42));
+          version(42)
+        );
         /*return otherCache.start().then(() => {
           expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
             version(42)

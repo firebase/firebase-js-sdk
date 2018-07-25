@@ -43,7 +43,8 @@ import { SimpleDb, SimpleDbStore } from './simple_db';
 import { IndexedDbTransaction } from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
-export class IndexedDbMutationQueue implements MutationQueue<IndexedDbTransaction> {
+export class IndexedDbMutationQueue
+  implements MutationQueue<IndexedDbTransaction> {
   /**
    * Next value to use when assigning sequential IDs to each mutation batch.
    *
@@ -477,9 +478,7 @@ export class IndexedDbMutationQueue implements MutationQueue<IndexedDbTransactio
     return PersistencePromise.waitFor(promises);
   }
 
-  performConsistencyCheck(
-    txn: IndexedDbTransaction
-  ): PersistencePromise<void> {
+  performConsistencyCheck(txn: IndexedDbTransaction): PersistencePromise<void> {
     return this.checkEmpty(txn).next(empty => {
       if (!empty) {
         return PersistencePromise.resolve();

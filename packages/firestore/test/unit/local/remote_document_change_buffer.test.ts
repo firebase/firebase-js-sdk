@@ -15,7 +15,10 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from '../../../src/local/indexeddb_persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 

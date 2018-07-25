@@ -15,15 +15,23 @@
  */
 
 import { GarbageCollector } from '../../../src/local/garbage_collector';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
  * A wrapper around a GarbageCollector that automatically creates a transaction
  * around every operation to reduce test boilerplate.
  */
-export class TestGarbageCollector<TransactionType extends PersistenceTransaction> {
-  constructor(public persistence: Persistence<TransactionType>, public gc: GarbageCollector) {}
+export class TestGarbageCollector<
+  TransactionType extends PersistenceTransaction
+> {
+  constructor(
+    public persistence: Persistence<TransactionType>,
+    public gc: GarbageCollector
+  ) {}
 
   collectGarbage(): Promise<DocumentKey[]> {
     return this.persistence

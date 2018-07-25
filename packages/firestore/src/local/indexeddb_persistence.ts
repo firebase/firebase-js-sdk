@@ -60,9 +60,7 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   ' persistence has been disabled.';
 
 export class IndexedDbTransaction {
-  constructor(
-    readonly simpleDbTransaction: SimpleDbTransaction
-  ) {}
+  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {}
 }
 
 /**
@@ -149,11 +147,12 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
       .then(() => {
         this.scheduleOwnerLeaseRefreshes();
         this.attachWindowUnloadHook();
-      }).then(() => this.simpleDb.runTransaction(
-        'readonly', 
-        ALL_STORES,
-        (txn) => this.queryCache.start(txn)
-      ));
+      })
+      .then(() =>
+        this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
+          this.queryCache.start(txn)
+        )
+      );
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -193,11 +192,17 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, simpleDbTxn => {
-      // Verify that we still have the owner lease as part of every transaction.
-      const txn = new IndexedDbTransaction(simpleDbTxn);
-      return this.ensureOwnerLease(txn.simpleDbTransaction).next(() => operation(txn));
-    });
+    return this.simpleDb.runTransaction(
+      'readwrite',
+      ALL_STORES,
+      simpleDbTxn => {
+        // Verify that we still have the owner lease as part of every transaction.
+        const txn = new IndexedDbTransaction(simpleDbTxn);
+        return this.ensureOwnerLease(txn.simpleDbTransaction).next(() =>
+          operation(txn)
+        );
+      }
+    );
   }
 
   static isAvailable(): boolean {
@@ -334,12 +339,16 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
     // would increase the chances of us not refreshing on time if the queue is
     // backed up for some reason.
     this.ownerLeaseRefreshHandle = setInterval(() => {
-      const txResult = this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-        // NOTE: We don't need to validate the current owner contents, since
-        // runTransaction does that automatically.
-        const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-        return store.put('owner', new DbOwner(this.ownerId, Date.now()));
-      });
+      const txResult = this.simpleDb.runTransaction(
+        'readwrite',
+        ALL_STORES,
+        txn => {
+          // NOTE: We don't need to validate the current owner contents, since
+          // runTransaction does that automatically.
+          const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+          return store.put('owner', new DbOwner(this.ownerId, Date.now()));
+        }
+      );
 
       txResult.catch(reason => {
         // Probably means we lost the lease. Report the error and stop trying to

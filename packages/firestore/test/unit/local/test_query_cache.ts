@@ -17,7 +17,10 @@
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
@@ -28,7 +31,10 @@ import { DocumentKey } from '../../../src/model/document_key';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestQueryCache<TransactionType extends PersistenceTransaction> {
-  constructor(public persistence: Persistence<TransactionType>, public cache: QueryCache<TransactionType>) {}
+  constructor(
+    public persistence: Persistence<TransactionType>,
+    public cache: QueryCache<TransactionType>
+  ) {}
 
   /*start(): Promise<void> {
     return this.persistence.runTransaction('start', txn =>

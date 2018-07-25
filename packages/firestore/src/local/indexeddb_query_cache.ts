@@ -338,7 +338,7 @@ function targetsStore(
   txn: IndexedDbTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
   return SimpleDb.getStore<DbTargetKey, DbTarget>(
-    txn.simpleDbTransaction, 
+    txn.simpleDbTransaction,
     DbTarget.store
   );
 }

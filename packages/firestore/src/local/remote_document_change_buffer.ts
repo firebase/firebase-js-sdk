@@ -36,10 +36,14 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * read-your-own-writes capability, this class is not technically needed, but
  * has been preserved as a convenience and to aid portability.
  */
-export class RemoteDocumentChangeBuffer<TransactionType extends PersistenceTransaction> {
+export class RemoteDocumentChangeBuffer<
+  TransactionType extends PersistenceTransaction
+> {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
 
-  constructor(private remoteDocumentCache: RemoteDocumentCache<TransactionType>) {}
+  constructor(
+    private remoteDocumentCache: RemoteDocumentCache<TransactionType>
+  ) {}
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
   addEntry(maybeDocument: MaybeDocument): void {

@@ -46,12 +46,7 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import {
-  BatchId,
-  OnlineState,
-  ProtoByteString,
-  TargetId
-} from './types';
+import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -532,11 +527,7 @@ export class SyncEngine implements RemoteSyncer {
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
-        new QueryData(
-          query,
-          limboTargetId,
-          QueryPurpose.LimboResolution
-        )
+        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,

@@ -29,7 +29,8 @@ import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
 import { MemoryPersistenceTransaction } from './memory_persistence';
 
-export class MemoryQueryCache implements QueryCache<MemoryPersistenceTransaction> {
+export class MemoryQueryCache
+  implements QueryCache<MemoryPersistenceTransaction> {
   /**
    * Maps a query to the data about that query
    */

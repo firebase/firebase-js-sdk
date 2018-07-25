@@ -26,7 +26,8 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore } from './simple_db';
 
-export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache<IndexedDbTransaction> {
+export class IndexedDbRemoteDocumentCache
+  implements RemoteDocumentCache<IndexedDbTransaction> {
   constructor(private serializer: LocalSerializer) {}
 
   addEntry(

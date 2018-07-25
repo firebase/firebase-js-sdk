@@ -30,7 +30,9 @@ import { PersistencePromise } from './persistence_promise';
  * with data) as well as NoDocument instances (indicating that the document is
  * known to not exist).
  */
-export interface RemoteDocumentCache<TransactionType extends PersistenceTransaction> {
+export interface RemoteDocumentCache<
+  TransactionType extends PersistenceTransaction
+> {
   /**
    * Adds or replaces an entry in the cache.
    *

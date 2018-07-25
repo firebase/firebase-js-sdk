@@ -40,7 +40,9 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * document). The view is computed by applying the mutations in the
  * MutationQueue to the RemoteDocumentCache.
  */
-export class LocalDocumentsView<TransactionType extends PersistenceTransaction> {
+export class LocalDocumentsView<
+  TransactionType extends PersistenceTransaction
+> {
   constructor(
     private remoteDocumentCache: RemoteDocumentCache<TransactionType>,
     private mutationQueue: MutationQueue<TransactionType>

@@ -39,11 +39,20 @@ import {
 } from '../../../src/core/view_snapshot';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { GarbageCollector } from '../../../src/local/garbage_collector';
-import { IndexedDbPersistence, IndexedDbTransaction } from '../../../src/local/indexeddb_persistence';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import { MemoryPersistence, MemoryPersistenceTransaction } from '../../../src/local/memory_persistence';
+import {
+  MemoryPersistence,
+  MemoryPersistenceTransaction
+} from '../../../src/local/memory_persistence';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { DocumentOptions } from '../../../src/model/document';
@@ -1010,7 +1019,9 @@ class MemoryTestRunner extends TestRunner<MemoryPersistenceTransaction> {
 class IndexedDbTestRunner extends TestRunner<IndexedDbTransaction> {
   static TEST_DB_NAME = 'specs';
 
-  protected getPersistence(serializer: JsonProtoSerializer): IndexedDbPersistence {
+  protected getPersistence(
+    serializer: JsonProtoSerializer
+  ): IndexedDbPersistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
       serializer

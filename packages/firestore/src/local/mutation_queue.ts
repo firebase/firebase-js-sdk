@@ -26,7 +26,8 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 /** A queue of mutations to apply to the remote store. */
-export interface MutationQueue<TransactionType extends PersistenceTransaction> extends GarbageSource {
+export interface MutationQueue<TransactionType extends PersistenceTransaction>
+  extends GarbageSource {
   /**
    * Starts the mutation queue, performing any initial reads that might be
    * required to establish invariants, etc.
@@ -48,9 +49,7 @@ export interface MutationQueue<TransactionType extends PersistenceTransaction> e
    * mutation queue is properly maintaining the invariant that
    * highestAcknowledgedBatchId is less than nextBatchId.
    */
-  getNextBatchId(
-    transaction: TransactionType
-  ): PersistencePromise<BatchId>;
+  getNextBatchId(transaction: TransactionType): PersistencePromise<BatchId>;
 
   /**
    * Returns the highest batchId that has been acknowledged. If no batches have

@@ -26,7 +26,8 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { MemoryPersistenceTransaction } from './memory_persistence';
 
-export class MemoryRemoteDocumentCache implements RemoteDocumentCache<MemoryPersistenceTransaction> {
+export class MemoryRemoteDocumentCache
+  implements RemoteDocumentCache<MemoryPersistenceTransaction> {
   private docs = maybeDocumentMap();
 
   addEntry(

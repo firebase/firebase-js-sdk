@@ -31,7 +31,8 @@ import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 import { MemoryPersistenceTransaction } from './memory_persistence';
 
-export class MemoryMutationQueue implements MutationQueue<MemoryPersistenceTransaction> {
+export class MemoryMutationQueue
+  implements MutationQueue<MemoryPersistenceTransaction> {
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -73,7 +74,9 @@ export class MemoryMutationQueue implements MutationQueue<MemoryPersistenceTrans
     return PersistencePromise.resolve();
   }
 
-  checkEmpty(transaction: MemoryPersistenceTransaction): PersistencePromise<boolean> {
+  checkEmpty(
+    transaction: MemoryPersistenceTransaction
+  ): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 

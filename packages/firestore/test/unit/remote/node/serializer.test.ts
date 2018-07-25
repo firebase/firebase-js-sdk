@@ -88,7 +88,7 @@ describe('Serializer', () => {
   function wrapQueryData(query: Query): QueryData {
     return new QueryData(
       query,
-      1,  // arbitrary target id
+      1, // arbitrary target id
       QueryPurpose.Listen,
       SnapshotVersion.MIN,
       emptyResumeToken

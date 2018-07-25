@@ -15,7 +15,10 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
@@ -25,7 +28,9 @@ import { DocumentKey } from '../../../src/model/document_key';
  * A wrapper around a RemoteDocumentCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestRemoteDocumentCache<TransactionType extends PersistenceTransaction> {
+export class TestRemoteDocumentCache<
+  TransactionType extends PersistenceTransaction
+> {
   constructor(
     public persistence: Persistence<TransactionType>,
     public cache: RemoteDocumentCache<TransactionType>
