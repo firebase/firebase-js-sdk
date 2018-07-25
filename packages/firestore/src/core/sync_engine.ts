@@ -780,9 +780,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * @param err An error returned by a LocalStore operation.
    * @return A Promise that resolves after we recovered, or the original error.
    */
-  private async ignoreIfPrimaryLeaseLoss(
-    err: FirestoreError
-  ): Promise<void> {
+  private async ignoreIfPrimaryLeaseLoss(err: FirestoreError): Promise<void> {
     if (isPrimaryLeaseLostError(err)) {
       log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
     } else {
