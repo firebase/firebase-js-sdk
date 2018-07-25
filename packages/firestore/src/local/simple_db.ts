@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 import { PersistencePromise } from './persistence_promise';
