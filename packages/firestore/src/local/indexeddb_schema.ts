@@ -613,7 +613,6 @@ function writeEmptyTargetGlobalEntry(
   return globalStore.put(DbTargetGlobal.key, metadata);
 }
 
-
 /**
  * An object store to store the keys of changed documents. This is used to
  * facilitate storing document changelogs in the Remote Document Cache.
