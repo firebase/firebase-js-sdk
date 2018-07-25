@@ -435,40 +435,46 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
-    return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
-      // Update `receivedDocument` as appropriate for any limbo targets.
-      objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
-        const limboResolution = this.limboResolutionsByTarget[targetId];
-        if (limboResolution) {
-          // Since this is a limbo resolution lookup, it's for a single document
-          // and it could be added, modified, or removed, but not a combination.
-          assert(
-              targetChange.addedDocuments.size +
-              targetChange.modifiedDocuments.size +
-              targetChange.removedDocuments.size <=
-              1,
-              'Limbo resolution for single document contains multiple changes.'
-          );
-          if (targetChange.addedDocuments.size > 0) {
-            limboResolution.receivedDocument = true;
-          } else if (targetChange.modifiedDocuments.size > 0) {
-            assert(
-                limboResolution.receivedDocument,
-                'Received change for limbo target document without add.'
-            );
-          } else if (targetChange.removedDocuments.size > 0) {
-            assert(
-                limboResolution.receivedDocument,
-                'Received remove for limbo target document without add.'
-            );
-            limboResolution.receivedDocument = false;
-          } else {
-            // This was probably just a CURRENT targetChange or similar.
+    return this.localStore
+      .applyRemoteEvent(remoteEvent)
+      .then(changes => {
+        // Update `receivedDocument` as appropriate for any limbo targets.
+        objUtils.forEach(
+          remoteEvent.targetChanges,
+          (targetId, targetChange) => {
+            const limboResolution = this.limboResolutionsByTarget[targetId];
+            if (limboResolution) {
+              // Since this is a limbo resolution lookup, it's for a single document
+              // and it could be added, modified, or removed, but not a combination.
+              assert(
+                targetChange.addedDocuments.size +
+                  targetChange.modifiedDocuments.size +
+                  targetChange.removedDocuments.size <=
+                  1,
+                'Limbo resolution for single document contains multiple changes.'
+              );
+              if (targetChange.addedDocuments.size > 0) {
+                limboResolution.receivedDocument = true;
+              } else if (targetChange.modifiedDocuments.size > 0) {
+                assert(
+                  limboResolution.receivedDocument,
+                  'Received change for limbo target document without add.'
+                );
+              } else if (targetChange.removedDocuments.size > 0) {
+                assert(
+                  limboResolution.receivedDocument,
+                  'Received remove for limbo target document without add.'
+                );
+                limboResolution.receivedDocument = false;
+              } else {
+                // This was probably just a CURRENT targetChange or similar.
+              }
+            }
           }
-        }
-      });
-      return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
-    });
+        );
+        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   /**
