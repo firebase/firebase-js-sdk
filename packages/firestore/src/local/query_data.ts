@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId, ListenSequenceNumber } from '../core/types';
+import { ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
 /** An enumeration of the different purposes we have for queries. */
@@ -45,7 +45,6 @@ export class QueryData {
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
     readonly targetId: TargetId,
-    readonly sequenceNumber: ListenSequenceNumber,
     /** The purpose of the query. */
     readonly purpose: QueryPurpose,
     /** The latest snapshot version seen for this target. */
@@ -66,12 +65,10 @@ export class QueryData {
   copy(overwrite: {
     resumeToken?: ProtoByteString;
     snapshotVersion?: SnapshotVersion;
-    sequenceNumber: ListenSequenceNumber;
   }): QueryData {
     return new QueryData(
       this.query,
       this.targetId,
-      overwrite.sequenceNumber,
       this.purpose,
       overwrite.snapshotVersion || this.snapshotVersion,
       overwrite.resumeToken || this.resumeToken
@@ -81,7 +78,6 @@ export class QueryData {
   isEqual(other: QueryData): boolean {
     return (
       this.targetId === other.targetId &&
-      this.sequenceNumber === other.sequenceNumber &&
       this.purpose === other.purpose &&
       this.snapshotVersion.isEqual(other.snapshotVersion) &&
       this.resumeToken === other.resumeToken &&

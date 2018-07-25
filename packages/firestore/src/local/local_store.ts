@@ -469,8 +469,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
           if (resumeToken.length > 0) {
             queryData = queryData.copy({
               resumeToken,
-              snapshotVersion: remoteEvent.snapshotVersion,
-              sequenceNumber: txn.currentSequenceNumber
+              snapshotVersion: remoteEvent.snapshotVersion
             });
             this.targetIds[targetId] = queryData;
             promises.push(this.queryCache.updateQueryData(txn, queryData));
@@ -624,7 +623,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
             return PersistencePromise.resolve();
           } else {
             const targetId = this.targetIdGenerator.next();
-            queryData = new QueryData(query, targetId, txn.currentSequenceNumber, QueryPurpose.Listen);
+            queryData = new QueryData(query, targetId, QueryPurpose.Listen);
             return this.queryCache.addQueryData(txn, queryData);
           }
         })

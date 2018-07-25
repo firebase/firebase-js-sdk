@@ -16,7 +16,7 @@
 
 import * as objUtils from '../../../src/util/obj';
 import { expect } from 'chai';
-import { TargetId, ListenSequenceNumber } from '../../../src/core/types';
+import { TargetId } from '../../../src/core/types';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
@@ -50,13 +50,10 @@ type PendingTargetResponses = {
   [targetId: number]: number;
 };
 
-// Use an arbitrary sequence number.
-const SEQUENCE_NUMBER: ListenSequenceNumber = 2;
-
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
   for (const target of targetIds) {
-    targets[target] = queryData(target, SEQUENCE_NUMBER, QueryPurpose.Listen, 'coll');
+    targets[target] = queryData(target, QueryPurpose.Listen, 'coll');
   }
   return targets;
 }
@@ -66,7 +63,6 @@ function limboListens(...targetIds: TargetId[]): TargetMap {
   for (const target of targetIds) {
     targets[target] = queryData(
       target,
-      SEQUENCE_NUMBER,
       QueryPurpose.LimboResolution,
       'coll/limbo'
     );

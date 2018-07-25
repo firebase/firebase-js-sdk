@@ -21,7 +21,6 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ListenSequenceNumber } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -31,7 +30,6 @@ import { ListenSequenceNumber } from '../core/types';
  * on persistence.
  */
 export interface PersistenceTransaction {
-  currentSequenceNumber: ListenSequenceNumber;
 }
 
 /**

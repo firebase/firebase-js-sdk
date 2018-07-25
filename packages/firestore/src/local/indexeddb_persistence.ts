@@ -39,8 +39,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbTransaction } from './simple_db';
-import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -63,8 +61,7 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 
 export class IndexedDbTransaction {
   constructor(
-    readonly simpleDbTransaction: SimpleDbTransaction, 
-    readonly currentSequenceNumber: ListenSequenceNumber
+    readonly simpleDbTransaction: SimpleDbTransaction
   ) {}
 }
 
@@ -125,8 +122,6 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
 
   private queryCache: IndexedDbQueryCache;
 
-  private listenSequence: ListenSequence;
-
   constructor(prefix: string, serializer: JsonProtoSerializer) {
     this.dbName = prefix + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
@@ -158,9 +153,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
         'readonly', 
         ALL_STORES,
         (txn) => this.queryCache.start(txn)
-      )).then(() => {
-        this.listenSequence = new ListenSequence(this.queryCache.getHighestListenSequenceNumber());
-      });
+      ));
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -202,8 +195,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
     // are the only reader/writer.
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, simpleDbTxn => {
       // Verify that we still have the owner lease as part of every transaction.
-      const sequenceNumber = this.listenSequence.next();
-      const txn = new IndexedDbTransaction(simpleDbTxn, sequenceNumber);
+      const txn = new IndexedDbTransaction(simpleDbTxn);
       return this.ensureOwnerLease(txn.simpleDbTransaction).next(() => operation(txn));
     });
   }

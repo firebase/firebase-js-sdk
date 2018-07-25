@@ -106,7 +106,6 @@ export class LocalSerializer {
     return new QueryData(
       query,
       dbTarget.targetId,
-      dbTarget.lastListenSequenceNumber,
       QueryPurpose.Listen,
       version,
       dbTarget.resumeToken

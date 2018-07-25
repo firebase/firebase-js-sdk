@@ -17,7 +17,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId, ListenSequenceNumber } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
@@ -76,10 +76,6 @@ export class IndexedDbQueryCache implements QueryCache<IndexedDbTransaction> {
 
   getHighestTargetId(): TargetId {
     return this.metadata.highestTargetId;
-  }
-
-  getHighestListenSequenceNumber(): ListenSequenceNumber {
-    return this.metadata.highestListenSequenceNumber;
   }
 
   getLastRemoteSnapshotVersion(): SnapshotVersion {

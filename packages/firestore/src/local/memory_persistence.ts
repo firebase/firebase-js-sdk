@@ -26,8 +26,6 @@ import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ListenSequenceNumber } from '../core/types';
-import { ListenSequence } from '../core/listen_sequence';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -88,8 +86,4 @@ export class MemoryPersistence implements Persistence<MemoryPersistenceTransacti
 }
 
 /** Dummy class since memory persistence doesn't actually use transactions. */
-export class MemoryPersistenceTransaction implements PersistenceTransaction {
-  get currentSequenceNumber(): ListenSequenceNumber {
-    return ListenSequence.IRRELEVANT;
-  }
-}
+export class MemoryPersistenceTransaction implements PersistenceTransaction {}

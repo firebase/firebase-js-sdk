@@ -84,7 +84,6 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
     return new QueryData(
       query,
       targetId,
-      0,
       QueryPurpose.Listen,
       snapshotVersion,
       resumeToken

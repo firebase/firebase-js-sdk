@@ -61,7 +61,6 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { SortedSet } from '../util/sorted_set';
-import { ListenSequence } from './listen_sequence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -536,7 +535,6 @@ export class SyncEngine implements RemoteSyncer {
         new QueryData(
           query,
           limboTargetId,
-          ListenSequence.IRRELEVANT,
           QueryPurpose.LimboResolution
         )
       );

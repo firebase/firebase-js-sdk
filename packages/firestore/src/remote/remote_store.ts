@@ -408,8 +408,7 @@ export class RemoteStore implements TargetMetadataProvider {
         if (queryData) {
           this.listenTargets[targetId] = queryData.copy({
             resumeToken: change.resumeToken,
-            snapshotVersion,
-            sequenceNumber: queryData.sequenceNumber
+            snapshotVersion
           });
         }
       }
@@ -427,8 +426,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Clear the resume token for the query, since we're in a known mismatch
       // state.
       this.listenTargets[targetId] = queryData.copy({
-        resumeToken: emptyByteString(),
-        sequenceNumber: queryData.sequenceNumber
+        resumeToken: emptyByteString()
       });
 
       // Cause a hard reset by unwatching and rewatching immediately, but
@@ -442,7 +440,6 @@ export class RemoteStore implements TargetMetadataProvider {
       const requestQueryData = new QueryData(
         queryData.query,
         targetId,
-        queryData.sequenceNumber,
         QueryPurpose.ExistenceFilterMismatch
       );
       this.sendWatchRequest(requestQueryData);

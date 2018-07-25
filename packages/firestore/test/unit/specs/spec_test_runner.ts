@@ -891,7 +891,6 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
         new QueryData(
           this.parseQuery(expected.query),
           targetId,
-          0,
           QueryPurpose.Listen,
           SnapshotVersion.MIN,
           expected.resumeToken

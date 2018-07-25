@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId, ListenSequenceNumber } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 
 import { GarbageSource } from './garbage_source';
@@ -41,8 +41,6 @@ export interface QueryCache<TransactionType extends PersistenceTransaction> exte
    * existing queries. If there are no queries in the cache, returns zero.
    */
   getHighestTargetId(): TargetId;
-
-  getHighestListenSequenceNumber(): ListenSequenceNumber;
 
   /**
    * A global snapshot version representing the last consistent snapshot we
