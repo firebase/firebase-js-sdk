@@ -29,17 +29,21 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * Schema Version for the Web client:
  * 1. Initial version including Mutation Queue, Query Cache, and Remote Document
  *    Cache
- * 2. Added targetCount to targetGlobal row.
- * 3. Multi-Tab Support.
+ * 2. Used to ensure a targetGlobal object exists and add targetCount to it. No
+ *    longer required because migration 3 unconditionally clears it.
+ * 3. Dropped and re-created Query Cache to deal with cache corruption related
+ *    to limbo resolution. Addresses
+ *    https://github.com/firebase/firebase-ios-sdk/issues/1548
+ * 4. Multi-Tab Support.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Performs database creation and schema upgrades.
  *
  * Note that in production, this method is only ever used to upgrade the schema
- * to SCHEMA_VERSION. Different versions are only used for testing and
- * local feature development.
+ * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+ * and local feature development.
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
@@ -48,10 +52,9 @@ export function createOrUpgradeDb(
   toVersion: number
 ): PersistencePromise<void> {
   assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= 3,
+    fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
     'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
   );
-  let p = PersistencePromise.resolve();
 
   if (fromVersion < 1 && toVersion >= 1) {
     createOwnerStore(db);
@@ -60,28 +63,37 @@ export function createOrUpgradeDb(
     createRemoteDocumentCache(db);
   }
 
-  if (fromVersion < 2 && toVersion >= 2) {
-    p = p
-      .next(() => ensureTargetGlobalExists(txn))
-      .next(targetGlobal => saveTargetCount(txn, targetGlobal));
-  }
+  // Migration 2 to populate the targetGlobal object no longer needed since
+  // migration 3 unconditionally clears it.
 
-  if (fromVersion > 0 && fromVersion < 3 && toVersion >= 3) {
-    // Schema version 3 uses auto-generated keys to generate globally unique
-    // mutation batch IDs (this was previously ensured internally by the
-    // client). To migrate to the new schema, we have to read all mutations
-    // and write them back out. We preserve the existing batch IDs to guarantee
-    // consistency with other object stores. Any further mutation batch IDs will
-    // be auto-generated.
-    p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
-  }
-
+  let p = PersistencePromise.resolve();
   if (fromVersion < 3 && toVersion >= 3) {
+    // Brand new clients don't need to drop and recreate--only clients that
+    // potentially have corrupt data.
+    if (fromVersion !== 0) {
+      dropQueryCache(db);
+      createQueryCache(db);
+    }
+    p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+  }
+
+  if (fromVersion < 4 && toVersion >= 4) {
+    if (fromVersion !== 0) {
+      // Schema version 3 uses auto-generated keys to generate globally unique
+      // mutation batch IDs (this was previously ensured internally by the
+      // client). To migrate to the new schema, we have to read all mutations
+      // and write them back out. We preserve the existing batch IDs to guarantee
+      // consistency with other object stores. Any further mutation batch IDs will
+      // be auto-generated.
+      p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+    }
+
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
     });
   }
+
   return p;
 }
 
@@ -575,49 +587,30 @@ function createQueryCache(db: IDBDatabase): void {
   db.createObjectStore(DbTargetGlobal.store);
 }
 
+function dropQueryCache(db: IDBDatabase): void {
+  db.deleteObjectStore(DbTargetDocument.store);
+  db.deleteObjectStore(DbTarget.store);
+  db.deleteObjectStore(DbTargetGlobal.store);
+}
+
 /**
- * Counts the number of targets persisted and adds that value to the target
- * global singleton.
+ * Creates the target global singleton row.
+ *
+ * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
  */
-function saveTargetCount(
-  txn: SimpleDbTransaction,
-  metadata: DbTargetGlobal
+function writeEmptyTargetGlobalEntry(
+  txn: SimpleDbTransaction
 ): PersistencePromise<void> {
   const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
     DbTargetGlobal.store
   );
-  const targetStore = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
-  return targetStore.count().next(count => {
-    metadata.targetCount = count;
-    return globalStore.put(DbTargetGlobal.key, metadata);
-  });
-}
-
-/**
- * Ensures that the target global singleton row exists by adding it if it's
- * missing.
- *
- * @param {IDBTransaction} txn The version upgrade transaction for indexeddb
- */
-function ensureTargetGlobalExists(
-  txn: SimpleDbTransaction
-): PersistencePromise<DbTargetGlobal> {
-  const globalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
-    DbTargetGlobal.store
+  const metadata = new DbTargetGlobal(
+    /*highestTargetId=*/ 0,
+    /*lastListenSequenceNumber=*/ 0,
+    SnapshotVersion.MIN.toTimestamp(),
+    /*targetCount=*/ 0
   );
-  return globalStore.get(DbTargetGlobal.key).next(metadata => {
-    if (metadata != null) {
-      return PersistencePromise.resolve(metadata);
-    } else {
-      metadata = new DbTargetGlobal(
-        /*highestTargetId=*/ 0,
-        /*lastListenSequenceNumber=*/ 0,
-        SnapshotVersion.MIN.toTimestamp(),
-        /*targetCount=*/ 0
-      );
-      return globalStore.put(DbTargetGlobal.key, metadata).next(() => metadata);
-    }
-  });
+  return globalStore.put(DbTargetGlobal.key, metadata);
 }
 
 /**
@@ -702,12 +695,14 @@ export const V1_STORES = [
   DbTargetDocument.store
 ];
 
-// Visible for testing
-export const V2_STORES = V1_STORES;
+// V2 is no longer usable (see comment at top of file)
 
 // Visible for testing
-export const V3_STORES = [
-  ...V2_STORES,
+export const V3_STORES = V1_STORES;
+
+// Visible for testing
+export const V4_STORES = [
+  ...V3_STORES,
   DbClientMetadata.store,
   DbRemoteDocumentChanges.store
 ];
@@ -717,4 +712,4 @@ export const V3_STORES = [
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V3_STORES;
+export const ALL_STORES = V4_STORES;

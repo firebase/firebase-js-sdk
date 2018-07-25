@@ -16,6 +16,7 @@
 
 import { firestore } from 'firebase/app';
 import { fromDocRef } from '../fromRef';
+import { Observable } from 'rxjs';
 
 export function doc(ref: firestore.DocumentReference) {
   return fromDocRef(ref);
