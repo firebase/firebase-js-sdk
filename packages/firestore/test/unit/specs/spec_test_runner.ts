@@ -365,17 +365,22 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = this.getPersistence(this.serializer);
 
     this.useGarbageCollection = config.useGarbageCollection;
 
-    this.init();
+    this.queue = new AsyncQueue();
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
   }
 
-  private init(): void {
+  async start(): Promise<void> {
+    this.persistence = this.getPersistence(this.serializer);
+    await this.persistence.start();
+    await this.init();
+  }
+
+  async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.localStore = new LocalStore(
@@ -383,8 +388,8 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
       this.user,
       garbageCollector
     );
+    await this.localStore.start();
 
-    this.queue = new AsyncQueue();
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
       this.queue,
@@ -402,6 +407,7 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
       this.queue,
       onlineStateChangedHandler
     );
+    await this.remoteStore.start();
 
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -425,13 +431,6 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
     serializer: JsonProtoSerializer
   ): Persistence<TransactionType>;
   protected abstract destroyPersistence(): Promise<void>;
-
-  async start(): Promise<void> {
-    this.connection.reset();
-    await this.persistence.start();
-    await this.localStore.start();
-    await this.remoteStore.start();
-  }
 
   async shutdown(): Promise<void> {
     await this.remoteStore.shutdown();
@@ -793,13 +792,10 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
     // No local store to shutdown.
     await this.remoteStore.shutdown();
 
-    this.init();
-
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
     await this.queue.enqueue(async () => {
-      await this.localStore.start();
-      await this.remoteStore.start();
+      await this.init();
     });
   }
 
