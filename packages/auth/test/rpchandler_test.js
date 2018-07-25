@@ -3994,6 +3994,8 @@ function testSendPasswordResetEmail_caughtServerError() {
   var errorMap = {};
   errorMap[fireauth.RpcHandler.ServerError.EMAIL_NOT_FOUND] =
       fireauth.authenum.Error.USER_DELETED;
+  errorMap[fireauth.RpcHandler.ServerError.RESET_PASSWORD_EXCEED_LIMIT] =
+      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_RECIPIENT_EMAIL] =
       fireauth.authenum.Error.INVALID_RECIPIENT_EMAIL;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_SENDER] =
