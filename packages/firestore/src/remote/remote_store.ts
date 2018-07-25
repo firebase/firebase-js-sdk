@@ -580,10 +580,18 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
-  private tryRecoverFromPrimaryLeaseLoss(err: FirestoreError): void {
+  /**
+   * Verifies the error thrown by an LocalStore operation. If a LocalStore
+   * operation fails because the primary lease has been taken by another client,
+   * we ignore the error. All other errors are re-thrown.
+   *
+   * @param err An error returned by a LocalStore operation.
+   * @return A Promise that resolves after we recovered, or the original error.
+   */
+  private ignoreIfPrimaryLeaseLoss(err: FirestoreError): void {
     if (isPrimaryLeaseLostError(err)) {
       log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
     } else {
@@ -660,7 +668,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(emptyByteString())
-        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.

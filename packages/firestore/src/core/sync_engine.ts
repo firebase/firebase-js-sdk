@@ -282,19 +282,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       return this.localStore
         .remoteDocumentKeys(queryView.targetId)
         .then(async remoteKeys => {
-          // We do not update our tracking of limbo documents since
-          //`resetCurrent` will set `current` to false for the querie's view
-          // (and won't return any limbo documents). We also explicitly don't
-          // track limbo documents as secondary.
           const viewSnapshot = queryView.view.synchronizeWithPersistedState(
             docs,
-            remoteKeys,
-            /* resetCurrent= */ this.isPrimary
+            remoteKeys
           );
-          assert(
-            !this.isPrimary || viewSnapshot.limboChanges.length === 0,
-            'Received limboChanges when query is not CURRENT.'
-          );
+          if (this.isPrimary) {
+            await this.updateTrackedLimbos(
+              queryView.targetId,
+              viewSnapshot.limboChanges
+            );
+          }
           return viewSnapshot;
         });
     });
@@ -321,7 +318,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
           .then(() => this.removeAndCleanupQuery(queryView))
           .then(() => this.localStore.collectGarbage())
-          .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
       await this.removeAndCleanupQuery(queryView);
@@ -427,7 +424,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(changes => {
         return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
       })
-      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   /**
@@ -509,7 +506,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       await this.localStore
         .releaseQuery(queryView.query, /* keepPersistedQueryData */ false)
         .then(() => this.removeAndCleanupQuery(queryView))
-        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       this.syncEngineListener!.onWatchError(queryView.query, err);
     }
   }
@@ -573,7 +570,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -592,7 +589,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   private addMutationCallback(
@@ -769,21 +766,21 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       await this.localStore
         .collectGarbage()
-        .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
     }
   }
 
   /**
-   * Marks the client as secondary if an IndexedDb operation fails because the
-   * primary lease has been taken by another client. This can happen when the
-   * client is temporarily CPU throttled and fails to renew its lease in time,
-   * in which case we treat the current client as secondary. We can always
-   * regain our primary lease via the lease refresh in our persistence layer.
+   * Verifies the error thrown by an LocalStore operation. If a LocalStore
+   * operation fails because the primary lease has been taken by another client,
+   * we ignore the error (the persistence layer will immediately call
+   * `applyPrimaryLease` to propagate the primary state change). All other
+   * errors are re-thrown.
    *
    * @param err An error returned by a LocalStore operation.
    * @return A Promise that resolves after we recovered, or the original error.
    */
-  private async tryRecoverFromPrimaryLeaseLoss(
+  private async ignoreIfPrimaryLeaseLoss(
     err: FirestoreError
   ): Promise<void> {
     if (isPrimaryLeaseLostError(err)) {
@@ -874,8 +871,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const activeQueries: QueryData[] = [];
     const newViewSnapshots: ViewSnapshot[] = [];
     for (const targetId of targets) {
-      // TODO(multitab): We should mark queries NON-CURRENT when the primary tab
-      // re-computes its views.
       p = p.then(async () => {
         let queryData: QueryData;
         const queryView = this.queryViewsByTarget[targetId];
@@ -999,7 +994,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         await this.localStore
           .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
           .then(() => this.removeAndCleanupQuery(queryView))
-          .catch(err => this.tryRecoverFromPrimaryLeaseLoss(err));
+          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     }
   }

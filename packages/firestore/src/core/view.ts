@@ -399,21 +399,14 @@ export class View {
    * LocalStore.
    * @param remoteKeys - The keys of the documents that match the query
    * according to the backend.
-   * @param resetCurrent - Whether we should flip `CURRENT` back to 'false',
-   * since the query will be re-listened to.
    *
    * @return The ViewChange that resulted from this synchronization.
    */
   // PORTING NOTE: Multi-tab only.
   synchronizeWithPersistedState(
     localDocs: MaybeDocumentMap,
-    remoteKeys: DocumentKeySet,
-    resetCurrent: boolean
+    remoteKeys: DocumentKeySet
   ): ViewChange {
-    if (resetCurrent) {
-      this.current = false;
-    }
-
     this._syncedDocuments = remoteKeys;
     this.limboDocuments = documentKeySet();
     const docChanges = this.computeDocChanges(localDocs);
