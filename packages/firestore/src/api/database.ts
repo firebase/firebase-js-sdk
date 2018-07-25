@@ -202,7 +202,7 @@ class FirestoreConfig {
   persistence: boolean;
 }
 
-// TODO(multi-tab): Replace with Firestore.PersistenceSettings
+// TODO(multitab): Replace with Firestore.PersistenceSettings
 // tslint:disable-next-line:no-any The definition for these settings is private
 export type _PersistenceSettings = any;
 
