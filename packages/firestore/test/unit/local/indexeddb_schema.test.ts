@@ -22,16 +22,17 @@ import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
-<<<<<<< HEAD
   DbOwner,
   DbOwnerKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
+  DbTargetKey,
+  DbTimestamp,
   SCHEMA_VERSION,
   V1_STORES,
-  V2_STORES,
-  V3_STORES
+  V3_STORES,
+  V4_STORES
 } from '../../../src/local/indexeddb_schema';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -41,16 +42,7 @@ import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
-=======
-  DbTarget,
-  DbTargetGlobal,
-  DbTargetGlobalKey,
-  DbTargetKey,
-  DbTimestamp
-} from '../../../src/local/indexeddb_schema';
-import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
->>>>>>> master
 
 const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
 const INDEXEDDB_TEST_DATABASE =
@@ -144,31 +136,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
-<<<<<<< HEAD
-  it('can install schema version 2', () => {
-    return withDb(2, db => {
-      expect(db.version).to.equal(2);
-      // We should have all of the stores, we should have the target global row
-      // and we should not have any targets counted, because there are none.
-      expect(getAllObjectStores(db)).to.have.members(V2_STORES);
-      // Check the target count. We haven't added any targets, so we expect 0.
-      return getTargetCount(db).then(targetCount => {
-        expect(targetCount).to.equal(0);
-      });
-    });
-  });
-
-  it('can install schema version 3', () => {
-    return withDb(3, async db => {
-      expect(db.version).to.be.equal(3);
-      expect(getAllObjectStores(db)).to.have.members(V3_STORES);
-    });
-  });
-
-  it('can upgrade from schema version 1 to 2', () => {
-    const expectedTargetCount = 5;
-    return withDb(1, db => {
-=======
   it('drops the query cache from 2 to 3', () => {
     const userId = 'user';
     const batchId = 1;
@@ -189,7 +156,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     );
 
     return withDb(2, db => {
->>>>>>> master
       const sdb = new SimpleDb(db);
       return sdb.runTransaction(
         'readwrite',
@@ -213,24 +179,11 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               .next(() => mutations.put(expectedMutation))
           );
         }
-<<<<<<< HEAD
-        return p;
-      });
-    }).then(() =>
-      withDb(2, db => {
-        expect(db.version).to.equal(2);
-        expect(getAllObjectStores(db)).to.have.members(V2_STORES);
-        return getTargetCount(db).then(targetCount => {
-          expect(targetCount).to.equal(expectedTargetCount);
-        });
-      })
-    );
-=======
       );
     }).then(() => {
       return withDb(3, db => {
         expect(db.version).to.equal(3);
-        expect(getAllObjectStores(db)).to.have.members(ALL_STORES);
+        expect(getAllObjectStores(db)).to.have.members(V3_STORES);
 
         const sdb = new SimpleDb(db);
         return sdb.runTransaction(
@@ -259,7 +212,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 const expected = JSON.parse(JSON.stringify(resetTargetGlobal));
                 expect(targetGlobalEntry).to.deep.equal(expected);
               })
-              .next(() => mutations.get([userId, batchId]))
+              .next(() => mutations.get(batchId))
               .next(mutation => {
                 // Mutations should be unaffected.
                 expect(mutation.userId).to.equal(userId);
@@ -269,10 +222,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         );
       });
     });
->>>>>>> master
   });
 
-  it('can upgrade from schema version 2 to 3', () => {
+  it('can upgrade from schema version 3 to 4', () => {
     const testWrite = { delete: 'foo' };
     const testMutations = [
       {
@@ -295,7 +247,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       }
     ];
 
-    return withDb(2, db => {
+    return withDb(3, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
         const store = txn.store(DbMutationBatch.store);
@@ -306,9 +258,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         return p;
       });
     }).then(() =>
-      withDb(3, db => {
-        expect(db.version).to.be.equal(3);
-        expect(getAllObjectStores(db)).to.have.members(V3_STORES);
+      withDb(4, db => {
+        expect(db.version).to.be.equal(4);
+        expect(getAllObjectStores(db)).to.have.members(V4_STORES);
 
         const sdb = new SimpleDb(db);
         return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
