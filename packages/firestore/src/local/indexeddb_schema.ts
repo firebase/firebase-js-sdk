@@ -77,17 +77,19 @@ export function createOrUpgradeDb(
     p = p.next(() => writeEmptyTargetGlobalEntry(txn));
   }
 
-  if (fromVersion > 0 && fromVersion < 4 && toVersion >= 4) {
-    // Schema version 3 uses auto-generated keys to generate globally unique
-    // mutation batch IDs (this was previously ensured internally by the
-    // client). To migrate to the new schema, we have to read all mutations
-    // and write them back out. We preserve the existing batch IDs to guarantee
-    // consistency with other object stores. Any further mutation batch IDs will
-    // be auto-generated.
-    p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
-  }
+
 
   if (fromVersion < 4 && toVersion >= 4) {
+    if (fromVersion !== 0) {
+      // Schema version 3 uses auto-generated keys to generate globally unique
+      // mutation batch IDs (this was previously ensured internally by the
+      // client). To migrate to the new schema, we have to read all mutations
+      // and write them back out. We preserve the existing batch IDs to guarantee
+      // consistency with other object stores. Any further mutation batch IDs will
+      // be auto-generated.
+      p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+    }
+
     p = p.next(() => {
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
