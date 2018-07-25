@@ -57,11 +57,10 @@ describe('IndexedDbMutationQueue', () => {
     return;
   }
 
-  const persistencePromise: Promise<
-    Persistence<IndexedDbTransaction>
-  > = persistenceHelpers.testIndexedDbPersistence();
+  let persistencePromise: Promise<Persistence<IndexedDbTransaction>>;
   let persistence: Persistence<IndexedDbTransaction>;
   beforeEach(async () => {
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
     persistence = await persistencePromise;
   });
 

@@ -118,13 +118,10 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
 
   private serializer: LocalSerializer;
 
-  private queryCache: IndexedDbQueryCache;
-
   constructor(prefix: string, serializer: JsonProtoSerializer) {
     this.dbName = prefix + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.localStoragePrefix = prefix;
-    this.queryCache = new IndexedDbQueryCache(this.serializer);
   }
 
   start(): Promise<void> {
@@ -147,12 +144,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
       .then(() => {
         this.scheduleOwnerLeaseRefreshes();
         this.attachWindowUnloadHook();
-      })
-      .then(() =>
-        this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-          this.queryCache.start(txn)
-        )
-      );
+      });
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -173,7 +165,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
   }
 
   getQueryCache(): QueryCache<IndexedDbTransaction> {
-    return this.queryCache;
+    return new IndexedDbQueryCache(this.serializer);
   }
 
   getRemoteDocumentCache(): RemoteDocumentCache<IndexedDbTransaction> {
@@ -418,7 +410,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
       return zombiedOwnerId;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to get zombie owner id.', e);
+      //log.error('Failed to get zombie owner id.', e);
       return null;
     }
   }

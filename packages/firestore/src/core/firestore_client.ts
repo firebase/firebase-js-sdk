@@ -76,7 +76,8 @@ export class FirestoreClient {
   // undefined checks.
   private eventMgr: EventManager;
   private garbageCollector: GarbageCollector;
-  // TODO(gsoltis): wrap these two together to enforce the same parametrized type
+  // Note that localStore will end up with the same type parameter as
+  // persistence because the LocalStore constructor enforces this.
   private persistence: Persistence<PersistenceTransaction>;
   private localStore: LocalStore<PersistenceTransaction>;
   private remoteStore: RemoteStore;

@@ -57,8 +57,8 @@ export class IndexedDbQueryCache implements QueryCache<IndexedDbTransaction> {
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
 
-  start(transaction: SimpleDbTransaction): PersistencePromise<void> {
-    return globalTargetStore(transaction)
+  start(transaction: IndexedDbTransaction): PersistencePromise<void> {
+    return globalTargetStore(transaction.simpleDbTransaction)
       .get(DbTargetGlobal.key)
       .next(metadata => {
         assert(

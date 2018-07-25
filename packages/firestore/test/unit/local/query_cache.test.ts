@@ -51,15 +51,10 @@ describe('IndexedDbQueryCache', () => {
     return;
   }
 
-  const persistencePromise: Promise<
-    Persistence<IndexedDbTransaction>
-  > = persistenceHelpers.testIndexedDbPersistence();
-  let persistence: Persistence<IndexedDbTransaction>;
+  let persistencePromise: Promise<Persistence<IndexedDbTransaction>>;
   beforeEach(async () => {
-    persistence = await persistencePromise;
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
-
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   genericQueryCacheTests(() => persistencePromise);
 });
@@ -104,7 +99,11 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
   beforeEach(async () => {
     persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
-    //await cache.start();
+    await cache.start();
+  });
+
+  afterEach(async () => {
+    persistence.shutdown(/* deletaData */ true);
   });
 
   it('returns null for query not in cache', () => {
@@ -322,7 +321,7 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
       persistence,
       persistence.getQueryCache()
     );
-    //await otherCache.start();
+    await otherCache.start();
     expect(otherCache.getHighestTargetId()).to.deep.equal(42);
   });
 
@@ -343,14 +342,11 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
           persistence,
           persistence.getQueryCache()
         );
-        expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
-          version(42)
-        );
-        /*return otherCache.start().then(() => {
+        return otherCache.start().then(() => {
           expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
             version(42)
           );
-        });*/
+        });
       });
   });
 }

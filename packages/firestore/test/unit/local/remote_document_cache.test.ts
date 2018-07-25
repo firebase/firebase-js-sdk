@@ -40,17 +40,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-  const persistencePromise: Promise<
-    Persistence<IndexedDbTransaction>
-  > = persistenceHelpers.testIndexedDbPersistence();
-  let persistence: Persistence<IndexedDbTransaction>;
-  beforeEach(async () => {
-    persistence = await persistencePromise;
-  });
-
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
-
-  genericRemoteDocumentCacheTests(() => persistencePromise);
+  genericRemoteDocumentCacheTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
 /**
@@ -87,6 +77,8 @@ function genericRemoteDocumentCacheTests<
       persistence.getRemoteDocumentCache()
     );
   });
+
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   it('returns null for document not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {

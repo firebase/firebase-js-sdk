@@ -66,8 +66,6 @@ describe('EagerGarbageCollector', () => {
 
         referenceSet.removeReferencesForId(2);
         return gc.collectGarbage(null).toPromise();
-        // TODO(gsoltis): true does not conform to PersistenceTransaction
-        //return gc.collectGarbage(true).toPromise();
       })
       .then(garbage => {
         expectSetToEqual(garbage, [key3]);

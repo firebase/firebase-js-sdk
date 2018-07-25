@@ -36,11 +36,11 @@ export class TestQueryCache<TransactionType extends PersistenceTransaction> {
     public cache: QueryCache<TransactionType>
   ) {}
 
-  /*start(): Promise<void> {
+  start(): Promise<void> {
     return this.persistence.runTransaction('start', txn =>
       this.cache.start(txn)
     );
-  }*/
+  }
 
   addQueryData(queryData: QueryData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', txn => {

@@ -151,11 +151,7 @@ export class SimpleDb {
     txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
-    if (txn instanceof SimpleDbTransaction) {
-      return txn.store<KeyType, ValueType>(store);
-    } else {
-      return fail('Invalid transaction object provided!');
-    }
+    return txn.store<KeyType, ValueType>(store);
   }
 
   constructor(private db: IDBDatabase) {}
@@ -532,7 +528,7 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
   }
 
   private cursor(options: IterateOptions): IDBRequest {
-    let direction = 'next';
+    let direction: IDBCursorDirection = 'next';
     if (options.reverse) {
       direction = 'prev';
     }
@@ -541,15 +537,15 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
       if (options.keysOnly) {
         return index.openKeyCursor(
           options.range,
-          direction as AnyDuringMigration
+          direction
         );
       } else {
-        return index.openCursor(options.range, direction as AnyDuringMigration);
+        return index.openCursor(options.range, direction);
       }
     } else {
       return this.store.openCursor(
         options.range,
-        direction as AnyDuringMigration
+        direction
       );
     }
   }

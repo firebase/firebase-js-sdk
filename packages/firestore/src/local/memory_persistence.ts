@@ -90,5 +90,8 @@ export class MemoryPersistence
   }
 }
 
-/** Dummy class since memory persistence doesn't actually use transactions. */
+/** 
+ * Memory persistence is not actually transactional, but future implementations
+ * may have transaction-scoped state.
+ */
 export class MemoryPersistenceTransaction implements PersistenceTransaction {}

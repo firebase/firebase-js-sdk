@@ -563,7 +563,7 @@ function mutationsStore(
   txn: IndexedDbTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
   return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+    txn.simpleDbTransaction,
     DbMutationBatch.store
   );
 }
@@ -575,7 +575,7 @@ function documentMutationsStore(
   txn: IndexedDbTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
   return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+    txn.simpleDbTransaction,
     DbDocumentMutation.store
   );
 }
@@ -587,7 +587,7 @@ function mutationQueuesStore(
   txn: IndexedDbTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
   return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+    txn.simpleDbTransaction,
     DbMutationQueue.store
   );
 }

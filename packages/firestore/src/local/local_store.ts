@@ -166,8 +166,6 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.queryCache = persistence.getQueryCache();
-    const targetId = this.queryCache.getHighestTargetId();
-    this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue
@@ -180,7 +178,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   /** Performs any initial startup actions required by the local store. */
   start(): Promise<void> {
     return this.persistence.runTransaction('Start LocalStore', txn => {
-      return this.startMutationQueue(txn);
+      return this.startMutationQueue(txn).next(() => this.startQueryCache(txn));
     });
   }
 
@@ -232,14 +230,14 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
     });
   }
 
-  /*private startQueryCache(
-    txn: PersistenceTransaction
+  private startQueryCache(
+    txn: TransactionType
   ): PersistencePromise<void> {
     return this.queryCache.start(txn).next(() => {
       const targetId = this.queryCache.getHighestTargetId();
       this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     });
-  }*/
+  }
 
   private startMutationQueue(txn: TransactionType): PersistencePromise<void> {
     return this.mutationQueue

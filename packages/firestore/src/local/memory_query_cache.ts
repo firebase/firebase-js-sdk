@@ -48,6 +48,11 @@ export class MemoryQueryCache
 
   private targetCount = 0;
 
+  start(transaction: MemoryPersistenceTransaction): PersistencePromise<void> {
+    // Nothing to do.
+    return PersistencePromise.resolve();
+  }
+
   getLastRemoteSnapshotVersion(): SnapshotVersion {
     return this.lastRemoteSnapshotVersion;
   }
