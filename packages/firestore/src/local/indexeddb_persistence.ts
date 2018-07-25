@@ -410,7 +410,7 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
       return zombiedOwnerId;
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      //log.error('Failed to get zombie owner id.', e);
+      log.error('Failed to get zombie owner id.', e);
       return null;
     }
   }
