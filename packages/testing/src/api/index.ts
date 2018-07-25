@@ -14,59 +14,91 @@
  * limitations under the License.
  */
 
-import * as admin from 'firebase-admin';
+import { firebase } from '@firebase/app';
 import request from 'request-promise';
 import * as fs from 'fs';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { base64 } from '@firebase/util';
 
+/** The default url for the local database emulator. */
 const DBURL = 'http://localhost:9000';
-
-class FakeCredentials {
-  getAccessToken() {
-    return Promise.resolve({
-      expires_in: 1000000,
-      access_token: 'owner'
-    });
-  }
-  getCertificate() {
-    return null;
-  }
+/** Passing this in tells the emulator to treat you as an admin. */
+const ADMIN_TOKEN = 'owner';
+/** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
+function createUnsecuredJwt(auth: object): string {
+  // Unsecured JWTs use "none" as the algorithm.
+  const header = {
+    alg: 'none',
+    kid: 'fakekid'
+  };
+  // Ensure that the auth payload has a value for 'iat'.
+  (auth as any).iat = (auth as any).iat || 0;
+  // Unsecured JWTs use the empty string as a signature.
+  const signature = '';
+  return [
+    base64.encodeString(JSON.stringify(header), /*webSafe=*/ false),
+    base64.encodeString(JSON.stringify(auth), /*webSafe=*/ false),
+    signature
+  ].join('.');
 }
 
-export function apps(): (admin.app.App | null)[] {
-  return admin.apps;
+export function apps(): (FirebaseApp | null)[] {
+  return firebase.apps;
 }
 
-export function initializeAdminApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
-  }
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
-      databaseURL: DBURL + '?ns=' + options.databaseName
-    },
-    'app-' + (new Date().getTime() + Math.random())
+export type AppOptions = {
+  databaseName?: string;
+  projectId?: string;
+  auth?: object;
+};
+/** Construct a FirebaseApp authenticated with options.auth. */
+export function initializeTestApp(options: AppOptions): FirebaseApp {
+  return initializeApp(
+    options.auth ? createUnsecuredJwt(options.auth) : null,
+    options.databaseName,
+    options.projectId
   );
 }
 
-export function initializeTestApp(options: any): admin.app.App {
-  if (!('databaseName' in options)) {
-    throw new Error('databaseName not specified');
+export type AdminAppOptions = {
+  databaseName?: string;
+  projectId?: string;
+};
+/** Construct a FirebaseApp authenticated as an admin user. */
+export function initializeAdminApp(options: AdminAppOptions): FirebaseApp {
+  return initializeApp(ADMIN_TOKEN, options.databaseName, options.projectId);
+}
+
+function initializeApp(
+  accessToken?: string,
+  databaseName?: string,
+  projectId?: string
+): FirebaseApp {
+  let appOptions: FirebaseOptions = {};
+  if (databaseName) {
+    appOptions = {
+      databaseURL: DBURL + '?ns=' + databaseName
+    };
+  } else if (projectId) {
+    appOptions = {
+      projectId: projectId
+    };
+  } else {
+    throw new Error('neither databaseName or projectId were specified');
   }
-  // if options.auth is not present, we will construct an app with auth == null
-  return admin.initializeApp(
-    {
-      credential: new FakeCredentials(),
-      databaseURL: DBURL + '?ns=' + options.databaseName,
-      databaseAuthVariableOverride: options.auth || null
-    },
-    'app-' + (new Date().getTime() + Math.random())
-  );
+  const appName = 'app-' + new Date().getTime() + '-' + Math.random();
+  let app = firebase.initializeApp(appOptions, appName);
+  // hijacking INTERNAL.getToken to bypass FirebaseAuth and allows specifying of auth headers
+  if (accessToken) {
+    (app as any).INTERNAL.getToken = () =>
+      Promise.resolve({ accessToken: accessToken });
+  }
+  return app;
 }
 
 export type LoadDatabaseRulesOptions = {
-  databaseName: String;
-  rules: String;
+  databaseName: string;
+  rules: string;
   rulesPath: fs.PathLike;
 };
 export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
