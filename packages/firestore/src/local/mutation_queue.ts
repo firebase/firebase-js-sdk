@@ -17,6 +17,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId, ProtoByteString } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
@@ -148,6 +149,23 @@ export interface MutationQueue extends GarbageSource {
   getAllMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
+  ): PersistencePromise<MutationBatch[]>;
+
+  /**
+   * Finds all mutation batches that could possibly affect the given
+   * set of document keys. Not all mutations in a batch will necessarily affect
+   * each key, so when looping through the batch you'll need to
+   * check that the mutation itself matches the key.
+   *
+   * Note that because of this requirement implementations are free to return
+   * mutation batches that don't contain any of the document keys at all if it's
+   * convenient.
+   */
+  // TODO(mcg): This should really return an enumerator
+  // also for b/32992024, all backing stores should really index by document key
+  getAllMutationBatchesAffectingDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]>;
 
   /**

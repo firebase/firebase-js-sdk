@@ -18,6 +18,7 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { BatchId, ProtoByteString } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
@@ -362,6 +363,39 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => results);
   }
 
+  getAllMutationBatchesAffectingDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<MutationBatch[]> {
+    const minKey = DbDocumentMutation.prefixForPath(
+      this.userId,
+      documentKeys.first().path
+    );
+    const maxKey = DbDocumentMutation.prefixForPath(
+      this.userId,
+      documentKeys.first().path
+    );
+    const keyRange = IDBKeyRange.bound(minKey, maxKey);
+    let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
+
+    const results: MutationBatch[] = [];
+    return documentMutationsStore(transaction)
+      .iterate({ range: keyRange }, (indexKey, _, control) => {
+        const [userID, encodedPath, batchID] = indexKey;
+        const path = EncodedResourcePath.decode(encodedPath);
+        if (userID !== this.userId) {
+          control.done();
+          return;
+        }
+
+        if (!documentKeys.has(new DocumentKey(path))) {
+          return;
+        }
+        uniqueBatchIDs = uniqueBatchIDs.add(batchID);
+      })
+    .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
+  }
+
   getAllMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -413,29 +447,33 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
       })
-      .next(() => {
-        const results: MutationBatch[] = [];
-        const promises: Array<PersistencePromise<void>> = [];
-        // TODO(rockwood): Implement this using iterate.
-        uniqueBatchIDs.forEach(batchID => {
-          const mutationKey = this.keyForBatchId(batchID);
-          promises.push(
-            mutationsStore(transaction)
-              .get(mutationKey)
-              .next(mutation => {
-                if (mutation === null) {
-                  fail(
-                    'Dangling document-mutation reference found, ' +
-                      'which points to ' +
-                      mutationKey
-                  );
-                }
-                results.push(this.serializer.fromDbMutationBatch(mutation!));
-              })
-          );
-        });
-        return PersistencePromise.waitFor(promises).next(() => results);
-      });
+      .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
+  }
+
+  private lookupMutationBatches(
+    transaction: PersistenceTransaction,
+    batchIDs: SortedSet<BatchId>) : PersistencePromise<MutationBatch[]> {
+    const results: MutationBatch[] = [];
+    const promises: Array<PersistencePromise<void>> = [];
+    // TODO(rockwood): Implement this using iterate.
+    batchIDs.forEach(batchID => {
+      const mutationKey = this.keyForBatchId(batchID);
+      promises.push(
+        mutationsStore(transaction)
+          .get(mutationKey)
+          .next(mutation => {
+            if (mutation === null) {
+              fail(
+                'Dangling document-mutation reference found, ' +
+                  'which points to ' +
+                  mutationKey
+              );
+            }
+            results.push(this.serializer.fromDbMutationBatch(mutation!));
+          })
+      );
+    });
+    return PersistencePromise.waitFor(promises).next(() => results);
   }
 
   removeMutationBatches(
