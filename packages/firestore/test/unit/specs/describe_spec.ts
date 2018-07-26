@@ -31,7 +31,9 @@ const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 const NO_LRU = 'no-lru';
+const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
+  BENCHMARK_TAG,
   EXCLUSIVE_TAG,
   PERSISTENCE_TAG,
   NO_WEB_TAG,
@@ -39,6 +41,9 @@ const KNOWN_TAGS = [
   NO_IOS_TAG,
   NO_LRU
 ];
+
+// TOOD: Make this configurable with mocha options.
+const RUN_BENCHMARK_TESTS = false;
 
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
   tags.indexOf(NO_WEB_TAG) === -1;
@@ -127,6 +132,8 @@ export function specTest(
         runner = it.only;
       } else if (!WEB_SPEC_TEST_FILTER(tags)) {
         runner = it.skip;
+      } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+        runner = it.skip;
       } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
         // spec should have a comment explaining why it is being skipped.
         runner = it.skip;
@@ -135,8 +142,14 @@ export function specTest(
       }
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
-      runner(fullName, () => {
-        return spec.runAsTest(fullName, usePersistence);
+      runner(fullName, async () => {
+        const start = Date.now();
+        await spec.runAsTest(fullName, usePersistence);
+        const end = Date.now();
+        if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+          // tslint:disable-next-line:no-console
+          console.log(`Runtime: ${end - start} ms.`);
+        }
       });
     }
   } else {
