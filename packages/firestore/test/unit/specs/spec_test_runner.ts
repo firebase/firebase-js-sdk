@@ -46,7 +46,7 @@ import {
 import { LocalStore } from '../../../src/local/local_store';
 import {
   MemoryPersistence,
-  MemoryPersistenceTransaction
+  MemoryTransaction
 } from '../../../src/local/memory_persistence';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import {
@@ -998,7 +998,7 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
   }
 }
 
-class MemoryTestRunner extends TestRunner<MemoryPersistenceTransaction> {
+class MemoryTestRunner extends TestRunner<MemoryTransaction> {
   protected getPersistence(serializer: JsonProtoSerializer): MemoryPersistence {
     return new MemoryPersistence();
   }

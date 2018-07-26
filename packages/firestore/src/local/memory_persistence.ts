@@ -34,7 +34,7 @@ const LOG_TAG = 'MemoryPersistence';
  * not persisted across sessions.
  */
 export class MemoryPersistence
-  implements Persistence<MemoryPersistenceTransaction> {
+  implements Persistence<MemoryTransaction> {
   /**
    * Note that these are retained here to make it easier to write tests
    * affecting both the in-memory and IndexedDB-backed persistence layers. Tests
@@ -43,7 +43,7 @@ export class MemoryPersistence
    * persisting values.
    */
   private mutationQueues: {
-    [user: string]: MutationQueue<MemoryPersistenceTransaction>;
+    [user: string]: MutationQueue<MemoryTransaction>;
   } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
@@ -66,7 +66,7 @@ export class MemoryPersistence
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue<MemoryPersistenceTransaction> {
+  getMutationQueue(user: User): MutationQueue<MemoryTransaction> {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
       queue = new MemoryMutationQueue();
@@ -75,22 +75,22 @@ export class MemoryPersistence
     return queue;
   }
 
-  getQueryCache(): QueryCache<MemoryPersistenceTransaction> {
+  getQueryCache(): QueryCache<MemoryTransaction> {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache<MemoryPersistenceTransaction> {
+  getRemoteDocumentCache(): RemoteDocumentCache<MemoryTransaction> {
     return this.remoteDocumentCache;
   }
 
   runTransaction<T>(
     action: string,
     operation: (
-      transaction: MemoryPersistenceTransaction
+      transaction: MemoryTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return operation(new MemoryPersistenceTransaction()).toPromise();
+    return operation(new MemoryTransaction()).toPromise();
   }
 }
 
@@ -98,4 +98,4 @@ export class MemoryPersistence
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryPersistenceTransaction implements PersistenceTransaction {}
+export class MemoryTransaction implements PersistenceTransaction {}
