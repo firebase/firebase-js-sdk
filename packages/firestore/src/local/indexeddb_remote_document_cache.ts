@@ -69,18 +69,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       let changedKeys = documentKeySet();
       for (const maybeDocument of maybeDocuments) {
         promises.push(
-            documentStore.put(
-                dbKey(maybeDocument.key),
-                this.serializer.toDbRemoteDocument(maybeDocument)
-            )
+          documentStore.put(
+            dbKey(maybeDocument.key),
+            this.serializer.toDbRemoteDocument(maybeDocument)
+          )
         );
         changedKeys = changedKeys.add(maybeDocument.key);
       }
 
       promises.push(
-          documentChangesStore(transaction).put({
-            changes: this.serializer.toDbResourcePaths(changedKeys)
-          })
+        documentChangesStore(transaction).put({
+          changes: this.serializer.toDbResourcePaths(changedKeys)
+        })
       );
     }
 
