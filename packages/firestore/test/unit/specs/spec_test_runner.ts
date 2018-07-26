@@ -141,13 +141,6 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
-  reset(): void {
-    this.watchStreamRequestCount = 0;
-    this.writeStreamRequestCount = 0;
-    this.earlyWrites = [];
-    this.activeTargets = [];
-  }
-
   invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
@@ -399,14 +392,16 @@ abstract class TestRunner {
       'host',
       false
     );
+
+    // TODO(mrschmidt): During client startup in `firestore_client`, we block
+    // the AsyncQueue from executing any operation. We should mimic this in the
+    // setup of the spec tests.
     this.queue = new AsyncQueue();
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
 
     this.useGarbageCollection = config.useGarbageCollection;
-
-    this.queue = new AsyncQueue();
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
@@ -415,12 +410,11 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
-    this.persistence = this.getPersistence(this.serializer);
-    await this.persistence.start();
+    this.persistence = await this.initPersistence(this.serializer);
     await this.init();
   }
 
-  async init(): Promise<void> {
+  private async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.sharedClientState = this.getSharedClientState();
@@ -470,15 +464,15 @@ abstract class TestRunner {
     this.sharedClientState.syncEngine = this.syncEngine;
     this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
-    await this.persistence.setPrimaryStateListener(isPrimary =>
-        this.syncEngine.applyPrimaryState(isPrimary)
-    );
+    this.eventManager = new EventManager(this.syncEngine);
 
     await this.localStore.start();
     await this.sharedClientState.start();
     await this.remoteStore.start();
 
-    this.eventManager = new EventManager(this.syncEngine);
+    await this.persistence.setPrimaryStateListener(isPrimary =>
+      this.syncEngine.applyPrimaryState(isPrimary)
+    );
 
     this.started = true;
   }
@@ -489,11 +483,9 @@ abstract class TestRunner {
       : new NoOpGarbageCollector();
   }
 
-  protected abstract getPersistence(
+  protected abstract initPersistence(
     serializer: JsonProtoSerializer
-  ): Persistence;
-
-  protected abstract startPersistence(persistence: Persistence): Promise<void>;
+  ): Promise<Persistence>;
 
   protected abstract getSharedClientState(): SharedClientState;
 
@@ -1133,16 +1125,16 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new MemoryPersistence(this.clientId);
-  }
-
   protected getSharedClientState(): SharedClientState {
     return new MemorySharedClientState();
   }
 
-  protected startPersistence(persistence: Persistence): Promise<void> {
-    return persistence.start();
+  protected async initPersistence(
+    serializer: JsonProtoSerializer
+  ): Promise<Persistence> {
+    const persistence = new MemoryPersistence(this.clientId);
+    await persistence.start();
+    return persistence;
   }
 }
 
@@ -1152,16 +1144,6 @@ class MemoryTestRunner extends TestRunner {
  */
 class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
-
-  protected getPersistence(serializer: JsonProtoSerializer): Persistence {
-    return new IndexedDbPersistence(
-      IndexedDbTestRunner.TEST_DB_NAME,
-      this.clientId,
-      this.platform,
-      this.queue,
-      serializer
-    );
-  }
 
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
@@ -1173,10 +1155,18 @@ class IndexedDbTestRunner extends TestRunner {
     );
   }
 
-  protected startPersistence(persistence: Persistence): Promise<void> {
-    return (persistence as IndexedDbPersistence).start(
-      /*synchronizeTabs=*/ true
+  protected async initPersistence(
+    serializer: JsonProtoSerializer
+  ): Promise<Persistence> {
+    const persistence = new IndexedDbPersistence(
+      IndexedDbTestRunner.TEST_DB_NAME,
+      this.clientId,
+      this.platform,
+      this.queue,
+      serializer
     );
+    await persistence.start(/*synchronizeTabs=*/ true);
+    return persistence;
   }
 
   static destroyPersistence(): Promise<void> {

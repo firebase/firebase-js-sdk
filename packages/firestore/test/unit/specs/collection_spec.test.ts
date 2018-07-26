@@ -21,7 +21,7 @@ import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 
 describeSpec('Collections:', [], () => {
-  specTest('Events are raised after watch ack', ['exclusive'], () => {
+  specTest('Events are raised after watch ack', [], () => {
     const query1 = Query.atPath(path('collection'));
     const doc1 = doc('collection/key', 1000, { foo: 'bar' });
     return spec()

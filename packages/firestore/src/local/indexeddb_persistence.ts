@@ -197,7 +197,8 @@ export class IndexedDbPersistence implements Persistence {
         return this.updateClientMetadataAndTryBecomePrimary().then(() =>
           this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
         );
-      }).then(() => {
+      })
+      .then(() => {
         this._started = true;
       });
   }
@@ -392,8 +393,8 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   async shutdown(deleteData?: boolean): Promise<void> {
-    // The shutdown() operations are idempotent and be called even after start()
-    // aborted (e.g. because it couldn't acquire the persistence lease).
+    // The shutdown() operations are idempotent and can be called even when
+    // start() aborted (e.g. because it couldn't acquire the persistence lease).
     this._started = false;
 
     this.markClientZombied();
