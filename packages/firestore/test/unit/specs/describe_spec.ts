@@ -42,7 +42,7 @@ const KNOWN_TAGS = [
   NO_LRU
 ];
 
-// TOOD: Make this configurable with mocha options.
+// TOOD(mrschmidt): Make this configurable with mocha options.
 const RUN_BENCHMARK_TESTS = false;
 
 const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
