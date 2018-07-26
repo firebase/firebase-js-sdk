@@ -31,8 +31,7 @@ import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 import { MemoryTransaction } from './memory_persistence';
 
-export class MemoryMutationQueue
-  implements MutationQueue<MemoryTransaction> {
+export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -74,15 +73,11 @@ export class MemoryMutationQueue
     return PersistencePromise.resolve();
   }
 
-  checkEmpty(
-    transaction: MemoryTransaction
-  ): PersistencePromise<boolean> {
+  checkEmpty(transaction: MemoryTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getNextBatchId(
-    transaction: MemoryTransaction
-  ): PersistencePromise<BatchId> {
+  getNextBatchId(transaction: MemoryTransaction): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.nextBatchId);
   }
 
@@ -393,9 +388,7 @@ export class MemoryMutationQueue
     return PersistencePromise.resolve(key.isEqual(firstRef && firstRef.key));
   }
 
-  performConsistencyCheck(
-    txn: MemoryTransaction
-  ): PersistencePromise<void> {
+  performConsistencyCheck(txn: MemoryTransaction): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
       assert(
         this.batchesByDocumentKey.isEmpty(),

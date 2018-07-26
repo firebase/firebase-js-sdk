@@ -33,8 +33,7 @@ const LOG_TAG = 'MemoryPersistence';
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
  */
-export class MemoryPersistence
-  implements Persistence<MemoryTransaction> {
+export class MemoryPersistence implements Persistence<MemoryTransaction> {
   /**
    * Note that these are retained here to make it easier to write tests
    * affecting both the in-memory and IndexedDB-backed persistence layers. Tests
@@ -85,9 +84,7 @@ export class MemoryPersistence
 
   runTransaction<T>(
     action: string,
-    operation: (
-      transaction: MemoryTransaction
-    ) => PersistencePromise<T>
+    operation: (transaction: MemoryTransaction) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
     return operation(new MemoryTransaction()).toPromise();
