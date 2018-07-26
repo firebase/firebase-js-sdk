@@ -403,11 +403,10 @@ abstract class TestRunner {
     this.serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
     });
-    this.persistence = this.getPersistence(this.serializer);
 
     this.useGarbageCollection = config.useGarbageCollection;
 
-    this.init();
+    this.queue = new AsyncQueue();
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
@@ -415,7 +414,13 @@ abstract class TestRunner {
     this.rejectedDocs = [];
   }
 
-  private init(): void {
+  async start(): Promise<void> {
+    this.persistence = this.getPersistence(this.serializer);
+    await this.persistence.start();
+    await this.init();
+  }
+
+  async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.sharedClientState = this.getSharedClientState();
@@ -465,7 +470,17 @@ abstract class TestRunner {
     this.sharedClientState.syncEngine = this.syncEngine;
     this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
+    await this.persistence.setPrimaryStateListener(isPrimary =>
+        this.syncEngine.applyPrimaryState(isPrimary)
+    );
+
+    await this.localStore.start();
+    await this.sharedClientState.start();
+    await this.remoteStore.start();
+
     this.eventManager = new EventManager(this.syncEngine);
+
+    this.started = true;
   }
 
   private getGarbageCollector(): GarbageCollector {
@@ -484,20 +499,6 @@ abstract class TestRunner {
 
   get isPrimaryClient(): boolean {
     return this.syncEngine.isPrimaryClient;
-  }
-
-  async start(): Promise<void> {
-    this.connection.reset();
-    await this.startPersistence(this.persistence);
-    await this.localStore.start();
-    await this.sharedClientState.start();
-    await this.remoteStore.start();
-
-    await this.persistence.setPrimaryStateListener(isPrimary =>
-      this.syncEngine.applyPrimaryState(isPrimary)
-    );
-
-    this.started = true;
   }
 
   async shutdown(): Promise<void> {
@@ -874,19 +875,9 @@ abstract class TestRunner {
     // No local store to shutdown.
     await this.remoteStore.shutdown();
 
-    this.init();
-
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
-    await this.queue.enqueue(async () => {
-      await this.localStore.start();
-      await this.remoteStore.start();
-      await this.sharedClientState.start();
-
-      await this.persistence.setPrimaryStateListener(isPrimary =>
-        this.syncEngine.applyPrimaryState(isPrimary)
-      );
-    });
+    await this.queue.enqueue(() => this.init());
   }
 
   private async doApplyClientState(state: SpecClientState): Promise<void> {
