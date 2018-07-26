@@ -156,16 +156,16 @@ export class ViewSnapshot {
     fromCache: boolean,
     hasPendingWrites: boolean
   ): ViewSnapshot {
-    const changeSet = new DocumentChangeSet();
+    const changes: DocumentViewChange[] = [];
     documents.forEach(doc => {
-      changeSet.track({ type: ChangeType.Added, doc });
+      changes.push({ type: ChangeType.Added, doc });
     });
 
     return new ViewSnapshot(
       query,
       documents,
       DocumentSet.emptySet(documents),
-      changeSet.getChanges(),
+      changes,
       fromCache,
       hasPendingWrites,
       /* syncStateChanged */ true,
