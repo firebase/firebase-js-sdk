@@ -56,4 +56,24 @@ describeSpec('OrderBy:', [], () => {
         .expectEvents(query1, { hasPendingWrites: true, added: [doc2b] })
     );
   });
+
+  specTest('orderBy applies to existing documents', [], () => {
+    const query = Query.atPath(path('collection')).addOrderBy(
+      orderBy('sort', 'asc')
+    );
+    const docA = doc('collection/a', 0, { key: 'a', sort: 2 });
+    const docB = doc('collection/b', 1001, { key: 'b', sort: 1 });
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000, docA, docB)
+      .expectEvents(query, { added: [docB, docA] })
+      .userUnlistens(query)
+      .watchRemoves(query)
+      .userListens(query, 'resume-token-1000')
+      .expectEvents(query, { added: [docB, docA], fromCache: true })
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
+  });
 });
