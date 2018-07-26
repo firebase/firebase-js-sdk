@@ -165,12 +165,16 @@ export abstract class PersistentStream<
   ReceiveType,
   ListenerType extends PersistentStreamListener
 > {
-  private state: PersistentStreamState;
+  private state = PersistentStreamState.Initial;
+  /**
+   * A sequence number that's incremented every time `state` is changed; used by
+   * stateGuardedDispatcher() to invalidate callbacks that happen after a state
+   * change.
+   */
+  private stateSequenceNumber = 0;
+
   private inactivityTimerPromise: CancelablePromise<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
-
-  /** A sentinel object used to ignore auth callbacks for prior attempts. */
-  private currentAuthAttempt: object = null;
 
   protected backoff: ExponentialBackoff;
 
@@ -189,7 +193,6 @@ export abstract class PersistentStream<
       BACKOFF_FACTOR,
       BACKOFF_MAX_DELAY_MS
     );
-    this.state = PersistentStreamState.Initial;
   }
 
   /**
@@ -255,7 +258,7 @@ export abstract class PersistentStream<
   inhibitBackoff(): void {
     assert(!this.isStarted(), 'Can only inhibit backoff in a stopped state');
 
-    this.state = PersistentStreamState.Initial;
+    this.updateState(PersistentStreamState.Initial);
     this.backoff.reset();
   }
 
@@ -357,12 +360,9 @@ export abstract class PersistentStream<
       this.stream = null;
     }
 
-    // If there was a current auth attempt, make sure we ignore the response.
-    this.currentAuthAttempt = null;
-
     // This state must be assigned before calling onClose() to allow the callback to
     // inhibit backoff or otherwise manipulate the state in its non-started state.
-    this.state = finalState;
+    this.updateState(finalState);
 
     // Notify the listener that the stream closed.
     await this.listener.onClose(error);
@@ -395,16 +395,20 @@ export abstract class PersistentStream<
       'Must be in initial state to auth'
     );
 
-    this.state = PersistentStreamState.Starting;
+    this.updateState(PersistentStreamState.Starting);
 
-    // Create sentinel object used to identify this auth attempt in case it
-    // is invalidated by a call to stop().
-    const authAttempt = (this.currentAuthAttempt = new Object());
+    const dispatchIfStateUnchanged = this.stateGuardedDispatcher();
+
+    // TODO(mikelehen): Just use dispatchIfStillActive, but see TODO below.
+    const startStateSequenceNumber = this.stateSequenceNumber;
 
     this.credentialsProvider.getToken().then(
       token => {
         // Stream can be stopped while waiting for authentication.
-        if (this.currentAuthAttempt === authAttempt) {
+        // TODO(mikelehen): We really should just use dispatchIfStateUnchanged
+        // and let this dispatch onto the queue, but that opened a spec test can
+        // of worms that I don't want to deal with in this PR.
+        if (this.stateSequenceNumber === startStateSequenceNumber) {
           // Normally we'd have to schedule the callback on the AsyncQueue.
           // However, the following calls are safe to be called outside the
           // AsyncQueue since they don't chain asynchronous calls
@@ -412,15 +416,12 @@ export abstract class PersistentStream<
         }
       },
       (error: Error) => {
-        this.queue.enqueue(async () => {
-          // Stream can be stopped while waiting for authentication.
-          if (this.currentAuthAttempt === authAttempt) {
-            const rpcError = new FirestoreError(
-              Code.UNKNOWN,
-              'Fetching auth token failed: ' + error.message
-            );
-            return this.handleStreamClose(rpcError);
-          }
+        dispatchIfStateUnchanged(() => {
+          const rpcError = new FirestoreError(
+            Code.UNKNOWN,
+            'Fetching auth token failed: ' + error.message
+          );
+          return this.handleStreamClose(rpcError);
         });
       }
     );
@@ -432,40 +433,28 @@ export abstract class PersistentStream<
       'Trying to start stream in a non-starting state'
     );
 
-    // Helper function to dispatch to AsyncQueue and make sure that any
-    // close will seem instantaneous and events are prevented from being
-    // raised after the close call
-    const dispatchIfStillActive = (
-      stream: Stream<SendType, ReceiveType>,
-      fn: () => Promise<void>
-    ) => {
-      this.queue.enqueue(async () => {
-        // Only raise events if the stream instance has not changed
-        if (this.stream === stream) {
-          return fn();
-        }
-      });
-    };
+    let dispatchIfStateUnchanged = this.stateGuardedDispatcher();
 
-    const currentStream = this.startRpc(token);
-    this.stream = currentStream;
+    this.stream = this.startRpc(token);
     this.stream.onOpen(() => {
-      dispatchIfStillActive(currentStream, () => {
+      dispatchIfStateUnchanged(() => {
         assert(
           this.state === PersistentStreamState.Starting,
           'Expected stream to be in state Starting, but was ' + this.state
         );
-        this.state = PersistentStreamState.Open;
+        this.updateState(PersistentStreamState.Open);
+        // Need to recreate our dispatcher since we changed the state.
+        dispatchIfStateUnchanged = this.stateGuardedDispatcher();
         return this.listener!.onOpen();
       });
     });
     this.stream.onClose((error: FirestoreError) => {
-      dispatchIfStillActive(currentStream, () => {
+      dispatchIfStateUnchanged(() => {
         return this.handleStreamClose(error);
       });
     });
     this.stream.onMessage((msg: ReceiveType) => {
-      dispatchIfStillActive(currentStream, () => {
+      dispatchIfStateUnchanged(() => {
         return this.onMessage(msg);
       });
     });
@@ -476,7 +465,7 @@ export abstract class PersistentStream<
       this.state === PersistentStreamState.Error,
       'Should only perform backoff when in Error state'
     );
-    this.state = PersistentStreamState.Backoff;
+    this.updateState(PersistentStreamState.Backoff);
 
     this.backoff.backoffAndRun(async () => {
       assert(
@@ -484,7 +473,7 @@ export abstract class PersistentStream<
         'Backoff elapsed but state is now: ' + this.state
       );
 
-      this.state = PersistentStreamState.Initial;
+      this.updateState(PersistentStreamState.Initial);
       this.start();
       assert(this.isStarted(), 'PersistentStream should have started');
     });
@@ -495,8 +484,6 @@ export abstract class PersistentStream<
     assert(this.isStarted(), "Can't handle server close on non-started stream");
     log.debug(LOG_TAG, `close with error: ${error}`);
 
-    // Null out the stream to make sure we stop handling events for it (see
-    // dispatchIfStillActive()).
     this.stream = null;
 
     // In theory the stream could close cleanly, however, in our current model
@@ -504,6 +491,44 @@ export abstract class PersistentStream<
     // this callback will never be called. To prevent cases where we retry
     // without a backoff accidentally, we set the stream to error in all cases.
     return this.close(PersistentStreamState.Error, error);
+  }
+
+  /** Updates this.state and increments our sequence number. */
+  private updateState(newState: PersistentStreamState): void {
+    log.debug(
+      LOG_TAG,
+      `state changed from ${PersistentStreamState[this.state]} to ${
+        PersistentStreamState[newState]
+      }`
+    );
+    this.state = newState;
+    this.stateSequenceNumber++;
+  }
+
+  /**
+   * Returns a "dispatcher" function that dispatches operations onto the
+   * AsyncQueue but only runs them if startSequenceNumber remains unchanged.
+   * This allows us to turn auth / stream callbacks into no-ops if the stream
+   * is closed / re-opened, etc.
+   */
+  private stateGuardedDispatcher(): (fn: () => Promise<void>) => void {
+    const startSequenceNumber = this.stateSequenceNumber;
+    const startState = this.state;
+    return (fn: () => Promise<void>): void => {
+      this.queue.enqueue(() => {
+        if (this.stateSequenceNumber === startSequenceNumber) {
+          return fn();
+        } else {
+          log.debug(
+            LOG_TAG,
+            `stateGuard callback skipped due to state change from ${
+              PersistentStreamState[startState]
+            } to ${PersistentStreamState[this.state]}`
+          );
+          return Promise.resolve();
+        }
+      });
+    };
   }
 }
 
