@@ -318,11 +318,14 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
-    assert(
-      error !== undefined || !this.shouldStartWatchStream(),
-      'onWatchStreamClose() should be called with an error if the watch ' +
-        'stream is still needed.'
-    );
+    if (error === undefined) {
+      // Graceful stop (due to stop() or idle timeout). Make sure that's
+      // desirable.
+      assert(
+        !this.shouldStartWatchStream(),
+        'Watch stream was stopped gracefully while still needed.'
+      );
+    }
 
     this.cleanUpWatchStreamState();
 
@@ -580,11 +583,14 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
-    assert(
-      error !== undefined || !this.shouldStartWriteStream(),
-      'onWriteStreamClose() should be called with an error if the write ' +
-        'stream is still needed.'
-    );
+    if (error === undefined) {
+      // Graceful stop (due to stop() or idle timeout). Make sure that's
+      // desirable.
+      assert(
+        !this.shouldStartWriteStream(),
+        'Write stream was stopped gracefully while still needed.'
+      );
+    }
 
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
