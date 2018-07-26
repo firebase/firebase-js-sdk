@@ -257,6 +257,9 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]> {
+    if (documentKeys.isEmpty()) {
+      return PersistencePromise.resolve([]);
+    }
     const start = new DocReference(documentKeys.first(), 0);
     const end = new DocReference(documentKeys.last(), Number.POSITIVE_INFINITY);
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);

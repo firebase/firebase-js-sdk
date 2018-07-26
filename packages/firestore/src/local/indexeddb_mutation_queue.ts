@@ -367,6 +367,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]> {
+    if (documentKeys.isEmpty()) {
+      return PersistencePromise.resolve([]);
+    }
+
     const minKey = DbDocumentMutation.prefixForPath(
       this.userId,
       documentKeys.first().path
@@ -378,7 +382,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const keyRange = IDBKeyRange.bound(minKey, maxKey);
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 
-    const results: MutationBatch[] = [];
     return documentMutationsStore(transaction)
       .iterate({ range: keyRange }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;

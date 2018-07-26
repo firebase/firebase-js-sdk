@@ -17,7 +17,6 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
-  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   documentMap,
@@ -155,17 +154,18 @@ export class LocalDocumentsView {
           // TODO(mikelehen): PERF: Check if this mutation actually affects the
           // query to reduce work.
           for (const mutation of batch.mutations) {
-            if (!query.path.isImmediateParentOf(mutation.key.path)) {
+            const key = mutation.key;
+
+            if (!query.path.isImmediateParentOf(key.path)) {
               continue;
             }
 
-            const key = mutation.key;
             const baseDoc = results.get(key);
             const mutatedDoc = mutation.applyToLocalView(baseDoc, baseDoc, batch.localWriteTime);
             if (!mutatedDoc || mutatedDoc instanceof NoDocument) {
-              results = results.remove(mutatedDoc.key);
+              results = results.remove(key);
             } else if (mutatedDoc instanceof Document) {
-              results = results.insert(mutatedDoc.key, mutatedDoc);
+              results = results.insert(key, mutatedDoc);
             } else {
               fail('Unknown MaybeDocument: ' + mutatedDoc);
             }
