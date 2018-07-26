@@ -63,24 +63,27 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
-    const documentStore = remoteDocumentsStore(transaction);
 
-    let changedKeys = documentKeySet();
-    for (const maybeDocument of maybeDocuments) {
+    if (maybeDocuments.length > 0) {
+      const documentStore = remoteDocumentsStore(transaction);
+      let changedKeys = documentKeySet();
+      for (const maybeDocument of maybeDocuments) {
+        promises.push(
+            documentStore.put(
+                dbKey(maybeDocument.key),
+                this.serializer.toDbRemoteDocument(maybeDocument)
+            )
+        );
+        changedKeys = changedKeys.add(maybeDocument.key);
+      }
+
       promises.push(
-        documentStore.put(
-          dbKey(maybeDocument.key),
-          this.serializer.toDbRemoteDocument(maybeDocument)
-        )
+          documentChangesStore(transaction).put({
+            changes: this.serializer.toDbResourcePaths(changedKeys)
+          })
       );
-      changedKeys = changedKeys.add(maybeDocument.key);
     }
 
-    promises.push(
-      documentChangesStore(transaction).put({
-        changes: this.serializer.toDbResourcePaths(changedKeys)
-      })
-    );
     return PersistencePromise.waitFor(promises);
   }
 
