@@ -45,9 +45,6 @@ const KNOWN_TAGS = [
 // TOOD(mrschmidt): Make this configurable with mocha options.
 const RUN_BENCHMARK_TESTS = false;
 
-const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
-  tags.indexOf(NO_WEB_TAG) === -1;
-
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
   describeName: string;
@@ -130,7 +127,7 @@ export function specTest(
       let runner: Function;
       if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
         runner = it.only;
-      } else if (!WEB_SPEC_TEST_FILTER(tags)) {
+      } else if (tags.indexOf(NO_WEB_TAG) >= 0) {
         runner = it.skip;
       } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
         runner = it.skip;

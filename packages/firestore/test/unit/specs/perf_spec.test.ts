@@ -20,9 +20,10 @@ import { doc, orderBy, path } from '../../util/helpers';
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
 
+/** The number of iterations for the benchmark spec tests. */
 const STEP_COUNT = 10;
 
-describeSpec('Performance Tests:', ['benchmark'], () => {
+describeSpec(`Performance Tests [${STEP_COUNT} iterations]:`, ['exclusive','benchmark'], () => {
   specTest('Insert a new document', [], () => {
     let steps = spec().withGCEnabled(false);
     for (let i = 0; i < STEP_COUNT; ++i) {
@@ -31,7 +32,7 @@ describeSpec('Performance Tests:', ['benchmark'], () => {
     return steps;
   });
 
-  specTest('Insert a new document and wait for snapshot', [], () => {
+  specTest('Start a listen, write a document, ack the write, handle watch snapshot, unlisten', [], () => {
     let currentVersion = 1;
     let steps = spec().withGCEnabled(false);
 
@@ -62,7 +63,7 @@ describeSpec('Performance Tests:', ['benchmark'], () => {
     return steps;
   });
 
-  specTest('Watch has cached mutations', [], () => {
+  specTest('Write 100 documents and raise a snapshot', [], () => {
     const cachedDocumentCount = 100;
 
     const query = Query.atPath(path(`collection`)).addOrderBy(orderBy('v'));
@@ -101,7 +102,7 @@ describeSpec('Performance Tests:', ['benchmark'], () => {
     return steps;
   });
 
-  specTest('Update a single document and wait for snapshot', [], () => {
+  specTest('Update a document and wait for snapshot with existing listen', [], () => {
     const query = Query.atPath(path(`collection/doc`));
 
     let currentVersion = 1;
@@ -149,7 +150,7 @@ describeSpec('Performance Tests:', ['benchmark'], () => {
     return steps;
   });
 
-  specTest('Watch sends 100 documents', [], () => {
+  specTest('Process 100 documents from Watch and wait for snapshot', [], () => {
     const documentsPerStep = 100;
 
     const query = Query.atPath(path(`collection`)).addOrderBy(orderBy('v'));
@@ -182,7 +183,7 @@ describeSpec('Performance Tests:', ['benchmark'], () => {
     return steps;
   });
 
-  specTest('Watch has cached results', [], () => {
+  specTest('Process 100 documents from Watch and wait for snapshot, then unlisten and wait for a cached snapshot', [], () => {
     const documentsPerStep = 100;
 
     let currentVersion = 1;
