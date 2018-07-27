@@ -52,9 +52,12 @@ describe('IndexedDbRemoteDocumentCache', () => {
   }
 
   beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
-    });
+    // We turn on `synchronizeTabs` to test the document change log.
+    return persistenceHelpers
+      .testIndexedDbPersistence(/* synchronizeTabs= */ true)
+      .then(p => {
+        persistence = p;
+      });
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
