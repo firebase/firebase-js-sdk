@@ -154,10 +154,10 @@ export interface MutationQueue extends GarbageSource {
   ): PersistencePromise<MutationBatch[]>;
 
   /**
-   * Finds all mutation batches that could possibly affect the given
-   * set of document keys. Not all mutations in a batch will necessarily affect
-   * each key, so when looping through the batch you'll need to
-   * check that the mutation itself matches the key.
+   * Finds all mutation batches that could possibly affect the given set of
+   * document keys. Not all mutations in a batch will necessarily affect each
+   * key, so when looping through the batch you'll need to check that the
+   * mutation itself matches the key.
    *
    * Batches are guaranteed to be in sorted order.
    *

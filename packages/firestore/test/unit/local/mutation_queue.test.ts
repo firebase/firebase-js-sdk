@@ -384,7 +384,6 @@ function genericMutationQueueTests(): void {
     const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKey(
       key('foo/bar')
     );
-    expect(matches.length).to.deep.equal(expected.length);
     expectEqualArrays(matches, expected);
   });
 
@@ -409,7 +408,6 @@ function genericMutationQueueTests(): void {
         .add(key('foo/bar'))
         .add(key('foo/baz'))
     );
-    expect(matches.length).to.deep.equal(expected.length);
     expectEqualArrays(matches, expected);
   });
 

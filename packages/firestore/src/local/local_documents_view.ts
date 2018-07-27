@@ -155,11 +155,9 @@ export class LocalDocumentsView {
       })
       .next(matchingMutationBatches => {
         for (const batch of matchingMutationBatches) {
-          // TODO(mikelehen): PERF: Check if this mutation actually affects the
-          // query to reduce work.
           for (const mutation of batch.mutations) {
             const key = mutation.key;
-
+            // Only process documents belonging to the collection.
             if (!query.path.isImmediateParentOf(key.path)) {
               continue;
             }
