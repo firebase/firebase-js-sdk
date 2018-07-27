@@ -25,7 +25,7 @@ const STEP_COUNT = 10;
 
 describeSpec(
   `Performance Tests [${STEP_COUNT} iterations]:`,
-  ['exclusive', 'benchmark'],
+  ['benchmark'],
   () => {
     specTest('Insert a new document', [], () => {
       let steps = spec().withGCEnabled(false);
