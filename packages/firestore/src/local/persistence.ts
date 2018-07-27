@@ -17,7 +17,6 @@
 import { User } from '../auth/user';
 
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -29,7 +28,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
-export interface PersistenceTransaction {}
+export abstract class PersistenceTransaction {}
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -67,7 +66,7 @@ export interface PersistenceTransaction {}
  * writes in order to avoid relying on being able to read back uncommitted
  * writes.
  */
-export interface Persistence<TransactionType extends PersistenceTransaction> {
+export interface Persistence {
   /**
    * Whether or not this persistence instance has been started.
    */
@@ -98,7 +97,7 @@ export interface Persistence<TransactionType extends PersistenceTransaction> {
    * extent possible (e.g. in the case of uid switching from
    * sally=>jack=>sally, sally's mutation queue will be preserved).
    */
-  getMutationQueue(user: User): MutationQueue<TransactionType>;
+  getMutationQueue(user: User): MutationQueue;
 
   /**
    * Returns a QueryCache representing the persisted cache of queries.
@@ -107,7 +106,7 @@ export interface Persistence<TransactionType extends PersistenceTransaction> {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryCache(): QueryCache<TransactionType>;
+  getQueryCache(): QueryCache;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote
@@ -117,7 +116,7 @@ export interface Persistence<TransactionType extends PersistenceTransaction> {
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getRemoteDocumentCache(): RemoteDocumentCache<TransactionType>;
+  getRemoteDocumentCache(): RemoteDocumentCache;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes
@@ -137,7 +136,7 @@ export interface Persistence<TransactionType extends PersistenceTransaction> {
   runTransaction<T>(
     action: string,
     transactionOperation: (
-      transaction: TransactionType
+      transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T>;
 }

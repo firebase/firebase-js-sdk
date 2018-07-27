@@ -40,12 +40,10 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * document). The view is computed by applying the mutations in the
  * MutationQueue to the RemoteDocumentCache.
  */
-export class LocalDocumentsView<
-  TransactionType extends PersistenceTransaction
-> {
+export class LocalDocumentsView {
   constructor(
-    private remoteDocumentCache: RemoteDocumentCache<TransactionType>,
-    private mutationQueue: MutationQueue<TransactionType>
+    private remoteDocumentCache: RemoteDocumentCache,
+    private mutationQueue: MutationQueue
   ) {}
 
   /**
@@ -55,7 +53,7 @@ export class LocalDocumentsView<
    * state for it.
    */
   getDocument(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     return this.remoteDocumentCache
@@ -72,7 +70,7 @@ export class LocalDocumentsView<
    * be stored for that key in the resulting set.
    */
   getDocuments(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
     const promises = [] as Array<PersistencePromise<void>>;
@@ -93,7 +91,7 @@ export class LocalDocumentsView<
 
   /** Performs a query against the local view of all documents. */
   getDocumentsMatchingQuery(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
     if (DocumentKey.isDocumentKey(query.path)) {
@@ -104,7 +102,7 @@ export class LocalDocumentsView<
   }
 
   private getDocumentsMatchingDocumentQuery(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     docPath: ResourcePath
   ): PersistencePromise<DocumentMap> {
     // Just do a simple document lookup.
@@ -120,7 +118,7 @@ export class LocalDocumentsView<
   }
 
   private getDocumentsMatchingCollectionQuery(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
@@ -190,7 +188,7 @@ export class LocalDocumentsView<
    * @param document The base remote document to apply mutations to or null.
    */
   private computeLocalDocument(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey,
     document: MaybeDocument | null
   ): PersistencePromise<MaybeDocument | null> {
@@ -213,7 +211,7 @@ export class LocalDocumentsView<
    * @return The local view of the documents.
    */
   private computeLocalDocuments(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     documents: DocumentMap
   ): PersistencePromise<DocumentMap> {
     const promises = [] as Array<PersistencePromise<void>>;

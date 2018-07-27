@@ -118,7 +118,7 @@ export class RemoteStore implements TargetMetadataProvider {
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
      */
-    private localStore: LocalStore<PersistenceTransaction>,
+    private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
     asyncQueue: AsyncQueue,

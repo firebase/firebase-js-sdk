@@ -51,7 +51,7 @@ describe('IndexedDbQueryCache', () => {
     return;
   }
 
-  let persistencePromise: Promise<Persistence<IndexedDbTransaction>>;
+  let persistencePromise: Promise<Persistence>;
   beforeEach(async () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
@@ -62,11 +62,11 @@ describe('IndexedDbQueryCache', () => {
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
-  persistencePromise: () => Promise<Persistence<TransactionType>>
+function genericQueryCacheTests(
+  persistencePromise: () => Promise<Persistence>
 ): void {
   addEqualityMatcher();
-  let cache: TestQueryCache<TransactionType>;
+  let cache: TestQueryCache;
 
   const QUERY_ROOMS = Query.atPath(path('rooms'));
   const QUERY_HALLS = Query.atPath(path('halls'));
@@ -95,7 +95,7 @@ function genericQueryCacheTests<TransactionType extends PersistenceTransaction>(
     );
   }
 
-  let persistence: Persistence<TransactionType>;
+  let persistence: Persistence;
   beforeEach(async () => {
     persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());

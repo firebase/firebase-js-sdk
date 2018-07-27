@@ -110,21 +110,21 @@ export interface LocalWriteResult {
  * (unexpected) failure (e.g. failed assert) and always represent an
  * unrecoverable error (should be caught / reported by the async_queue).
  */
-export class LocalStore<TransactionType extends PersistenceTransaction> {
+export class LocalStore {
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
    */
-  private mutationQueue: MutationQueue<TransactionType>;
+  private mutationQueue: MutationQueue;
 
   /** The set of all cached remote documents. */
-  private remoteDocuments: RemoteDocumentCache<TransactionType>;
+  private remoteDocuments: RemoteDocumentCache;
 
   /**
    * The "local" view of all documents (layering mutationQueue on top of
    * remoteDocumentCache).
    */
-  private localDocuments: LocalDocumentsView<TransactionType>;
+  private localDocuments: LocalDocumentsView;
 
   /**
    * The set of document references maintained by any local views.
@@ -132,7 +132,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   private localViewReferences = new ReferenceSet();
 
   /** Maps a query to the data about that query. */
-  private queryCache: QueryCache<TransactionType>;
+  private queryCache: QueryCache;
 
   /** Maps a targetID to data about its query. */
   private targetIds = {} as { [targetId: number]: QueryData };
@@ -154,7 +154,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
 
   constructor(
     /** Manages our in-memory or durable persistence. */
-    private persistence: Persistence<TransactionType>,
+    private persistence: Persistence,
     initialUser: User,
     /**
      * The garbage collector collects documents that should no longer be
@@ -234,14 +234,14 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
     });
   }
 
-  private startQueryCache(txn: TransactionType): PersistencePromise<void> {
+  private startQueryCache(txn: PersistenceTransaction): PersistencePromise<void> {
     return this.queryCache.start(txn).next(() => {
       const targetId = this.queryCache.getHighestTargetId();
       this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     });
   }
 
-  private startMutationQueue(txn: TransactionType): PersistencePromise<void> {
+  private startMutationQueue(txn: PersistenceTransaction): PersistencePromise<void> {
     return this.mutationQueue
       .start(txn)
       .next(() => {
@@ -714,8 +714,8 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   }
 
   private releaseHeldBatchResults(
-    txn: TransactionType,
-    documentBuffer: RemoteDocumentChangeBuffer<TransactionType>
+    txn: PersistenceTransaction,
+    documentBuffer: RemoteDocumentChangeBuffer
   ): PersistencePromise<DocumentKeySet> {
     const toRelease: MutationBatchResult[] = [];
     for (const batchResult of this.heldBatchResults) {
@@ -751,9 +751,9 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   }
 
   private releaseBatchResults(
-    txn: TransactionType,
+    txn: PersistenceTransaction,
     batchResults: MutationBatchResult[],
-    documentBuffer: RemoteDocumentChangeBuffer<TransactionType>
+    documentBuffer: RemoteDocumentChangeBuffer
   ): PersistencePromise<DocumentKeySet> {
     let promiseChain = PersistencePromise.resolve();
     for (const batchResult of batchResults) {
@@ -770,7 +770,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   }
 
   private removeMutationBatch(
-    txn: TransactionType,
+    txn: PersistenceTransaction,
     batch: MutationBatch
   ): PersistencePromise<DocumentKeySet> {
     return this.removeMutationBatches(txn, [batch]);
@@ -778,7 +778,7 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
 
   /** Removes all the mutation batches named in the given array. */
   private removeMutationBatches(
-    txn: TransactionType,
+    txn: PersistenceTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<DocumentKeySet> {
     let affectedDocs = documentKeySet();
@@ -795,9 +795,9 @@ export class LocalStore<TransactionType extends PersistenceTransaction> {
   }
 
   private applyWriteToRemoteDocuments(
-    txn: TransactionType,
+    txn: PersistenceTransaction,
     batchResult: MutationBatchResult,
-    documentBuffer: RemoteDocumentChangeBuffer<TransactionType>
+    documentBuffer: RemoteDocumentChangeBuffer
   ): PersistencePromise<void> {
     const batch = batchResult.batch;
     const docKeys = batch.keys();

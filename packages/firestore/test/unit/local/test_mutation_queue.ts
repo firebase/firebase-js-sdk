@@ -33,10 +33,10 @@ import { AnyDuringMigration } from '../../../src/util/misc';
  * A wrapper around a MutationQueue that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestMutationQueue<TransactionType extends PersistenceTransaction> {
+export class TestMutationQueue {
   constructor(
-    public persistence: Persistence<TransactionType>,
-    public queue: MutationQueue<TransactionType>
+    public persistence: Persistence,
+    public queue: MutationQueue
   ) {}
 
   start(): Promise<void> {

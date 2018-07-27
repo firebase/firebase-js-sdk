@@ -35,13 +35,11 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * read-your-own-writes capability, this class is not technically needed, but
  * has been preserved as a convenience and to aid portability.
  */
-export class RemoteDocumentChangeBuffer<
-  TransactionType extends PersistenceTransaction
-> {
+export class RemoteDocumentChangeBuffer {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
 
   constructor(
-    private remoteDocumentCache: RemoteDocumentCache<TransactionType>
+    private remoteDocumentCache: RemoteDocumentCache
   ) {}
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
@@ -64,7 +62,7 @@ export class RemoteDocumentChangeBuffer<
    * cached.
    */
   getEntry(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     const changes = this.assertChanges();
@@ -81,7 +79,7 @@ export class RemoteDocumentChangeBuffer<
    * Applies buffered changes to the underlying RemoteDocumentCache, using
    * the provided transaction.
    */
-  apply(transaction: TransactionType): PersistencePromise<void> {
+  apply(transaction: PersistenceTransaction): PersistencePromise<void> {
     const changes = this.assertChanges();
 
     const promises: Array<PersistencePromise<void>> = [];

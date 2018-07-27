@@ -25,11 +25,9 @@ import { DocumentKey } from '../../../src/model/document_key';
  * A wrapper around a GarbageCollector that automatically creates a transaction
  * around every operation to reduce test boilerplate.
  */
-export class TestGarbageCollector<
-  TransactionType extends PersistenceTransaction
-> {
+export class TestGarbageCollector {
   constructor(
-    public persistence: Persistence<TransactionType>,
+    public persistence: Persistence,
     public gc: GarbageCollector
   ) {}
 

@@ -29,12 +29,11 @@ import { QueryData } from './query_data';
  *
  * The cache is keyed by Query and entries in the cache are QueryData instances.
  */
-export interface QueryCache<TransactionType extends PersistenceTransaction>
-  extends GarbageSource {
+export interface QueryCache extends GarbageSource {
   /**
    * Starts up the query cache.
    */
-  start(transaction: TransactionType): PersistencePromise<void>;
+  start(transaction: PersistenceTransaction): PersistencePromise<void>;
 
   /**
    * Returns the highest target ID of any query in the cache. Typically called
@@ -63,7 +62,7 @@ export interface QueryCache<TransactionType extends PersistenceTransaction>
    * @param snapshotVersion The new snapshot version.
    */
   setLastRemoteSnapshotVersion(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     snapshotVersion: SnapshotVersion
   ): PersistencePromise<void>;
 
@@ -76,7 +75,7 @@ export interface QueryCache<TransactionType extends PersistenceTransaction>
    * @param queryData A QueryData instance to put in the cache.
    */
   addQueryData(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void>;
 

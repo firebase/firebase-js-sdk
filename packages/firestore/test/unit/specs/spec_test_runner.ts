@@ -39,20 +39,11 @@ import {
 } from '../../../src/core/view_snapshot';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { GarbageCollector } from '../../../src/local/garbage_collector';
-import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from '../../../src/local/indexeddb_persistence';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
-import {
-  MemoryPersistence,
-  MemoryTransaction
-} from '../../../src/local/memory_persistence';
+import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { DocumentOptions } from '../../../src/model/document';
@@ -328,7 +319,7 @@ interface OutstandingWrite {
   userCallback: Deferred<void>;
 }
 
-abstract class TestRunner<TransactionType extends PersistenceTransaction> {
+abstract class TestRunner {
   private connection: MockConnection;
   private eventManager: EventManager;
   private syncEngine: SyncEngine;
@@ -346,9 +337,9 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
   };
 
   private datastore: Datastore;
-  private localStore: LocalStore<TransactionType>;
+  private localStore: LocalStore;
   private remoteStore: RemoteStore;
-  private persistence: Persistence<TransactionType>;
+  private persistence: Persistence;
   private useGarbageCollection: boolean;
   private databaseInfo: DatabaseInfo;
   private user = User.UNAUTHENTICATED;
@@ -429,7 +420,7 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
 
   protected abstract getPersistence(
     serializer: JsonProtoSerializer
-  ): Persistence<TransactionType>;
+  ): Persistence;
   protected abstract destroyPersistence(): Promise<void>;
 
   async shutdown(): Promise<void> {
@@ -998,7 +989,7 @@ abstract class TestRunner<TransactionType extends PersistenceTransaction> {
   }
 }
 
-class MemoryTestRunner extends TestRunner<MemoryTransaction> {
+class MemoryTestRunner extends TestRunner {
   protected getPersistence(serializer: JsonProtoSerializer): MemoryPersistence {
     return new MemoryPersistence();
   }
@@ -1012,7 +1003,7 @@ class MemoryTestRunner extends TestRunner<MemoryTransaction> {
  * Runs the specs using IndexedDbPersistence, the creator must ensure that it is
  * enabled for the platform.
  */
-class IndexedDbTestRunner extends TestRunner<IndexedDbTransaction> {
+class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'specs';
 
   protected getPersistence(
@@ -1042,7 +1033,7 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  let runner: TestRunner<PersistenceTransaction>;
+  let runner: TestRunner;
   if (usePersistence) {
     runner = new IndexedDbTestRunner(name, config);
   } else {

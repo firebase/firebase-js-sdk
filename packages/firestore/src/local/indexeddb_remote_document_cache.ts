@@ -25,13 +25,13 @@ import { LocalSerializer } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore } from './simple_db';
+import { PersistenceTransaction } from './persistence';
 
-export class IndexedDbRemoteDocumentCache
-  implements RemoteDocumentCache<IndexedDbTransaction> {
+export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   constructor(private serializer: LocalSerializer) {}
 
   addEntry(
-    transaction: IndexedDbTransaction,
+    transaction: PersistenceTransaction,
     maybeDocument: MaybeDocument
   ): PersistencePromise<void> {
     return remoteDocumentsStore(transaction).put(
@@ -41,14 +41,14 @@ export class IndexedDbRemoteDocumentCache
   }
 
   removeEntry(
-    transaction: IndexedDbTransaction,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
     return remoteDocumentsStore(transaction).delete(dbKey(documentKey));
   }
 
   getEntry(
-    transaction: IndexedDbTransaction,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     return remoteDocumentsStore(transaction)
@@ -61,7 +61,7 @@ export class IndexedDbRemoteDocumentCache
   }
 
   getDocumentsMatchingQuery(
-    transaction: IndexedDbTransaction,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
     let results = documentMap();
@@ -87,10 +87,10 @@ export class IndexedDbRemoteDocumentCache
  * Helper to get a typed SimpleDbStore for the remoteDocuments object store.
  */
 function remoteDocumentsStore(
-  txn: IndexedDbTransaction
+  txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
   return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
-    txn.simpleDbTransaction,
+    (txn as IndexedDbTransaction).simpleDbTransaction,
     DbRemoteDocument.store
   );
 }

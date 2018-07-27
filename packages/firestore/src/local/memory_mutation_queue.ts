@@ -29,9 +29,9 @@ import { GarbageCollector } from './garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { MemoryTransaction } from './memory_persistence';
+import { PersistenceTransaction } from './persistence';
 
-export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
+export class MemoryMutationQueue implements MutationQueue {
   /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
@@ -56,7 +56,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
-  start(transaction: MemoryTransaction): PersistencePromise<void> {
+  start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // NOTE: The queue may be shutdown / started multiple times, since we
     // maintain the queue for the duration of the app session in case a user
     // logs out / back in. To behave like the LevelDB-backed MutationQueue (and
@@ -73,22 +73,22 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
     return PersistencePromise.resolve();
   }
 
-  checkEmpty(transaction: MemoryTransaction): PersistencePromise<boolean> {
+  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getNextBatchId(transaction: MemoryTransaction): PersistencePromise<BatchId> {
+  getNextBatchId(transaction: PersistenceTransaction): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.nextBatchId);
   }
 
   getHighestAcknowledgedBatchId(
-    transaction: MemoryTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.highestAcknowledgedBatchId);
   }
 
   acknowledgeBatch(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     batch: MutationBatch,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
@@ -120,13 +120,13 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   getLastStreamToken(
-    transaction: MemoryTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
     return PersistencePromise.resolve(this.lastStreamToken);
   }
 
   setLastStreamToken(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     this.lastStreamToken = streamToken;
@@ -134,7 +134,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   addMutationBatch(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
@@ -165,14 +165,14 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   lookupMutationBatch(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return PersistencePromise.resolve(this.findMutationBatch(batchId));
   }
 
   getNextMutationBatchAfterBatchId(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     const size = this.mutationQueue.length;
@@ -198,7 +198,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   getAllMutationBatches(
-    transaction: MemoryTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
     return PersistencePromise.resolve(
       this.getAllLiveMutationBatchesBeforeIndex(this.mutationQueue.length)
@@ -206,7 +206,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   getAllMutationBatchesThroughBatchId(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch[]> {
     const count = this.mutationQueue.length;
@@ -228,7 +228,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   getAllMutationBatchesAffectingDocumentKey(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]> {
     const start = new DocReference(documentKey, 0);
@@ -251,7 +251,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   getAllMutationBatchesAffectingQuery(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     // Use the query path as a prefix for testing if a document matches the
@@ -304,7 +304,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   removeMutationBatches(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     batches: MutationBatch[]
   ): PersistencePromise<void> {
     const batchCount = batches.length;
@@ -380,7 +380,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
   }
 
   containsKey(
-    txn: MemoryTransaction,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     const ref = new DocReference(key, 0);
@@ -388,7 +388,7 @@ export class MemoryMutationQueue implements MutationQueue<MemoryTransaction> {
     return PersistencePromise.resolve(key.isEqual(firstRef && firstRef.key));
   }
 
-  performConsistencyCheck(txn: MemoryTransaction): PersistencePromise<void> {
+  performConsistencyCheck(txn: PersistenceTransaction): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
       assert(
         this.batchesByDocumentKey.isEmpty(),

@@ -27,9 +27,9 @@ import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
-import { MemoryTransaction } from './memory_persistence';
+import { PersistenceTransaction } from './persistence';
 
-export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
+export class MemoryQueryCache implements QueryCache {
   /**
    * Maps a query to the data about that query
    */
@@ -47,7 +47,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
 
   private targetCount = 0;
 
-  start(transaction: MemoryTransaction): PersistencePromise<void> {
+  start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.
     return PersistencePromise.resolve();
   }
@@ -61,7 +61,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   setLastRemoteSnapshotVersion(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     snapshotVersion: SnapshotVersion
   ): PersistencePromise<void> {
     this.lastRemoteSnapshotVersion = snapshotVersion;
@@ -78,7 +78,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   addQueryData(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(
@@ -91,7 +91,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   updateQueryData(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(this.queries.has(queryData.query), 'Updating a non-existent query');
@@ -100,7 +100,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   removeQueryData(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(this.targetCount > 0, 'Removing a target from an empty cache');
@@ -119,7 +119,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   getQueryData(
-    transaction: MemoryTransaction,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
     const queryData = this.queries.get(query) || null;
@@ -127,7 +127,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   addMatchingKeys(
-    txn: MemoryTransaction,
+    txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
   ): PersistencePromise<void> {
@@ -136,7 +136,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   removeMatchingKeys(
-    txn: MemoryTransaction,
+    txn: PersistenceTransaction,
     keys: DocumentKeySet,
     targetId: TargetId
   ): PersistencePromise<void> {
@@ -145,7 +145,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   removeMatchingKeysForTargetId(
-    txn: MemoryTransaction,
+    txn: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.removeReferencesForId(targetId);
@@ -153,7 +153,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   getMatchingKeysForTargetId(
-    txn: MemoryTransaction,
+    txn: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<DocumentKeySet> {
     const matchingKeys = this.references.referencesForId(targetId);
@@ -165,7 +165,7 @@ export class MemoryQueryCache implements QueryCache<MemoryTransaction> {
   }
 
   containsKey(
-    txn: MemoryTransaction | null,
+    txn: PersistenceTransaction | null,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return this.references.containsKey(txn, key);

@@ -46,15 +46,15 @@ describe('IndexedDbRemoteDocumentCache', () => {
  */
 function genericRemoteDocumentCacheTests<
   TransactionType extends PersistenceTransaction
->(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
+>(persistencePromise: () => Promise<Persistence>): void {
   // Helpers for use throughout tests.
   const DOC_PATH = 'a/b';
   const LONG_DOC_PATH = 'a/b/c/d/e/f';
   const DOC_DATA = { a: 1, b: 2 };
   const VERSION = 42;
 
-  let persistence: Persistence<TransactionType>;
-  let cache: TestRemoteDocumentCache<TransactionType>;
+  let persistence: Persistence;
+  let cache: TestRemoteDocumentCache;
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
     return cache

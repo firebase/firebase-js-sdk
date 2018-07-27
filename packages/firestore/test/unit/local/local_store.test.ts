@@ -76,7 +76,7 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore<PersistenceTransaction>) {}
+  constructor(public localStore: LocalStore) {}
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
@@ -274,10 +274,10 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
 });
 
 function genericLocalStoreTests<TransactionType extends PersistenceTransaction>(
-  getPersistence: () => Promise<Persistence<TransactionType>>
+  getPersistence: () => Promise<Persistence>
 ): void {
-  let persistence: Persistence<TransactionType>;
-  let localStore: LocalStore<TransactionType>;
+  let persistence: Persistence;
+  let localStore: LocalStore;
 
   beforeEach(() => {
     return getPersistence().then(p => {

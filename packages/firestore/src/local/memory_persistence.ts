@@ -33,7 +33,7 @@ const LOG_TAG = 'MemoryPersistence';
  * A memory-backed instance of Persistence. Data is stored only in RAM and
  * not persisted across sessions.
  */
-export class MemoryPersistence implements Persistence<MemoryTransaction> {
+export class MemoryPersistence implements Persistence {
   /**
    * Note that these are retained here to make it easier to write tests
    * affecting both the in-memory and IndexedDB-backed persistence layers. Tests
@@ -42,7 +42,7 @@ export class MemoryPersistence implements Persistence<MemoryTransaction> {
    * persisting values.
    */
   private mutationQueues: {
-    [user: string]: MutationQueue<MemoryTransaction>;
+    [user: string]: MutationQueue;
   } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private queryCache = new MemoryQueryCache();
@@ -65,7 +65,7 @@ export class MemoryPersistence implements Persistence<MemoryTransaction> {
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue<MemoryTransaction> {
+  getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
       queue = new MemoryMutationQueue();
@@ -74,17 +74,17 @@ export class MemoryPersistence implements Persistence<MemoryTransaction> {
     return queue;
   }
 
-  getQueryCache(): QueryCache<MemoryTransaction> {
+  getQueryCache(): QueryCache {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache<MemoryTransaction> {
+  getRemoteDocumentCache(): RemoteDocumentCache {
     return this.remoteDocumentCache;
   }
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: MemoryTransaction) => PersistencePromise<T>
+    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
     return operation(new MemoryTransaction()).toPromise();

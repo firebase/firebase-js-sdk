@@ -30,10 +30,10 @@ import { DocumentKey } from '../../../src/model/document_key';
  * A wrapper around a QueryCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestQueryCache<TransactionType extends PersistenceTransaction> {
+export class TestQueryCache {
   constructor(
-    public persistence: Persistence<TransactionType>,
-    public cache: QueryCache<TransactionType>
+    public persistence: Persistence,
+    public cache: QueryCache
   ) {}
 
   start(): Promise<void> {

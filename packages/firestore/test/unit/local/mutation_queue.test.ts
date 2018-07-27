@@ -57,8 +57,8 @@ describe('IndexedDbMutationQueue', () => {
     return;
   }
 
-  let persistencePromise: Promise<Persistence<IndexedDbTransaction>>;
-  let persistence: Persistence<IndexedDbTransaction>;
+  let persistencePromise: Promise<Persistence>;
+  let persistence: Persistence;
   beforeEach(async () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
     persistence = await persistencePromise;
@@ -69,7 +69,7 @@ describe('IndexedDbMutationQueue', () => {
   describe('loadNextBatchIdFromDb', () => {
     function loadNextBatchId(): Promise<BatchId> {
       return persistence.runTransaction('loadNextBatchIdFromDb', txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn).next(
+        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn as IndexedDbTransaction).next(
           batchId => {
             return batchId;
           }
@@ -79,7 +79,7 @@ describe('IndexedDbMutationQueue', () => {
 
     function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
       return persistence.runTransaction('addDummyBatch', transaction => {
-        const store = transaction.simpleDbTransaction.store<
+        const store = (transaction as IndexedDbTransaction).simpleDbTransaction.store<
           [string, number],
           DbMutationBatch
         >(DbMutationBatch.store);
@@ -119,11 +119,11 @@ describe('IndexedDbMutationQueue', () => {
  */
 function genericMutationQueueTests<
   TransactionType extends PersistenceTransaction
->(persistencePromise: () => Promise<Persistence<TransactionType>>): void {
+>(persistencePromise: () => Promise<Persistence>): void {
   addEqualityMatcher();
 
-  let persistence: Persistence<TransactionType>;
-  let mutationQueue: TestMutationQueue<TransactionType>;
+  let persistence: Persistence;
+  let mutationQueue: TestMutationQueue;
   beforeEach(async () => {
     persistence = await persistencePromise();
     mutationQueue = new TestMutationQueue(

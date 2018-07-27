@@ -143,7 +143,7 @@ export class SyncEngine implements RemoteSyncer {
   private targetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   constructor(
-    private localStore: LocalStore<PersistenceTransaction>,
+    private localStore: LocalStore,
     private remoteStore: RemoteStore,
     private currentUser: User
   ) {

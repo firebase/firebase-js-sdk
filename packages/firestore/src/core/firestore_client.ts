@@ -78,8 +78,8 @@ export class FirestoreClient {
   private garbageCollector: GarbageCollector;
   // Note that localStore will end up with the same type parameter as
   // persistence because the LocalStore constructor enforces this.
-  private persistence: Persistence<PersistenceTransaction>;
-  private localStore: LocalStore<PersistenceTransaction>;
+  private persistence: Persistence;
+  private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private syncEngine: SyncEngine;
 

@@ -34,7 +34,7 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { Persistence } from './persistence';
+import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -59,8 +59,10 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
   ' persistence has been disabled.';
 
-export class IndexedDbTransaction {
-  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {}
+export class IndexedDbTransaction extends PersistenceTransaction {
+  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+    super();
+  }
 }
 
 /**
@@ -92,7 +94,7 @@ export class IndexedDbTransaction {
  * which acts as an indicator that another tab should go ahead and take the
  * owner lease immediately regardless of the current lease timestamp.
  */
-export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
+export class IndexedDbPersistence implements Persistence {
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.
@@ -166,15 +168,15 @@ export class IndexedDbPersistence implements Persistence<IndexedDbTransaction> {
     return this._started;
   }
 
-  getMutationQueue(user: User): MutationQueue<IndexedDbTransaction> {
+  getMutationQueue(user: User): MutationQueue {
     return IndexedDbMutationQueue.forUser(user, this.serializer);
   }
 
-  getQueryCache(): QueryCache<IndexedDbTransaction> {
+  getQueryCache(): QueryCache {
     return new IndexedDbQueryCache(this.serializer);
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache<IndexedDbTransaction> {
+  getRemoteDocumentCache(): RemoteDocumentCache {
     return new IndexedDbRemoteDocumentCache(this.serializer);
   }
 

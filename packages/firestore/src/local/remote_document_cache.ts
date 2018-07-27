@@ -30,9 +30,7 @@ import { PersistencePromise } from './persistence_promise';
  * with data) as well as NoDocument instances (indicating that the document is
  * known to not exist).
  */
-export interface RemoteDocumentCache<
-  TransactionType extends PersistenceTransaction
-> {
+export interface RemoteDocumentCache {
   /**
    * Adds or replaces an entry in the cache.
    *
@@ -42,13 +40,13 @@ export interface RemoteDocumentCache<
    * @param maybeDocument A Document or NoDocument to put in the cache.
    */
   addEntry(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     maybeDocument: MaybeDocument
   ): PersistencePromise<void>;
 
   /** Removes the cached entry for the given key (no-op if no entry exists). */
   removeEntry(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void>;
 
@@ -60,7 +58,7 @@ export interface RemoteDocumentCache<
    * cached.
    */
   getEntry(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null>;
 
@@ -76,7 +74,7 @@ export interface RemoteDocumentCache<
    * @return The set of matching documents.
    */
   getDocumentsMatchingQuery(
-    transaction: TransactionType,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap>;
 }
