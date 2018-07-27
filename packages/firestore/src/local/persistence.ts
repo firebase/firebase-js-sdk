@@ -85,6 +85,11 @@ export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 // secondary tabs.
 export interface Persistence {
   /**
+   * Whether or not this persistence instance has been started.
+   */
+  readonly started: boolean;
+
+  /**
    * Starts persistent storage, opening the database or similar.
    *
    * Throws an exception if the database could not be opened.

@@ -125,7 +125,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly window: Window;
 
   private simpleDb: SimpleDb;
-  private started: boolean;
+  private _started = false;
   private isPrimary = false;
   private networkEnabled = true;
   private dbName: string;
@@ -184,7 +184,6 @@ export class IndexedDbPersistence implements Persistence {
 
     assert(!this.started, 'IndexedDbPersistence double-started!');
     this.allowTabSynchronization = !!synchronizeTabs;
-    this.started = true;
 
     assert(this.window !== null, "Expected 'window' to be defined");
 
@@ -198,6 +197,9 @@ export class IndexedDbPersistence implements Persistence {
         return this.updateClientMetadataAndTryBecomePrimary().then(() =>
           this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
         );
+      })
+      .then(() => {
+        this._started = true;
       });
   }
 
@@ -391,10 +393,9 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   async shutdown(deleteData?: boolean): Promise<void> {
-    if (!this.started) {
-      return Promise.resolve();
-    }
-    this.started = false;
+    // The shutdown() operations are idempotent and can be called even when
+    // start() aborted (e.g. because it couldn't acquire the persistence lease).
+    this._started = false;
 
     this.markClientZombied();
     if (this.clientMetadataRefresher) {
@@ -432,6 +433,10 @@ export class IndexedDbPersistence implements Persistence {
         });
       })
       .then(() => clientIds);
+  }
+
+  get started(): boolean {
+    return this._started;
   }
 
   getMutationQueue(user: User): MutationQueue {
