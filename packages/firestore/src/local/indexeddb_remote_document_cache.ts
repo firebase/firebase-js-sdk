@@ -45,9 +45,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
-   * @param keepDocumentChangeLog Whether to keep a change log in IndexedDb.
-   * This change log is required for Multi-Tab synchronization, but not needed
-   * in clients that don't share access to their remote document cache.
+   * @param keepDocumentChangeLog Whether to keep a document change log in
+   * IndexedDb. This change log is required for Multi-Tab synchronization, but
+   * not needed in clients that don't share access to their remote document
+   * cache.
    */
   constructor(
     private readonly serializer: LocalSerializer,
