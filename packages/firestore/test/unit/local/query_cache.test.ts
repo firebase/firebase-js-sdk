@@ -19,14 +19,8 @@ import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from '../../../src/local/indexeddb_persistence';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {

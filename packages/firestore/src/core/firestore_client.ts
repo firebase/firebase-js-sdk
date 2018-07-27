@@ -30,7 +30,7 @@ import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
-import { Persistence, PersistenceTransaction } from '../local/persistence';
+import { Persistence } from '../local/persistence';
 import {
   DocumentKeySet,
   documentKeySet,

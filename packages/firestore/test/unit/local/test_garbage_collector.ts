@@ -15,10 +15,7 @@
  */
 
 import { GarbageCollector } from '../../../src/local/garbage_collector';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**

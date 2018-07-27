@@ -51,7 +51,6 @@ import {
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { DocumentKeySet } from '../model/collections';
-import { PersistenceTransaction } from '../local/persistence';
 
 const LOG_TAG = 'RemoteStore';
 
