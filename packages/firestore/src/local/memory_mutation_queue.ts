@@ -317,7 +317,7 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
   }
 
-  private findMutationBatches(batchIDs: SortedSet<number>) : MutationBatch[] {
+  private findMutationBatches(batchIDs: SortedSet<number>): MutationBatch[] {
     // Construct an array of matching batches, sorted by batchID to ensure that
     // multiple mutations affecting the same document key are applied in order.
     const result: MutationBatch[] = [];

@@ -67,14 +67,12 @@ export class LocalDocumentsView {
     key: DocumentKey,
     inBatches: MutationBatch[]
   ): PersistencePromise<MaybeDocument | null> {
-    return this.remoteDocumentCache
-      .getEntry(transaction, key)
-      .next(doc => {
-        for (const batch of inBatches) {
-          doc = batch.applyToLocalView(key, doc);
-        }
-        return doc;
-      });
+    return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
+      for (const batch of inBatches) {
+        doc = batch.applyToLocalView(key, doc);
+      }
+      return doc;
+    });
   }
 
   /**
@@ -88,22 +86,28 @@ export class LocalDocumentsView {
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
     return this.mutationQueue
-    .getAllMutationBatchesAffectingDocumentKeys(transaction, keys).next(batches => {
-      const promises = [] as Array<PersistencePromise<void>>;
-      let results = maybeDocumentMap();
-      keys.forEach(key => {
-        promises.push(
-          this.getDocumentInBatches(transaction, key, batches).next(maybeDoc => {
-            // TODO(http://b/32275378): Don't conflate missing / deleted.
-            if (!maybeDoc) {
-              maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
-            }
-            results = results.insert(key, maybeDoc);
-          })
-        );
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, keys)
+      .next(batches => {
+        const promises = [] as Array<PersistencePromise<void>>;
+        let results = maybeDocumentMap();
+        keys.forEach(key => {
+          promises.push(
+            this.getDocumentInBatches(transaction, key, batches).next(
+              maybeDoc => {
+                // TODO(http://b/32275378): Don't conflate missing / deleted.
+                if (!maybeDoc) {
+                  maybeDoc = new NoDocument(
+                    key,
+                    SnapshotVersion.forDeletedDoc()
+                  );
+                }
+                results = results.insert(key, maybeDoc);
+              }
+            )
+          );
+        });
+        return PersistencePromise.waitFor(promises).next(() => results);
       });
-      return PersistencePromise.waitFor(promises).next(() => results);
-    });
   }
 
   /** Performs a query against the local view of all documents. */
@@ -161,7 +165,11 @@ export class LocalDocumentsView {
             }
 
             const baseDoc = results.get(key);
-            const mutatedDoc = mutation.applyToLocalView(baseDoc, baseDoc, batch.localWriteTime);
+            const mutatedDoc = mutation.applyToLocalView(
+              baseDoc,
+              baseDoc,
+              batch.localWriteTime
+            );
             if (!mutatedDoc || mutatedDoc instanceof NoDocument) {
               results = results.remove(key);
             } else if (mutatedDoc instanceof Document) {

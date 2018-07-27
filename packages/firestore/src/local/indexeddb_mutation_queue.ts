@@ -382,7 +382,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .iterate({ range: keyRange }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;
         const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId || Path.comparator(path, documentKeys.last().path) > 0) {
+        if (
+          userID !== this.userId ||
+          Path.comparator(path, documentKeys.last().path) > 0
+        ) {
           control.done();
           return;
         }
@@ -392,7 +395,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
       })
-    .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
+      .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
   }
 
   getAllMutationBatchesAffectingQuery(
@@ -451,7 +454,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   private lookupMutationBatches(
     transaction: PersistenceTransaction,
-    batchIDs: SortedSet<BatchId>) : PersistencePromise<MutationBatch[]> {
+    batchIDs: SortedSet<BatchId>
+  ): PersistencePromise<MutationBatch[]> {
     const results: MutationBatch[] = [];
     const promises: Array<PersistencePromise<void>> = [];
     // TODO(rockwood): Implement this using iterate.
