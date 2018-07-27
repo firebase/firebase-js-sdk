@@ -31,10 +31,7 @@ import { DocumentKey } from '../../../src/model/document_key';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestQueryCache {
-  constructor(
-    public persistence: Persistence,
-    public cache: QueryCache
-  ) {}
+  constructor(public persistence: Persistence, public cache: QueryCache) {}
 
   start(): Promise<void> {
     return this.persistence.runTransaction('start', txn =>

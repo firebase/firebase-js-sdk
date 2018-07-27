@@ -234,14 +234,18 @@ export class LocalStore {
     });
   }
 
-  private startQueryCache(txn: PersistenceTransaction): PersistencePromise<void> {
+  private startQueryCache(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     return this.queryCache.start(txn).next(() => {
       const targetId = this.queryCache.getHighestTargetId();
       this.targetIdGenerator = TargetIdGenerator.forLocalStore(targetId);
     });
   }
 
-  private startMutationQueue(txn: PersistenceTransaction): PersistencePromise<void> {
+  private startMutationQueue(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     return this.mutationQueue
       .start(txn)
       .next(() => {

@@ -34,10 +34,7 @@ import { AnyDuringMigration } from '../../../src/util/misc';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestMutationQueue {
-  constructor(
-    public persistence: Persistence,
-    public queue: MutationQueue
-  ) {}
+  constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
   start(): Promise<void> {
     return this.persistence.runTransaction('start', txn => {

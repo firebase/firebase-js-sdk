@@ -478,7 +478,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return PersistencePromise.waitFor(promises);
   }
 
-  performConsistencyCheck(txn: PersistenceTransaction): PersistencePromise<void> {
+  performConsistencyCheck(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     return this.checkEmpty(txn).next(empty => {
       if (!empty) {
         return PersistencePromise.resolve();

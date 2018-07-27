@@ -77,7 +77,9 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getNextBatchId(transaction: PersistenceTransaction): PersistencePromise<BatchId> {
+  getNextBatchId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<BatchId> {
     return PersistencePromise.resolve(this.nextBatchId);
   }
 
@@ -388,7 +390,9 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(key.isEqual(firstRef && firstRef.key));
   }
 
-  performConsistencyCheck(txn: PersistenceTransaction): PersistencePromise<void> {
+  performConsistencyCheck(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
       assert(
         this.batchesByDocumentKey.isEmpty(),

@@ -38,9 +38,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export class RemoteDocumentChangeBuffer {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
 
-  constructor(
-    private remoteDocumentCache: RemoteDocumentCache
-  ) {}
+  constructor(private remoteDocumentCache: RemoteDocumentCache) {}
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
   addEntry(maybeDocument: MaybeDocument): void {

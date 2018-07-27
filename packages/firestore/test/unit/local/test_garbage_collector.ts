@@ -26,10 +26,7 @@ import { DocumentKey } from '../../../src/model/document_key';
  * around every operation to reduce test boilerplate.
  */
 export class TestGarbageCollector {
-  constructor(
-    public persistence: Persistence,
-    public gc: GarbageCollector
-  ) {}
+  constructor(public persistence: Persistence, public gc: GarbageCollector) {}
 
   collectGarbage(): Promise<DocumentKey[]> {
     return this.persistence
