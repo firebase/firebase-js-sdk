@@ -702,10 +702,22 @@ export class LocalStore {
             queryData != null,
             'Tried to release nonexistent query: ' + query
           );
-          this.localViewReferences.removeReferencesForId(queryData!.targetId);
-          delete this.targetIds[queryData!.targetId];
+
+          const targetId = queryData.targetId;
+          const memoryQueryData = this.targetIds[targetId];
+
+          this.localViewReferences.removeReferencesForId(targetId);
+          delete this.targetIds[targetId];
           if (this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData!);
+            return this.queryCache.removeQueryData(txn, queryData);
+          } else if (
+            memoryQueryData.snapshotVersion > queryData.snapshotVersion
+          ) {
+            // If we've been avoiding persisting the resumeToken (see
+            // shouldPersistResumeToken for conditions and rationale) we need to
+            // persist the token now because there will no longer be an
+            // in-memory version to fall back on.
+            return this.queryCache.updateQueryData(txn, memoryQueryData);
           } else {
             return PersistencePromise.resolve();
           }
