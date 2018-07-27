@@ -31,7 +31,9 @@ const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 const NO_LRU = 'no-lru';
+const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
+  BENCHMARK_TAG,
   EXCLUSIVE_TAG,
   PERSISTENCE_TAG,
   NO_WEB_TAG,
@@ -40,8 +42,8 @@ const KNOWN_TAGS = [
   NO_LRU
 ];
 
-const WEB_SPEC_TEST_FILTER = (tags: string[]) =>
-  tags.indexOf(NO_WEB_TAG) === -1;
+// TOOD(mrschmidt): Make this configurable with mocha options.
+const RUN_BENCHMARK_TESTS = false;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -125,7 +127,9 @@ export function specTest(
       let runner: Function;
       if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
         runner = it.only;
-      } else if (!WEB_SPEC_TEST_FILTER(tags)) {
+      } else if (tags.indexOf(NO_WEB_TAG) >= 0) {
+        runner = it.skip;
+      } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
         runner = it.skip;
       } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
         // spec should have a comment explaining why it is being skipped.
@@ -135,8 +139,14 @@ export function specTest(
       }
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
-      runner(fullName, () => {
-        return spec.runAsTest(fullName, usePersistence);
+      runner(fullName, async () => {
+        const start = Date.now();
+        await spec.runAsTest(fullName, usePersistence);
+        const end = Date.now();
+        if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+          // tslint:disable-next-line:no-console
+          console.log(`Runtime: ${end - start} ms.`);
+        }
       });
     }
   } else {
