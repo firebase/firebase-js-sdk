@@ -24,7 +24,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
 import { SimpleDbTransaction } from '../../../src/local/simple_db';
-import { documentKeySet, DocumentKeySet } from '../../../src/model/collections';
+import { documentKeySet } from '../../../src/model/collections';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
