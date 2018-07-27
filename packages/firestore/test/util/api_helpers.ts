@@ -46,7 +46,7 @@ export const FIRESTORE = new Firestore({
 });
 
 export function firestore(): Firestore {
-  FIRESTORE.settings({timestampsInSnapshots: true});
+  FIRESTORE.settings({ timestampsInSnapshots: true });
   return FIRESTORE;
 }
 

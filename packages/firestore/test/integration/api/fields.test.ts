@@ -382,7 +382,6 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
             .that.deep.equals(timestamp.toDate());
         });
     });
-
   });
 
   it('are returned as Timestamps', () => {
