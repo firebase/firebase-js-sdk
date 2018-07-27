@@ -126,7 +126,7 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward setNetworkEnabled calls', () => {
+  it('will forward onOnlineStateChange calls', () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
