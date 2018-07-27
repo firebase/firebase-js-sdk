@@ -30,22 +30,20 @@ const MULTI_CLIENT_TAG = 'multi-client';
 const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
-const NO_LRU = 'no-lru';
+const NO_LRU_TAG = 'no-lru';
+const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
+  BENCHMARK_TAG,
   EXCLUSIVE_TAG,
   MULTI_CLIENT_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
   NO_IOS_TAG,
-  NO_LRU
+  NO_LRU_TAG
 ];
 
-const WEB_SPEC_TEST_FILTER = (tags: string[], persistenceEnabled: boolean) => {
-  return (
-    tags.indexOf(NO_WEB_TAG) === -1 &&
-    (tags.indexOf(MULTI_CLIENT_TAG) === -1 || persistenceEnabled)
-  );
-};
+// TOOD(mrschmidt): Make this configurable with mocha options.
+const RUN_BENCHMARK_TESTS = false;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -78,10 +76,15 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
-  if (!WEB_SPEC_TEST_FILTER(tags, persistenceEnabled)) {
+  if (tags.indexOf(NO_WEB_TAG) >= 0) {
     return it.skip;
-  } else if (persistenceEnabled && tags.indexOf('no-lru') !== -1) {
+  } else if (persistenceEnabled && tags.indexOf(NO_LRU_TAG) !== -1) {
     // spec should have a comment explaining why it is being skipped.
+    return it.skip;
+  } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
+    // spec should have a comment explaining why it is being skipped.
+    return it.skip;
+  } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
     return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
     return it.only;
@@ -143,8 +146,14 @@ export function specTest(
       const runner = getTestRunner(tags, usePersistence);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
-      runner(fullName, () => {
-        return spec.runAsTest(fullName, usePersistence);
+      runner(fullName, async () => {
+        const start = Date.now();
+        await spec.runAsTest(fullName, usePersistence);
+        const end = Date.now();
+        if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+          // tslint:disable-next-line:no-console
+          console.log(`Runtime: ${end - start} ms.`);
+        }
       });
     }
   } else {
