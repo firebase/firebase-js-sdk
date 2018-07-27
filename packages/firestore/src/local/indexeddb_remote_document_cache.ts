@@ -37,12 +37,23 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore } from './simple_db';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { assert } from '../util/assert';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
   private lastReturnedDocumentChangesId = 0;
 
-  constructor(private serializer: LocalSerializer) {}
+  /**
+   * @param {LocalSerializer} serializer The document serializer.
+   * @param keepDocumentChangeLog Whether to keep a document change log in
+   * IndexedDb. This change log is required for Multi-Tab synchronization, but
+   * not needed in clients that don't share access to their remote document
+   * cache.
+   */
+  constructor(
+    private readonly serializer: LocalSerializer,
+    private readonly keepDocumentChangeLog: boolean
+  ) {}
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // If there are no existing changes, we set `lastReturnedDocumentChangesId`
@@ -77,11 +88,14 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         changedKeys = changedKeys.add(maybeDocument.key);
       }
 
-      promises.push(
-        documentChangesStore(transaction).put({
-          changes: this.serializer.toDbResourcePaths(changedKeys)
-        })
-      );
+      if (this.keepDocumentChangeLog) {
+        // TODO(multitab): GC the documentChanges store.
+        promises.push(
+          documentChangesStore(transaction).put({
+            changes: this.serializer.toDbResourcePaths(changedKeys)
+          })
+        );
+      }
     }
 
     return PersistencePromise.waitFor(promises);
@@ -134,6 +148,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocumentMap> {
+    assert(
+      this.keepDocumentChangeLog,
+      'Can only call getNewDocumentChanges() when document change log is enabled'
+    );
     let changedKeys = documentKeySet();
     let changedDocs = maybeDocumentMap();
 

@@ -440,15 +440,30 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   getMutationQueue(user: User): MutationQueue {
+    assert(
+      this.started,
+      'Cannot initialize MutationQueue before persistence is started.'
+    );
     return IndexedDbMutationQueue.forUser(user, this.serializer);
   }
 
   getQueryCache(): QueryCache {
+    assert(
+      this.started,
+      'Cannot initialize QueryCache before persistence is started.'
+    );
     return new IndexedDbQueryCache(this.serializer);
   }
 
   getRemoteDocumentCache(): RemoteDocumentCache {
-    return new IndexedDbRemoteDocumentCache(this.serializer);
+    assert(
+      this.started,
+      'Cannot initialize RemoteDocumentCache before persistence is started.'
+    );
+    return new IndexedDbRemoteDocumentCache(
+      this.serializer,
+      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+    );
   }
 
   runTransaction<T>(
