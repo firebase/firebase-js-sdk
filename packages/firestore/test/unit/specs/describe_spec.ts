@@ -82,7 +82,6 @@ function getTestRunner(tags, persistenceEnabled): Function {
     // spec should have a comment explaining why it is being skipped.
     return it.skip;
   } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
-    // spec should have a comment explaining why it is being skipped.
     return it.skip;
   } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
     return it.skip;
