@@ -112,6 +112,12 @@ export interface LocalWriteResult {
  */
 export class LocalStore {
   /**
+   * The maximum time to leave a resume token buffered without writing it
+   * out.
+   */
+  private static readonly MAX_RESUME_TOKEN_BUFFERING_MICROS = 5 * 60 * 1e6;
+
+  /**
    * The set of all mutations that have been sent but not yet been applied to
    * the backend.
    */
@@ -469,12 +475,22 @@ export class LocalStore {
           // any preexisting value.
           const resumeToken = change.resumeToken;
           if (resumeToken.length > 0) {
+            const oldQueryData = queryData;
             queryData = queryData.copy({
               resumeToken,
               snapshotVersion: remoteEvent.snapshotVersion
             });
             this.targetIds[targetId] = queryData;
-            promises.push(this.queryCache.updateQueryData(txn, queryData));
+
+            if (
+              LocalStore.shouldPersistResumeToken(
+                oldQueryData,
+                queryData,
+                change
+              )
+            ) {
+              promises.push(this.queryCache.updateQueryData(txn, queryData));
+            }
           }
         }
       );
@@ -548,6 +564,42 @@ export class LocalStore {
           );
         });
     });
+  }
+
+  /**
+   * Returns true if the the resume token in newQueryData should be persisted.
+   */
+  private static shouldPersistResumeToken(
+    oldQueryData: QueryData,
+    newQueryData: QueryData,
+    change: TargetChange
+  ): boolean {
+    // Avoid clearing any existing value
+    if (newQueryData.resumeToken.length === 0) return false;
+
+    // Any resume token is interesting if there isn't one already.
+    if (oldQueryData.resumeToken.length === 0) return true;
+
+    // Don't allow resume token changes to be buffered indefinitely. This
+    // allows us to be reasonably up-to-date after a crash and avoids needing
+    // to loop over all active queries on shutdown. Especially in the browser
+    // we may not get time to do anything interesting while the current tab is
+    // closing.
+    const timeDelta =
+      newQueryData.snapshotVersion.toMicroseconds() -
+      oldQueryData.snapshotVersion.toMicroseconds();
+    if (timeDelta >= this.MAX_RESUME_TOKEN_BUFFERING_MICROS) return true;
+
+    // Otherwise if the only thing that has changed about a target is its resume
+    // token it's not worth persisting. Note that the RemoteStore keeps an
+    // in-memory view of the currently active targets which includes the current
+    // resume token, so stream failure or user changes will still use an
+    // up-to-date resume token regardless of what we do here.
+    const changes =
+      change.addedDocuments.size +
+      change.modifiedDocuments.size +
+      change.removedDocuments.size;
+    return changes > 0;
   }
 
   /**
