@@ -22,7 +22,7 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
-import { ResourcePath } from '../model/path';
+import { Path, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { immediatePredecessor, primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
@@ -371,22 +371,18 @@ export class IndexedDbMutationQueue implements MutationQueue {
       return PersistencePromise.resolve([]);
     }
 
-    const minKey = DbDocumentMutation.prefixForPath(
+    const indexStart = DbDocumentMutation.prefixForPath(
       this.userId,
       documentKeys.first().path
     );
-    const maxKey = DbDocumentMutation.prefixForPath(
-      this.userId,
-      documentKeys.last().path
-    );
-    const keyRange = IDBKeyRange.bound(minKey, maxKey);
+    const keyRange = IDBKeyRange.lowerBound(indexStart);
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 
     return documentMutationsStore(transaction)
       .iterate({ range: keyRange }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;
         const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId) {
+        if (userID !== this.userId || Path.comparator(path, documentKeys.last().path) > 0) {
           control.done();
           return;
         }
