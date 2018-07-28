@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, orderBy, path } from '../../util/helpers';
+import { doc, filter, orderBy, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -233,6 +233,51 @@ describeSpec(
             .expectEvents(query, {})
             .userUnlistens(query)
             .watchRemoves(query);
+        }
+
+        return steps;
+      }
+    );
+
+    specTest(
+      'Process 25 target updates and wait for snapshot',
+      [],
+      () => {
+        const queriesPerStep = 25;
+
+        let currentVersion = 1;
+        let steps = spec().withGCEnabled(false);
+
+        for (let i = 1; i <= STEP_COUNT; ++i) {
+          const collPath = `collection/${i}/coll`;
+          const matchingDoc = doc(`${collPath}/${i}`, ++currentVersion, {
+            val: -1
+          });
+
+          const queries = [];
+
+          for (let j = 0; j < queriesPerStep; ++j) {
+            const query = Query.atPath(path(collPath)).addFilter(
+              filter('val', '<=', j)
+            );
+            queries.push(query);
+            steps = steps.userListens(query).watchAcks(query);
+          }
+
+          steps = steps
+            .watchSends({ affects: queries }, matchingDoc)
+            .watchSnapshots(++currentVersion);
+
+          for (const query of queries) {
+            steps = steps.expectEvents(query, {
+              added: [matchingDoc],
+              fromCache: true
+            });
+          }
+
+          for (const query of queries) {
+            steps = steps.userUnlistens(query).watchRemoves(query);
+          }
         }
 
         return steps;
