@@ -107,7 +107,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets: { [targetId: number]: QueryData } = {};
 
-  private networkEnabled = true;
+  private networkEnabled = false;
 
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
@@ -156,24 +156,24 @@ export class RemoteStore implements TargetMetadataProvider {
     // Load any saved stream token from persistent storage
     this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
-    await this.startStreamsIfNecessary();
+    await this.enableNetwork();
   }
 
   /** Re-enables the network. Idempotent. */
   async enableNetwork(): Promise<void> {
-    this.networkEnabled = true;
-    await this.startStreamsIfNecessary();
-  }
+    if (!this.networkEnabled) {
+      this.networkEnabled = true;
+      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
-  private async startStreamsIfNecessary(): Promise<void> {
-    if (this.shouldStartWatchStream()) {
-      this.startWatchStream();
-    } else {
-      this.onlineStateTracker.set(OnlineState.Unknown);
+      if (this.shouldStartWatchStream()) {
+        this.startWatchStream();
+      } else {
+        this.onlineStateTracker.set(OnlineState.Unknown);
+      }
+
+      // This will start the write stream if necessary.
+      await this.fillWritePipeline();
     }
-
-    // This will start the write stream if necessary.
-    await this.fillWritePipeline();
   }
 
   /**
@@ -181,35 +181,36 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
-    this.networkEnabled = false;
-    this.stopStreams();
+    await this.disableNetworkInternal();
 
     // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
   }
 
-  private stopStreams(): void {
-    if (this.writePipeline.length > 0) {
-      log.debug(
-        LOG_TAG,
-        'Stopping write stream with ' +
-          this.writePipeline.length +
-          ' pending writes'
-      );
-    }
+  private async disableNetworkInternal(): Promise<void> {
+    if (this.networkEnabled) {
+      this.networkEnabled = false;
 
-    // Temporarily set networkEnabled to false so that our close handling
-    // doesn't try to restart the streams, since we are explicitly closing them.
-    const networkEnabled = this.networkEnabled;
-    this.networkEnabled = false;
-    this.writeStream.stop();
-    this.watchStream.stop();
-    this.networkEnabled = networkEnabled;
+      this.writeStream.stop();
+      this.watchStream.stop();
+
+      if (this.writePipeline.length > 0) {
+        log.debug(
+          LOG_TAG,
+          'Stopping write stream with ' +
+            this.writePipeline.length +
+            ' pending writes'
+        );
+        this.writePipeline = [];
+      }
+
+      this.cleanUpWatchStreamState();
+    }
   }
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    this.stopStreams();
+    this.disableNetworkInternal();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
@@ -499,10 +500,13 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Returns true if we can add to the write pipeline (i.e. it is not full).
+   * Returns true if we can add to the write pipeline (i.e. the network is
+   * enabled and the write pipeline is not full).
    */
   private canAddToWritePipeline(): boolean {
-    return this.writePipeline.length < MAX_PENDING_WRITES;
+    return (
+      this.networkEnabled && this.writePipeline.length < MAX_PENDING_WRITES
+    );
   }
 
   // For testing
@@ -666,14 +670,13 @@ export class RemoteStore implements TargetMetadataProvider {
   async handleUserChange(user: User): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
-    // Stop the streams so we can then restart them and get a fresh auth token.
-    this.stopStreams();
-
-    // Clear the write pipeline and stream token since LocalStore switched to a
-    // new mutation queue.
-    this.writePipeline = [];
-    this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
-
-    await this.startStreamsIfNecessary();
+    if (this.networkEnabled) {
+      // Tear down and re-create our network streams. This will ensure we get a fresh auth token
+      // for the new user and re-fill the write pipeline with new mutations from the LocalStore
+      // (since mutations are per-user).
+      this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Unknown);
+      await this.enableNetwork();
+    }
   }
 }
