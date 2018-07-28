@@ -114,15 +114,7 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData).next(() => {
-      return this.retrieveMetadata(transaction).next(metadata => {
-        if (this.updateMetadataFromQueryData(queryData, metadata)) {
-          return this.saveMetadata(transaction, metadata);
-        } else {
-          return PersistencePromise.resolve();
-        }
-      });
-    });
+    return this.saveQueryData(transaction, queryData);
   }
 
   removeQueryData(
