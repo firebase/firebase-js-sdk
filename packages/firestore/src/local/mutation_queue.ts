@@ -147,7 +147,6 @@ export interface MutationQueue extends GarbageSource {
    * convenient.
    */
   // TODO(mcg): This should really return an enumerator
-  // also for b/32992024, all backing stores should really index by document key
   getAllMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
@@ -166,7 +165,6 @@ export interface MutationQueue extends GarbageSource {
    * convenient.
    */
   // TODO(mcg): This should really return an enumerator
-  // also for b/32992024, all backing stores should really index by document key
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet

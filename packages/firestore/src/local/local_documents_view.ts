@@ -58,11 +58,11 @@ export class LocalDocumentsView {
   ): PersistencePromise<MaybeDocument | null> {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKey(transaction, key)
-      .next(batches => this.getDocumentInBatches(transaction, key, batches));
+      .next(batches => this.getDocumentInternal(transaction, key, batches));
   }
 
   /** Internal version of `getDocument` that allows reusing batches. */
-  private getDocumentInBatches(
+  private getDocumentInternal(
     transaction: PersistenceTransaction,
     key: DocumentKey,
     inBatches: MutationBatch[]
@@ -92,7 +92,7 @@ export class LocalDocumentsView {
         let results = maybeDocumentMap();
         keys.forEach(key => {
           promises.push(
-            this.getDocumentInBatches(transaction, key, batches).next(
+            this.getDocumentInternal(transaction, key, batches).next(
               maybeDoc => {
                 // TODO(http://b/32275378): Don't conflate missing / deleted.
                 if (!maybeDoc) {
