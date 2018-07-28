@@ -1,7 +1,9 @@
 # Unreleased
-- [fixed] Fixed an issue where documents could be cached as deleted when
-  they should not have been, leading to queries returning fewer results than
-  they should (firebase/firebase-ios-sdk#1548).
+- [fixed] Fixed an issue where queries returned fewer results than they should,
+  caused by documents that were cached as deleted when they should not have
+  been (firebase/firebase-ios-sdk#1548). Because some cache data is cleared,
+  clients might use extra bandwidth the first time they launch with this
+  version of the SDK.
 - [feature] Added `firebase.firestore.FieldValue.arrayUnion()` and
   `firebase.firestore.FieldValue.arrayRemove()` to atomically add and remove
   elements from an array field in a document.
