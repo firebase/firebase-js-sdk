@@ -22,7 +22,7 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
-import { Path, ResourcePath } from '../model/path';
+import { ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { immediatePredecessor, primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
@@ -367,34 +367,40 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]> {
-    if (documentKeys.isEmpty()) {
-      return PersistencePromise.resolve([]);
-    }
-
-    const indexStart = DbDocumentMutation.prefixForPath(
-      this.userId,
-      documentKeys.first().path
-    );
-    const keyRange = IDBKeyRange.lowerBound(indexStart);
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 
-    return documentMutationsStore(transaction)
-      .iterate({ range: keyRange }, (indexKey, _, control) => {
+    const promises: Array<PersistencePromise<void>> = [];
+    documentKeys.forEach(documentKey => {
+      const indexStart = DbDocumentMutation.prefixForPath(
+        this.userId,
+        documentKey.path
+      );
+      const range = IDBKeyRange.lowerBound(indexStart);
+
+      const promise = documentMutationsStore(transaction)
+      .iterate({ range }, (indexKey, _, control) => {
         const [userID, encodedPath, batchID] = indexKey;
+
+        // Only consider rows matching exactly the specific key of
+        // interest. Note that because we order by path first, and we
+        // order terminators before path separators, we'll encounter all
+        // the index rows for documentKey contiguously. In particular, all
+        // the rows for documentKey will occur before any rows for
+        // documents nested in a subcollection beneath documentKey so we
+        // can stop as soon as we hit any such row.
         const path = EncodedResourcePath.decode(encodedPath);
-        if (
-          userID !== this.userId ||
-          Path.comparator(path, documentKeys.last().path) > 0
-        ) {
+        if (userID !== this.userId || !documentKey.path.isEqual(path)) {
           control.done();
           return;
         }
 
-        if (!documentKeys.has(new DocumentKey(path))) {
-          return;
-        }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
-      })
+      });
+
+      promises.push(promise);
+    });
+
+    return PersistencePromise.waitFor(promises)
       .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
   }
 
