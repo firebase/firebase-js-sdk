@@ -257,17 +257,18 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<MutationBatch[]> {
-    if (documentKeys.isEmpty()) {
-      return PersistencePromise.resolve([]);
-    }
-    const start = new DocReference(documentKeys.first(), 0);
-    const end = new DocReference(documentKeys.last(), Number.POSITIVE_INFINITY);
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 
-    this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-      if (documentKeys.has(ref.key)) {
+    documentKeys.forEach(documentKey => {
+      const start = new DocReference(documentKey, 0);
+      const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
+      this.batchesByDocumentKey.forEachInRange([start, end], ref => {
+        if (!documentKey.isEqual(ref.key)) {
+          return;
+        }
+
         uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
-      }
+      });
     });
 
     return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
