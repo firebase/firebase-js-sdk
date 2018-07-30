@@ -132,11 +132,16 @@ export class TestQueryCache {
     });
   }
 
-  setTargetsMetadata(highestListenSequenceNumber:number, lastRemoteSnapshotVersion?: SnapshotVersion): Promise<void> {
-    return this.persistence.runTransaction(
-      'setTargetsMetadata',
-      true,
-      txn => this.cache.setTargetsMetadata(txn, highestListenSequenceNumber, lastRemoteSnapshotVersion)
+  setTargetsMetadata(
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
+  ): Promise<void> {
+    return this.persistence.runTransaction('setTargetsMetadata', true, txn =>
+      this.cache.setTargetsMetadata(
+        txn,
+        highestListenSequenceNumber,
+        lastRemoteSnapshotVersion
+      )
     );
   }
 }

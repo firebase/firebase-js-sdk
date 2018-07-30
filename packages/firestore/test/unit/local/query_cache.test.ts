@@ -332,7 +332,7 @@ function genericQueryCacheTests(): void {
 
     // Can set the snapshot version.
     return cache
-      .setTargetsMetadata(/* highestListenSequenceNumber= */0, version(42))
+      .setTargetsMetadata(/* highestListenSequenceNumber= */ 0, version(42))
       .then(async () => {
         expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
           version(42)

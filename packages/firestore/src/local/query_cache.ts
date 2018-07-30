@@ -59,9 +59,9 @@ export interface QueryCache extends GarbageSource {
    * @param lastRemoteSnapshotVersion The new snapshot version. Optional.
    */
   setTargetsMetadata(
-      transaction: PersistenceTransaction,
-      highestListenSequenceNumber: number,
-      lastRemoteSnapshotVersion?: SnapshotVersion
+    transaction: PersistenceTransaction,
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void>;
 
   /**

@@ -88,9 +88,9 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   setTargetsMetadata(
-      transaction: PersistenceTransaction,
-      highestListenSequenceNumber: number,
-      lastRemoteSnapshotVersion?: SnapshotVersion
+    transaction: PersistenceTransaction,
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
     return this.retrieveMetadata(transaction).next(metadata => {
       metadata.highestListenSequenceNumber = highestListenSequenceNumber;
