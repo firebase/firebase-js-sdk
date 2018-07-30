@@ -30,7 +30,6 @@ import {
   Direction,
   Filter,
   OrderBy,
-  Query,
   RelationOp
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
@@ -375,7 +374,7 @@ export function limboChanges(changes: {
 }
 
 export function localViewChanges(
-  query: Query,
+  targetId: TargetId,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
   if (!changes.added) changes.added = [];
@@ -390,7 +389,7 @@ export function localViewChanges(
     keyStr => (removedKeys = removedKeys.add(key(keyStr)))
   );
 
-  return new LocalViewChanges(query, addedKeys, removedKeys);
+  return new LocalViewChanges(targetId, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */
