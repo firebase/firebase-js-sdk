@@ -249,13 +249,17 @@ describeSpec(
         let steps = spec().withGCEnabled(false);
 
         for (let i = 1; i <= STEP_COUNT; ++i) {
+          // We use a different subcollection for each iteration to ensure
+          // that we use distinct and non-overlapping collection queries.
           const collPath = `collection/${i}/coll`;
-          const matchingDoc = doc(`${collPath}/${i}`, ++currentVersion, {
+          const matchingDoc = doc(`${collPath}/matches`, ++currentVersion, {
             val: -1
           });
 
           const queries = [];
 
+          // Create `queriesPerStep` listens, each against collPath but with a
+          // unique query constraint.
           for (let j = 0; j < queriesPerStep; ++j) {
             const query = Query.atPath(path(collPath)).addFilter(
               filter('val', '<=', j)
@@ -268,6 +272,7 @@ describeSpec(
             .watchSends({ affects: queries }, matchingDoc)
             .watchSnapshots(++currentVersion);
 
+          // Registers the snapshot expectations with the spec runner.
           for (const query of queries) {
             steps = steps.expectEvents(query, {
               added: [matchingDoc],
@@ -275,6 +280,7 @@ describeSpec(
             });
           }
 
+          // Unlisten and clean up the query.
           for (const query of queries) {
             steps = steps.userUnlistens(query).watchRemoves(query);
           }
