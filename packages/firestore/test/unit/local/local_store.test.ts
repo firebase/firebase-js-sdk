@@ -115,9 +115,9 @@ class LocalStoreTester {
   }
 
   afterViewChanges(viewChanges: LocalViewChanges): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.notifyLocalViewChanges([viewChanges]);
-    });
+    this.promiseChain = this.promiseChain.then(() =>
+      this.localStore.notifyLocalViewChanges([viewChanges])
+    );
     return this;
   }
 
@@ -786,14 +786,14 @@ function genericLocalStoreTests(
       .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 0, { foo: 'baz' }, { hasLocalMutations: true }))
-      .after(localViewChanges(query, { added: ['foo/bar', 'foo/baz'] }))
+      .after(localViewChanges(2, { added: ['foo/bar', 'foo/baz'] }))
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [], [2]))
       .after(docUpdateRemoteEvent(doc('foo/baz', 2, { foo: 'baz' }), [2]))
       .afterAcknowledgingMutation({ documentVersion: 2 })
       .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 2, { foo: 'baz' }))
-      .after(localViewChanges(query, { removed: ['foo/bar', 'foo/baz'] }))
+      .after(localViewChanges(2, { removed: ['foo/bar', 'foo/baz'] }))
       .afterReleasingQuery(query)
       .afterGC()
       .toNotContain('foo/bar')
