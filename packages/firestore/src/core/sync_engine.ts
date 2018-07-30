@@ -802,6 +802,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
                 newSnaps.push(viewChange.snapshot);
                 const docChanges = LocalViewChanges.fromSnapshot(
+                  queryView.targetId,
                   viewChange.snapshot
                 );
                 docChangesInAllViews.push(docChanges);
@@ -813,7 +814,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     await Promise.all(queriesProcessed);
     this.syncEngineListener.onWatchChange(newSnaps);
-    await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+    this.localStore.notifyLocalViewChanges(docChangesInAllViews);
     // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
       await this.localStore
