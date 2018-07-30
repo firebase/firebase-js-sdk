@@ -17,6 +17,7 @@
 import { Query } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { TargetId } from '../core/types';
 
 /**
  * A set of changes to what documents are currently in view and out of view for
@@ -26,11 +27,15 @@ import { documentKeySet, DocumentKeySet } from '../model/collections';
 export class LocalViewChanges {
   constructor(
     readonly query: Query,
+    readonly targetId: TargetId,
     readonly addedKeys: DocumentKeySet,
     readonly removedKeys: DocumentKeySet
   ) {}
 
-  static fromSnapshot(viewSnapshot: ViewSnapshot): LocalViewChanges {
+  static fromSnapshot(
+    targetId: TargetId,
+    viewSnapshot: ViewSnapshot
+  ): LocalViewChanges {
     let addedKeys = documentKeySet();
     let removedKeys = documentKeySet();
 
@@ -47,6 +52,11 @@ export class LocalViewChanges {
       }
     }
 
-    return new LocalViewChanges(viewSnapshot.query, addedKeys, removedKeys);
+    return new LocalViewChanges(
+      viewSnapshot.query,
+      targetId,
+      addedKeys,
+      removedKeys
+    );
   }
 }
