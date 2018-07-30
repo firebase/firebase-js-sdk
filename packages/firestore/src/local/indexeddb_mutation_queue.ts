@@ -576,10 +576,10 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return IndexedDbPersistence.getStore<DbDocumentMutationKey, DbDocumentMutation>(
-    txn,
-    DbDocumentMutation.store
-  );
+  return IndexedDbPersistence.getStore<
+    DbDocumentMutationKey,
+    DbDocumentMutation
+  >(txn, DbDocumentMutation.store);
 }
 
 /**
