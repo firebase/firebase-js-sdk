@@ -21,10 +21,10 @@ import 'firebase/storage';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const storage = app.storage();
-const davidRef = db.ref('users/david.png');
+const davidRef = storage.ref('users/david.png');
 
 // Upload a transparent 1x1 pixel image
-const task = davidDoc.putString('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+const task = davidRef.putString('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
 fromTask(task)
   .subscribe(snap => { console.log(snap.bytesTransferred); });
@@ -49,10 +49,10 @@ import 'firebase/storage';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const storage = app.storage();
-const davidRef = db.ref('users/david.png');
+const davidRef = storage.ref('users/david.png');
 
 // Upload a transparent 1x1 pixel image
-const task = davidDoc.putString('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+const task = davidRef.putString('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
 percentage(task)
   .subscribe(uploadProgress => { console.log(uploadProgress); });
@@ -81,7 +81,7 @@ const app = initializeApp({ /* config */ });
 const storage = app.storage();
 
 // Assume this exists
-const davidRef = storage.doc('users/david.png');
+const davidRef = storage.ref('users/david.png');
 
 getDownloadURL(davidRef)
   .subscribe(url => { console.log(url) });
@@ -108,7 +108,7 @@ const app = initializeApp({ /* config */ });
 const storage = app.storage();
 
 // Assume this exists
-const davidRef = storage.doc('users/david.png');
+const davidRef = storage.ref('users/david.png');
 
 getMetadata(davidRef)
   .subscribe(meta => { console.log(meta) });
@@ -133,7 +133,7 @@ import 'firebase/storage';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const storage = app.storage();
-const dataRef = storage.doc('users/david.json');
+const dataRef = storage.ref('users/david.json');
 
 const blob = new Blob(
   [JSON.stringify({ name: 'david'}, null, 2)], 
@@ -163,7 +163,7 @@ import 'firebase/storage';
 // Set up Firebase
 const app = initializeApp({ /* config */ });
 const storage = app.storage();
-const davidRef = storage.doc('users/david.png');
+const davidRef = storage.ref('users/david.png');
 
 const base64 = 'R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
