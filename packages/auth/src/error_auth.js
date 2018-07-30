@@ -147,6 +147,7 @@ fireauth.authenum.Error = {
   INVALID_PASSWORD: 'wrong-password',
   INVALID_PERSISTENCE: 'invalid-persistence-type',
   INVALID_PHONE_NUMBER: 'invalid-phone-number',
+  INVALID_PROVIDER_ID: 'invalid-provider-id',
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
@@ -294,6 +295,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PHONE_NUMBER] =
     'phone number in a format that can be parsed into E.164 format. E.164 ' +
     'phone numbers are written in the format [+][country code][subscriber ' +
     'number including area code].';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PROVIDER_ID] =
+    'The specified provider ID is invalid.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_RECIPIENT_EMAIL] =
     'The email corresponding to this action failed to send as the provided ' +
     'recipient email address is invalid.';
