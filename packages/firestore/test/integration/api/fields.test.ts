@@ -24,6 +24,8 @@ import {
   withTestCollectionSettings,
   withTestDoc
 } from '../util/helpers';
+import * as log from '../../../src/util/log';
+import { LogLevel } from '../../../src/util/log';
 
 const FieldPath = firebase.firestore.FieldPath;
 const Timestamp = firebase.firestore.Timestamp;
@@ -349,12 +351,18 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
   };
 
   it('are returned as native dates if timestampsInSnapshots is not set', () => {
+    // Avoid the verbose log message triggered by timestampsInSnapshots ==
+    // false.
+    const logLevel = log.getLogLevel();
+    log.setLogLevel(LogLevel.SILENT);
+
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
 
     const timestamp = new Timestamp(100, 123456789);
     const testDocs = { a: testDataWithTimestamps(timestamp) };
     return withTestCollectionSettings(persistence, settings, testDocs, coll => {
+      log.setLogLevel(logLevel);
       return coll
         .doc('a')
         .get()
@@ -411,6 +419,9 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
   });
 
   it('timestampsInSnapshots affects server timestamps', () => {
+    const logLevel = log.getLogLevel();
+    log.setLogLevel(LogLevel.SILENT);
+
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
     const testDocs = {
@@ -418,6 +429,7 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     };
 
     return withTestCollectionSettings(persistence, settings, testDocs, coll => {
+      log.setLogLevel(logLevel);
       return coll
         .doc('a')
         .get()
