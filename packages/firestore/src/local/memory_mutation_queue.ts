@@ -27,9 +27,9 @@ import { SortedSet } from '../util/sorted_set';
 
 import { GarbageCollector } from './garbage_collector';
 import { MutationQueue } from './mutation_queue';
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { PersistenceTransaction } from './persistence';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

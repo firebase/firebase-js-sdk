@@ -25,10 +25,7 @@ import {
   IndexedDbTransaction
 } from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import {
   BATCHID_UNKNOWN,
   MutationBatch

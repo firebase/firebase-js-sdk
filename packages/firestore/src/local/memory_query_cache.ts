@@ -22,12 +22,12 @@ import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
 import { GarbageCollector } from './garbage_collector';
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { assert } from '../util/assert';
-import { PersistenceTransaction } from './persistence';
 
 export class MemoryQueryCache implements QueryCache {
   /**

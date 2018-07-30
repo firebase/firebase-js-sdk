@@ -34,12 +34,12 @@ import {
   DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { SimpleDb, SimpleDbStore } from './simple_db';
 import { IndexedDbTransaction } from './indexeddb_persistence';
-import { PersistenceTransaction } from './persistence';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
