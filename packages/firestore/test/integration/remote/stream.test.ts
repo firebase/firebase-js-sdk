@@ -134,20 +134,20 @@ describe('Watch Stream', () => {
   });
 
   /**
-   * Verifies that the watch stream does not issue an onClose callback after a
+   * Verifies that the watch stream issues an onClose callback after a
    * call to stop().
    */
   it('can be stopped before handshake', () => {
     let watchStream: PersistentListenStream;
 
     return withTestDatastore(ds => {
-      watchStream = ds.newPersistentWatchStream();
-      watchStream.start(streamListener);
+      watchStream = ds.newPersistentWatchStream(streamListener);
+      watchStream.start();
 
       return streamListener.awaitCallback('open').then(() => {
-        // Stop must not call onClose because the full implementation of the callback could
-        // attempt to restart the stream in the event it had pending watches.
         watchStream.stop();
+
+        return streamListener.awaitCallback('close');
       });
     });
   });
@@ -183,22 +183,20 @@ describe('Write Stream', () => {
   });
 
   /**
-   * Verifies that the write stream does not issue an onClose callback after a
-   * call to stop().
+   * Verifies that the write stream issues an onClose callback after a call to
+   * stop().
    */
   it('can be stopped before handshake', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream();
-      writeStream.start(streamListener);
+      writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream.start();
       return streamListener.awaitCallback('open');
     }).then(() => {
-      // Don't start the handshake.
-
-      // Stop must not call onClose because the full implementation of the callback could
-      // attempt to restart the stream in the event it had pending writes.
       writeStream.stop();
+
+      return streamListener.awaitCallback('close');
     });
   });
 
@@ -206,8 +204,8 @@ describe('Write Stream', () => {
     let writeStream: PersistentWriteStream;
 
     return withTestDatastore(ds => {
-      writeStream = ds.newPersistentWriteStream();
-      writeStream.start(streamListener);
+      writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream.start();
       return streamListener.awaitCallback('open');
     })
       .then(() => {
@@ -225,6 +223,8 @@ describe('Write Stream', () => {
       })
       .then(() => {
         writeStream.stop();
+
+        return streamListener.awaitCallback('close');
       });
   });
 
@@ -232,8 +232,8 @@ describe('Write Stream', () => {
     const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream();
-      writeStream.start(streamListener);
+      const writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream.start();
       return streamListener
         .awaitCallback('open')
         .then(() => {
@@ -259,8 +259,8 @@ describe('Write Stream', () => {
     const queue = new AsyncQueue();
 
     return withTestDatastore(ds => {
-      const writeStream = ds.newPersistentWriteStream();
-      writeStream.start(streamListener);
+      const writeStream = ds.newPersistentWriteStream(streamListener);
+      writeStream.start();
       return streamListener
         .awaitCallback('open')
         .then(() => {
@@ -288,8 +288,8 @@ describe('Write Stream', () => {
 
     return withTestDatastore(
       ds => {
-        const writeStream = ds.newPersistentWriteStream();
-        writeStream.start(streamListener);
+        const writeStream = ds.newPersistentWriteStream(streamListener);
+        writeStream.start();
         return streamListener
           .awaitCallback('open')
           .then(() => {
@@ -301,7 +301,7 @@ describe('Write Stream', () => {
             return streamListener.awaitCallback('close');
           })
           .then(() => {
-            writeStream.start(streamListener);
+            writeStream.start();
             return streamListener.awaitCallback('open');
           })
           .then(() => {
@@ -312,7 +312,7 @@ describe('Write Stream', () => {
             return streamListener.awaitCallback('close');
           })
           .then(() => {
-            writeStream.start(streamListener);
+            writeStream.start();
             return streamListener.awaitCallback('open');
           })
           .then(() => {
