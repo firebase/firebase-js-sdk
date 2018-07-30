@@ -605,10 +605,7 @@ export class LocalStore {
                 ' < ' +
                 lastRemoteVersion
             );
-            return this.queryCache.setLastRemoteSnapshotVersion(
-              txn,
-              remoteVersion
-            );
+            return this.queryCache.setTargetsMetadata(txn, /*highestSequenceNumber=*/0, remoteVersion);
           });
         promises.push(updateRemoteVersion);
       }

@@ -87,12 +87,16 @@ export class IndexedDbQueryCache implements QueryCache {
     });
   }
 
-  setLastRemoteSnapshotVersion(
-    transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+  setTargetsMetadata(
+      transaction: PersistenceTransaction,
+      highestListenSequenceNumber: number,
+      lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
     return this.retrieveMetadata(transaction).next(metadata => {
-      metadata.lastRemoteSnapshotVersion = snapshotVersion.toTimestamp();
+      metadata.highestListenSequenceNumber = highestListenSequenceNumber;
+      if (lastRemoteSnapshotVersion) {
+        metadata.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion.toTimestamp();
+      }
       return this.saveMetadata(transaction, metadata);
     });
   }
