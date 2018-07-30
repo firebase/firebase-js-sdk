@@ -20,10 +20,7 @@ import { Query } from '../../../src/core/query';
 import { BatchId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
-import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from '../../../src/local/indexeddb_persistence';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
 import {
@@ -83,10 +80,10 @@ describe('IndexedDbMutationQueue', () => {
 
     function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
       return persistence.runTransaction('addDummyBatch', transaction => {
-        const store = (transaction as IndexedDbTransaction).simpleDbTransaction.store<
+        const store = IndexedDbPersistence.getStore<
           [string, number],
           DbMutationBatch
-        >(DbMutationBatch.store);
+        >(transaction, DbMutationBatch.store);
         const localWriteTime = Date.now();
         return store.put(
           new DbMutationBatch(userId, batchId, localWriteTime, [])
