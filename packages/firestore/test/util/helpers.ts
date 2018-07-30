@@ -30,7 +30,6 @@ import {
   Direction,
   Filter,
   OrderBy,
-  Query,
   RelationOp
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
