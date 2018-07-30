@@ -69,9 +69,8 @@ describe('IndexedDbMutationQueue', () => {
   describe('loadNextBatchIdFromDb', () => {
     function loadNextBatchId(): Promise<BatchId> {
       return persistence.runTransaction('loadNextBatchIdFromDb', txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(
-          txn as IndexedDbTransaction
-        ).next(batchId => {
+        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn)
+        .next(batchId => {
           return batchId;
         });
       });
@@ -117,9 +116,9 @@ describe('IndexedDbMutationQueue', () => {
  * Defines the set of tests to run against both mutation queue
  * implementations.
  */
-function genericMutationQueueTests<
-  TransactionType extends PersistenceTransaction
->(persistencePromise: () => Promise<Persistence>): void {
+function genericMutationQueueTests(
+  persistencePromise: () => Promise<Persistence>
+): void {
   addEqualityMatcher();
 
   let persistence: Persistence;

@@ -22,9 +22,10 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { PersistenceTransaction } from './persistence';
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();

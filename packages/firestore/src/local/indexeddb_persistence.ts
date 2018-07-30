@@ -197,9 +197,8 @@ export class IndexedDbPersistence implements Persistence {
       ALL_STORES,
       simpleDbTxn => {
         // Verify that we still have the owner lease as part of every transaction.
-        const txn = new IndexedDbTransaction(simpleDbTxn);
-        return this.ensureOwnerLease(txn.simpleDbTransaction).next(() =>
-          operation(txn)
+        return this.ensureOwnerLease(simpleDbTxn).next(() =>
+          operation(new IndexedDbTransaction(simpleDbTxn))
         );
       }
     );

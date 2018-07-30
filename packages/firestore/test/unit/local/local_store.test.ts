@@ -273,7 +273,7 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
 });
 
-function genericLocalStoreTests<TransactionType extends PersistenceTransaction>(
+function genericLocalStoreTests(
   getPersistence: () => Promise<Persistence>
 ): void {
   let persistence: Persistence;
