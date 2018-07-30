@@ -168,7 +168,8 @@ export abstract class PersistentStream<
   private state = PersistentStreamState.Initial;
   /**
    * A close count that's incremented every time the stream is closed; used by
-   * closeGuardedDispatcher() to invalidate callbacks that happen after close.
+   * getCloseGuardedDispatcher() to invalidate callbacks that happen after
+   * close.
    */
   private closeCount = 0;
 
@@ -397,7 +398,7 @@ export abstract class PersistentStream<
 
     this.state = PersistentStreamState.Starting;
 
-    const dispatchIfNotClosed = this.closeGuardedDispatcher(this.closeCount);
+    const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
     // TODO(mikelehen): Just use dispatchIfNotClosed, but see TODO below.
     const closeCount = this.closeCount;
@@ -433,7 +434,7 @@ export abstract class PersistentStream<
       'Trying to start stream in a non-starting state'
     );
 
-    const dispatchIfNotClosed = this.closeGuardedDispatcher(this.closeCount);
+    const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
     this.stream = this.startRpc(token);
     this.stream.onOpen(() => {
@@ -497,7 +498,7 @@ export abstract class PersistentStream<
    * us to turn auth / stream callbacks into no-ops if the stream is closed /
    * re-opened, etc.
    */
-  private closeGuardedDispatcher(
+  private getCloseGuardedDispatcher(
     startCloseCount: number
   ): (fn: () => Promise<void>) => void {
     return (fn: () => Promise<void>): void => {
@@ -507,7 +508,7 @@ export abstract class PersistentStream<
         } else {
           log.debug(
             LOG_TAG,
-            'stream callback skipped by closeGuardedDispatcher.'
+            'stream callback skipped by getCloseGuardedDispatcher.'
           );
           return Promise.resolve();
         }

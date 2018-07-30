@@ -153,9 +153,6 @@ export class RemoteStore implements TargetMetadataProvider {
    * LocalStore, etc.
    */
   async start(): Promise<void> {
-    // Load any saved stream token from persistent storage
-    this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
-
     await this.enableNetwork();
   }
 
@@ -197,9 +194,9 @@ export class RemoteStore implements TargetMetadataProvider {
       if (this.writePipeline.length > 0) {
         log.debug(
           LOG_TAG,
-          'Stopping write stream with ' +
-            this.writePipeline.length +
-            ' pending writes'
+          `Stopping write stream with ${
+            this.writePipeline.length
+          } pending writes`
         );
         this.writePipeline = [];
       }
