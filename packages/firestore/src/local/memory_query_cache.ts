@@ -69,11 +69,14 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(nextTargetId);
   }
 
-  setLastRemoteSnapshotVersion(
+  setTargetsMetadata(
     transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
-    this.lastRemoteSnapshotVersion = snapshotVersion;
+    if (lastRemoteSnapshotVersion) {
+      this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
+    }
     return PersistencePromise.resolve();
   }
 

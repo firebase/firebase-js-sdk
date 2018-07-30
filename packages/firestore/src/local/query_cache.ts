@@ -51,14 +51,17 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<SnapshotVersion>;
 
   /**
-   * Set the snapshot version representing the last consistent snapshot received
-   * from the backend. (see getLastRemoteSnapshotVersion() for more details).
+   * Set the highest listen sequence number and optionally updates the
+   * snapshot version of the last consistent snapshot received from the backend
+   * (see getLastRemoteSnapshotVersion() for more details).
    *
-   * @param snapshotVersion The new snapshot version.
+   * @param highestListenSequenceNumber The new maximum listen sequence number.
+   * @param lastRemoteSnapshotVersion The new snapshot version. Optional.
    */
-  setLastRemoteSnapshotVersion(
+  setTargetsMetadata(
     transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void>;
 
   /**

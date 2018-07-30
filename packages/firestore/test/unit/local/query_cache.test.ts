@@ -325,14 +325,14 @@ function genericQueryCacheTests(): void {
     expect(await otherCache.allocateTargetId()).to.deep.equal(50);
   });
 
-  it('can get / set lastRemoteSnapshotVersion', async () => {
+  it('can get / set targets metadata', async () => {
     expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
       SnapshotVersion.MIN
     );
 
     // Can set the snapshot version.
     return cache
-      .setLastRemoteSnapshotVersion(version(42))
+      .setTargetsMetadata(/* highestListenSequenceNumber= */ 0, version(42))
       .then(async () => {
         expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
           version(42)
