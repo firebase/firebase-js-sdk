@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AutoId } from '../util/misc';
@@ -38,7 +38,7 @@ import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -95,6 +95,17 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * owner lease immediately regardless of the current lease timestamp.
  */
 export class IndexedDbPersistence implements Persistence {
+  static getStore<Key extends IDBValidKey, Value>(
+    txn: PersistenceTransaction,
+    store: string
+  ): SimpleDbStore<Key, Value> {
+    if (txn instanceof IndexedDbTransaction) {
+      return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
+    } else {
+      fail('IndexedDbPersistence must use instances of IndexedDbTransaction');
+    }
+  }
+
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.

@@ -38,8 +38,8 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { SimpleDb, SimpleDbStore } from './simple_db';
-import { IndexedDbTransaction } from './indexeddb_persistence';
+import { SimpleDbStore } from './simple_db';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
@@ -338,8 +338,8 @@ export class IndexedDbQueryCache implements QueryCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return SimpleDb.getStore<DbTargetKey, DbTarget>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbTargetKey, DbTarget>(
+    txn,
     DbTarget.store
   );
 }
@@ -350,8 +350,8 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
+    txn,
     DbTargetGlobal.store
   );
 }
@@ -362,8 +362,8 @@ function globalTargetStore(
 function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return SimpleDb.getStore<DbTargetDocumentKey, DbTargetDocument>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(
+    txn,
     DbTargetDocument.store
   );
 }

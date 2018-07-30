@@ -40,8 +40,8 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDb, SimpleDbStore } from './simple_db';
-import { IndexedDbTransaction } from './indexeddb_persistence';
+import { SimpleDbStore } from './simple_db';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -564,8 +564,8 @@ function convertStreamToken(token: ProtoByteString): string {
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbMutationBatchKey, DbMutationBatch>(
+    txn,
     DbMutationBatch.store
   );
 }
@@ -576,8 +576,8 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbDocumentMutationKey, DbDocumentMutation>(
+    txn,
     DbDocumentMutation.store
   );
 }
@@ -588,8 +588,8 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
-    (txn as IndexedDbTransaction).simpleDbTransaction,
+  return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
+    txn,
     DbMutationQueue.store
   );
 }
