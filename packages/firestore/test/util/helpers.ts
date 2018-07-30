@@ -371,7 +371,6 @@ export function limboChanges(changes: {
 }
 
 export function localViewChanges(
-  query: Query,
   targetId: TargetId,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
@@ -387,7 +386,7 @@ export function localViewChanges(
     keyStr => (removedKeys = removedKeys.add(key(keyStr)))
   );
 
-  return new LocalViewChanges(query, targetId, addedKeys, removedKeys);
+  return new LocalViewChanges(targetId, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */

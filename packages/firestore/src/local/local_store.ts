@@ -554,11 +554,14 @@ export class LocalStore {
    * Notify local store of the changed views to locally pin documents.
    */
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): void {
-    for (const view of viewChanges) {
-      this.localViewReferences.addReferences(view.addedKeys, view.targetId);
+    for (const viewChange of viewChanges) {
+      this.localViewReferences.addReferences(
+        viewChange.addedKeys,
+        viewChange.targetId
+      );
       this.localViewReferences.removeReferences(
-        view.removedKeys,
-        view.targetId
+        viewChange.removedKeys,
+        viewChange.targetId
       );
     }
   }

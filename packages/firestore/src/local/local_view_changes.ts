@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { documentKeySet, DocumentKeySet } from '../model/collections';
 import { TargetId } from '../core/types';
@@ -26,7 +25,6 @@ import { TargetId } from '../core/types';
  */
 export class LocalViewChanges {
   constructor(
-    readonly query: Query,
     readonly targetId: TargetId,
     readonly addedKeys: DocumentKeySet,
     readonly removedKeys: DocumentKeySet
@@ -52,11 +50,6 @@ export class LocalViewChanges {
       }
     }
 
-    return new LocalViewChanges(
-      viewSnapshot.query,
-      targetId,
-      addedKeys,
-      removedKeys
-    );
+    return new LocalViewChanges(targetId, addedKeys, removedKeys);
   }
 }
