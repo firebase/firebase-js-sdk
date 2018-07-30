@@ -46,15 +46,16 @@ export const FIRESTORE = new Firestore({
 });
 
 export function firestore(): Firestore {
+  FIRESTORE.settings({ timestampsInSnapshots: true });
   return FIRESTORE;
 }
 
 export function collectionReference(path: string): CollectionReference {
-  return new CollectionReference(pathFrom(path), FIRESTORE);
+  return new CollectionReference(pathFrom(path), firestore());
 }
 
 export function documentReference(path: string): DocumentReference {
-  return new DocumentReference(key(path), FIRESTORE);
+  return new DocumentReference(key(path), firestore());
 }
 
 export function documentSnapshot(
@@ -64,18 +65,18 @@ export function documentSnapshot(
 ): DocumentSnapshot {
   if (data) {
     return new DocumentSnapshot(
-      FIRESTORE,
+      firestore(),
       key(path),
       doc(path, 1, data),
       fromCache
     );
   } else {
-    return new DocumentSnapshot(FIRESTORE, key(path), null, fromCache);
+    return new DocumentSnapshot(firestore(), key(path), null, fromCache);
   }
 }
 
 export function query(path: string): Query {
-  return new Query(InternalQuery.atPath(pathFrom(path)), FIRESTORE);
+  return new Query(InternalQuery.atPath(pathFrom(path)), firestore());
 }
 
 /**
@@ -121,5 +122,5 @@ export function querySnapshot(
     syncStateChanged,
     /* excludesMetadataChanges= */ false
   );
-  return new QuerySnapshot(FIRESTORE, query, viewSnapshot);
+  return new QuerySnapshot(firestore(), query, viewSnapshot);
 }
