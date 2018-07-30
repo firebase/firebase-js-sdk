@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import { initializeApp, database, app } from 'firebase';
 import { fromRef } from '../database/fromRef';
-import { list, ListenEvent } from '../database';
+import { list, ListenEvent, objectVal, listVal } from '../database';
 import { take, skip, switchMap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { auditTrail } from '../database/list/audit-trail';
@@ -607,6 +607,46 @@ describe('RxFire Database', () => {
       changes.subscribe(actions => {
         const data = actions.map(a => a.snapshot.val());
         expect(data).to.eql(items);
+        done();
+      });
+    });
+  });
+
+  describe('Data Mapping Functions', () => {
+    const items = [{ name: 'one' }, { name: 'two' }, { name: 'three' }].map(
+      item => ({ key: rando(), ...item })
+    );
+    const itemsObj = batch(items);
+
+    /**
+     * The `listVal` function should map a query to an array of objects
+     */
+    it('listVal should map a query to an array of objects', (done: MochaDone) => {
+      const itemRef = ref(rando());
+      const data = { testKey: { hello: 'world' } };
+      itemRef.set(data);
+
+      const obs = listVal<any>(itemRef, 'KEY').pipe(take(1));
+
+      obs.subscribe(val => {
+        expect(val).to.be.instanceOf(Array);
+        expect(val[0].KEY).to.equal('testKey');
+        expect(val[0].hello).to.equal('world');
+        done();
+      });
+    });
+
+    /**
+     * The `objectVal` function should map a query to its object val
+     */
+    it('objectVal should map a reference or query to its value', (done: MochaDone) => {
+      const itemRef = ref(rando());
+      itemRef.set(itemsObj);
+      const obs = objectVal(itemRef).pipe(take(1));
+
+      obs.subscribe(val => {
+        expect(val).to.be.instanceOf(Object);
+        expect(val).to.deep.equal(itemsObj);
         done();
       });
     });
