@@ -112,10 +112,13 @@ export interface LocalWriteResult {
  */
 export class LocalStore {
   /**
-   * The maximum time to leave a resume token buffered without writing it
-   * out.
+   * The maximum time to leave a resume token buffered without writing it out.
+   * This value is arbitrary: it's long enough to avoid several writes
+   * (possibly indefinitely if updates come more frequently than this) but
+   * short enough that restarting after crashing will still have a pretty
+   * recent resume token.
    */
-  private static readonly MAX_RESUME_TOKEN_BUFFERING_MICROS = 5 * 60 * 1e6;
+  private static readonly RESUME_TOKEN_MAX_AGE_MICROS = 5 * 60 * 1e6;
 
   /**
    * The set of all mutations that have been sent but not yet been applied to
@@ -483,11 +486,7 @@ export class LocalStore {
             this.targetIds[targetId] = queryData;
 
             if (
-              LocalStore.shouldPersistResumeToken(
-                oldQueryData,
-                queryData,
-                change
-              )
+              LocalStore.shouldPersistQueryData(oldQueryData, queryData, change)
             ) {
               promises.push(this.queryCache.updateQueryData(txn, queryData));
             }
@@ -567,9 +566,17 @@ export class LocalStore {
   }
 
   /**
-   * Returns true if the the resume token in newQueryData should be persisted.
+   * Returns true if the newQueryData should be persisted during an update of
+   * an active target. QueryData should always be persisted when a target is
+   * being released and should not call this function.
+   *
+   * While the target is active, QueryData updates can be omitted when nothing
+   * about the target has changed except metadata like the resume token or
+   * snapshot version. Occasionally it's worth the extra write to prevent these
+   * values from getting too stale after a crash, but this doesn't have to be
+   * too frequent.
    */
-  private static shouldPersistResumeToken(
+  private static shouldPersistQueryData(
     oldQueryData: QueryData,
     newQueryData: QueryData,
     change: TargetChange
@@ -588,7 +595,7 @@ export class LocalStore {
     const timeDelta =
       newQueryData.snapshotVersion.toMicroseconds() -
       oldQueryData.snapshotVersion.toMicroseconds();
-    if (timeDelta >= this.MAX_RESUME_TOKEN_BUFFERING_MICROS) return true;
+    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) return true;
 
     // Otherwise if the only thing that has changed about a target is its resume
     // token it's not worth persisting. Note that the RemoteStore keeps an
@@ -703,21 +710,21 @@ export class LocalStore {
             'Tried to release nonexistent query: ' + query
           );
 
-          const targetId = queryData.targetId;
-          const memoryQueryData = this.targetIds[targetId];
+          const targetId = queryData!.targetId;
+          const cachedQueryData = this.targetIds[targetId];
 
           this.localViewReferences.removeReferencesForId(targetId);
           delete this.targetIds[targetId];
           if (this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData);
+            return this.queryCache.removeQueryData(txn, queryData!);
           } else if (
-            memoryQueryData.snapshotVersion > queryData.snapshotVersion
+            cachedQueryData.snapshotVersion > queryData!.snapshotVersion
           ) {
             // If we've been avoiding persisting the resumeToken (see
-            // shouldPersistResumeToken for conditions and rationale) we need to
+            // shouldPersistQueryData for conditions and rationale) we need to
             // persist the token now because there will no longer be an
             // in-memory version to fall back on.
-            return this.queryCache.updateQueryData(txn, memoryQueryData);
+            return this.queryCache.updateQueryData(txn, cachedQueryData);
           } else {
             return PersistencePromise.resolve();
           }

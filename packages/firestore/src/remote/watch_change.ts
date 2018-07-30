@@ -297,7 +297,7 @@ export class WatchChangeAggregator {
 
   /** Processes and adds the WatchTargetChange to the current set of changes. */
   handleTargetChange(targetChange: WatchTargetChange): void {
-    this.forEachTargetId(targetChange, targetId => {
+    this.forEachTarget(targetChange, targetId => {
       const targetState = this.ensureTargetState(targetId);
       switch (targetChange.state) {
         case WatchTargetChangeState.NoChange:
@@ -357,16 +357,14 @@ export class WatchChangeAggregator {
    * targetIds explicitly listed in the change or the targetIds of all currently
    * active targets.
    */
-  forEachTargetId(
+  forEachTarget(
     targetChange: WatchTargetChange,
     fn: (targetId: TargetId) => void
   ): void {
     if (targetChange.targetIds.length > 0) {
       targetChange.targetIds.forEach(fn);
     } else {
-      objUtils.forEachNumber(this.targetStates, (targetId, _) => {
-        fn(targetId);
-      });
+      objUtils.forEachNumber(this.targetStates, fn);
     }
   }
 
