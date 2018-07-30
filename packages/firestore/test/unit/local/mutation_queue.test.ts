@@ -44,8 +44,16 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
+let persistence: Persistence;
+let mutationQueue: TestMutationQueue;
 describe('MemoryMutationQueue', () => {
-  genericMutationQueueTests(persistenceHelpers.testMemoryPersistence);
+  beforeEach(() => {
+    return persistenceHelpers.testMemoryPersistence().then(p => {
+      persistence = p;
+    });
+  });
+
+  genericMutationQueueTests();
 });
 
 describe('IndexedDbMutationQueue', () => {
@@ -54,14 +62,13 @@ describe('IndexedDbMutationQueue', () => {
     return;
   }
 
-  let persistencePromise: Promise<Persistence>;
-  let persistence: Persistence;
-  beforeEach(async () => {
-    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
-    persistence = await persistencePromise;
+  beforeEach(() => {
+    return persistenceHelpers.testIndexedDbPersistence().then(p => {
+      persistence = p;
+    });
   });
 
-  genericMutationQueueTests(() => persistencePromise);
+  genericMutationQueueTests();
 
   describe('loadNextBatchIdFromDb', () => {
     function loadNextBatchId(): Promise<BatchId> {
@@ -114,15 +121,10 @@ describe('IndexedDbMutationQueue', () => {
  * Defines the set of tests to run against both mutation queue
  * implementations.
  */
-function genericMutationQueueTests(
-  persistencePromise: () => Promise<Persistence>
-): void {
+function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
-  let persistence: Persistence;
-  let mutationQueue: TestMutationQueue;
   beforeEach(async () => {
-    persistence = await persistencePromise();
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))

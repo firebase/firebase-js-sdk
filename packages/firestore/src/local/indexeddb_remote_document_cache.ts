@@ -22,10 +22,10 @@ import { DocumentKey } from '../model/document_key';
 import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
 import { IndexedDbTransaction } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore } from './simple_db';
-import { PersistenceTransaction } from './persistence';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   constructor(private serializer: LocalSerializer) {}
