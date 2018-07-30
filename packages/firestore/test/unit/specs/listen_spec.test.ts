@@ -141,6 +141,19 @@ describeSpec('Listens:', [], () => {
     }
   );
 
+  specTest("Doesn't raise events for non-active target", [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .userUnlistens(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+      );
+  });
+
   // It can happen that we need to process watch messages for previously failed
   // targets, because target failures are handled out of band.
   // This test verifies that the code does not crash in this case.

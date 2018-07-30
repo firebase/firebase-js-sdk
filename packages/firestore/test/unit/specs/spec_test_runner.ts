@@ -601,10 +601,12 @@ abstract class TestRunner {
       // with a server-side removal), but we want to pay extra careful
       // attention in tests that we only remove targets we listened too.
       removed.targetIds.forEach(targetId => {
-        expect(
-          this.connection.activeTargets[targetId],
-          'Removing a non-active target'
-        ).to.exist;
+        if (this.expectedActiveTargets[targetId]) {
+          expect(
+            this.connection.activeTargets[targetId],
+            'Removing a non-active target'
+          ).to.exist;
+        }
         delete this.connection.activeTargets[targetId];
       });
     }
