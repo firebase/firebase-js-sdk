@@ -598,6 +598,7 @@ export class SyncEngine implements RemoteSyncer {
               if (viewChange.snapshot) {
                 newSnaps.push(viewChange.snapshot);
                 const docChanges = LocalViewChanges.fromSnapshot(
+                  queryView.targetId,
                   viewChange.snapshot
                 );
                 docChangesInAllViews.push(docChanges);
@@ -607,14 +608,11 @@ export class SyncEngine implements RemoteSyncer {
       );
     });
 
-    return Promise.all(queriesProcessed)
-      .then(() => {
-        this.viewHandler!(newSnaps);
-        return this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-      })
-      .then(() => {
-        return this.localStore.collectGarbage();
-      });
+    return Promise.all(queriesProcessed).then(() => {
+      this.viewHandler!(newSnaps);
+      this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+      return this.localStore.collectGarbage();
+    });
   }
 
   private assertSubscribed(fnName: string): void {
