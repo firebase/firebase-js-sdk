@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, orderBy, path } from '../../util/helpers';
+import { doc, filter, orderBy, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -238,5 +238,52 @@ describeSpec(
         return steps;
       }
     );
+
+    specTest('Process 25 target updates and wait for snapshot', [], () => {
+      const queriesPerStep = 25;
+
+      let currentVersion = 1;
+      let steps = spec().withGCEnabled(false);
+
+      for (let i = 1; i <= STEP_COUNT; ++i) {
+        // We use a different subcollection for each iteration to ensure
+        // that we use distinct and non-overlapping collection queries.
+        const collPath = `collection/${i}/coll`;
+        const matchingDoc = doc(`${collPath}/matches`, ++currentVersion, {
+          val: -1
+        });
+
+        const queries = [];
+
+        // Create `queriesPerStep` listens, each against collPath but with a
+        // unique query constraint.
+        for (let j = 0; j < queriesPerStep; ++j) {
+          const query = Query.atPath(path(collPath)).addFilter(
+            filter('val', '<=', j)
+          );
+          queries.push(query);
+          steps = steps.userListens(query).watchAcks(query);
+        }
+
+        steps = steps
+          .watchSends({ affects: queries }, matchingDoc)
+          .watchSnapshots(++currentVersion);
+
+        // Registers the snapshot expectations with the spec runner.
+        for (const query of queries) {
+          steps = steps.expectEvents(query, {
+            added: [matchingDoc],
+            fromCache: true
+          });
+        }
+
+        // Unlisten and clean up the query.
+        for (const query of queries) {
+          steps = steps.userUnlistens(query).watchRemoves(query);
+        }
+      }
+
+      return steps;
+    });
   }
 );
