@@ -143,6 +143,20 @@ export abstract class Path {
     return true;
   }
 
+  isImmediateParentOf(potentialChild: this): boolean {
+    if (this.length + 1 !== potentialChild.length) {
+      return false;
+    }
+
+    for (let i = 0; i < this.length; i++) {
+      if (this.get(i) !== potentialChild.get(i)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   forEach(fn: (segment: string) => void): void {
     for (let i = this.offset, end = this.limit(); i < end; i++) {
       fn(this.segments[i]);

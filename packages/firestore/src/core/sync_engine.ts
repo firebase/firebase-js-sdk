@@ -45,6 +45,7 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
+<<<<<<< HEAD
 import {
   BatchId,
   MutationBatchState,
@@ -53,6 +54,9 @@ import {
   ProtoByteString,
   TargetId
 } from './types';
+=======
+import { BatchId, OnlineState, TargetId } from './types';
+>>>>>>> master
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -88,12 +92,6 @@ class QueryView {
      * stream to identify this query.
      */
     public targetId: TargetId,
-    /**
-     * An identifier from the datastore backend that indicates the last state
-     * of the results that was received. This can be used to indicate where
-     * to continue receiving new doc changes for the query.
-     */
-    public resumeToken: ProtoByteString,
     /**
      * The view is responsible for computing the final merged truth of what
      * docs are in the query. It gets notified of local and remote changes,
@@ -274,6 +272,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             'applyChanges for new view should always return a snapshot'
           );
 
+<<<<<<< HEAD
           const data = new QueryView(
             query,
             queryData.targetId,
@@ -310,6 +309,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             );
           }
           return viewSnapshot;
+=======
+              const data = new QueryView(query, queryData.targetId, view);
+              this.queryViewsByQuery.set(query, data);
+              this.queryViewsByTarget[queryData.targetId] = data;
+              this.viewHandler!([viewChange.snapshot!]);
+              this.remoteStore.listen(queryData);
+            });
+        })
+        .then(() => {
+          return queryData.targetId;
+>>>>>>> master
         });
     });
   }

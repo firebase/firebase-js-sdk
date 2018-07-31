@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
@@ -35,19 +35,26 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
+<<<<<<< HEAD
 import {
   Persistence,
   PersistenceTransaction,
   PrimaryStateListener
 } from './persistence';
+=======
+import { Persistence, PersistenceTransaction } from './persistence';
+>>>>>>> master
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+<<<<<<< HEAD
 import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
+=======
+>>>>>>> master
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -79,9 +86,17 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
   ' persistence has been disabled.';
 
+<<<<<<< HEAD
 // The format of the LocalStorage key that stores zombied client is:
 //     firestore_zombie_<persistence_prefix>_<instance_key>
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
+=======
+export class IndexedDbTransaction extends PersistenceTransaction {
+  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+    super();
+  }
+}
+>>>>>>> master
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -115,6 +130,17 @@ const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
  * TODO(multitab): Update this comment with multi-tab changes.
  */
 export class IndexedDbPersistence implements Persistence {
+  static getStore<Key extends IDBValidKey, Value>(
+    txn: PersistenceTransaction,
+    store: string
+  ): SimpleDbStore<Key, Value> {
+    if (txn instanceof IndexedDbTransaction) {
+      return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
+    } else {
+      fail('IndexedDbPersistence must use instances of IndexedDbTransaction');
+    }
+  }
+
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.
@@ -468,10 +494,14 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
+<<<<<<< HEAD
     requirePrimaryLease: boolean,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
+=======
+    operation: (transaction: IndexedDbTransaction) => PersistencePromise<T>
+>>>>>>> master
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
     // three different write modes (readonly, readwrite, readwrite_primary).
@@ -483,6 +513,7 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
+<<<<<<< HEAD
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       if (requirePrimaryLease) {
         // While we merely verify that we have (or can acquire) the lease
@@ -516,6 +547,18 @@ export class IndexedDbPersistence implements Persistence {
         );
       }
     });
+=======
+    return this.simpleDb.runTransaction(
+      'readwrite',
+      ALL_STORES,
+      simpleDbTxn => {
+        // Verify that we still have the owner lease as part of every transaction.
+        return this.ensureOwnerLease(simpleDbTxn).next(() =>
+          operation(new IndexedDbTransaction(simpleDbTxn))
+        );
+      }
+    );
+>>>>>>> master
   }
 
   /**
@@ -616,6 +659,7 @@ export class IndexedDbPersistence implements Persistence {
     return true;
   }
 
+<<<<<<< HEAD
   private attachVisibilityHandler(): void {
     if (
       this.document !== null &&
@@ -627,6 +671,27 @@ export class IndexedDbPersistence implements Persistence {
           return this.updateClientMetadataAndTryBecomePrimary();
         });
       };
+=======
+  /**
+   * Schedules a recurring timer to update the owner lease timestamp to prevent
+   * other tabs from taking the lease.
+   */
+  private scheduleOwnerLeaseRefreshes(): void {
+    // NOTE: This doesn't need to be scheduled on the async queue and doing so
+    // would increase the chances of us not refreshing on time if the queue is
+    // backed up for some reason.
+    this.ownerLeaseRefreshHandle = setInterval(() => {
+      const txResult = this.simpleDb.runTransaction(
+        'readwrite',
+        ALL_STORES,
+        txn => {
+          // NOTE: We don't need to validate the current owner contents, since
+          // runTransaction does that automatically.
+          const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+          return store.put('owner', new DbOwner(this.ownerId, Date.now()));
+        }
+      );
+>>>>>>> master
 
       this.document.addEventListener(
         'visibilitychange',

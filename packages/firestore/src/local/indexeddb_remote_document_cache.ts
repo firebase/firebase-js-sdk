@@ -25,19 +25,28 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
+<<<<<<< HEAD
 import {
   DbRemoteDocument,
   DbRemoteDocumentKey,
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey
 } from './indexeddb_schema';
+=======
+import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
+import { IndexedDbPersistence } from './indexeddb_persistence';
+>>>>>>> master
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+<<<<<<< HEAD
 import { SimpleDb, SimpleDbStore } from './simple_db';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
+=======
+import { SimpleDbStore } from './simple_db';
+>>>>>>> master
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
@@ -191,7 +200,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return IndexedDbPersistence.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
     DbRemoteDocument.store
   );

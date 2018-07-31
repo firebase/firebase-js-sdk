@@ -32,17 +32,8 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { MaybeDocumentMap } from '../../../src/model/collections';
 
-let persistence: Persistence;
-let cache: TestRemoteDocumentCache;
-
 describe('MemoryRemoteDocumentCache', () => {
-  beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
-      persistence = p;
-    });
-  });
-
-  genericRemoteDocumentCacheTests();
+  genericRemoteDocumentCacheTests(persistenceHelpers.testMemoryPersistence);
 });
 
 describe('IndexedDbRemoteDocumentCache', () => {
@@ -51,6 +42,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
+<<<<<<< HEAD
   beforeEach(() => {
     // We turn on `synchronizeTabs` to test the document change log.
     return persistenceHelpers
@@ -63,18 +55,26 @@ describe('IndexedDbRemoteDocumentCache', () => {
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   genericRemoteDocumentCacheTests();
+=======
+  genericRemoteDocumentCacheTests(persistenceHelpers.testIndexedDbPersistence);
+>>>>>>> master
 });
 
 /**
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests(): void {
+function genericRemoteDocumentCacheTests(
+  persistencePromise: () => Promise<Persistence>
+): void {
   // Helpers for use throughout tests.
   const DOC_PATH = 'a/b';
   const LONG_DOC_PATH = 'a/b/c/d/e/f';
   const DOC_DATA = { a: 1, b: 2 };
   const VERSION = 42;
+
+  let persistence: Persistence;
+  let cache: TestRemoteDocumentCache;
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
     return cache
@@ -87,6 +87,7 @@ function genericRemoteDocumentCacheTests(): void {
       });
   }
 
+<<<<<<< HEAD
   function assertMatches(
     expected: MaybeDocument[],
     actual: MaybeDocumentMap
@@ -106,6 +107,10 @@ function genericRemoteDocumentCacheTests(): void {
   }
 
   beforeEach(() => {
+=======
+  beforeEach(async () => {
+    persistence = await persistencePromise();
+>>>>>>> master
     cache = new TestRemoteDocumentCache(
       persistence,
       persistence.getRemoteDocumentCache()
@@ -113,6 +118,8 @@ function genericRemoteDocumentCacheTests(): void {
 
     return cache.start();
   });
+
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   it('returns null for document not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {
