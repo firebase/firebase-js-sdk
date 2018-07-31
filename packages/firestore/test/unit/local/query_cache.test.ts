@@ -97,7 +97,7 @@ function genericQueryCacheTests(
   });
 
   afterEach(async () => {
-    persistence.shutdown(/* deletaData= */ true);
+    persistence.shutdown(/* deleteData= */ true);
   });
 
   it('returns null for query not in cache', () => {
