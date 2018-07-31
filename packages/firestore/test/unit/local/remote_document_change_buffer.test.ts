@@ -16,7 +16,6 @@
 
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
@@ -24,7 +23,7 @@ import { testIndexedDbPersistence } from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { TestRemoteDocumentChangeBuffer } from './test_remote_document_change_buffer';
 
-let persistence: Persistence;
+let persistence: IndexedDbPersistence;
 let cache: TestRemoteDocumentCache;
 let buffer: TestRemoteDocumentChangeBuffer;
 const INITIAL_DOC = doc('coll/a', 42, { test: 'data' });

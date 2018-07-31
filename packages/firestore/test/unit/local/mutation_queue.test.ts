@@ -23,7 +23,6 @@ import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_qu
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
-import { SimpleDbTransaction } from '../../../src/local/simple_db';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
@@ -44,7 +43,6 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
-
 describe('MemoryMutationQueue', () => {
   beforeEach(() => {
     return persistenceHelpers.testMemoryPersistence().then(p => {
@@ -82,10 +80,10 @@ describe('IndexedDbMutationQueue', () => {
 
     function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
       return persistence.runTransaction('addDummyBatch', transaction => {
-        const txn = transaction as SimpleDbTransaction;
-        const store = txn.store<[string, number], DbMutationBatch>(
-          DbMutationBatch.store
-        );
+        const store = IndexedDbPersistence.getStore<
+          [string, number],
+          DbMutationBatch
+        >(transaction, DbMutationBatch.store);
         const localWriteTime = Date.now();
         return store.put(
           new DbMutationBatch(userId, batchId, localWriteTime, [])
@@ -123,7 +121,7 @@ describe('IndexedDbMutationQueue', () => {
 function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))
@@ -132,6 +130,58 @@ function genericMutationQueueTests(): void {
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
+
+  /**
+   * Creates a new MutationBatch with the next batch ID and a set of dummy
+   * mutations.
+   */
+  function addMutationBatch(key?: string): Promise<MutationBatch> {
+    let keyStr = key;
+    if (keyStr === undefined) {
+      keyStr = 'foo/bar';
+    }
+    const mutation = setMutation(keyStr, { a: 1 });
+    return mutationQueue.addMutationBatch([mutation]);
+  }
+
+  /**
+   * Creates an array of batches containing count dummy MutationBatches. Each
+   * has a different batchID.
+   */
+  async function createBatches(count: number): Promise<MutationBatch[]> {
+    const batches = [];
+    for (let i = 0; i < count; i++) {
+      const batch = await addMutationBatch();
+      batches.push(batch);
+    }
+    return batches;
+  }
+
+  /**
+   * Removes entries from from the given a batches and returns them.
+   *
+   * @param holes An array of indexes in the batches array; in increasing order.
+   * Indexes are relative to the original state of the batches array, not any
+   * intermediate state that might occur.
+   * @param batches The array to mutate, removing entries from it.
+   * @return A new array containing all the entries that were removed from
+   * batches.
+   */
+  async function makeHolesInBatches(
+    holes: number[],
+    batches: MutationBatch[]
+  ): Promise<MutationBatch[]> {
+    const removed = [];
+    for (let i = 0; i < holes.length; i++) {
+      const index = holes[i] - i;
+      const batch = batches[index];
+      await mutationQueue.removeMutationBatches([batch]);
+
+      batches.splice(index, 1);
+      removed.push(batch);
+    }
+    return removed;
+  }
 
   it('can count batches', async () => {
     expect(await mutationQueue.countBatches()).to.equal(0);
@@ -551,56 +601,4 @@ function genericMutationQueueTests(): void {
     expect(found.length).to.equal(0);
     expect(await mutationQueue.checkEmpty()).to.equal(true);
   });
-}
-
-/**
- * Creates a new MutationBatch with the next batch ID and a set of dummy
- * mutations.
- */
-function addMutationBatch(key?: string): Promise<MutationBatch> {
-  let keyStr = key;
-  if (keyStr === undefined) {
-    keyStr = 'foo/bar';
-  }
-  const mutation = setMutation(keyStr, { a: 1 });
-  return mutationQueue.addMutationBatch([mutation]);
-}
-
-/**
- * Creates an array of batches containing count dummy MutationBatches. Each
- * has a different batchID.
- */
-async function createBatches(count: number): Promise<MutationBatch[]> {
-  const batches = [];
-  for (let i = 0; i < count; i++) {
-    const batch = await addMutationBatch();
-    batches.push(batch);
-  }
-  return batches;
-}
-
-/**
- * Removes entries from from the given a batches and returns them.
- *
- * @param holes An array of indexes in the batches array; in increasing order.
- * Indexes are relative to the original state of the batches array, not any
- * intermediate state that might occur.
- * @param batches The array to mutate, removing entries from it.
- * @return A new array containing all the entries that were removed from
- * batches.
- */
-async function makeHolesInBatches(
-  holes: number[],
-  batches: MutationBatch[]
-): Promise<MutationBatch[]> {
-  const removed = [];
-  for (let i = 0; i < holes.length; i++) {
-    const index = holes[i] - i;
-    const batch = batches[index];
-    await mutationQueue.removeMutationBatches([batch]);
-
-    batches.splice(index, 1);
-    removed.push(batch);
-  }
-  return removed;
 }

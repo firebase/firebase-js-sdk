@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
-
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { Deferred } from '../util/promise';
-import { PersistenceTransaction } from './persistence';
 import { Code, FirestoreError } from '../util/error';
 
 const LOG_TAG = 'SimpleDb';
@@ -150,14 +148,10 @@ export class SimpleDb {
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
   static getStore<KeyType extends IDBValidKey, ValueType>(
-    txn: PersistenceTransaction,
+    txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
-    if (txn instanceof SimpleDbTransaction) {
-      return txn.store<KeyType, ValueType>(store);
-    } else {
-      return fail('Invalid transaction object provided!');
-    }
+    return txn.store<KeyType, ValueType>(store);
   }
 
   constructor(private db: IDBDatabase) {}
@@ -534,25 +528,19 @@ export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
   }
 
   private cursor(options: IterateOptions): IDBRequest {
-    let direction = 'next';
+    let direction: IDBCursorDirection = 'next';
     if (options.reverse) {
       direction = 'prev';
     }
     if (options.index) {
       const index = this.store.index(options.index);
       if (options.keysOnly) {
-        return index.openKeyCursor(
-          options.range,
-          direction as AnyDuringMigration
-        );
+        return index.openKeyCursor(options.range, direction);
       } else {
-        return index.openCursor(options.range, direction as AnyDuringMigration);
+        return index.openCursor(options.range, direction);
       }
     } else {
-      return this.store.openCursor(
-        options.range,
-        direction as AnyDuringMigration
-      );
+      return this.store.openCursor(options.range, direction);
     }
   }
 }
