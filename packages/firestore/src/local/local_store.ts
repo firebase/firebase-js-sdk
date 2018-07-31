@@ -553,29 +553,17 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
-    return this.persistence.runTransaction('Notify local view changes', txn => {
-      const promises = [] as Array<PersistencePromise<void>>;
-      for (const view of viewChanges) {
-        promises.push(
-          this.queryCache
-            .getQueryData(txn, view.query)
-            .next((queryData: QueryData | null) => {
-              assert(
-                queryData !== null,
-                'Local view changes contain unallocated query.'
-              );
-              const targetId = queryData!.targetId;
-              this.localViewReferences.addReferences(view.addedKeys, targetId);
-              this.localViewReferences.removeReferences(
-                view.removedKeys,
-                targetId
-              );
-            })
-        );
-      }
-      return PersistencePromise.waitFor(promises);
-    });
+  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): void {
+    for (const viewChange of viewChanges) {
+      this.localViewReferences.addReferences(
+        viewChange.addedKeys,
+        viewChange.targetId
+      );
+      this.localViewReferences.removeReferences(
+        viewChange.removedKeys,
+        viewChange.targetId
+      );
+    }
   }
 
   /**

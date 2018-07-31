@@ -117,7 +117,7 @@ function processDocumentChanges(
  * order of occurence.
  * @param query
  */
-export function docChanges(
+export function collectionChanges(
   query: firestore.Query,
   events: firestore.DocumentChangeType[] = ALL_EVENTS
 ) {
@@ -144,7 +144,7 @@ export function sortedChanges(
   query: firestore.Query,
   events?: firestore.DocumentChangeType[]
 ) {
-  return docChanges(query, events).pipe(
+  return collectionChanges(query, events).pipe(
     scan(
       (
         current: firestore.DocumentChange[],
@@ -163,7 +163,7 @@ export function auditTrail(
   query: firestore.Query,
   events?: firestore.DocumentChangeType[]
 ): Observable<firestore.DocumentChange[]> {
-  return docChanges(query, events).pipe(
+  return collectionChanges(query, events).pipe(
     scan((current, action) => [...current, ...action], [])
   );
 }
