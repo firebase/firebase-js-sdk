@@ -494,17 +494,11 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-<<<<<<< HEAD
-    if (this.started) {
-      await this.doShutdown();
-    }
-=======
     await this.queue.enqueue(async () => {
-      await this.remoteStore.shutdown();
-      await this.persistence.shutdown(/* deleteData= */ true);
-      await this.destroyPersistence();
+      if (this.started) {
+        await this.doShutdown();
+      }
     });
->>>>>>> master
   }
 
   /** Runs a single SpecStep on this runner. */

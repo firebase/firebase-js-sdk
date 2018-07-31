@@ -76,9 +76,6 @@ const MAX_PENDING_WRITES = 10;
  * - pulling pending mutations from LocalStore and sending them to Datastore.
  * - retrying mutations that failed because of network problems.
  * - acking mutations to the SyncEngine once they are accepted or rejected.
- *
- * RemoteStore always starts out offline. A call to `enableNetwork()`
- * initializes the network connection.
  */
 export class RemoteStore implements TargetMetadataProvider {
   /**
@@ -111,19 +108,25 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets: { [targetId: number]: QueryData } = {};
 
-  private networkEnabled = false;
-
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
   private watchChangeAggregator: WatchChangeAggregator = null;
 
   /**
    * Set to true by enableNetwork() and false by disableNetwork() and indicates
-   * the user-preferred network state. A network connection is only established
-   * if `networkAllowed` is true, the client is primary and there are
-   * outstanding mutations or active listens.
+   * the user-preferred network state.
    */
-  private networkAllowed = true;
+  private networkEnabled = true;
+
+  /**
+   * Indicates whether the network can accept requests (as determined by both
+   * the `isPrimary` flag and the user specified `networkEnabled` flag). If
+   * the connection is already established, new requests will be send over the
+   * existing stream. If the stream has not yet been established, it will be
+   * established if there are outstanding requests.
+   */
+  private canUseNetwork = false;
+
   private isPrimary = false;
 
   private onlineStateTracker: OnlineStateTracker;
@@ -165,60 +168,28 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts up the remote store, creating streams, restoring state from
    * LocalStore, etc.
    */
-<<<<<<< HEAD
   start(): Promise<void> {
     // Start is a no-op for RemoteStore.
     return Promise.resolve();
   }
 
-  private isNetworkEnabled(): boolean {
-    assert(
-      (this.watchStream == null) === (this.writeStream == null),
-      'WatchStream and WriteStream should both be null or non-null'
-    );
-    return this.watchStream != null;
-=======
-  async start(): Promise<void> {
-    await this.enableNetwork();
->>>>>>> master
-  }
-
   /** Re-enables the network. Idempotent. */
   async enableNetwork(): Promise<void> {
-<<<<<<< HEAD
-    this.networkAllowed = true;
+    this.networkEnabled = true;
 
-    if (this.isPrimary) {
-      if (this.isNetworkEnabled()) {
-        return;
+    if (this.isPrimary && !this.canUseNetwork) {
+      this.canUseNetwork = true;
+
+      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
+
+      if (this.shouldStartWatchStream()) {
+        this.startWatchStream();
+      } else {
+        this.onlineStateTracker.set(OnlineState.Unknown);
       }
 
-      // Create new streams (but note they're not started yet).
-      this.watchStream = this.datastore.newPersistentWatchStream();
-      this.writeStream = this.datastore.newPersistentWriteStream();
-=======
-    if (!this.networkEnabled) {
-      this.networkEnabled = true;
-      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
->>>>>>> master
-
-      // Load any saved stream token from persistent storage
-      return this.localStore.getLastStreamToken().then(token => {
-        this.writeStream.lastStreamToken = token;
-
-<<<<<<< HEAD
-        if (this.shouldStartWatchStream()) {
-          this.startWatchStream();
-        } else {
-          this.onlineStateTracker.set(OnlineState.Unknown);
-        }
-
-        return this.fillWritePipeline(); // This may start the writeStream.
-      });
-=======
       // This will start the write stream if necessary.
       await this.fillWritePipeline();
->>>>>>> master
     }
   }
 
@@ -227,21 +198,16 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
-<<<<<<< HEAD
-    this.networkAllowed = false;
-
+    this.networkEnabled = false;
     this.disableNetworkInternal();
-=======
-    await this.disableNetworkInternal();
 
->>>>>>> master
     // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
   }
 
-  private async disableNetworkInternal(): Promise<void> {
-    if (this.networkEnabled) {
-      this.networkEnabled = false;
+  private disableNetworkInternal(): void {
+    if (this.canUseNetwork) {
+      this.canUseNetwork = false;
 
       this.writeStream.stop();
       this.watchStream.stop();
@@ -348,16 +314,10 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private shouldStartWatchStream(): boolean {
     return (
-      this.canUseNetwork() &&
+      this.canUseNetwork &&
       !this.watchStream.isStarted() &&
       !objUtils.isEmpty(this.listenTargets)
     );
-  }
-
-  private canUseNetwork(): boolean {
-    // TODO(mikelehen): This could take into account isPrimary when we merge
-    // with multitab.
-    return this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -555,7 +515,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private canAddToWritePipeline(): boolean {
     return (
-      this.networkEnabled && this.writePipeline.length < MAX_PENDING_WRITES
+      this.canUseNetwork && this.writePipeline.length < MAX_PENDING_WRITES
     );
   }
 
@@ -582,7 +542,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private shouldStartWriteStream(): boolean {
     return (
-      this.canUseNetwork() &&
+      this.canUseNetwork &&
       !this.writeStream.isStarted() &&
       this.writePipeline.length > 0
     );
@@ -755,9 +715,9 @@ export class RemoteStore implements TargetMetadataProvider {
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
 
-    if (isPrimary && this.networkAllowed) {
+    if (isPrimary && this.networkEnabled) {
       await this.enableNetwork();
-    } else if (!isPrimary && this.isNetworkEnabled()) {
+    } else if (!isPrimary) {
       this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
     }
