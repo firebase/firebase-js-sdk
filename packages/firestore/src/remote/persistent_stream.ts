@@ -64,21 +64,21 @@ export interface WriteRequest extends api.WriteRequest {
 enum PersistentStreamState {
   /**
    * The streaming RPC is not yet running and there's no error condition.
-   * Calling `start` will start the stream immediately without backoff.
-   * While in this state isStarted will return false.
+   * Calling start() will start the stream immediately without backoff.
+   * While in this state isStarted() will return false.
    */
   Initial,
 
   /**
    * The stream is starting, either waiting for an auth token or for the stream
-   * to successfully open. While in this state, isStarted will return true but
-   * isOpen will return false.
+   * to successfully open. While in this state, isStarted() will return true but
+   * isOpen() will return false.
    */
   Starting,
 
   /**
    * The streaming RPC is up and running. Requests and responses can flow
-   * freely. Both isStarted and isOpen will return true.
+   * freely. Both isStarted() and isOpen() will return true.
    */
   Open,
 
@@ -91,7 +91,7 @@ enum PersistentStreamState {
   /**
    * An in-between state after an error where the stream is waiting before
    * re-starting. After waiting is complete, the stream will try to open.
-   * While in this state isStarted() will return true but isOpen will return
+   * While in this state isStarted() will return true but isOpen() will return
    * false.
    */
   Backoff
@@ -144,12 +144,12 @@ const IDLE_TIMEOUT_MS = 60 * 1000;
  *
  * ## Starting and Stopping
  *
- * Streaming RPCs are stateful and need to be `start`ed before messages can
- * be sent and received. The PersistentStream will call the onOpen function
+ * Streaming RPCs are stateful and need to be start()ed before messages can
+ * be sent and received. The PersistentStream will call the onOpen() function
  * of the listener once the stream is ready to accept requests.
  *
- * Should a `start` fail, PersistentStream will call the registered
- * onClose with a FirestoreError indicating what went wrong.
+ * Should a start() fail, PersistentStream will call the registered onClose()
+ * listener with a FirestoreError indicating what went wrong.
  *
  * A PersistentStream can be started and stopped repeatedly.
  *
@@ -173,7 +173,7 @@ export abstract class PersistentStream<
    */
   private closeCount = 0;
 
-  private inactivityTimerPromise: CancelablePromise<void> | null = null;
+  private idleTimer: CancelablePromise<void> | null = null;
   private stream: Stream<SendType, ReceiveType> | null = null;
 
   protected backoff: ExponentialBackoff;
@@ -196,10 +196,10 @@ export abstract class PersistentStream<
   }
 
   /**
-   * Returns true if `start` has been called and no error has occurred. True
+   * Returns true if start() has been called and no error has occurred. True
    * indicates the stream is open or in the process of opening (which
    * encompasses respecting backoff, getting auth tokens, and starting the
-   * actual RPC). Use `isOpen` to determine if the stream is open and ready for
+   * actual RPC). Use isOpen() to determine if the stream is open and ready for
    * outbound requests.
    */
   isStarted(): boolean {
@@ -211,7 +211,7 @@ export abstract class PersistentStream<
   }
 
   /**
-   * Returns true if the underlying RPC is open (the onOpen callback has been
+   * Returns true if the underlying RPC is open (the onOpen() listener has been
    * called) and the stream is ready for outbound requests.
    */
   isOpen(): boolean {
@@ -219,11 +219,11 @@ export abstract class PersistentStream<
   }
 
   /**
-   * Starts the RPC. Only allowed if isStarted returns false. The stream is
-   * not immediately ready for use: onOpen will be invoked when the RPC is ready
-   * for outbound requests, at which point isOpen will return true.
+   * Starts the RPC. Only allowed if isStarted() returns false. The stream is
+   * not immediately ready for use: onOpen() will be invoked when the RPC is
+   * ready for outbound requests, at which point isOpen() will return true.
    *
-   * When start returns, isStarted will return true.
+   * When start returns, isStarted() will return true.
    */
   start(): void {
     if (this.state === PersistentStreamState.Error) {
@@ -237,9 +237,9 @@ export abstract class PersistentStream<
 
   /**
    * Stops the RPC. This call is idempotent and allowed regardless of the
-   * current isStarted state.
+   * current isStarted() state.
    *
-   * When stop returns, isStarted and isOpen will both return false.
+   * When stop returns, isStarted() and isOpen() will both return false.
    */
   stop(): void {
     if (this.isStarted()) {
@@ -252,7 +252,7 @@ export abstract class PersistentStream<
    * start it. If the error warrants an immediate restart of the stream, the
    * sender can use this to indicate that the receiver should not back off.
    *
-   * Each error will call the onClose function. That function can decide to
+   * Each error will call the onClose() listener. That function can decide to
    * inhibit backoff if required.
    */
   inhibitBackoff(): void {
@@ -275,8 +275,8 @@ export abstract class PersistentStream<
   markIdle(): void {
     // Starts the idle time if we are in state 'Open' and are not yet already
     // running a timer (in which case the previous idle timeout still applies).
-    if (this.isOpen() && this.inactivityTimerPromise === null) {
-      this.inactivityTimerPromise = this.queue.enqueueAfterDelay(
+    if (this.isOpen() && this.idleTimer === null) {
+      this.idleTimer = this.queue.enqueueAfterDelay(
         this.idleTimerId,
         IDLE_TIMEOUT_MS,
         () => this.handleIdleCloseTimer()
@@ -301,9 +301,9 @@ export abstract class PersistentStream<
 
   /** Marks the stream as active again. */
   private cancelIdleCheck(): void {
-    if (this.inactivityTimerPromise) {
-      this.inactivityTimerPromise.cancel();
-      this.inactivityTimerPromise = null;
+    if (this.idleTimer) {
+      this.idleTimer.cancel();
+      this.idleTimer = null;
     }
   }
 
@@ -315,7 +315,7 @@ export abstract class PersistentStream<
    * * sets internal stream state to 'finalState';
    * * adjusts the backoff timer based on the error
    *
-   * A new stream can be opened by calling `start`.
+   * A new stream can be opened by calling start().
    *
    * @param finalState the intended state of the stream after closing.
    * @param error the error the connection was closed with.
@@ -532,9 +532,9 @@ export interface WatchStreamListener extends PersistentStreamListener {
 /**
  * A PersistentStream that implements the Listen RPC.
  *
- * Once the Listen stream has called the openHandler, any number of listen and
- * unlisten calls calls can be sent to control what changes will be sent from
- * the server for ListenResponses.
+ * Once the Listen stream has called the onOpen() listener, any number of
+ * listen() and unlisten() calls can be made to control what changes will be
+ * sent from the server for ListenResponses.
  */
 export class PersistentListenStream extends PersistentStream<
   api.ListenRequest,
