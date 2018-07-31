@@ -992,7 +992,7 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-  protected getPersistence(serializer: JsonProtoSerializer): Persistence {
+  protected getPersistence(serializer: JsonProtoSerializer): MemoryPersistence {
     return new MemoryPersistence();
   }
 
@@ -1008,7 +1008,9 @@ class MemoryTestRunner extends TestRunner {
 class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'specs';
 
-  protected getPersistence(serializer: JsonProtoSerializer): Persistence {
+  protected getPersistence(
+    serializer: JsonProtoSerializer
+  ): IndexedDbPersistence {
     return new IndexedDbPersistence(
       IndexedDbTestRunner.TEST_DB_NAME,
       serializer
