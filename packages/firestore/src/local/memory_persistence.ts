@@ -85,9 +85,12 @@ export class MemoryPersistence implements Persistence {
     operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return operation(new MemoryPersistenceTransaction()).toPromise();
+    return operation(new MemoryTransaction()).toPromise();
   }
 }
 
-/** Dummy class since memory persistence doesn't actually use transactions. */
-class MemoryPersistenceTransaction implements PersistenceTransaction {}
+/**
+ * Memory persistence is not actually transactional, but future implementations
+ * may have transaction-scoped state.
+ */
+export class MemoryTransaction implements PersistenceTransaction {}

@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AutoId } from '../util/misc';
@@ -34,11 +34,11 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { Persistence } from './persistence';
+import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -58,6 +58,12 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
   ' persistence has been disabled.';
+
+export class IndexedDbTransaction extends PersistenceTransaction {
+  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+    super();
+  }
+}
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -89,6 +95,17 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
  * owner lease immediately regardless of the current lease timestamp.
  */
 export class IndexedDbPersistence implements Persistence {
+  static getStore<Key extends IDBValidKey, Value>(
+    txn: PersistenceTransaction,
+    store: string
+  ): SimpleDbStore<Key, Value> {
+    if (txn instanceof IndexedDbTransaction) {
+      return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
+    } else {
+      fail('IndexedDbPersistence must use instances of IndexedDbTransaction');
+    }
+  }
+
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.
@@ -176,7 +193,7 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: SimpleDbTransaction) => PersistencePromise<T>
+    operation: (transaction: IndexedDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
     if (this.persistenceError) {
       return Promise.reject(this.persistenceError);
@@ -186,10 +203,16 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      // Verify that we still have the owner lease as part of every transaction.
-      return this.ensureOwnerLease(txn).next(() => operation(txn));
-    });
+    return this.simpleDb.runTransaction(
+      'readwrite',
+      ALL_STORES,
+      simpleDbTxn => {
+        // Verify that we still have the owner lease as part of every transaction.
+        return this.ensureOwnerLease(simpleDbTxn).next(() =>
+          operation(new IndexedDbTransaction(simpleDbTxn))
+        );
+      }
+    );
   }
 
   static isAvailable(): boolean {
@@ -326,12 +349,16 @@ export class IndexedDbPersistence implements Persistence {
     // would increase the chances of us not refreshing on time if the queue is
     // backed up for some reason.
     this.ownerLeaseRefreshHandle = setInterval(() => {
-      const txResult = this.runTransaction('Refresh owner timestamp', txn => {
-        // NOTE: We don't need to validate the current owner contents, since
-        // runTransaction does that automatically.
-        const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-        return store.put('owner', new DbOwner(this.ownerId, Date.now()));
-      });
+      const txResult = this.simpleDb.runTransaction(
+        'readwrite',
+        ALL_STORES,
+        txn => {
+          // NOTE: We don't need to validate the current owner contents, since
+          // runTransaction does that automatically.
+          const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+          return store.put('owner', new DbOwner(this.ownerId, Date.now()));
+        }
+      );
 
       txResult.catch(reason => {
         // Probably means we lost the lease. Report the error and stop trying to

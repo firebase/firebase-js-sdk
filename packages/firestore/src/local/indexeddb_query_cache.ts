@@ -38,13 +38,14 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { SimpleDb, SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from './simple_db';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
 
   /**
-   * The last received snapshot version. We store this seperately from the
+   * The last received snapshot version. We store this separately from the
    * metadata to avoid the extra conversion to/from DbTimestamp.
    */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -52,7 +53,7 @@ export class IndexedDbQueryCache implements QueryCache {
   /**
    * A cached copy of the metadata for the query cache.
    */
-  private metadata = null;
+  private metadata: DbTargetGlobal = null;
 
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
@@ -173,7 +174,7 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<QueryData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
-    // depends on the queryTargets index to be efficent.
+    // depends on the queryTargets index to be efficient.
     const canonicalId = query.canonicalId();
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
@@ -202,7 +203,7 @@ export class IndexedDbQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     // PORTING NOTE: The reverse index (documentsTargets) is maintained by
-    // Indexeddb.
+    // IndexedDb.
     const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
     keys.forEach(key => {
@@ -297,6 +298,8 @@ export class IndexedDbQueryCache implements QueryCache {
     this.garbageCollector = gc;
   }
 
+  // TODO(gsoltis): we can let the compiler assert that txn !== null if we
+  // drop null from the type bounds on txn.
   containsKey(
     txn: PersistenceTransaction | null,
     key: DocumentKey
@@ -335,7 +338,10 @@ export class IndexedDbQueryCache implements QueryCache {
 function targetsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetKey, DbTarget> {
-  return SimpleDb.getStore<DbTargetKey, DbTarget>(txn, DbTarget.store);
+  return IndexedDbPersistence.getStore<DbTargetKey, DbTarget>(
+    txn,
+    DbTarget.store
+  );
 }
 
 /**
@@ -344,7 +350,7 @@ function targetsStore(
 function globalTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetGlobalKey, DbTargetGlobal> {
-  return SimpleDb.getStore<DbTargetGlobalKey, DbTargetGlobal>(
+  return IndexedDbPersistence.getStore<DbTargetGlobalKey, DbTargetGlobal>(
     txn,
     DbTargetGlobal.store
   );
@@ -356,7 +362,7 @@ function globalTargetStore(
 function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
-  return SimpleDb.getStore<DbTargetDocumentKey, DbTargetDocument>(
+  return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(
     txn,
     DbTargetDocument.store
   );

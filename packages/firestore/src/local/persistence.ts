@@ -17,7 +17,6 @@
 import { User } from '../auth/user';
 
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -29,7 +28,7 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
-export interface PersistenceTransaction {}
+export abstract class PersistenceTransaction {}
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
