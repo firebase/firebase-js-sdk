@@ -141,17 +141,82 @@ describeSpec('Listens:', [], () => {
     }
   );
 
-  specTest("Doesn't raise events for non-active target", [], () => {
+  specTest('Will recover from out-of-band error', [], () => {
     const query = Query.atPath(path('collection'));
 
     return spec()
       .withGCEnabled(false)
       .userListens(query)
       .userUnlistens(query)
+      .watchAcks(query)
+      .watchRemoves(
+        query,
+        new RpcError(Code.RESOURCE_EXHAUSTED, 'Out of band error')
+      )
+      .watchRemoves(query)
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
+  });
+
+  specTest('Can relisten to an errored target', [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userListens(query)
+        .userUnlistens(query)
+        .watchRemoves(
+          query,
+          new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+        )
+        // The Watch backend sends us a target removed message in response to
+        // `userUnlistens` even if the target has already been removed due to an
+        // error.
+        .watchRemoves(query)
+        // Make sure that the query target can still be listened to.
+        .userListens(query)
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, {})
+    );
+  });
+
+  specTest(
+    'Target errors are scoped to the lifetime of a listener ',
+    [],
+    () => {
+      const query = Query.atPath(path('collection'));
+
+      return spec()
+        .withGCEnabled(false)
+        .userListens(query)
+        .userUnlistens(query)
+        .userListens(query)
+        .watchRemoves(
+          query,
+          new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+        )
+        .watchRemoves(query)
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, {});
+    }
+  );
+
+  specTest('Can relisten after receiving a target error ', [], () => {
+    const query = Query.atPath(path('collection'));
+
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
       .watchRemoves(
         query,
         new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
-      );
+      )
+      .expectEvents(query, { errorCode: Code.RESOURCE_EXHAUSTED })
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {});
   });
 
   // It can happen that we need to process watch messages for previously failed

@@ -455,11 +455,15 @@ export class RemoteStore implements TargetMetadataProvider {
     let promiseChain = Promise.resolve();
     watchChange.targetIds.forEach(targetId => {
       promiseChain = promiseChain.then(async () => {
+        this.watchChangeAggregator.handleTargetChange(watchChange);
         // A watched target might have been removed already.
-        if (objUtils.contains(this.listenTargets, targetId)) {
+        if (
+          objUtils.contains(this.listenTargets, targetId) &&
+          !this.watchChangeAggregator.isPending(targetId) // handle target change before
+          // asert we dont go below zero
+        ) {
           delete this.listenTargets[targetId];
-          this.watchChangeAggregator.removeTarget(targetId);
-          return this.syncEngine.rejectListen(targetId, error);
+          await this.syncEngine.rejectListen(targetId, error);
         }
       });
     });

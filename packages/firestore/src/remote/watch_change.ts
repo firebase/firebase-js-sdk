@@ -226,6 +226,7 @@ class TargetState {
 
   recordTargetResponse(): void {
     this.pendingResponses -= 1;
+    assert(this.pendingResponses >= 0, 'This assert should not fire');
   }
 
   markCurrent(): void {
@@ -326,10 +327,6 @@ export class WatchChangeAggregator {
           if (!targetState.isPending) {
             this.removeTarget(targetId);
           }
-          assert(
-            !targetChange.cause,
-            'WatchChangeAggregator does not handle errored targets'
-          );
           break;
         case WatchTargetChangeState.Current:
           if (this.isActiveTarget(targetId)) {
@@ -644,6 +641,10 @@ export class WatchChangeAggregator {
   ): boolean {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     return existingKeys.has(key);
+  }
+
+  isPending(targetId: TargetId) {
+    return this.targetStates[targetId] && this.targetStates[targetId].isPending;
   }
 }
 
