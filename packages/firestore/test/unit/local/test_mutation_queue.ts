@@ -143,6 +143,20 @@ export class TestMutationQueue {
     );
   }
 
+  getAllMutationBatchesAffectingDocumentKeys(
+    documentKeys: DocumentKeySet
+  ): Promise<MutationBatch[]> {
+    return this.persistence.runTransaction(
+      'getAllMutationBatchesAffectingDocumentKeys',
+      txn => {
+        return this.queue.getAllMutationBatchesAffectingDocumentKeys(
+          txn,
+          documentKeys
+        );
+      }
+    );
+  }
+
   getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingQuery',

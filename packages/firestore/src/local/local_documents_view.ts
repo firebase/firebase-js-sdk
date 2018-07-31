@@ -17,7 +17,6 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
-  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   documentMap,
@@ -26,6 +25,7 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { fail } from '../util/assert';
 
@@ -56,11 +56,23 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
-    return this.remoteDocumentCache
-      .getEntry(transaction, key)
-      .next(remoteDoc => {
-        return this.computeLocalDocument(transaction, key, remoteDoc);
-      });
+    return this.mutationQueue
+      .getAllMutationBatchesAffectingDocumentKey(transaction, key)
+      .next(batches => this.getDocumentInternal(transaction, key, batches));
+  }
+
+  /** Internal version of `getDocument` that allows reusing batches. */
+  private getDocumentInternal(
+    transaction: PersistenceTransaction,
+    key: DocumentKey,
+    inBatches: MutationBatch[]
+  ): PersistencePromise<MaybeDocument | null> {
+    return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
+      for (const batch of inBatches) {
+        doc = batch.applyToLocalView(key, doc);
+      }
+      return doc;
+    });
   }
 
   /**
@@ -73,20 +85,29 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
-    const promises = [] as Array<PersistencePromise<void>>;
-    let results = maybeDocumentMap();
-    keys.forEach(key => {
-      promises.push(
-        this.getDocument(transaction, key).next(maybeDoc => {
-          // TODO(http://b/32275378): Don't conflate missing / deleted.
-          if (!maybeDoc) {
-            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
-          }
-          results = results.insert(key, maybeDoc);
-        })
-      );
-    });
-    return PersistencePromise.waitFor(promises).next(() => results);
+    return this.mutationQueue
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, keys)
+      .next(batches => {
+        const promises = [] as Array<PersistencePromise<void>>;
+        let results = maybeDocumentMap();
+        keys.forEach(key => {
+          promises.push(
+            this.getDocumentInternal(transaction, key, batches).next(
+              maybeDoc => {
+                // TODO(http://b/32275378): Don't conflate missing / deleted.
+                if (!maybeDoc) {
+                  maybeDoc = new NoDocument(
+                    key,
+                    SnapshotVersion.forDeletedDoc()
+                  );
+                }
+                results = results.insert(key, maybeDoc);
+              }
+            )
+          );
+        });
+        return PersistencePromise.waitFor(promises).next(() => results);
+      });
   }
 
   /** Performs a query against the local view of all documents. */
@@ -122,48 +143,40 @@ export class LocalDocumentsView {
     query: Query
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
-    // TODO(mikelehen): There may be significant overlap between the mutations
-    // affecting these remote documents and the
-    // getAllMutationBatchesAffectingQuery() mutations. Consider optimizing.
     let results: DocumentMap;
     return this.remoteDocumentCache
       .getDocumentsMatchingQuery(transaction, query)
       .next(queryResults => {
-        return this.computeLocalDocuments(transaction, queryResults);
-      })
-      .next(promisedResults => {
-        results = promisedResults;
-        // Now use the mutation queue to discover any other documents that may
-        // match the query after applying mutations.
+        results = queryResults;
         return this.mutationQueue.getAllMutationBatchesAffectingQuery(
           transaction,
           query
         );
       })
       .next(matchingMutationBatches => {
-        let matchingKeys = documentKeySet();
         for (const batch of matchingMutationBatches) {
           for (const mutation of batch.mutations) {
-            // TODO(mikelehen): PERF: Check if this mutation actually
-            // affects the query to reduce work.
-            if (!results.get(mutation.key)) {
-              matchingKeys = matchingKeys.add(mutation.key);
+            const key = mutation.key;
+            // Only process documents belonging to the collection.
+            if (!query.path.isImmediateParentOf(key.path)) {
+              continue;
+            }
+
+            const baseDoc = results.get(key);
+            const mutatedDoc = mutation.applyToLocalView(
+              baseDoc,
+              baseDoc,
+              batch.localWriteTime
+            );
+            if (!mutatedDoc || mutatedDoc instanceof NoDocument) {
+              results = results.remove(key);
+            } else if (mutatedDoc instanceof Document) {
+              results = results.insert(key, mutatedDoc);
+            } else {
+              fail('Unknown MaybeDocument: ' + mutatedDoc);
             }
           }
         }
-
-        // Now add in the results for the matchingKeys.
-        const promises = [] as Array<PersistencePromise<void>>;
-        matchingKeys.forEach(key => {
-          promises.push(
-            this.getDocument(transaction, key).next(doc => {
-              if (doc instanceof Document) {
-                results = results.insert(doc.key, doc);
-              }
-            })
-          );
-        });
-        return PersistencePromise.waitFor(promises);
       })
       .next(() => {
         // Finally, filter out any documents that don't actually match
@@ -176,58 +189,5 @@ export class LocalDocumentsView {
 
         return results;
       });
-  }
-
-  /**
-   * Takes a remote document and applies local mutations to generate the local
-   * view of the document.
-   * @param transaction The transaction in which to perform any persistence
-   *     operations.
-   * @param documentKey The key of the document (necessary when remoteDocument
-   *     is null).
-   * @param document The base remote document to apply mutations to or null.
-   */
-  private computeLocalDocument(
-    transaction: PersistenceTransaction,
-    documentKey: DocumentKey,
-    document: MaybeDocument | null
-  ): PersistencePromise<MaybeDocument | null> {
-    return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKey(transaction, documentKey)
-      .next(batches => {
-        for (const batch of batches) {
-          document = batch.applyToLocalView(documentKey, document);
-        }
-        return document;
-      });
-  }
-
-  /**
-   * Takes a set of remote documents and applies local mutations to generate the
-   * local view of the documents.
-   * @param transaction The transaction in which to perform any persistence
-   *     operations.
-   * @param documents The base remote documents to apply mutations to.
-   * @return The local view of the documents.
-   */
-  private computeLocalDocuments(
-    transaction: PersistenceTransaction,
-    documents: DocumentMap
-  ): PersistencePromise<DocumentMap> {
-    const promises = [] as Array<PersistencePromise<void>>;
-    documents.forEach((key, doc) => {
-      promises.push(
-        this.computeLocalDocument(transaction, key, doc).next(mutatedDoc => {
-          if (mutatedDoc instanceof Document) {
-            documents = documents.insert(mutatedDoc.key, mutatedDoc);
-          } else if (mutatedDoc instanceof NoDocument) {
-            documents = documents.remove(mutatedDoc.key);
-          } else {
-            fail('Unknown MaybeDocument: ' + mutatedDoc);
-          }
-        })
-      );
-    });
-    return PersistencePromise.waitFor(promises).next(() => documents);
   }
 }

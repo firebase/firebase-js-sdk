@@ -23,6 +23,7 @@ import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_qu
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
+import { documentKeySet } from '../../../src/model/collections';
 import {
   BATCHID_UNKNOWN,
   MutationBatch
@@ -433,7 +434,30 @@ function genericMutationQueueTests(): void {
     const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKey(
       key('foo/bar')
     );
-    expect(matches.length).to.deep.equal(expected.length);
+    expectEqualArrays(matches, expected);
+  });
+
+  it('can getAllMutationBatchesAffectingDocumentKeys()', async () => {
+    const mutations = [
+      setMutation('fob/bar', { a: 1 }),
+      setMutation('foo/bar', { a: 1 }),
+      patchMutation('foo/bar', { b: 1 }),
+      setMutation('foo/bar/suffix/key', { a: 1 }),
+      setMutation('foo/baz', { a: 1 }),
+      setMutation('food/bar', { a: 1 })
+    ];
+    // Store all the mutations.
+    const batches: MutationBatch[] = [];
+    for (const mutation of mutations) {
+      const batch = await mutationQueue.addMutationBatch([mutation]);
+      batches.push(batch);
+    }
+    const expected = [batches[1], batches[2], batches[4]];
+    const matches = await mutationQueue.getAllMutationBatchesAffectingDocumentKeys(
+      documentKeySet()
+        .add(key('foo/bar'))
+        .add(key('foo/baz'))
+    );
     expectEqualArrays(matches, expected);
   });
 
