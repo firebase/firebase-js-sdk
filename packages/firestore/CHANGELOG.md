@@ -1,4 +1,8 @@
 # Unreleased
+- [changed] Improved how Firestore handles idle queries to reduce the cost of
+  re-listening within 30 minutes.
+
+# 0.6.0
 - [fixed] Fixed an issue where queries returned fewer results than they should,
   caused by documents that were cached as deleted when they should not have
   been (firebase/firebase-ios-sdk#1548). Because some cache data is cleared,
