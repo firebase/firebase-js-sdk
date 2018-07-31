@@ -377,31 +377,34 @@ export class IndexedDbMutationQueue implements MutationQueue {
       );
       const range = IDBKeyRange.lowerBound(indexStart);
 
-      const promise = documentMutationsStore(transaction)
-      .iterate({ range }, (indexKey, _, control) => {
-        const [userID, encodedPath, batchID] = indexKey;
+      const promise = documentMutationsStore(transaction).iterate(
+        { range },
+        (indexKey, _, control) => {
+          const [userID, encodedPath, batchID] = indexKey;
 
-        // Only consider rows matching exactly the specific key of
-        // interest. Note that because we order by path first, and we
-        // order terminators before path separators, we'll encounter all
-        // the index rows for documentKey contiguously. In particular, all
-        // the rows for documentKey will occur before any rows for
-        // documents nested in a subcollection beneath documentKey so we
-        // can stop as soon as we hit any such row.
-        const path = EncodedResourcePath.decode(encodedPath);
-        if (userID !== this.userId || !documentKey.path.isEqual(path)) {
-          control.done();
-          return;
+          // Only consider rows matching exactly the specific key of
+          // interest. Note that because we order by path first, and we
+          // order terminators before path separators, we'll encounter all
+          // the index rows for documentKey contiguously. In particular, all
+          // the rows for documentKey will occur before any rows for
+          // documents nested in a subcollection beneath documentKey so we
+          // can stop as soon as we hit any such row.
+          const path = EncodedResourcePath.decode(encodedPath);
+          if (userID !== this.userId || !documentKey.path.isEqual(path)) {
+            control.done();
+            return;
+          }
+
+          uniqueBatchIDs = uniqueBatchIDs.add(batchID);
         }
-
-        uniqueBatchIDs = uniqueBatchIDs.add(batchID);
-      });
+      );
 
       promises.push(promise);
     });
 
-    return PersistencePromise.waitFor(promises)
-      .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
+    return PersistencePromise.waitFor(promises).next(() =>
+      this.lookupMutationBatches(transaction, uniqueBatchIDs)
+    );
   }
 
   getAllMutationBatchesAffectingQuery(
