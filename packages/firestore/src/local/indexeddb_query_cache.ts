@@ -44,7 +44,7 @@ export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
 
   /**
-   * The last received snapshot version. We store this seperately from the
+   * The last received snapshot version. We store this separately from the
    * metadata to avoid the extra conversion to/from DbTimestamp.
    */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -173,7 +173,7 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<QueryData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
-    // depends on the queryTargets index to be efficent.
+    // depends on the queryTargets index to be efficient.
     const canonicalId = query.canonicalId();
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
@@ -202,7 +202,7 @@ export class IndexedDbQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     // PORTING NOTE: The reverse index (documentsTargets) is maintained by
-    // Indexeddb.
+    // IndexedDb.
     const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
     keys.forEach(key => {
