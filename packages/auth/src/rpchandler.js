@@ -207,6 +207,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_OOB_CODE: 'INVALID_OOB_CODE',
   INVALID_PASSWORD: 'INVALID_PASSWORD',
   INVALID_PHONE_NUMBER: 'INVALID_PHONE_NUMBER',
+  INVALID_PROVIDER_ID: 'INVALID_PROVIDER_ID',
   INVALID_RECIPIENT_EMAIL: 'INVALID_RECIPIENT_EMAIL',
   INVALID_SENDER: 'INVALID_SENDER',
   INVALID_SESSION_INFO: 'INVALID_SESSION_INFO',
@@ -2243,6 +2244,10 @@ fireauth.RpcHandler.getDeveloperError_ =
   // This can only happen if the SDK sends a bad request.
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OOB_CODE] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+
+  // Get Auth URI errors:
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PROVIDER_ID] =
+      fireauth.authenum.Error.INVALID_PROVIDER_ID;
 
   // Operations that require ID token in request:
   errorMap[fireauth.RpcHandler.ServerError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN] =

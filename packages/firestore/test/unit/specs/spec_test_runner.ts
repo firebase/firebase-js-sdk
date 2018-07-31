@@ -424,9 +424,11 @@ abstract class TestRunner {
   protected abstract destroyPersistence(): Promise<void>;
 
   async shutdown(): Promise<void> {
-    await this.remoteStore.shutdown();
-    await this.persistence.shutdown(/* deleteData= */ true);
-    await this.destroyPersistence();
+    await this.queue.enqueue(async () => {
+      await this.remoteStore.shutdown();
+      await this.persistence.shutdown(/* deleteData= */ true);
+      await this.destroyPersistence();
+    });
   }
 
   run(steps: SpecStep[]): Promise<void> {
