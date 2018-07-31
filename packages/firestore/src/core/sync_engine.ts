@@ -46,7 +46,7 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, OnlineState, ProtoByteString, TargetId } from './types';
+import { BatchId, OnlineState, TargetId } from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -77,12 +77,6 @@ class QueryView {
      * stream to identify this query.
      */
     public targetId: TargetId,
-    /**
-     * An identifier from the datastore backend that indicates the last state
-     * of the results that was received. This can be used to indicate where
-     * to continue receiving new doc changes for the query.
-     */
-    public resumeToken: ProtoByteString,
     /**
      * The view is responsible for computing the final merged truth of what
      * docs are in the query. It gets notified of local and remote changes,
@@ -195,12 +189,7 @@ export class SyncEngine implements RemoteSyncer {
                 'applyChanges for new view should always return a snapshot'
               );
 
-              const data = new QueryView(
-                query,
-                queryData.targetId,
-                queryData.resumeToken,
-                view
-              );
+              const data = new QueryView(query, queryData.targetId, view);
               this.queryViewsByQuery.set(query, data);
               this.queryViewsByTarget[queryData.targetId] = data;
               this.viewHandler!([viewChange.snapshot!]);
