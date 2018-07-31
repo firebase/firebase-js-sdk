@@ -20,11 +20,12 @@ import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbStore } from './simple_db';
+import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   constructor(private serializer: LocalSerializer) {}
@@ -88,7 +89,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return IndexedDbPersistence.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
     DbRemoteDocument.store
   );

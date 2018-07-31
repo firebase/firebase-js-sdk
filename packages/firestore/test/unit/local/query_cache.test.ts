@@ -35,17 +35,8 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
 
-let persistence: Persistence;
-let cache: TestQueryCache;
-
 describe('MemoryQueryCache', () => {
-  beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
-      persistence = p;
-    });
-  });
-
-  genericQueryCacheTests();
+  genericQueryCacheTests(persistenceHelpers.testMemoryPersistence);
 });
 
 describe('IndexedDbQueryCache', () => {
@@ -54,22 +45,22 @@ describe('IndexedDbQueryCache', () => {
     return;
   }
 
-  beforeEach(() => {
-    return persistenceHelpers.testIndexedDbPersistence().then(p => {
-      persistence = p;
-    });
+  let persistencePromise: Promise<Persistence>;
+  beforeEach(async () => {
+    persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
-
-  genericQueryCacheTests();
+  genericQueryCacheTests(() => persistencePromise);
 });
 
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests(): void {
+function genericQueryCacheTests(
+  persistencePromise: () => Promise<Persistence>
+): void {
   addEqualityMatcher();
+  let cache: TestQueryCache;
 
   const QUERY_ROOMS = Query.atPath(path('rooms'));
   const QUERY_HALLS = Query.atPath(path('halls'));
@@ -98,9 +89,15 @@ function genericQueryCacheTests(): void {
     );
   }
 
+  let persistence: Persistence;
   beforeEach(async () => {
+    persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
     await cache.start();
+  });
+
+  afterEach(async () => {
+    persistence.shutdown(/* deleteData= */ true);
   });
 
   it('returns null for query not in cache', () => {

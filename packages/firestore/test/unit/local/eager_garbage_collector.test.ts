@@ -65,7 +65,7 @@ describe('EagerGarbageCollector', () => {
         expect(referenceSet.isEmpty()).to.equal(false);
 
         referenceSet.removeReferencesForId(2);
-        return gc.collectGarbage(true).toPromise();
+        return gc.collectGarbage(null).toPromise();
       })
       .then(garbage => {
         expectSetToEqual(garbage, [key3]);
