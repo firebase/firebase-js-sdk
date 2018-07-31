@@ -121,7 +121,7 @@ export class RemoteStore implements TargetMetadataProvider {
   /**
    * Indicates whether the network can accept requests (as determined by both
    * the `isPrimary` flag and the user specified `networkEnabled` flag). If
-   * the connection is already established, new requests will be send over the
+   * the connection is already established, new requests will be sent over the
    * existing stream. If the stream has not yet been established, it will be
    * established if there are outstanding requests.
    */
