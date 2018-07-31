@@ -263,9 +263,10 @@ export class MemoryMutationQueue implements MutationQueue {
       const start = new DocReference(documentKey, 0);
       const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
       this.batchesByDocumentKey.forEachInRange([start, end], ref => {
-        if (!documentKey.isEqual(ref.key)) {
-          return;
-        }
+        assert(
+          documentKey.isEqual(ref.key),
+          "For each key, should only iterate over a single key's batches"
+        );
 
         uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
       });
