@@ -514,9 +514,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * enabled and the write pipeline is not full).
    */
   private canAddToWritePipeline(): boolean {
-    return (
-      this.canUseNetwork && this.writePipeline.length < MAX_PENDING_WRITES
-    );
+    return this.canUseNetwork && this.writePipeline.length < MAX_PENDING_WRITES;
   }
 
   // For testing

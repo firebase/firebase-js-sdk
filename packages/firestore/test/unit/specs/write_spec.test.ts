@@ -1246,12 +1246,15 @@ describeSpec('Writes:', [], () => {
     }
   );
 
-  specTest('Mutation are not sent twice after primary failover', ['multi-client'], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 0, { k: 'a' });
-    const docB = doc('collection/b', 0, { k: 'b' });
+  specTest(
+    'Mutation are not sent twice after primary failover',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 0, { k: 'a' });
+      const docB = doc('collection/b', 0, { k: 'b' });
 
-    return client(0)
+      return client(0)
         .expectPrimaryState(true)
         .userSets('collection/a', { k: 'a' })
         .userSets('collection/b', { k: 'b' })
@@ -1265,6 +1268,7 @@ describeSpec('Writes:', [], () => {
         .stealPrimaryLease()
         .writeAcks('collection/b', 2000)
         .userListens(query)
-        .expectEvents(query, { added: [docA, docB], fromCache:true} )
-  });
+        .expectEvents(query, { added: [docA, docB], fromCache: true });
+    }
+  );
 });
