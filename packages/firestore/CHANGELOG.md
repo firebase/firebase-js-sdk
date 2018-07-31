@@ -1,6 +1,7 @@
 # Unreleased
 - [changed] Improved how Firestore handles idle queries to reduce the cost of
   re-listening within 30 minutes.
+- [changed] Improved offline performance with many outstanding writes.
 
 # 0.6.0
 - [fixed] Fixed an issue where queries returned fewer results than they should,
