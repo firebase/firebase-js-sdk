@@ -38,7 +38,6 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
-import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
