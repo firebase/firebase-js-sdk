@@ -353,7 +353,7 @@ export class IndexedDbPersistence implements Persistence {
         'readwrite',
         ALL_STORES,
         txn => {
-          this.ensureOwnerLease(txn).next(() => {
+          return this.ensureOwnerLease(txn).next(() => {
             const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
             return store.put('owner', new DbOwner(this.ownerId, Date.now()));
           });
