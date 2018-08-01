@@ -371,6 +371,7 @@ abstract class TestRunner {
   private persistence: Persistence;
   private sharedClientState: SharedClientState;
   private useGarbageCollection: boolean;
+  private numClients: number;
   private databaseInfo: DatabaseInfo;
 
   protected user = User.UNAUTHENTICATED;
@@ -402,6 +403,7 @@ abstract class TestRunner {
     });
 
     this.useGarbageCollection = config.useGarbageCollection;
+    this.numClients = config.numClients;
 
     this.expectedLimboDocs = [];
     this.expectedActiveTargets = {};
@@ -943,10 +945,7 @@ abstract class TestRunner {
         this.expectedActiveTargets = expectation.activeTargets!;
       }
       if ('isPrimary' in expectation) {
-        expect(this.syncEngine.isPrimaryClient).to.eq(
-          expectation.isPrimary!,
-          'isPrimary'
-        );
+        expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
       }
       if ('userCallbacks' in expectation) {
         expect(this.acknowledgedDocs).to.have.members(
@@ -956,6 +955,10 @@ abstract class TestRunner {
           expectation.userCallbacks.rejectedDocs
         );
       }
+    }
+
+    if (this.numClients === 1) {
+      expect(this.isPrimaryClient).to.eq(true, 'isPrimary');
     }
 
     // Clients don't reset their limbo docs on shutdown, so any validation will

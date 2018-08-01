@@ -862,11 +862,6 @@ export class SpecBuilder {
 
   protected nextStep(): void {
     if (this.currentStep !== null) {
-      if (this.config.numClients === 1) {
-        // Always verify that we are the primary client if there is only one
-        // client.
-        this.expectPrimaryState(true);
-      }
       this.steps.push(this.currentStep);
       this.currentStep = null;
     }
