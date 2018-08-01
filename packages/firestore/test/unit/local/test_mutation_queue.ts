@@ -127,7 +127,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesThroughBatchId',
-        true,
+      true,
       txn => {
         return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
       }
