@@ -116,16 +116,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * Set to true by enableNetwork() and false by disableNetwork() and indicates
    * the user-preferred network state.
    */
-  private networkEnabled = true;
-
-  /**
-   * Indicates whether the network can accept requests (as determined by both
-   * the `isPrimary` flag and the user specified `networkEnabled` flag). If
-   * the connection is already established, new requests will be sent over the
-   * existing stream. If the stream has not yet been established, it will be
-   * established if there are outstanding requests.
-   */
-  private canUseNetwork = false;
+  private networkEnabled = false;
 
   private isPrimary = false;
 
@@ -169,17 +160,14 @@ export class RemoteStore implements TargetMetadataProvider {
    * LocalStore, etc.
    */
   start(): Promise<void> {
-    // Start is a no-op for RemoteStore.
-    return Promise.resolve();
+    return this.enableNetwork();
   }
 
   /** Re-enables the network. Idempotent. */
   async enableNetwork(): Promise<void> {
     this.networkEnabled = true;
 
-    if (this.isPrimary && !this.canUseNetwork) {
-      this.canUseNetwork = true;
-
+    if (this.canUseNetwork()) {
       this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
       if (this.shouldStartWatchStream()) {
@@ -206,28 +194,23 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private disableNetworkInternal(): void {
-    if (this.canUseNetwork) {
-      this.canUseNetwork = false;
+    this.writeStream.stop();
+    this.watchStream.stop();
 
-      this.writeStream.stop();
-      this.watchStream.stop();
-
-      if (this.writePipeline.length > 0) {
-        log.debug(
-          LOG_TAG,
-          `Stopping write stream with ${
-            this.writePipeline.length
-          } pending writes`
-        );
-        this.writePipeline = [];
-      }
-
-      this.cleanUpWatchStreamState();
+    if (this.writePipeline.length > 0) {
+      log.debug(
+        LOG_TAG,
+        `Stopping write stream with ${this.writePipeline.length} pending writes`
+      );
+      this.writePipeline = [];
     }
+
+    this.cleanUpWatchStreamState();
   }
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
+    this.networkEnabled = false;
     this.disableNetworkInternal();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
@@ -314,10 +297,14 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private shouldStartWatchStream(): boolean {
     return (
-      this.canUseNetwork &&
+      this.canUseNetwork() &&
       !this.watchStream.isStarted() &&
       !objUtils.isEmpty(this.listenTargets)
     );
+  }
+
+  private canUseNetwork(): boolean {
+    return this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -514,7 +501,9 @@ export class RemoteStore implements TargetMetadataProvider {
    * enabled and the write pipeline is not full).
    */
   private canAddToWritePipeline(): boolean {
-    return this.canUseNetwork && this.writePipeline.length < MAX_PENDING_WRITES;
+    return (
+      this.canUseNetwork() && this.writePipeline.length < MAX_PENDING_WRITES
+    );
   }
 
   // For testing
@@ -540,7 +529,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private shouldStartWriteStream(): boolean {
     return (
-      this.canUseNetwork &&
+      this.canUseNetwork() &&
       !this.writeStream.isStarted() &&
       this.writePipeline.length > 0
     );
@@ -697,10 +686,11 @@ export class RemoteStore implements TargetMetadataProvider {
   async handleUserChange(user: User): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
-    if (this.networkEnabled) {
+    if (this.canUseNetwork()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
+      this.networkEnabled = false;
       this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
       await this.enableNetwork();
