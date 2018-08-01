@@ -17,7 +17,7 @@
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
@@ -83,6 +83,12 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 //     firestore_zombie_<persistence_prefix>_<instance_key>
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
 
+export class IndexedDbTransaction extends PersistenceTransaction {
+  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+    super();
+  }
+}
+
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
  * across sessions.
@@ -115,6 +121,17 @@ const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
  * TODO(multitab): Update this comment with multi-tab changes.
  */
 export class IndexedDbPersistence implements Persistence {
+  static getStore<Key extends IDBValidKey, Value>(
+    txn: PersistenceTransaction,
+    store: string
+  ): SimpleDbStore<Key, Value> {
+    if (txn instanceof IndexedDbTransaction) {
+      return SimpleDb.getStore<Key, Value>(txn.simpleDbTransaction, store);
+    } else {
+      fail('IndexedDbPersistence must use instances of IndexedDbTransaction');
+    }
+  }
+
   /**
    * The name of the main (and currently only) IndexedDB database. this name is
    * appended to the prefix provided to the IndexedDbPersistence constructor.
@@ -470,7 +487,7 @@ export class IndexedDbPersistence implements Persistence {
     action: string,
     requirePrimaryLease: boolean,
     transactionOperation: (
-      transaction: PersistenceTransaction
+      transaction: IndexedDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
@@ -483,39 +500,47 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      if (requirePrimaryLease) {
-        // While we merely verify that we have (or can acquire) the lease
-        // immediately, we wait to extend the primary lease until after
-        // executing transactionOperation(). This ensures that even if the
-        // transactionOperation takes a long time, we'll use a recent
-        // leaseTimestampMs in the extended (or newly acquired) lease.
-        return this.canActAsPrimary(txn)
-          .next(canActAsPrimary => {
-            if (!canActAsPrimary) {
-              // TODO(multitab): Handle this gracefully and transition back to
-              // secondary state.
-              log.error(
-                `Failed to obtain primary lease for action '${action}'.`
+    return this.simpleDb.runTransaction(
+      'readwrite',
+      ALL_STORES,
+      simpleDbTxn => {
+        if (requirePrimaryLease) {
+          // While we merely verify that we have (or can acquire) the lease
+          // immediately, we wait to extend the primary lease until after
+          // executing transactionOperation(). This ensures that even if the
+          // transactionOperation takes a long time, we'll use a recent
+          // leaseTimestampMs in the extended (or newly acquired) lease.
+          return this.canActAsPrimary(simpleDbTxn)
+            .next(canActAsPrimary => {
+              if (!canActAsPrimary) {
+                // TODO(multitab): Handle this gracefully and transition back to
+                // secondary state.
+                log.error(
+                  `Failed to obtain primary lease for action '${action}'.`
+                );
+                this.isPrimary = false;
+                this.queue.enqueue(() => this.primaryStateListener(false));
+                throw new FirestoreError(
+                  Code.FAILED_PRECONDITION,
+                  PRIMARY_LEASE_LOST_ERROR_MSG
+                );
+              }
+              return transactionOperation(
+                new IndexedDbTransaction(simpleDbTxn)
               );
-              this.isPrimary = false;
-              this.queue.enqueue(() => this.primaryStateListener(false));
-              throw new FirestoreError(
-                Code.FAILED_PRECONDITION,
-                PRIMARY_LEASE_LOST_ERROR_MSG
+            })
+            .next(result => {
+              return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
+                () => result
               );
-            }
-            return transactionOperation(txn);
-          })
-          .next(result => {
-            return this.acquireOrExtendPrimaryLease(txn).next(() => result);
-          });
-      } else {
-        return this.verifyAllowTabSynchronization(txn).next(() =>
-          transactionOperation(txn)
-        );
+            });
+        } else {
+          return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
+            transactionOperation(new IndexedDbTransaction(simpleDbTxn))
+          );
+        }
       }
-    });
+    );
   }
 
   /**

@@ -31,13 +31,14 @@ import {
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey
 } from './indexeddb_schema';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbStore } from './simple_db';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
+import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
@@ -191,7 +192,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 function remoteDocumentsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentKey, DbRemoteDocument> {
-  return SimpleDb.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
+  return IndexedDbPersistence.getStore<DbRemoteDocumentKey, DbRemoteDocument>(
     txn,
     DbRemoteDocument.store
   );
@@ -204,10 +205,10 @@ function remoteDocumentsStore(
 function documentChangesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbRemoteDocumentChangesKey, DbRemoteDocumentChanges> {
-  return SimpleDb.getStore<DbRemoteDocumentChangesKey, DbRemoteDocumentChanges>(
-    txn,
-    DbRemoteDocumentChanges.store
-  );
+  return IndexedDbPersistence.getStore<
+    DbRemoteDocumentChangesKey,
+    DbRemoteDocumentChanges
+  >(txn, DbRemoteDocumentChanges.store);
 }
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
