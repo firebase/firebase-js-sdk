@@ -72,6 +72,8 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
+//import { FirestoreError } from '@firebase/firestore-types';
+import * as firestore from '@firebase/firestore-types';
 import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
@@ -87,7 +89,8 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version
+  version,
+  expectFirestoreError
 } from '../../util/helpers';
 
 class MockConnection implements Connection {
@@ -309,7 +312,7 @@ class EventAggregator implements Observer<ViewSnapshot> {
   }
 
   error(error: Error): void {
-    expect(error).to.be.instanceof(FirestoreError);
+    expectFirestoreError(error);
     this.pushEvent({ query: this.query, error: error as FirestoreError });
   }
 }
@@ -913,8 +916,7 @@ abstract class TestRunner {
     const expectedQuery = this.parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      // TODO(dimond): better matcher
-      expect(actual.error instanceof Error).to.equal(true);
+      expectFirestoreError(actual.error);
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {

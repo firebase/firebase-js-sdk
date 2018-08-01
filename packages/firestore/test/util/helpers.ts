@@ -84,6 +84,7 @@ import { forEach, Dict } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';
+import { FirestoreError } from '../../../../node_modules/@firebase/firestore/src/util/error';
 
 export type TestSnapshotVersion = number;
 
@@ -673,4 +674,8 @@ export function size(obj: JsonObject<AnyJs>): number {
   let c = 0;
   forEach(obj, () => c++);
   return c;
+}
+
+export function expectFirestoreError(err: Error): void {
+  expect(err.name).to.equal('FirebaseError');
 }
