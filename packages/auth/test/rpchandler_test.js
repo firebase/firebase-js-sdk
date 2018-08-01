@@ -5269,6 +5269,30 @@ function testGetAuthUri_success() {
 
 
 /**
+ * Tests server side getAuthUri error.
+ */
+function testGetAuthUri_caughtServerError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/createAuthUri?key=apiKey';
+  var requestBody = {
+    'providerId': 'abc.com',
+    'continueUri': 'http://localhost/widget',
+    'customParameter': {}
+  };
+  var errorMap = {};
+  // All related server errors for getAuthUri.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PROVIDER_ID] =
+      fireauth.authenum.Error.INVALID_PROVIDER_ID;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.getAuthUri(
+      'abc.com',
+      'http://localhost/widget');
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests successful getAuthUri request with Google provider and sessionId.
  */
 function testGetAuthUri_googleProvider_withSessionId_success() {

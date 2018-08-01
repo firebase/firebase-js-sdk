@@ -23,7 +23,7 @@ import { Mutation, MutationResult } from '../model/mutation';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AsyncQueue } from '../util/async_queue';
-
+import { WatchStreamListener, WriteStreamListener } from './persistent_stream';
 import { Connection } from './connection';
 import {
   PersistentListenStream,
@@ -54,21 +54,27 @@ export class Datastore {
     private serializer: JsonProtoSerializer
   ) {}
 
-  newPersistentWriteStream(): PersistentWriteStream {
+  newPersistentWriteStream(
+    listener: WriteStreamListener
+  ): PersistentWriteStream {
     return new PersistentWriteStream(
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer
+      this.serializer,
+      listener
     );
   }
 
-  newPersistentWatchStream(): PersistentListenStream {
+  newPersistentWatchStream(
+    listener: WatchStreamListener
+  ): PersistentListenStream {
     return new PersistentListenStream(
       this.queue,
       this.connection,
       this.credentials,
-      this.serializer
+      this.serializer,
+      listener
     );
   }
 

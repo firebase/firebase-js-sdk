@@ -76,9 +76,6 @@ const MAX_PENDING_WRITES = 10;
  * - pulling pending mutations from LocalStore and sending them to Datastore.
  * - retrying mutations that failed because of network problems.
  * - acking mutations to the SyncEngine once they are accepted or rejected.
- *
- * RemoteStore always starts out offline. A call to `enableNetwork()`
- * initializes the network connection.
  */
 export class RemoteStore implements TargetMetadataProvider {
   /**
@@ -111,17 +108,16 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets: { [targetId: number]: QueryData } = {};
 
-  private watchStream: PersistentListenStream = null;
-  private writeStream: PersistentWriteStream = null;
+  private watchStream: PersistentListenStream;
+  private writeStream: PersistentWriteStream;
   private watchChangeAggregator: WatchChangeAggregator = null;
 
   /**
    * Set to true by enableNetwork() and false by disableNetwork() and indicates
-   * the user-preferred network state. A network connection is only established
-   * if `networkAllowed` is true, the client is primary and there are
-   * outstanding mutations or active listens.
+   * the user-preferred network state.
    */
-  private networkAllowed = true;
+  private networkEnabled = false;
+
   private isPrimary = false;
 
   private onlineStateTracker: OnlineStateTracker;
@@ -140,6 +136,20 @@ export class RemoteStore implements TargetMetadataProvider {
       asyncQueue,
       onlineStateHandler
     );
+
+    // Create streams (but note they're not started yet).
+    this.watchStream = this.datastore.newPersistentWatchStream({
+      onOpen: this.onWatchStreamOpen.bind(this),
+      onClose: this.onWatchStreamClose.bind(this),
+      onWatchChange: this.onWatchStreamChange.bind(this)
+    });
+
+    this.writeStream = this.datastore.newPersistentWriteStream({
+      onOpen: this.onWriteStreamOpen.bind(this),
+      onClose: this.onWriteStreamClose.bind(this),
+      onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
+      onMutationResult: this.onMutationResult.bind(this)
+    });
   }
 
   /** SyncEngine to notify of watch and write events. */
@@ -150,43 +160,24 @@ export class RemoteStore implements TargetMetadataProvider {
    * LocalStore, etc.
    */
   start(): Promise<void> {
-    // Start is a no-op for RemoteStore.
-    return Promise.resolve();
-  }
-
-  private isNetworkEnabled(): boolean {
-    assert(
-      (this.watchStream == null) === (this.writeStream == null),
-      'WatchStream and WriteStream should both be null or non-null'
-    );
-    return this.watchStream != null;
+    return this.enableNetwork();
   }
 
   /** Re-enables the network. Idempotent. */
   async enableNetwork(): Promise<void> {
-    this.networkAllowed = true;
+    this.networkEnabled = true;
 
-    if (this.isPrimary) {
-      if (this.isNetworkEnabled()) {
-        return;
+    if (this.canUseNetwork()) {
+      this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
+
+      if (this.shouldStartWatchStream()) {
+        this.startWatchStream();
+      } else {
+        this.onlineStateTracker.set(OnlineState.Unknown);
       }
 
-      // Create new streams (but note they're not started yet).
-      this.watchStream = this.datastore.newPersistentWatchStream();
-      this.writeStream = this.datastore.newPersistentWriteStream();
-
-      // Load any saved stream token from persistent storage
-      return this.localStore.getLastStreamToken().then(token => {
-        this.writeStream.lastStreamToken = token;
-
-        if (this.shouldStartWatchStream()) {
-          this.startWatchStream();
-        } else {
-          this.onlineStateTracker.set(OnlineState.Unknown);
-        }
-
-        return this.fillWritePipeline(); // This may start the writeStream.
-      });
+      // This will start the write stream if necessary.
+      await this.fillWritePipeline();
     }
   }
 
@@ -195,43 +186,33 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
-    this.networkAllowed = false;
-
+    this.networkEnabled = false;
     this.disableNetworkInternal();
+
     // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
   }
 
-  /**
-   * Disables the network, if it is currently enabled.
-   */
   private disableNetworkInternal(): void {
-    if (this.isNetworkEnabled()) {
-      // NOTE: We're guaranteed not to get any further events from these streams (not even a close
-      // event).
-      this.watchStream.stop();
-      this.writeStream.stop();
+    this.writeStream.stop();
+    this.watchStream.stop();
 
-      this.cleanUpWatchStreamState();
-
+    if (this.writePipeline.length > 0) {
       log.debug(
         LOG_TAG,
-        'Stopping write stream with ' +
-          this.writePipeline.length +
-          ' pending writes'
+        `Stopping write stream with ${this.writePipeline.length} pending writes`
       );
-      // TODO(mikelehen): We only actually need to clear the write pipeline if
-      // this is being called as part of handleUserChange(). Consider reworking.
       this.writePipeline = [];
-
-      this.writeStream = null;
-      this.watchStream = null;
     }
+
+    this.cleanUpWatchStreamState();
   }
 
   shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
+    this.networkEnabled = false;
     this.disableNetworkInternal();
+
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
     this.onlineStateTracker.set(OnlineState.Unknown);
@@ -250,7 +231,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (this.shouldStartWatchStream()) {
       // The listen will be sent in onWatchStreamOpen
       this.startWatchStream();
-    } else if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
+    } else if (this.watchStream.isOpen()) {
       this.sendWatchRequest(queryData);
     }
   }
@@ -262,7 +243,7 @@ export class RemoteStore implements TargetMetadataProvider {
       'unlisten called without assigned target ID!'
     );
     delete this.listenTargets[targetId];
-    if (this.isNetworkEnabled() && this.watchStream.isOpen()) {
+    if (this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
       if (objUtils.isEmpty(this.listenTargets)) {
         this.watchStream.markIdle();
@@ -302,15 +283,11 @@ export class RemoteStore implements TargetMetadataProvider {
   private startWatchStream(): void {
     assert(
       this.shouldStartWatchStream(),
-      'startWriteStream() called when shouldStartWatchStream() is false.'
+      'startWatchStream() called when shouldStartWatchStream() is false.'
     );
 
     this.watchChangeAggregator = new WatchChangeAggregator(this);
-    this.watchStream.start({
-      onOpen: this.onWatchStreamOpen.bind(this),
-      onClose: this.onWatchStreamClose.bind(this),
-      onWatchChange: this.onWatchStreamChange.bind(this)
-    });
+    this.watchStream.start();
     this.onlineStateTracker.handleWatchStreamStart();
   }
 
@@ -320,10 +297,14 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private shouldStartWatchStream(): boolean {
     return (
-      this.isNetworkEnabled() &&
+      this.canUseNetwork() &&
       !this.watchStream.isStarted() &&
       !objUtils.isEmpty(this.listenTargets)
     );
+  }
+
+  private canUseNetwork(): boolean {
+    return this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -331,28 +312,26 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWatchStreamOpen(): Promise<void> {
-    // TODO(b/35852690): close the stream again (with some timeout?) if no watch
-    // targets are active
     objUtils.forEachNumber(this.listenTargets, (targetId, queryData) => {
       this.sendWatchRequest(queryData);
     });
   }
 
   private async onWatchStreamClose(error?: FirestoreError): Promise<void> {
-    assert(
-      this.isNetworkEnabled(),
-      'onWatchStreamClose() should only be called when the network is enabled'
-    );
+    if (error === undefined) {
+      // Graceful stop (due to stop() or idle timeout). Make sure that's
+      // desirable.
+      assert(
+        !this.shouldStartWatchStream(),
+        'Watch stream was stopped gracefully while still needed.'
+      );
+    }
 
     this.cleanUpWatchStreamState();
 
     // If we still need the watch stream, retry the connection.
     if (this.shouldStartWatchStream()) {
-      // There should generally be an error if the watch stream was closed when
-      // it's still needed, but it's not quite worth asserting.
-      if (error) {
-        this.onlineStateTracker.handleWatchStreamFailure(error);
-      }
+      this.onlineStateTracker.handleWatchStreamFailure(error);
 
       this.startWatchStream();
     } else {
@@ -498,28 +477,32 @@ export class RemoteStore implements TargetMetadataProvider {
         this.writePipeline.length > 0
           ? this.writePipeline[this.writePipeline.length - 1].batchId
           : BATCHID_UNKNOWN;
-      return this.localStore
-        .nextMutationBatch(lastBatchIdRetrieved)
-        .then(batch => {
-          if (batch === null) {
-            if (this.writePipeline.length === 0) {
-              this.writeStream.markIdle();
-            }
-          } else {
-            this.addToWritePipeline(batch);
-            return this.fillWritePipeline();
-          }
-        });
+      const batch = await this.localStore.nextMutationBatch(
+        lastBatchIdRetrieved
+      );
+
+      if (batch === null) {
+        if (this.writePipeline.length === 0) {
+          this.writeStream.markIdle();
+        }
+      } else {
+        this.addToWritePipeline(batch);
+        await this.fillWritePipeline();
+      }
+    }
+
+    if (this.shouldStartWriteStream()) {
+      this.startWriteStream();
     }
   }
 
   /**
-   * Returns true if we can add to the write pipeline (i.e. it is not full and
-   * the network is enabled).
+   * Returns true if we can add to the write pipeline (i.e. the network is
+   * enabled and the write pipeline is not full).
    */
   private canAddToWritePipeline(): boolean {
     return (
-      this.isNetworkEnabled() && this.writePipeline.length < MAX_PENDING_WRITES
+      this.canUseNetwork() && this.writePipeline.length < MAX_PENDING_WRITES
     );
   }
 
@@ -530,8 +513,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /**
    * Queues additional writes to be sent to the write stream, sending them
-   * immediately if the write stream is established, else starting the write
-   * stream if it is not yet started.
+   * immediately if the write stream is established.
    */
   private addToWritePipeline(batch: MutationBatch): void {
     assert(
@@ -540,16 +522,14 @@ export class RemoteStore implements TargetMetadataProvider {
     );
     this.writePipeline.push(batch);
 
-    if (this.shouldStartWriteStream()) {
-      this.startWriteStream();
-    } else if (this.isNetworkEnabled() && this.writeStream.handshakeComplete) {
+    if (this.writeStream.isOpen() && this.writeStream.handshakeComplete) {
       this.writeStream.writeMutations(batch.mutations);
     }
   }
 
   private shouldStartWriteStream(): boolean {
     return (
-      this.isNetworkEnabled() &&
+      this.canUseNetwork() &&
       !this.writeStream.isStarted() &&
       this.writePipeline.length > 0
     );
@@ -560,12 +540,7 @@ export class RemoteStore implements TargetMetadataProvider {
       this.shouldStartWriteStream(),
       'startWriteStream() called when shouldStartWriteStream() is false.'
     );
-    this.writeStream.start({
-      onOpen: this.onWriteStreamOpen.bind(this),
-      onClose: this.onWriteStreamClose.bind(this),
-      onHandshakeComplete: this.onWriteHandshakeComplete.bind(this),
-      onMutationResult: this.onMutationResult.bind(this)
-    });
+    this.writeStream.start();
   }
 
   private async onWriteStreamOpen(): Promise<void> {
@@ -626,10 +601,14 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWriteStreamClose(error?: FirestoreError): Promise<void> {
-    assert(
-      this.isNetworkEnabled(),
-      'onWriteStreamClose() should only be called when the network is enabled'
-    );
+    if (error === undefined) {
+      // Graceful stop (due to stop() or idle timeout). Make sure that's
+      // desirable.
+      assert(
+        !this.shouldStartWriteStream(),
+        'Write stream was stopped gracefully while still needed.'
+      );
+    }
 
     // If the write stream closed due to an error, invoke the error callbacks if
     // there are pending writes.
@@ -704,18 +683,17 @@ export class RemoteStore implements TargetMetadataProvider {
     return new Transaction(this.datastore);
   }
 
-  handleUserChange(user: User): Promise<void> {
+  async handleUserChange(user: User): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
 
-    // If the network has been explicitly disabled, make sure we don't
-    // accidentally re-enable it.
-    if (this.isNetworkEnabled()) {
+    if (this.canUseNetwork()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
+      this.networkEnabled = false;
       this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
-      return this.enableNetwork();
+      await this.enableNetwork();
     }
   }
 
@@ -725,9 +703,9 @@ export class RemoteStore implements TargetMetadataProvider {
   async applyPrimaryState(isPrimary: boolean): Promise<void> {
     this.isPrimary = isPrimary;
 
-    if (isPrimary && this.networkAllowed) {
+    if (isPrimary && this.networkEnabled) {
       await this.enableNetwork();
-    } else if (!isPrimary && this.isNetworkEnabled()) {
+    } else if (!isPrimary) {
       this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
     }

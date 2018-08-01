@@ -17,6 +17,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { BatchId, ProtoByteString } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
@@ -30,7 +31,6 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { DocumentKeySet } from '../model/collections';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -249,6 +249,28 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(result);
   }
 
+  getAllMutationBatchesAffectingDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<MutationBatch[]> {
+    let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
+
+    documentKeys.forEach(documentKey => {
+      const start = new DocReference(documentKey, 0);
+      const end = new DocReference(documentKey, Number.POSITIVE_INFINITY);
+      this.batchesByDocumentKey.forEachInRange([start, end], ref => {
+        assert(
+          documentKey.isEqual(ref.key),
+          "For each key, should only iterate over a single key's batches"
+        );
+
+        uniqueBatchIDs = uniqueBatchIDs.add(ref.targetOrBatchId);
+      });
+    });
+
+    return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
+  }
+
   getAllMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -290,16 +312,20 @@ export class MemoryMutationQueue implements MutationQueue {
       }
     }, start);
 
+    return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
+  }
+
+  private findMutationBatches(batchIDs: SortedSet<number>): MutationBatch[] {
     // Construct an array of matching batches, sorted by batchID to ensure that
     // multiple mutations affecting the same document key are applied in order.
     const result: MutationBatch[] = [];
-    uniqueBatchIDs.forEach(batchId => {
+    batchIDs.forEach(batchId => {
       const batch = this.findMutationBatch(batchId);
       if (batch !== null) {
         result.push(batch);
       }
     });
-    return PersistencePromise.resolve(result);
+    return result;
   }
 
   removeMutationBatches(

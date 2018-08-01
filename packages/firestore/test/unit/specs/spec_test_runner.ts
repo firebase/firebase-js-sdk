@@ -494,9 +494,11 @@ abstract class TestRunner {
   }
 
   async shutdown(): Promise<void> {
-    if (this.started) {
-      await this.doShutdown();
-    }
+    await this.queue.enqueue(async () => {
+      if (this.started) {
+        await this.doShutdown();
+      }
+    });
   }
 
   /** Runs a single SpecStep on this runner. */
@@ -1144,7 +1146,6 @@ class MemoryTestRunner extends TestRunner {
  */
 class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
-
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
