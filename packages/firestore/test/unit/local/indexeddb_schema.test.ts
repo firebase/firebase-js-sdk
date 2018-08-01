@@ -53,7 +53,7 @@ function withDb(
     request.onsuccess = (event: Event) => {
       resolve((event.target as IDBOpenDBRequest).result);
     };
-    request.onerror = (event: ErrorEvent) => {
+    request.onerror = (event: Event) => {
       reject((event.target as IDBOpenDBRequest).error);
     };
   })

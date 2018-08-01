@@ -308,9 +308,9 @@ class EventAggregator implements Observer<ViewSnapshot> {
     });
   }
 
-  error(error: FirestoreError): void {
-    expect(error.code).to.exist;
-    this.pushEvent({ query: this.query, error });
+  error(error: Error): void {
+    expect(error).to.be.instanceof(FirestoreError);
+    this.pushEvent({ query: this.query, error: error as FirestoreError });
   }
 }
 
