@@ -193,7 +193,7 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: IndexedDbTransaction) => PersistencePromise<T>
+    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
   ): Promise<T> {
     if (this.persistenceError) {
       return Promise.reject(this.persistenceError);
