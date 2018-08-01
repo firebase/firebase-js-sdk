@@ -20,10 +20,7 @@ import { Query } from '../../../src/core/query';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-<<<<<<< HEAD
-=======
 import { documentKeySet } from '../../../src/model/collections';
->>>>>>> master
 import {
   BATCHID_UNKNOWN,
   MutationBatch
@@ -41,6 +38,7 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 
 let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
@@ -67,55 +65,6 @@ describe('IndexedDbMutationQueue', () => {
   });
 
   genericMutationQueueTests();
-<<<<<<< HEAD
-=======
-
-  describe('loadNextBatchIdFromDb', () => {
-    function loadNextBatchId(): Promise<BatchId> {
-      return persistence.runTransaction('loadNextBatchIdFromDb', txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn).next(
-          batchId => {
-            return batchId;
-          }
-        );
-      });
-    }
-
-    function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
-      return persistence.runTransaction('addDummyBatch', transaction => {
-        const store = IndexedDbPersistence.getStore<
-          [string, number],
-          DbMutationBatch
-        >(transaction, DbMutationBatch.store);
-        const localWriteTime = Date.now();
-        return store.put(
-          new DbMutationBatch(userId, batchId, localWriteTime, [])
-        );
-      });
-    }
-
-    it('returns zero when no mutations.', async () => {
-      const batchId = await loadNextBatchId();
-      expect(batchId).to.equal(0);
-    });
-
-    it('finds next id after single mutation batch', async () => {
-      await addDummyBatch('foo', 6);
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-
-    it('finds max across users', async () => {
-      await addDummyBatch('fo', 5);
-      await addDummyBatch('food', 3);
-
-      await addDummyBatch('foo', 6);
-      await addDummyBatch('foo', 2);
-      await addDummyBatch('foo', 1);
-
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-  });
->>>>>>> master
 });
 
 /**

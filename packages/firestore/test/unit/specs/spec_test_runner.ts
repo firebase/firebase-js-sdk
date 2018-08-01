@@ -1127,13 +1127,8 @@ abstract class TestRunner {
 }
 
 class MemoryTestRunner extends TestRunner {
-<<<<<<< HEAD
   protected getSharedClientState(): SharedClientState {
     return new MemorySharedClientState();
-=======
-  protected getPersistence(serializer: JsonProtoSerializer): MemoryPersistence {
-    return new MemoryPersistence();
->>>>>>> master
   }
 
   protected async initPersistence(
@@ -1151,18 +1146,10 @@ class MemoryTestRunner extends TestRunner {
  */
 class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
-
-<<<<<<< HEAD
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
       this.platform,
-=======
-  protected getPersistence(
-    serializer: JsonProtoSerializer
-  ): IndexedDbPersistence {
-    return new IndexedDbPersistence(
->>>>>>> master
       IndexedDbTestRunner.TEST_DB_NAME,
       this.clientId,
       this.user

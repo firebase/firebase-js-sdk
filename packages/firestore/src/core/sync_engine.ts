@@ -45,18 +45,13 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-<<<<<<< HEAD
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
   OnlineStateSource,
-  ProtoByteString,
   TargetId
 } from './types';
-=======
-import { BatchId, OnlineState, TargetId } from './types';
->>>>>>> master
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -272,13 +267,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             'applyChanges for new view should always return a snapshot'
           );
 
-<<<<<<< HEAD
-          const data = new QueryView(
-            query,
-            queryData.targetId,
-            queryData.resumeToken,
-            view
-          );
+          const data = new QueryView(query, queryData.targetId, view);
           this.queryViewsByQuery.set(query, data);
           this.queryViewsByTarget[queryData.targetId] = data;
           return viewChange.snapshot!;
@@ -309,17 +298,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             );
           }
           return viewSnapshot;
-=======
-              const data = new QueryView(query, queryData.targetId, view);
-              this.queryViewsByQuery.set(query, data);
-              this.queryViewsByTarget[queryData.targetId] = data;
-              this.viewHandler!([viewChange.snapshot!]);
-              this.remoteStore.listen(queryData);
-            });
-        })
-        .then(() => {
-          return queryData.targetId;
->>>>>>> master
         });
     });
   }

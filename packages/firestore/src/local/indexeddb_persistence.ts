@@ -35,26 +35,19 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-<<<<<<< HEAD
 import {
   Persistence,
   PersistenceTransaction,
   PrimaryStateListener
 } from './persistence';
-=======
-import { Persistence, PersistenceTransaction } from './persistence';
->>>>>>> master
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-<<<<<<< HEAD
 import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
-=======
->>>>>>> master
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -86,17 +79,15 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
   ' persistence has been disabled.';
 
-<<<<<<< HEAD
 // The format of the LocalStorage key that stores zombied client is:
 //     firestore_zombie_<persistence_prefix>_<instance_key>
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
-=======
+
 export class IndexedDbTransaction extends PersistenceTransaction {
   constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
     super();
   }
 }
->>>>>>> master
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -494,14 +485,10 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-<<<<<<< HEAD
     requirePrimaryLease: boolean,
     transactionOperation: (
-      transaction: PersistenceTransaction
+      transaction: IndexedDbTransaction
     ) => PersistencePromise<T>
-=======
-    operation: (transaction: IndexedDbTransaction) => PersistencePromise<T>
->>>>>>> master
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
     // three different write modes (readonly, readwrite, readwrite_primary).
@@ -513,52 +500,47 @@ export class IndexedDbPersistence implements Persistence {
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-<<<<<<< HEAD
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      if (requirePrimaryLease) {
-        // While we merely verify that we have (or can acquire) the lease
-        // immediately, we wait to extend the primary lease until after
-        // executing transactionOperation(). This ensures that even if the
-        // transactionOperation takes a long time, we'll use a recent
-        // leaseTimestampMs in the extended (or newly acquired) lease.
-        return this.canActAsPrimary(txn)
-          .next(canActAsPrimary => {
-            if (!canActAsPrimary) {
-              // TODO(multitab): Handle this gracefully and transition back to
-              // secondary state.
-              log.error(
-                `Failed to obtain primary lease for action '${action}'.`
-              );
-              this.isPrimary = false;
-              this.queue.enqueue(() => this.primaryStateListener(false));
-              throw new FirestoreError(
-                Code.FAILED_PRECONDITION,
-                PRIMARY_LEASE_LOST_ERROR_MSG
-              );
-            }
-            return transactionOperation(txn);
-          })
-          .next(result => {
-            return this.acquireOrExtendPrimaryLease(txn).next(() => result);
-          });
-      } else {
-        return this.verifyAllowTabSynchronization(txn).next(() =>
-          transactionOperation(txn)
-        );
-      }
-    });
-=======
     return this.simpleDb.runTransaction(
       'readwrite',
       ALL_STORES,
       simpleDbTxn => {
-        // Verify that we still have the owner lease as part of every transaction.
-        return this.ensureOwnerLease(simpleDbTxn).next(() =>
-          operation(new IndexedDbTransaction(simpleDbTxn))
-        );
+        if (requirePrimaryLease) {
+          // While we merely verify that we have (or can acquire) the lease
+          // immediately, we wait to extend the primary lease until after
+          // executing transactionOperation(). This ensures that even if the
+          // transactionOperation takes a long time, we'll use a recent
+          // leaseTimestampMs in the extended (or newly acquired) lease.
+          return this.canActAsPrimary(simpleDbTxn)
+            .next(canActAsPrimary => {
+              if (!canActAsPrimary) {
+                // TODO(multitab): Handle this gracefully and transition back to
+                // secondary state.
+                log.error(
+                  `Failed to obtain primary lease for action '${action}'.`
+                );
+                this.isPrimary = false;
+                this.queue.enqueue(() => this.primaryStateListener(false));
+                throw new FirestoreError(
+                  Code.FAILED_PRECONDITION,
+                  PRIMARY_LEASE_LOST_ERROR_MSG
+                );
+              }
+              return transactionOperation(
+                new IndexedDbTransaction(simpleDbTxn)
+              );
+            })
+            .next(result => {
+              return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
+                () => result
+              );
+            });
+        } else {
+          return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
+            transactionOperation(new IndexedDbTransaction(simpleDbTxn))
+          );
+        }
       }
     );
->>>>>>> master
   }
 
   /**
@@ -659,7 +641,6 @@ export class IndexedDbPersistence implements Persistence {
     return true;
   }
 
-<<<<<<< HEAD
   private attachVisibilityHandler(): void {
     if (
       this.document !== null &&
@@ -671,27 +652,6 @@ export class IndexedDbPersistence implements Persistence {
           return this.updateClientMetadataAndTryBecomePrimary();
         });
       };
-=======
-  /**
-   * Schedules a recurring timer to update the owner lease timestamp to prevent
-   * other tabs from taking the lease.
-   */
-  private scheduleOwnerLeaseRefreshes(): void {
-    // NOTE: This doesn't need to be scheduled on the async queue and doing so
-    // would increase the chances of us not refreshing on time if the queue is
-    // backed up for some reason.
-    this.ownerLeaseRefreshHandle = setInterval(() => {
-      const txResult = this.simpleDb.runTransaction(
-        'readwrite',
-        ALL_STORES,
-        txn => {
-          // NOTE: We don't need to validate the current owner contents, since
-          // runTransaction does that automatically.
-          const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-          return store.put('owner', new DbOwner(this.ownerId, Date.now()));
-        }
-      );
->>>>>>> master
 
       this.document.addEventListener(
         'visibilitychange',

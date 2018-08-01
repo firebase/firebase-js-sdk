@@ -38,31 +38,13 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-<<<<<<< HEAD
-import { SimpleDb, SimpleDbStore } from './simple_db';
 import { TargetIdGenerator } from '../core/target_id_generator';
-=======
 import { SimpleDbStore } from './simple_db';
 import { IndexedDbPersistence } from './indexeddb_persistence';
->>>>>>> master
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
 
-<<<<<<< HEAD
-=======
-  /**
-   * The last received snapshot version. We store this separately from the
-   * metadata to avoid the extra conversion to/from DbTimestamp.
-   */
-  private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
-
-  /**
-   * A cached copy of the metadata for the query cache.
-   */
-  private metadata: DbTargetGlobal = null;
-
->>>>>>> master
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
 

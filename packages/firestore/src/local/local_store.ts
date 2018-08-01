@@ -772,7 +772,6 @@ export class LocalStore {
     });
   }
 
-<<<<<<< HEAD
   /**
    * Unpin all the documents associated with the given query. If
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
@@ -791,54 +790,22 @@ export class LocalStore {
             assert(
               queryData != null,
               'Tried to release nonexistent query: ' + query
-=======
-  /** Unpin all the documents associated with the given query. */
-  releaseQuery(query: Query): Promise<void> {
-    return this.persistence.runTransaction('Release query', txn => {
-      return this.queryCache
-        .getQueryData(txn, query)
-        .next((queryData: QueryData | null) => {
-          assert(
-            queryData != null,
-            'Tried to release nonexistent query: ' + query
-          );
-
-          const targetId = queryData!.targetId;
-          const cachedQueryData = this.targetIds[targetId];
-
-          this.localViewReferences.removeReferencesForId(targetId);
-          delete this.targetIds[targetId];
-          if (this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData!);
-          } else if (
-            cachedQueryData.snapshotVersion > queryData!.snapshotVersion
-          ) {
-            // If we've been avoiding persisting the resumeToken (see
-            // shouldPersistQueryData for conditions and rationale) we need to
-            // persist the token now because there will no longer be an
-            // in-memory version to fall back on.
-            return this.queryCache.updateQueryData(txn, cachedQueryData);
-          } else {
-            return PersistencePromise.resolve();
-          }
-        })
-        .next(() => {
-          // If this was the last watch target, then we won't get any more
-          // watch snapshots, so we should release any held batch results.
-          if (objUtils.isEmpty(this.targetIds)) {
-            const documentBuffer = new RemoteDocumentChangeBuffer(
-              this.remoteDocuments
             );
-            return this.releaseHeldBatchResults(txn, documentBuffer).next(
-              () => {
-                documentBuffer.apply(txn);
-              }
->>>>>>> master
-            );
-            this.localViewReferences.removeReferencesForId(queryData!.targetId);
-            delete this.targetIds[queryData!.targetId];
+            const targetId = queryData!.targetId;
+            const cachedQueryData = this.targetIds[targetId];
+
+            this.localViewReferences.removeReferencesForId(targetId);
+            delete this.targetIds[targetId];
             if (!keepPersistedQueryData && this.garbageCollector.isEager) {
               return this.queryCache.removeQueryData(txn, queryData!);
+            } else if (
+              cachedQueryData.snapshotVersion > queryData!.snapshotVersion
+            ) {
+              // If we've been avoiding persisting the resumeToken (see
+              // shouldPersistQueryData for conditions and rationale) we need to
+              // persist the token now because there will no longer be an
+              // in-memory version to fall back on.
+              return this.queryCache.updateQueryData(txn, cachedQueryData);
             } else {
               return PersistencePromise.resolve();
             }
@@ -851,12 +818,8 @@ export class LocalStore {
                 this.remoteDocuments
               );
               return this.releaseHeldBatchResults(txn, documentBuffer).next(
-                () => {
-                  documentBuffer.apply(txn);
-                }
+                () => documentBuffer.apply(txn)
               );
-            } else {
-              return PersistencePromise.resolve();
             }
           });
       }

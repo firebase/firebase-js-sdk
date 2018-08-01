@@ -127,7 +127,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesThroughBatchId',
-      true,
+        true,
       txn => {
         return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
       }
@@ -154,6 +154,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKeys',
+      true,
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKeys(
           txn,
