@@ -1146,7 +1146,6 @@ class MemoryTestRunner extends TestRunner {
  */
 class IndexedDbTestRunner extends TestRunner {
   static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
-
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,

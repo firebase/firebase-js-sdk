@@ -18,6 +18,7 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { BatchId, ProtoByteString } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
@@ -40,8 +41,8 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDb, SimpleDbStore } from './simple_db';
-import { DocumentKeySet } from '../model/collections';
+import { SimpleDbStore } from './simple_db';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -342,6 +343,50 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => results);
   }
 
+  getAllMutationBatchesAffectingDocumentKeys(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<MutationBatch[]> {
+    let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
+
+    const promises: Array<PersistencePromise<void>> = [];
+    documentKeys.forEach(documentKey => {
+      const indexStart = DbDocumentMutation.prefixForPath(
+        this.userId,
+        documentKey.path
+      );
+      const range = IDBKeyRange.lowerBound(indexStart);
+
+      const promise = documentMutationsStore(transaction).iterate(
+        { range },
+        (indexKey, _, control) => {
+          const [userID, encodedPath, batchID] = indexKey;
+
+          // Only consider rows matching exactly the specific key of
+          // interest. Note that because we order by path first, and we
+          // order terminators before path separators, we'll encounter all
+          // the index rows for documentKey contiguously. In particular, all
+          // the rows for documentKey will occur before any rows for
+          // documents nested in a subcollection beneath documentKey so we
+          // can stop as soon as we hit any such row.
+          const path = EncodedResourcePath.decode(encodedPath);
+          if (userID !== this.userId || !documentKey.path.isEqual(path)) {
+            control.done();
+            return;
+          }
+
+          uniqueBatchIDs = uniqueBatchIDs.add(batchID);
+        }
+      );
+
+      promises.push(promise);
+    });
+
+    return PersistencePromise.waitFor(promises).next(() =>
+      this.lookupMutationBatches(transaction, uniqueBatchIDs)
+    );
+  }
+
   getAllMutationBatchesAffectingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -393,34 +438,39 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
       })
-      .next(() => {
-        const results: MutationBatch[] = [];
-        const promises: Array<PersistencePromise<void>> = [];
-        // TODO(rockwood): Implement this using iterate.
-        uniqueBatchIDs.forEach(batchId => {
-          promises.push(
-            mutationsStore(transaction)
-              .get(batchId)
-              .next(mutation => {
-                if (!mutation) {
-                  fail(
-                    'Dangling document-mutation reference found, ' +
-                      'which points to ' +
-                      batchId
-                  );
-                }
-                assert(
-                  mutation.userId === this.userId,
-                  `Unexpected user '${
-                    mutation.userId
-                  }' for mutation batch ${batchId}`
-                );
-                results.push(this.serializer.fromDbMutationBatch(mutation!));
-              })
-          );
-        });
-        return PersistencePromise.waitFor(promises).next(() => results);
-      });
+      .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
+  }
+
+  private lookupMutationBatches(
+    transaction: PersistenceTransaction,
+    batchIDs: SortedSet<BatchId>
+  ): PersistencePromise<MutationBatch[]> {
+    const results: MutationBatch[] = [];
+    const promises: Array<PersistencePromise<void>> = [];
+    // TODO(rockwood): Implement this using iterate.
+    batchIDs.forEach(batchId => {
+      promises.push(
+        mutationsStore(transaction)
+          .get(batchId)
+          .next(mutation => {
+            if (mutation === null) {
+              fail(
+                'Dangling document-mutation reference found, ' +
+                  'which points to ' +
+                  batchId
+              );
+            }
+            assert(
+              mutation.userId === this.userId,
+              `Unexpected user '${
+                mutation.userId
+              }' for mutation batch ${batchId}`
+            );
+            results.push(this.serializer.fromDbMutationBatch(mutation!));
+          })
+      );
+    });
+    return PersistencePromise.waitFor(promises).next(() => results);
   }
 
   removeMutationBatches(
@@ -567,7 +617,7 @@ function convertStreamToken(token: ProtoByteString): string {
 function mutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationBatchKey, DbMutationBatch> {
-  return SimpleDb.getStore<DbMutationBatchKey, DbMutationBatch>(
+  return IndexedDbPersistence.getStore<DbMutationBatchKey, DbMutationBatch>(
     txn,
     DbMutationBatch.store
   );
@@ -579,10 +629,10 @@ function mutationsStore(
 function documentMutationsStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbDocumentMutationKey, DbDocumentMutation> {
-  return SimpleDb.getStore<DbDocumentMutationKey, DbDocumentMutation>(
-    txn,
-    DbDocumentMutation.store
-  );
+  return IndexedDbPersistence.getStore<
+    DbDocumentMutationKey,
+    DbDocumentMutation
+  >(txn, DbDocumentMutation.store);
 }
 
 /**
@@ -591,7 +641,7 @@ function documentMutationsStore(
 function mutationQueuesStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbMutationQueueKey, DbMutationQueue> {
-  return SimpleDb.getStore<DbMutationQueueKey, DbMutationQueue>(
+  return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
     txn,
     DbMutationQueue.store
   );
