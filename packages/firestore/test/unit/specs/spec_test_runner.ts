@@ -72,8 +72,6 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-//import { FirestoreError } from '@firebase/firestore-types';
-import * as firestore from '@firebase/firestore-types';
 import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';

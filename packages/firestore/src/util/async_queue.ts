@@ -329,7 +329,7 @@ export class AsyncQueue {
   }
 
   /** Called once a DelayedOperation is run or canceled. */
-  private removeDelayedOperation<T>(op: DelayedOperation<AnyJs | void>): void {
+  private removeDelayedOperation(op: DelayedOperation<AnyJs | void>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
     assert(index >= 0, 'Delayed operation not found.');
