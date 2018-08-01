@@ -487,7 +487,7 @@ export class IndexedDbPersistence implements Persistence {
     action: string,
     requirePrimaryLease: boolean,
     transactionOperation: (
-      transaction: IndexedDbTransaction
+      transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
