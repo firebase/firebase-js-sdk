@@ -31,7 +31,6 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
-import { DocumentKeySet } from '../model/collections';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**

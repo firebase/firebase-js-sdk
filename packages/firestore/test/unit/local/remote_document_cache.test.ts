@@ -42,22 +42,9 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-<<<<<<< HEAD
-  beforeEach(() => {
-    // We turn on `synchronizeTabs` to test the document change log.
-    return persistenceHelpers
-      .testIndexedDbPersistence(/* synchronizeTabs= */ true)
-      .then(p => {
-        persistence = p;
-      });
-  });
-
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
-
-  genericRemoteDocumentCacheTests();
-=======
-  genericRemoteDocumentCacheTests(persistenceHelpers.testIndexedDbPersistence);
->>>>>>> master
+  genericRemoteDocumentCacheTests(() =>
+    persistenceHelpers.testIndexedDbPersistence(/* synchronizeTabs= */ true)
+  );
 });
 
 /**
@@ -87,7 +74,6 @@ function genericRemoteDocumentCacheTests(
       });
   }
 
-<<<<<<< HEAD
   function assertMatches(
     expected: MaybeDocument[],
     actual: MaybeDocumentMap
@@ -106,17 +92,12 @@ function genericRemoteDocumentCacheTests(
     });
   }
 
-  beforeEach(() => {
-=======
   beforeEach(async () => {
     persistence = await persistencePromise();
->>>>>>> master
     cache = new TestRemoteDocumentCache(
       persistence,
       persistence.getRemoteDocumentCache()
     );
-
-    return cache.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));

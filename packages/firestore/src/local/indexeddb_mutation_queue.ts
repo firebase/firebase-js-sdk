@@ -41,13 +41,8 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-<<<<<<< HEAD
-import { SimpleDb, SimpleDbStore } from './simple_db';
-import { DocumentKeySet } from '../model/collections';
-=======
 import { SimpleDbStore } from './simple_db';
 import { IndexedDbPersistence } from './indexeddb_persistence';
->>>>>>> master
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -443,36 +438,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
         }
         uniqueBatchIDs = uniqueBatchIDs.add(batchID);
       })
-<<<<<<< HEAD
-      .next(() => {
-        const results: MutationBatch[] = [];
-        const promises: Array<PersistencePromise<void>> = [];
-        // TODO(rockwood): Implement this using iterate.
-        uniqueBatchIDs.forEach(batchId => {
-          promises.push(
-            mutationsStore(transaction)
-              .get(batchId)
-              .next(mutation => {
-                if (!mutation) {
-                  fail(
-                    'Dangling document-mutation reference found, ' +
-                      'which points to ' +
-                      batchId
-                  );
-                }
-                assert(
-                  mutation.userId === this.userId,
-                  `Unexpected user '${
-                    mutation.userId
-                  }' for mutation batch ${batchId}`
-                );
-                results.push(this.serializer.fromDbMutationBatch(mutation!));
-              })
-          );
-        });
-        return PersistencePromise.waitFor(promises).next(() => results);
-      });
-=======
       .next(() => this.lookupMutationBatches(transaction, uniqueBatchIDs));
   }
 
@@ -483,25 +448,29 @@ export class IndexedDbMutationQueue implements MutationQueue {
     const results: MutationBatch[] = [];
     const promises: Array<PersistencePromise<void>> = [];
     // TODO(rockwood): Implement this using iterate.
-    batchIDs.forEach(batchID => {
-      const mutationKey = this.keyForBatchId(batchID);
+    batchIDs.forEach(batchId => {
       promises.push(
         mutationsStore(transaction)
-          .get(mutationKey)
+          .get(batchId)
           .next(mutation => {
             if (mutation === null) {
               fail(
                 'Dangling document-mutation reference found, ' +
                   'which points to ' +
-                  mutationKey
+                  batchId
               );
             }
+            assert(
+              mutation.userId === this.userId,
+              `Unexpected user '${
+                mutation.userId
+              }' for mutation batch ${batchId}`
+            );
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           })
       );
     });
     return PersistencePromise.waitFor(promises).next(() => results);
->>>>>>> master
   }
 
   removeMutationBatches(

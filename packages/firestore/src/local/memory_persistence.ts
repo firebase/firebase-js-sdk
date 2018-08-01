@@ -109,11 +109,7 @@ export class MemoryPersistence implements Persistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-<<<<<<< HEAD
-    return transactionOperation(new MemoryPersistenceTransaction()).toPromise();
-=======
-    return operation(new MemoryTransaction()).toPromise();
->>>>>>> master
+    return transactionOperation(new MemoryTransaction()).toPromise();
   }
 }
 
