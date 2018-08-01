@@ -60,7 +60,7 @@ export enum TimerId {
  *
  * Supports cancellation (via cancel()) and early execution (via skipDelay()).
  */
-class DelayedOperation<T extends (AnyJs | void)> implements CancelablePromise<T> {
+class DelayedOperation<T extends AnyJs | void> implements CancelablePromise<T> {
   // handle for use with clearTimeout(), or null if the operation has been
   // executed or canceled already.
   private timerHandle: TimerHandle | null;
@@ -94,7 +94,7 @@ class DelayedOperation<T extends (AnyJs | void)> implements CancelablePromise<T>
    *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
    *   the DelayedOperation class public.
    */
-  static createAndSchedule<R extends (AnyJs | void)>(
+  static createAndSchedule<R extends AnyJs | void>(
     asyncQueue: AsyncQueue,
     timerId: TimerId,
     delayMs: number,
@@ -233,7 +233,7 @@ export class AsyncQueue {
    * `delayMs` has elapsed. The returned CancelablePromise can be used to cancel
    * the operation prior to its running.
    */
-  enqueueAfterDelay<T extends (AnyJs | void)>(
+  enqueueAfterDelay<T extends AnyJs | void>(
     timerId: TimerId,
     delayMs: number,
     op: () => Promise<T>

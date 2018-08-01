@@ -339,7 +339,10 @@ export class SimpleDbTransaction {
  * 3) Provides a higher-level API to avoid needing to do excessive wrapping of
  * intermediate IndexedDB types (IDBCursorWithValue, etc.)
  */
-export class SimpleDbStore<KeyType extends IDBValidKey, ValueType extends AnyJs> {
+export class SimpleDbStore<
+  KeyType extends IDBValidKey,
+  ValueType extends AnyJs
+> {
   constructor(private store: IDBObjectStore) {}
 
   /**
