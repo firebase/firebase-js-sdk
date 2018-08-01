@@ -353,10 +353,10 @@ export class IndexedDbPersistence implements Persistence {
         'readwrite',
         ALL_STORES,
         txn => {
-          // NOTE: We don't need to validate the current owner contents, since
-          // runTransaction does that automatically.
-          const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-          return store.put('owner', new DbOwner(this.ownerId, Date.now()));
+          return this.ensureOwnerLease(txn).next(() => {
+            const store = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+            return store.put('owner', new DbOwner(this.ownerId, Date.now()));
+          });
         }
       );
 
