@@ -18,7 +18,7 @@ import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
 import {
   collection,
-  docChanges,
+  collectionChanges,
   sortedChanges,
   auditTrail,
   docData,
@@ -112,7 +112,7 @@ describe('RxFire Firestore', () => {
     });
   });
 
-  describe('docChanges', () => {
+  describe('collectionChanges', () => {
     /**
      * The `stateChanges()` method emits a stream of events as they
      * occur rather than in sorted order.
@@ -124,8 +124,8 @@ describe('RxFire Firestore', () => {
       const { colRef, davidDoc } = seedTest(firestore);
 
       davidDoc.set({ name: 'David' });
-      const firstChange = docChanges(colRef).pipe(take(1));
-      const secondChange = docChanges(colRef).pipe(skip(1));
+      const firstChange = collectionChanges(colRef).pipe(take(1));
+      const secondChange = collectionChanges(colRef).pipe(skip(1));
 
       firstChange.subscribe(change => {
         expect(change[0].type).to.eq('added');
@@ -141,7 +141,7 @@ describe('RxFire Firestore', () => {
 
   describe('sortedChanges', () => {
     /**
-     * The `sortedChanges()` method reduces the stream of `docChanges()` to
+     * The `sortedChanges()` method reduces the stream of `collectionChanges()` to
      * a sorted array. This test seeds two "people" and checks to make sure
      * the 'added' change type exists. Afterwards, one "person" is modified.
      * The test then checks that the person is modified and in the proper sorted
