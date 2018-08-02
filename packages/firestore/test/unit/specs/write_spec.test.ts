@@ -645,7 +645,7 @@ describeSpec('Writes:', [], () => {
         expectRequestCount({ handshakes: 2, writes: 2, closes: 1 })
       )
       .expectNumOutstandingWrites(1)
-      .writeAcks('collection/key', 1, { expectUserCallback: false })
+      .writeAcks('collection/key', 1)
       .expectNumOutstandingWrites(0);
   });
 

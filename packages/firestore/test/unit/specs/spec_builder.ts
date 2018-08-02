@@ -46,7 +46,9 @@ import {
   SpecQueryFilter,
   SpecQueryOrderBy,
   SpecStep,
-  SpecWatchFilter
+  SpecWatchFilter,
+  SpecWriteAck,
+  SpecWriteFailure
 } from './spec_test_runner';
 import { TimerId } from '../../../src/util/async_queue';
 
@@ -464,7 +466,7 @@ export class SpecBuilder {
   /**
    * Acks a write with a version and optional additional options.
    *
-   * expectUserCallback defaults to true if options are omitted.
+   * expectUserCallback defaults to true if omitted.
    */
   writeAcks(
     doc: string,
@@ -474,11 +476,13 @@ export class SpecBuilder {
     this.nextStep();
     options = options || {};
 
-    this.currentStep = {
-      writeAck: { version, keepInQueue: !!options.keepInQueue }
-    };
+    const writeAck: SpecWriteAck = { version };
+    if (options.keepInQueue) {
+      writeAck.keepInQueue = true;
+    }
+    this.currentStep = { writeAck };
 
-    if (options.expectUserCallback) {
+    if (options.expectUserCallback !== false) {
       return this.expectUserCallbacks({ acknowledged: [doc] });
     } else {
       return this;
@@ -488,7 +492,7 @@ export class SpecBuilder {
   /**
    * Fails a write with an error and optional additional options.
    *
-   * expectUserCallback defaults to true if options are omitted.
+   * expectUserCallback defaults to true if omitted.
    */
   failWrite(
     doc: string,
@@ -506,9 +510,13 @@ export class SpecBuilder {
         ? options.keepInQueue
         : !isPermanentFailure;
 
-    this.currentStep = { failWrite: { error, keepInQueue } };
+    const failWrite: SpecWriteFailure = { error };
+    if (keepInQueue) {
+      failWrite.keepInQueue = true;
+    }
+    this.currentStep = { failWrite };
 
-    if (options.expectUserCallback) {
+    if (options.expectUserCallback !== false) {
       return this.expectUserCallbacks({ rejected: [doc] });
     } else {
       return this;

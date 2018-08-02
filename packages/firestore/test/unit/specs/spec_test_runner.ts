@@ -947,14 +947,18 @@ abstract class TestRunner {
       if ('isPrimary' in expectation) {
         expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
       }
-      if ('userCallbacks' in expectation) {
-        expect(this.acknowledgedDocs).to.have.members(
-          expectation.userCallbacks.acknowledgedDocs
-        );
-        expect(this.rejectedDocs).to.have.members(
-          expectation.userCallbacks.rejectedDocs
-        );
-      }
+    }
+
+    if (expectation && expectation.userCallbacks) {
+      expect(this.acknowledgedDocs).to.have.members(
+        expectation.userCallbacks.acknowledgedDocs
+      );
+      expect(this.rejectedDocs).to.have.members(
+        expectation.userCallbacks.rejectedDocs
+      );
+    } else {
+      expect(this.acknowledgedDocs).to.be.empty;
+      expect(this.rejectedDocs).to.be.empty;
     }
 
     if (this.numClients === 1) {
@@ -1393,9 +1397,11 @@ export type SpecWriteAck = {
    * Whether we should keep the write in our internal queue. This should only
    * be set to 'true' if the client ignores the write (e.g. a secondary client
    * which ignores write acknowledgments).
+   *
+   * Defaults to false.
    */
   // PORTING NOTE: Multi-Tab only.
-  keepInQueue: boolean;
+  keepInQueue?: boolean;
 };
 
 export type SpecWriteFailure = {
@@ -1405,8 +1411,10 @@ export type SpecWriteFailure = {
    * Whether we should keep the write in our internal queue. This should be set
    * to 'true' for transient errors or if the client ignores the failure
    * (e.g. a secondary client which ignores write rejections).
+   *
+   * Defaults to false.
    */
-  keepInQueue: boolean;
+  keepInQueue?: boolean;
 };
 
 export interface SpecWatchEntity {
