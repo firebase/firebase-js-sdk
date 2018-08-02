@@ -87,7 +87,8 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version
+  version,
+  expectFirestoreError
 } from '../../util/helpers';
 
 class MockConnection implements Connection {
@@ -308,9 +309,9 @@ class EventAggregator implements Observer<ViewSnapshot> {
     });
   }
 
-  error(error: FirestoreError): void {
-    expect(error.code).to.exist;
-    this.pushEvent({ query: this.query, error });
+  error(error: Error): void {
+    expectFirestoreError(error);
+    this.pushEvent({ query: this.query, error: error as FirestoreError });
   }
 }
 
@@ -913,8 +914,7 @@ abstract class TestRunner {
     const expectedQuery = this.parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      // TODO(dimond): better matcher
-      expect(actual.error instanceof Error).to.equal(true);
+      expectFirestoreError(actual.error);
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {

@@ -157,7 +157,7 @@ export class PersistencePromise<T> {
   static resolve(): PersistencePromise<void>;
   static resolve<R>(result: R): PersistencePromise<R>;
   static resolve<R>(result?: R): PersistencePromise<R | void> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R | void>((resolve, reject) => {
       resolve(result);
     });
   }

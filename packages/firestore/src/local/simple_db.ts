@@ -19,6 +19,7 @@ import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 import { PersistencePromise } from './persistence_promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
+import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { Code, FirestoreError } from '../util/error';
 
@@ -71,7 +72,7 @@ export class SimpleDb {
         );
       };
 
-      request.onerror = (event: ErrorEvent) => {
+      request.onerror = (event: Event) => {
         reject((event.target as IDBOpenDBRequest).error);
       };
 
@@ -147,7 +148,7 @@ export class SimpleDb {
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
-  static getStore<KeyType extends IDBValidKey, ValueType>(
+  static getStore<KeyType extends IDBValidKey, ValueType extends AnyJs>(
     txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
@@ -319,7 +320,7 @@ export class SimpleDbTransaction {
    * Note that we can't actually enforce that the KeyType and ValueType are
    * correct, but they allow type safety through the rest of the consuming code.
    */
-  store<KeyType extends IDBValidKey, ValueType>(
+  store<KeyType extends IDBValidKey, ValueType extends AnyJs>(
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
@@ -338,7 +339,10 @@ export class SimpleDbTransaction {
  * 3) Provides a higher-level API to avoid needing to do excessive wrapping of
  * intermediate IndexedDB types (IDBCursorWithValue, etc.)
  */
-export class SimpleDbStore<KeyType extends IDBValidKey, ValueType> {
+export class SimpleDbStore<
+  KeyType extends IDBValidKey,
+  ValueType extends AnyJs
+> {
   constructor(private store: IDBObjectStore) {}
 
   /**
