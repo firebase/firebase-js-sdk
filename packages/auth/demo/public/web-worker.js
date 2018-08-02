@@ -77,11 +77,11 @@ var runWorkerTests = function(googleIdToken) {
         firebase.auth().useDeviceLanguage();
         return firebase.auth().signInAnonymously();
       })
-      .then(function(user) {
-        if (!user.uid) {
+      .then(function(result) {
+        if (!result.user.uid) {
           throw new Error('signInAnonymously unexpectedly failed!');
         }
-        return user.updateProfile({displayName: expectedDisplayName});
+        return result.user.updateProfile({displayName: expectedDisplayName});
       })
       .then(function() {
         if (firebase.auth().currentUser.displayName != expectedDisplayName) {
@@ -95,8 +95,8 @@ var runWorkerTests = function(googleIdToken) {
         }
         return firebase.auth().createUserWithEmailAndPassword(email, pass);
       })
-      .then(function(user) {
-        if (user.email != email) {
+      .then(function(result) {
+        if (result.user.email != email) {
           throw new Error(
               'createUserWithEmailAndPassword unexpectedly failed!');
         }
@@ -107,11 +107,11 @@ var runWorkerTests = function(googleIdToken) {
         }
         return firebase.auth().signInWithEmailAndPassword(email, pass);
       })
-      .then(function(user) {
-        if (user.email != email) {
+      .then(function(result) {
+        if (result.user.email != email) {
           throw new Error('signInWithEmailAndPassword unexpectedly failed!');
         }
-        return user.delete();
+        return result.user.delete();
       })
       .then(function() {
         return firebase.auth().signInWithPopup(provider)
