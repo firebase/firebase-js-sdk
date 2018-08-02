@@ -24,6 +24,9 @@ goog.provide('fireauth.storage.IndexedDB');
 
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.messagechannel.Receiver');
+goog.require('fireauth.messagechannel.Sender');
+goog.require('fireauth.messagechannel.WorkerClientPostMessager');
 goog.require('fireauth.storage.Storage');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
@@ -96,6 +99,36 @@ fireauth.storage.IndexedDB = function(
       opt_indexedDB || goog.global.indexedDB);
   /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.INDEXEDDB;
+  /**
+   * @private {?fireauth.messagechannel.Receiver} The messageChannel receiver if
+   *     running from a serviceworker.
+   */
+  this.receiver_ = null;
+  var scope = this;
+  if (fireauth.util.getWorkerGlobalScope()) {
+    this.receiver_ = fireauth.messagechannel.Receiver.getInstance(
+        /** @type {!WorkerGlobalScope} */ (
+            fireauth.util.getWorkerGlobalScope()));
+    // Listen to indexedDB changes.
+    this.receiver_.subscribe('keyChanged', function(origin, request) {
+      // Sync data.
+      return scope.sync_().then(function(keys) {
+        // Trigger listeners if unhandled changes are detected.
+        if (keys.length > 0) {
+          goog.array.forEach(
+              scope.storageListeners_,
+              function(listener) {
+                listener(keys);
+              });
+        }
+        // When this is false, it means the change was already
+        // detected and processed before the notification.
+        return {
+          'keyProcessed': goog.array.contains(keys, request['key'])
+        };
+      });
+    });
+  }
 };
 
 
@@ -361,12 +394,39 @@ fireauth.storage.IndexedDB.prototype.set = function(key, value) {
       .then(function() {
         // Save in local copy to avoid triggering false external event.
         self.localMap_[key] = value;
+        // Announce change in key to service worker.
+        return self.notifySW_(key);
       })
       .thenAlways(function() {
         if (isLocked) {
           self.pendingOpsTracker_--;
         }
       });
+};
+
+
+/**
+ * Notify the service worker of the indexeDB write operation.
+ * Waits until the operation is processed.
+ * @param {string} key The key which is changing.
+ * @return {!goog.Promise<void>} A promise that resolves on delivery.
+ * @private
+ */
+fireauth.storage.IndexedDB.prototype.notifySW_ = function(key) {
+  if (fireauth.util.getServiceWorkerController()) {
+    var sender = new fireauth.messagechannel.Sender(
+        new fireauth.messagechannel.WorkerClientPostMessager(
+            /** @type {!ServiceWorker} */ (
+                fireauth.util.getServiceWorkerController())));
+    return sender.send('keyChanged', {'key': key})
+        .then(function(responses) {
+          // Return nothing.
+        })
+        .thenCatch(function(error) {
+          // This is a best effort approach. Ignore errors.
+        });
+  }
+  return goog.Promise.resolve();
 };
 
 
@@ -411,6 +471,8 @@ fireauth.storage.IndexedDB.prototype.remove = function(key) {
       }).then(function() {
         // Delete from local copy to avoid triggering false external event.
         delete self.localMap_[key];
+        // Announce change in key to service worker.
+        return self.notifySW_(key);
       }).thenAlways(function() {
         if (isLocked) {
           self.pendingOpsTracker_--;

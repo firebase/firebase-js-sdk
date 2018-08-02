@@ -18,10 +18,13 @@ goog.provide('fireauth.storage.IndexedDBTest');
 
 goog.require('fireauth.AuthError');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.messagechannel.Receiver');
+goog.require('fireauth.messagechannel.Sender');
 goog.require('fireauth.storage.IndexedDB');
 goog.require('fireauth.storage.Storage');
 goog.require('goog.Promise');
 goog.require('goog.testing.MockClock');
+goog.require('goog.testing.MockControl');
 goog.require('goog.testing.PropertyReplacer');
 goog.require('goog.testing.jsunit');
 goog.require('goog.testing.recordFunction');
@@ -29,6 +32,8 @@ goog.require('goog.testing.recordFunction');
 goog.setTestOnly('fireauth.storage.IndexedDBTest');
 
 
+var mockControl;
+var ignoreArgument;
 var stubs = new goog.testing.PropertyReplacer();
 var db = null;
 var manager;
@@ -39,6 +44,9 @@ var deleted;
 
 
 function setUp() {
+  mockControl = new goog.testing.MockControl();
+  ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
+  mockControl.$resetAll();
   deleted = 0;
   // IndexedDB not supported in IE9.
   stubs.replace(
@@ -216,6 +224,11 @@ function tearDown() {
   indexedDBMock = null;
   stubs.reset();
   goog.dispose(clock);
+  try {
+    mockControl.$verifyAll();
+  } finally {
+    mockControl.$tearDown();
+  }
 }
 
 
@@ -394,4 +407,208 @@ function testStopListeners() {
   assertEquals(1, listener3.getCallCount());
   assertArrayEquals(
       ['key1', 'key2'], listener3.getLastCall().getArgument(0));
+}
+
+
+function testReceiverSubscribed_noWorkerGlobalScope() {
+  var getWorkerGlobalScope = mockControl.createMethodMock(
+      fireauth.util, 'getWorkerGlobalScope');
+  var getInstance = mockControl.createMethodMock(
+      fireauth.messagechannel.Receiver, 'getInstance');
+  getWorkerGlobalScope().$returns(null).$atLeastOnce();
+  getInstance().$never();
+  mockControl.$replayAll();
+
+  manager = getDefaultFireauthManager();
+  return manager.get('abc').then(function(value) {
+    assertNull(value);
+  });
+}
+
+
+function testReceiverSubscribed_externalChange_notYetProcessed() {
+  var listener1 = goog.testing.recordFunction();
+  var subscribedCallback;
+  var workerGlobalScope = {};
+  var getWorkerGlobalScope = mockControl.createMethodMock(
+      fireauth.util, 'getWorkerGlobalScope');
+  var receiver = mockControl.createStrictMock(fireauth.messagechannel.Receiver);
+  var getInstance = mockControl.createMethodMock(
+      fireauth.messagechannel.Receiver, 'getInstance');
+  getWorkerGlobalScope().$returns(workerGlobalScope).$atLeastOnce();
+  getInstance(workerGlobalScope).$returns(receiver);
+  receiver.subscribe('keyChanged', ignoreArgument)
+      .$does(function(eventType, callback) {
+        subscribedCallback = callback;
+      }).$once();
+  mockControl.$replayAll();
+
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(listener1);
+  return manager.get('abc').then(function(value) {
+    assertNull(value);
+    // Simulate external indexedDB change.
+    db.store['firebaseLocalStorage'] = {
+      'abc': {'fbase_key': 'abc', 'value': 'def'}
+    };
+    return subscribedCallback('https://www.example.com', {'key': 'abc'});
+  }).then(function(response) {
+    // Confirm sync completed. Status true returned to confirm the key was
+    // processed.
+    assertObjectEquals({'keyProcessed': true}, response);
+    // Listener should trigger with expected argument.
+    assertEquals(1, listener1.getCallCount());
+    assertArrayEquals(['abc'], listener1.getLastCall().getArgument(0));
+    return manager.get('abc');
+  }).then(function(value) {
+    assertEquals('def', value);
+  });
+}
+
+
+function testReceiverSubscribed_externalChange_alreadyProcessed() {
+  var listener1 = goog.testing.recordFunction();
+  var subscribedCallback;
+  var workerGlobalScope = {};
+  var getWorkerGlobalScope = mockControl.createMethodMock(
+      fireauth.util, 'getWorkerGlobalScope');
+  var receiver = mockControl.createStrictMock(fireauth.messagechannel.Receiver);
+  var getInstance = mockControl.createMethodMock(
+      fireauth.messagechannel.Receiver, 'getInstance');
+  getWorkerGlobalScope().$returns(workerGlobalScope).$atLeastOnce();
+  getInstance(workerGlobalScope).$returns(receiver);
+  receiver.subscribe('keyChanged', ignoreArgument)
+      .$does(function(eventType, callback) {
+        subscribedCallback = callback;
+      }).$once();
+  mockControl.$replayAll();
+
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(listener1);
+  return manager.set('abc', 'def').then(function() {
+    return subscribedCallback('https://www.example.com', {'key': 'abc'});
+  }).then(function(response) {
+    // Confirm sync completed but key not processed since no change is detected.
+    assertObjectEquals({'keyProcessed': false}, response);
+    // No listener should trigger.
+    assertEquals(0, listener1.getCallCount());
+    return manager.get('abc');
+  }).then(function(value) {
+    assertEquals('def', value);
+  });
+}
+
+
+function testSender_writeOperations_serviceWorkerControllerUnavailable() {
+  var getServiceWorkerController = mockControl.createMethodMock(
+      fireauth.util, 'getServiceWorkerController');
+  var sender = mockControl.createStrictMock(fireauth.messagechannel.Sender);
+  var senderConstructor = mockControl.createConstructorMock(
+      fireauth.messagechannel, 'Sender');
+  getServiceWorkerController().$returns(null).$atLeastOnce();
+  // No sender initialized.
+  senderConstructor(ignoreArgument).$never();
+  sender.send(ignoreArgument).$never();
+  mockControl.$replayAll();
+
+  // Set and remove should not trigger sender.
+  manager = getDefaultFireauthManager();
+  return manager.set('abc', 'def').then(function() {
+    return manager.get('abc');
+  }).then(function(value) {
+    assertEquals('def', value);
+    return manager.remove('abc');
+  }).then(function() {
+    return manager.get('abc');
+  }).then(function(value) {
+    assertNull(value);
+  });
+}
+
+
+function testSender_writeOperations_serviceWorkerControllerAvailable() {
+  var status = [];
+  var serviceWorkerController = {};
+  var getServiceWorkerController = mockControl.createMethodMock(
+      fireauth.util, 'getServiceWorkerController');
+
+  getServiceWorkerController().$returns(serviceWorkerController).$atLeastOnce();
+  var sender = mockControl.createStrictMock(fireauth.messagechannel.Sender);
+  var senderConstructor = mockControl.createConstructorMock(
+      fireauth.messagechannel, 'Sender');
+  // Successful set event.
+  senderConstructor(ignoreArgument).$returns(sender);
+  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
+    status.push(0);
+    return goog.Promise.resolve([
+      {
+        'fulfilled': true,
+        'value': {'keyProcessed': true}
+      }
+    ]);
+  }).$once();
+  // Successful remove event.
+  senderConstructor(ignoreArgument).$returns(sender);
+  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
+    status.push(1);
+    return goog.Promise.resolve([
+      {
+        'fulfilled': true,
+        'value': {'keyProcessed': true}
+      }
+    ]);
+  }).$once();
+  // Failing set event.
+  senderConstructor(ignoreArgument).$returns(sender);
+  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
+    status.push(2);
+    return goog.Promise.reject(new Error('unsupported_event'));
+  }).$once();
+  // Failing remove event.
+  senderConstructor(ignoreArgument).$returns(sender);
+  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
+    status.push(3);
+    return goog.Promise.reject(new Error('invalid_response'));
+  }).$once();
+  mockControl.$replayAll();
+
+  manager = getDefaultFireauthManager();
+  return manager.set('abc', 'def').then(function() {
+    // Set should trigger sender at this point.
+    assertArrayEquals([0], status);
+    return manager.get('abc');
+  }).then(function(value) {
+    // Get shouldn't trigger.
+    assertArrayEquals([0], status);
+    assertEquals('def', value);
+    return manager.remove('abc');
+  }).then(function() {
+    // Remove should trigger sender at this point.
+    assertArrayEquals([0, 1], status);
+    return manager.get('abc');
+  }).then(function(value) {
+    // Get shouldn't trigger.
+    assertArrayEquals([0, 1], status);
+    assertNull(value);
+    // This should resolve even if sender error occurs.
+    return manager.set('abc', 'ghi');
+  }).then(function() {
+    // Set should trigger sender at this point.
+    assertArrayEquals([0, 1, 2], status);
+    return manager.get('abc');
+  }).then(function(value) {
+    // Get shouldn't trigger.
+    assertArrayEquals([0, 1, 2], status);
+    assertEquals('ghi', value);
+    // This should resolve even if sender error occurs.
+    return manager.remove('abc');
+  }).then(function() {
+    // Remove should trigger sender at this point.
+    assertArrayEquals([0, 1, 2, 3], status);
+    return manager.get('abc');
+  }).then(function(value) {
+    // Get shouldn't trigger.
+    assertArrayEquals([0, 1, 2, 3], status);
+    assertNull(value);
+  });
 }
