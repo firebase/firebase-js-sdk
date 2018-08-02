@@ -559,9 +559,9 @@ export function expectEqualArrays(
  * Checks that an ordered array of elements yields the correct pair-wise
  * comparison result for the supplied comparator
  */
-export function expectCorrectComparisons(
-  array: AnyJs[],
-  comp: (left: AnyJs, right: AnyJs) => number
+export function expectCorrectComparisons<T extends AnyJs>(
+  array: T[],
+  comp: (left: T, right: T) => number
 ): void {
   for (let i = 0; i < array.length; i++) {
     for (let j = 0; j < array.length; j++) {
@@ -588,9 +588,9 @@ export function expectCorrectComparisons(
  * returns the same as comparing the indexes of the "equality groups"
  * (0 for items in the same group).
  */
-export function expectCorrectComparisonGroups(
-  groups: AnyJs[][],
-  comp: (left: AnyJs, right: AnyJs) => number
+export function expectCorrectComparisonGroups<T extends AnyJs>(
+  groups: T[][],
+  comp: (left: T, right: T) => number
 ): void {
   for (let i = 0; i < groups.length; i++) {
     for (const left of groups[i]) {
@@ -677,4 +677,8 @@ export function size(obj: JsonObject<AnyJs>): number {
   let c = 0;
   forEach(obj, () => c++);
   return c;
+}
+
+export function expectFirestoreError(err: Error): void {
+  expect(err.name).to.equal('FirebaseError');
 }

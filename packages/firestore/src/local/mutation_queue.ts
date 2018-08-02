@@ -25,7 +25,6 @@ import { MutationBatch } from '../model/mutation_batch';
 import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { DocumentKeySet } from '../model/collections';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue extends GarbageSource {

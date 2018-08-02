@@ -1455,3 +1455,18 @@ fireauth.util.setNoReferrer = function() {
     }
   }
 };
+
+
+/** @return {?ServiceWorker} The servicerWorker controller if available. */
+fireauth.util.getServiceWorkerController = function() {
+  return (navigator &&
+          navigator.serviceWorker &&
+          navigator.serviceWorker.controller) || null;
+};
+
+
+/** @return {?WorkerGlobalScope} The worker global scope if available. */
+fireauth.util.getWorkerGlobalScope = function() {
+  return fireauth.util.isWorker() ? /** @type {!WorkerGlobalScope} */ (self) :
+      null;
+};
