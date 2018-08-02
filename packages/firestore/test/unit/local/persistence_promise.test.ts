@@ -198,7 +198,7 @@ describe('PersistencePromise', () => {
       })
     );
     updates.push(
-      async(1).next(x => {
+      async(1).next<void>(x => {
         throw error;
       })
     );

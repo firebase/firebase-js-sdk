@@ -210,7 +210,7 @@ export class GrpcConnection implements Connection {
     const grpcStream = rpc();
 
     let closed = false;
-    let close: (err?: Error) => void;
+    let close: (err?: FirestoreError) => void;
 
     const stream = new StreamBridge<Req, Resp>({
       sendFn: (msg: Req) => {

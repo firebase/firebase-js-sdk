@@ -200,7 +200,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
   getLastStreamToken(
     transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
-    return PersistencePromise.resolve(this.metadata.lastStreamToken);
+    return PersistencePromise.resolve<ProtoByteString>(
+      this.metadata.lastStreamToken
+    );
   }
 
   setLastStreamToken(
