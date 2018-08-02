@@ -16,7 +16,4 @@
 import { database } from 'firebase';
 import { Observable } from 'rxjs';
 import { QueryChange, ListenEvent } from '../interfaces';
-export declare function auditTrail(
-  query: database.Query,
-  events?: ListenEvent[]
-): Observable<QueryChange[]>;
+export declare function auditTrail(query: database.Query, events?: ListenEvent[]): Observable<QueryChange[]>;
