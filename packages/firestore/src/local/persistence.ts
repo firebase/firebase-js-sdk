@@ -20,6 +20,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientId } from './shared_client_state';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -29,6 +30,18 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * on persistence.
  */
 export abstract class PersistenceTransaction {}
+
+/**
+ * Callback type for primary state notifications. This callback can be
+ * registered with the persistence layer to get notified when we transition from
+ * primary to secondary state and vice versa.
+ *
+ * Note: Instances can only toggle between Primary and Secondary state if
+ * IndexedDB persistence is enabled and multiple clients are active. If this
+ * listener is registered with MemoryPersistence, the callback will be called
+ * exactly once marking the current instance as Primary.
+ */
+export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -66,6 +79,9 @@ export abstract class PersistenceTransaction {}
  * writes in order to avoid relying on being able to read back uncommitted
  * writes.
  */
+// TODO(multitab): Instead of marking methods as multi-tab safe, we should
+// point out (and maybe enforce) when methods cannot safely be used from
+// secondary tabs.
 export interface Persistence {
   /**
    * Whether or not this persistence instance has been started.
@@ -86,6 +102,34 @@ export interface Persistence {
    * irrecoverable data loss and should only be used to delete test data.
    */
   shutdown(deleteData?: boolean): Promise<void>;
+
+  /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void>;
+
+  /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setNetworkEnabled(networkEnabled: boolean): void;
+
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  getActiveClients(): Promise<ClientId[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the
@@ -130,11 +174,16 @@ export interface Persistence {
    *
    * @param action A description of the action performed by this transaction,
    * used for logging.
+   * @param requirePrimaryLease Whether this transaction can only be executed
+   * by the primary client. If the primary lease cannot be acquired, the
+   * transactionOperation will not be run, and the returned promise will be
+   * rejected with a FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,
+    requirePrimaryLease: boolean,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

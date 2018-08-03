@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap } from '../model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
@@ -32,16 +32,27 @@ import { PersistencePromise } from './persistence_promise';
  */
 export interface RemoteDocumentCache {
   /**
-   * Adds or replaces an entry in the cache.
+   * Starts up the remote document cache.
+   *
+   * Reads the ID of the last  document change from the documentChanges store.
+   * Existing changes will not be returned as part of
+   * `getNewDocumentChanges()`.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  start(transaction: PersistenceTransaction): PersistencePromise<void>;
+
+  /**
+   * Adds or replaces document entries in the cache.
    *
    * The cache key is extracted from `maybeDocument.key`. If there is already a
    * cache entry for the key, it will be replaced.
    *
-   * @param maybeDocument A Document or NoDocument to put in the cache.
+   * @param maybeDocuments A set of Documents or NoDocuments to put in the
+   * cache.
    */
-  addEntry(
+  addEntries(
     transaction: PersistenceTransaction,
-    maybeDocument: MaybeDocument
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void>;
 
   /** Removes the cached entry for the given key (no-op if no entry exists). */
@@ -52,6 +63,8 @@ export interface RemoteDocumentCache {
 
   /**
    * Looks up an entry in the cache.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
    * @param documentKey The key of the entry to look up.
    * @return The cached Document or NoDocument entry, or null if we have nothing
@@ -70,6 +83,8 @@ export interface RemoteDocumentCache {
    *
    * Cached NoDocument entries have no bearing on query results.
    *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   *
    * @param query The query to match documents against.
    * @return The set of matching documents.
    */
@@ -77,4 +92,14 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap>;
+
+  /**
+   * Returns the set of documents that have been updated since the last call.
+   * If this is the first call, returns the set of changes since client
+   * initialization.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  getNewDocumentChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MaybeDocumentMap>;
 }

@@ -22,10 +22,15 @@ import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import {
+  Persistence,
+  PersistenceTransaction,
+  PrimaryStateListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -47,6 +52,8 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
+  constructor(private readonly clientId: ClientId) {}
+
   async start(): Promise<void> {
     // No durable state to read on startup.
     assert(!this._started, 'MemoryPersistence double-started!');
@@ -55,12 +62,26 @@ export class MemoryPersistence implements Persistence {
 
   async shutdown(deleteData?: boolean): Promise<void> {
     // No durable state to ensure is closed on shutdown.
-    assert(this._started, 'MemoryPersistence shutdown without start!');
     this._started = false;
   }
 
   get started(): boolean {
     return this._started;
+  }
+
+  async getActiveClients(): Promise<ClientId[]> {
+    return [this.clientId];
+  }
+
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void> {
+    // All clients using memory persistence act as primary.
+    return primaryStateListener(true);
+  }
+
+  setNetworkEnabled(networkEnabled: boolean): void {
+    // No op.
   }
 
   getMutationQueue(user: User): MutationQueue {
@@ -82,10 +103,13 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
+    requirePrimaryLease: boolean,
+    transactionOperation: (
+      transaction: PersistenceTransaction
+    ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return operation(new MemoryTransaction()).toPromise();
+    return transactionOperation(new MemoryTransaction()).toPromise();
   }
 }
 

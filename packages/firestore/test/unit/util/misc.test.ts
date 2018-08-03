@@ -15,25 +15,7 @@
  */
 
 import { expect } from 'chai';
-import {
-  immediatePredecessor,
-  immediateSuccessor
-} from '../../../src/util/misc';
-
-describe('immediatePredecessor', () => {
-  it('generates the correct immediate predecessor', () => {
-    expect(immediatePredecessor('b')).to.equal('a');
-    expect(immediatePredecessor('bbBB')).to.equal('bbBA');
-    expect(immediatePredecessor('aaa\0')).to.equal('aaa');
-    expect(immediatePredecessor('\0')).to.equal('');
-    expect(immediatePredecessor('\0\0\0')).to.equal('\0\0');
-    expect(immediatePredecessor('az\u00e0')).to.equal('az\u00df');
-    expect(immediatePredecessor('\uffff\uffff\uffff')).to.equal(
-      '\uffff\uffff\ufffe'
-    );
-    expect(immediatePredecessor('')).to.equal('');
-  });
-});
+import { immediateSuccessor } from '../../../src/util/misc';
 
 describe('immediateSuccessor', () => {
   it('generates the correct immediate successors', () => {

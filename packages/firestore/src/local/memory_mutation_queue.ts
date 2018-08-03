@@ -58,15 +58,6 @@ export class MemoryMutationQueue implements MutationQueue {
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // NOTE: The queue may be shutdown / started multiple times, since we
-    // maintain the queue for the duration of the app session in case a user
-    // logs out / back in. To behave like the LevelDB-backed MutationQueue (and
-    // accommodate tests that expect as much), we reset nextBatchId and
-    // highestAcknowledgedBatchId if the queue is empty.
-    if (this.mutationQueue.length === 0) {
-      this.nextBatchId = 1;
-      this.highestAcknowledgedBatchId = BATCHID_UNKNOWN;
-    }
     assert(
       this.highestAcknowledgedBatchId < this.nextBatchId,
       'highestAcknowledgedBatchId must be less than the nextBatchId'
@@ -76,12 +67,6 @@ export class MemoryMutationQueue implements MutationQueue {
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
-  }
-
-  getNextBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.nextBatchId);
   }
 
   getHighestAcknowledgedBatchId(
@@ -172,6 +157,17 @@ export class MemoryMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return PersistencePromise.resolve(this.findMutationBatch(batchId));
+  }
+
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null> {
+    const mutationBatch = this.findMutationBatch(batchId);
+    assert(mutationBatch != null, 'Failed to find local mutation batch.');
+    return PersistencePromise.resolve(
+      !mutationBatch.isTombstone() ? mutationBatch.keys() : null
+    );
   }
 
   getNextMutationBatchAfterBatchId(
@@ -402,6 +398,10 @@ export class MemoryMutationQueue implements MutationQueue {
     }
     this.batchesByDocumentKey = references;
     return PersistencePromise.resolve();
+  }
+
+  removeCachedMutationKeys(batchId: BatchId): void {
+    // No-op since the memory mutation queue does not maintain a separate cache.
   }
 
   setGarbageCollector(garbageCollector: GarbageCollector | null): void {

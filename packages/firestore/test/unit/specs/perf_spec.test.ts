@@ -30,7 +30,9 @@ describeSpec(
     specTest('Insert a new document', [], () => {
       let steps = spec().withGCEnabled(false);
       for (let i = 0; i < STEP_COUNT; ++i) {
-        steps = steps.userSets(`collection/{i}`, { doc: i }).writeAcks(i);
+        steps = steps
+          .userSets(`collection/{i}`, { doc: i })
+          .writeAcks(`collection/{i}`, i);
       }
       return steps;
     });
@@ -62,7 +64,7 @@ describeSpec(
               fromCache: true,
               hasPendingWrites: true
             })
-            .writeAcks(++currentVersion)
+            .writeAcks(`collection/${i}`, ++currentVersion)
             .watchAcksFull(query, ++currentVersion, docRemote)
             .expectEvents(query, { metadata: [docRemote] })
             .userUnlistens(query)
@@ -106,7 +108,9 @@ describeSpec(
       let steps = spec().withGCEnabled(false);
       steps = steps.userSets(`collection/doc`, { v: 0 });
       for (let i = 1; i <= STEP_COUNT; ++i) {
-        steps = steps.userPatches(`collection/doc`, { v: i }).writeAcks(i);
+        steps = steps
+          .userPatches(`collection/doc`, { v: i })
+          .writeAcks(`collection/doc`, i);
       }
       return steps;
     });
@@ -137,7 +141,7 @@ describeSpec(
             fromCache: true,
             hasPendingWrites: true
           })
-          .writeAcks(++currentVersion)
+          .writeAcks(`collection/doc`, ++currentVersion)
           .watchAcksFull(query, ++currentVersion, docRemote)
           .expectEvents(query, { metadata: [docRemote] });
 
@@ -157,7 +161,7 @@ describeSpec(
               modified: [docLocal],
               hasPendingWrites: true
             })
-            .writeAcks(++currentVersion)
+            .writeAcks(`collection/doc`, ++currentVersion)
             .watchSends({ affects: [query] }, docRemote)
             .watchSnapshots(++currentVersion)
             .expectEvents(query, { metadata: [docRemote] });

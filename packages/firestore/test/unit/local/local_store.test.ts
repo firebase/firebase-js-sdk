@@ -67,6 +67,7 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
+import { MemorySharedClientState } from '../../../src/local/shared_client_state';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -172,7 +173,10 @@ class LocalStoreTester {
 
   afterReleasingQuery(query: Query): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.releaseQuery(query);
+      return this.localStore.releaseQuery(
+        query,
+        /*keepPersistedQueryData=*/ false
+      );
     });
     return this;
   }
@@ -276,16 +280,15 @@ function genericLocalStoreTests(
   let persistence: Persistence;
   let localStore: LocalStore;
 
-  beforeEach(() => {
-    return getPersistence().then(p => {
-      persistence = p;
-      localStore = new LocalStore(
-        persistence,
-        User.UNAUTHENTICATED,
-        new EagerGarbageCollector()
-      );
-      return localStore.start();
-    });
+  beforeEach(async () => {
+    persistence = await getPersistence();
+    localStore = new LocalStore(
+      persistence,
+      User.UNAUTHENTICATED,
+      new EagerGarbageCollector(),
+      new MemorySharedClientState()
+    );
+    return localStore.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
@@ -298,7 +301,8 @@ function genericLocalStoreTests(
     localStore = new LocalStore(
       persistence,
       User.UNAUTHENTICATED,
-      new NoOpGarbageCollector()
+      new NoOpGarbageCollector(),
+      new MemorySharedClientState()
     );
     return localStore.start();
   }
@@ -890,7 +894,7 @@ function genericLocalStoreTests(
     await localStore.applyRemoteEvent(remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseQuery(query);
+    await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
 
     // Should come back with the same resume token
     const queryData2 = await localStore.allocateQuery(query);
@@ -931,7 +935,7 @@ function genericLocalStoreTests(
     await localStore.applyRemoteEvent(remoteEvent2);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseQuery(query);
+    await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
 
     // Should come back with the same resume token
     const queryData2 = await localStore.allocateQuery(query);

@@ -29,14 +29,13 @@ import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
-import { RemoteEvent } from '../remote/remote_event';
+import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -46,21 +45,32 @@ import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
-import { BatchId, OnlineState, TargetId } from './types';
+import {
+  BatchId,
+  MutationBatchState,
+  OnlineState,
+  OnlineStateSource,
+  TargetId
+} from './types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
   RemovedLimboDocument,
   View,
+  ViewChange,
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import {
+  SharedClientStateSyncer,
+  QueryTargetState
+} from '../local/shared_client_state_syncer';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
+import * as objUtils from '../util/obj';
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'SyncEngine';
-
-export type ViewHandler = (viewSnaps: ViewSnapshot[]) => void;
-export type ErrorHandler = (query: Query, error: Error) => void;
 
 /**
  * QueryView contains all of the data that SyncEngine needs to keep track of for
@@ -101,6 +111,21 @@ class LimboResolution {
 }
 
 /**
+ * Interface implemented by EventManager to handle notifications from
+ * SyncEngine.
+ */
+export interface SyncEngineListener {
+  /** Handles new view snapshots. */
+  onWatchChange(snapshots: ViewSnapshot[]): void;
+
+  /** Handles the failure of a query. */
+  onWatchError(query: Query, error: Error): void;
+
+  /** Handles a change in online state. */
+  onOnlineStateChange(onlineState: OnlineState): void;
+}
+
+/**
  * SyncEngine is the central controller in the client SDK architecture. It is
  * the glue code between the EventManager, LocalStore, and RemoteStore. Some of
  * SyncEngine's responsibilities include:
@@ -114,9 +139,8 @@ class LimboResolution {
  * The SyncEngine’s methods should only ever be called by methods running in the
  * global async queue.
  */
-export class SyncEngine implements RemoteSyncer {
-  private viewHandler: ViewHandler | null = null;
-  private errorHandler: ErrorHandler | null = null;
+export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
+  private syncEngineListener: SyncEngineListener | null = null;
 
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
@@ -134,28 +158,38 @@ export class SyncEngine implements RemoteSyncer {
   private mutationUserCallbacks = {} as {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
-  private targetIdGenerator = TargetIdGenerator.forSyncEngine();
+  private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
+
+  // The primary state is set to `true` or `false` immediately after Firestore
+  // startup. In the interim, a client should only be considered primary if
+  // `isPrimary` is true.
+  private isPrimary: undefined | boolean = undefined;
+  private onlineState: OnlineState = OnlineState.Unknown;
 
   constructor(
     private localStore: LocalStore,
     private remoteStore: RemoteStore,
+    // PORTING NOTE: Manages state synchronization in multi-tab environments.
+    private sharedClientState: SharedClientState,
     private currentUser: User
   ) {
     this.limboCollector.addGarbageSource(this.limboDocumentRefs);
   }
 
-  /** Subscribes view and error handler. Can be called only once. */
-  subscribe(viewHandler: ViewHandler, errorHandler: ErrorHandler): void {
+  // Only used for testing.
+  get isPrimaryClient(): boolean {
+    return this.isPrimary === true;
+  }
+
+  /** Subscribes to SyncEngine notifications. Has to be called exactly once. */
+  subscribe(syncEngineListener: SyncEngineListener): void {
+    assert(syncEngineListener !== null, 'SyncEngine listener cannot be null');
     assert(
-      viewHandler !== null && errorHandler !== null,
-      'View and error handlers cannot be null'
-    );
-    assert(
-      this.viewHandler === null && this.errorHandler === null,
+      this.syncEngineListener === null,
       'SyncEngine already has a subscriber.'
     );
-    this.viewHandler = viewHandler;
-    this.errorHandler = errorHandler;
+
+    this.syncEngineListener = syncEngineListener;
   }
 
   /**
@@ -163,58 +197,141 @@ export class SyncEngine implements RemoteSyncer {
    * server. All the subsequent view snapshots or errors are sent to the
    * subscribed handlers. Returns the targetId of the query.
    */
-  listen(query: Query): Promise<TargetId> {
+  async listen(query: Query): Promise<TargetId> {
     this.assertSubscribed('listen()');
-    assert(
-      !this.queryViewsByQuery.has(query),
-      'We already listen to the query: ' + query
-    );
 
-    return this.localStore.allocateQuery(query).then(queryData => {
+    let targetId;
+    let viewSnapshot;
+
+    const queryView = this.queryViewsByQuery.get(query);
+    if (queryView) {
+      // PORTING NOTE: With Mult-Tab Web, it is possible that a query view
+      // already exists when EventManager calls us for the first time. This
+      // happens when the primary tab is already listening to this query on
+      // behalf of another tab and the user of the primary also starts listening
+      // to the query. EventManager will not have an assigned target ID in this
+      // case and calls `listen` to obtain this ID.
+      targetId = queryView.targetId;
+      this.sharedClientState.addLocalQueryTarget(targetId);
+      viewSnapshot = queryView.view.computeInitialSnapshot();
+    } else {
+      const queryData = await this.localStore.allocateQuery(query);
+      const status = this.sharedClientState.addLocalQueryTarget(
+        queryData.targetId
+      );
+      targetId = queryData.targetId;
+      viewSnapshot = await this.initializeViewAndComputeSnapshot(
+        queryData,
+        status === 'current'
+      );
+      if (this.isPrimary) {
+        this.remoteStore.listen(queryData);
+      }
+    }
+
+    this.syncEngineListener!.onWatchChange([viewSnapshot]);
+    return targetId;
+  }
+
+  /**
+   * Registers a view for a previously unknown query and computes its initial
+   * snapshot.
+   */
+  private initializeViewAndComputeSnapshot(
+    queryData: QueryData,
+    current: boolean
+  ): Promise<ViewSnapshot> {
+    const query = queryData.query;
+
+    return this.localStore.executeQuery(query).then(docs => {
       return this.localStore
-        .executeQuery(query)
-        .then(docs => {
-          return this.localStore
-            .remoteDocumentKeys(queryData.targetId)
-            .then(remoteKeys => {
-              const view = new View(query, remoteKeys);
-              const viewDocChanges = view.computeDocChanges(docs);
-              const viewChange = view.applyChanges(viewDocChanges);
-              assert(
-                viewChange.limboChanges.length === 0,
-                'View returned limbo docs before target ack from the server.'
-              );
-              assert(
-                !!viewChange.snapshot,
-                'applyChanges for new view should always return a snapshot'
-              );
+        .remoteDocumentKeys(queryData.targetId)
+        .then(remoteKeys => {
+          const view = new View(query, remoteKeys);
+          const viewDocChanges = view.computeDocChanges(docs);
+          const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
+            queryData.targetId,
+            current && this.onlineState !== OnlineState.Offline
+          );
+          const viewChange = view.applyChanges(
+            viewDocChanges,
+            /* updateLimboDocuments= */ this.isPrimary,
+            synthesizedTargetChange
+          );
+          assert(
+            viewChange.limboChanges.length === 0,
+            'View returned limbo docs before target ack from the server.'
+          );
+          assert(
+            !!viewChange.snapshot,
+            'applyChanges for new view should always return a snapshot'
+          );
 
-              const data = new QueryView(query, queryData.targetId, view);
-              this.queryViewsByQuery.set(query, data);
-              this.queryViewsByTarget[queryData.targetId] = data;
-              this.viewHandler!([viewChange.snapshot!]);
-              this.remoteStore.listen(queryData);
-            });
-        })
-        .then(() => {
-          return queryData.targetId;
+          const data = new QueryView(query, queryData.targetId, view);
+          this.queryViewsByQuery.set(query, data);
+          this.queryViewsByTarget[queryData.targetId] = data;
+          return viewChange.snapshot!;
+        });
+    });
+  }
+
+  /**
+   * Reconcile the list of synced documents in an existing view with those
+   * from persistence.
+   */
+  // PORTING NOTE: Multi-tab only.
+  private synchronizeViewAndComputeSnapshot(
+    queryView: QueryView
+  ): Promise<ViewChange> {
+    return this.localStore.executeQuery(queryView.query).then(docs => {
+      return this.localStore
+        .remoteDocumentKeys(queryView.targetId)
+        .then(async remoteKeys => {
+          const viewSnapshot = queryView.view.synchronizeWithPersistedState(
+            docs,
+            remoteKeys
+          );
+          if (this.isPrimary) {
+            await this.updateTrackedLimbos(
+              queryView.targetId,
+              viewSnapshot.limboChanges
+            );
+          }
+          return viewSnapshot;
         });
     });
   }
 
   /** Stops listening to the query. */
-  unlisten(query: Query): Promise<void> {
+  async unlisten(query: Query): Promise<void> {
     this.assertSubscribed('unlisten()');
 
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
-    return this.localStore.releaseQuery(query).then(() => {
-      this.remoteStore.unlisten(queryView.targetId);
-      return this.removeAndCleanupQuery(queryView).then(() => {
-        return this.localStore.collectGarbage();
-      });
-    });
+    if (this.isPrimary) {
+      // We need to remove the local query target first to allow us to verify
+      // whether any other client is still interested in this target.
+      this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
+      const targetRemainsActive = this.sharedClientState.isActiveQueryTarget(
+        queryView.targetId
+      );
+
+      if (!targetRemainsActive) {
+        this.remoteStore.unlisten(queryView.targetId);
+        await this.localStore
+          .releaseQuery(query, /*keepPersistedQueryData=*/ false)
+          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => this.localStore.collectGarbage())
+          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      }
+    } else {
+      await this.removeAndCleanupQuery(queryView);
+      await this.localStore.releaseQuery(
+        query,
+        /*keepPersistedQueryData=*/ true
+      );
+    }
   }
 
   /**
@@ -232,6 +349,7 @@ export class SyncEngine implements RemoteSyncer {
     return this.localStore
       .localWrite(batch)
       .then(result => {
+        this.sharedClientState.addLocalPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
@@ -306,64 +424,91 @@ export class SyncEngine implements RemoteSyncer {
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
 
-    // Update `receivedDocument` as appropriate for any limbo targets.
-    objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
-      const limboResolution = this.limboResolutionsByTarget[targetId];
-      if (limboResolution) {
-        // Since this is a limbo resolution lookup, it's for a single document
-        // and it could be added, modified, or removed, but not a combination.
-        assert(
-          targetChange.addedDocuments.size +
-            targetChange.modifiedDocuments.size +
-            targetChange.removedDocuments.size <=
-            1,
-          'Limbo resolution for single document contains multiple changes.'
+    return this.localStore
+      .applyRemoteEvent(remoteEvent)
+      .then(changes => {
+        // Update `receivedDocument` as appropriate for any limbo targets.
+        objUtils.forEach(
+          remoteEvent.targetChanges,
+          (targetId, targetChange) => {
+            const limboResolution = this.limboResolutionsByTarget[targetId];
+            if (limboResolution) {
+              // Since this is a limbo resolution lookup, it's for a single document
+              // and it could be added, modified, or removed, but not a combination.
+              assert(
+                targetChange.addedDocuments.size +
+                  targetChange.modifiedDocuments.size +
+                  targetChange.removedDocuments.size <=
+                  1,
+                'Limbo resolution for single document contains multiple changes.'
+              );
+              if (targetChange.addedDocuments.size > 0) {
+                limboResolution.receivedDocument = true;
+              } else if (targetChange.modifiedDocuments.size > 0) {
+                assert(
+                  limboResolution.receivedDocument,
+                  'Received change for limbo target document without add.'
+                );
+              } else if (targetChange.removedDocuments.size > 0) {
+                assert(
+                  limboResolution.receivedDocument,
+                  'Received remove for limbo target document without add.'
+                );
+                limboResolution.receivedDocument = false;
+              } else {
+                // This was probably just a CURRENT targetChange or similar.
+              }
+            }
+          }
         );
-        if (targetChange.addedDocuments.size > 0) {
-          limboResolution.receivedDocument = true;
-        } else if (targetChange.modifiedDocuments.size > 0) {
-          assert(
-            limboResolution.receivedDocument,
-            'Received change for limbo target document without add.'
-          );
-        } else if (targetChange.removedDocuments.size > 0) {
-          assert(
-            limboResolution.receivedDocument,
-            'Received remove for limbo target document without add.'
-          );
-          limboResolution.receivedDocument = false;
-        } else {
-          // This was probably just a CURRENT targetChange or similar.
-        }
-      }
-    });
-
-    return this.localStore.applyRemoteEvent(remoteEvent).then(changes => {
-      return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
-    });
+        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   /**
    * Applies an OnlineState change to the sync engine and notifies any views of
    * the change.
    */
-  applyOnlineStateChange(onlineState: OnlineState): void {
-    const newViewSnapshots = [] as ViewSnapshot[];
-    this.queryViewsByQuery.forEach((query, queryView) => {
-      const viewChange = queryView.view.applyOnlineStateChange(onlineState);
-      assert(
-        viewChange.limboChanges.length === 0,
-        'OnlineState should not affect limbo documents.'
-      );
-      if (viewChange.snapshot) {
-        newViewSnapshots.push(viewChange.snapshot);
+  applyOnlineStateChange(
+    onlineState: OnlineState,
+    source: OnlineStateSource
+  ): void {
+    // If we are the secondary client, we explicitly ignore the remote store's
+    // online state (the local client may go offline, even though the primary
+    // tab remains online) and only apply the primary tab's online state from
+    // SharedClientState.
+    if (
+      (this.isPrimary && source === OnlineStateSource.RemoteStore) ||
+      (!this.isPrimary && source === OnlineStateSource.SharedClientState)
+    ) {
+      const newViewSnapshots = [] as ViewSnapshot[];
+      this.queryViewsByQuery.forEach((query, queryView) => {
+        const viewChange = queryView.view.applyOnlineStateChange(onlineState);
+        assert(
+          viewChange.limboChanges.length === 0,
+          'OnlineState should not affect limbo documents.'
+        );
+        if (viewChange.snapshot) {
+          newViewSnapshots.push(viewChange.snapshot);
+        }
+      });
+      this.syncEngineListener!.onOnlineStateChange(onlineState);
+      this.syncEngineListener!.onWatchChange(newViewSnapshots);
+
+      this.onlineState = onlineState;
+      if (this.isPrimary) {
+        this.sharedClientState.setOnlineState(onlineState);
       }
-    });
-    this.viewHandler(newViewSnapshots);
+    }
   }
 
-  rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
+  async rejectListen(targetId: TargetId, err: FirestoreError): Promise<void> {
     this.assertSubscribed('rejectListens()');
+
+    // PORTING NOTE: Multi-tab only.
+    this.sharedClientState.trackQueryUpdate(targetId, 'rejected', err);
+
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
     if (limboKey) {
@@ -398,12 +543,52 @@ export class SyncEngine implements RemoteSyncer {
     } else {
       const queryView = this.queryViewsByTarget[targetId];
       assert(!!queryView, 'Unknown targetId: ' + targetId);
-      return this.localStore.releaseQuery(queryView.query).then(() => {
-        return this.removeAndCleanupQuery(queryView).then(() => {
-          this.errorHandler!(queryView.query, err);
-        });
-      });
+      await this.localStore
+        .releaseQuery(queryView.query, /* keepPersistedQueryData */ false)
+        .then(() => this.removeAndCleanupQuery(queryView))
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      this.syncEngineListener!.onWatchError(queryView.query, err);
     }
+  }
+
+  // PORTING NOTE: Multi-tab only
+  async applyBatchState(
+    batchId: BatchId,
+    batchState: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void> {
+    this.assertSubscribed('applyBatchState()');
+    const documents = await this.localStore.lookupMutationDocuments(batchId);
+
+    if (documents === null) {
+      // A throttled tab may not have seen the mutation before it was completed
+      // and removed from the mutation queue, in which case we won't have cached
+      // the affected documents. In this case we can safely ignore the update
+      // since that means we didn't apply the mutation locally at all (if we
+      // had, we would have cached the affected documents), and so we will just
+      // see any resulting document changes via normal remote document updates
+      // as applicable.
+      log.debug(LOG_TAG, 'Cannot apply mutation batch with id: ' + batchId);
+      return;
+    }
+
+    if (batchState === 'pending') {
+      // If we are the primary client, we need to send this write to the
+      // backend. Secondary clients will ignore these writes since their remote
+      // connection is disabled.
+      await this.remoteStore.fillWritePipeline();
+    } else if (batchState === 'acknowledged' || batchState === 'rejected') {
+      // NOTE: Both these methods are no-ops for batches that originated from
+      // other clients.
+      this.sharedClientState.removeLocalPendingMutation(batchId);
+      this.processUserCallback(batchId, error ? error : null);
+
+      this.localStore.removeCachedMutationBatchMetadata(batchId);
+    } else {
+      fail(`Unknown batchState: ${batchState}`);
+    }
+
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
   }
 
   applySuccessfulWrite(
@@ -411,20 +596,21 @@ export class SyncEngine implements RemoteSyncer {
   ): Promise<void> {
     this.assertSubscribed('applySuccessfulWrite()');
 
+    const batchId = mutationBatchResult.batch.batchId;
+
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught
     // up), so we raise user callbacks first so that they consistently happen
     // before listen events.
-    this.processUserCallback(
-      mutationBatchResult.batch.batchId,
-      /*error=*/ null
-    );
+    this.processUserCallback(batchId, /*error=*/ null);
 
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
-      });
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -436,9 +622,14 @@ export class SyncEngine implements RemoteSyncer {
     // listen events.
     this.processUserCallback(batchId, error);
 
-    return this.localStore.rejectBatch(batchId).then(changes => {
-      return this.emitNewSnapsAndNotifyLocalStore(changes);
-    });
+    return this.localStore
+      .rejectBatch(batchId)
+      .then(changes => {
+        this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
+        this.sharedClientState.removeLocalPendingMutation(batchId);
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
 
   private addMutationCallback(
@@ -482,12 +673,16 @@ export class SyncEngine implements RemoteSyncer {
     }
   }
 
-  private removeAndCleanupQuery(queryView: QueryView): Promise<void> {
+  private async removeAndCleanupQuery(queryView: QueryView): Promise<void> {
+    this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
+
     this.queryViewsByQuery.delete(queryView.query);
     delete this.queryViewsByTarget[queryView.targetId];
 
-    this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-    return this.gcLimboDocuments();
+    if (this.isPrimary) {
+      this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
+      await this.gcLimboDocuments();
+    }
   }
 
   private updateTrackedLimbos(
@@ -512,7 +707,7 @@ export class SyncEngine implements RemoteSyncer {
     const key = limboChange.key;
     if (!this.limboTargetsByKey.get(key)) {
       log.debug(LOG_TAG, 'New document in limbo: ' + key);
-      const limboTargetId = this.targetIdGenerator.next();
+      const limboTargetId = this.limboTargetIdGenerator.next();
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
@@ -550,7 +745,7 @@ export class SyncEngine implements RemoteSyncer {
     return this.limboTargetsByKey;
   }
 
-  private emitNewSnapsAndNotifyLocalStore(
+  private async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
@@ -578,6 +773,7 @@ export class SyncEngine implements RemoteSyncer {
               remoteEvent && remoteEvent.targetChanges[queryView.targetId];
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
+              /* updateLimboDocuments= */ this.isPrimary,
               targetChange
             );
             return this.updateTrackedLimbos(
@@ -585,6 +781,13 @@ export class SyncEngine implements RemoteSyncer {
               viewChange.limboChanges
             ).then(() => {
               if (viewChange.snapshot) {
+                if (this.isPrimary) {
+                  this.sharedClientState.trackQueryUpdate(
+                    queryView.targetId,
+                    viewChange.snapshot.fromCache ? 'not-current' : 'current'
+                  );
+                }
+
                 newSnaps.push(viewChange.snapshot);
                 const docChanges = LocalViewChanges.fromSnapshot(
                   queryView.targetId,
@@ -597,16 +800,38 @@ export class SyncEngine implements RemoteSyncer {
       );
     });
 
-    return Promise.all(queriesProcessed).then(() => {
-      this.viewHandler!(newSnaps);
-      this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-      return this.localStore.collectGarbage();
-    });
+    await Promise.all(queriesProcessed);
+    this.syncEngineListener.onWatchChange(newSnaps);
+    this.localStore.notifyLocalViewChanges(docChangesInAllViews);
+    // TODO(multitab): Multitab garbage collection
+    if (this.isPrimary) {
+      await this.localStore
+        .collectGarbage()
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+    }
+  }
+
+  /**
+   * Verifies the error thrown by an LocalStore operation. If a LocalStore
+   * operation fails because the primary lease has been taken by another client,
+   * we ignore the error (the persistence layer will immediately call
+   * `applyPrimaryLease` to propagate the primary state change). All other
+   * errors are re-thrown.
+   *
+   * @param err An error returned by a LocalStore operation.
+   * @return A Promise that resolves after we recovered, or the original error.
+   */
+  private async ignoreIfPrimaryLeaseLoss(err: FirestoreError): Promise<void> {
+    if (isPrimaryLeaseLostError(err)) {
+      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    } else {
+      throw err;
+    }
   }
 
   private assertSubscribed(fnName: string): void {
     assert(
-      this.viewHandler !== null && this.errorHandler !== null,
+      this.syncEngineListener !== null,
       'Trying to call ' + fnName + ' before calling subscribe().'
     );
   }
@@ -615,12 +840,212 @@ export class SyncEngine implements RemoteSyncer {
     this.currentUser = user;
     return this.localStore
       .handleUserChange(user)
-      .then(changes => {
-        return this.emitNewSnapsAndNotifyLocalStore(changes);
+      .then(result => {
+        this.sharedClientState.handleUserChange(
+          user,
+          result.removedBatchIds,
+          result.addedBatchIds
+        );
+        return this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
       })
       .then(() => {
         return this.remoteStore.handleUserChange(user);
       });
+  }
+
+  // PORTING NOTE: Multi-tab only
+  async applyPrimaryState(isPrimary: boolean): Promise<void> {
+    if (isPrimary === true && this.isPrimary !== true) {
+      this.isPrimary = true;
+      await this.remoteStore.applyPrimaryState(true);
+
+      // Secondary tabs only maintain Views for their local listeners and the
+      // Views internal state may not be 100% populated (in particular
+      // secondary tabs don't track syncedDocuments, the set of documents the
+      // server considers to be in the target). So when a secondary becomes
+      // primary, we need to need to make sure that all views for all targets
+      // match the state on disk.
+      const activeTargets = this.sharedClientState.getAllActiveQueryTargets();
+      const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
+        activeTargets.toArray()
+      );
+      for (const queryData of activeQueries) {
+        this.remoteStore.listen(queryData);
+      }
+    } else if (isPrimary === false && this.isPrimary !== false) {
+      this.isPrimary = false;
+      const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
+        objUtils.indices(this.queryViewsByTarget)
+      );
+      this.resetLimboDocuments();
+      for (const queryData of activeQueries) {
+        // TODO(multitab): Remove query views for non-local queries.
+        this.remoteStore.unlisten(queryData.targetId);
+      }
+      await this.remoteStore.applyPrimaryState(false);
+    }
+  }
+
+  // PORTING NOTE: Multi-tab only.
+  private resetLimboDocuments(): void {
+    objUtils.forEachNumber(this.limboResolutionsByTarget, targetId => {
+      this.remoteStore.unlisten(targetId);
+    });
+    this.limboResolutionsByTarget = [];
+    this.limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
+      DocumentKey.comparator
+    );
+  }
+
+  /**
+   * Reconcile the query views of the provided query targets with the state from
+   * persistence. Raises snapshots for any changes that affect the local
+   * client and returns the updated state of all target's query data.
+   */
+  // PORTING NOTE: Multi-tab only.
+  private synchronizeQueryViewsAndRaiseSnapshots(
+    targets: TargetId[]
+  ): Promise<QueryData[]> {
+    let p = Promise.resolve();
+    const activeQueries: QueryData[] = [];
+    const newViewSnapshots: ViewSnapshot[] = [];
+    for (const targetId of targets) {
+      p = p.then(async () => {
+        let queryData: QueryData;
+        const queryView = this.queryViewsByTarget[targetId];
+        if (queryView) {
+          // For queries that have a local View, we need to update their state
+          // in LocalStore (as the resume token and the snapshot version
+          // might have changed) and reconcile their views with the persisted
+          // state (the list of syncedDocuments may have gotten out of sync).
+          await this.localStore.releaseQuery(
+            queryView.query,
+            /*keepPersistedQueryData=*/ true
+          );
+          queryData = await this.localStore.allocateQuery(queryView.query);
+          const viewChange = await this.synchronizeViewAndComputeSnapshot(
+            queryView
+          );
+          if (viewChange.snapshot) {
+            newViewSnapshots.push(viewChange.snapshot);
+          }
+        } else {
+          assert(
+            this.isPrimary,
+            'A secondary tab should never have an active query without an active view.'
+          );
+          // For queries that never executed on this client, we need to
+          // allocate the query in LocalStore and initialize a new View.
+          const query = await this.localStore.getQueryForTarget(targetId);
+          queryData = await this.localStore.allocateQuery(query);
+          await this.initializeViewAndComputeSnapshot(
+            queryData,
+            /*current=*/ false
+          );
+        }
+        activeQueries.push(queryData);
+      });
+    }
+    return p.then(() => {
+      this.syncEngineListener!.onWatchChange(newViewSnapshots);
+      return activeQueries;
+    });
+  }
+
+  // PORTING NOTE: Multi-tab only
+  getActiveClients(): Promise<ClientId[]> {
+    return this.localStore.getActiveClients();
+  }
+
+  // PORTING NOTE: Multi-tab only
+  async applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
+  ): Promise<void> {
+    if (this.isPrimary) {
+      // If we receive a target state notification via WebStorage, we are
+      // either already secondary or another tab has taken the primary lease.
+      log.debug(LOG_TAG, 'Ignoring unexpected query state notification.');
+      return;
+    }
+
+    if (this.queryViewsByTarget[targetId]) {
+      switch (state) {
+        case 'current':
+        case 'not-current': {
+          const changes = await this.localStore.getNewDocumentChanges();
+          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            targetId,
+            state === 'current'
+          );
+          return this.emitNewSnapsAndNotifyLocalStore(
+            changes,
+            synthesizedRemoteEvent
+          );
+        }
+        case 'rejected': {
+          const queryView = this.queryViewsByTarget[targetId];
+          await this.removeAndCleanupQuery(queryView);
+          await this.localStore.releaseQuery(
+            queryView.query,
+            /*keepPersistedQueryData=*/ true
+          );
+          this.syncEngineListener!.onWatchError(queryView.query, error);
+          break;
+        }
+        default:
+          fail('Unexpected target state: ' + state);
+      }
+    }
+  }
+
+  // PORTING NOTE: Multi-tab only
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {
+    if (!this.isPrimary) {
+      return;
+    }
+
+    for (const targetId of added) {
+      assert(
+        !this.queryViewsByTarget[targetId],
+        'Trying to add an already active target'
+      );
+      const query = await this.localStore.getQueryForTarget(targetId);
+      assert(!!query, `Query data for active target ${targetId} not found`);
+      const queryData = await this.localStore.allocateQuery(query);
+      await this.initializeViewAndComputeSnapshot(
+        queryData,
+        /*current=*/ false
+      );
+      this.remoteStore.listen(queryData);
+    }
+
+    for (const targetId of removed) {
+      const queryView = this.queryViewsByTarget[targetId];
+      // Check that the query is still active since the query might have been
+      // removed if it has been rejected by the backend.
+      if (queryView) {
+        this.remoteStore.unlisten(targetId);
+        await this.localStore
+          .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
+          .then(() => this.removeAndCleanupQuery(queryView))
+          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      }
+    }
+  }
+
+  enableNetwork(): Promise<void> {
+    this.localStore.setNetworkEnabled(true);
+    return this.remoteStore.enableNetwork();
+  }
+
+  disableNetwork(): Promise<void> {
+    this.localStore.setNetworkEnabled(false);
+    return this.remoteStore.disableNetwork();
   }
 
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet {

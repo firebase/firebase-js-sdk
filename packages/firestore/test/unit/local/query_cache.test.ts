@@ -127,11 +127,11 @@ function genericQueryCacheTests(
     // equal canonicalIDs.
     expect(await cache.getQueryData(q2)).to.equal(null);
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
-    expect(cache.count()).to.equal(1);
+    expect(await cache.getQueryCount()).to.equal(1);
 
     const data2 = testQueryData(q2, 2, 1);
     await cache.addQueryData(data2);
-    expect(cache.count()).to.equal(2);
+    expect(await cache.getQueryCount()).to.equal(2);
 
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
@@ -139,12 +139,12 @@ function genericQueryCacheTests(
     await cache.removeQueryData(data1);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
-    expect(cache.count()).to.equal(1);
+    expect(await cache.getQueryCount()).to.equal(1);
 
     await cache.removeQueryData(data2);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.equal(null);
-    expect(cache.count()).to.equal(0);
+    expect(await cache.getQueryCount()).to.equal(0);
   });
 
   it('can set query to new value', async () => {
@@ -279,36 +279,39 @@ function genericQueryCacheTests(
     ]);
   });
 
-  it('can get / set highestTargetId', async () => {
-    expect(cache.getHighestTargetId()).to.deep.equal(0);
-    const queryData1 = testQueryData(QUERY_ROOMS, 1);
+  it('can allocate target ID', async () => {
+    expect(await cache.allocateTargetId()).to.deep.equal(2);
+    const queryData1 = testQueryData(QUERY_ROOMS, 2);
 
     await cache.addQueryData(queryData1);
     const key1 = key('rooms/bar');
     const key2 = key('rooms/foo');
-    await cache.addMatchingKeys([key1, key2], 1);
+    await cache.addMatchingKeys([key1, key2], 2);
 
-    const queryData2 = testQueryData(QUERY_HALLS, 2);
+    expect(await cache.allocateTargetId()).to.deep.equal(4);
+
+    const queryData2 = testQueryData(QUERY_HALLS, 4);
     await cache.addQueryData(queryData2);
     const key3 = key('halls/foo');
-    await cache.addMatchingKeys([key3], 2);
-    expect(cache.getHighestTargetId()).to.deep.equal(2);
+    await cache.addMatchingKeys([key3], 4);
+
+    expect(await cache.allocateTargetId()).to.deep.equal(6);
 
     await cache.removeQueryData(queryData2);
 
     // Target IDs never come down.
-    expect(cache.getHighestTargetId()).to.deep.equal(2);
+    expect(await cache.allocateTargetId()).to.deep.equal(8);
 
     // A query with an empty result set still counts.
     const queryData3 = testQueryData(QUERY_GARAGES, 42);
     await cache.addQueryData(queryData3);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(44);
 
     await cache.removeQueryData(queryData1);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(46);
 
     await cache.removeQueryData(queryData3);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(48);
 
     // Verify that the highestTargetId persists restarts.
     const otherCache = new TestQueryCache(
@@ -316,19 +319,21 @@ function genericQueryCacheTests(
       persistence.getQueryCache()
     );
     await otherCache.start();
-    expect(otherCache.getHighestTargetId()).to.deep.equal(42);
+    expect(await otherCache.allocateTargetId()).to.deep.equal(50);
   });
 
-  it('can get / set lastRemoteSnapshotVersion', () => {
-    expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+  it('can get / set targets metadata', async () => {
+    expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
       SnapshotVersion.MIN
     );
 
     // Can set the snapshot version.
     return cache
-      .setLastRemoteSnapshotVersion(version(42))
-      .then(() => {
-        expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(version(42));
+      .setTargetsMetadata(/* highestListenSequenceNumber= */ 0, version(42))
+      .then(async () => {
+        expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+          version(42)
+        );
       })
       .then(() => {
         // Verify snapshot version persists restarts.
@@ -336,8 +341,8 @@ function genericQueryCacheTests(
           persistence,
           persistence.getQueryCache()
         );
-        return otherCache.start().then(() => {
-          expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+        return otherCache.start().then(async () => {
+          expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
             version(42)
           );
         });

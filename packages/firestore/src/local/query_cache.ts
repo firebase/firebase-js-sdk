@@ -36,13 +36,6 @@ export interface QueryCache extends GarbageSource {
   start(transaction: PersistenceTransaction): PersistencePromise<void>;
 
   /**
-   * Returns the highest target ID of any query in the cache. Typically called
-   * during startup to seed a target ID generator and avoid collisions with
-   * existing queries. If there are no queries in the cache, returns zero.
-   */
-  getHighestTargetId(): TargetId;
-
-  /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
    * snapshots received from the backend prior to this version (e.g. for targets
@@ -53,17 +46,22 @@ export interface QueryCache extends GarbageSource {
    * This is updated whenever our we get a TargetChange with a read_time and
    * empty target_ids.
    */
-  getLastRemoteSnapshotVersion(): SnapshotVersion;
+  getLastRemoteSnapshotVersion(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion>;
 
   /**
-   * Set the snapshot version representing the last consistent snapshot received
-   * from the backend. (see getLastRemoteSnapshotVersion() for more details).
+   * Set the highest listen sequence number and optionally updates the
+   * snapshot version of the last consistent snapshot received from the backend
+   * (see getLastRemoteSnapshotVersion() for more details).
    *
-   * @param snapshotVersion The new snapshot version.
+   * @param highestListenSequenceNumber The new maximum listen sequence number.
+   * @param lastRemoteSnapshotVersion The new snapshot version. Optional.
    */
-  setLastRemoteSnapshotVersion(
+  setTargetsMetadata(
     transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void>;
 
   /**
@@ -103,10 +101,15 @@ export interface QueryCache extends GarbageSource {
   /**
    * The number of targets currently in the cache.
    */
-  readonly count: number;
+  // Visible for testing.
+  getQueryCount(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry in the cache.
+   * Looks up a QueryData entry by query.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
    * @param query The query corresponding to the entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
@@ -115,6 +118,21 @@ export interface QueryCache extends GarbageSource {
   getQueryData(
     transaction: PersistenceTransaction,
     query: Query
+  ): PersistencePromise<QueryData | null>;
+
+  /**
+   * Looks up a QueryData entry by target ID.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   *
+   * @param targetId The target ID of the QueryData entry to look up.
+   * @return The cached QueryData entry, or null if the cache has no entry for
+   * the query.
+   */
+  // PORTING NOTE: Multi-tab only.
+  getQueryDataForTarget(
+    txn: PersistenceTransaction,
+    targetId: TargetId
   ): PersistencePromise<QueryData | null>;
 
   /**
@@ -145,8 +163,23 @@ export interface QueryCache extends GarbageSource {
     targetId: TargetId
   ): PersistencePromise<void>;
 
+  /**
+   * Returns the document keys that match the provided target ID.
+   *
+   * Multi-Tab Note: This operation is safe to use from secondary clients.
+   */
   getMatchingKeysForTargetId(
     transaction: PersistenceTransaction,
     targetId: TargetId
   ): PersistencePromise<DocumentKeySet>;
+
+  /**
+   * Returns a new target ID that is higher than any query in the cache. If
+   * there are no queries in the cache, returns the first valid target ID.
+   * Allocated target IDs are persisted and `allocateTargetId()` will never
+   * return the same ID twice.
+   */
+  allocateTargetId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<TargetId>;
 }
