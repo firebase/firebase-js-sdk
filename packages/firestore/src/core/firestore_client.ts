@@ -176,7 +176,7 @@ export class FirestoreClient {
 
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
-    return this.asyncQueue.enqueue(() => {
+    return this.asyncQueue.enqueueAndWait(() => {
       return this.remoteStore.enableNetwork();
     });
   }
@@ -358,7 +358,7 @@ export class FirestoreClient {
 
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
-    return this.asyncQueue.enqueue(() => {
+    return this.asyncQueue.enqueueAndWait(() => {
       return this.remoteStore.disableNetwork();
     });
   }
@@ -367,7 +367,7 @@ export class FirestoreClient {
     purgePersistenceWithDataLoss?: boolean;
   }): Promise<void> {
     return this.asyncQueue
-      .enqueue(() => {
+      .enqueueAndWait(() => {
         this.credentials.removeUserChangeListener();
         return this.remoteStore.shutdown();
       })
@@ -399,7 +399,7 @@ export class FirestoreClient {
 
   getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
     return this.asyncQueue
-      .enqueue(() => {
+      .enqueueAndWait(() => {
         return this.localStore.readDocument(docKey);
       })
       .then((maybeDoc: MaybeDocument | null) => {
@@ -419,7 +419,7 @@ export class FirestoreClient {
 
   getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     return this.asyncQueue
-      .enqueue(() => {
+      .enqueueAndWait(() => {
         return this.localStore.executeQuery(query);
       })
       .then((docs: DocumentMap) => {
@@ -448,7 +448,7 @@ export class FirestoreClient {
   ): Promise<T> {
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
-      .enqueue(async () => {})
+      .enqueueAndWait(async () => {})
       .then(() => this.syncEngine.runTransaction(updateFunction));
   }
 }

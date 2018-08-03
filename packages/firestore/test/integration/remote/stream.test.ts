@@ -144,10 +144,10 @@ describe('Watch Stream', () => {
       watchStream = ds.newPersistentWatchStream(streamListener);
       watchStream.start();
 
-      return streamListener.awaitCallback('open').then(() => {
-        watchStream.stop();
+      return streamListener.awaitCallback('open').then(async () => {
+        await watchStream.stop();
 
-        return streamListener.awaitCallback('close');
+        await streamListener.awaitCallback('close');
       });
     });
   });
@@ -193,10 +193,10 @@ describe('Write Stream', () => {
       writeStream = ds.newPersistentWriteStream(streamListener);
       writeStream.start();
       return streamListener.awaitCallback('open');
-    }).then(() => {
-      writeStream.stop();
+    }).then(async () => {
+      await writeStream.stop();
 
-      return streamListener.awaitCallback('close');
+      await streamListener.awaitCallback('close');
     });
   });
 
@@ -221,10 +221,10 @@ describe('Write Stream', () => {
         writeStream.writeMutations(SINGLE_MUTATION);
         return streamListener.awaitCallback('mutationResult');
       })
-      .then(() => {
-        writeStream.stop();
+      .then(async () => {
+        await writeStream.stop();
 
-        return streamListener.awaitCallback('close');
+        await streamListener.awaitCallback('close');
       });
   });
 
@@ -295,9 +295,11 @@ describe('Write Stream', () => {
           .then(() => {
             // Simulate callback from GRPC with an unauthenticated error -- this should invalidate
             // the token.
-            writeStream.handleStreamClose(
+            return writeStream.handleStreamClose(
               new FirestoreError(Code.UNAUTHENTICATED, '')
             );
+          })
+          .then(() => {
             return streamListener.awaitCallback('close');
           })
           .then(() => {
@@ -306,9 +308,11 @@ describe('Write Stream', () => {
           })
           .then(() => {
             // Simulate a different error -- token should not be invalidated this time.
-            writeStream.handleStreamClose(
+            return writeStream.handleStreamClose(
               new FirestoreError(Code.UNAVAILABLE, '')
             );
+          })
+          .then(() => {
             return streamListener.awaitCallback('close');
           })
           .then(() => {

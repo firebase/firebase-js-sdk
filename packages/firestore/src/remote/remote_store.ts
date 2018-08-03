@@ -188,8 +188,8 @@ export class RemoteStore implements TargetMetadataProvider {
     if (this.networkEnabled) {
       this.networkEnabled = false;
 
-      this.writeStream.stop();
-      this.watchStream.stop();
+      await this.writeStream.stop();
+      await this.watchStream.stop();
 
       if (this.writePipeline.length > 0) {
         log.debug(
@@ -205,14 +205,13 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  shutdown(): Promise<void> {
+  async shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    this.disableNetworkInternal();
+    await this.disableNetworkInternal();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
     this.onlineStateTracker.set(OnlineState.Unknown);
-    return Promise.resolve();
   }
 
   /** Starts new listen for the given query. Uses resume token if provided */
@@ -671,7 +670,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      this.disableNetworkInternal();
+      await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
       await this.enableNetwork();
     }

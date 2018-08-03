@@ -35,7 +35,7 @@ describe('AsyncQueue', () => {
       results.push(result);
     }
 
-    const op1 = queue.enqueue(() => {
+    const op1 = queue.enqueueAndWait(() => {
       return defer(() => 'Hello')
         .then((result: string) => {
           return defer(() => result + ' world!');
@@ -43,12 +43,12 @@ describe('AsyncQueue', () => {
         .then(pushResult);
     });
 
-    const op2 = queue.enqueue(() => {
+    const op2 = queue.enqueueAndWait(() => {
       return defer(() => 'Bye bye.').then(pushResult);
     });
 
     const op4 = new Deferred<void>();
-    const op3 = queue.enqueue(() => {
+    const op3 = queue.enqueueAndWait(() => {
       queue.enqueue(() => {
         return Promise.resolve('Bye for good.')
           .then(pushResult)
@@ -80,7 +80,7 @@ describe('AsyncQueue', () => {
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
-      .enqueue(() => {
+      .enqueueAndWait(() => {
         // This promise represents something that is rejected
         return defer(() => {
           throw expected;
@@ -101,7 +101,7 @@ describe('AsyncQueue', () => {
     // Schedule a second failing operation (before the first one has actually
     // executed and failed). It should not be run.
     const op2Promise = queue
-      .enqueue(() => {
+      .enqueueAndWait(() => {
         return defer(() => {
           expect.fail('op2 should not be executed.');
         });

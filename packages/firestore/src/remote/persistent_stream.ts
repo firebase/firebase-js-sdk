@@ -241,9 +241,9 @@ export abstract class PersistentStream<
    *
    * When stop returns, isStarted() and isOpen() will both return false.
    */
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.isStarted()) {
-      this.close(PersistentStreamState.Initial);
+      await this.close(PersistentStreamState.Initial);
     }
   }
 

@@ -396,6 +396,7 @@ export class IndexedDbPersistence implements Persistence {
 
         // Attempt graceful shutdown (including releasing our owner lease), but
         // there's no guarantee it will complete.
+        // tslint:disable-next-line:no-floating-promises
         this.shutdown();
       };
       window.addEventListener('unload', this.windowUnloadHandler);

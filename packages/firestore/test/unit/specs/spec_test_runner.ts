@@ -425,7 +425,7 @@ abstract class TestRunner {
   protected abstract destroyPersistence(): Promise<void>;
 
   async shutdown(): Promise<void> {
-    await this.queue.enqueue(async () => {
+    await this.queue.enqueueAndWait(async () => {
       await this.remoteStore.shutdown();
       await this.persistence.shutdown(/* deleteData= */ true);
       await this.destroyPersistence();
@@ -504,7 +504,7 @@ abstract class TestRunner {
     const queryListener = new QueryListener(query, aggregator, options);
     this.queryListeners.set(query, queryListener);
 
-    await this.queue.enqueue(async () => {
+    await this.queue.enqueueAndWait(async () => {
       const targetId = await this.eventManager.listen(queryListener);
       expect(targetId).to.equal(
         expectedTargetId,
@@ -534,7 +534,9 @@ abstract class TestRunner {
     const eventEmitter = this.queryListeners.get(query);
     assert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
-    await this.queue.enqueue(() => this.eventManager.unlisten(eventEmitter!));
+    await this.queue.enqueueAndWait(() =>
+      this.eventManager.unlisten(eventEmitter!)
+    );
   }
 
   private doSet(setSpec: SpecUserSet): Promise<void> {
@@ -553,7 +555,7 @@ abstract class TestRunner {
   private async doMutations(mutations: Mutation[]): Promise<void> {
     const userCallback = new Deferred<void>();
     this.outstandingWrites.push({ mutations, userCallback });
-    return this.queue.enqueue(() => {
+    return this.queue.enqueueAndWait(() => {
       return this.syncEngine.write(mutations, userCallback);
     });
   }
@@ -680,7 +682,7 @@ abstract class TestRunner {
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
-    return this.queue.enqueue(async () => {});
+    return this.queue.enqueueAndWait(async () => {});
   }
 
   private async doWatchEvent(watchChange: WatchChange): Promise<void> {
@@ -689,7 +691,7 @@ abstract class TestRunner {
 
     // Put a no-op in the queue so that we know when any outstanding RemoteStore
     // writes on the network are complete.
-    return this.queue.enqueue(async () => {});
+    return this.queue.enqueueAndWait(async () => {});
   }
 
   private async doWatchStreamClose(spec: SpecWatchStreamClose): Promise<void> {
@@ -788,14 +790,14 @@ abstract class TestRunner {
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
-    await this.queue.enqueue(async () => {
+    await this.queue.enqueueAndWait(async () => {
       await this.init();
     });
   }
 
   private doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
-    return this.queue.enqueue(() =>
+    return this.queue.enqueueAndWait(() =>
       this.syncEngine.handleUserChange(this.user)
     );
   }

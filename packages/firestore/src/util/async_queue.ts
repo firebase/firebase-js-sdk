@@ -191,10 +191,19 @@ export class AsyncQueue {
   private operationInProgress = false;
 
   /**
+   * Adds a new operation to the queue without waiting for it to complete (i.e.
+   * we ignore the Promise result).
+   */
+  enqueue<T extends Unknown>(op: () => Promise<T>): void {
+    // tslint:disable-next-line:no-floating-promises
+    this.enqueueAndWait(op);
+  }
+
+  /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    */
-  enqueue<T extends Unknown>(op: () => Promise<T>): Promise<T> {
+  enqueueAndWait<T extends Unknown>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
@@ -286,7 +295,7 @@ export class AsyncQueue {
    * operations are not run.
    */
   drain(): Promise<void> {
-    return this.enqueue(() => Promise.resolve());
+    return this.enqueueAndWait(() => Promise.resolve());
   }
 
   /**
