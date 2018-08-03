@@ -344,6 +344,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
+      // Kick off starting the client but don't actually wait for it.
+      // tslint:disable-next-line:no-floating-promises
       this.configureClient(new PersistenceSettings(/* enabled= */ false));
     }
     return this._firestoreClient as FirestoreClient;

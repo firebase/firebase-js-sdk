@@ -862,7 +862,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
       debug(LOG_TAG, 'EVENT', event.key, event.newValue);
 
-      this.queue.enqueue(async () => {
+      this.queue.enqueueAndForget(async () => {
         if (!this.started) {
           this.earlyEvents.push(event);
           return;

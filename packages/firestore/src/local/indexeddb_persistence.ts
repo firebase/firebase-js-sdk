@@ -232,7 +232,7 @@ export class IndexedDbPersistence implements Persistence {
       this.networkEnabled = networkEnabled;
       // Schedule a primary lease refresh for immediate execution. The eventual
       // lease update will be propagated via `primaryStateListener`.
-      this.queue.enqueue(async () => {
+      this.queue.enqueueAndForget(async () => {
         if (this.started) {
           await this.updateClientMetadataAndTryBecomePrimary();
         }
@@ -264,7 +264,7 @@ export class IndexedDbPersistence implements Persistence {
           this.isPrimary = canActAsPrimary;
 
           if (wasPrimary !== this.isPrimary) {
-            this.queue.enqueue(async () => {
+            this.queue.enqueueAndForget(async () => {
               // Verify that `shutdown()` hasn't been called yet by the time
               // we invoke the `primaryStateListener`.
               if (this.started) {
@@ -519,7 +519,9 @@ export class IndexedDbPersistence implements Persistence {
                   `Failed to obtain primary lease for action '${action}'.`
                 );
                 this.isPrimary = false;
-                this.queue.enqueue(() => this.primaryStateListener(false));
+                this.queue.enqueueAndForget(() =>
+                  this.primaryStateListener(false)
+                );
                 throw new FirestoreError(
                   Code.FAILED_PRECONDITION,
                   PRIMARY_LEASE_LOST_ERROR_MSG
@@ -647,7 +649,7 @@ export class IndexedDbPersistence implements Persistence {
       typeof this.document.addEventListener === 'function'
     ) {
       this.documentVisibilityHandler = () => {
-        this.queue.enqueue<DbOwner | void>(() => {
+        this.queue.enqueueAndForget<DbOwner | void>(() => {
           this.inForeground = this.document.visibilityState === 'visible';
           return this.updateClientMetadataAndTryBecomePrimary();
         });
@@ -694,7 +696,7 @@ export class IndexedDbPersistence implements Persistence {
         // to make sure it gets a chance to run.
         this.markClientZombied();
 
-        this.queue.enqueue(() => {
+        this.queue.enqueueAndForget(() => {
           // Attempt graceful shutdown (including releasing our owner lease), but
           // there's no guarantee it will complete.
           return this.shutdown();

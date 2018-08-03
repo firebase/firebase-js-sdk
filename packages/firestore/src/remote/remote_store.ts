@@ -187,15 +187,15 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   async disableNetwork(): Promise<void> {
     this.networkEnabled = false;
-    this.disableNetworkInternal();
+    await this.disableNetworkInternal();
 
     // Set the OnlineState to Offline so get()s return from cache, etc.
     this.onlineStateTracker.set(OnlineState.Offline);
   }
 
-  private disableNetworkInternal(): void {
-    this.writeStream.stop();
-    this.watchStream.stop();
+  private async disableNetworkInternal(): Promise<void> {
+    await this.writeStream.stop();
+    await this.watchStream.stop();
 
     if (this.writePipeline.length > 0) {
       log.debug(
@@ -208,15 +208,14 @@ export class RemoteStore implements TargetMetadataProvider {
     this.cleanUpWatchStreamState();
   }
 
-  shutdown(): Promise<void> {
+  async shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
     this.networkEnabled = false;
-    this.disableNetworkInternal();
+    await this.disableNetworkInternal();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
     this.onlineStateTracker.set(OnlineState.Unknown);
-    return Promise.resolve();
   }
 
   /** Starts new listen for the given query. Uses resume token if provided */
@@ -691,7 +690,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
       this.networkEnabled = false;
-      this.disableNetworkInternal();
+      await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
       await this.enableNetwork();
     }
@@ -706,7 +705,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (isPrimary && this.networkEnabled) {
       await this.enableNetwork();
     } else if (!isPrimary) {
-      this.disableNetworkInternal();
+      await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
     }
   }
