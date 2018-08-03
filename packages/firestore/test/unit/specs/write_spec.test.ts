@@ -20,8 +20,9 @@ import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
+import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Writes:', [], () => {
   specTest(
@@ -57,7 +58,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query] }, docAv2)
         .watchSnapshots(2000)
-        .writeAcks(2000)
+        .writeAcks('collection/a', 2000)
         .expectEvents(query, {
           metadata: [docAv2]
         })
@@ -68,7 +69,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query] }, docBv2)
         .watchSnapshots(3000)
-        .writeAcks(3000)
+        .writeAcks('collection/b', 3000)
         .expectEvents(query, {
           metadata: [docBv2]
         });
@@ -101,7 +102,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query1] }, doc1c)
         .watchSnapshots(2000)
-        .writeAcks(2000)
+        .writeAcks('collection/key', 2000)
         .expectEvents(query1, {
           metadata: [doc1c]
         });
@@ -136,7 +137,7 @@ describeSpec('Writes:', [], () => {
       })
       .watchSends({ affects: [query1] }, doc1c)
       .watchSnapshots(watchVersion)
-      .writeAcks(ackedVersion) // The ack is already outdated by the newer doc1c
+      .writeAcks('collection/key', ackedVersion) // The ack is already outdated by the newer doc1c
       .expectEvents(query1, {
         modified: [doc1c]
       });
@@ -167,7 +168,7 @@ describeSpec('Writes:', [], () => {
             modified: [docV2Local]
           })
           // The ack arrives before the watch snapshot; no events yet
-          .writeAcks(2000)
+          .writeAcks('collection/key', 2000)
           .watchSends({ affects: [query] }, docV2)
           .watchSnapshots(2000)
           .expectEvents(query, {
@@ -200,7 +201,7 @@ describeSpec('Writes:', [], () => {
           modified: [docV3Local]
         })
         // The ack arrives before the watch snapshot; no events yet
-        .writeAcks(3000)
+        .writeAcks('collection/key', 3000)
         // watch sends some stale data; no events
         .watchSends({ affects: [query] }, docV2)
         .watchSnapshots(2000)
@@ -251,7 +252,7 @@ describeSpec('Writes:', [], () => {
     specification.expectNumOutstandingWrites(10);
     for (let i = 0; i < numWrites; i++) {
       specification
-        .writeAcks((i + 1) * 1000)
+        .writeAcks('collection/a' + i, (i + 1) * 1000)
         .watchSends({ affects: [query] }, docs[i])
         .watchSnapshots((i + 1) * 1000)
         .expectEvents(query, {
@@ -290,7 +291,10 @@ describeSpec('Writes:', [], () => {
     specification.expectNumOutstandingWrites(10);
     for (let i = 0; i < numWrites; i++) {
       specification
-        .failWrite(new RpcError(Code.PERMISSION_DENIED, 'permission denied'))
+        .failWrite(
+          'collection/a' + i,
+          new RpcError(Code.PERMISSION_DENIED, 'permission denied')
+        )
         .expectEvents(query, {
           fromCache: true,
           hasPendingWrites: i < numWrites - 1,
@@ -330,14 +334,17 @@ describeSpec('Writes:', [], () => {
         .userSets('collection/b', { v: 1 })
         .expectEvents(query, { hasPendingWrites: true, added: [docBLocal] })
         // ack write but no watch snapshot so it'll be held.
-        .writeAcks(2000)
+        .writeAcks('collection/b', 2000)
         .userSets('collection/a', { v: 2 })
         .expectEvents(query, {
           hasPendingWrites: true,
           modified: [docAv2Local]
         })
         // reject write, should be released immediately.
-        .failWrite(new RpcError(Code.PERMISSION_DENIED, 'failure'))
+        .failWrite(
+          'collection/a',
+          new RpcError(Code.PERMISSION_DENIED, 'failure')
+        )
         .expectEvents(query, { hasPendingWrites: true, modified: [docAv1] })
         // watch updates, B should be visible
         .watchSends({ affects: [query] }, docB)
@@ -375,7 +382,7 @@ describeSpec('Writes:', [], () => {
           added: [docALocal]
         })
         // ack write but without a watch event.
-        .writeAcks(1000)
+        .writeAcks('collection/a', 1000)
         // Do another write.
         .userSets('collection/b', { v: 1 })
         .expectEvents(query, {
@@ -383,7 +390,7 @@ describeSpec('Writes:', [], () => {
           added: [docBLocal]
         })
         // ack second write
-        .writeAcks(2000)
+        .writeAcks('collection/b', 2000)
         // Finally watcher catches up.
         .watchSends({ affects: [query] }, docA, docB)
         .watchSnapshots(2000)
@@ -417,7 +424,7 @@ describeSpec('Writes:', [], () => {
             added: [docALocal]
           })
           // ack write but without a watch event.
-          .writeAcks(1000)
+          .writeAcks('collection/a', 1000)
 
           // handshake + write = 2 requests
           .expectWriteStreamRequestCount(2)
@@ -470,7 +477,7 @@ describeSpec('Writes:', [], () => {
             added: [docALocal]
           })
           // ack write but without a watch event.
-          .writeAcks(1000)
+          .writeAcks('collection/a', 1000)
           // Unlisten before the write is released.
           .userUnlistens(query)
           // Re-add listen and make sure we don't get any events.
@@ -507,7 +514,7 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(code, 'failure'))
+        .failWrite('collection/key', new RpcError(code, 'failure'))
         .expectEvents(query1, {
           fromCache: true,
           removed: [doc1a]
@@ -538,9 +545,13 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(Code.RESOURCE_EXHAUSTED, 'transient error'), {
-          expectUserCallback: false
-        });
+        .failWrite(
+          'collection/key',
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'transient error'),
+          {
+            expectUserCallback: false
+          }
+        );
     }
   );
 
@@ -570,10 +581,10 @@ describeSpec('Writes:', [], () => {
           hasPendingWrites: true,
           added: [doc1a]
         })
-        .failWrite(new RpcError(code, 'transient error'), {
+        .failWrite('collection/key', new RpcError(code, 'transient error'), {
           expectUserCallback: false
         })
-        .writeAcks(1000)
+        .writeAcks('collection/key', 1000)
         .watchAcks(query1)
         .watchSends({ affects: [query1] }, doc1b)
         .watchCurrents(query1, 'resume-token-1000')
@@ -612,7 +623,7 @@ describeSpec('Writes:', [], () => {
           })
           .watchSends({ affects: [query] }, docV2)
           .watchSnapshots(2000)
-          .writeAcks(2000)
+          .writeAcks('collection/doc', 2000)
           .expectEvents(query, { metadata: [docV2] })
       );
     }
@@ -634,7 +645,630 @@ describeSpec('Writes:', [], () => {
         expectRequestCount({ handshakes: 2, writes: 2, closes: 1 })
       )
       .expectNumOutstandingWrites(1)
-      .writeAcks(1, { expectUserCallback: false })
+      .writeAcks('collection/key', 1)
       .expectNumOutstandingWrites(0);
   });
+
+  specTest('New writes are sent after write failure', [], () => {
+    return spec()
+      .userSets('collection/a', { v: 1 })
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure')
+      )
+      .userSets('collection/b', { v: 1 })
+      .writeAcks('collection/b', 2000);
+  });
+
+  specTest('Primary client acknowledges write', ['multi-client'], () => {
+    return client(0)
+      .becomeVisible()
+      .client(1)
+      .userSets('collection/a', { v: 1 })
+      .client(0)
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+  });
+
+  specTest('Primary client rejects write', ['multi-client'], () => {
+    return client(0)
+      .becomeVisible()
+      .client(1)
+      .userSets('collection/a', { v: 1 })
+      .client(0)
+      .failWrite(
+        'collection/a',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .client(1)
+      .expectUserCallbacks({
+        rejected: ['collection/a']
+      });
+  });
+
+  specTest(
+    'Pending writes are shared between clients',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docV1 = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+      );
+      const docV2 = doc(
+        'collection/a',
+        0,
+        { v: 2 },
+        { hasLocalMutations: true }
+      );
+      const docV3 = doc(
+        'collection/a',
+        0,
+        { v: 3 },
+        { hasLocalMutations: true }
+      );
+
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [docV1]
+        })
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [docV1]
+        })
+        .client(0)
+        .userSets('collection/a', { v: 2 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV2]
+        })
+        .client(1)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV2]
+        })
+        .userSets('collection/a', { v: 3 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV3]
+        })
+        .client(0)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docV3]
+        });
+    }
+  );
+
+  specTest(
+    'Pending write is acknowledged by primary client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const localDoc = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+      );
+      const remoteDoc = doc('collection/a', 1000, { v: 1 });
+      return client(0)
+        .becomeVisible()
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [localDoc]
+        })
+        .client(0)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [localDoc]
+        })
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .watchSends({ affects: [query] }, remoteDoc)
+        .watchSnapshots(1000)
+        .expectEvents(query, {
+          metadata: [remoteDoc]
+        })
+        .client(1)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .expectEvents(query, {
+          metadata: [remoteDoc]
+        });
+    }
+  );
+
+  specTest(
+    'Pending write is rejected by primary client',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const localDoc = doc(
+        'collection/a',
+        0,
+        { v: 1 },
+        { hasLocalMutations: true }
+      );
+
+      return client(0)
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .client(1)
+        .userListens(query)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [localDoc]
+        })
+        .client(0)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [localDoc]
+        })
+        .failWrite(
+          'collection/a',
+          new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+          {
+            expectUserCallback: false
+          }
+        )
+        .expectEvents(query, {
+          removed: [localDoc]
+        })
+        .client(1)
+        .expectUserCallbacks({
+          rejected: ['collection/a']
+        })
+        .expectEvents(query, {
+          removed: [localDoc]
+        });
+    }
+  );
+
+  specTest('Held write is released by primary client', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const docA = doc('collection/a', 1000, { v: 1 });
+
+    return (
+      client(0)
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .client(1)
+        .userSets('collection/a', { v: 1 })
+        .client(0)
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [docALocal]
+        })
+        // Ack write but without a watch event.
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .client(1) // No events
+        .client(0)
+        // Watcher catches up.
+        .watchSends({ affects: [query] }, docA)
+        .watchSnapshots(2000)
+        .expectEvents(query, {
+          metadata: [docA]
+        })
+        .client(1)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+    );
+  });
+
+  specTest('Write are sequenced by multiple clients', ['multi-client'], () => {
+    return client(0)
+      .userSets('collection/a', { v: 1 })
+      .client(1)
+      .userSets('collection/b', { v: 1 })
+      .client(2)
+      .userSets('collection/c', { v: 1 })
+      .client(3)
+      .userSets('collection/d', { v: 1 })
+      .client(0)
+      .writeAcks('collection/a', 1000)
+      .writeAcks('collection/b', 2000, { expectUserCallback: false })
+      .writeAcks('collection/c', 3000, { expectUserCallback: false })
+      .failWrite(
+        'collection/d',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/b']
+      })
+      .client(2)
+      .expectUserCallbacks({
+        acknowledged: ['collection/c']
+      })
+      .client(3)
+      .expectUserCallbacks({
+        rejected: ['collection/d']
+      })
+      .client(0)
+      .userSets('collection/f', { v: 1 })
+      .client(1)
+      .userSets('collection/g', { v: 1 })
+      .client(2)
+      .userSets('collection/h', { v: 1 })
+      .client(3)
+      .userSets('collection/i', { v: 1 })
+      .client(0)
+      .writeAcks('collection/f', 4000)
+      .writeAcks('collection/g', 5000, { expectUserCallback: false })
+      .writeAcks('collection/h', 6000, { expectUserCallback: false })
+      .failWrite(
+        'collection/i',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/g']
+      })
+      .client(2)
+      .expectUserCallbacks({
+        acknowledged: ['collection/h']
+      })
+      .client(3)
+      .expectUserCallbacks({
+        rejected: ['collection/i']
+      })
+      .client(3)
+      .userSets('collection/j', { v: 1 })
+      .userSets('collection/k', { v: 1 })
+      .userSets('collection/l', { v: 1 })
+      .client(0)
+      .writeAcks('collection/j', 7000, { expectUserCallback: false })
+      .failWrite(
+        'collection/k',
+        new RpcError(Code.FAILED_PRECONDITION, 'failure'),
+        {
+          expectUserCallback: false
+        }
+      )
+      .writeAcks('collection/k', 8000, { expectUserCallback: false })
+      .client(3)
+      .expectUserCallbacks({
+        acknowledged: ['collection/j', 'collection/l'],
+        rejected: ['collection/k']
+      });
+  });
+
+  specTest(
+    'Write is executed after primary tab failover',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .becomeVisible()
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .userSets('collection/a', { v: 1 })
+        .userSets('collection/b', { v: 1 })
+        .client(0)
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .shutdown()
+        .client(1)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .writeAcks('collection/b', 2000);
+    }
+  );
+
+  specTest('Secondary tabs handle user change', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const docBLocal = doc(
+      'collection/b',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const docCLocal = doc(
+      'collection/c',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+
+    // Firebase Auth attempts to rapidly synchronize user changes across tabs.
+    // We emulate this behavior in this spec tests by calling `changeUser`
+    // manually for all clients.
+    return (
+      client(0)
+        .userListens(query)
+        .changeUser('user1')
+        // User 1 writes `docA`
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          added: [docALocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(1)
+        .changeUser('user1')
+        .userListens(query)
+        .expectEvents(query, {
+          added: [docALocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        // User 1 sets `docB` from a different tab
+        .userSets('collection/b', { v: 1 })
+        .expectEvents(query, {
+          added: [docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(0)
+        .expectEvents(query, {
+          added: [docBLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .changeUser('user2')
+        .expectEvents(query, {
+          removed: [docALocal, docBLocal],
+          fromCache: true
+        })
+        // User 2 adds `docC`
+        .userSets('collection/c', { v: 1 })
+        .expectEvents(query, {
+          added: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(1)
+        .changeUser('user2')
+        .expectEvents(query, {
+          removed: [docALocal, docBLocal],
+          added: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .changeUser('user1')
+        .expectEvents(query, {
+          added: [docALocal, docBLocal],
+          removed: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+        .client(0)
+        .changeUser('user1')
+        .expectEvents(query, {
+          added: [docALocal, docBLocal],
+          removed: [docCLocal],
+          fromCache: true,
+          hasPendingWrites: true
+        })
+    );
+  });
+
+  specTest('Mutations are scoped by user', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const docBLocal = doc(
+      'collection/b',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+
+    return client(0)
+      .changeUser('user1')
+      .userSets('collection/a', { v: 1 })
+      .client(1)
+      .changeUser('user2')
+      .userSets('collection/b', { v: 1 })
+      .client(0)
+      .userListens(query)
+      .expectEvents(query, {
+        added: [docALocal],
+        fromCache: true,
+        hasPendingWrites: true
+      })
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        added: [docBLocal],
+        fromCache: true,
+        hasPendingWrites: true
+      });
+  });
+
+  specTest('Mutation recovers after primary takeover', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { k: 'a' },
+      { hasLocalMutations: true }
+    );
+    const docA = doc('collection/a', 1000, { k: 'a' });
+
+    return client(0)
+      .expectPrimaryState(true)
+      .userSets('collection/a', { k: 'a' })
+      .client(1)
+      .userListens(query)
+      .expectEvents(query, {
+        added: [docALocal],
+        hasPendingWrites: true,
+        fromCache: true
+      })
+      .stealPrimaryLease()
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .watchAcksFull(query, 1000, docA)
+      .expectEvents(query, { metadata: [docA] })
+      .client(0)
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+  });
+
+  specTest('Write is sent by newly started primary', ['multi-client'], () => {
+    return client(0)
+      .expectPrimaryState(true)
+      .client(1)
+      .expectPrimaryState(false)
+      .userSets('collection/a', { v: 1 })
+      .client(0)
+      .shutdown()
+      .client(2)
+      .expectPrimaryState(true)
+      .expectNumOutstandingWrites(1)
+      .writeAcks('collection/a', 1000, { expectUserCallback: false })
+      .client(1)
+      .expectUserCallbacks({
+        acknowledged: ['collection/a']
+      });
+  });
+
+  specTest(
+    'Unresponsive primary ignores acknowledged write',
+    ['multi-client'],
+    () => {
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Send initial write to open the write stream
+          .userSets('collection/a', { k: 'a' })
+          .writeAcks('collection/a', 1000)
+          .client(1)
+          .userSets('collection/b', { k: 'b' })
+          .client(2)
+          .stealPrimaryLease()
+          .client(0)
+          // Client 2 is now the primary client, and client 0 ignores the write
+          // acknowledgement.
+          .writeAcks('collection/b', 2000, {
+            expectUserCallback: false,
+            keepInQueue: true
+          })
+          .client(2)
+          .writeAcks('collection/b', 2000, { expectUserCallback: false })
+          .client(1)
+          .expectUserCallbacks({
+            acknowledged: ['collection/b']
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Unresponsive primary ignores rejected write',
+    ['multi-client'],
+    () => {
+      return (
+        client(0)
+          .expectPrimaryState(true)
+          // Send initial write to open the write stream
+          .userSets('collection/a', { k: 'a' })
+          .writeAcks('collection/a', 1000)
+          .client(1)
+          .userSets('collection/b', { k: 'b' })
+          .client(2)
+          .stealPrimaryLease()
+          .client(0)
+          // Client 2 is now the primary client, and client 0 ignores the rejected
+          // write.
+          .failWrite(
+            'collection/b',
+            new RpcError(Code.FAILED_PRECONDITION, 'Write error'),
+            {
+              expectUserCallback: false,
+              keepInQueue: true
+            }
+          )
+          .client(2)
+          .failWrite(
+            'collection/b',
+            new RpcError(Code.FAILED_PRECONDITION, 'Write error'),
+            { expectUserCallback: false }
+          )
+          .client(1)
+          .expectUserCallbacks({
+            rejected: ['collection/b']
+          })
+      );
+    }
+  );
+
+  specTest(
+    'Mutation are not sent twice after primary failover',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 0, { k: 'a' });
+      const docB = doc('collection/b', 0, { k: 'b' });
+
+      return client(0)
+        .expectPrimaryState(true)
+        .userSets('collection/a', { k: 'a' })
+        .userSets('collection/b', { k: 'b' })
+        .client(1)
+        .stealPrimaryLease()
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .client(0)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .stealPrimaryLease()
+        .writeAcks('collection/b', 2000)
+        .userListens(query)
+        .expectEvents(query, { added: [docA, docB], fromCache: true });
+    }
+  );
 });

@@ -18,17 +18,18 @@ import { Query } from '../../../src/core/query';
 import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
+import { TimerId } from '../../../src/util/async_queue';
 
-describeSpec('Persistence:', ['persistence'], () => {
+describeSpec('Persistence:', [], () => {
   specTest('Local mutations are persisted and re-sent', [], () => {
     return spec()
       .userSets('collection/key1', { foo: 'bar' })
       .userSets('collection/key2', { baz: 'quu' })
       .restart()
       .expectNumOutstandingWrites(2)
-      .writeAcks(1, { expectUserCallback: false })
-      .writeAcks(2, { expectUserCallback: false })
+      .writeAcks('collection/key1', 1, { expectUserCallback: false })
+      .writeAcks('collection/key2', 2, { expectUserCallback: false })
       .expectNumOutstandingWrites(0);
   });
 
@@ -97,7 +98,7 @@ describeSpec('Persistence:', ['persistence'], () => {
         .withGCEnabled(false)
         .userSets('collection/key', { foo: 'bar' })
         // Normally the write would get GC'd from remote documents here.
-        .writeAcks(1000)
+        .writeAcks('collection/key', 1000)
         .userListens(query)
         // Version is 0 since we never received a server version via watch.
         .expectEvents(query, {
@@ -116,11 +117,11 @@ describeSpec('Persistence:', ['persistence'], () => {
       .userSets('users/user1', { uid: 'user1', extra: true })
       .changeUser(null)
       .expectNumOutstandingWrites(1)
-      .writeAcks(1000)
+      .writeAcks('users/anon', 1000)
       .changeUser('user1')
       .expectNumOutstandingWrites(2)
-      .writeAcks(2000)
-      .writeAcks(3000);
+      .writeAcks('users/user1', 2000)
+      .writeAcks('users/user1', 3000);
   });
 
   specTest(
@@ -136,12 +137,12 @@ describeSpec('Persistence:', ['persistence'], () => {
         .changeUser(null)
         .restart()
         .expectNumOutstandingWrites(1)
-        .writeAcks(1000, { expectUserCallback: false })
+        .writeAcks('users/anon', 1000, { expectUserCallback: false })
         .changeUser('user1')
         .restart()
         .expectNumOutstandingWrites(2)
-        .writeAcks(2000, { expectUserCallback: false })
-        .writeAcks(3000, { expectUserCallback: false });
+        .writeAcks('users/user1', 2000, { expectUserCallback: false })
+        .writeAcks('users/user2', 3000, { expectUserCallback: false });
     }
   );
 
@@ -179,6 +180,99 @@ describeSpec('Persistence:', ['persistence'], () => {
           added: [anonDoc],
           hasPendingWrites: true
         })
+    );
+  });
+
+  specTest('Detects all active clients', ['multi-client'], () => {
+    return (
+      client(0)
+        // While we don't verify the client's visibility in this test, the spec
+        // test framework requires an explicit action before setting an
+        // expectation.
+        .becomeHidden()
+        .expectNumActiveClients(1)
+        .client(1)
+        .becomeVisible()
+        .expectNumActiveClients(2)
+    );
+  });
+
+  specTest('Single tab acquires primary lease', ['multi-client'], () => {
+    // This test simulates primary state handoff between two background tabs.
+    // With all instances in the background, the first active tab acquires
+    // ownership.
+    return client(0)
+      .becomeHidden()
+      .expectPrimaryState(true)
+      .client(1)
+      .becomeHidden()
+      .expectPrimaryState(false)
+      .client(0)
+      .shutdown()
+      .client(1)
+      .runTimer(TimerId.ClientMetadataRefresh)
+      .expectPrimaryState(true);
+  });
+
+  specTest('Foreground tab acquires primary lease', ['multi-client'], () => {
+    // This test verifies that in a multi-client scenario, a foreground tab
+    // takes precedence when a new primary client is elected.
+    return (
+      client(0)
+        .becomeHidden()
+        .expectPrimaryState(true)
+        .client(1)
+        .becomeHidden()
+        .expectPrimaryState(false)
+        .client(2)
+        .becomeVisible()
+        .expectPrimaryState(false)
+        .client(0)
+        // Shutdown the client that is currently holding the primary lease.
+        .shutdown()
+        .client(1)
+        // Client 1 is in the background and doesn't grab the primary lease as
+        // client 2 is in the foreground.
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(false)
+        .client(2)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+    );
+  });
+
+  specTest('Primary lease bound to network state', ['multi-client'], () => {
+    return (
+      client(0)
+        // If there is only a single tab, the online state is ignored and the
+        // tab is always primary
+        .expectPrimaryState(true)
+        .disableNetwork()
+        .expectPrimaryState(true)
+        .client(1)
+        .expectPrimaryState(false)
+        .client(0)
+        // If the primary tab is offline, and another tab becomes active, the
+        // primary tab releases its primary lease.
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(false)
+        .client(1)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
+        .disableNetwork()
+        // If all tabs are offline, the primary lease is retained.
+        .expectPrimaryState(true)
+        .client(0)
+        .enableNetwork()
+        .expectPrimaryState(false)
+        .client(1)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        // The offline primary tab releases its lease since another tab is now
+        // online.
+        .expectPrimaryState(false)
+        .client(0)
+        .runTimer(TimerId.ClientMetadataRefresh)
+        .expectPrimaryState(true)
     );
   });
 });

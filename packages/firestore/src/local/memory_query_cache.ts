@@ -27,7 +27,8 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
+import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
   /**
@@ -47,24 +48,35 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetCount = 0;
 
+  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     // Nothing to do.
     return PersistencePromise.resolve();
   }
 
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.lastRemoteSnapshotVersion;
+  getLastRemoteSnapshotVersion(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion> {
+    return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
   }
 
-  getHighestTargetId(): TargetId {
-    return this.highestTargetId;
+  allocateTargetId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<TargetId> {
+    const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
+    this.highestTargetId = nextTargetId;
+    return PersistencePromise.resolve(nextTargetId);
   }
 
-  setLastRemoteSnapshotVersion(
+  setTargetsMetadata(
     transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
-    this.lastRemoteSnapshotVersion = snapshotVersion;
+    if (lastRemoteSnapshotVersion) {
+      this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
+    }
     return PersistencePromise.resolve();
   }
 
@@ -114,8 +126,10 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  get count(): number {
-    return this.targetCount;
+  getQueryCount(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number> {
+    return PersistencePromise.resolve(this.targetCount);
   }
 
   getQueryData(
@@ -124,6 +138,15 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<QueryData | null> {
     const queryData = this.queries.get(query) || null;
     return PersistencePromise.resolve(queryData);
+  }
+
+  getQueryDataForTarget(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): never {
+    // This method is only needed for multi-tab and we can't implement it
+    // efficiently without additional data structures.
+    return fail('Not yet implemented.');
   }
 
   addMatchingKeys(

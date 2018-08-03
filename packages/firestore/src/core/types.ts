@@ -30,6 +30,9 @@ export type TargetId = number;
 // they're strings. We should probably (de-)serialize to a common internal type.
 export type ProtoByteString = Uint8Array | string;
 
+/** The different states of a mutation batch. */
+export type MutationBatchState = 'pending' | 'acknowledged' | 'rejected';
+
 /**
  * Describes the online state of the Firestore client. Note that this does not
  * indicate whether or not the remote store is trying to connect or not. This is
@@ -59,4 +62,10 @@ export enum OnlineState {
    * Higher-level components should operate in offline mode.
    */
   Offline
+}
+
+/** The source of an online state event. */
+export enum OnlineStateSource {
+  RemoteStore,
+  SharedClientState
 }

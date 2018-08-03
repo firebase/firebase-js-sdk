@@ -18,7 +18,7 @@ import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
-import { spec } from './spec_builder';
+import { client, spec } from './spec_builder';
 
 describeSpec('Limits:', [], () => {
   specTest('Documents in limit are replaced by remote event', [], () => {
@@ -217,4 +217,84 @@ describeSpec('Limits:', [], () => {
         .watchRemovesLimboTarget(docD)
     );
   });
+
+  specTest(
+    'Limit query is refilled by primary client',
+    ['multi-client'],
+    () => {
+      const query1 = Query.atPath(path('collection')).withLimit(2);
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      const doc2 = doc('collection/b', 1002, { key: 'b' });
+      const doc3 = doc('collection/c', 1001, { key: 'c' });
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(query1)
+        .client(0)
+        .expectListen(query1)
+        .watchAcksFull(query1, 1001, doc1, doc3)
+        .client(1)
+        .expectEvents(query1, {
+          added: [doc1, doc3]
+        })
+        .client(0)
+        .watchSends({ affects: [query1] }, doc2)
+        .watchSends({ removed: [query1] }, doc3)
+        .watchSnapshots(1002)
+        .client(1)
+        .expectEvents(query1, {
+          added: [doc2],
+          removed: [doc3]
+        });
+    }
+  );
+
+  specTest(
+    'Limit query includes write from secondary client ',
+    ['multi-client'],
+    () => {
+      const query1 = Query.atPath(path('collection')).withLimit(2);
+      const doc1 = doc('collection/a', 1003, { key: 'a' });
+      const doc1Local = doc(
+        'collection/a',
+        0,
+        { key: 'a' },
+        { hasLocalMutations: true }
+      );
+      const doc2 = doc('collection/b', 1001, { key: 'b' });
+      const doc3 = doc('collection/c', 1002, { key: 'c' });
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(query1)
+        .client(0)
+        .expectListen(query1)
+        .watchAcksFull(query1, 1002, doc2, doc3)
+        .client(1)
+        .expectEvents(query1, {
+          added: [doc2, doc3]
+        })
+        .client(2)
+        .userSets('collection/a', { key: 'a' })
+        .client(1)
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          added: [doc1Local],
+          removed: [doc3]
+        })
+        .client(0)
+        .writeAcks('collection/a', 1003, { expectUserCallback: false })
+        .watchSends({ affects: [query1] }, doc1)
+        .watchSends({ removed: [query1] }, doc3)
+        .watchSnapshots(1003)
+        .client(1)
+        .expectEvents(query1, {
+          metadata: [doc1]
+        })
+        .client(2)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        });
+    }
+  );
 });

@@ -34,34 +34,29 @@ export class TestMutationQueue {
   constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
   start(): Promise<void> {
-    return this.persistence.runTransaction('start', txn => {
+    return this.persistence.runTransaction('start', true, txn => {
       return this.queue.start(txn);
     });
   }
 
   checkEmpty(): Promise<boolean> {
-    return this.persistence.runTransaction('checkEmpty', txn => {
+    return this.persistence.runTransaction('checkEmpty', true, txn => {
       return this.queue.checkEmpty(txn);
     });
   }
 
   countBatches(): Promise<number> {
     return this.persistence
-      .runTransaction('countBatches', txn => {
+      .runTransaction('countBatches', true, txn => {
         return this.queue.getAllMutationBatches(txn);
       })
       .then(batches => batches.length);
   }
 
-  getNextBatchId(): Promise<BatchId> {
-    return this.persistence.runTransaction('getNextBatchId', txn => {
-      return this.queue.getNextBatchId(txn);
-    });
-  }
-
   getHighestAcknowledgedBatchId(): Promise<BatchId> {
     return this.persistence.runTransaction(
       'getHighestAcknowledgedBatchId',
+      true,
       txn => {
         return this.queue.getHighestAcknowledgedBatchId(txn);
       }
@@ -72,31 +67,35 @@ export class TestMutationQueue {
     batch: MutationBatch,
     streamToken: ProtoByteString
   ): Promise<void> {
-    return this.persistence.runTransaction('acknowledgeThroughBatchId', txn => {
-      return this.queue.acknowledgeBatch(txn, batch, streamToken);
-    });
+    return this.persistence.runTransaction(
+      'acknowledgeThroughBatchId',
+      true,
+      txn => {
+        return this.queue.acknowledgeBatch(txn, batch, streamToken);
+      }
+    );
   }
 
   getLastStreamToken(): Promise<string> {
-    return this.persistence.runTransaction('getLastStreamToken', txn => {
+    return this.persistence.runTransaction('getLastStreamToken', true, txn => {
       return this.queue.getLastStreamToken(txn);
     }) as AnyDuringMigration;
   }
 
   setLastStreamToken(streamToken: string): Promise<void> {
-    return this.persistence.runTransaction('setLastStreamToken', txn => {
+    return this.persistence.runTransaction('setLastStreamToken', true, txn => {
       return this.queue.setLastStreamToken(txn, streamToken);
     });
   }
 
   addMutationBatch(mutations: Mutation[]): Promise<MutationBatch> {
-    return this.persistence.runTransaction('addMutationBatch', txn => {
+    return this.persistence.runTransaction('addMutationBatch', true, txn => {
       return this.queue.addMutationBatch(txn, Timestamp.now(), mutations);
     });
   }
 
   lookupMutationBatch(batchId: BatchId): Promise<MutationBatch | null> {
-    return this.persistence.runTransaction('lookupMutationBatch', txn => {
+    return this.persistence.runTransaction('lookupMutationBatch', true, txn => {
       return this.queue.lookupMutationBatch(txn, batchId);
     });
   }
@@ -106,6 +105,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'getNextMutationBatchAfterBatchId',
+      true,
       txn => {
         return this.queue.getNextMutationBatchAfterBatchId(txn, batchId);
       }
@@ -113,9 +113,13 @@ export class TestMutationQueue {
   }
 
   getAllMutationBatches(): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction('getAllMutationBatches', txn => {
-      return this.queue.getAllMutationBatches(txn);
-    });
+    return this.persistence.runTransaction(
+      'getAllMutationBatches',
+      true,
+      txn => {
+        return this.queue.getAllMutationBatches(txn);
+      }
+    );
   }
 
   getAllMutationBatchesThroughBatchId(
@@ -123,6 +127,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesThroughBatchId',
+      true,
       txn => {
         return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
       }
@@ -134,6 +139,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKey',
+      true,
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKey(
           txn,
@@ -148,6 +154,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKeys',
+      true,
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKeys(
           txn,
@@ -160,6 +167,7 @@ export class TestMutationQueue {
   getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingQuery',
+      true,
       txn => {
         return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
       }
@@ -167,13 +175,17 @@ export class TestMutationQueue {
   }
 
   removeMutationBatches(batches: MutationBatch[]): Promise<void> {
-    return this.persistence.runTransaction('removeMutationBatches', txn => {
-      return this.queue.removeMutationBatches(txn, batches);
-    });
+    return this.persistence.runTransaction(
+      'removeMutationBatches',
+      true,
+      txn => {
+        return this.queue.removeMutationBatches(txn, batches);
+      }
+    );
   }
 
   collectGarbage(gc: GarbageCollector): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction('garbageCollection', txn => {
+    return this.persistence.runTransaction('garbageCollection', true, txn => {
       return gc.collectGarbage(txn);
     });
   }

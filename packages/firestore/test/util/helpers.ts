@@ -127,6 +127,10 @@ export function deletedDoc(
   return new NoDocument(key(keyStr), version(ver));
 }
 
+export function removedDoc(keyStr: string): NoDocument {
+  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+}
+
 export function wrap(value: AnyJs): FieldValue {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
@@ -457,7 +461,7 @@ export function applyDocChanges(
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
   const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
-  return view.applyChanges(changes);
+  return view.applyChanges(changes, true);
 }
 
 /**

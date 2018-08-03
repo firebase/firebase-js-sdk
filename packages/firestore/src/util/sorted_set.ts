@@ -140,6 +140,14 @@ export class SortedSet<T> {
     return true;
   }
 
+  toArray(): T[] {
+    const res: T[] = [];
+    this.forEach(targetId => {
+      res.push(targetId);
+    });
+    return res;
+  }
+
   toString(): string {
     const result: T[] = [];
     this.forEach(elem => result.push(elem));

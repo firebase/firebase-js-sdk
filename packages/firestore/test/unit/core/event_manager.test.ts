@@ -117,7 +117,7 @@ describe('EventManager', () => {
     const viewSnap1: any = { query: query1 };
     // tslint:disable-next-line:no-any mock ViewSnapshot.
     const viewSnap2: any = { query: query2 };
-    eventManager.onChange([viewSnap1, viewSnap2]);
+    eventManager.onWatchChange([viewSnap1, viewSnap2]);
 
     expect(eventOrder).to.deep.equal([
       'listenable1',
@@ -126,7 +126,7 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward applyOnlineStateChange calls', async () => {
+  it('will forward onOnlineStateChange calls', async () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
@@ -139,7 +139,7 @@ describe('EventManager', () => {
 
     await eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.applyOnlineStateChange(OnlineState.Online);
+    eventManager.onOnlineStateChange(OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
   });
 });
@@ -233,7 +233,7 @@ describe('QueryListener', () => {
     const snap1 = applyDocChanges(view).snapshot!;
 
     const changes = view.computeDocChanges(documentUpdates());
-    const snap2 = view.applyChanges(changes, ackTarget()).snapshot!;
+    const snap2 = view.applyChanges(changes, true, ackTarget()).snapshot!;
 
     eventListenable.onViewSnapshot(snap1); // no event
     eventListenable.onViewSnapshot(snap2); // empty event
@@ -257,7 +257,7 @@ describe('QueryListener', () => {
     const snap1 = applyDocChanges(view, doc1).snapshot!;
 
     const changes = view.computeDocChanges(documentUpdates());
-    const snap2 = view.applyChanges(changes, ackTarget(doc1)).snapshot!;
+    const snap2 = view.applyChanges(changes, true, ackTarget(doc1)).snapshot!;
     const snap3 = applyDocChanges(view, doc2).snapshot!;
 
     filteredListener.onViewSnapshot(snap1); // local event
@@ -371,11 +371,12 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates(doc1));
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
-    const snap2 = view.applyChanges(changes2).snapshot!;
+    const snap2 = view.applyChanges(changes2, true).snapshot!;
     const changes3 = view.computeDocChanges(documentUpdates());
-    const snap3 = view.applyChanges(changes3, ackTarget(doc1, doc2)).snapshot!;
+    const snap3 = view.applyChanges(changes3, true, ackTarget(doc1, doc2))
+      .snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -411,9 +412,9 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates(doc1));
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
-    const snap2 = view.applyChanges(changes2).snapshot!;
+    const snap2 = view.applyChanges(changes2, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -451,7 +452,7 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates());
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -477,7 +478,7 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates());
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Offline);
     listener.onViewSnapshot(snap1);

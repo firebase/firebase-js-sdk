@@ -21,7 +21,7 @@ import { RemoteEvent } from './remote_event';
 import { DocumentKeySet } from '../model/collections';
 
 /**
- * A interface that describes the actions the RemoteStore needs to perform on
+ * An interface that describes the actions the RemoteStore needs to perform on
  * a cooperating synchronization engine.
  */
 export interface RemoteSyncer {

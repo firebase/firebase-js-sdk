@@ -303,7 +303,7 @@ export class SimpleDbTransaction {
     if (!this.aborted) {
       debug(
         LOG_TAG,
-        'Aborting transaction: %s',
+        'Aborting transaction:',
         error ? error.message : 'Client-initiated abort'
       );
       this.aborted = true;
@@ -367,6 +367,19 @@ export class SimpleDbStore<
       request = this.store.put(keyOrValue as ValueType);
     }
     return wrapRequest<void>(request);
+  }
+
+  /**
+   * Adds a new value into an Object Store and returns the new key. Similar to
+   * IndexedDb's `add()`, this method will fail on primary key collisions.
+   *
+   * @param value The object to write.
+   * @return The key of the value to add.
+   */
+  add(value: ValueType): PersistencePromise<KeyType> {
+    debug(LOG_TAG, 'ADD', this.store.name, value, value);
+    const request = this.store.add(value as ValueType);
+    return wrapRequest<KeyType>(request);
   }
 
   /**

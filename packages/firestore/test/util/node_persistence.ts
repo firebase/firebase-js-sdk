@@ -18,6 +18,8 @@ import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
 import * as os from 'os';
 
+import { FakeWindow, SharedFakeWebStorage } from './test_platform';
+
 // WARNING: The `indexeddbshim` installed via this module should only ever be
 // used during initial development. Always validate your changes via
 // `yarn test:browser` (which uses a browser-based IndexedDB implementation)
@@ -36,7 +38,19 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
     databaseBasePath: dbDir,
     deleteDatabaseFiles: true
   });
-  globalAny.window = Object.assign(globalAny.window || {}, {
-    indexedDB: globalAny.indexedDB
-  });
+
+  const fakeWindow = new FakeWindow(
+    new SharedFakeWebStorage(),
+    globalAny.indexedDB
+  );
+
+  globalAny.window = fakeWindow;
+
+  // We need to define the `Event` type as it is used in Node to send events to
+  // WebStorage when using both the IndexedDB mock and the WebStorage mock.
+  class Event {
+    constructor(typeArg: string, eventInitDict?: EventInit) {}
+  }
+
+  globalAny.Event = Event;
 }

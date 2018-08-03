@@ -38,61 +38,68 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { SimpleDbStore } from './simple_db';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(private serializer: LocalSerializer) {}
 
-  /**
-   * The last received snapshot version. We store this separately from the
-   * metadata to avoid the extra conversion to/from DbTimestamp.
-   */
-  private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
-
-  /**
-   * A cached copy of the metadata for the query cache.
-   */
-  private metadata: DbTargetGlobal = null;
-
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
 
+  // PORTING NOTE: We don't cache global metadata for the query cache, since
+  // some of it (in particular `highestTargetId`) can be modified by secondary
+  // tabs. We could perhaps be more granular (and e.g. still cache
+  // `lastRemoteSnapshotVersion` in memory) but for simplicity we currently go
+  // to IndexedDb whenever we need to read metadata. We can revisit if it turns
+  // out to have a meaningful performance impact.
+
+  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    return globalTargetStore(transaction)
-      .get(DbTargetGlobal.key)
-      .next(metadata => {
-        assert(
-          metadata !== null,
-          'Missing metadata row that should be added by schema migration.'
-        );
-        this.metadata = metadata;
-        const lastSavedVersion = metadata.lastRemoteSnapshotVersion;
-        this.lastRemoteSnapshotVersion = SnapshotVersion.fromTimestamp(
-          new Timestamp(lastSavedVersion.seconds, lastSavedVersion.nanoseconds)
-        );
-        return PersistencePromise.resolve();
-      });
+    // Nothing to do.
+    return PersistencePromise.resolve();
   }
 
-  getHighestTargetId(): TargetId {
-    return this.metadata.highestTargetId;
+  allocateTargetId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<TargetId> {
+    return this.retrieveMetadata(transaction).next(metadata => {
+      metadata.highestTargetId = this.targetIdGenerator.after(
+        metadata.highestTargetId
+      );
+      return this.saveMetadata(transaction, metadata).next(
+        () => metadata.highestTargetId
+      );
+    });
   }
 
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.lastRemoteSnapshotVersion;
+  getLastRemoteSnapshotVersion(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<SnapshotVersion> {
+    return this.retrieveMetadata(transaction).next(metadata => {
+      return SnapshotVersion.fromTimestamp(
+        new Timestamp(
+          metadata.lastRemoteSnapshotVersion.seconds,
+          metadata.lastRemoteSnapshotVersion.nanoseconds
+        )
+      );
+    });
   }
 
-  setLastRemoteSnapshotVersion(
+  setTargetsMetadata(
     transaction: PersistenceTransaction,
-    snapshotVersion: SnapshotVersion
+    highestListenSequenceNumber: number,
+    lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
-    this.lastRemoteSnapshotVersion = snapshotVersion;
-    this.metadata.lastRemoteSnapshotVersion = snapshotVersion.toTimestamp();
-    return globalTargetStore(transaction).put(
-      DbTargetGlobal.key,
-      this.metadata
-    );
+    return this.retrieveMetadata(transaction).next(metadata => {
+      metadata.highestListenSequenceNumber = highestListenSequenceNumber;
+      if (lastRemoteSnapshotVersion) {
+        metadata.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion.toTimestamp();
+      }
+      return this.saveMetadata(transaction, metadata);
+    });
   }
 
   addQueryData(
@@ -100,9 +107,11 @@ export class IndexedDbQueryCache implements QueryCache {
     queryData: QueryData
   ): PersistencePromise<void> {
     return this.saveQueryData(transaction, queryData).next(() => {
-      this.metadata.targetCount += 1;
-      this.updateMetadataFromQueryData(queryData);
-      return this.saveMetadata(transaction);
+      return this.retrieveMetadata(transaction).next(metadata => {
+        metadata.targetCount += 1;
+        this.updateMetadataFromQueryData(queryData, metadata);
+        return this.saveMetadata(transaction, metadata);
+      });
     });
   }
 
@@ -110,35 +119,39 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData).next(() => {
-      if (this.updateMetadataFromQueryData(queryData)) {
-        return this.saveMetadata(transaction);
-      } else {
-        return PersistencePromise.resolve();
-      }
-    });
+    return this.saveQueryData(transaction, queryData);
   }
 
   removeQueryData(
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    assert(this.metadata.targetCount > 0, 'Removing from an empty query cache');
     return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
       .next(() => targetsStore(transaction).delete(queryData.targetId))
-      .next(() => {
-        this.metadata.targetCount -= 1;
-        return this.saveMetadata(transaction);
+      .next(() => this.retrieveMetadata(transaction))
+      .next(metadata => {
+        assert(metadata.targetCount > 0, 'Removing from an empty query cache');
+        metadata.targetCount -= 1;
+        return this.saveMetadata(transaction, metadata);
+      });
+  }
+
+  private retrieveMetadata(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<DbTargetGlobal> {
+    return globalTargetStore(transaction)
+      .get(DbTargetGlobal.key)
+      .next(metadata => {
+        assert(metadata !== null, 'Missing metadata row.');
+        return metadata;
       });
   }
 
   private saveMetadata(
-    transaction: PersistenceTransaction
+    transaction: PersistenceTransaction,
+    metadata: DbTargetGlobal
   ): PersistencePromise<void> {
-    return globalTargetStore(transaction).put(
-      DbTargetGlobal.key,
-      this.metadata
-    );
+    return globalTargetStore(transaction).put(DbTargetGlobal.key, metadata);
   }
 
   private saveQueryData(
@@ -149,23 +162,29 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   /**
-   * Updates the in-memory version of the metadata to account for values in the
-   * given QueryData. Saving is done separately. Returns true if there were any
+   * In-place updates the provided metadata to account for values in the given
+   * QueryData. Saving is done separately. Returns true if there were any
    * changes to the metadata.
    */
-  private updateMetadataFromQueryData(queryData: QueryData): boolean {
-    let needsUpdate = false;
-    if (queryData.targetId > this.metadata.highestTargetId) {
-      this.metadata.highestTargetId = queryData.targetId;
-      needsUpdate = true;
+  private updateMetadataFromQueryData(
+    queryData: QueryData,
+    metadata: DbTargetGlobal
+  ): boolean {
+    if (queryData.targetId > metadata.highestTargetId) {
+      metadata.highestTargetId = queryData.targetId;
+      return true;
     }
 
     // TODO(GC): add sequence number check
-    return needsUpdate;
+    return false;
   }
 
-  get count(): number {
-    return this.metadata.targetCount;
+  getQueryCount(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<number> {
+    return this.retrieveMetadata(transaction).next(
+      metadata => metadata.targetCount
+    );
   }
 
   getQueryData(
@@ -329,6 +348,21 @@ export class IndexedDbQueryCache implements QueryCache {
         }
       )
       .next(() => count > 0);
+  }
+
+  getQueryDataForTarget(
+    transaction: PersistenceTransaction,
+    targetId: TargetId
+  ): PersistencePromise<QueryData | null> {
+    return targetsStore(transaction)
+      .get(targetId)
+      .next(found => {
+        if (found) {
+          return this.serializer.fromDbTarget(found);
+        } else {
+          return null;
+        }
+      });
   }
 }
 

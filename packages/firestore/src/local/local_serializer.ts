@@ -33,6 +33,8 @@ import {
   DbTimestamp
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -88,6 +90,30 @@ export class LocalSerializer {
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
+  }
+
+  /*
+   * Encodes a set of document keys into an array of EncodedResourcePaths.
+   */
+  toDbResourcePaths(keys: DocumentKeySet): EncodedResourcePath[] {
+    const encodedKeys: EncodedResourcePath[] = [];
+
+    keys.forEach(key => {
+      encodedKeys.push(encode(key.path));
+    });
+
+    return encodedKeys;
+  }
+
+  /** Decodes an array of EncodedResourcePaths into a set of document keys. */
+  fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
+    let keys = documentKeySet();
+
+    for (const documentKey of encodedPaths) {
+      keys = keys.add(new DocumentKey(decode(documentKey)));
+    }
+
+    return keys;
   }
 
   /** Decodes a DbTarget into QueryData */

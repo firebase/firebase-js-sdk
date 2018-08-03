@@ -15,35 +15,99 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap, documentMap } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import {
+  documentKeySet,
+  DocumentMap,
+  documentMap,
+  MaybeDocumentMap,
+  maybeDocumentMap
+} from '../model/collections';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
-import { DbRemoteDocument, DbRemoteDocumentKey } from './indexeddb_schema';
+import {
+  DbRemoteDocument,
+  DbRemoteDocumentKey,
+  DbRemoteDocumentChanges,
+  DbRemoteDocumentChangesKey
+} from './indexeddb_schema';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { SnapshotVersion } from '../core/snapshot_version';
+import { assert } from '../util/assert';
 import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
-  constructor(private serializer: LocalSerializer) {}
+  /** The last id read by `getNewDocumentChanges()`. */
+  private lastReturnedDocumentChangesId = 0;
 
-  addEntry(
-    transaction: PersistenceTransaction,
-    maybeDocument: MaybeDocument
-  ): PersistencePromise<void> {
-    return remoteDocumentsStore(transaction).put(
-      dbKey(maybeDocument.key),
-      this.serializer.toDbRemoteDocument(maybeDocument)
+  /**
+   * @param {LocalSerializer} serializer The document serializer.
+   * @param keepDocumentChangeLog Whether to keep a document change log in
+   * IndexedDb. This change log is required for Multi-Tab synchronization, but
+   * not needed in clients that don't share access to their remote document
+   * cache.
+   */
+  constructor(
+    private readonly serializer: LocalSerializer,
+    private readonly keepDocumentChangeLog: boolean
+  ) {}
+
+  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+    // If there are no existing changes, we set `lastReturnedDocumentChangesId`
+    // to 0 since IndexedDb's auto-generated keys start at 1.
+    this.lastReturnedDocumentChangesId = 0;
+
+    return documentChangesStore(transaction).iterate(
+      { keysOnly: true, reverse: true },
+      (key, value, control) => {
+        this.lastReturnedDocumentChangesId = key;
+        control.done();
+      }
     );
+  }
+
+  addEntries(
+    transaction: PersistenceTransaction,
+    maybeDocuments: MaybeDocument[]
+  ): PersistencePromise<void> {
+    const promises: Array<PersistencePromise<void>> = [];
+
+    if (maybeDocuments.length > 0) {
+      const documentStore = remoteDocumentsStore(transaction);
+      let changedKeys = documentKeySet();
+      for (const maybeDocument of maybeDocuments) {
+        promises.push(
+          documentStore.put(
+            dbKey(maybeDocument.key),
+            this.serializer.toDbRemoteDocument(maybeDocument)
+          )
+        );
+        changedKeys = changedKeys.add(maybeDocument.key);
+      }
+
+      if (this.keepDocumentChangeLog) {
+        // TODO(multitab): GC the documentChanges store.
+        promises.push(
+          documentChangesStore(transaction).put({
+            changes: this.serializer.toDbResourcePaths(changedKeys)
+          })
+        );
+      }
+    }
+
+    return PersistencePromise.waitFor(promises);
   }
 
   removeEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
+    // We don't need to keep changelog for these removals since `removeEntry` is
+    // only used for garbage collection.
     return remoteDocumentsStore(transaction).delete(dbKey(documentKey));
   }
 
@@ -81,6 +145,45 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       })
       .next(() => results);
   }
+
+  getNewDocumentChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MaybeDocumentMap> {
+    assert(
+      this.keepDocumentChangeLog,
+      'Can only call getNewDocumentChanges() when document change log is enabled'
+    );
+    let changedKeys = documentKeySet();
+    let changedDocs = maybeDocumentMap();
+
+    const range = IDBKeyRange.lowerBound(
+      this.lastReturnedDocumentChangesId,
+      /*lowerOpen=*/ true
+    );
+
+    return documentChangesStore(transaction)
+      .iterate({ range }, (_, documentChange) => {
+        changedKeys = changedKeys.unionWith(
+          this.serializer.fromDbResourcePaths(documentChange.changes)
+        );
+        this.lastReturnedDocumentChangesId = documentChange.id;
+      })
+      .next(() => {
+        const documentPromises: Array<PersistencePromise<void>> = [];
+        changedKeys.forEach(key => {
+          documentPromises.push(
+            this.getEntry(transaction, key).next(maybeDoc => {
+              changedDocs = changedDocs.insert(
+                key,
+                maybeDoc || new NoDocument(key, SnapshotVersion.forDeletedDoc())
+              );
+            })
+          );
+        });
+        return PersistencePromise.waitFor(documentPromises);
+      })
+      .next(() => changedDocs);
+  }
 }
 
 /**
@@ -93,6 +196,19 @@ function remoteDocumentsStore(
     txn,
     DbRemoteDocument.store
   );
+}
+
+/**
+ * Helper to get a typed SimpleDbStore for the remoteDocumentChanges object
+ * store.
+ */
+function documentChangesStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbRemoteDocumentChangesKey, DbRemoteDocumentChanges> {
+  return IndexedDbPersistence.getStore<
+    DbRemoteDocumentChangesKey,
+    DbRemoteDocumentChanges
+  >(txn, DbRemoteDocumentChanges.store);
 }
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {

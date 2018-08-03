@@ -59,6 +59,22 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
+/** Implementation of min() that ignores null values. */
+export function min(...values: Array<number | null>): number | null {
+  let min = null;
+
+  for (const value of values) {
+    if (value !== null) {
+      if (min == null) {
+        min = value;
+      } else if (value < min) {
+        min = value;
+      }
+    }
+  }
+
+  return min;
+}
 /** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
@@ -92,34 +108,6 @@ export function arrayEquals<T>(left: Array<Equatable<T>>, right: T[]): boolean {
 
   return true;
 }
-
-/**
- * Returns the largest lexicographically smaller string of equal or smaller
- * length. Returns an empty string if there is no such predecessor (if the input
- * is empty).
- *
- * Strings returned from this method can be invalid UTF-16 but this is sufficent
- * in use for indexeddb because that depends on lexicographical ordering but
- * shouldn't be used elsewhere.
- */
-export function immediatePredecessor(s: string): string {
-  // We can decrement the last character in the string and be done
-  // unless that character is 0 (0x0000), in which case we have to erase the
-  // last character.
-  const lastIndex = s.length - 1;
-  if (s.length === 0) {
-    // Special case the empty string.
-    return '';
-  } else if (s.charAt(lastIndex) === '\0') {
-    return s.substring(0, lastIndex);
-  } else {
-    return (
-      s.substring(0, lastIndex) +
-      String.fromCharCode(s.charCodeAt(lastIndex) - 1)
-    );
-  }
-}
-
 /**
  * Returns the immediate lexicographically-following string. This is useful to
  * construct an inclusive range for indexeddb iterators.

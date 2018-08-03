@@ -24,22 +24,22 @@ import { SpecStep } from './spec_test_runner';
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
-// Persistence-related tests.
-const PERSISTENCE_TAG = 'persistence';
+// Multi-client related tests (which imply persistence).
+const MULTI_CLIENT_TAG = 'multi-client';
 // Explicit per-platform disable flags.
 const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
-const NO_LRU = 'no-lru';
+const NO_LRU_TAG = 'no-lru';
 const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
   EXCLUSIVE_TAG,
-  PERSISTENCE_TAG,
+  MULTI_CLIENT_TAG,
   NO_WEB_TAG,
   NO_ANDROID_TAG,
   NO_IOS_TAG,
-  NO_LRU
+  NO_LRU_TAG
 ];
 
 // TOOD(mrschmidt): Make this configurable with mocha options.
@@ -72,6 +72,24 @@ let writeJSONFile: ((json: string) => void) | null = null;
  */
 export function setSpecJSONHandler(writer: (json: string) => void): void {
   writeJSONFile = writer;
+}
+
+/** Gets the test runner based on the specified tags. */
+function getTestRunner(tags, persistenceEnabled): Function {
+  if (tags.indexOf(NO_WEB_TAG) >= 0) {
+    return it.skip;
+  } else if (persistenceEnabled && tags.indexOf(NO_LRU_TAG) !== -1) {
+    // spec should have a comment explaining why it is being skipped.
+    return it.skip;
+  } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
+    return it.skip;
+  } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+    return it.skip;
+  } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+    return it.only;
+  } else {
+    return it;
+  }
 }
 
 /**
@@ -124,19 +142,7 @@ export function specTest(
       : [false];
     for (const usePersistence of persistenceModes) {
       const spec = builder();
-      let runner: Function;
-      if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
-        runner = it.only;
-      } else if (tags.indexOf(NO_WEB_TAG) >= 0) {
-        runner = it.skip;
-      } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
-        runner = it.skip;
-      } else if (usePersistence && tags.indexOf('no-lru') !== -1) {
-        // spec should have a comment explaining why it is being skipped.
-        runner = it.skip;
-      } else {
-        runner = it;
-      }
+      const runner = getTestRunner(tags, usePersistence);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
       runner(fullName, async () => {

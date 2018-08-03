@@ -50,7 +50,13 @@ export enum TimerId {
    * OnlineState.Unknown to Offline after a set timeout, rather than waiting
    * indefinitely for success or failure.
    */
-  OnlineStateTimeout = 'online_state_timeout'
+  OnlineStateTimeout = 'online_state_timeout',
+
+  /**
+   * A timer used to update the client metadata in IndexedDb, which is used
+   * to determine the primary leaseholder.
+   */
+  ClientMetadataRefresh = 'client_metadata_refresh'
 }
 
 /**
@@ -248,6 +254,11 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): CancelablePromise<T> {
     this.verifyNotFailed();
+
+    assert(
+      delayMs >= 0,
+      `Attempted to schedule an operation with a negative delay of ${delayMs}`
+    );
 
     // While not necessarily harmful, we currently don't expect to have multiple
     // ops with the same timer id in the queue, so defensively reject them.

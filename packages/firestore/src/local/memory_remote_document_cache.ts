@@ -16,25 +16,39 @@
 
 import { Query } from '../core/query';
 import {
+  documentKeySet,
   DocumentMap,
   documentMap,
+  MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();
+  private newDocumentChanges = documentKeySet();
 
-  addEntry(
+  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+    // Technically a no-op but we clear the set of changed documents to mimic
+    // the behavior of the IndexedDb counterpart.
+    this.newDocumentChanges = documentKeySet();
+    return PersistencePromise.resolve();
+  }
+
+  addEntries(
     transaction: PersistenceTransaction,
-    maybeDocument: MaybeDocument
+    maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void> {
-    this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
+    for (const maybeDocument of maybeDocuments) {
+      this.docs = this.docs.insert(maybeDocument.key, maybeDocument);
+      this.newDocumentChanges = this.newDocumentChanges.add(maybeDocument.key);
+    }
     return PersistencePromise.resolve();
   }
 
@@ -73,5 +87,23 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       }
     }
     return PersistencePromise.resolve(results);
+  }
+
+  getNewDocumentChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<MaybeDocumentMap> {
+    let changedDocs = maybeDocumentMap();
+
+    this.newDocumentChanges.forEach(key => {
+      changedDocs = changedDocs.insert(
+        key,
+        this.docs.get(key) ||
+          new NoDocument(key, SnapshotVersion.forDeletedDoc())
+      );
+    });
+
+    this.newDocumentChanges = documentKeySet();
+
+    return PersistencePromise.resolve(changedDocs);
   }
 }

@@ -223,15 +223,19 @@ export class View {
   }
 
   /**
-   * Updates the view with the given ViewDocumentChanges and updates limbo docs
-   * and sync state from the given (optional) target change.
+   * Updates the view with the given ViewDocumentChanges and optionally updates
+   * limbo docs and sync state from the provided target change.
    * @param docChanges The set of changes to make to the view's docs.
+   * @param updateLimboDocuments Whether to update limbo documents based on this
+   *        change.
    * @param targetChange A target change to apply for computing limbo docs and
    *        sync state.
    * @return A new ViewChange with the given docs, changes, and sync state.
    */
+  // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
+    updateLimboDocuments: boolean,
     targetChange?: TargetChange
   ): ViewChange {
     assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
@@ -248,7 +252,9 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = this.updateLimboDocuments();
+    const limboChanges = updateLimboDocuments
+      ? this.updateLimboDocuments()
+      : [];
     const synced = this.limboDocuments.size === 0 && this.current;
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
@@ -286,12 +292,15 @@ export class View {
       // are guaranteed to get a new TargetChange that sets `current` back to
       // true once the client is back online.
       this.current = false;
-      return this.applyChanges({
-        documentSet: this.documentSet,
-        changeSet: new DocumentChangeSet(),
-        mutatedKeys: this.mutatedKeys,
-        needsRefill: false
-      });
+      return this.applyChanges(
+        {
+          documentSet: this.documentSet,
+          changeSet: new DocumentChangeSet(),
+          mutatedKeys: this.mutatedKeys,
+          needsRefill: false
+        },
+        /* updateLimboDocuments= */ false
+      );
     } else {
       // No effect, just return a no-op ViewChange.
       return { limboChanges: [] };
@@ -372,6 +381,51 @@ export class View {
       }
     });
     return changes;
+  }
+
+  /**
+   * Update the in-memory state of the current view with the state read from
+   * persistence.
+   *
+   * We update the query view whenever a client's primary status changes:
+   * - When a client transitions from primary to secondary, it can miss
+   *   LocalStorage updates and its query views may temporarily not be
+   *   synchronized with the state on disk.
+   * - For secondary to primary transitions, the client needs to update the list
+   *   of `syncedDocuments` since secondary clients update their query views
+   *   based purely on synthesized RemoteEvents.
+   *
+   * @param localDocs - The documents that match the query according to the
+   * LocalStore.
+   * @param remoteKeys - The keys of the documents that match the query
+   * according to the backend.
+   *
+   * @return The ViewChange that resulted from this synchronization.
+   */
+  // PORTING NOTE: Multi-tab only.
+  synchronizeWithPersistedState(
+    localDocs: MaybeDocumentMap,
+    remoteKeys: DocumentKeySet
+  ): ViewChange {
+    this._syncedDocuments = remoteKeys;
+    this.limboDocuments = documentKeySet();
+    const docChanges = this.computeDocChanges(localDocs);
+    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
+  }
+
+  /**
+   * Returns a view snapshot as if this query was just listened to. Contains
+   * a document add for every existing document and the `fromCache` and
+   * `hasPendingWrites` status of the already established view.
+   */
+  // PORTING NOTE: Multi-tab only.
+  computeInitialSnapshot(): ViewSnapshot {
+    return ViewSnapshot.fromInitialDocuments(
+      this.query,
+      this.documentSet,
+      this.syncState === SyncState.Local,
+      !this.mutatedKeys.isEmpty()
+    );
   }
 }
 
