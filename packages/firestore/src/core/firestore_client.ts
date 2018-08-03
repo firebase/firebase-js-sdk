@@ -157,14 +157,14 @@ export class FirestoreClient {
           .then(() => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
-        this.asyncQueue.enqueue(() => {
+        this.asyncQueue.enqueueAndForget(() => {
           return this.handleUserChange(user);
         });
       }
     });
 
     // Block the async queue until initialization is done
-    this.asyncQueue.enqueue(() => {
+    this.asyncQueue.enqueueAndForget(() => {
       return initializationDone.promise;
     });
 
@@ -385,14 +385,14 @@ export class FirestoreClient {
     options: ListenOptions
   ): QueryListener {
     const listener = new QueryListener(query, observer, options);
-    this.asyncQueue.enqueue(() => {
+    this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.listen(listener);
     });
     return listener;
   }
 
   unlisten(listener: QueryListener): void {
-    this.asyncQueue.enqueue(() => {
+    this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.unlisten(listener);
     });
   }
@@ -435,7 +435,9 @@ export class FirestoreClient {
 
   write(mutations: Mutation[]): Promise<void> {
     const deferred = new Deferred<void>();
-    this.asyncQueue.enqueue(() => this.syncEngine.write(mutations, deferred));
+    this.asyncQueue.enqueueAndForget(() =>
+      this.syncEngine.write(mutations, deferred)
+    );
     return deferred.promise;
   }
 

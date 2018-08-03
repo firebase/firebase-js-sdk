@@ -237,7 +237,7 @@ class MockConnection implements Connection {
           this.resetAndCloseWriteStream();
         }
       });
-      this.queue.enqueue(async () => {
+      this.queue.enqueueAndForget(async () => {
         if (this.writeStream === writeStream) {
           writeStream.callOnOpen();
         }
@@ -270,7 +270,7 @@ class MockConnection implements Connection {
         }
       });
       // Call on open immediately after returning
-      this.queue.enqueue(async () => {
+      this.queue.enqueueAndForget(async () => {
         if (this.watchStream === watchStream) {
           watchStream.callOnOpen();
           this.watchOpen.resolve();

@@ -57,7 +57,7 @@ describe('EventManager', () => {
     return stub;
   }
 
-  it('handles many listenables per query', () => {
+  it('handles many listenables per query', async () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const fakeListener2 = fakeQueryListener(query);
@@ -65,29 +65,29 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener1);
     expect(syncEngineSpy.listen.calledWith(query)).to.be.true;
 
-    eventManager.listen(fakeListener2);
+    await eventManager.listen(fakeListener2);
     expect(syncEngineSpy.listen.callCount).to.equal(1);
 
-    eventManager.unlisten(fakeListener2);
+    await eventManager.unlisten(fakeListener2);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
 
-    eventManager.unlisten(fakeListener1);
+    await eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.calledWith(query)).to.be.true;
   });
 
-  it('handles unlisten on unknown listenable gracefully', () => {
+  it('handles unlisten on unknown listenable gracefully', async () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const eventManager = new EventManager(syncEngineSpy);
-    eventManager.unlisten(fakeListener1);
+    await eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
   });
 
-  it('notifies listenables in the right order', () => {
+  it('notifies listenables in the right order', async () => {
     const query1 = Query.atPath(path('foo/bar'));
     const query2 = Query.atPath(path('bar/baz'));
     const eventOrder: string[] = [];
@@ -108,9 +108,9 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
-    eventManager.listen(fakeListener2);
-    eventManager.listen(fakeListener3);
+    await eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener2);
+    await eventManager.listen(fakeListener3);
     expect(syncEngineSpy.listen.callCount).to.equal(2);
 
     // tslint:disable-next-line:no-any mock ViewSnapshot.
@@ -126,7 +126,7 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward applyOnlineStateChange calls', () => {
+  it('will forward applyOnlineStateChange calls', async () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
@@ -137,7 +137,7 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
     eventManager.applyOnlineStateChange(OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);

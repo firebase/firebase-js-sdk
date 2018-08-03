@@ -220,12 +220,12 @@ function genericMutationQueueTests(): void {
       BATCHID_UNKNOWN
     );
 
-    mutationQueue.acknowledgeBatch(batch1, emptyByteString());
+    await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
       batch1.batchId
     );
 
-    mutationQueue.acknowledgeBatch(batch2, emptyByteString());
+    await mutationQueue.acknowledgeBatch(batch2, emptyByteString());
     expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
       batch2.batchId
     );

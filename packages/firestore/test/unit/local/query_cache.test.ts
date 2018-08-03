@@ -97,7 +97,7 @@ function genericQueryCacheTests(
   });
 
   afterEach(async () => {
-    persistence.shutdown(/* deleteData= */ true);
+    await persistence.shutdown(/* deleteData= */ true);
   });
 
   it('returns null for query not in cache', () => {
@@ -205,18 +205,18 @@ function genericQueryCacheTests(
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
 
-    cache.addMatchingKeys([key1, key2], 1);
-    cache.addMatchingKeys([key3], 2);
+    await cache.addMatchingKeys([key1, key2], 1);
+    await cache.addMatchingKeys([key3], 2);
     expect(await cache.containsKey(key1)).to.equal(true);
     expect(await cache.containsKey(key2)).to.equal(true);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(1);
+    await cache.removeMatchingKeysForTargetId(1);
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(2);
+    await cache.removeMatchingKeysForTargetId(2);
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(false);
@@ -244,13 +244,13 @@ function genericQueryCacheTests(
 
     expect(await testGc.collectGarbage()).to.deep.equal([]);
 
-    cache.removeMatchingKeys([room1], rooms.targetId);
+    await cache.removeMatchingKeys([room1], rooms.targetId);
     expect(await testGc.collectGarbage()).to.deep.equal([room1]);
 
-    cache.removeQueryData(rooms);
+    await cache.removeQueryData(rooms);
     expect(await testGc.collectGarbage()).to.deep.equal([room2]);
 
-    cache.removeMatchingKeysForTargetId(halls.targetId);
+    await cache.removeMatchingKeysForTargetId(halls.targetId);
     expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
   });
 
@@ -268,7 +268,7 @@ function genericQueryCacheTests(
     ]);
     expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([key3]);
 
-    cache.addMatchingKeys([key1], 2);
+    await cache.addMatchingKeys([key1], 2);
     expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
       key1,
       key2

@@ -154,7 +154,7 @@ class DelayedOperation<T extends Unknown> implements CancelablePromise<T> {
   catch = this.deferred.promise.catch.bind(this.deferred.promise);
 
   private handleDelayElapsed(): void {
-    this.asyncQueue.enqueue(() => {
+    this.asyncQueue.enqueueAndForget(() => {
       if (this.timerHandle !== null) {
         this.clearTimeout();
         return this.op().then(result => {
@@ -189,6 +189,15 @@ export class AsyncQueue {
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  /**
+   * Adds a new operation to the queue without waiting for it to complete (i.e.
+   * we ignore the Promise result).
+   */
+  enqueueAndForget<T extends Unknown>(op: () => Promise<T>): void {
+    // tslint:disable-next-line:no-floating-promises
+    this.enqueue(op);
+  }
 
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved

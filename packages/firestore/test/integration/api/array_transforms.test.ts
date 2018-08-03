@@ -84,7 +84,7 @@ apiDescribe('Array Transforms:', persistence => {
   it('create document with arrayUnion()', async () => {
     await withTestSetup(async () => {
       await docRef.set({ array: FieldValue.arrayUnion(1, 2) });
-      expectLocalAndRemoteEvent({ array: [1, 2] });
+      await expectLocalAndRemoteEvent({ array: [1, 2] });
     });
   });
 
