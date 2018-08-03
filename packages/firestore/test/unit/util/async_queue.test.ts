@@ -35,7 +35,7 @@ describe('AsyncQueue', () => {
       results.push(result);
     }
 
-    const op1 = queue.enqueueAndWait(() => {
+    const op1 = queue.enqueue(() => {
       return defer(() => 'Hello')
         .then((result: string) => {
           return defer(() => result + ' world!');
@@ -43,13 +43,13 @@ describe('AsyncQueue', () => {
         .then(pushResult);
     });
 
-    const op2 = queue.enqueueAndWait(() => {
+    const op2 = queue.enqueue(() => {
       return defer(() => 'Bye bye.').then(pushResult);
     });
 
     const op4 = new Deferred<void>();
-    const op3 = queue.enqueueAndWait(() => {
-      queue.enqueue(() => {
+    const op3 = queue.enqueue(() => {
+      queue.enqueueAndForget(() => {
         return Promise.resolve('Bye for good.')
           .then(pushResult)
           .then(op4.resolve);
@@ -80,7 +80,7 @@ describe('AsyncQueue', () => {
 
     // Schedule a failing operation and make sure it's handled correctly.
     const op1Promise = queue
-      .enqueueAndWait(() => {
+      .enqueue(() => {
         // This promise represents something that is rejected
         return defer(() => {
           throw expected;
@@ -101,7 +101,7 @@ describe('AsyncQueue', () => {
     // Schedule a second failing operation (before the first one has actually
     // executed and failed). It should not be run.
     const op2Promise = queue
-      .enqueueAndWait(() => {
+      .enqueue(() => {
         return defer(() => {
           expect.fail('op2 should not be executed.');
         });
@@ -122,7 +122,7 @@ describe('AsyncQueue', () => {
       // synchronously throw with "already failed" error.
       const dummyOp = () => Promise.reject('dummyOp should not be run');
       expect(() => {
-        queue.enqueue(dummyOp);
+        queue.enqueueAndForget(dummyOp);
       }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
@@ -134,10 +134,10 @@ describe('AsyncQueue', () => {
     const queue = new AsyncQueue();
     const completedSteps = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
-    queue.enqueue(() => doStep(1));
+    queue.enqueueAndForget(() => doStep(1));
     const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
     queue.enqueueAfterDelay(timerId2, 1, () => doStep(3));
-    queue.enqueue(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(2));
 
     await last;
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
@@ -147,7 +147,7 @@ describe('AsyncQueue', () => {
     const queue = new AsyncQueue();
     const completedSteps = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
-    queue.enqueue(() => doStep(1));
+    queue.enqueueAndForget(() => doStep(1));
     const delayedPromise = queue.enqueueAfterDelay(timerId1, 1, () =>
       doStep(2)
     );
@@ -169,10 +169,10 @@ describe('AsyncQueue', () => {
     const queue = new AsyncQueue();
     const completedSteps = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
-    queue.enqueue(() => doStep(1));
+    queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(4));
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
-    queue.enqueue(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(2));
 
     await queue.runDelayedOperationsEarly(TimerId.All);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
@@ -182,11 +182,11 @@ describe('AsyncQueue', () => {
     const queue = new AsyncQueue();
     const completedSteps = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
-    queue.enqueue(() => doStep(1));
+    queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(5));
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
-    queue.enqueue(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(2));
 
     await queue.runDelayedOperationsEarly(timerId3);
     expect(completedSteps).to.deep.equal([1, 2, 3, 4]);
@@ -196,9 +196,9 @@ describe('AsyncQueue', () => {
     const queue = new AsyncQueue();
     const completedSteps = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
-    queue.enqueue(() => doStep(1));
+    queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 10000, () => doStep(5));
-    queue.enqueue(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(2));
 
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2]);

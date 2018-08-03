@@ -502,7 +502,7 @@ export abstract class PersistentStream<
     startCloseCount: number
   ): (fn: () => Promise<void>) => void {
     return (fn: () => Promise<void>): void => {
-      this.queue.enqueue(() => {
+      this.queue.enqueueAndForget(() => {
         if (this.closeCount === startCloseCount) {
           return fn();
         } else {
