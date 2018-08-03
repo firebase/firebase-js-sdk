@@ -286,37 +286,7 @@ export class LocalStore {
   private startMutationQueue(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
-    return this.mutationQueue
-      .start(txn)
-      .next(() => {
-        // If we have any leftover mutation batch results from a prior run,
-        // just drop them.
-        // TODO(http://b/33446471): We probably need to repopulate
-        // heldBatchResults or similar instead, but that is not
-        // straightforward since we're not persisting the write ack versions.
-        this.heldBatchResults = [];
-        return this.mutationQueue.getHighestAcknowledgedBatchId(txn);
-      })
-      .next(highestAck => {
-        // TODO(mikelehen): This is the only usage of
-        // getAllMutationBatchesThroughBatchId(). Consider removing it in
-        // favor of a getAcknowledgedBatches() method.
-        if (highestAck !== BATCHID_UNKNOWN) {
-          return this.mutationQueue.getAllMutationBatchesThroughBatchId(
-            txn,
-            highestAck
-          );
-        } else {
-          return PersistencePromise.resolve([]);
-        }
-      })
-      .next(ackedBatches => {
-        if (ackedBatches.length > 0) {
-          return this.mutationQueue.removeMutationBatches(txn, ackedBatches);
-        } else {
-          return PersistencePromise.resolve();
-        }
-      });
+    return this.mutationQueue.start(txn);
   }
 
   private startRemoteDocumentCache(
@@ -410,6 +380,9 @@ export class LocalStore {
               return documentBuffer.apply(txn);
             });
           }
+        })
+        .next(() => {
+          return this.removeMutationBatch(txn, batchResult.batch);
         })
         .next(() => {
           return this.mutationQueue.performConsistencyCheck(txn);
@@ -955,7 +928,9 @@ export class LocalStore {
     documentBuffer: RemoteDocumentChangeBuffer
   ): PersistencePromise<DocumentKeySet> {
     let promiseChain = PersistencePromise.resolve();
+    let keys = documentKeySet();
     for (const batchResult of batchResults) {
+      keys = keys.unionWith(batchResult.batch.keys());
       promiseChain = promiseChain
         .next(() =>
           this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
@@ -973,12 +948,7 @@ export class LocalStore {
           );
         });
     }
-    return promiseChain.next(() => {
-      return this.removeMutationBatches(
-        txn,
-        batchResults.map(result => result.batch)
-      );
-    });
+    return promiseChain.next(() => keys);
   }
 
   private removeMutationBatch(
