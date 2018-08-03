@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-// TODO(multitab): Rename this file to `indexeddb_persistence.test.ts`.
-
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   createOrUpgradeDb,
   DbMutationBatch,
   DbMutationBatchKey,
-  DbOwner,
-  DbOwnerKey,
+  DbPrimaryClient,
+  DbPrimaryClientKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
@@ -295,14 +293,16 @@ describe('IndexedDb: canActAsPrimary', () => {
     return;
   }
 
-  async function clearOwner(): Promise<void> {
+  async function clearPrimaryLease(): Promise<void> {
     const simpleDb = await SimpleDb.openOrCreate(
       INDEXEDDB_TEST_DATABASE,
       SCHEMA_VERSION,
       createOrUpgradeDb
     );
-    await simpleDb.runTransaction('readwrite', [DbOwner.store], txn => {
-      const ownerStore = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+    await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+      const ownerStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
       return ownerStore.delete('owner');
     });
     simpleDb.close();
@@ -375,7 +375,7 @@ describe('IndexedDb: canActAsPrimary', () => {
 
           // Clear the current primary holder, since our logic will not revoke
           // the lease until it expires.
-          await clearOwner();
+          await clearPrimaryLease();
 
           await withPersistence(
             'thisClient',

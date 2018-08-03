@@ -99,8 +99,8 @@ import {
 } from '../../../src/local/shared_client_state';
 import {
   createOrUpgradeDb,
-  DbOwner,
-  DbOwnerKey,
+  DbPrimaryClient,
+  DbPrimaryClientKey,
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
@@ -1530,10 +1530,16 @@ async function writeOwnerToIndexedDb(clientId: ClientId): Promise<void> {
     createOrUpgradeDb
   );
   await db.runTransaction('readwrite', ['owner'], txn => {
-    const owner = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+    const owner = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+      DbPrimaryClient.store
+    );
     return owner.put(
       'owner',
-      new DbOwner(clientId, /* allowTabSynchronization=*/ true, Date.now())
+      new DbPrimaryClient(
+        clientId,
+        /* allowTabSynchronization=*/ true,
+        Date.now()
+      )
     );
   });
   db.close();
