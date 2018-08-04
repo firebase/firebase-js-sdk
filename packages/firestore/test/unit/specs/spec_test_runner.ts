@@ -1523,7 +1523,9 @@ export interface StateExpectation {
   };
 }
 
-async function writePrimaryClientToIndexedDb(clientId: ClientId): Promise<void> {
+async function writePrimaryClientToIndexedDb(
+  clientId: ClientId
+): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
     SCHEMA_VERSION,
@@ -1534,7 +1536,7 @@ async function writePrimaryClientToIndexedDb(clientId: ClientId): Promise<void> 
       DbPrimaryClient.store
     );
     return primaryClientStore.put(
-        DbPrimaryClient.key,
+      DbPrimaryClient.key,
       new DbPrimaryClient(
         clientId,
         /* allowTabSynchronization=*/ true,
