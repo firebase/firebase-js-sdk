@@ -108,8 +108,8 @@ export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
 
-// The key for the singleton object in the DbPrimaryClient store is 'owner'.
-export type DbPrimaryClientKey = 'owner';
+// The key for the singleton object in the DbPrimaryClient is a single string.
+export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
 
 /**
  * A singleton object to be stored in the 'owner' store in IndexedDb.
@@ -129,6 +129,12 @@ export class DbPrimaryClient {
    * layer.
    */
   static store = 'owner';
+
+  /**
+   * The key string used for the single object that exists in the
+   * DbPrimaryClient store.
+   */
+  static key = 'owner';
 
   constructor(
     public ownerId: string,

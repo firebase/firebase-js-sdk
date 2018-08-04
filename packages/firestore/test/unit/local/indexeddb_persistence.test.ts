@@ -300,10 +300,10 @@ describe('IndexedDb: canActAsPrimary', () => {
       createOrUpgradeDb
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-      const ownerStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+      const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
         DbPrimaryClient.store
       );
-      return ownerStore.delete('owner');
+      return primaryStore.delete(DbPrimaryClient.key);
     });
     simpleDb.close();
   }

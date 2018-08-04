@@ -322,7 +322,7 @@ export class IndexedDbPersistence implements Persistence {
   ): PersistencePromise<boolean> {
     const store = primaryClientStore(txn);
     return store
-      .get('owner')
+      .get(DbPrimaryClient.key)
       .next(currentPrimary => {
         const currentLeaseIsValid =
           currentPrimary !== null &&
@@ -553,7 +553,7 @@ export class IndexedDbPersistence implements Persistence {
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     const store = primaryClientStore(txn);
-    return store.get('owner').next(currentPrimary => {
+    return store.get(DbPrimaryClient.key).next(currentPrimary => {
       const currentLeaseIsValid =
         currentPrimary !== null &&
         this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
@@ -580,7 +580,7 @@ export class IndexedDbPersistence implements Persistence {
       this.allowTabSynchronization,
       Date.now()
     );
-    return primaryClientStore(txn).put('owner', newPrimary);
+    return primaryClientStore(txn).put(DbPrimaryClient.key, newPrimary);
   }
 
   static isAvailable(): boolean {
@@ -614,10 +614,10 @@ export class IndexedDbPersistence implements Persistence {
     this.isPrimary = false;
 
     const store = primaryClientStore(txn);
-    return store.get('owner').next(primaryClient => {
+    return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
         log.debug(LOG_TAG, 'Releasing primary lease.');
-        return store.delete('owner');
+        return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
       }
