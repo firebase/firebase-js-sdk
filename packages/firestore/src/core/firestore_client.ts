@@ -261,9 +261,9 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      // We fall back to memory persistence if we cannot acquire an owner lease.
-      // This can happen can during a schema migration, or during the initial
-      // write of the `owner` lease.
+      // We fall back to memory persistence if we cannot write the primary
+      // lease. This can happen can during a schema migration, or if we run out
+      // of quota when we try to write the primary lease.
       // For both the `QuotaExceededError` and the  `AbortError`, it is safe to
       // fall back to memory persistence since all modifications to IndexedDb
       // failed to commit.

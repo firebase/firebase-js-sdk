@@ -151,8 +151,7 @@ export class LocalStore {
   private queryCache: QueryCache;
 
   /** Maps a targetID to data about its query. */
-  // TODO(multitab): Rename to `queryDataByTarget` to match SyncEngine's naming.
-  private targetIds = {} as { [targetId: number]: QueryData };
+  private queryDataByTarget = {} as { [targetId: number]: QueryData };
 
   /**
    * A heldBatchResult is a mutation batch result (from a write acknowledgement)
@@ -517,7 +516,7 @@ export class LocalStore {
         remoteEvent.targetChanges,
         (targetId: TargetId, change: TargetChange) => {
           // Do not ref/unref unassigned targetIds - it may lead to leaks.
-          let queryData = this.targetIds[targetId];
+          let queryData = this.queryDataByTarget[targetId];
           if (!queryData) return;
 
           // When a global snapshot contains updates (either add or modify) we
@@ -557,7 +556,7 @@ export class LocalStore {
               resumeToken,
               snapshotVersion: remoteEvent.snapshotVersion
             });
-            this.targetIds[targetId] = queryData;
+            this.queryDataByTarget[targetId] = queryData;
 
             if (
               LocalStore.shouldPersistQueryData(oldQueryData, queryData, change)
@@ -763,10 +762,10 @@ export class LocalStore {
         })
         .next(() => {
           assert(
-            !this.targetIds[queryData.targetId],
+            !this.queryDataByTarget[queryData.targetId],
             'Tried to allocate an already allocated query: ' + query
           );
-          this.targetIds[queryData.targetId] = queryData;
+          this.queryDataByTarget[queryData.targetId] = queryData;
           return queryData;
         });
     });
@@ -792,10 +791,10 @@ export class LocalStore {
               'Tried to release nonexistent query: ' + query
             );
             const targetId = queryData!.targetId;
-            const cachedQueryData = this.targetIds[targetId];
+            const cachedQueryData = this.queryDataByTarget[targetId];
 
             this.localViewReferences.removeReferencesForId(targetId);
-            delete this.targetIds[targetId];
+            delete this.queryDataByTarget[targetId];
             if (!keepPersistedQueryData && this.garbageCollector.isEager) {
               return this.queryCache.removeQueryData(txn, queryData!);
             } else if (
@@ -813,7 +812,7 @@ export class LocalStore {
           .next(() => {
             // If this was the last watch target, then we won't get any more
             // watch snapshots, so we should release any held batch results.
-            if (objUtils.isEmpty(this.targetIds)) {
+            if (objUtils.isEmpty(this.queryDataByTarget)) {
               const documentBuffer = new RemoteDocumentChangeBuffer(
                 this.remoteDocuments
               );
@@ -891,7 +890,7 @@ export class LocalStore {
   ): PersistencePromise<DocumentKeySet> {
     let writesToRelease: PersistencePromise<MutationBatchResult[]>;
 
-    if (objUtils.isEmpty(this.targetIds)) {
+    if (objUtils.isEmpty(this.queryDataByTarget)) {
       // We always release all writes when there are no active watch targets.
       writesToRelease = PersistencePromise.resolve(
         this.heldBatchResults.slice()
@@ -930,7 +929,7 @@ export class LocalStore {
       .next(lastRemoteVersion => {
         return (
           version.compareTo(lastRemoteVersion) <= 0 ||
-          objUtils.isEmpty(this.targetIds)
+          objUtils.isEmpty(this.queryDataByTarget)
         );
       });
   }
@@ -1048,8 +1047,8 @@ export class LocalStore {
 
   // PORTING NOTE: Multi-tab only.
   getQueryForTarget(targetId: TargetId): Promise<Query | null> {
-    if (this.targetIds[targetId]) {
-      return Promise.resolve(this.targetIds[targetId].query);
+    if (this.queryDataByTarget[targetId]) {
+      return Promise.resolve(this.queryDataByTarget[targetId].query);
     } else {
       return this.persistence.runTransaction('Get query data', false, txn => {
         return this.queryCache

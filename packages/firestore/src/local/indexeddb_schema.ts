@@ -57,7 +57,7 @@ export function createOrUpgradeDb(
   );
 
   if (fromVersion < 1 && toVersion >= 1) {
-    createOwnerStore(db);
+    createPrimaryClientStore(db);
     createMutationQueue(db);
     createQueryCache(db);
     createRemoteDocumentCache(db);
@@ -108,22 +108,33 @@ export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
 
-// The key for the singleton object in the 'owner' store is 'owner'.
-export type DbOwnerKey = 'owner';
+// The key for the singleton object in the DbPrimaryClient is a single string.
+export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
 
 /**
  * A singleton object to be stored in the 'owner' store in IndexedDb.
  *
- * A given database can be owned by a single tab at a given time. That tab
- * must validate that it is still the owner before every write operation and
- * should regularly write an updated timestamp to prevent other tabs from
- * "stealing" ownership of the db.
+ * A given database can have a single primary tab assigned at a given time. That
+ * tab must validate that it is still holding the primary lease before every
+ * operation that requires locked access. The primary tab should regularly
+ * write an updated timestamp to this lease to prevent other tabs from
+ * "stealing" the primary lease
  */
-// TODO(multitab): Rename this class to reflect the primary/secondary naming
-// in the rest of the client.
-export class DbOwner {
-  /** Name of the IndexedDb object store. */
+export class DbPrimaryClient {
+  /**
+   * Name of the IndexedDb object store.
+   *
+   * Note that the name 'owner' is chosen to ensure backwards compatibility with
+   * older clients that only supported single locked access to the persistence
+   * layer.
+   */
   static store = 'owner';
+
+  /**
+   * The key string used for the single object that exists in the
+   * DbPrimaryClient store.
+   */
+  static key = 'owner';
 
   constructor(
     public ownerId: string,
@@ -133,8 +144,8 @@ export class DbOwner {
   ) {}
 }
 
-function createOwnerStore(db: IDBDatabase): void {
-  db.createObjectStore(DbOwner.store);
+function createPrimaryClientStore(db: IDBDatabase): void {
+  db.createObjectStore(DbPrimaryClient.store);
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -690,7 +701,7 @@ export const V1_STORES = [
   DbDocumentMutation.store,
   DbRemoteDocument.store,
   DbTarget.store,
-  DbOwner.store,
+  DbPrimaryClient.store,
   DbTargetGlobal.store,
   DbTargetDocument.store
 ];
