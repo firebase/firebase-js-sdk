@@ -99,8 +99,8 @@ import {
 } from '../../../src/local/shared_client_state';
 import {
   createOrUpgradeDb,
-  DbOwner,
-  DbOwnerKey,
+  DbPrimaryClient,
+  DbPrimaryClientKey,
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
@@ -883,7 +883,7 @@ abstract class TestRunner {
     }
 
     if (state.primary) {
-      await writeOwnerToIndexedDb(this.clientId);
+      await writePrimaryClientToIndexedDb(this.clientId);
       await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
     }
 
@@ -1523,17 +1523,25 @@ export interface StateExpectation {
   };
 }
 
-async function writeOwnerToIndexedDb(clientId: ClientId): Promise<void> {
+async function writePrimaryClientToIndexedDb(
+  clientId: ClientId
+): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
     SCHEMA_VERSION,
     createOrUpgradeDb
   );
-  await db.runTransaction('readwrite', ['owner'], txn => {
-    const owner = txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
-    return owner.put(
-      'owner',
-      new DbOwner(clientId, /* allowTabSynchronization=*/ true, Date.now())
+  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+      DbPrimaryClient.store
+    );
+    return primaryClientStore.put(
+      DbPrimaryClient.key,
+      new DbPrimaryClient(
+        clientId,
+        /* allowTabSynchronization=*/ true,
+        Date.now()
+      )
     );
   });
   db.close();

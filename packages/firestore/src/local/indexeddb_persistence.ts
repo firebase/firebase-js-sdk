@@ -29,8 +29,8 @@ import {
   createOrUpgradeDb,
   DbClientMetadataKey,
   DbClientMetadata,
-  DbOwner,
-  DbOwnerKey,
+  DbPrimaryClient,
+  DbPrimaryClientKey,
   SCHEMA_VERSION
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
@@ -306,7 +306,7 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /** Checks whether `client` is the local client. */
-  private isLocalClient(client: DbOwner | null): boolean {
+  private isLocalClient(client: DbPrimaryClient | null): boolean {
     return client ? client.ownerId === this.clientId : false;
   }
 
@@ -320,9 +320,9 @@ export class IndexedDbPersistence implements Persistence {
   private canActAsPrimary(
     txn: SimpleDbTransaction
   ): PersistencePromise<boolean> {
-    const store = ownerStore(txn);
+    const store = primaryClientStore(txn);
     return store
-      .get('owner')
+      .get(DbPrimaryClient.key)
       .next(currentPrimary => {
         const currentLeaseIsValid =
           currentPrimary !== null &&
@@ -422,7 +422,7 @@ export class IndexedDbPersistence implements Persistence {
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
       'readwrite',
-      [DbOwner.store, DbClientMetadata.store],
+      [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
           this.removeClientMetadata(txn)
@@ -513,8 +513,6 @@ export class IndexedDbPersistence implements Persistence {
           return this.canActAsPrimary(simpleDbTxn)
             .next(canActAsPrimary => {
               if (!canActAsPrimary) {
-                // TODO(multitab): Handle this gracefully and transition back to
-                // secondary state.
                 log.error(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
@@ -554,8 +552,8 @@ export class IndexedDbPersistence implements Persistence {
   private verifyAllowTabSynchronization(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    const store = ownerStore(txn);
-    return store.get('owner').next(currentPrimary => {
+    const store = primaryClientStore(txn);
+    return store.get(DbPrimaryClient.key).next(currentPrimary => {
       const currentLeaseIsValid =
         currentPrimary !== null &&
         this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
@@ -577,12 +575,12 @@ export class IndexedDbPersistence implements Persistence {
    * method does not verify that the client is eligible for this lease.
    */
   private acquireOrExtendPrimaryLease(txn): PersistencePromise<void> {
-    const newPrimary = new DbOwner(
+    const newPrimary = new DbPrimaryClient(
       this.clientId,
       this.allowTabSynchronization,
       Date.now()
     );
-    return ownerStore(txn).put('owner', newPrimary);
+    return primaryClientStore(txn).put(DbPrimaryClient.key, newPrimary);
   }
 
   static isAvailable(): boolean {
@@ -615,11 +613,11 @@ export class IndexedDbPersistence implements Persistence {
   ): PersistencePromise<void> {
     this.isPrimary = false;
 
-    const store = ownerStore(txn);
-    return store.get('owner').next(primaryClient => {
+    const store = primaryClientStore(txn);
+    return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
         log.debug(LOG_TAG, 'Releasing primary lease.');
-        return store.delete('owner');
+        return store.delete(DbPrimaryClient.key);
       } else {
         return PersistencePromise.resolve();
       }
@@ -649,7 +647,7 @@ export class IndexedDbPersistence implements Persistence {
       typeof this.document.addEventListener === 'function'
     ) {
       this.documentVisibilityHandler = () => {
-        this.queue.enqueueAndForget<DbOwner | void>(() => {
+        this.queue.enqueueAndForget(() => {
           this.inForeground = this.document.visibilityState === 'visible';
           return this.updateClientMetadataAndTryBecomePrimary();
         });
@@ -681,12 +679,13 @@ export class IndexedDbPersistence implements Persistence {
 
   /**
    * Attaches a window.unload handler that will synchronously write our
-   * ownerId to a "zombie owner id" location in localstorage. This can be used
-   * by tabs trying to acquire the lease to determine that the lease should be
-   * acquired immediately even if the timestamp is recent. This is particularly
-   * important for the refresh case (so the tab correctly re-acquires the owner
-   * lease). LocalStorage is used for this rather than IndexedDb because it is
-   * a synchronous API and so can be used reliably from an unload handler.
+   * clientId to a "zombie client id" location in LocalStorage. This can be used
+   * by tabs trying to acquire the primary lease to determine that the lease
+   * is no longer valid even if the timestamp is recent. This is particularly
+   * important for the refresh case (so the tab correctly re-acquires the
+   * primary lease). LocalStorage is used for this rather than IndexedDb because
+   * it is a synchronous API and so can be used reliably from  an unload
+   * handler.
    */
   private attachWindowUnloadHook(): void {
     if (typeof this.window.addEventListener === 'function') {
@@ -697,8 +696,8 @@ export class IndexedDbPersistence implements Persistence {
         this.markClientZombied();
 
         this.queue.enqueueAndForget(() => {
-          // Attempt graceful shutdown (including releasing our owner lease), but
-          // there's no guarantee it will complete.
+          // Attempt graceful shutdown (including releasing our primary lease),
+          // but there's no guarantee it will complete.
           return this.shutdown();
         });
       };
@@ -718,9 +717,9 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   /**
-   * Returns any recorded "zombied owner" (i.e. a previous owner that became
-   * zombied due to their tab closing) from LocalStorage, or null if no such
-   * record exists.
+   * Returns whether a client is "zombied" based on its LocalStorage entry.
+   * Clients become zombied when their tab closes without running all of the
+   * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
     if (this.window.localStorage === undefined) {
@@ -763,7 +762,7 @@ export class IndexedDbPersistence implements Persistence {
       );
     } catch (e) {
       // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to set zombie owner id.', e);
+      log.error('Failed to set zombie client id.', e);
     }
   }
 
@@ -790,12 +789,12 @@ export function isPrimaryLeaseLostError(err: FirestoreError): boolean {
   );
 }
 /**
- * Helper to get a typed SimpleDbStore for the owner object store.
+ * Helper to get a typed SimpleDbStore for the primary client object store.
  */
-function ownerStore(
+function primaryClientStore(
   txn: SimpleDbTransaction
-): SimpleDbStore<DbOwnerKey, DbOwner> {
-  return txn.store<DbOwnerKey, DbOwner>(DbOwner.store);
+): SimpleDbStore<DbPrimaryClientKey, DbPrimaryClient> {
+  return txn.store<DbPrimaryClientKey, DbPrimaryClient>(DbPrimaryClient.store);
 }
 
 /**
