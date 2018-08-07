@@ -92,6 +92,8 @@ export interface QueryCache extends GarbageSource {
   /**
    * Removes the cached entry for the given query data. It is an error to remove
    * a query data that does not exist.
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   removeQueryData(
     transaction: PersistenceTransaction,
@@ -109,8 +111,6 @@ export interface QueryCache extends GarbageSource {
   /**
    * Looks up a QueryData entry by query.
    *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
-   *
    * @param query The query corresponding to the entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
    * the query.
@@ -122,8 +122,6 @@ export interface QueryCache extends GarbageSource {
 
   /**
    * Looks up a QueryData entry by target ID.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
    * @param targetId The target ID of the QueryData entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
@@ -138,6 +136,8 @@ export interface QueryCache extends GarbageSource {
   /**
    * Adds the given document keys to cached query results of the given target
    * ID.
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   addMatchingKeys(
     transaction: PersistenceTransaction,
@@ -148,6 +148,8 @@ export interface QueryCache extends GarbageSource {
   /**
    * Removes the given document keys from the cached query results of the
    * given target ID.
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   removeMatchingKeys(
     transaction: PersistenceTransaction,
@@ -157,6 +159,8 @@ export interface QueryCache extends GarbageSource {
 
   /**
    * Removes all the keys in the query results of the given target ID.
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   removeMatchingKeysForTargetId(
     transaction: PersistenceTransaction,
@@ -165,8 +169,6 @@ export interface QueryCache extends GarbageSource {
 
   /**
    * Returns the document keys that match the provided target ID.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    */
   getMatchingKeysForTargetId(
     transaction: PersistenceTransaction,

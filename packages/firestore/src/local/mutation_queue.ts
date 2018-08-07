@@ -73,8 +73,6 @@ export interface MutationQueue extends GarbageSource {
 
   /**
    * Creates a new mutation batch and adds it to this mutation queue.
-   *
-   * TODO(multitab): Make this operation safe to use from secondary clients.
    */
   addMutationBatch(
     transaction: PersistenceTransaction,
@@ -84,8 +82,6 @@ export interface MutationQueue extends GarbageSource {
 
   /**
    * Loads the mutation batch with the given batchId.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    */
   lookupMutationBatch(
     transaction: PersistenceTransaction,
@@ -97,8 +93,6 @@ export interface MutationQueue extends GarbageSource {
    * For primary clients, this method returns `null` after
    * `removeMutationBatches()` has been called. Secondary clients return a
    * cached result until `removeCachedMutationKeys()` is invoked.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    */
   lookupMutationKeys(
     transaction: PersistenceTransaction,
@@ -212,6 +206,8 @@ export interface MutationQueue extends GarbageSource {
    * In both cases, the array of mutations to remove must be a contiguous range
    * of batchIds. This is most easily accomplished by loading mutations with
    * getAllMutationBatchesThroughBatchId()
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   removeMutationBatches(
     transaction: PersistenceTransaction,
