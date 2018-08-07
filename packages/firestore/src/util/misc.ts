@@ -59,22 +59,6 @@ export function primitiveComparator<T>(left: T, right: T): number {
   return 0;
 }
 
-/** Implementation of min() that ignores null values. */
-export function min(...values: Array<number | null>): number | null {
-  let min = null;
-
-  for (const value of values) {
-    if (value !== null) {
-      if (min == null) {
-        min = value;
-      } else if (value < min) {
-        min = value;
-      }
-    }
-  }
-
-  return min;
-}
 /** Duck-typed interface for objects that have an isEqual() method. */
 export interface Equatable<T> {
   isEqual(other: T): boolean;
