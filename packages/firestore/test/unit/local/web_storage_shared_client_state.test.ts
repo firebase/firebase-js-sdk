@@ -30,6 +30,7 @@ import {
   TargetId
 } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
+import { BATCHID_UNKNOWN } from '../../../src/model/mutation_batch';
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { FirestoreError } from '../../../src/util/error';
@@ -226,9 +227,9 @@ describe('WebStorageSharedClientState', () => {
   });
 
   function assertClientState(
-    activeTargetIds: number[],
-    minMutationBatchId: number | null,
-    maxMutationBatchId: number | null
+    activeTargetIds: TargetId[],
+    minMutationBatchId: BatchId,
+    maxMutationBatchId: BatchId
   ): void {
     const actual = JSON.parse(
       localStorage.getItem(
@@ -283,12 +284,12 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('when empty', () => {
-      assertClientState([], null, null);
+      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
     });
 
     it('with one pending batch', () => {
       expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
-      assertClientState([], null, null);
+      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
 
       sharedClientState.addLocalPendingMutation(0);
       expect(sharedClientState.hasLocalPendingMutation(0)).to.be.true;
@@ -297,7 +298,7 @@ describe('WebStorageSharedClientState', () => {
 
       sharedClientState.removeLocalPendingMutation(0);
       expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
-      assertClientState([], null, null);
+      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
     });
 
     it('with multiple pending batches', () => {
@@ -363,27 +364,27 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('when empty', () => {
-      assertClientState([], null, null);
+      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
     });
 
     it('with multiple targets', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], null, null);
+      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
       assertTargetState(0, 'pending');
 
       sharedClientState.addLocalQueryTarget(1);
       sharedClientState.addLocalQueryTarget(2);
-      assertClientState([0, 1, 2], null, null);
+      assertClientState([0, 1, 2], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
       assertTargetState(1, 'pending');
       assertTargetState(2, 'pending');
 
       sharedClientState.removeLocalQueryTarget(1);
-      assertClientState([0, 2], null, null);
+      assertClientState([0, 2], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
     });
 
     it('with a not-current target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], null, null);
+      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'not-current');
       assertTargetState(0, 'not-current');
@@ -391,7 +392,7 @@ describe('WebStorageSharedClientState', () => {
 
     it('with a current target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], null, null);
+      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'not-current');
       assertTargetState(0, 'not-current');
@@ -401,7 +402,7 @@ describe('WebStorageSharedClientState', () => {
 
     it('with an errored target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], null, null);
+      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);

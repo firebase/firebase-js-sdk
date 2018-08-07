@@ -22,8 +22,8 @@ import {
   TargetId
 } from '../core/types';
 import { assert } from '../util/assert';
+import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { debug, error } from '../util/log';
-import { min } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
 import * as objUtils from '../util/obj';
@@ -111,7 +111,8 @@ export interface SharedClientState {
   ): void;
 
   /**
-   * Gets the minimum mutation batch for all active clients.
+   * Gets the minimum mutation batch for all active clients. Returns
+   * BATCHID_UNKNOWN if there are no mutation batches.
    *
    * The implementation for this may require O(n) runtime, where 'n' is the
    * number of clients.
@@ -375,8 +376,8 @@ export class QueryTargetMetadata {
 interface ClientStateSchema {
   lastUpdateTime: number;
   activeTargetIds: number[];
-  minMutationBatchId: number | null;
-  maxMutationBatchId: number | null;
+  minMutationBatchId: number;
+  maxMutationBatchId: number;
 }
 
 /**
@@ -388,8 +389,8 @@ interface ClientStateSchema {
 export interface ClientState {
   readonly activeTargetIds: TargetIdSet;
   readonly lastUpdateTime: Date;
-  readonly maxMutationBatchId: BatchId | null;
-  readonly minMutationBatchId: BatchId | null;
+  readonly maxMutationBatchId: BatchId;
+  readonly minMutationBatchId: BatchId;
 }
 
 /**
@@ -402,8 +403,8 @@ class RemoteClientState implements ClientState {
     readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
     readonly activeTargetIds: TargetIdSet,
-    readonly minMutationBatchId: BatchId | null,
-    readonly maxMutationBatchId: BatchId | null
+    readonly minMutationBatchId: BatchId,
+    readonly maxMutationBatchId: BatchId
   ) {}
 
   /**
@@ -420,10 +421,8 @@ class RemoteClientState implements ClientState {
       typeof clientState === 'object' &&
       isSafeInteger(clientState.lastUpdateTime) &&
       clientState.activeTargetIds instanceof Array &&
-      (clientState.minMutationBatchId === null ||
-        isSafeInteger(clientState.minMutationBatchId)) &&
-      (clientState.maxMutationBatchId === null ||
-        isSafeInteger(clientState.maxMutationBatchId));
+      isSafeInteger(clientState.minMutationBatchId) &&
+      isSafeInteger(clientState.maxMutationBatchId);
 
     let activeTargetIdsSet = targetIdSet();
 
@@ -519,12 +518,16 @@ export class LocalClientState implements ClientState {
     this.lastUpdateTime = new Date();
   }
 
-  get minMutationBatchId(): BatchId | null {
-    return this.pendingBatchIds.first();
+  get minMutationBatchId(): BatchId {
+    return this.pendingBatchIds.isEmpty()
+      ? BATCHID_UNKNOWN
+      : this.pendingBatchIds.first();
   }
 
-  get maxMutationBatchId(): BatchId | null {
-    return this.pendingBatchIds.last();
+  get maxMutationBatchId(): BatchId {
+    return this.pendingBatchIds.isEmpty()
+      ? BATCHID_UNKNOWN
+      : this.pendingBatchIds.last();
   }
 
   addPendingMutation(batchId: BatchId): void {
@@ -708,11 +711,17 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.started = true;
   }
 
-  // TODO(multitab): Return BATCHID_UNKNOWN instead of null
-  getMinimumGlobalPendingMutation(): BatchId | null {
-    let minMutationBatch: number | null = null;
+  getMinimumGlobalPendingMutation(): BatchId {
+    let minMutationBatch = BATCHID_UNKNOWN;
     objUtils.forEach(this.activeClients, (key, value) => {
-      minMutationBatch = min(minMutationBatch, value.minMutationBatchId);
+      if (minMutationBatch === BATCHID_UNKNOWN) {
+        minMutationBatch = value.minMutationBatchId;
+      } else if (
+        value.minMutationBatchId !== BATCHID_UNKNOWN &&
+        value.minMutationBatchId < minMutationBatch
+      ) {
+        minMutationBatch = value.minMutationBatchId;
+      }
     });
     return minMutationBatch;
   }
