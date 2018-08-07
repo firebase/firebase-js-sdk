@@ -73,8 +73,6 @@ export interface MutationQueue extends GarbageSource {
 
   /**
    * Creates a new mutation batch and adds it to this mutation queue.
-   *
-   * TODO(multitab): Make this operation safe to use from secondary clients.
    */
   addMutationBatch(
     transaction: PersistenceTransaction,
