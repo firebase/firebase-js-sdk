@@ -524,7 +524,7 @@ export class LocalClientState implements ClientState {
       : this.pendingBatchIds.first();
   }
 
-  get maxMutationBatchId(): BatchId | null {
+  get maxMutationBatchId(): BatchId {
     return this.pendingBatchIds.isEmpty()
       ? BATCHID_UNKNOWN
       : this.pendingBatchIds.last();
