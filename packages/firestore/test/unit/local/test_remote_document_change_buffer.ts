@@ -35,7 +35,7 @@ export class TestRemoteDocumentChangeBuffer {
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', true, txn => {
+    return this.persistence.runTransaction('getEntry', false, txn => {
       return this.buffer.getEntry(txn, documentKey);
     });
   }

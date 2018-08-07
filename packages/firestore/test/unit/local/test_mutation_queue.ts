@@ -34,20 +34,20 @@ export class TestMutationQueue {
   constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
   start(): Promise<void> {
-    return this.persistence.runTransaction('start', true, txn => {
+    return this.persistence.runTransaction('start', false, txn => {
       return this.queue.start(txn);
     });
   }
 
   checkEmpty(): Promise<boolean> {
-    return this.persistence.runTransaction('checkEmpty', true, txn => {
+    return this.persistence.runTransaction('checkEmpty', false, txn => {
       return this.queue.checkEmpty(txn);
     });
   }
 
   countBatches(): Promise<number> {
     return this.persistence
-      .runTransaction('countBatches', true, txn => {
+      .runTransaction('countBatches', false, txn => {
         return this.queue.getAllMutationBatches(txn);
       })
       .then(batches => batches.length);
@@ -56,7 +56,7 @@ export class TestMutationQueue {
   getHighestAcknowledgedBatchId(): Promise<BatchId> {
     return this.persistence.runTransaction(
       'getHighestAcknowledgedBatchId',
-      true,
+      false,
       txn => {
         return this.queue.getHighestAcknowledgedBatchId(txn);
       }
@@ -77,7 +77,7 @@ export class TestMutationQueue {
   }
 
   getLastStreamToken(): Promise<string> {
-    return this.persistence.runTransaction('getLastStreamToken', true, txn => {
+    return this.persistence.runTransaction('getLastStreamToken', false, txn => {
       return this.queue.getLastStreamToken(txn);
     }) as AnyDuringMigration;
   }
@@ -89,15 +89,19 @@ export class TestMutationQueue {
   }
 
   addMutationBatch(mutations: Mutation[]): Promise<MutationBatch> {
-    return this.persistence.runTransaction('addMutationBatch', true, txn => {
+    return this.persistence.runTransaction('addMutationBatch', false, txn => {
       return this.queue.addMutationBatch(txn, Timestamp.now(), mutations);
     });
   }
 
   lookupMutationBatch(batchId: BatchId): Promise<MutationBatch | null> {
-    return this.persistence.runTransaction('lookupMutationBatch', true, txn => {
-      return this.queue.lookupMutationBatch(txn, batchId);
-    });
+    return this.persistence.runTransaction(
+      'lookupMutationBatch',
+      false,
+      txn => {
+        return this.queue.lookupMutationBatch(txn, batchId);
+      }
+    );
   }
 
   getNextMutationBatchAfterBatchId(
@@ -105,7 +109,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'getNextMutationBatchAfterBatchId',
-      true,
+      false,
       txn => {
         return this.queue.getNextMutationBatchAfterBatchId(txn, batchId);
       }
@@ -115,7 +119,7 @@ export class TestMutationQueue {
   getAllMutationBatches(): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatches',
-      true,
+      false,
       txn => {
         return this.queue.getAllMutationBatches(txn);
       }
@@ -127,7 +131,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesThroughBatchId',
-      true,
+      false,
       txn => {
         return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
       }
@@ -139,7 +143,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKey',
-      true,
+      false,
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKey(
           txn,
@@ -154,7 +158,7 @@ export class TestMutationQueue {
   ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKeys',
-      true,
+      false,
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKeys(
           txn,
@@ -167,7 +171,7 @@ export class TestMutationQueue {
   getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingQuery',
-      true,
+      false,
       txn => {
         return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
       }
