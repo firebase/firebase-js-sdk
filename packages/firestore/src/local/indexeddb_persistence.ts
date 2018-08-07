@@ -93,32 +93,47 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
  * across sessions.
  *
- * Currently the Firestore SDK only supports a single consumer of the database,
- * but browsers obviously support multiple tabs. IndexedDbPersistence ensures a
- * single consumer of the database via an "owner lease" stored in the database.
+ * On Web only, the Firestore SDKs support shared access to its persistence
+ * layer. This allows multiple browser tabs to read and write to IndexedDb and
+ * to synchronize state even without network connectivity. Shared access is
+ * currently optional and not enabled unless all clients invoke
+ * `enablePersistence()` with `{experimentalTabSynchronization:true}`.
  *
- * On startup, IndexedDbPersistence assigns itself a random "ownerId" and writes
- * it to a special "owner" object in the database (if no entry exists already or
- * the current entry is expired). This owner lease is then verified inside every
- * transaction to ensure the lease has not been lost.
+ * In multi-tab mode, if multiple clients are active at the same time, the SDK
+ * will designate one client as the “primary client”. An effort is made to pick
+ * a visible, network-connected and active client, and this client is
+ * responsible for letting other clients know about its presence. The primary
+ * client writes a unique client-generated identifier (the client ID) to
+ * IndexedDb’s “owner” store every 4 seconds. If the primary client fails to
+ * update this entry, another client can acquire the lease and take over as
+ * primary.
  *
- * If a tab opts not to acquire the owner lease (because there's an existing
- * non-expired owner) or loses the owner lease, IndexedDbPersistence enters a
- * failed state and all subsequent operations will automatically fail.
+ * Some persistence operations in the SDK are designated as primary-client only
+ * operations. This includes the acknowledgment of mutations and all updates of
+ * remote documents. The effects of these operations are written to persistence
+ * and then broadcast to other tabs via LocalStorage (see
+ * `WebStorageSharedClientState`), which then refresh their state from
+ * persistence.
  *
- * The current owner regularly refreshes the owner lease with new timestamps to
- * prevent newly-opened tabs from taking over ownership.
+ * Similarly, the primary client listens to notifications sent by secondary
+ * clients to discover persistence changes written by secondary clients, such as
+ * the addition of new mutations and query targets.
  *
- * Additionally there is an optimization so that when a tab is closed, the owner
- * lease is released immediately (this is especially important to make sure that
- * a refreshed tab is able to immediately re-acquire the owner lease).
- * Unfortunately, IndexedDB cannot be reliably used in window.unload since it is
- * an asynchronous API. So in addition to attempting to give up the lease,
- * the owner writes its ownerId to a "zombiedClientId" entry in LocalStorage
- * which acts as an indicator that another tab should go ahead and take the
- * owner lease immediately regardless of the current lease timestamp.
+ * If multi-tab is not enabled and another tab already obtained the primary
+ * lease, IndexedDbPersistence enters a failed state and all subsequent
+ * operations will automatically fail.
  *
- * TODO(multitab): Update this comment with multi-tab changes.
+ * Additionally, there is an optimization so that when a tab is closed, the
+ * primary lease is released immediately (this is especially important to make
+ * sure that a refreshed tab is able to immediately re-acquire the primary
+ * lease). Unfortunately, IndexedDB cannot be reliably used in window.unload
+ * since it is an asynchronous API. So in addition to attempting to give up the
+ * lease, the leaseholder writes its client ID to a "zombiedClient" entry in
+ * LocalStorage which acts as an indicator that another tab should go ahead and
+ * take the primary lease immediately regardless of the current lease timestamp.
+ *
+ * TODO(multitab): Remove `experimentalTabSynchronization` section when
+ * multi-tab is no longer optional.
  */
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
