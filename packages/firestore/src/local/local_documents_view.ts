@@ -110,11 +110,7 @@ export class LocalDocumentsView {
       });
   }
 
-  /**
-   * Performs a query against the local view of all documents.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
-   */
+  /** Performs a query against the local view of all documents. */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query

@@ -49,13 +49,19 @@ export interface RemoteDocumentCache {
    *
    * @param maybeDocuments A set of Documents or NoDocuments to put in the
    * cache.
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
   addEntries(
     transaction: PersistenceTransaction,
     maybeDocuments: MaybeDocument[]
   ): PersistencePromise<void>;
 
-  /** Removes the cached entry for the given key (no-op if no entry exists). */
+  /**
+   * Removes the cached entry for the given key (no-op if no entry exists).
+   *
+   * Multi-Tab Note: This operation should only be called by the primary client.
+   */
   removeEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
@@ -63,8 +69,6 @@ export interface RemoteDocumentCache {
 
   /**
    * Looks up an entry in the cache.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
    * @param documentKey The key of the entry to look up.
    * @return The cached Document or NoDocument entry, or null if we have nothing
@@ -82,8 +86,6 @@ export interface RemoteDocumentCache {
    * should be re-filtered by the consumer before presenting them to the user.
    *
    * Cached NoDocument entries have no bearing on query results.
-   *
-   * Multi-Tab Note: This operation is safe to use from secondary clients.
    *
    * @param query The query to match documents against.
    * @return The set of matching documents.
