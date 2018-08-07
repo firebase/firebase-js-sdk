@@ -436,7 +436,7 @@ apiDescribe('GetOptions', persistence => {
   // TODO(b/112267729): We should raise a fromCache=true event with a
   // nonexistent snapshot, but because the default source goes through a normal
   // listener, we do not.
-  // tslint:disable-next-line:ban skipping test on purpose.
+  // tslint:disable-next-line:ban
   it.skip('get deleted doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef
@@ -445,7 +445,7 @@ apiDescribe('GetOptions', persistence => {
         .then(() => docRef.get())
         .then(doc => {
           expect(doc.exists).to.be.false;
-          expect(doc.data).to.be.null;
+          expect(doc.data()).to.be.undefined;
           expect(doc.metadata.fromCache).to.be.true;
           expect(doc.metadata.hasPendingWrites).to.be.false;
         });
@@ -507,7 +507,7 @@ apiDescribe('GetOptions', persistence => {
   });
 
   // We need the deleted doc to stay in cache, so only run this with persistence.
-  // tslint:disable-next-line:ban skipping test on purpose.
+  // tslint:disable-next-line:ban
   (persistence ? it : it.skip)(
     'get deleted doc while offline with source=cache',
     () => {
@@ -568,6 +568,7 @@ apiDescribe('GetOptions', persistence => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef.firestore
         .disableNetwork()
+        // Attempt to get doc.  This will fail since there's nothing in cache.
         .then(() => docRef.get({ source: 'server' }))
         .then(
           doc => {
