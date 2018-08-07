@@ -105,7 +105,7 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * responsible for letting other clients know about its presence. The primary
  * client writes a unique client-generated identifier (the client ID) to
  * IndexedDb’s “owner” store every 4 seconds. If the primary client fails to
- * update the lease, another client can acquire the lease and take over as
+ * update this entry, another client can acquire the lease and take over as
  * primary.
  *
  * Some persistence operations in the SDK are designated as primary-client only
