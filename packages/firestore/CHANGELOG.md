@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
+  documents from cache.
+
+# 0.6.1
 - [changed] Improved how Firestore handles idle queries to reduce the cost of
   re-listening within 30 minutes.
 - [changed] Improved offline performance with many outstanding writes.
