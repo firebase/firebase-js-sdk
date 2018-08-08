@@ -676,15 +676,20 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     delete this.queryViewsByTarget[queryView.targetId];
 
     if (this.isPrimary) {
-      const limboKeys = this.limboDocumentRefs.referencesForId(queryView.targetId);
+      const limboKeys = this.limboDocumentRefs.referencesForId(
+        queryView.targetId
+      );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
       limboKeys.forEach(async limboKey => {
-        await this.limboDocumentRefs.containsKey(null, limboKey).next(isReferenced => {
-          if (!isReferenced) {
-            // We removed the last reference for this key
-            this.removeLimboTarget(limboKey);
-          }
-        }).toPromise();
+        await this.limboDocumentRefs
+          .containsKey(null, limboKey)
+          .next(isReferenced => {
+            if (!isReferenced) {
+              // We removed the last reference for this key
+              this.removeLimboTarget(limboKey);
+            }
+          })
+          .toPromise();
       });
     }
   }
@@ -713,12 +718,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       } else if (limboChange instanceof RemovedLimboDocument) {
         log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
-        await this.limboDocumentRefs.containsKey(null, limboChange.key).next(isReferenced => {
-          if (!isReferenced) {
-            // We removed the last reference for this key
-            this.removeLimboTarget(limboChange.key);
-          }
-        }).toPromise();
+        await this.limboDocumentRefs
+          .containsKey(null, limboChange.key)
+          .next(isReferenced => {
+            if (!isReferenced) {
+              // We removed the last reference for this key
+              this.removeLimboTarget(limboChange.key);
+            }
+          })
+          .toPromise();
       } else {
         fail('Unknown limbo change: ' + JSON.stringify(limboChange));
       }
