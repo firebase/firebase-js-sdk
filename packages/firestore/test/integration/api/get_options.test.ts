@@ -566,16 +566,18 @@ apiDescribe('GetOptions', persistence => {
 
   it('get non existing doc while offline with source=server', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
-      return docRef.firestore
-        .disableNetwork()
-        // Attempt to get doc.  This will fail since there's nothing in cache.
-        .then(() => docRef.get({ source: 'server' }))
-        .then(
-          doc => {
-            expect.fail();
-          },
-          expected => {}
-        );
+      return (
+        docRef.firestore
+          .disableNetwork()
+          // Attempt to get doc.  This will fail since there's nothing in cache.
+          .then(() => docRef.get({ source: 'server' }))
+          .then(
+            doc => {
+              expect.fail();
+            },
+            expected => {}
+          )
+      );
     });
   });
 
