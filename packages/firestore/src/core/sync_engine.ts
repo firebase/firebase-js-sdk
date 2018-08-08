@@ -685,14 +685,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       limboKeys.forEach(limboKey => {
         p = p.next(() => {
           return this.limboDocumentRefs
-            .containsKey(null, limboKey).next<void>(isReferenced => {
+            .containsKey(null, limboKey)
+            .next<void>(isReferenced => {
               if (!isReferenced) {
                 // We removed the last reference for this key
                 this.removeLimboTarget(limboKey);
               }
             });
-          }
-        );
+        });
       });
     }
   }
