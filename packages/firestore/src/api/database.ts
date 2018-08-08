@@ -1073,7 +1073,7 @@ export class DocumentReference implements firestore.DocumentReference {
           this.firestore
             .ensureClientConfigured()
             .getDocumentFromLocalCache(this._key)
-            .then((doc: Document) => {
+            .then(doc => {
               resolve(
                 new DocumentSnapshot(
                   this.firestore,

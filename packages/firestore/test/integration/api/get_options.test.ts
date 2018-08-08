@@ -418,15 +418,37 @@ apiDescribe('GetOptions', persistence => {
 
   it('get non existing doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
-      return docRef.firestore
-        .disableNetwork()
+      return (
+        docRef.firestore
+          .disableNetwork()
+          // Attempt to get doc. This will fail since there's nothing in cache.
+          .then(() => docRef.get())
+          .then(
+            doc => {
+              expect.fail();
+            },
+            expected => {}
+          )
+      );
+    });
+  });
+
+  // TODO(b/112267729): We should raise a fromCache=true event with a
+  // nonexistent snapshot, but because the default source goes through a normal
+  // listener, we do not.
+  // tslint:disable-next-line:ban
+  it.skip('get deleted doc while offline with default get options', () => {
+    return withTestDocAndInitialData(persistence, null, docRef => {
+      return docRef
+        .delete()
+        .then(() => docRef.firestore.disableNetwork())
         .then(() => docRef.get())
-        .then(
-          doc => {
-            expect.fail();
-          },
-          expected => {}
-        );
+        .then(doc => {
+          expect(doc.exists).to.be.false;
+          expect(doc.data()).to.be.undefined;
+          expect(doc.metadata.fromCache).to.be.true;
+          expect(doc.metadata.hasPendingWrites).to.be.false;
+        });
     });
   });
 
@@ -446,9 +468,7 @@ apiDescribe('GetOptions', persistence => {
 
   it('get non existing doc while online with source=cache', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
-      // attempt to get doc. Currently, this is expected to fail. In the
-      // future, we might consider adding support for negative cache hits so
-      // that we know certain documents *don't* exist.
+      // Attempt to get doc.  This will fail since there's nothing in cache.
       return docRef.get({ source: 'cache' }).then(
         doc => {
           expect.fail();
@@ -474,9 +494,7 @@ apiDescribe('GetOptions', persistence => {
       return (
         docRef.firestore
           .disableNetwork()
-          // attempt to get doc. Currently, this is expected to fail. In the
-          // future, we might consider adding support for negative cache hits so
-          // that we know certain documents *don't* exist.
+          // Attempt to get doc.  This will fail since there's nothing in cache.
           .then(() => docRef.get({ source: 'cache' }))
           .then(
             doc => {
@@ -487,6 +505,29 @@ apiDescribe('GetOptions', persistence => {
       );
     });
   });
+
+  // We need the deleted doc to stay in cache, so only run this with persistence.
+  // tslint:disable-next-line:ban
+  (persistence ? it : it.skip)(
+    'get deleted doc while offline with source=cache',
+    () => {
+      return withTestDocAndInitialData(persistence, null, docRef => {
+        return (
+          docRef
+            .delete()
+            .then(() => docRef.firestore.disableNetwork())
+            // Should get a document with exists=false, fromCache=true
+            .then(() => docRef.get({ source: 'cache' }))
+            .then(doc => {
+              expect(doc.exists).to.be.false;
+              expect(doc.data()).to.be.undefined;
+              expect(doc.metadata.fromCache).to.be.true;
+              expect(doc.metadata.hasPendingWrites).to.be.false;
+            })
+        );
+      });
+    }
+  );
 
   it('get non existing collection while offline with source=cache', () => {
     return withTestCollection(persistence, {}, colRef => {
@@ -525,20 +566,16 @@ apiDescribe('GetOptions', persistence => {
 
   it('get non existing doc while offline with source=server', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
-      return (
-        docRef.firestore
-          .disableNetwork()
-          // attempt to get doc. Currently, this is expected to fail. In the
-          // future, we might consider adding support for negative cache hits so
-          // that we know certain documents *don't* exist.
-          .then(() => docRef.get({ source: 'server' }))
-          .then(
-            doc => {
-              expect.fail();
-            },
-            expected => {}
-          )
-      );
+      return docRef.firestore
+        .disableNetwork()
+        // Attempt to get doc.  This will fail since there's nothing in cache.
+        .then(() => docRef.get({ source: 'server' }))
+        .then(
+          doc => {
+            expect.fail();
+          },
+          expected => {}
+        );
     });
   });
 
