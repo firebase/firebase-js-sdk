@@ -326,7 +326,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
-      await this.removeAndCleanupQuery(queryView);
+      this.removeAndCleanupQuery(queryView);
       await this.localStore.releaseQuery(
         query,
         /*keepPersistedQueryData=*/ true
@@ -673,22 +673,41 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  private async removeAndCleanupQuery(queryView: QueryView): Promise<void> {
+  private removeAndCleanupQuery(queryView: QueryView): void {
     this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
 
     this.queryViewsByQuery.delete(queryView.query);
     delete this.queryViewsByTarget[queryView.targetId];
 
     if (this.isPrimary) {
+      const limboKeys = this.limboDocumentRefs.referencesForId(queryView.targetId);
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      await this.gcLimboDocuments();
+      limboKeys.forEach(limboKey => {
+        if (!this.limboDocumentRefs.containsKey(null, limboKey)) {
+          // We removed the last reference for this key.
+          this.removeLimboTarget(limboKey);
+        }
+      });
     }
+  }
+
+  private removeLimboTarget(key: DocumentKey): void {
+    // It's possible that the target already got removed because the query failed. In that case,
+    // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
+    const limboTargetId = this.limboTargetsByKey.get(key);
+    if (limboTargetId === null) {
+      // This target already got removed, because the query failed.
+      return;
+    }
+    this.remoteStore.unlisten(limboTargetId);
+    this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
+    delete this.limboResolutionsByTarget[limboTargetId];
   }
 
   private updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
-  ): Promise<void> {
+  ): void {
     for (const limboChange of limboChanges) {
       if (limboChange instanceof AddedLimboDocument) {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
@@ -696,11 +715,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       } else if (limboChange instanceof RemovedLimboDocument) {
         log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
+        if (!this.limboDocumentRefs.containsKey(null, limboChange.key)) {
+          // We removed the last reference for this key
+          this.removeLimboTarget(limboChange.key);
+        }
       } else {
         fail('Unknown limbo change: ' + JSON.stringify(limboChange));
       }
     }
-    return this.gcLimboDocuments();
   }
 
   private trackLimboChange(limboChange: AddedLimboDocument): void {
@@ -720,7 +742,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  private gcLimboDocuments(): Promise<void> {
+  /*private gcLimboDocuments(): Promise<void> {
     // HACK: We can use a null transaction here, because we know that the
     // reference set is entirely within memory and doesn't need a store engine.
     return this.limboCollector
@@ -738,7 +760,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         });
       })
       .toPromise();
-  }
+  }*/
 
   // Visible for testing
   currentLimboDocs(): SortedMap<DocumentKey, TargetId> {
@@ -776,26 +798,25 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               /* updateLimboDocuments= */ this.isPrimary,
               targetChange
             );
-            return this.updateTrackedLimbos(
+            this.updateTrackedLimbos(
               queryView.targetId,
               viewChange.limboChanges
-            ).then(() => {
-              if (viewChange.snapshot) {
-                if (this.isPrimary) {
-                  this.sharedClientState.trackQueryUpdate(
-                    queryView.targetId,
-                    viewChange.snapshot.fromCache ? 'not-current' : 'current'
-                  );
-                }
-
-                newSnaps.push(viewChange.snapshot);
-                const docChanges = LocalViewChanges.fromSnapshot(
+            );
+            if (viewChange.snapshot) {
+              if (this.isPrimary) {
+                this.sharedClientState.trackQueryUpdate(
                   queryView.targetId,
-                  viewChange.snapshot
+                  viewChange.snapshot.fromCache ? 'not-current' : 'current'
                 );
-                docChangesInAllViews.push(docChanges);
               }
-            });
+
+              newSnaps.push(viewChange.snapshot);
+              const docChanges = LocalViewChanges.fromSnapshot(
+                queryView.targetId,
+                viewChange.snapshot
+              );
+              docChangesInAllViews.push(docChanges);
+            }
           })
       );
     });
