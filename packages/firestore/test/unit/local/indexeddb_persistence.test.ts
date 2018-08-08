@@ -432,7 +432,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
         await expect(
           db2.start(/*synchronizeTabs=*/ false)
         ).to.eventually.be.rejectedWith(
-          'Another tab has exclusive access to the persistence layer.'
+          'There is another tab open with offline persistence enabled.'
         );
       });
     });
