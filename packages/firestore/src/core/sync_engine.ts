@@ -694,6 +694,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             });
         });
       });
+      await p.toPromise();
     }
   }
 
