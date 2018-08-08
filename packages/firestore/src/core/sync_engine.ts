@@ -326,7 +326,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
-      this.removeAndCleanupQuery(queryView);
+      await this.removeAndCleanupQuery(queryView);
       await this.localStore.releaseQuery(
         query,
         /*keepPersistedQueryData=*/ true
@@ -673,7 +673,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  private removeAndCleanupQuery(queryView: QueryView): void {
+  private async removeAndCleanupQuery(queryView: QueryView): Promise<void> {
     this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
 
     this.queryViewsByQuery.delete(queryView.query);
@@ -682,11 +682,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (this.isPrimary) {
       const limboKeys = this.limboDocumentRefs.referencesForId(queryView.targetId);
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      limboKeys.forEach(limboKey => {
-        if (!this.limboDocumentRefs.containsKey(null, limboKey)) {
-          // We removed the last reference for this key.
-          this.removeLimboTarget(limboKey);
-        }
+      limboKeys.forEach(async limboKey => {
+        await this.limboDocumentRefs.containsKey(null, limboKey).next(isReferenced => {
+          if (!isReferenced) {
+            // We removed the last reference for this key
+            this.removeLimboTarget(limboKey);
+          }
+        }).toPromise();
       });
     }
   }
@@ -704,10 +706,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     delete this.limboResolutionsByTarget[limboTargetId];
   }
 
-  private updateTrackedLimbos(
+  private async updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
-  ): void {
+  ): Promise<void> {
     for (const limboChange of limboChanges) {
       if (limboChange instanceof AddedLimboDocument) {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
@@ -715,10 +717,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       } else if (limboChange instanceof RemovedLimboDocument) {
         log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
-        if (!this.limboDocumentRefs.containsKey(null, limboChange.key)) {
-          // We removed the last reference for this key
-          this.removeLimboTarget(limboChange.key);
-        }
+        await this.limboDocumentRefs.containsKey(null, limboChange.key).next(isReferenced => {
+          if (!isReferenced) {
+            // We removed the last reference for this key
+            this.removeLimboTarget(limboChange.key);
+          }
+        }).toPromise();
       } else {
         fail('Unknown limbo change: ' + JSON.stringify(limboChange));
       }
@@ -798,25 +802,26 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               /* updateLimboDocuments= */ this.isPrimary,
               targetChange
             );
-            this.updateTrackedLimbos(
+            return this.updateTrackedLimbos(
               queryView.targetId,
               viewChange.limboChanges
-            );
-            if (viewChange.snapshot) {
-              if (this.isPrimary) {
-                this.sharedClientState.trackQueryUpdate(
-                  queryView.targetId,
-                  viewChange.snapshot.fromCache ? 'not-current' : 'current'
-                );
-              }
+            ).then(() => {
+              if (viewChange.snapshot) {
+                if (this.isPrimary) {
+                  this.sharedClientState.trackQueryUpdate(
+                    queryView.targetId,
+                    viewChange.snapshot.fromCache ? 'not-current' : 'current'
+                  );
+                }
 
-              newSnaps.push(viewChange.snapshot);
-              const docChanges = LocalViewChanges.fromSnapshot(
-                queryView.targetId,
-                viewChange.snapshot
-              );
-              docChangesInAllViews.push(docChanges);
-            }
+                newSnaps.push(viewChange.snapshot);
+                const docChanges = LocalViewChanges.fromSnapshot(
+                  queryView.targetId,
+                  viewChange.snapshot
+                );
+                docChangesInAllViews.push(docChanges);
+              }
+            });
           })
       );
     });
