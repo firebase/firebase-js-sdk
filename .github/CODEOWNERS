@@ -9,10 +9,10 @@ packages/database  @mikelehen @schmidt-sebastian
 packages/database-types  @mikelehen @schmidt-sebastian
 
 # Firestore Code
-packages/firestore  @mikelehen @schmidt-sebastian @wilhuff
-packages/webchannel-wrapper  @mikelehen @schmidt-sebastian @wilhuff
-packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff
-integration/firestore  @mikelehen @schmidt-sebastian @wilhuff
+packages/firestore  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
+packages/webchannel-wrapper  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
+packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
+integration/firestore  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
 
 # Storage Code
 packages/storage  @sphippen
