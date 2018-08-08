@@ -36,7 +36,7 @@ import {
   documentKeySet,
   DocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
@@ -469,7 +469,7 @@ export class FirestoreClient {
     });
   }
 
-  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
+  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.readDocument(docKey);
@@ -477,6 +477,8 @@ export class FirestoreClient {
       .then((maybeDoc: MaybeDocument | null) => {
         if (maybeDoc instanceof Document) {
           return maybeDoc;
+        } else if (maybeDoc instanceof NoDocument) {
+          return null;
         } else {
           throw new FirestoreError(
             Code.UNAVAILABLE,
