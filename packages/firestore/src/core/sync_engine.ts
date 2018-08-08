@@ -686,7 +686,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         p = p.next(() => {
           return this.limboDocumentRefs
             .containsKey(null, limboKey)
-            .next<void>(isReferenced => {
+            .next(isReferenced => {
               if (!isReferenced) {
                 // We removed the last reference for this key
                 this.removeLimboTarget(limboKey);
