@@ -17,6 +17,7 @@
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
+import { PersistencePromise } from '../local/persistence_promise';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
 import {
@@ -680,16 +681,18 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         queryView.targetId
       );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      limboKeys.forEach(async limboKey => {
-        await this.limboDocumentRefs
-          .containsKey(null, limboKey)
-          .next(isReferenced => {
-            if (!isReferenced) {
-              // We removed the last reference for this key
-              this.removeLimboTarget(limboKey);
-            }
-          })
-          .toPromise();
+      let p = PersistencePromise.resolve();
+      limboKeys.forEach(limboKey => {
+        p = p.next(() => {
+          return this.limboDocumentRefs
+            .containsKey(null, limboKey).next<void>(isReferenced => {
+              if (!isReferenced) {
+                // We removed the last reference for this key
+                this.removeLimboTarget(limboKey);
+              }
+            });
+          }
+        );
       });
     }
   }
