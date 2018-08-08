@@ -15,7 +15,6 @@
  */
 
 import { User } from '../auth/user';
-import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { QueryData, QueryPurpose } from '../local/query_data';
@@ -153,7 +152,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     [targetId: number]: LimboResolution;
   } = {};
   private limboDocumentRefs = new ReferenceSet();
-  private limboCollector = new EagerGarbageCollector();
   /** Stores user completion handlers, indexed by User and BatchId. */
   private mutationUserCallbacks = {} as {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
@@ -172,9 +170,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
     private currentUser: User
-  ) {
-    this.limboCollector.addGarbageSource(this.limboDocumentRefs);
-  }
+  ) {}
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
@@ -745,26 +741,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
     }
   }
-
-  /*private gcLimboDocuments(): Promise<void> {
-    // HACK: We can use a null transaction here, because we know that the
-    // reference set is entirely within memory and doesn't need a store engine.
-    return this.limboCollector
-      .collectGarbage(null)
-      .next(keys => {
-        keys.forEach(key => {
-          const limboTargetId = this.limboTargetsByKey.get(key);
-          if (limboTargetId === null) {
-            // This target already got removed, because the query failed.
-            return;
-          }
-          this.remoteStore.unlisten(limboTargetId);
-          this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
-          delete this.limboResolutionsByTarget[limboTargetId];
-        });
-      })
-      .toPromise();
-  }*/
 
   // Visible for testing
   currentLimboDocs(): SortedMap<DocumentKey, TargetId> {
