@@ -71,9 +71,13 @@ const PRIMARY_LEASE_LOST_ERROR_MSG =
   'The current tab is not in the required state to perform this operation. ' +
   'It might be necessary to refresh the browser tab.';
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
-  'Another tab has exclusive access to the persistence layer. ' +
-  'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `experimentalTabSynchronization:true` in all tabs.';
+  'There is another tab open with offline' +
+  ' persistence enabled. Only one such tab is allowed at a time. The' +
+  ' other tab must be closed or persistence must be disabled.';
+// TODO(multitab): When multi-tab is exposed, change this comment back to:
+//     'Another tab has exclusive access to the persistence layer. ' +
+//     'To allow shared access, make sure to invoke ' +
+//     '`enablePersistence()` with `experimentalTabSynchronization:true` in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
