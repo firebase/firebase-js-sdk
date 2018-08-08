@@ -73,7 +73,11 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { AnyDuringMigration, AnyJs } from '../../../src/util/misc';
+import {
+  AnyDuringMigration,
+  AnyJs,
+  primitiveComparator
+} from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -903,9 +907,18 @@ abstract class TestRunner {
         stepExpectations.length,
         'Number of expected and actual events mismatch'
       );
-      for (let i = 0; i < stepExpectations.length; i++) {
-        const actual = this.eventList[i];
-        const expected = stepExpectations[i];
+      const actualEventsSorted = this.eventList.sort((a, b) =>
+        primitiveComparator(a.query.canonicalId(), b.query.canonicalId())
+      );
+      const expectedEventsSorted = stepExpectations.sort((a, b) =>
+        primitiveComparator(
+          this.parseQuery(a.query).canonicalId(),
+          this.parseQuery(b.query).canonicalId()
+        )
+      );
+      for (let i = 0; i < expectedEventsSorted.length; i++) {
+        const actual = actualEventsSorted[i];
+        const expected = expectedEventsSorted[i];
         this.validateWatchExpectation(expected, actual);
       }
     } else {
