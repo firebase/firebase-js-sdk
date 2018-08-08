@@ -30,7 +30,6 @@ import {
   TargetId
 } from '../../../src/core/types';
 import { AutoId } from '../../../src/util/misc';
-import { BATCHID_UNKNOWN } from '../../../src/model/mutation_batch';
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { FirestoreError } from '../../../src/util/error';
@@ -226,11 +225,7 @@ describe('WebStorageSharedClientState', () => {
     window.removeEventListener = previousRemoveEventListener;
   });
 
-  function assertClientState(
-    activeTargetIds: TargetId[],
-    minMutationBatchId: BatchId,
-    maxMutationBatchId: BatchId
-  ): void {
+  function assertClientState(activeTargetIds: TargetId[]): void {
     const actual = JSON.parse(
       localStorage.getItem(
         `firestore_clients_${
@@ -241,9 +236,7 @@ describe('WebStorageSharedClientState', () => {
 
     expect(Object.keys(actual)).to.have.members([
       'lastUpdateTime',
-      'activeTargetIds',
-      'minMutationBatchId',
-      'maxMutationBatchId'
+      'activeTargetIds'
     ]);
     expect(actual.lastUpdateTime)
       .to.be.a('number')
@@ -252,8 +245,6 @@ describe('WebStorageSharedClientState', () => {
     expect(actual.activeTargetIds)
       .to.be.an('array')
       .and.have.members(activeTargetIds);
-    expect(actual.minMutationBatchId).to.equal(minMutationBatchId);
-    expect(actual.maxMutationBatchId).to.equal(maxMutationBatchId);
   }
 
   describe('persists mutation batches', () => {
@@ -283,55 +274,19 @@ describe('WebStorageSharedClientState', () => {
       return sharedClientState.start();
     });
 
-    it('when empty', () => {
-      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
-    });
-
-    it('with one pending batch', () => {
-      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
-      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
-
-      sharedClientState.addLocalPendingMutation(0);
-      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.true;
-      assertClientState([], 0, 0);
+    it('with a pending batch', () => {
+      sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-
-      sharedClientState.removeLocalPendingMutation(0);
-      expect(sharedClientState.hasLocalPendingMutation(0)).to.be.false;
-      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
-    });
-
-    it('with multiple pending batches', () => {
-      sharedClientState.addLocalPendingMutation(0);
-      sharedClientState.addLocalPendingMutation(1);
-      assertClientState([], 0, 1);
-      assertBatchState(0, 'pending');
-      assertBatchState(1, 'pending');
-
-      sharedClientState.addLocalPendingMutation(2);
-      sharedClientState.addLocalPendingMutation(3);
-      assertClientState([], 0, 3);
-      assertBatchState(2, 'pending');
-      assertBatchState(3, 'pending');
-
-      // Note: The Firestore client only ever removes mutations in order.
-      sharedClientState.removeLocalPendingMutation(0);
-      sharedClientState.removeLocalPendingMutation(2);
-      assertClientState([], 1, 3);
     });
 
     it('with an acknowledged batch', () => {
-      sharedClientState.addLocalPendingMutation(0);
-      assertClientState([], 0, 0);
-      assertBatchState(0, 'pending');
+      sharedClientState.addPendingMutation(0);
       sharedClientState.trackMutationResult(0, 'acknowledged');
       assertBatchState(0, 'acknowledged');
     });
 
     it('with a rejected batch', () => {
-      sharedClientState.addLocalPendingMutation(0);
-      assertClientState([], 0, 0);
-      assertBatchState(0, 'pending');
+      sharedClientState.addPendingMutation(0);
       sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
       assertBatchState(0, 'rejected', TEST_ERROR);
     });
@@ -364,27 +319,27 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('when empty', () => {
-      assertClientState([], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([]);
     });
 
     it('with multiple targets', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0]);
       assertTargetState(0, 'pending');
 
       sharedClientState.addLocalQueryTarget(1);
       sharedClientState.addLocalQueryTarget(2);
-      assertClientState([0, 1, 2], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0, 1, 2]);
       assertTargetState(1, 'pending');
       assertTargetState(2, 'pending');
 
       sharedClientState.removeLocalQueryTarget(1);
-      assertClientState([0, 2], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0, 2]);
     });
 
     it('with a not-current target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0]);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'not-current');
       assertTargetState(0, 'not-current');
@@ -392,7 +347,7 @@ describe('WebStorageSharedClientState', () => {
 
     it('with a current target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0]);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'not-current');
       assertTargetState(0, 'not-current');
@@ -402,7 +357,7 @@ describe('WebStorageSharedClientState', () => {
 
     it('with an errored target', () => {
       sharedClientState.addLocalQueryTarget(0);
-      assertClientState([0], BATCHID_UNKNOWN, BATCHID_UNKNOWN);
+      assertClientState([0]);
       assertTargetState(0, 'pending');
       sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);
@@ -432,7 +387,6 @@ describe('WebStorageSharedClientState', () => {
     });
 
     async function verifyState(
-      minBatchId: BatchId | null,
       expectedTargets: TargetId[],
       expectedOnlineState: OnlineState
     ): Promise<void> {
@@ -441,35 +395,26 @@ describe('WebStorageSharedClientState', () => {
       const actualTargets = sharedClientState.getAllActiveQueryTargets();
 
       expect(actualTargets.toArray()).to.have.members(expectedTargets);
-      expect(sharedClientState.getMinimumGlobalPendingMutation()).to.equal(
-        minBatchId
-      );
       expect(actualOnlineState).to.equal(expectedOnlineState);
     }
 
-    it('with targets and mutations from existing client', async () => {
-      // The prior client has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+    it('with targets from existing client', async () => {
+      // The prior client has two active query targets
+      await verifyState([3, 4], OnlineState.Unknown);
 
-      sharedClientState.addLocalPendingMutation(3);
       sharedClientState.addLocalQueryTarget(4);
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
 
-      // This is technically invalid as IDs of minimum mutation batches should
-      // never decrease over the lifetime of a client, but we use it here to
-      // test the underlying logic that extracts the mutation batch IDs.
-      sharedClientState.addLocalPendingMutation(0);
       sharedClientState.addLocalQueryTarget(5);
-      await verifyState(0, [3, 4, 5], OnlineState.Unknown);
+      await verifyState([3, 4, 5], OnlineState.Unknown);
 
-      sharedClientState.removeLocalPendingMutation(0);
       sharedClientState.removeLocalQueryTarget(5);
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
     });
 
     it('with targets from new client', async () => {
-      // The prior client has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      // The prior client has two active query targets
+      await verifyState([3, 4], OnlineState.Unknown);
 
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
@@ -478,7 +423,7 @@ describe('WebStorageSharedClientState', () => {
         secondaryClientStateKey,
         oldState.toLocalStorageJSON()
       );
-      await verifyState(1, [3, 4, 5], OnlineState.Unknown);
+      await verifyState([3, 4, 5], OnlineState.Unknown);
 
       const updatedState = new LocalClientState();
       updatedState.addQueryTarget(5);
@@ -488,32 +433,15 @@ describe('WebStorageSharedClientState', () => {
         secondaryClientStateKey,
         updatedState.toLocalStorageJSON()
       );
-      await verifyState(1, [3, 4, 5, 6], OnlineState.Unknown);
+      await verifyState([3, 4, 5, 6], OnlineState.Unknown);
 
       writeToLocalStorage(secondaryClientStateKey, null);
-      await verifyState(1, [3, 4], OnlineState.Unknown);
-    });
-
-    it('with mutations from new client', async () => {
-      // The prior client has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
-
-      const updatedState = new LocalClientState();
-      updatedState.addPendingMutation(0);
-
-      writeToLocalStorage(
-        secondaryClientStateKey,
-        updatedState.toLocalStorageJSON()
-      );
-      await verifyState(0, [3, 4], OnlineState.Unknown);
-
-      writeToLocalStorage(secondaryClientStateKey, null);
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
     });
 
     it('with online state from new client', async () => {
-      // The prior client has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      // The prior client has two active query targets
+      await verifyState([3, 4], OnlineState.Unknown);
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
@@ -529,7 +457,7 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
 
       writeToLocalStorage(
         onlineStateKey(),
@@ -538,7 +466,7 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState(1, [3, 4], OnlineState.Offline);
+      await verifyState([3, 4], OnlineState.Offline);
 
       writeToLocalStorage(
         onlineStateKey(),
@@ -547,12 +475,12 @@ describe('WebStorageSharedClientState', () => {
           clientId: secondaryClientId
         })
       );
-      await verifyState(1, [3, 4], OnlineState.Online);
+      await verifyState([3, 4], OnlineState.Online);
     });
 
     it('ignores online state from inactive client', async () => {
-      // The prior client has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      // The prior client has two active query targets
+      await verifyState([3, 4], OnlineState.Unknown);
 
       // The secondary client is inactive and its online state is ignored.
       writeToLocalStorage(
@@ -563,7 +491,7 @@ describe('WebStorageSharedClientState', () => {
         })
       );
 
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
@@ -580,7 +508,7 @@ describe('WebStorageSharedClientState', () => {
         })
       );
 
-      await verifyState(1, [3, 4], OnlineState.Online);
+      await verifyState([3, 4], OnlineState.Online);
     });
 
     it('ignores invalid data', async () => {
@@ -589,19 +517,18 @@ describe('WebStorageSharedClientState', () => {
       }_${AutoId.newId()}`;
 
       const invalidState = {
-        lastUpdateTime: 'invalid',
-        activeTargetIds: [5]
+        activeTargetIds: [5, 'invalid']
       };
 
-      // The prior instance has one pending mutation and two active query targets
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      // The prior instance has two active query targets
+      await verifyState([3, 4], OnlineState.Unknown);
 
       // We ignore the newly added target.
       writeToLocalStorage(
         secondaryClientStateKey,
         JSON.stringify(invalidState)
       );
-      await verifyState(1, [3, 4], OnlineState.Unknown);
+      await verifyState([3, 4], OnlineState.Unknown);
     });
   });
 

@@ -21,7 +21,7 @@ import { SortedSet } from '../util/sorted_set';
 import { Document, MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
 import { primitiveComparator } from '../util/misc';
-import { BatchId, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 
 /** Miscellaneous collection types / constants. */
 
@@ -59,10 +59,4 @@ export type TargetIdSet = SortedSet<TargetId>;
 const EMPTY_TARGET_ID_SET = new SortedSet<TargetId>(primitiveComparator);
 export function targetIdSet(): SortedSet<TargetId> {
   return EMPTY_TARGET_ID_SET;
-}
-
-export type BatchIdSet = SortedSet<BatchId>;
-const EMPTY_BATCH_ID_SET = new SortedSet<BatchId>(primitiveComparator);
-export function batchIdSet(): SortedSet<BatchId> {
-  return EMPTY_BATCH_ID_SET;
 }
