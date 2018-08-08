@@ -349,7 +349,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .localWrite(batch)
       .then(result => {
-        this.sharedClientState.addLocalPendingMutation(result.batchId);
+        this.sharedClientState.addPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
         return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
@@ -580,7 +580,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     } else if (batchState === 'acknowledged' || batchState === 'rejected') {
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
-      this.sharedClientState.removeLocalPendingMutation(batchId);
       this.processUserCallback(batchId, error ? error : null);
 
       this.localStore.removeCachedMutationBatchMetadata(batchId);
@@ -607,7 +606,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
@@ -626,7 +624,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .rejectBatch(batchId)
       .then(changes => {
         this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
-        this.sharedClientState.removeLocalPendingMutation(batchId);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));

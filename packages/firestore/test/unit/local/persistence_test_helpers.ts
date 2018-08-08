@@ -132,7 +132,7 @@ export async function populateWebStorage(
   await secondaryClientState.start();
 
   for (const batchId of existingMutationBatchIds) {
-    secondaryClientState.addLocalPendingMutation(batchId);
+    secondaryClientState.addPendingMutation(batchId);
   }
 
   for (const targetId of existingQueryTargetIds) {

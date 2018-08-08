@@ -22,7 +22,6 @@ import {
   TargetId
 } from '../core/types';
 import { assert } from '../util/assert';
-import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { debug, error } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
@@ -34,7 +33,7 @@ import {
 } from './shared_client_state_syncer';
 import { AsyncQueue } from '../util/async_queue';
 import { Platform } from '../platform/platform';
-import { batchIdSet, TargetIdSet, targetIdSet } from '../model/collections';
+import { TargetIdSet, targetIdSet } from '../model/collections';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -82,22 +81,8 @@ export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
   onlineStateHandler: (onlineState: OnlineState) => void;
 
-  /** Associates a new Mutation Batch ID with the local Firestore client. */
-  addLocalPendingMutation(batchId: BatchId): void;
-
-  /**
-   * Removes a Mutation Batch ID from the local Firestore client.
-   *
-   * This method can be called with Batch IDs that are not associated with this
-   * client, in which case no change takes place.
-   */
-  removeLocalPendingMutation(batchId: BatchId): void;
-
-  /**
-   * Verifies whether a Mutation Batch ID is associated with the local client.
-   */
-  // Visible for testing.
-  hasLocalPendingMutation(batchId: BatchId): boolean;
+  /** Registers the Mutation Batch ID of a newly pending mutation. */
+  addPendingMutation(batchId: BatchId): void;
 
   /**
    * Records that a pending mutation has been acknowledged or rejected.
@@ -109,15 +94,6 @@ export interface SharedClientState {
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void;
-
-  /**
-   * Gets the minimum mutation batch for all active clients. Returns
-   * BATCHID_UNKNOWN if there are no mutation batches.
-   *
-   * The implementation for this may require O(n) runtime, where 'n' is the
-   * number of clients.
-   */
-  getMinimumGlobalPendingMutation(): BatchId | null;
 
   /**
    * Associates a new Query Target ID with the local Firestore client. Returns
@@ -376,35 +352,27 @@ export class QueryTargetMetadata {
 interface ClientStateSchema {
   lastUpdateTime: number;
   activeTargetIds: number[];
-  minMutationBatchId: number;
-  maxMutationBatchId: number;
 }
 
 /**
- * Metadata state of a single client. Includes query targets, the minimum
- * pending and maximum pending mutation batch ID, as well as the last update
- * time of this state.
+ * Metadata state of a single client denoting the query targets it is actively
+ * listening to.
  */
 // Visible for testing.
 export interface ClientState {
-  readonly activeTargetIds: TargetIdSet;
   readonly lastUpdateTime: Date;
-  readonly maxMutationBatchId: BatchId;
-  readonly minMutationBatchId: BatchId;
+  readonly activeTargetIds: TargetIdSet;
 }
 
 /**
  * This class represents the immutable ClientState for a client read from
- * LocalStorage. It contains the list of its active query targets and the range
- * of its pending mutation batch IDs.
+ * LocalStorage, containing the list of active query targets.
  */
 class RemoteClientState implements ClientState {
   private constructor(
     readonly clientId: ClientId,
     readonly lastUpdateTime: Date,
-    readonly activeTargetIds: TargetIdSet,
-    readonly minMutationBatchId: BatchId,
-    readonly maxMutationBatchId: BatchId
+    readonly activeTargetIds: TargetIdSet
   ) {}
 
   /**
@@ -420,9 +388,7 @@ class RemoteClientState implements ClientState {
     let validData =
       typeof clientState === 'object' &&
       isSafeInteger(clientState.lastUpdateTime) &&
-      clientState.activeTargetIds instanceof Array &&
-      isSafeInteger(clientState.minMutationBatchId) &&
-      isSafeInteger(clientState.maxMutationBatchId);
+      clientState.activeTargetIds instanceof Array;
 
     let activeTargetIdsSet = targetIdSet();
 
@@ -437,9 +403,7 @@ class RemoteClientState implements ClientState {
       return new RemoteClientState(
         clientId,
         new Date(clientState.lastUpdateTime),
-        activeTargetIdsSet,
-        clientState.minMutationBatchId,
-        clientState.maxMutationBatchId
+        activeTargetIdsSet
       );
     } else {
       error(
@@ -512,38 +476,8 @@ export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
   lastUpdateTime: Date;
 
-  private pendingBatchIds = batchIdSet();
-
   constructor() {
     this.lastUpdateTime = new Date();
-  }
-
-  get minMutationBatchId(): BatchId {
-    return this.pendingBatchIds.isEmpty()
-      ? BATCHID_UNKNOWN
-      : this.pendingBatchIds.first();
-  }
-
-  get maxMutationBatchId(): BatchId {
-    return this.pendingBatchIds.isEmpty()
-      ? BATCHID_UNKNOWN
-      : this.pendingBatchIds.last();
-  }
-
-  addPendingMutation(batchId: BatchId): void {
-    assert(
-      !this.pendingBatchIds.has(batchId),
-      `Batch with ID '${batchId}' already pending.`
-    );
-    this.pendingBatchIds = this.pendingBatchIds.add(batchId);
-  }
-
-  removePendingMutation(batchId: BatchId): void {
-    this.pendingBatchIds = this.pendingBatchIds.delete(batchId);
-  }
-
-  hasLocalPendingMutation(batchId: BatchId): boolean {
-    return this.pendingBatchIds.has(batchId);
   }
 
   addQueryTarget(targetId: TargetId): void {
@@ -570,9 +504,7 @@ export class LocalClientState implements ClientState {
   toLocalStorageJSON(): string {
     const data: ClientStateSchema = {
       lastUpdateTime: this.lastUpdateTime.getTime(),
-      activeTargetIds: this.activeTargetIds.toArray(),
-      minMutationBatchId: this.minMutationBatchId,
-      maxMutationBatchId: this.maxMutationBatchId
+      activeTargetIds: this.activeTargetIds.toArray()
     };
     return JSON.stringify(data);
   }
@@ -711,21 +643,6 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.started = true;
   }
 
-  getMinimumGlobalPendingMutation(): BatchId {
-    let minMutationBatch = BATCHID_UNKNOWN;
-    objUtils.forEach(this.activeClients, (key, value) => {
-      if (minMutationBatch === BATCHID_UNKNOWN) {
-        minMutationBatch = value.minMutationBatchId;
-      } else if (
-        value.minMutationBatchId !== BATCHID_UNKNOWN &&
-        value.minMutationBatchId < minMutationBatch
-      ) {
-        minMutationBatch = value.minMutationBatchId;
-      }
-    });
-    return minMutationBatch;
-  }
-
   getAllActiveQueryTargets(): TargetIdSet {
     let activeTargets = targetIdSet();
     objUtils.forEach(this.activeClients, (key, value) => {
@@ -747,19 +664,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     return false;
   }
 
-  addLocalPendingMutation(batchId: BatchId): void {
-    this.localClientState.addPendingMutation(batchId);
+  addPendingMutation(batchId: BatchId): void {
     this.persistMutationState(batchId, 'pending');
-    this.persistClientState();
-  }
-
-  removeLocalPendingMutation(batchId: BatchId): void {
-    this.localClientState.removePendingMutation(batchId);
-    this.persistClientState();
-  }
-
-  hasLocalPendingMutation(batchId: BatchId): boolean {
-    return this.localClientState.hasLocalPendingMutation(batchId);
   }
 
   trackMutationResult(
@@ -767,12 +673,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void {
-    // Only persist the mutation state if at least one client is still
-    // interested in this mutation. The mutation might have already been
-    // removed by a client that is no longer active.
-    if (batchId >= this.getMinimumGlobalPendingMutation()) {
-      this.persistMutationState(batchId, state, error);
-    }
+    this.persistMutationState(batchId, state, error);
   }
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {
@@ -821,12 +722,12 @@ export class WebStorageSharedClientState implements SharedClientState {
     removedBatchIds: BatchId[],
     addedBatchIds: BatchId[]
   ): void {
-    removedBatchIds.forEach(batchId => {
-      this.removeLocalPendingMutation(batchId);
+    removedBatchIds.forEach(() => {
+      // TODO(multitab): Remove mutation state from Local Storage
     });
     this.currentUser = user;
     addedBatchIds.forEach(batchId => {
-      this.addLocalPendingMutation(batchId);
+      this.addPendingMutation(batchId);
     });
   }
 
@@ -1158,16 +1059,8 @@ export class MemorySharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: (onlineState: OnlineState) => void | null = null;
 
-  addLocalPendingMutation(batchId: BatchId): void {
-    this.localState.addPendingMutation(batchId);
-  }
-
-  removeLocalPendingMutation(batchId: BatchId): void {
-    this.localState.removePendingMutation(batchId);
-  }
-
-  hasLocalPendingMutation(batchId: BatchId): boolean {
-    return this.localState.hasLocalPendingMutation(batchId);
+  addPendingMutation(batchId: BatchId): void {
+    // No op.
   }
 
   trackMutationResult(
@@ -1176,10 +1069,6 @@ export class MemorySharedClientState implements SharedClientState {
     error?: FirestoreError
   ): void {
     // No op.
-  }
-
-  getMinimumGlobalPendingMutation(): BatchId | null {
-    return this.localState.minMutationBatchId;
   }
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {
@@ -1218,12 +1107,7 @@ export class MemorySharedClientState implements SharedClientState {
     removedBatchIds: BatchId[],
     addedBatchIds: BatchId[]
   ): void {
-    removedBatchIds.forEach(batchId => {
-      this.localState.removePendingMutation(batchId);
-    });
-    addedBatchIds.forEach(batchId => {
-      this.localState.addPendingMutation(batchId);
-    });
+    // No op.
   }
 
   setOnlineState(onlineState: OnlineState): void {
