@@ -15,9 +15,9 @@
  */
 
 import { User } from '../auth/user';
-import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
+import { PersistencePromise } from '../local/persistence_promise';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
 import {
@@ -153,7 +153,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     [targetId: number]: LimboResolution;
   } = {};
   private limboDocumentRefs = new ReferenceSet();
-  private limboCollector = new EagerGarbageCollector();
   /** Stores user completion handlers, indexed by User and BatchId. */
   private mutationUserCallbacks = {} as {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
@@ -172,9 +171,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // PORTING NOTE: Manages state synchronization in multi-tab environments.
     private sharedClientState: SharedClientState,
     private currentUser: User
-  ) {
-    this.limboCollector.addGarbageSource(this.limboDocumentRefs);
-  }
+  ) {}
 
   // Only used for testing.
   get isPrimaryClient(): boolean {
@@ -677,12 +674,41 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     delete this.queryViewsByTarget[queryView.targetId];
 
     if (this.isPrimary) {
+      const limboKeys = this.limboDocumentRefs.referencesForId(
+        queryView.targetId
+      );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      await this.gcLimboDocuments();
+      let p = PersistencePromise.resolve();
+      limboKeys.forEach(limboKey => {
+        p = p.next(() => {
+          return this.limboDocumentRefs
+            .containsKey(null, limboKey)
+            .next(isReferenced => {
+              if (!isReferenced) {
+                // We removed the last reference for this key
+                this.removeLimboTarget(limboKey);
+              }
+            });
+        });
+      });
+      await p.toPromise();
     }
   }
 
-  private updateTrackedLimbos(
+  private removeLimboTarget(key: DocumentKey): void {
+    // It's possible that the target already got removed because the query failed. In that case,
+    // the key won't exist in `limboTargetsByKey`. Only do the cleanup if we still have the target.
+    const limboTargetId = this.limboTargetsByKey.get(key);
+    if (limboTargetId === null) {
+      // This target already got removed, because the query failed.
+      return;
+    }
+    this.remoteStore.unlisten(limboTargetId);
+    this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
+    delete this.limboResolutionsByTarget[limboTargetId];
+  }
+
+  private async updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
   ): Promise<void> {
@@ -693,11 +719,19 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       } else if (limboChange instanceof RemovedLimboDocument) {
         log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
+        await this.limboDocumentRefs
+          .containsKey(null, limboChange.key)
+          .next(isReferenced => {
+            if (!isReferenced) {
+              // We removed the last reference for this key
+              this.removeLimboTarget(limboChange.key);
+            }
+          })
+          .toPromise();
       } else {
         fail('Unknown limbo change: ' + JSON.stringify(limboChange));
       }
     }
-    return this.gcLimboDocuments();
   }
 
   private trackLimboChange(limboChange: AddedLimboDocument): void {
@@ -715,26 +749,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         limboTargetId
       );
     }
-  }
-
-  private gcLimboDocuments(): Promise<void> {
-    // HACK: We can use a null transaction here, because we know that the
-    // reference set is entirely within memory and doesn't need a store engine.
-    return this.limboCollector
-      .collectGarbage(null)
-      .next(keys => {
-        keys.forEach(key => {
-          const limboTargetId = this.limboTargetsByKey.get(key);
-          if (limboTargetId === null) {
-            // This target already got removed, because the query failed.
-            return;
-          }
-          this.remoteStore.unlisten(limboTargetId);
-          this.limboTargetsByKey = this.limboTargetsByKey.remove(key);
-          delete this.limboResolutionsByTarget[limboTargetId];
-        });
-      })
-      .toPromise();
   }
 
   // Visible for testing
