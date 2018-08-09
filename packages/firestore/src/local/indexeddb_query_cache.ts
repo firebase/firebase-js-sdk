@@ -57,11 +57,6 @@ export class IndexedDbQueryCache implements QueryCache {
 
   private targetIdGenerator = TargetIdGenerator.forQueryCache();
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // Nothing to do.
-    return PersistencePromise.resolve();
-  }
-
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {

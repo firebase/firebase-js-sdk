@@ -31,11 +31,6 @@ import { QueryData } from './query_data';
  */
 export interface QueryCache extends GarbageSource {
   /**
-   * Starts up the query cache.
-   */
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
-
-  /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
    * snapshots received from the backend prior to this version (e.g. for targets
