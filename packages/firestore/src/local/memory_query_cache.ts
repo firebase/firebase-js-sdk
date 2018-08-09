@@ -50,11 +50,6 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetIdGenerator = TargetIdGenerator.forQueryCache();
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // Nothing to do.
-    return PersistencePromise.resolve();
-  }
-
   getLastRemoteSnapshotVersion(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
