@@ -204,8 +204,9 @@ export class LocalStore {
   start(): Promise<void> {
     // TODO(multitab): Ensure that we in fact don't need the primary lease.
     return this.persistence.runTransaction('Start LocalStore', false, txn => {
-      return this.startMutationQueue(txn)
-        .next(() => this.startRemoteDocumentCache(txn));
+      return this.startMutationQueue(txn).next(() =>
+        this.startRemoteDocumentCache(txn)
+      );
     });
   }
 
