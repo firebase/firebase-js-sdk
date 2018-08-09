@@ -125,11 +125,8 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     token: Token | null
   ): UnaryRpc<Req, Resp> | ReadableRpc<Req, Resp> | DuplexRpc<Req, Resp> {
-    // RPC Methods have the first character lower-cased
-    // (e.g. Listen => listen(), BatchGetDocuments => batchGetDocuments()).
-    const rpcMethod = rpcName.charAt(0).toLowerCase() + rpcName.slice(1);
     const stub = this.ensureActiveStub(token);
-    const rpc = stub[rpcMethod];
+    const rpc = stub[rpcName];
     assert(rpc != null, 'Unknown RPC: ' + rpcName);
 
     const metadata = createMetadata(this.databaseInfo, token);
@@ -255,12 +252,6 @@ export class GrpcConnection implements Connection {
       close();
     });
 
-    grpcStream.on('finish', () => {
-      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
-      // the 'finish' event if we don't see the assert getting hit for a while.
-      assert(closed, 'Received "finish" event without close() being called.');
-    });
-
     grpcStream.on('error', (grpcError: grpc.ServiceError) => {
       log.debug(
         LOG_TAG,
@@ -273,23 +264,19 @@ export class GrpcConnection implements Connection {
       close(new FirestoreError(code, grpcError.message));
     });
 
-    grpcStream.on('status', (status: grpc.StatusObject) => {
-      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
-      // the 'status' event if we don't see the assert getting hit for a while.
-      assert(
-        closed,
-        `status event received before "end" or "error". ` +
-          `code: ${status.code} details: ${status.details}`
-      );
-    });
-
     log.debug(LOG_TAG, 'Opening GRPC stream');
-    // TODO(dimond): Since grpc has no explicit open status (or does it?) we
-    // simulate an onOpen in the next loop after the stream had it's listeners
-    // registered
-    setTimeout(() => {
-      stream.callOnOpen();
-    }, 0);
+
+    // TODO(mikelehen): We will call waitForReady() on each stream attempt,
+    // but waitForReady() won't call our callback until the channel is
+    // successfully established (note that the callback is not called for most
+    // stream errors). So we'll accumulate more and more outstanding wait calls
+    // over time while the network is down, manifesting as a minor memory leak.
+    const client: grpc.Client = this.ensureActiveStub(token);
+    client.waitForReady(/*deadline=*/ Number.POSITIVE_INFINITY, error => {
+      if (!error && !closed) {
+        stream.callOnOpen();
+      }
+    });
 
     return stream;
   }
