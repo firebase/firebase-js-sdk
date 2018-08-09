@@ -674,6 +674,15 @@ export class WebStorageSharedClientState implements SharedClientState {
     error?: FirestoreError
   ): void {
     this.persistMutationState(batchId, state, error);
+
+    // Once a final mutation result is observed by other clients, they no longer
+    // access the mutation's metadata entry. Since LocalStorage replays events
+    // in order, it is safe to delete the entry right after updating it.
+    // We enqueue the delete on the queue since LocalStorage writes acquire
+    // a lock internally, and we don't need to wait for the delete to succeed.
+    this.queue.enqueueAndForget(() =>
+      Promise.resolve(this.removeMutationState(batchId))
+    );
   }
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {
@@ -722,8 +731,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     removedBatchIds: BatchId[],
     addedBatchIds: BatchId[]
   ): void {
-    removedBatchIds.forEach(() => {
-      // TODO(multitab): Remove mutation state from Local Storage
+    removedBatchIds.forEach(batchId => {
+      this.removeMutationState(batchId);
     });
     this.currentUser = user;
     addedBatchIds.forEach(batchId => {
@@ -853,16 +862,13 @@ export class WebStorageSharedClientState implements SharedClientState {
       state,
       error
     );
-
-    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
-      this.persistenceKey
-    }_${batchId}`;
-
-    if (this.currentUser.isAuthenticated()) {
-      mutationKey += `_${this.currentUser.uid}`;
-    }
-
+    const mutationKey = this.toLocalStorageMutationBatchKey(batchId);
     this.setItem(mutationKey, mutationState.toLocalStorageJSON());
+  }
+
+  private removeMutationState(batchId: BatchId): void {
+    const mutationKey = this.toLocalStorageMutationBatchKey(batchId);
+    this.removeItem(mutationKey);
   }
 
   private persistOnlineState(onlineState: OnlineState): void {
@@ -905,6 +911,19 @@ export class WebStorageSharedClientState implements SharedClientState {
   /** Assembles the key for a query state in LocalStorage */
   private toLocalStorageQueryTargetMetadataKey(targetId: TargetId): string {
     return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
+  }
+
+  /** Assembles the key for a mutation batch in LocalStorage */
+  private toLocalStorageMutationBatchKey(batchId: BatchId): string {
+    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
+      this.persistenceKey
+    }_${batchId}`;
+
+    if (this.currentUser.isAuthenticated()) {
+      mutationKey += `_${this.currentUser.uid}`;
+    }
+
+    return mutationKey;
   }
 
   /**
