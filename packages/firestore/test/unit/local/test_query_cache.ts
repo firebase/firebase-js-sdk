@@ -30,12 +30,6 @@ import { DocumentKey } from '../../../src/model/document_key';
 export class TestQueryCache {
   constructor(public persistence: Persistence, public cache: QueryCache) {}
 
-  start(): Promise<void> {
-    return this.persistence.runTransaction('start', false, txn =>
-      this.cache.start(txn)
-    );
-  }
-
   addQueryData(queryData: QueryData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', false, txn => {
       return this.cache.addQueryData(txn, queryData);

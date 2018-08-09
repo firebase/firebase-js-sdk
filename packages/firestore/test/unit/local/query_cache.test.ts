@@ -93,7 +93,6 @@ function genericQueryCacheTests(
   beforeEach(async () => {
     persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
-    await cache.start();
   });
 
   afterEach(async () => {
@@ -318,7 +317,6 @@ function genericQueryCacheTests(
       persistence,
       persistence.getQueryCache()
     );
-    await otherCache.start();
     expect(await otherCache.allocateTargetId()).to.deep.equal(50);
   });
 
@@ -335,17 +333,15 @@ function genericQueryCacheTests(
           version(42)
         );
       })
-      .then(() => {
+      .then(async () => {
         // Verify snapshot version persists restarts.
         const otherCache = new TestQueryCache(
           persistence,
           persistence.getQueryCache()
         );
-        return otherCache.start().then(async () => {
-          expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
-            version(42)
-          );
-        });
+        expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+          version(42)
+        );
       });
   });
 }
