@@ -678,11 +678,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     // Once a final mutation result is observed by other clients, they no longer
     // access the mutation's metadata entry. Since LocalStorage replays events
     // in order, it is safe to delete the entry right after updating it.
-    // We enqueue the delete on the queue since LocalStorage writes acquire
-    // a lock internally, and we don't need to wait for the delete to succeed.
-    this.queue.enqueueAndForget(() =>
-      Promise.resolve(this.removeMutationState(batchId))
-    );
+    this.removeMutationState(batchId);
   }
 
   addLocalQueryTarget(targetId: TargetId): QueryTargetState {

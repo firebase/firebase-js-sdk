@@ -838,11 +838,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .handleUserChange(user)
       .then(result => {
-        this.sharedClientState.handleUserChange(
-          user,
-          result.removedBatchIds,
-          result.addedBatchIds
-        );
+        if (this.isPrimary) {
+          this.sharedClientState.handleUserChange(
+            user,
+            result.removedBatchIds,
+            result.addedBatchIds
+          );
+        }
         return this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
       })
       .then(() => {
