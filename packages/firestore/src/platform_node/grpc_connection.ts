@@ -125,11 +125,8 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     token: Token | null
   ): UnaryRpc<Req, Resp> | ReadableRpc<Req, Resp> | DuplexRpc<Req, Resp> {
-    // RPC Methods have the first character lower-cased
-    // (e.g. Listen => listen(), BatchGetDocuments => batchGetDocuments()).
-    const rpcMethod = rpcName.charAt(0).toLowerCase() + rpcName.slice(1);
     const stub = this.ensureActiveStub(token);
-    const rpc = stub[rpcMethod];
+    const rpc = stub[rpcName];
     assert(rpc != null, 'Unknown RPC: ' + rpcName);
 
     const metadata = createMetadata(this.databaseInfo, token);
@@ -255,12 +252,6 @@ export class GrpcConnection implements Connection {
       close();
     });
 
-    grpcStream.on('finish', () => {
-      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
-      // the 'finish' event if we don't see the assert getting hit for a while.
-      assert(closed, 'Received "finish" event without close() being called.');
-    });
-
     grpcStream.on('error', (grpcError: grpc.ServiceError) => {
       log.debug(
         LOG_TAG,
@@ -271,16 +262,6 @@ export class GrpcConnection implements Connection {
       );
       const code = mapCodeFromRpcCode(grpcError.code);
       close(new FirestoreError(code, grpcError.message));
-    });
-
-    grpcStream.on('status', (status: grpc.StatusObject) => {
-      // TODO(mikelehen): I *believe* this assert is safe and we can just remove
-      // the 'status' event if we don't see the assert getting hit for a while.
-      assert(
-        closed,
-        `status event received before "end" or "error". ` +
-          `code: ${status.code} details: ${status.details}`
-      );
     });
 
     log.debug(LOG_TAG, 'Opening GRPC stream');
