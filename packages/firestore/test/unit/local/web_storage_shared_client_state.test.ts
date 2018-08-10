@@ -286,21 +286,17 @@ describe('WebStorageSharedClientState', () => {
 
     it('with an acknowledged batch', async () => {
       sharedClientState.addPendingMutation(0);
+      assertBatchState(0, 'pending');
       sharedClientState.trackMutationResult(0, 'acknowledged');
-      assertBatchState(0, 'acknowledged');
-
-      // The entry is enqueued for immediate garbage collection.
-      await queue.drain();
+      // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
 
     it('with a rejected batch', async () => {
       sharedClientState.addPendingMutation(0);
+      assertBatchState(0, 'pending');
       sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
-      assertBatchState(0, 'rejected', TEST_ERROR);
-
-      // The entry is enqueued for immediate garbage collection.
-      await queue.drain();
+      // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
   });
