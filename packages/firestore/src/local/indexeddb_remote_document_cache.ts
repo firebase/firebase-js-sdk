@@ -42,7 +42,7 @@ import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
-  private lastReturnedDocumentChangesId = 0;
+  private _lastProcessedDocumentChangeId = 0;
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
@@ -56,15 +56,19 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
+  get lastProcessedDocumentChangeId(): number {
+    return this._lastProcessedDocumentChangeId;
+  }
+
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // If there are no existing changes, we set `lastReturnedDocumentChangesId`
+    // If there are no existing changes, we set `lastProcessedDocumentChangeId`
     // to 0 since IndexedDb's auto-generated keys start at 1.
-    this.lastReturnedDocumentChangesId = 0;
+    this._lastProcessedDocumentChangeId = 0;
 
     return documentChangesStore(transaction).iterate(
       { keysOnly: true, reverse: true },
       (key, value, control) => {
-        this.lastReturnedDocumentChangesId = key;
+        this._lastProcessedDocumentChangeId = key;
         control.done();
       }
     );
@@ -157,16 +161,22 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     let changedDocs = maybeDocumentMap();
 
     const range = IDBKeyRange.lowerBound(
-      this.lastReturnedDocumentChangesId,
+      this._lastProcessedDocumentChangeId,
       /*lowerOpen=*/ true
     );
 
+    // TODO(multitab): Another client may have garbage collected the remote
+    // document changelog if our client was throttled for more than 30 minutes.
+    // We can detect this if the `lastProcessedDocumentChangeId` entry is no
+    // longer in the changelog. It is possible to recover from this state,
+    // either by replaying the entire remote document cache or by re-executing
+    // all queries against the local store.
     return documentChangesStore(transaction)
       .iterate({ range }, (_, documentChange) => {
         changedKeys = changedKeys.unionWith(
           this.serializer.fromDbResourcePaths(documentChange.changes)
         );
-        this.lastReturnedDocumentChangesId = documentChange.id;
+        this._lastProcessedDocumentChangeId = documentChange.id;
       })
       .next(() => {
         const documentPromises: Array<PersistencePromise<void>> = [];
@@ -183,6 +193,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         return PersistencePromise.waitFor(documentPromises);
       })
       .next(() => changedDocs);
+  }
+
+  /**
+   * Removes all changes in the remote document changelog through `changeId`
+   * (inclusive).
+   */
+  removeDocumentChangesThroughChangeId(
+    transaction: PersistenceTransaction,
+    changeId: number
+  ): PersistencePromise<void> {
+    const range = IDBKeyRange.upperBound(changeId);
+    return documentChangesStore(transaction).delete(range);
   }
 }
 

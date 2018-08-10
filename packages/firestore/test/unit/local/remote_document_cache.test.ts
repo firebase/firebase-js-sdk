@@ -31,9 +31,24 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { MaybeDocumentMap } from '../../../src/model/collections';
+import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
+
+// Helpers for use throughout tests.
+const DOC_PATH = 'a/b';
+const LONG_DOC_PATH = 'a/b/c/d/e/f';
+const DOC_DATA = { a: 1, b: 2 };
+const VERSION = 42;
+
+let persistence: Persistence;
 
 describe('MemoryRemoteDocumentCache', () => {
-  genericRemoteDocumentCacheTests(persistenceHelpers.testMemoryPersistence);
+  beforeEach(async () => {
+    persistence = await persistenceHelpers.testMemoryPersistence();
+  });
+
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+
+  genericRemoteDocumentCacheTests();
 });
 
 describe('IndexedDbRemoteDocumentCache', () => {
@@ -42,25 +57,58 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-  genericRemoteDocumentCacheTests(() =>
-    persistenceHelpers.testIndexedDbPersistence(/* synchronizeTabs= */ true)
-  );
+  beforeEach(async () => {
+    persistence = await persistenceHelpers.testIndexedDbPersistence({
+      synchronizeTabs: true
+    });
+  });
+
+  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+
+  it('can prune change log', async () => {
+    // Add two change batches and remove the first one.
+    await persistence.runTransaction(
+      'removeDocumentChangesThroughChangeId',
+      true,
+      txn => {
+        const cache = persistence.getRemoteDocumentCache() as IndexedDbRemoteDocumentCache;
+        return cache
+          .addEntries(txn, [doc('a/1', 1, DOC_DATA), doc('b/1', 2, DOC_DATA)])
+          .next(() => cache.addEntries(txn, [doc('c/1', 3, DOC_DATA)]))
+          .next(() => cache.removeDocumentChangesThroughChangeId(txn, 1));
+      }
+    );
+    await persistence.shutdown(/* deleteData= */ false);
+
+    // Now make sure that we can only read back the second batch.
+    persistence = await persistenceHelpers.testIndexedDbPersistence({
+      synchronizeTabs: true,
+      dontPurgeData: true
+    });
+
+    // Note that we don't call `start()` on the RemoteDocumentCache. If we did,
+    // the cache would only replay changes that were added after invoking
+    // start().
+    const changedDocs = await persistence.runTransaction(
+      'getNewDocumentChanges',
+      false,
+      txn => {
+        const cache = persistence.getRemoteDocumentCache();
+        return cache.getNewDocumentChanges(txn);
+      }
+    );
+
+    assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
+  });
+
+  genericRemoteDocumentCacheTests();
 });
 
 /**
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests(
-  persistencePromise: () => Promise<Persistence>
-): void {
-  // Helpers for use throughout tests.
-  const DOC_PATH = 'a/b';
-  const LONG_DOC_PATH = 'a/b/c/d/e/f';
-  const DOC_DATA = { a: 1, b: 2 };
-  const VERSION = 42;
-
-  let persistence: Persistence;
+function genericRemoteDocumentCacheTests(): void {
   let cache: TestRemoteDocumentCache;
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
@@ -74,33 +122,12 @@ function genericRemoteDocumentCacheTests(
       });
   }
 
-  function assertMatches(
-    expected: MaybeDocument[],
-    actual: MaybeDocumentMap
-  ): void {
-    expect(actual.size).to.equal(expected.length);
-    actual.forEach((actualKey, actualDoc) => {
-      const found = expected.find(expectedDoc => {
-        if (actualKey.isEqual(expectedDoc.key)) {
-          expectEqual(actualDoc, expectedDoc);
-          return true;
-        }
-        return false;
-      });
-
-      expect(found).to.not.be.undefined;
-    });
-  }
-
-  beforeEach(async () => {
-    persistence = await persistencePromise();
+  beforeEach(() => {
     cache = new TestRemoteDocumentCache(
       persistence,
       persistence.getRemoteDocumentCache()
     );
   });
-
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
   it('returns null for document not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {
@@ -214,5 +241,23 @@ function genericRemoteDocumentCacheTests(
 
     const changedDocs = await cache.getNextDocumentChanges();
     assertMatches([], changedDocs);
+  });
+}
+
+function assertMatches(
+  expected: MaybeDocument[],
+  actual: MaybeDocumentMap
+): void {
+  expect(actual.size).to.equal(expected.length);
+  actual.forEach((actualKey, actualDoc) => {
+    const found = expected.find(expectedDoc => {
+      if (actualKey.isEqual(expectedDoc.key)) {
+        expectEqual(actualDoc, expectedDoc);
+        return true;
+      }
+      return false;
+    });
+
+    expect(found).to.exist;
   });
 }

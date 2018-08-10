@@ -57,6 +57,15 @@ const LOG_TAG = 'IndexedDbPersistence';
  * are ignored.
  */
 const CLIENT_METADATA_MAX_AGE_MS = 5000;
+
+/**
+ * Oldest acceptable age in milliseconds for client metadata before it and its
+ * associated data (such as the remote document cache changelog) can be
+ * garbage collected. Clients that exceed this threshold will not be able to
+ * replay Watch events that occurred before this threshold.
+ */
+const CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS = 30 * 60 * 1000; // 30 Minutes
+
 /**
  * The interval at which clients will update their metadata, including
  * refreshing their primary lease if held or potentially trying to acquire it if
@@ -183,11 +192,17 @@ export class IndexedDbPersistence implements Persistence {
   /** The client metadata refresh task. */
   private clientMetadataRefresher: CancelablePromise<void>;
 
+  /** The last time we garbage collected the Remote Document Changelog. */
+  private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
+
   /** Whether to allow shared multi-tab access to the persistence layer. */
   private allowTabSynchronization: boolean;
 
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
+
+  private queryCache: IndexedDbQueryCache;
+  private remoteDocumentCache: IndexedDbRemoteDocumentCache;
 
   constructor(
     private readonly persistenceKey: string,
@@ -226,6 +241,11 @@ export class IndexedDbPersistence implements Persistence {
     return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
         this.simpleDb = db;
+        this.queryCache = new IndexedDbQueryCache(this.serializer);
+        this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
+          this.serializer,
+          /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+        );
       })
       .then(() => {
         this.attachVisibilityHandler();
@@ -274,7 +294,8 @@ export class IndexedDbPersistence implements Persistence {
             this.clientId,
             Date.now(),
             this.networkEnabled,
-            this.inForeground
+            this.inForeground,
+            this.remoteDocumentCache.lastProcessedDocumentChangeId
           )
         )
         .next(() => this.canActAsPrimary(txn))
@@ -295,7 +316,9 @@ export class IndexedDbPersistence implements Persistence {
           if (wasPrimary && !this.isPrimary) {
             return this.releasePrimaryLeaseIfHeld(txn);
           } else if (this.isPrimary) {
-            return this.acquireOrExtendPrimaryLease(txn);
+            return this.acquireOrExtendPrimaryLease(txn).next(() =>
+              this.maybeGarbageCollectRemoteDocumentChangelog(txn)
+            );
           }
         });
     });
@@ -306,6 +329,56 @@ export class IndexedDbPersistence implements Persistence {
   ): PersistencePromise<void> {
     const metadataStore = clientMetadataStore(txn);
     return metadataStore.delete(this.clientId);
+  }
+
+  /**
+   * If the garbage collection threshold has passed, prunes the
+   * RemoteDocumentChanges store based on the metadata state of all existing
+   * clients.
+   */
+  private maybeGarbageCollectRemoteDocumentChangelog(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    assert(this.isPrimary, 'GC should only run in the primary client');
+
+    if (
+      !this.isWithinAge(
+        this.lastGarbageCollectionTime,
+        CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
+      )
+    ) {
+      this.lastGarbageCollectionTime = Date.now();
+
+      return clientMetadataStore(txn)
+        .loadAll()
+        .next(existingClients => {
+          // TODO(multitab): Remove outdated client metadata
+          let activeClients = this.filterActiveClients(
+            existingClients,
+            CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
+          );
+
+          // The primary client doesn't read from the document change log,
+          // and hence we exclude it when we determine the minimum
+          // `lastProcessedDocumentChangeId`.
+          activeClients = activeClients.filter(
+            client => client.clientId !== this.clientId
+          );
+
+          if (activeClients.length > 0) {
+            const processedChangeIds = activeClients.map(
+              client => client.lastProcessedDocumentChangeId || 0
+            );
+            const oldestChangeId = Math.min(...processedChangeIds);
+            return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
+              new IndexedDbTransaction(txn),
+              oldestChangeId
+            );
+          }
+        });
+    } else {
+      return PersistencePromise.resolve();
+    }
   }
 
   /**
@@ -345,7 +418,10 @@ export class IndexedDbPersistence implements Persistence {
       .next(currentPrimary => {
         const currentLeaseIsValid =
           currentPrimary !== null &&
-          this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
+          this.isWithinAge(
+            currentPrimary.leaseTimestampMs,
+            CLIENT_METADATA_MAX_AGE_MS
+          ) &&
           !this.isClientZombied(currentPrimary.ownerId);
 
         // A client is eligible for the primary lease if:
@@ -389,31 +465,34 @@ export class IndexedDbPersistence implements Persistence {
           return true;
         }
 
-        let canActAsPrimary = true;
         return clientMetadataStore(txn)
-          .iterate((key, otherClient, control) => {
-            if (
-              this.clientId !== otherClient.clientId &&
-              this.isWithinMaxAge(otherClient.updateTimeMs) &&
-              !this.isClientZombied(otherClient.clientId)
-            ) {
-              const otherClientHasBetterNetworkState =
-                !this.networkEnabled && otherClient.networkEnabled;
-              const otherClientHasBetterVisibility =
-                !this.inForeground && otherClient.inForeground;
-              const otherClientHasSameNetworkState =
-                this.networkEnabled === otherClient.networkEnabled;
-              if (
-                otherClientHasBetterNetworkState ||
-                (otherClientHasBetterVisibility &&
-                  otherClientHasSameNetworkState)
-              ) {
-                canActAsPrimary = false;
-                control.done();
+          .loadAll()
+          .next(existingClients => {
+            // Process all existing clients and determine whether at least one of
+            // them is better suited to obtain the primary lease.
+            const preferredCandidate = this.filterActiveClients(
+              existingClients,
+              CLIENT_METADATA_MAX_AGE_MS
+            ).find(otherClient => {
+              if (this.clientId !== otherClient.clientId) {
+                const otherClientHasBetterNetworkState =
+                  !this.networkEnabled && otherClient.networkEnabled;
+                const otherClientHasBetterVisibility =
+                  !this.inForeground && otherClient.inForeground;
+                const otherClientHasSameNetworkState =
+                  this.networkEnabled === otherClient.networkEnabled;
+                if (
+                  otherClientHasBetterNetworkState ||
+                  (otherClientHasBetterVisibility &&
+                    otherClientHasSameNetworkState)
+                ) {
+                  return true;
+                }
               }
-            }
-          })
-          .next(() => canActAsPrimary);
+              return false;
+            });
+            return preferredCandidate === undefined;
+          });
       })
       .next(canActAsPrimary => {
         if (this.isPrimary !== canActAsPrimary) {
@@ -458,17 +537,35 @@ export class IndexedDbPersistence implements Persistence {
     }
   }
 
+  /**
+   * Returns clients that are not zombied and have an updateTime within the
+   * provided threshold.
+   */
+  private filterActiveClients(
+    clients: DbClientMetadata[],
+    activityThresholdMs: number
+  ): DbClientMetadata[] {
+    return clients.filter(
+      client =>
+        this.isWithinAge(client.updateTimeMs, activityThresholdMs) &&
+        !this.isClientZombied(client.clientId)
+    );
+  }
+
   getActiveClients(): Promise<ClientId[]> {
-    const clientIds: ClientId[] = [];
-    return this.simpleDb
-      .runTransaction('readonly', [DbClientMetadata.store], txn => {
-        return clientMetadataStore(txn).iterate((key, value) => {
-          if (this.isWithinMaxAge(value.updateTimeMs)) {
-            clientIds.push(value.clientId);
-          }
-        });
-      })
-      .then(() => clientIds);
+    return this.simpleDb.runTransaction(
+      'readonly',
+      [DbClientMetadata.store],
+      txn => {
+        return clientMetadataStore(txn)
+          .loadAll()
+          .next(clients =>
+            this.filterActiveClients(clients, CLIENT_METADATA_MAX_AGE_MS).map(
+              clientMetadata => clientMetadata.clientId
+            )
+          );
+      }
+    );
   }
 
   get started(): boolean {
@@ -488,7 +585,7 @@ export class IndexedDbPersistence implements Persistence {
       this.started,
       'Cannot initialize QueryCache before persistence is started.'
     );
-    return new IndexedDbQueryCache(this.serializer);
+    return this.queryCache;
   }
 
   getRemoteDocumentCache(): RemoteDocumentCache {
@@ -496,10 +593,7 @@ export class IndexedDbPersistence implements Persistence {
       this.started,
       'Cannot initialize RemoteDocumentCache before persistence is started.'
     );
-    return new IndexedDbRemoteDocumentCache(
-      this.serializer,
-      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
-    );
+    return this.remoteDocumentCache;
   }
 
   runTransaction<T>(
@@ -575,7 +669,10 @@ export class IndexedDbPersistence implements Persistence {
     return store.get(DbPrimaryClient.key).next(currentPrimary => {
       const currentLeaseIsValid =
         currentPrimary !== null &&
-        this.isWithinMaxAge(currentPrimary.leaseTimestampMs) &&
+        this.isWithinAge(
+          currentPrimary.leaseTimestampMs,
+          CLIENT_METADATA_MAX_AGE_MS
+        ) &&
         !this.isClientZombied(currentPrimary.ownerId);
 
       if (currentLeaseIsValid && !this.isLocalClient(currentPrimary)) {
@@ -643,10 +740,10 @@ export class IndexedDbPersistence implements Persistence {
     });
   }
 
-  /** Verifies that `updateTimeMs` is within CLIENT_STATE_MAX_AGE_MS. */
-  private isWithinMaxAge(updateTimeMs: number): boolean {
+  /** Verifies that `updateTimeMs` is within `maxAgeMs`. */
+  private isWithinAge(updateTimeMs: number, maxAgeMs: number): boolean {
     const now = Date.now();
-    const minAcceptable = now - CLIENT_METADATA_MAX_AGE_MS;
+    const minAcceptable = now - maxAgeMs;
     const maxAcceptable = now;
     if (updateTimeMs < minAcceptable) {
       return false;

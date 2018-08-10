@@ -51,12 +51,17 @@ const LOCAL_STORAGE_PREFIX = 'firestore_';
  * any previous contents if they existed.
  */
 export async function testIndexedDbPersistence(
-  synchronizeTabs?: boolean
+  options: {
+    dontPurgeData?: boolean;
+    synchronizeTabs?: boolean;
+  } = {}
 ): Promise<IndexedDbPersistence> {
   const queue = new AsyncQueue();
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
-  await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
+  if (!options.dontPurgeData) {
+    await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
+  }
   const partition = new DatabaseId('project');
   const serializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
@@ -69,7 +74,7 @@ export async function testIndexedDbPersistence(
     queue,
     serializer
   );
-  await persistence.start(synchronizeTabs);
+  await persistence.start(options.synchronizeTabs);
   return persistence;
 }
 
