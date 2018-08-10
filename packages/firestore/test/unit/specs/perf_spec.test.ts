@@ -30,7 +30,7 @@ describeSpec(
     specTest('Insert a new document', [], () => {
       let steps = spec().withGCEnabled(false);
       for (let i = 0; i < STEP_COUNT; ++i) {
-        steps = steps
+        steps
           .userSets(`collection/{i}`, { doc: i })
           .writeAcks(`collection/{i}`, i);
       }
@@ -56,7 +56,7 @@ describeSpec(
             doc: i
           });
 
-          steps = steps
+          steps
             .userListens(query)
             .userSets(`collection/${i}`, { doc: i })
             .expectEvents(query, {
@@ -91,7 +91,7 @@ describeSpec(
       }
 
       for (let i = 1; i <= STEP_COUNT; ++i) {
-        steps = steps
+        steps
           .userListens(query)
           .expectEvents(query, {
             added: docs,
@@ -105,10 +105,12 @@ describeSpec(
     });
 
     specTest('Update a single document', [], () => {
-      let steps = spec().withGCEnabled(false);
-      steps = steps.userSets(`collection/doc`, { v: 0 });
+      let steps = spec()
+        .withGCEnabled(false)
+        .userSets(`collection/doc`, { v: 0 });
+
       for (let i = 1; i <= STEP_COUNT; ++i) {
-        steps = steps
+        steps
           .userPatches(`collection/doc`, { v: i })
           .writeAcks(`collection/doc`, i);
       }
@@ -133,7 +135,7 @@ describeSpec(
         let docRemote = doc(`collection/doc`, ++currentVersion, { v: 0 });
         let lastRemoteVersion = currentVersion;
 
-        steps = steps
+        steps
           .userListens(query)
           .userSets(`collection/doc`, { v: 0 })
           .expectEvents(query, {
@@ -155,7 +157,7 @@ describeSpec(
           docRemote = doc(`collection/doc`, ++currentVersion, { v: i });
           lastRemoteVersion = currentVersion;
 
-          steps = steps
+          steps
             .userPatches(`collection/doc`, { v: i })
             .expectEvents(query, {
               modified: [docLocal],
@@ -181,7 +183,7 @@ describeSpec(
         let currentVersion = 1;
         let steps = spec().withGCEnabled(false);
 
-        steps = steps
+        steps
           .userListens(query)
           .watchAcksFull(query, currentVersion)
           .expectEvents(query, {});
@@ -197,7 +199,7 @@ describeSpec(
 
           const changeType = i === 1 ? 'added' : 'modified';
 
-          steps = steps
+          steps
             .watchSends({ affects: [query] }, ...docs)
             .watchSnapshots(++currentVersion)
             .expectEvents(query, { [changeType]: docs });
@@ -225,7 +227,7 @@ describeSpec(
             docs.push(doc(`${collPath}/${j}`, ++currentVersion, { v: j }));
           }
 
-          steps = steps
+          steps
             .userListens(query)
             .watchAcksFull(query, ++currentVersion, ...docs)
             .expectEvents(query, { added: docs })
@@ -266,16 +268,16 @@ describeSpec(
             filter('val', '<=', j)
           );
           queries.push(query);
-          steps = steps.userListens(query).watchAcks(query);
+          steps.userListens(query).watchAcks(query);
         }
 
-        steps = steps
+        steps
           .watchSends({ affects: queries }, matchingDoc)
           .watchSnapshots(++currentVersion);
 
         // Registers the snapshot expectations with the spec runner.
         for (const query of queries) {
-          steps = steps.expectEvents(query, {
+          steps.expectEvents(query, {
             added: [matchingDoc],
             fromCache: true
           });
@@ -283,7 +285,7 @@ describeSpec(
 
         // Unlisten and clean up the query.
         for (const query of queries) {
-          steps = steps.userUnlistens(query).watchRemoves(query);
+          steps.userUnlistens(query).watchRemoves(query);
         }
       }
 
