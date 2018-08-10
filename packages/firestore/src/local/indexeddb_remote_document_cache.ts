@@ -42,7 +42,7 @@ import { SimpleDbStore } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
-  private _lastProcessedDocumentChangesId = 0;
+  private _lastProcessedDocumentChangeId = 0;
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
@@ -56,19 +56,19 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
-  get lastProcessedDocumentChangesId(): number {
-    return this._lastProcessedDocumentChangesId;
+  get lastProcessedDocumentChangeId(): number {
+    return this._lastProcessedDocumentChangeId;
   }
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // If there are no existing changes, we set `lastProcessedDocumentChangesId`
+    // If there are no existing changes, we set `lastProcessedDocumentChangeId`
     // to 0 since IndexedDb's auto-generated keys start at 1.
-    this._lastProcessedDocumentChangesId = 0;
+    this._lastProcessedDocumentChangeId = 0;
 
     return documentChangesStore(transaction).iterate(
       { keysOnly: true, reverse: true },
       (key, value, control) => {
-        this._lastProcessedDocumentChangesId = key;
+        this._lastProcessedDocumentChangeId = key;
         control.done();
       }
     );
@@ -161,13 +161,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     let changedDocs = maybeDocumentMap();
 
     const range = IDBKeyRange.lowerBound(
-      this._lastProcessedDocumentChangesId,
+      this._lastProcessedDocumentChangeId,
       /*lowerOpen=*/ true
     );
 
     // TODO(multitab): Another client may have garbage collected the remote
     // document changelog if our client was throttled for more than 30 minutes.
-    // We can detect this if the `lastProcessedDocumentChangesId` entry is no
+    // We can detect this if the `lastProcessedDocumentChangeId` entry is no
     // longer in the changelog. It is possible to recover from this state,
     // either by replaying the entire remote document cache or by re-executing
     // all queries against the local store.
@@ -176,7 +176,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         changedKeys = changedKeys.unionWith(
           this.serializer.fromDbResourcePaths(documentChange.changes)
         );
-        this._lastProcessedDocumentChangesId = documentChange.id;
+        this._lastProcessedDocumentChangeId = documentChange.id;
       })
       .next(() => {
         const documentPromises: Array<PersistencePromise<void>> = [];
@@ -203,15 +203,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     changeId: number
   ): PersistencePromise<void> {
-    assert(
-      changeId <= this._lastProcessedDocumentChangesId,
-      'Cannot remove unprocessed changes'
-    );
-
-    if (changeId === 0) {
-      return PersistencePromise.resolve();
-    }
-
     const range = IDBKeyRange.upperBound(changeId);
     return documentChangesStore(transaction).delete(range);
   }

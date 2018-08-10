@@ -64,7 +64,7 @@ const CLIENT_METADATA_MAX_AGE_MS = 5000;
  * garbage collected. Clients that exceed this threshold will not be able to
  * replay Watch events that occurred before this threshold.
  */
-const CLIENT_METADATA_GARBAGE_COLLECTION_THRESHOLD_MS = 30 * 60 * 1000; // 30 Minutes
+const CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS = 30 * 60 * 1000; // 30 Minutes
 
 /**
  * The interval at which clients will update their metadata, including
@@ -295,7 +295,7 @@ export class IndexedDbPersistence implements Persistence {
             Date.now(),
             this.networkEnabled,
             this.inForeground,
-            this.remoteDocumentCache.lastProcessedDocumentChangesId
+            this.remoteDocumentCache.lastProcessedDocumentChangeId
           )
         )
         .next(() => this.canActAsPrimary(txn))
@@ -336,7 +336,6 @@ export class IndexedDbPersistence implements Persistence {
    * RemoteDocumentChanges store based on the metadata state of all existing
    * clients.
    */
-  // TODO(gsoltis): Execute this as part of LRU GC
   private maybeGarbageCollectRemoteDocumentChangelog(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
@@ -345,7 +344,7 @@ export class IndexedDbPersistence implements Persistence {
     if (
       !this.isWithinAge(
         this.lastGarbageCollectionTime,
-        CLIENT_METADATA_GARBAGE_COLLECTION_THRESHOLD_MS
+        CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
       )
     ) {
       this.lastGarbageCollectionTime = Date.now();
@@ -353,29 +352,27 @@ export class IndexedDbPersistence implements Persistence {
       return clientMetadataStore(txn)
         .loadAll()
         .next(existingClients => {
+          // TODO(multitab): Remove outdated client metadata
           let activeClients = this.filterActiveClients(
             existingClients,
-            CLIENT_METADATA_GARBAGE_COLLECTION_THRESHOLD_MS
+            CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
           );
 
           // The primary client doesn't read from the document change log,
           // and hence we exclude it when we determine the minimum
-          // `lastProcessedDocumentChangesId`.
+          // `lastProcessedDocumentChangeId`.
           activeClients = activeClients.filter(
             client => client.clientId !== this.clientId
           );
 
-          if (activeClients.length) {
-            const mostOutdatedClient = activeClients.reduce(
-              (previousValue, currentValue) =>
-                (currentValue.lastProcessedDocumentChangesId || 0) <
-                (previousValue.lastProcessedDocumentChangesId || 0)
-                  ? currentValue
-                  : previousValue
+          if (activeClients.length > 0) {
+            const processedChangeIds = activeClients.map(
+              client => client.lastProcessedDocumentChangeId || 0
             );
+            const oldestChangeId = Math.min(...processedChangeIds);
             return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
               new IndexedDbTransaction(txn),
-              mostOutdatedClient.lastProcessedDocumentChangesId
+              oldestChangeId
             );
           }
         });

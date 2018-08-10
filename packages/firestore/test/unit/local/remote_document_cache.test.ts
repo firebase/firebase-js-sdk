@@ -74,7 +74,6 @@ describe('IndexedDbRemoteDocumentCache', () => {
         const cache = persistence.getRemoteDocumentCache() as IndexedDbRemoteDocumentCache;
         return cache
           .addEntries(txn, [doc('a/1', 1, DOC_DATA), doc('b/1', 2, DOC_DATA)])
-          .next(() => cache.getNewDocumentChanges(txn))
           .next(() => cache.addEntries(txn, [doc('c/1', 3, DOC_DATA)]))
           .next(() => cache.removeDocumentChangesThroughChangeId(txn, 1));
       }
@@ -86,6 +85,10 @@ describe('IndexedDbRemoteDocumentCache', () => {
       synchronizeTabs: true,
       dontPurgeData: true
     });
+
+    // Note that we don't call `start()` on the RemoteDocumentCache. If we did,
+    // the cache would only replay changes that were added after invoking
+    // start().
     const changedDocs = await persistence.runTransaction(
       'getNewDocumentChanges',
       false,
@@ -255,6 +258,6 @@ function assertMatches(
       return false;
     });
 
-    expect(found).to.not.be.undefined;
+    expect(found).to.exist;
   });
 }

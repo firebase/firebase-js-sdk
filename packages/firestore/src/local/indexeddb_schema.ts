@@ -686,7 +686,7 @@ export class DbClientMetadata {
      * The last change read from the DbRemoteDocumentChanges store.
      * Can be undefined for backwards compatibility.
      */
-    public lastProcessedDocumentChangesId: number | undefined
+    public lastProcessedDocumentChangeId: number | undefined
   ) {}
 }
 
