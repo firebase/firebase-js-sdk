@@ -270,6 +270,11 @@ describe('WebStorageSharedClientState', () => {
       expect(Object.keys(actual)).to.have.members(expectedMembers);
     }
 
+    function assertNoBatchState(batchId: BatchId): void {
+      expect(localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to
+        .be.null;
+    }
+
     beforeEach(() => {
       return sharedClientState.start();
     });
@@ -281,14 +286,18 @@ describe('WebStorageSharedClientState', () => {
 
     it('with an acknowledged batch', () => {
       sharedClientState.addPendingMutation(0);
+      assertBatchState(0, 'pending');
       sharedClientState.trackMutationResult(0, 'acknowledged');
-      assertBatchState(0, 'acknowledged');
+      // The entry is garbage collected immediately.
+      assertNoBatchState(0);
     });
 
     it('with a rejected batch', () => {
       sharedClientState.addPendingMutation(0);
+      assertBatchState(0, 'pending');
       sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
-      assertBatchState(0, 'rejected', TEST_ERROR);
+      // The entry is garbage collected immediately.
+      assertNoBatchState(0);
     });
   });
 
