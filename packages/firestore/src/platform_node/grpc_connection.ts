@@ -265,18 +265,12 @@ export class GrpcConnection implements Connection {
     });
 
     log.debug(LOG_TAG, 'Opening GRPC stream');
-
-    // TODO(mikelehen): We will call waitForReady() on each stream attempt,
-    // but waitForReady() won't call our callback until the channel is
-    // successfully established (note that the callback is not called for most
-    // stream errors). So we'll accumulate more and more outstanding wait calls
-    // over time while the network is down, manifesting as a minor memory leak.
-    const client: grpc.Client = this.ensureActiveStub(token);
-    client.waitForReady(/*deadline=*/ Number.POSITIVE_INFINITY, error => {
-      if (!error && !closed) {
-        stream.callOnOpen();
-      }
-    });
+    // TODO(dimond): Since grpc has no explicit open status (or does it?) we
+    // simulate an onOpen in the next loop after the stream had it's listeners
+    // registered
+    setTimeout(() => {
+      stream.callOnOpen();
+    }, 0);
 
     return stream;
   }
