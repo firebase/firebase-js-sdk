@@ -20,6 +20,7 @@ import { Observable, of, merge, from } from 'rxjs';
 import { validateEventsArray, isNil } from '../utils';
 import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
+import { changeToData } from '../object';
 
 export function stateChanges(query: database.Query, events?: ListenEvent[]) {
   events = validateEventsArray(events);
@@ -48,6 +49,20 @@ export function list(
       return merge(...childEvent$).pipe(scan(buildView, []));
     }),
     distinctUntilChanged()
+  );
+}
+
+/**
+ * Get an object mapped to its value, and optionally its key
+ * @param query object ref or query
+ * @param keyField map the object key to a specific field
+ */
+export function listVal<T>(
+  query: database.Query,
+  keyField?: string
+): Observable<T[]> {
+  return list(query).pipe(
+    map(arr => arr.map(change => changeToData(change, keyField) as T))
   );
 }
 
