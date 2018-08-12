@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
@@ -682,13 +681,12 @@ export class RemoteStore implements TargetMetadataProvider {
     return new Transaction(this.datastore);
   }
 
-  async handleUserChange(user: User): Promise<void> {
-    log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
-
+  async handleCredentialChange(): Promise<void> {
     if (this.canUseNetwork()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
+      log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
       this.networkEnabled = false;
       await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);

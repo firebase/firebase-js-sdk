@@ -897,7 +897,7 @@ abstract class TestRunner {
   private doChangeUser(user: string | null): Promise<void> {
     this.user = new User(user);
     return this.queue.enqueue(() =>
-      this.syncEngine.handleUserChange(this.user)
+      this.syncEngine.handleCredentialChange(this.user)
     );
   }
 
