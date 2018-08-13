@@ -203,11 +203,9 @@ export class LocalStore {
   /** Performs any initial startup actions required by the local store. */
   start(): Promise<void> {
     // TODO(multitab): Ensure that we in fact don't need the primary lease.
-    return this.persistence.runTransaction('Start LocalStore', false, txn => {
-      return this.startMutationQueue(txn).next(() =>
-        this.startRemoteDocumentCache(txn)
-      );
-    });
+    return this.persistence.runTransaction('Start LocalStore', false, txn =>
+      this.startMutationQueue(txn)
+    );
   }
 
   /**
@@ -310,12 +308,6 @@ export class LocalStore {
           return PersistencePromise.resolve();
         }
       });
-  }
-
-  private startRemoteDocumentCache(
-    txn: PersistenceTransaction
-  ): PersistencePromise<void> {
-    return this.remoteDocuments.start(txn);
   }
 
   /* Accept locally generated Mutations and commit them to storage. */

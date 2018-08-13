@@ -38,7 +38,7 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
-import { SimpleDbStore } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
@@ -60,12 +60,24 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return this._lastProcessedDocumentChangeId;
   }
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
+  /**
+   * Starts up the remote document cache.
+   *
+   * Reads the ID of the last  document change from the documentChanges store.
+   * Existing changes will not be returned as part of
+   * `getNewDocumentChanges()`.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  start(transaction: SimpleDbTransaction): PersistencePromise<void> {
     // If there are no existing changes, we set `lastProcessedDocumentChangeId`
     // to 0 since IndexedDb's auto-generated keys start at 1.
     this._lastProcessedDocumentChangeId = 0;
 
-    return documentChangesStore(transaction).iterate(
+    const store = SimpleDb.getStore<
+      DbRemoteDocumentChangesKey,
+      DbRemoteDocumentChanges
+    >(transaction, DbRemoteDocumentChanges.store);
+    return store.iterate(
       { keysOnly: true, reverse: true },
       (key, value, control) => {
         this._lastProcessedDocumentChangeId = key;

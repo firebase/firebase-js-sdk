@@ -72,9 +72,10 @@ export async function testIndexedDbPersistence(
     clientId,
     platform,
     queue,
-    serializer
+    serializer,
+    options.synchronizeTabs
   );
-  await persistence.start(options.synchronizeTabs);
+  await persistence.start();
   return persistence;
 }
 
