@@ -28,7 +28,7 @@ describeSpec(
   ['benchmark'],
   () => {
     specTest('Insert a new document', [], () => {
-      let steps = spec().withGCEnabled(false);
+      const steps = spec().withGCEnabled(false);
       for (let i = 0; i < STEP_COUNT; ++i) {
         steps
           .userSets(`collection/{i}`, { doc: i })
@@ -42,7 +42,7 @@ describeSpec(
       [],
       () => {
         let currentVersion = 1;
-        let steps = spec().withGCEnabled(false);
+        const steps = spec().withGCEnabled(false);
 
         for (let i = 0; i < STEP_COUNT; ++i) {
           const query = Query.atPath(path(`collection/${i}`));
@@ -78,9 +78,7 @@ describeSpec(
       const cachedDocumentCount = 100;
 
       const query = Query.atPath(path(`collection`)).addOrderBy(orderBy('v'));
-
-      let steps = spec().withGCEnabled(false);
-
+      const steps = spec().withGCEnabled(false);
       const docs = [];
 
       for (let i = 0; i < cachedDocumentCount; ++i) {
@@ -105,7 +103,7 @@ describeSpec(
     });
 
     specTest('Update a single document', [], () => {
-      let steps = spec()
+      const steps = spec()
         .withGCEnabled(false)
         .userSets(`collection/doc`, { v: 0 });
 
@@ -124,7 +122,7 @@ describeSpec(
         const query = Query.atPath(path(`collection/doc`));
 
         let currentVersion = 1;
-        let steps = spec().withGCEnabled(false);
+        const steps = spec().withGCEnabled(false);
 
         let docLocal = doc(
           `collection/doc`,
@@ -179,9 +177,9 @@ describeSpec(
         const documentsPerStep = 100;
 
         const query = Query.atPath(path(`collection`)).addOrderBy(orderBy('v'));
+        const steps = spec().withGCEnabled(false);
 
         let currentVersion = 1;
-        let steps = spec().withGCEnabled(false);
 
         steps
           .userListens(query)
@@ -216,7 +214,7 @@ describeSpec(
         const documentsPerStep = 100;
 
         let currentVersion = 1;
-        let steps = spec().withGCEnabled(false);
+        const steps = spec().withGCEnabled(false);
 
         for (let i = 1; i <= STEP_COUNT; ++i) {
           const collPath = `collection/${i}/coll`;
@@ -249,7 +247,7 @@ describeSpec(
       const queriesPerStep = 25;
 
       let currentVersion = 1;
-      let steps = spec().withGCEnabled(false);
+      const steps = spec().withGCEnabled(false);
 
       for (let i = 1; i <= STEP_COUNT; ++i) {
         // We use a different subcollection for each iteration to ensure
