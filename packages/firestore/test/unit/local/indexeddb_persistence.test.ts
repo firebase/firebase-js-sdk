@@ -41,6 +41,7 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { PersistenceSettings } from '../../../src/api/database';
 
 const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
 const INDEXEDDB_TEST_DATABASE =
@@ -77,8 +78,9 @@ function withDb(
     });
 }
 
-async function withPersistence(
+async function withCustomPersistence(
   clientId: ClientId,
+  settings: PersistenceSettings,
   fn: (
     persistence: IndexedDbPersistence,
     platform: TestPlatform,
@@ -100,11 +102,44 @@ async function withPersistence(
     clientId,
     platform,
     queue,
-    serializer
+    serializer,
+    settings.experimentalTabSynchronization
   );
 
   await fn(persistence, platform, queue);
   await persistence.shutdown();
+}
+
+async function withPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    new PersistenceSettings(/* enabled */ true),
+    fn
+  );
+}
+
+async function withMultiClientPersistence(
+  clientId: ClientId,
+  fn: (
+    persistence: IndexedDbPersistence,
+    platform: TestPlatform,
+    queue: AsyncQueue
+  ) => Promise<void>
+): Promise<void> {
+  return withCustomPersistence(
+    clientId,
+    new PersistenceSettings(/* enabled */ true, {
+      experimentalTabSynchronization: true
+    }),
+    fn
+  );
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -427,11 +462,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('rejects access when synchronization is disabled', () => {
     return withPersistence('clientA', async db1 => {
-      await db1.start(/*synchronizeTabs=*/ false);
+      await db1.start();
       await withPersistence('clientB', async db2 => {
-        await expect(
-          db2.start(/*synchronizeTabs=*/ false)
-        ).to.eventually.be.rejectedWith(
+        await expect(db2.start()).to.eventually.be.rejectedWith(
           'There is another tab open with offline persistence enabled.'
         );
       });
@@ -439,10 +472,10 @@ describe('IndexedDb: allowTabSynchronization', () => {
   });
 
   it('grants access when synchronization is enabled', async () => {
-    return withPersistence('clientA', async db1 => {
-      await db1.start(/*synchronizeTabs=*/ true);
-      await withPersistence('clientB', async db2 => {
-        await db2.start(/*synchronizeTabs=*/ true);
+    return withMultiClientPersistence('clientA', async db1 => {
+      await db1.start();
+      await withMultiClientPersistence('clientB', async db2 => {
+        await db2.start();
       });
     });
   });

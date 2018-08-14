@@ -307,7 +307,8 @@ export class FirestoreClient {
         this.clientId,
         this.platform,
         this.asyncQueue,
-        serializer
+        serializer,
+        settings.experimentalTabSynchronization
       );
       this.persistence = persistence;
 
@@ -330,7 +331,7 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
-      return persistence.start(settings.experimentalTabSynchronization);
+      return persistence.start();
     });
   }
 

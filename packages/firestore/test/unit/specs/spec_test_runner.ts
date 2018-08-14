@@ -1184,9 +1184,10 @@ class IndexedDbTestRunner extends TestRunner {
       this.clientId,
       this.platform,
       this.queue,
-      serializer
+      serializer,
+      /*synchronizeTabs=*/ true
     );
-    await persistence.start(/*synchronizeTabs=*/ true);
+    await persistence.start();
     return persistence;
   }
 

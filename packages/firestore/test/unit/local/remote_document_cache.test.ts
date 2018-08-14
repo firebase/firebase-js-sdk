@@ -32,6 +32,10 @@ import * as persistenceHelpers from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { MaybeDocumentMap } from '../../../src/model/collections';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
+import {
+  DbRemoteDocumentChangesKey,
+  DbRemoteDocumentChanges
+} from '../../../src/local/indexeddb_schema';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';
@@ -78,27 +82,41 @@ describe('IndexedDbRemoteDocumentCache', () => {
           .next(() => cache.removeDocumentChangesThroughChangeId(txn, 1));
       }
     );
+    // We removed the first batch, there should be a single batch remaining.
+    const remainingChangeCount = await persistence.runTransaction(
+      'verify',
+      true,
+      txn => {
+        const store = IndexedDbPersistence.getStore<
+          DbRemoteDocumentChangesKey,
+          DbRemoteDocumentChanges
+        >(txn, DbRemoteDocumentChanges.store);
+        return store.count();
+      }
+    );
+    expect(remainingChangeCount).to.equal(1);
+  });
+
+  it('skips previous changes', async () => {
+    // Add a document to simulate a previous run.
+    let cache = new TestRemoteDocumentCache(
+      persistence,
+      persistence.getRemoteDocumentCache()
+    );
+    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
     await persistence.shutdown(/* deleteData= */ false);
 
-    // Now make sure that we can only read back the second batch.
+    // Start a new run of the persistence layer
     persistence = await persistenceHelpers.testIndexedDbPersistence({
       synchronizeTabs: true,
       dontPurgeData: true
     });
-
-    // Note that we don't call `start()` on the RemoteDocumentCache. If we did,
-    // the cache would only replay changes that were added after invoking
-    // start().
-    const changedDocs = await persistence.runTransaction(
-      'getNewDocumentChanges',
-      false,
-      txn => {
-        const cache = persistence.getRemoteDocumentCache();
-        return cache.getNewDocumentChanges(txn);
-      }
+    cache = new TestRemoteDocumentCache(
+      persistence,
+      persistence.getRemoteDocumentCache()
     );
-
-    assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
+    const changedDocs = await cache.getNextDocumentChanges();
+    assertMatches([], changedDocs);
   });
 
   genericRemoteDocumentCacheTests();
@@ -232,15 +250,6 @@ function genericRemoteDocumentCacheTests(): void {
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
       changedDocs
     );
-  });
-
-  it('start() skips previous changes', async () => {
-    await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
-
-    await cache.start();
-
-    const changedDocs = await cache.getNextDocumentChanges();
-    assertMatches([], changedDocs);
   });
 }
 

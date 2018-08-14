@@ -32,16 +32,6 @@ import { PersistencePromise } from './persistence_promise';
  */
 export interface RemoteDocumentCache {
   /**
-   * Starts up the remote document cache.
-   *
-   * Reads the ID of the last  document change from the documentChanges store.
-   * Existing changes will not be returned as part of
-   * `getNewDocumentChanges()`.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
-
-  /**
    * Adds or replaces document entries in the cache.
    *
    * The cache key is extracted from `maybeDocument.key`. If there is already a
