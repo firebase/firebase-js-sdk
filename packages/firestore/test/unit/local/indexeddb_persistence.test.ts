@@ -125,7 +125,7 @@ async function withPersistence(
   );
 }
 
-async function withMultiTabPersistence(
+async function withMultiClientPersistence(
   clientId: ClientId,
   fn: (
     persistence: IndexedDbPersistence,
@@ -472,9 +472,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
   });
 
   it('grants access when synchronization is enabled', async () => {
-    return withMultiTabPersistence('clientA', async db1 => {
+    return withMultiClientPersistence('clientA', async db1 => {
       await db1.start();
-      await withMultiTabPersistence('clientB', async db2 => {
+      await withMultiClientPersistence('clientB', async db2 => {
         await db2.start();
       });
     });
