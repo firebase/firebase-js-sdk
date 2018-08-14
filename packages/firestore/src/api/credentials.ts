@@ -88,7 +88,7 @@ export interface CredentialsProvider {
    * (sign-in / sign-out, token changes). It is immediately called once with the
    * initial user.
    */
-  setChangeListener(listener: CredentialChangeListener): void;
+  setChangeListener(changeListener: CredentialChangeListener): void;
 
   /** Removes the previously-set change listener. */
   removeChangeListener(): void;
@@ -101,7 +101,7 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
    * This isn't actually necessary since the UID never changes, but we use this
    * to verify the listen contract is adhered to in tests.
    */
-  private listener: CredentialChangeListener | null = null;
+  private changeListener: CredentialChangeListener | null = null;
 
   constructor() {}
 
@@ -111,19 +111,19 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
 
   invalidateToken(): void {}
 
-  setChangeListener(listener: CredentialChangeListener): void {
-    assert(!this.listener, 'Can only call setChangeListener() once.');
-    this.listener = listener;
+  setChangeListener(changeListener: CredentialChangeListener): void {
+    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    this.changeListener = changeListener;
     // Fire with initial user.
-    listener(User.UNAUTHENTICATED);
+    changeListener(User.UNAUTHENTICATED);
   }
 
   removeChangeListener(): void {
     assert(
-      this.listener !== null,
+      this.changeListener !== null,
       'removeChangeListener() when no listener registered'
     );
-    this.listener = null;
+    this.changeListener = null;
   }
 }
 
@@ -206,13 +206,13 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.forceRefresh = true;
   }
 
-  setChangeListener(listener: CredentialChangeListener): void {
+  setChangeListener(changeListener: CredentialChangeListener): void {
     assert(!this.changeListener, 'Can only call setChangeListener() once.');
-    this.changeListener = listener;
+    this.changeListener = changeListener;
 
     // Fire the initial event, but only if we received the initial user
     if (this.currentUser) {
-      listener(this.currentUser);
+      changeListener(this.currentUser);
     }
   }
 
@@ -292,9 +292,9 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
 
   // TODO(33108925): can someone switch users w/o a page refresh?
   // TODO(33110621): need to understand token/session lifecycle
-  setChangeListener(listener: CredentialChangeListener): void {
+  setChangeListener(changeListener: CredentialChangeListener): void {
     // Fire with initial uid.
-    listener(User.FIRST_PARTY);
+    changeListener(User.FIRST_PARTY);
   }
 
   removeChangeListener(): void {}
