@@ -352,7 +352,7 @@ export class IndexedDbPersistence implements Persistence {
       return clientMetadataStore(txn)
         .loadAll()
         .next(existingClients => {
-          let activeClients = this.filterActiveClients(
+          const activeClients = this.filterActiveClients(
             existingClients,
             CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
           );
