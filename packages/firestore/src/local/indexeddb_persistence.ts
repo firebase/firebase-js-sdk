@@ -317,7 +317,7 @@ export class IndexedDbPersistence implements Persistence {
             return this.releasePrimaryLeaseIfHeld(txn);
           } else if (this.isPrimary) {
             return this.acquireOrExtendPrimaryLease(txn).next(() =>
-              this.maybeGarbageCollectRemoteDocumentChangelog(txn)
+              this.maybeGarbageCollectMultiClientState(txn)
             );
           }
         });
@@ -333,10 +333,10 @@ export class IndexedDbPersistence implements Persistence {
 
   /**
    * If the garbage collection threshold has passed, prunes the
-   * RemoteDocumentChanges store based on the metadata state of all existing
-   * clients.
+   * RemoteDocumentChanges and the ClientMetadata store based on the last update
+   * time of all clients.
    */
-  private maybeGarbageCollectRemoteDocumentChangelog(
+  private maybeGarbageCollectMultiClientState(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     assert(this.isPrimary, 'GC should only run in the primary client');
@@ -352,11 +352,24 @@ export class IndexedDbPersistence implements Persistence {
       return clientMetadataStore(txn)
         .loadAll()
         .next(existingClients => {
-          // TODO(multitab): Remove outdated client metadata
-          let activeClients = this.filterActiveClients(
+          const activeClients = this.filterActiveClients(
             existingClients,
             CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
           );
+
+          // Delete metadata for client that are no longer considered active.
+          let p = PersistencePromise.resolve();
+          existingClients
+            .filter(client => activeClients.indexOf(client) === -1)
+            .forEach(inactiveClient => {
+              p = p.next(() =>
+                clientMetadataStore(txn).delete(inactiveClient.clientId)
+              );
+            });
+          return p.next(() => activeClients);
+        })
+        .next(activeClients => {
+          // Retrieve the minimum change ID from the set of active clients.
 
           // The primary client doesn't read from the document change log,
           // and hence we exclude it when we determine the minimum
