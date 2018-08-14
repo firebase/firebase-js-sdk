@@ -78,7 +78,7 @@ function withDb(
     });
 }
 
-async function withConfiguredPersistence(
+async function withCustomPersistence(
   clientId: ClientId,
   settings: PersistenceSettings,
   fn: (
@@ -118,7 +118,11 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withConfiguredPersistence(clientId, new PersistenceSettings(true), fn);
+  return withCustomPersistence(
+    clientId,
+    new PersistenceSettings(/* enabled */ true),
+    fn
+  );
 }
 
 async function withMultiTabPersistence(
@@ -129,9 +133,11 @@ async function withMultiTabPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withConfiguredPersistence(
+  return withCustomPersistence(
     clientId,
-    new PersistenceSettings(true, { experimentalTabSynchronization: true }),
+    new PersistenceSettings(/* enabled */ true, {
+      experimentalTabSynchronization: true
+    }),
     fn
   );
 }

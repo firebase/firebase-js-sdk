@@ -210,13 +210,13 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    synchronizeTabs?: boolean
+    synchronizeTabs: boolean
   ) {
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.window = platform.window;
-    this.allowTabSynchronization = !!synchronizeTabs;
+    this.allowTabSynchronization = synchronizeTabs;
     this.queryCache = new IndexedDbQueryCache(this.serializer);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
@@ -245,6 +245,7 @@ export class IndexedDbPersistence implements Persistence {
       .then(db => {
         this.simpleDb = db;
       })
+      .then(() => this.startRemoteDocumentCache())
       .then(() => {
         this.attachVisibilityHandler();
         this.attachWindowUnloadHook();
@@ -252,7 +253,6 @@ export class IndexedDbPersistence implements Persistence {
           this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
         );
       })
-      .then(() => this.startRemoteDocumentCache())
       .then(() => {
         this._started = true;
       });
