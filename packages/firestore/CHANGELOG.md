@@ -1,4 +1,8 @@
-# Unreleased
+# 0.7.0 (Unreleased)
+- [changed] Prepared the persistence layer to allow shared access from multiple 
+tabs. While this feature is not yet available, all schema changes are included 
+in this release. Once you upgrade, you will not be able to use an older version
+of the Firestore SDK with persistence enabled.
 - [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
   documents from cache.
 
