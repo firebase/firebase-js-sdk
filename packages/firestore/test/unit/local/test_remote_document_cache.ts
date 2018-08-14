@@ -31,12 +31,6 @@ export class TestRemoteDocumentCache {
     public cache: RemoteDocumentCache
   ) {}
 
-  start(): Promise<void> {
-    return this.persistence.runTransaction('start', false, txn => {
-      return this.cache.start(txn);
-    });
-  }
-
   addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
     return this.persistence.runTransaction('addEntry', true, txn => {
       return this.cache.addEntries(txn, maybeDocuments);

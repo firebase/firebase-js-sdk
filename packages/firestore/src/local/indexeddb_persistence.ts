@@ -209,22 +209,27 @@ export class IndexedDbPersistence implements Persistence {
     private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    synchronizeTabs: boolean
   ) {
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.window = platform.window;
+    this.allowTabSynchronization = synchronizeTabs;
+    this.queryCache = new IndexedDbQueryCache(this.serializer);
+    this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
+      this.serializer,
+      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+    );
   }
 
   /**
    * Attempt to start IndexedDb persistence.
    *
-   * @param {boolean} synchronizeTabs Whether to enable shared persistence
-   *     across multiple tabs.
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  start(synchronizeTabs?: boolean): Promise<void> {
+  start(): Promise<void> {
     if (!IndexedDbPersistence.isAvailable()) {
       this.persistenceError = new FirestoreError(
         Code.UNIMPLEMENTED,
@@ -234,19 +239,13 @@ export class IndexedDbPersistence implements Persistence {
     }
 
     assert(!this.started, 'IndexedDbPersistence double-started!');
-    this.allowTabSynchronization = !!synchronizeTabs;
-
     assert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
       .then(db => {
         this.simpleDb = db;
-        this.queryCache = new IndexedDbQueryCache(this.serializer);
-        this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
-          this.serializer,
-          /*keepDocumentChangeLog=*/ this.allowTabSynchronization
-        );
       })
+      .then(() => this.startRemoteDocumentCache())
       .then(() => {
         this.attachVisibilityHandler();
         this.attachWindowUnloadHook();
@@ -257,6 +256,12 @@ export class IndexedDbPersistence implements Persistence {
       .then(() => {
         this._started = true;
       });
+  }
+
+  private startRemoteDocumentCache(): Promise<void> {
+    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
+      this.remoteDocumentCache.start(txn)
+    );
   }
 
   setPrimaryStateListener(
