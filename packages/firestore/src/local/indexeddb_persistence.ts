@@ -346,6 +346,9 @@ export class IndexedDbPersistence implements Persistence {
   ): PersistencePromise<void> {
     assert(this.isPrimary, 'GC should only run in the primary client');
 
+    let activeClients;
+    let inactiveClients;
+
     if (
       !this.isWithinAge(
         this.lastGarbageCollectionTime,
@@ -357,23 +360,25 @@ export class IndexedDbPersistence implements Persistence {
       return clientMetadataStore(txn)
         .loadAll()
         .next(existingClients => {
-          const activeClients = this.filterActiveClients(
+          activeClients = this.filterActiveClients(
             existingClients,
             CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
           );
-
+          inactiveClients = existingClients.filter(
+            client => activeClients.indexOf(client) === -1
+          );
+        })
+        .next(() => {
           // Delete metadata for client that are no longer considered active.
           let p = PersistencePromise.resolve();
-          existingClients
-            .filter(client => activeClients.indexOf(client) === -1)
-            .forEach(inactiveClient => {
-              p = p.next(() =>
-                clientMetadataStore(txn).delete(inactiveClient.clientId)
-              );
-            });
-          return p.next(() => activeClients);
+          inactiveClients.forEach(inactiveClient => {
+            p = p.next(() =>
+              clientMetadataStore(txn).delete(inactiveClient.clientId)
+            );
+          });
+          return p;
         })
-        .next(activeClients => {
+        .next(() => {
           // Retrieve the minimum change ID from the set of active clients.
 
           // The primary client doesn't read from the document change log,
@@ -393,6 +398,15 @@ export class IndexedDbPersistence implements Persistence {
               oldestChangeId
             );
           }
+        })
+        .next(() => {
+          // Delete potential leftover entries that may continue to mark the
+          // inactive clients as zombied in LocalStorage.
+          inactiveClients.forEach(inactiveClient => {
+            this.window.localStorage.removeItem(
+              this.zombiedClientLocalStorageKey(inactiveClient.cliendId)
+            );
+          });
         });
     } else {
       return PersistencePromise.resolve();
