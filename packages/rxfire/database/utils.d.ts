@@ -20,4 +20,6 @@ export declare function isNil(obj: any): boolean;
  * that is populated with all the Realtime Database child events.
  * @param events
  */
-export declare function validateEventsArray(events?: ListenEvent[]): ListenEvent[];
+export declare function validateEventsArray(
+  events?: ListenEvent[]
+): ListenEvent[];

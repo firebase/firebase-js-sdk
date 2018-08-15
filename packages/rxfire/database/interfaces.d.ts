@@ -15,14 +15,14 @@
  */
 import { database } from 'firebase';
 export declare enum ListenEvent {
-    added = "child_added",
-    removed = "child_removed",
-    changed = "child_changed",
-    moved = "child_moved",
-    value = "value",
+  added = 'child_added',
+  removed = 'child_removed',
+  changed = 'child_changed',
+  moved = 'child_moved',
+  value = 'value'
 }
 export interface QueryChange {
-    snapshot: database.DataSnapshot;
-    prevKey: string | null | undefined;
-    event: ListenEvent;
+  snapshot: database.DataSnapshot;
+  prevKey: string | null | undefined;
+  event: ListenEvent;
 }
