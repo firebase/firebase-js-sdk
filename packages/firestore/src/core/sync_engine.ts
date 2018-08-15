@@ -847,22 +847,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     );
   }
 
-  handleUserChange(user: User): Promise<void> {
+  async handleCredentialChange(user: User): Promise<void> {
+    const userChanged = !this.currentUser.isEqual(user);
     this.currentUser = user;
-    return this.localStore
-      .handleUserChange(user)
-      .then(result => {
-        // TODO(multitab): Consider calling this only in the primary tab.
-        this.sharedClientState.handleUserChange(
-          user,
-          result.removedBatchIds,
-          result.addedBatchIds
-        );
-        return this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
-      })
-      .then(() => {
-        return this.remoteStore.handleUserChange(user);
-      });
+
+    if (userChanged) {
+      const result = await this.localStore.handleUserChange(user);
+      // TODO(multitab): Consider calling this only in the primary tab.
+      this.sharedClientState.handleUserChange(
+        user,
+        result.removedBatchIds,
+        result.addedBatchIds
+      );
+      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
+    }
+
+    await this.remoteStore.handleCredentialChange();
   }
 
   // PORTING NOTE: Multi-tab only
