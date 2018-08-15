@@ -22,7 +22,7 @@ import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Persistence:', [], () => {
-  specTest('Local mutations are persisted and re-sent', [], () => {
+  specTest('Local mutations are persisted and re-sent', ['no-memory-persistence'], () => {
     return spec()
       .userSets('collection/key1', { foo: 'bar' })
       .userSets('collection/key2', { baz: 'quu' })
@@ -33,7 +33,7 @@ describeSpec('Persistence:', [], () => {
       .expectNumOutstandingWrites(0);
   });
 
-  specTest('Persisted local mutations are visible to listeners', [], () => {
+  specTest('Persisted local mutations are visible to listeners', ['no-memory-persistence'], () => {
     const query = Query.atPath(path('collection'));
     return (
       spec()
@@ -63,7 +63,7 @@ describeSpec('Persistence:', [], () => {
     );
   });
 
-  specTest('Remote documents are persisted', [], () => {
+  specTest('Remote documents are persisted', ['no-memory-persistence'], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/key', 1000, { foo: 'bar' });
     return spec()
@@ -126,7 +126,7 @@ describeSpec('Persistence:', [], () => {
 
   specTest(
     'Mutation Queue is persisted across uid switches (with restarts)',
-    [],
+    ['no-memory-persistence'],
     () => {
       return spec()
         .userSets('users/anon', { uid: 'anon' })

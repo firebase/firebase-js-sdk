@@ -872,6 +872,7 @@ abstract class TestRunner {
   }
 
   private async doRestart(): Promise<void> {
+    expect(this.persistence instanceof MemoryPersistence).to.be.false;
     // Reinitialize everything, except the persistence.
     // No local store to shutdown.
     await this.remoteStore.shutdown();

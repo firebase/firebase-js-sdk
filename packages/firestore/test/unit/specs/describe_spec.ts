@@ -31,6 +31,7 @@ const NO_WEB_TAG = 'no-web';
 const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 const NO_LRU_TAG = 'no-lru';
+const NO_MEMORY_PERSISTENCE = 'no-memory-persistence';
 const BENCHMARK_TAG = 'benchmark';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
@@ -39,7 +40,8 @@ const KNOWN_TAGS = [
   NO_WEB_TAG,
   NO_ANDROID_TAG,
   NO_IOS_TAG,
-  NO_LRU_TAG
+  NO_LRU_TAG,
+  NO_MEMORY_PERSISTENCE
 ];
 
 // TOOD(mrschmidt): Make this configurable with mocha options.
@@ -77,6 +79,9 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
+    return it.skip;
+  } else if (!persistenceEnabled && tags.indexOf(NO_MEMORY_PERSISTENCE) !== -1) {
+    // Test requires actual persistence, but it's not enabled. Skip it.
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(NO_LRU_TAG) !== -1) {
     // spec should have a comment explaining why it is being skipped.

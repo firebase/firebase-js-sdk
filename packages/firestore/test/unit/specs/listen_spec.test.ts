@@ -228,7 +228,7 @@ describeSpec('Listens:', [], () => {
   // This would only happen when we use a resume token, but omitted for brevity.
   specTest(
     'Will gracefully handle watch stream reverting snapshots (with restart)',
-    [],
+    ['no-memory-persistence'],
     () => {
       const query = Query.atPath(path('collection'));
       const docAv1 = doc('collection/a', 1000, { v: 'v1000' });
@@ -570,7 +570,7 @@ describeSpec('Listens:', [], () => {
     );
   });
 
-  specTest('Omits global resume tokens for a short while', [], () => {
+  specTest('Omits global resume tokens for a short while', ['no-memory-persistence'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
 
@@ -597,7 +597,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Persists global resume tokens if the snapshot is old enough',
-    [],
+    ['no-memory-persistence'],
     () => {
       const initialVersion = 1000;
       const minutesLater = 5 * 60 * 1e6 + initialVersion;
