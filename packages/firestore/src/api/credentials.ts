@@ -15,7 +15,7 @@
  */
 
 import { User } from '../auth/user';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
@@ -63,9 +63,11 @@ export class OAuthToken implements Token {
 }
 
 /**
- * A Listener for user change events.
+ * A Listener for credential change events. The listener should fetch a new
+ * token and may need to invalidate other state if the current user has also
+ * changed.
  */
-export type UserListener = (user: User) => void;
+export type CredentialChangeListener = (user: User) => void;
 
 /**
  * Provides methods for getting the uid and token for the current user and
@@ -82,23 +84,24 @@ export interface CredentialsProvider {
   invalidateToken(): void;
 
   /**
-   * Specifies a listener to be notified of user changes (sign-in / sign-out).
-   * It immediately called once with the initial user.
+   * Specifies a listener to be notified of credential changes
+   * (sign-in / sign-out, token changes). It is immediately called once with the
+   * initial user.
    */
-  setUserChangeListener(listener: UserListener): void;
+  setChangeListener(changeListener: CredentialChangeListener): void;
 
-  /** Removes the previously-set user change listener. */
-  removeUserChangeListener(): void;
+  /** Removes the previously-set change listener. */
+  removeChangeListener(): void;
 }
 
 /** A CredentialsProvider that always yields an empty token. */
 export class EmptyCredentialsProvider implements CredentialsProvider {
   /**
-   * Stores the User listener registered with setUserChangeListener()
+   * Stores the listener registered with setChangeListener()
    * This isn't actually necessary since the UID never changes, but we use this
    * to verify the listen contract is adhered to in tests.
    */
-  private userListener: UserListener | null = null;
+  private changeListener: CredentialChangeListener | null = null;
 
   constructor() {}
 
@@ -108,19 +111,19 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
 
   invalidateToken(): void {}
 
-  setUserChangeListener(listener: UserListener): void {
-    assert(!this.userListener, 'Can only call setUserChangeListener() once.');
-    this.userListener = listener;
+  setChangeListener(changeListener: CredentialChangeListener): void {
+    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    this.changeListener = changeListener;
     // Fire with initial user.
-    listener(User.UNAUTHENTICATED);
+    changeListener(User.UNAUTHENTICATED);
   }
 
-  removeUserChangeListener(): void {
+  removeChangeListener(): void {
     assert(
-      this.userListener !== null,
-      'removeUserChangeListener() when no listener registered'
+      this.changeListener !== null,
+      'removeChangeListener() when no listener registered'
     );
-    this.userListener = null;
+    this.changeListener = null;
   }
 }
 
@@ -135,31 +138,26 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private currentUser: User;
 
   /**
-   * Counter used to detect if the user changed while a getToken request was
+   * Counter used to detect if the token changed while a getToken request was
    * outstanding.
    */
-  private userCounter = 0;
+  private tokenCounter = 0;
 
-  /** The User listener registered with setUserChangeListener(). */
-  private userListener: UserListener | null = null;
+  /** The listener registered with setChangeListener(). */
+  private changeListener: CredentialChangeListener | null = null;
 
   private forceRefresh = false;
 
   constructor(private readonly app: FirebaseApp) {
-    // We listen for token changes but all we really care about is knowing when
-    // the uid may have changed.
     this.tokenListener = () => {
-      const newUser = this.getUser();
-      if (!this.currentUser || !newUser.isEqual(this.currentUser)) {
-        this.currentUser = newUser;
-        this.userCounter++;
-        if (this.userListener) {
-          this.userListener(this.currentUser);
-        }
+      this.tokenCounter++;
+      this.currentUser = this.getUser();
+      if (this.changeListener) {
+        this.changeListener(this.currentUser);
       }
     };
 
-    this.userCounter = 0;
+    this.tokenCounter = 0;
 
     // Will fire at least once where we set this.currentUser
     (this.app as _FirebaseApp).INTERNAL.addAuthTokenListener(
@@ -173,21 +171,21 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       'getToken cannot be called after listener removed.'
     );
 
-    // Take note of the current value of the userCounter so that this method can
-    // fail (with an ABORTED error) if there is a user change while the request
-    // is outstanding.
-    const initialUserCounter = this.userCounter;
+    // Take note of the current value of the tokenCounter so that this method
+    // can fail (with an ABORTED error) if there is a token change while the
+    // request is outstanding.
+    const initialTokenCounter = this.tokenCounter;
     const forceRefresh = this.forceRefresh;
     this.forceRefresh = false;
     return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(
       tokenData => {
-        // Cancel the request since the user changed while the request was
-        // outstanding so the response is likely for a previous user (which
+        // Cancel the request since the token changed while the request was
+        // outstanding so the response is potentially for a previous user (which
         // user, we can't be sure).
-        if (this.userCounter !== initialUserCounter) {
+        if (this.tokenCounter !== initialTokenCounter) {
           throw new FirestoreError(
             Code.ABORTED,
-            'getToken aborted due to uid change.'
+            'getToken aborted due to token change.'
           );
         } else {
           if (tokenData) {
@@ -208,40 +206,30 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.forceRefresh = true;
   }
 
-  setUserChangeListener(listener: UserListener): void {
-    assert(!this.userListener, 'Can only call setUserChangeListener() once.');
-    this.userListener = listener;
+  setChangeListener(changeListener: CredentialChangeListener): void {
+    assert(!this.changeListener, 'Can only call setChangeListener() once.');
+    this.changeListener = changeListener;
 
     // Fire the initial event, but only if we received the initial user
     if (this.currentUser) {
-      listener(this.currentUser);
+      changeListener(this.currentUser);
     }
   }
 
-  removeUserChangeListener(): void {
+  removeChangeListener(): void {
+    assert(this.tokenListener != null, 'removeChangeListener() called twice');
     assert(
-      this.tokenListener != null,
-      'removeUserChangeListener() called twice'
-    );
-    assert(
-      this.userListener !== null,
-      'removeUserChangeListener() called when no listener registered'
+      this.changeListener !== null,
+      'removeChangeListener() called when no listener registered'
     );
     (this.app as _FirebaseApp).INTERNAL.removeAuthTokenListener(
       this.tokenListener!
     );
     this.tokenListener = null;
-    this.userListener = null;
+    this.changeListener = null;
   }
 
   private getUser(): User {
-    // TODO(mikelehen): Remove this check once we're shipping with firebase.js.
-    if (typeof (this.app as _FirebaseApp).INTERNAL.getUid !== 'function') {
-      fail(
-        'This version of the Firestore SDK requires at least version' +
-          ' 3.7.0 of firebase.js.'
-      );
-    }
     const currentUid = (this.app as _FirebaseApp).INTERNAL.getUid();
     assert(
       currentUid === null || typeof currentUid === 'string',
@@ -304,12 +292,12 @@ export class FirstPartyCredentialsProvider implements CredentialsProvider {
 
   // TODO(33108925): can someone switch users w/o a page refresh?
   // TODO(33110621): need to understand token/session lifecycle
-  setUserChangeListener(listener: UserListener): void {
+  setChangeListener(changeListener: CredentialChangeListener): void {
     // Fire with initial uid.
-    listener(User.FIRST_PARTY);
+    changeListener(User.FIRST_PARTY);
   }
 
-  removeUserChangeListener(): void {}
+  removeChangeListener(): void {}
 
   invalidateToken(): void {}
 }
