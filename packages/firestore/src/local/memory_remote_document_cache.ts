@@ -34,13 +34,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = maybeDocumentMap();
   private newDocumentChanges = documentKeySet();
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    // Technically a no-op but we clear the set of changed documents to mimic
-    // the behavior of the IndexedDb counterpart.
-    this.newDocumentChanges = documentKeySet();
-    return PersistencePromise.resolve();
-  }
-
   addEntries(
     transaction: PersistenceTransaction,
     maybeDocuments: MaybeDocument[]
