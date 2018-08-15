@@ -45,6 +45,10 @@ collectionData(citiesRef, 'id')
 
 ## Easily combine multiple Firebase data sources
 
+RxJS provides multiple operators and creation methods for combining observable streams. This makes it easy to combine data from multiple Firebase resources. You can also handle simplify high asynchronous tasks like joins into a flat stream.
+
+The example below streams a list of "cities" from Firestore and then retrieves their image from a Cloud Storage bucket. Both tasks are asynchronous but RxJS makes it easy to combine these tasks together.
+
 ```ts
 import firebase from 'firebase/app';
 import 'firebase/firestore';
@@ -67,7 +71,7 @@ collectionData(citiesRef, 'id')
     })
   )
   .subscribe(cities => {
-    console.log(cities.imageURL);
+    cities.forEach(c => console.log(c.imageURL));
   });
 ```
 

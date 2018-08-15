@@ -35,7 +35,7 @@ The `percentage()` function creates an observable that emits percentage of the u
 
 |                 |                                            |
 |-----------------|--------------------------------------------|
-| **function**    | `fromTask()`                               |
+| **function**    | `percentage()`                             |
 | **params**      | `storage.UploadTask`                       |
 | **import path** | `rxfire/storage`                           |
 | **return**      | `Observable<number>`                       |
@@ -55,7 +55,7 @@ const davidRef = storage.ref('users/david.png');
 const task = davidRef.putString('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
 
 percentage(task)
-  .subscribe(uploadProgress => { console.log(uploadProgress); });
+  .subscribe(action => { console.log(action.progress, action.snapshot); });
 ```
 
 ## Reference Observables
