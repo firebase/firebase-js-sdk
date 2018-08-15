@@ -1,3 +1,8 @@
+# Unreleased
+- [fixed] Fixed an issue where changes to custom authentication claims did not
+  take effect until you did a full sign-out and sign-in.
+  (firebase/firebase-ios-sdk#1499)
+
 # 0.7.0 (Unreleased)
 - [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
   documents from cache.
