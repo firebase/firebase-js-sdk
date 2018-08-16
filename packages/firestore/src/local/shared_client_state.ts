@@ -624,6 +624,11 @@ export class WebStorageSharedClientState implements SharedClientState {
     }
 
     this.earlyEvents = [];
+
+    // Register a window unload hook to remove the client metadata entry from
+    // LocalStorage even if `shutdown()` was not called.
+    this.platform.window.addEventListener('unload', () => this.shutdown());
+
     this.started = true;
   }
 
@@ -728,13 +733,11 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   shutdown(): void {
-    assert(
-      this.started,
-      'WebStorageSharedClientState.shutdown() called when not started'
-    );
-    this.platform.window.removeEventListener('storage', this.storageListener);
-    this.removeItem(this.localClientStorageKey);
-    this.started = false;
+    if (this.started) {
+      this.platform.window.removeEventListener('storage', this.storageListener);
+      this.removeItem(this.localClientStorageKey);
+      this.started = false;
+    }
   }
 
   private getItem(key: string): string | null {

@@ -191,8 +191,9 @@ describe('WebStorageSharedClientState', () => {
     // client. If we directly relied on LocalStorage listeners, we would not
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
-      expect(type).to.equal('storage');
-      localStorageCallbacks.push(callback);
+      if (type === 'storage') {
+        localStorageCallbacks.push(callback);
+      }
     };
     window.removeEventListener = () => {};
 
