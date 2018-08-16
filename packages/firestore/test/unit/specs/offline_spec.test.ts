@@ -28,8 +28,6 @@ describeSpec('Offline:', [], () => {
     return (
       spec()
         .userListens(query)
-        // second error triggers event
-        .watchStreamCloses(Code.UNAVAILABLE)
         .watchStreamCloses(Code.UNAVAILABLE)
         .expectEvents(query, {
           fromCache: true,
@@ -49,8 +47,7 @@ describeSpec('Offline:', [], () => {
         .watchAcks(query)
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
-        // getting two more errors triggers offline state
-        .watchStreamCloses(Code.UNAVAILABLE)
+        // second error triggers offline state
         .watchStreamCloses(Code.UNAVAILABLE)
         .expectEvents(query, {
           fromCache: true,
@@ -71,8 +68,7 @@ describeSpec('Offline:', [], () => {
       return (
         spec()
           .userListens(query)
-          // getting two errors triggers offline state
-          .watchStreamCloses(Code.UNAVAILABLE)
+          // error triggers offline state
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query, {
             fromCache: true,
@@ -83,10 +79,9 @@ describeSpec('Offline:', [], () => {
           // If the next (already scheduled) connection attempt fails, we'll move
           // to unknown since there are no listeners, and stop trying to connect.
           .watchStreamCloses(Code.UNAVAILABLE)
-          // Suppose sometime later we listen again, it should take two failures
+          // Suppose sometime later we listen again, it should take one failure
           // before we get cached data.
           .userListens(query)
-          .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query, {
             fromCache: true,
@@ -107,8 +102,7 @@ describeSpec('Offline:', [], () => {
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
         .restoreListen(query, 'resume-token-1000')
-        // getting two more errors triggers offline state and fromCache: true
-        .watchStreamCloses(Code.UNAVAILABLE)
+        // second error triggers offline state and fromCache: true
         .watchStreamCloses(Code.UNAVAILABLE)
         .expectEvents(query, { fromCache: true })
         // Going online and getting a CURRENT message triggers fromCache: false
@@ -136,8 +130,7 @@ describeSpec('Offline:', [], () => {
         // first error triggers unknown state
         .watchStreamCloses(Code.UNAVAILABLE)
         .restoreListen(query, 'resume-token-1001')
-        // getting two more errors triggers offline state.
-        .watchStreamCloses(Code.UNAVAILABLE)
+        // second error triggers offline state.
         .watchStreamCloses(Code.UNAVAILABLE)
         .watchAcksFull(query, 1001)
         .watchAcksFull(limboQuery, 1001)
@@ -191,9 +184,8 @@ describeSpec('Offline:', [], () => {
       return (
         spec()
           .userListens(query1)
-          // 2 Failures should mark the client offline and trigger an empty
+          // After failure, we mark the client offline and trigger an empty
           // fromCache event.
-          .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query1, { fromCache: true })
 

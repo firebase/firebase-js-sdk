@@ -1,4 +1,10 @@
-# 0.7.0 (Unreleased)
+# 0.7.1 (Unreleased)
+- [fixed] Fixed an issue where the first `get()` call made after being offline
+  could incorrectly return cached data without attempting to reach the backend.
+- [changed] Changed `get()` to only make 1 attempt to reach the backend before
+  returning cached data, potentially reducing delays while offline.
+
+# 0.7.0
 - [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
   documents from cache.
 - [changed] Prepared the persistence layer to allow shared access from multiple
