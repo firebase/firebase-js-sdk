@@ -5,6 +5,9 @@
   tabs. While this feature is not yet available, all schema changes are included
   in this release. Once you upgrade, you will not be able to use an older version
   of the Firestore SDK with persistence enabled.
+- [fixed] Fixed an issue where changes to custom authentication claims did not
+  take effect until you did a full sign-out and sign-in.
+  (firebase/firebase-ios-sdk#1499)
 
 # 0.6.1
 - [changed] Improved how Firestore handles idle queries to reduce the cost of
