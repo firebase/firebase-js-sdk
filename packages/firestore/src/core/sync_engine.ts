@@ -315,6 +315,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
+        this.sharedClientState.garbageCollectQueryState(queryView.targetId);
         this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)

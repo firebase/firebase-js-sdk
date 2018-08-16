@@ -102,8 +102,11 @@ export interface SharedClientState {
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
-  /** Removes a Query Target ID for the local Firestore clients. */
+  /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
+
+  /** Removes the target's metadata entry. */
+  garbageCollectQueryState(targetId: TargetId): void;
 
   /**
    * Processes an update to a query target.
@@ -711,7 +714,10 @@ export class WebStorageSharedClientState implements SharedClientState {
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localClientState.removeQueryTarget(targetId);
     this.persistClientState();
-    // TODO(multitab): Remove the query state from Local Storage.
+  }
+
+  garbageCollectQueryState(targetId: TargetId): void {
+    this.removeItem(this.toLocalStorageQueryTargetMetadataKey(targetId));
   }
 
   trackQueryUpdate(
@@ -887,10 +893,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       error
     );
 
-    const targetKey = `${QUERY_TARGET_KEY_PREFIX}_${
-      this.persistenceKey
-    }_${targetId}`;
-
+    const targetKey = this.toLocalStorageQueryTargetMetadataKey(targetId);
     this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
@@ -1101,6 +1104,9 @@ export class MemorySharedClientState implements SharedClientState {
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+  }
+
+  garbageCollectQueryState(targetId: TargetId): void {
     delete this.queryState[targetId];
   }
 

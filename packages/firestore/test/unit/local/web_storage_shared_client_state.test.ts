@@ -371,6 +371,16 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);
     });
+
+    it('garbage collects entry', () => {
+      sharedClientState.addLocalQueryTarget(0);
+      sharedClientState.trackQueryUpdate(0, 'current')
+      assertTargetState(0, 'current');
+      sharedClientState.removeLocalQueryTarget(0);
+      assertTargetState(0, 'current');
+      sharedClientState.garbageCollectQueryState(0);
+      expect(localStorage.getItem(targetKey(0))).to.be.null;
+    })
   });
 
   describe('combines client state', () => {
