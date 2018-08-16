@@ -952,7 +952,7 @@ export class LocalStore {
           // we lock the IndexedDb store, secondary clients will however NOT be
           // able to act upon these notifications until after this transaction
           // is committed. b/33446471 will remove this reliance.
-          this.sharedClientState.trackMutationResult(
+          this.sharedClientState.updateMutationState(
             batchResult.batch.batchId,
             'acknowledged'
           );

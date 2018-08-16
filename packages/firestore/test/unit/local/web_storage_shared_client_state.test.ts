@@ -287,7 +287,7 @@ describe('WebStorageSharedClientState', () => {
     it('with an acknowledged batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'acknowledged');
+      sharedClientState.updateMutationState(0, 'acknowledged');
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -295,7 +295,7 @@ describe('WebStorageSharedClientState', () => {
     it('with a rejected batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateMutationState(0, 'rejected', TEST_ERROR);
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -350,7 +350,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
     });
 
@@ -358,9 +358,9 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
-      sharedClientState.trackQueryUpdate(0, 'current');
+      sharedClientState.updateQueryState(0, 'current');
       assertTargetState(0, 'current');
     });
 
@@ -368,8 +368,18 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateQueryState(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);
+    });
+
+    it('garbage collects entry', () => {
+      sharedClientState.addLocalQueryTarget(0);
+      sharedClientState.updateQueryState(0, 'current');
+      assertTargetState(0, 'current');
+      sharedClientState.removeLocalQueryTarget(0);
+      assertTargetState(0, 'current');
+      sharedClientState.clearQueryState(0);
+      expect(localStorage.getItem(targetKey(0))).to.be.null;
     });
   });
 

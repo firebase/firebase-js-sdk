@@ -89,7 +89,7 @@ export interface SharedClientState {
    * Called by the primary client to notify secondary clients of mutation
    * results as they come back from the backend.
    */
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -102,7 +102,7 @@ export interface SharedClientState {
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
-  /** Removes a Query Target ID for the local Firestore clients. */
+  /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
 
   /**
@@ -111,11 +111,19 @@ export interface SharedClientState {
    * Called by the primary client to notify secondary clients of document
    * changes or state transitions that affect the provided query target.
    */
-  trackQueryUpdate(
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
   ): void;
+
+  /**
+   * Removes the target's metadata entry.
+   *
+   * Called by the primary client when all clients stopped listening to a query
+   * target.
+   */
+  clearQueryState(targetId: TargetId): void;
 
   /**
    * Gets the active Query Targets IDs for all active clients.
@@ -668,7 +676,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistMutationState(batchId, 'pending');
   }
 
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -711,10 +719,13 @@ export class WebStorageSharedClientState implements SharedClientState {
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localClientState.removeQueryTarget(targetId);
     this.persistClientState();
-    // TODO(multitab): Remove the query state from Local Storage.
   }
 
-  trackQueryUpdate(
+  clearQueryState(targetId: TargetId): void {
+    this.removeItem(this.toLocalStorageQueryTargetMetadataKey(targetId));
+  }
+
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
@@ -887,10 +898,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       error
     );
 
-    const targetKey = `${QUERY_TARGET_KEY_PREFIX}_${
-      this.persistenceKey
-    }_${targetId}`;
-
+    const targetKey = this.toLocalStorageQueryTargetMetadataKey(targetId);
     this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
@@ -1078,7 +1086,7 @@ export class MemorySharedClientState implements SharedClientState {
     // No op.
   }
 
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -1091,7 +1099,7 @@ export class MemorySharedClientState implements SharedClientState {
     return this.queryState[targetId] || 'not-current';
   }
 
-  trackQueryUpdate(
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
@@ -1101,6 +1109,9 @@ export class MemorySharedClientState implements SharedClientState {
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+  }
+
+  clearQueryState(targetId: TargetId): void {
     delete this.queryState[targetId];
   }
 
