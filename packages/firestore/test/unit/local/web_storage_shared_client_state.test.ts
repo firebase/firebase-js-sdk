@@ -350,7 +350,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
     });
 
@@ -358,9 +358,9 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
-      sharedClientState.trackQueryUpdate(0, 'current');
+      sharedClientState.updateQueryState(0, 'current');
       assertTargetState(0, 'current');
     });
 
@@ -368,17 +368,17 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateQueryState(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);
     });
 
     it('garbage collects entry', () => {
       sharedClientState.addLocalQueryTarget(0);
-      sharedClientState.trackQueryUpdate(0, 'current');
+      sharedClientState.updateQueryState(0, 'current');
       assertTargetState(0, 'current');
       sharedClientState.removeLocalQueryTarget(0);
       assertTargetState(0, 'current');
-      sharedClientState.garbageCollectQueryState(0);
+      sharedClientState.clearQueryState(0);
       expect(localStorage.getItem(targetKey(0))).to.be.null;
     });
   });

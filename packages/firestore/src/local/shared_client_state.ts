@@ -105,20 +105,26 @@ export interface SharedClientState {
   /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
 
-  /** Removes the target's metadata entry. */
-  garbageCollectQueryState(targetId: TargetId): void;
-
   /**
    * Processes an update to a query target.
    *
    * Called by the primary client to notify secondary clients of document
    * changes or state transitions that affect the provided query target.
    */
-  trackQueryUpdate(
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
   ): void;
+
+
+  /**
+   * Removes the target's metadata entry.
+   *
+   * Called by the primary client when all clients stopped listening to a query
+   * target.
+   */
+  clearQueryState(targetId: TargetId): void;
 
   /**
    * Gets the active Query Targets IDs for all active clients.
@@ -716,11 +722,11 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistClientState();
   }
 
-  garbageCollectQueryState(targetId: TargetId): void {
+  clearQueryState(targetId: TargetId): void {
     this.removeItem(this.toLocalStorageQueryTargetMetadataKey(targetId));
   }
 
-  trackQueryUpdate(
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
@@ -1094,7 +1100,7 @@ export class MemorySharedClientState implements SharedClientState {
     return this.queryState[targetId] || 'not-current';
   }
 
-  trackQueryUpdate(
+  updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
     error?: FirestoreError
@@ -1106,7 +1112,7 @@ export class MemorySharedClientState implements SharedClientState {
     this.localState.removeQueryTarget(targetId);
   }
 
-  garbageCollectQueryState(targetId: TargetId): void {
+  clearQueryState(targetId: TargetId): void {
     delete this.queryState[targetId];
   }
 

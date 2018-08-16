@@ -315,7 +315,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
-        this.sharedClientState.garbageCollectQueryState(queryView.targetId);
+        this.sharedClientState.clearQueryState(queryView.targetId);
         this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
@@ -505,7 +505,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('rejectListens()');
 
     // PORTING NOTE: Multi-tab only.
-    this.sharedClientState.trackQueryUpdate(targetId, 'rejected', err);
+    this.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
@@ -794,7 +794,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             ).then(() => {
               if (viewChange.snapshot) {
                 if (this.isPrimary) {
-                  this.sharedClientState.trackQueryUpdate(
+                  this.sharedClientState.updateQueryState(
                     queryView.targetId,
                     viewChange.snapshot.fromCache ? 'not-current' : 'current'
                   );
