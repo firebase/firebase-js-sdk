@@ -287,7 +287,7 @@ describe('WebStorageSharedClientState', () => {
     it('with an acknowledged batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'acknowledged');
+      sharedClientState.updateMutationState(0, 'acknowledged');
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -295,7 +295,7 @@ describe('WebStorageSharedClientState', () => {
     it('with a rejected batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateMutationState(0, 'rejected', TEST_ERROR);
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });

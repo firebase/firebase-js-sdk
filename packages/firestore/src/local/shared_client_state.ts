@@ -89,7 +89,7 @@ export interface SharedClientState {
    * Called by the primary client to notify secondary clients of mutation
    * results as they come back from the backend.
    */
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -676,7 +676,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistMutationState(batchId, 'pending');
   }
 
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
@@ -1086,7 +1086,7 @@ export class MemorySharedClientState implements SharedClientState {
     // No op.
   }
 
-  trackMutationResult(
+  updateMutationState(
     batchId: BatchId,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
