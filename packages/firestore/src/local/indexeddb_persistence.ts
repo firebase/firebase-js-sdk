@@ -402,9 +402,9 @@ export class IndexedDbPersistence implements Persistence {
 
       // Delete potential leftover entries that may continue to mark the
       // inactive clients as zombied in LocalStorage.
-      // These deletes have to be executed only after the IndexedDb garbage
-      // collection commits successfully. Otherwise, stale clients' metadata
-      // may temporarily be included in another clients primary election.
+      // Ideally we'd delete the IndexedDb and LocalStorage zombie entries for
+      // the client atomically, but we can't. So we opt to delete the IndexedDb
+      // entries first to avoid potentially reviving a zombied client.
       inactiveClients.forEach(inactiveClient => {
         this.window.localStorage.removeItem(
           this.zombiedClientLocalStorageKey(inactiveClient.clientId)
