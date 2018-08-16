@@ -47,13 +47,6 @@ import * as objUtils from '../../../src/util/obj';
 import { targetIdSet } from '../../../src/model/collections';
 import { SortedSet } from '../../../src/util/sorted_set';
 
-/**
- * The tests assert that the lastUpdateTime of each row in LocalStorage gets
- * updated. We allow a 0.1s difference in update time to account for processing
- * and locking time in LocalStorage.
- */
-const GRACE_INTERVAL_MS = 100;
-
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 const TEST_ERROR = new FirestoreError('internal', 'Test Error');
@@ -234,14 +227,7 @@ describe('WebStorageSharedClientState', () => {
       )
     );
 
-    expect(Object.keys(actual)).to.have.members([
-      'lastUpdateTime',
-      'activeTargetIds'
-    ]);
-    expect(actual.lastUpdateTime)
-      .to.be.a('number')
-      .greaterThan(Date.now() - GRACE_INTERVAL_MS)
-      .and.at.most(Date.now());
+    expect(Object.keys(actual)).to.have.members(['activeTargetIds']);
     expect(actual.activeTargetIds)
       .to.be.an('array')
       .and.have.members(activeTargetIds);
@@ -313,7 +299,7 @@ describe('WebStorageSharedClientState', () => {
         const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
         expect(actual.state).to.equal(queryTargetState);
 
-        const expectedMembers = ['state', 'lastUpdateTime'];
+        const expectedMembers = ['state'];
         if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
           expect(actual.error.code).to.equal(err.code);
@@ -771,7 +757,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'not-current'
           ).toLocalStorageJSON()
         );
@@ -789,7 +774,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'current'
           ).toLocalStorageJSON()
         );
@@ -807,7 +791,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(1),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'rejected',
             TEST_ERROR
           ).toLocalStorageJSON()
@@ -831,7 +814,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );
