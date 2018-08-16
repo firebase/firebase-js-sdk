@@ -321,9 +321,7 @@ export class IndexedDbPersistence implements Persistence {
           if (wasPrimary && !this.isPrimary) {
             return this.releasePrimaryLeaseIfHeld(txn);
           } else if (this.isPrimary) {
-            return this.acquireOrExtendPrimaryLease(txn).next(() =>
-              this.maybeGarbageCollectMultiClientState(txn)
-            );
+            return this.acquireOrExtendPrimaryLease(txn);
           }
         });
     });
@@ -341,15 +339,9 @@ export class IndexedDbPersistence implements Persistence {
    * RemoteDocumentChanges and the ClientMetadata store based on the last update
    * time of all clients.
    */
-  private maybeGarbageCollectMultiClientState(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    assert(this.isPrimary, 'GC should only run in the primary client');
-
-    let activeClients;
-    let inactiveClients;
-
+  private async maybeGarbageCollectMultiClientState(): Promise<void> {
     if (
+      this.isPrimary &&
       !this.isWithinAge(
         this.lastGarbageCollectionTime,
         CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
@@ -357,59 +349,67 @@ export class IndexedDbPersistence implements Persistence {
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
-      return clientMetadataStore(txn)
-        .loadAll()
-        .next(existingClients => {
-          activeClients = this.filterActiveClients(
-            existingClients,
-            CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
-          );
-          inactiveClients = existingClients.filter(
-            client => activeClients.indexOf(client) === -1
-          );
-        })
-        .next(() => {
-          // Delete metadata for client that are no longer considered active.
-          let p = PersistencePromise.resolve();
-          inactiveClients.forEach(inactiveClient => {
-            p = p.next(() =>
-              clientMetadataStore(txn).delete(inactiveClient.clientId)
-            );
-          });
-          return p;
-        })
-        .next(() => {
-          // Retrieve the minimum change ID from the set of active clients.
+      let activeClients: DbClientMetadata[];
+      let inactiveClients: DbClientMetadata[];
 
-          // The primary client doesn't read from the document change log,
-          // and hence we exclude it when we determine the minimum
-          // `lastProcessedDocumentChangeId`.
-          activeClients = activeClients.filter(
-            client => client.clientId !== this.clientId
-          );
+      await this.runTransaction('readwrite', true, txn => {
+        const metadataStore = IndexedDbPersistence.getStore<
+          DbClientMetadataKey,
+          DbClientMetadata
+        >(txn, DbClientMetadata.store);
 
-          if (activeClients.length > 0) {
-            const processedChangeIds = activeClients.map(
-              client => client.lastProcessedDocumentChangeId || 0
+        return metadataStore
+          .loadAll()
+          .next(existingClients => {
+            activeClients = this.filterActiveClients(
+              existingClients,
+              CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
             );
-            const oldestChangeId = Math.min(...processedChangeIds);
-            return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
-              new IndexedDbTransaction(txn),
-              oldestChangeId
+            inactiveClients = existingClients.filter(
+              client => activeClients.indexOf(client) === -1
             );
-          }
-        })
-        .next(() => {
-          // Delete potential leftover entries that may continue to mark the
-          // inactive clients as zombied in LocalStorage.
-          inactiveClients.forEach(inactiveClient => {
-            this.window.localStorage.removeItem(
-              this.zombiedClientLocalStorageKey(inactiveClient.cliendId)
+          })
+          .next(() => {
+            // Delete metadata for clients that are no longer considered active.
+            let p = PersistencePromise.resolve();
+            inactiveClients.forEach(inactiveClient => {
+              p = p.next(() => metadataStore.delete(inactiveClient.clientId));
+            });
+            return p;
+          })
+          .next(() => {
+            // Retrieve the minimum change ID from the set of active clients.
+
+            // The primary client doesn't read from the document change log,
+            // and hence we exclude it when we determine the minimum
+            // `lastProcessedDocumentChangeId`.
+            activeClients = activeClients.filter(
+              client => client.clientId !== this.clientId
             );
+
+            if (activeClients.length > 0) {
+              const processedChangeIds = activeClients.map(
+                client => client.lastProcessedDocumentChangeId || 0
+              );
+              const oldestChangeId = Math.min(...processedChangeIds);
+              return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
+                txn,
+                oldestChangeId
+              );
+            }
           });
-        });
-    } else {
-      return PersistencePromise.resolve();
+      });
+
+      // Delete potential leftover entries that may continue to mark the
+      // inactive clients as zombied in LocalStorage.
+      // Ideally we'd delete the IndexedDb and LocalStorage zombie entries for
+      // the client atomically, but we can't. So we opt to delete the IndexedDb
+      // entries first to avoid potentially reviving a zombied client.
+      inactiveClients.forEach(inactiveClient => {
+        this.window.localStorage.removeItem(
+          this.zombiedClientLocalStorageKey(inactiveClient.clientId)
+        );
+      });
     }
   }
 
@@ -422,9 +422,9 @@ export class IndexedDbPersistence implements Persistence {
       TimerId.ClientMetadataRefresh,
       CLIENT_METADATA_REFRESH_INTERVAL_MS,
       () => {
-        return this.updateClientMetadataAndTryBecomePrimary().then(() =>
-          this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
-        );
+        return this.updateClientMetadataAndTryBecomePrimary()
+          .then(() => this.maybeGarbageCollectMultiClientState())
+          .then(() => this.scheduleClientMetadataAndPrimaryLeaseRefreshes());
       }
     );
   }
