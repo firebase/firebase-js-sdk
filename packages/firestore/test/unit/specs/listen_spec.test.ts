@@ -570,30 +570,34 @@ describeSpec('Listens:', [], () => {
     );
   });
 
-  specTest('Omits global resume tokens for a short while', ['no-memory-persistence'], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 1000, { key: 'a' });
+  specTest(
+    'Omits global resume tokens for a short while',
+    ['no-memory-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
 
-    return (
-      spec()
-        .withGCEnabled(false)
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
+      return (
+        spec()
+          .withGCEnabled(false)
+          .userListens(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
 
-        // One millisecond later, watch sends an updated resume token but the
-        // user doesn't manage to unlisten before restart.
-        .watchSnapshots(2000, [], 'resume-token-2000')
-        .restart()
+          // One millisecond later, watch sends an updated resume token but the
+          // user doesn't manage to unlisten before restart.
+          .watchSnapshots(2000, [], 'resume-token-2000')
+          .restart()
 
-        .userListens(query, 'resume-token-1000')
-        .expectEvents(query, { added: [docA], fromCache: true })
-        .watchAcks(query)
-        .watchCurrents(query, 'resume-token-3000')
-        .watchSnapshots(3000)
-        .expectEvents(query, { fromCache: false })
-    );
-  });
+          .userListens(query, 'resume-token-1000')
+          .expectEvents(query, { added: [docA], fromCache: true })
+          .watchAcks(query)
+          .watchCurrents(query, 'resume-token-3000')
+          .watchSnapshots(3000)
+          .expectEvents(query, { fromCache: false })
+      );
+    }
+  );
 
   specTest(
     'Persists global resume tokens if the snapshot is old enough',
