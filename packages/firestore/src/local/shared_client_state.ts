@@ -117,7 +117,6 @@ export interface SharedClientState {
     error?: FirestoreError
   ): void;
 
-
   /**
    * Removes the target's metadata entry.
    *
