@@ -264,7 +264,6 @@ export class MutationMetadata {
  * serialization. The TargetId is omitted as it is encoded as part of the key.
  */
 interface QueryTargetStateSchema {
-  lastUpdateTime: number;
   state: QueryTargetState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
@@ -277,7 +276,6 @@ interface QueryTargetStateSchema {
 export class QueryTargetMetadata {
   constructor(
     readonly targetId: TargetId,
-    readonly lastUpdateTime: Date,
     readonly state: QueryTargetState,
     readonly error?: FirestoreError
   ) {
@@ -299,7 +297,6 @@ export class QueryTargetMetadata {
 
     let validData =
       typeof targetState === 'object' &&
-      isSafeInteger(targetState.lastUpdateTime) &&
       ['not-current', 'current', 'rejected'].indexOf(targetState.state) !==
         -1 &&
       (targetState.error === undefined ||
@@ -322,7 +319,6 @@ export class QueryTargetMetadata {
     if (validData) {
       return new QueryTargetMetadata(
         targetId,
-        new Date(targetState.lastUpdateTime),
         targetState.state,
         firestoreError
       );
@@ -337,7 +333,6 @@ export class QueryTargetMetadata {
 
   toLocalStorageJSON(): string {
     const targetState: QueryTargetStateSchema = {
-      lastUpdateTime: this.lastUpdateTime.getTime(),
       state: this.state
     };
 
@@ -358,7 +353,6 @@ export class QueryTargetMetadata {
  * key.
  */
 interface ClientStateSchema {
-  lastUpdateTime: number;
   activeTargetIds: number[];
 }
 
@@ -368,7 +362,6 @@ interface ClientStateSchema {
  */
 // Visible for testing.
 export interface ClientState {
-  readonly lastUpdateTime: Date;
   readonly activeTargetIds: TargetIdSet;
 }
 
@@ -379,7 +372,6 @@ export interface ClientState {
 class RemoteClientState implements ClientState {
   private constructor(
     readonly clientId: ClientId,
-    readonly lastUpdateTime: Date,
     readonly activeTargetIds: TargetIdSet
   ) {}
 
@@ -395,7 +387,6 @@ class RemoteClientState implements ClientState {
 
     let validData =
       typeof clientState === 'object' &&
-      isSafeInteger(clientState.lastUpdateTime) &&
       clientState.activeTargetIds instanceof Array;
 
     let activeTargetIdsSet = targetIdSet();
@@ -408,11 +399,7 @@ class RemoteClientState implements ClientState {
     }
 
     if (validData) {
-      return new RemoteClientState(
-        clientId,
-        new Date(clientState.lastUpdateTime),
-        activeTargetIdsSet
-      );
+      return new RemoteClientState(clientId, activeTargetIdsSet);
     } else {
       error(
         LOG_TAG,
@@ -482,11 +469,6 @@ export class SharedOnlineState {
 // Visible for testing.
 export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
-  lastUpdateTime: Date;
-
-  constructor() {
-    this.lastUpdateTime = new Date();
-  }
 
   addQueryTarget(targetId: TargetId): void {
     assert(
@@ -500,18 +482,12 @@ export class LocalClientState implements ClientState {
     this.activeTargetIds = this.activeTargetIds.delete(targetId);
   }
 
-  /** Sets the update time to the current time. */
-  refreshLastUpdateTime(): void {
-    this.lastUpdateTime = new Date();
-  }
-
   /**
    * Converts this entry into a JSON-encoded format we can use for LocalStorage.
    * Does not encode `clientId` as it is part of the key in LocalStorage.
    */
   toLocalStorageJSON(): string {
     const data: ClientStateSchema = {
-      lastUpdateTime: this.lastUpdateTime.getTime(),
       activeTargetIds: this.activeTargetIds.toArray()
     };
     return JSON.stringify(data);
@@ -849,9 +825,6 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   private persistClientState(): void {
-    // TODO(multitab): Consider rate limiting/combining state updates for
-    // clients that frequently update their client state.
-    this.localClientState.refreshLastUpdateTime();
     this.setItem(
       this.localClientStorageKey,
       this.localClientState.toLocalStorageJSON()
@@ -891,14 +864,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    const targetMetadata = new QueryTargetMetadata(
-      targetId,
-      /* lastUpdateTime= */ new Date(),
-      state,
-      error
-    );
-
     const targetKey = this.toLocalStorageQueryTargetMetadataKey(targetId);
+    const targetMetadata = new QueryTargetMetadata(targetId, state, error);
     this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
