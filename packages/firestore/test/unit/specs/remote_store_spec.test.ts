@@ -67,7 +67,7 @@ describeSpec('Remote store:', [], () => {
       .expectEvents(query, { added: [doc4] }); // This should work now.
   });
 
-  specTest('Cleans up watch state correctly', [], () => {
+  specTest('Cleans up watch state correctly', ['no-android', 'no-ios'], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return (

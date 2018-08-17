@@ -23,7 +23,7 @@ import { spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Offline:', [], () => {
-  specTest('Empty queries are resolved if client goes offline', [], () => {
+  specTest('Empty queries are resolved if client goes offline', ['no-android', 'no-ios'], () => {
     const query = Query.atPath(path('collection'));
     return (
       spec()
@@ -39,7 +39,7 @@ describeSpec('Offline:', [], () => {
     );
   });
 
-  specTest('A successful message delays offline status', [], () => {
+  specTest('A successful message delays offline status', ['no-android', 'no-ios'], () => {
     const query = Query.atPath(path('collection'));
     return (
       spec()
@@ -61,7 +61,7 @@ describeSpec('Offline:', [], () => {
 
   specTest(
     'Removing all listeners delays "Offline" status on next listen',
-    ['eager-gc'],
+    ['eager-gc', 'no-android', 'no-ios'],
     'Marked as no-lru because when a listen is re-added, it gets a new target id rather than reusing one',
     () => {
       const query = Query.atPath(path('collection'));
@@ -91,7 +91,7 @@ describeSpec('Offline:', [], () => {
     }
   );
 
-  specTest('Queries revert to fromCache=true when offline.', [], () => {
+  specTest('Queries revert to fromCache=true when offline.', ['no-android', 'no-ios'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     return (
@@ -111,7 +111,7 @@ describeSpec('Offline:', [], () => {
     );
   });
 
-  specTest('Queries with limbo documents handle going offline.', [], () => {
+  specTest('Queries with limbo documents handle going offline.', ['no-android', 'no-ios'], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });
     const limboQuery = Query.atPath(docA.key.path);
@@ -177,7 +177,7 @@ describeSpec('Offline:', [], () => {
   specTest(
     'New queries return immediately with fromCache=true when offline due to ' +
       'stream failures.',
-    [],
+    ['no-android', 'no-ios'],
     () => {
       const query1 = Query.atPath(path('collection'));
       const query2 = Query.atPath(path('collection2'));
