@@ -31,7 +31,8 @@ const LOG_TAG = 'ExponentialBackoff';
 export class ExponentialBackoff {
   private currentBaseMs: number;
   private timerPromise: CancelablePromise<void> | null = null;
-  private lastAttempt: Date = new Date(0);
+  /** The last backoff attempt, as epoch milliseconds. */
+  private lastAttemptTime = Date.now();
 
   constructor(
     /**
@@ -98,7 +99,12 @@ export class ExponentialBackoff {
     );
 
     // Some time may have already elapsed so account for that.
-    const delaySoFarMs = new Date().getTime() - this.lastAttempt.getTime();
+
+    // Math.max(0, ...) to guard against lastAttemptTime being in the future due
+    // to a clock change.
+    const delaySoFarMs = Math.max(0, Date.now() - this.lastAttemptTime);
+
+    // Math.max(0, ...) because the desired backoff may already be elapsed.
     const remainingDelayMs = Math.max(
       0,
       desiredDelayWithJitterMs - delaySoFarMs
@@ -118,7 +124,7 @@ export class ExponentialBackoff {
       this.timerId,
       remainingDelayMs,
       () => {
-        this.lastAttempt = new Date();
+        this.lastAttemptTime = Date.now();
         return op();
       }
     );
