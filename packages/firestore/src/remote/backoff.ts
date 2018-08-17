@@ -98,13 +98,10 @@ export class ExponentialBackoff {
       this.currentBaseMs + this.jitterDelayMs()
     );
 
-    // Some time may have already elapsed so account for that.
-
-    // Math.max(0, ...) to guard against lastAttemptTime being in the future due
-    // to a clock change.
+    // Guard against lastAttemptTime being in the future due to a clock change.
     const delaySoFarMs = Math.max(0, Date.now() - this.lastAttemptTime);
 
-    // Math.max(0, ...) because the desired backoff may already be elapsed.
+    // Guard against the backoff delay already being past.
     const remainingDelayMs = Math.max(
       0,
       desiredDelayWithJitterMs - delaySoFarMs
