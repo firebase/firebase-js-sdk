@@ -24,24 +24,20 @@ import { SpecStep } from './spec_test_runner';
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
+// The remaining tags specify features that must be present to run a given test
 // Multi-client related tests (which imply persistence).
 const MULTI_CLIENT_TAG = 'multi-client';
-// Explicit per-platform disable flags.
-const NO_WEB_TAG = 'no-web';
-const NO_ANDROID_TAG = 'no-android';
-const NO_IOS_TAG = 'no-ios';
-const NO_LRU_TAG = 'no-lru';
-const NO_MEMORY_PERSISTENCE = 'no-memory-persistence';
+const EAGER_GC_TAG = 'eager-gc';
+const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
+const JAVASCRIPT_TAG = 'javascript';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
   EXCLUSIVE_TAG,
   MULTI_CLIENT_TAG,
-  NO_WEB_TAG,
-  NO_ANDROID_TAG,
-  NO_IOS_TAG,
-  NO_LRU_TAG,
-  NO_MEMORY_PERSISTENCE
+  EAGER_GC_TAG,
+  DURABLE_PERSISTENCE_TAG,
+  JAVASCRIPT_TAG,
 ];
 
 // TOOD(mrschmidt): Make this configurable with mocha options.
@@ -78,15 +74,13 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
-  if (tags.indexOf(NO_WEB_TAG) >= 0) {
-    return it.skip;
-  } else if (
+  if (
     !persistenceEnabled &&
-    tags.indexOf(NO_MEMORY_PERSISTENCE) !== -1
+    tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
   ) {
     // Test requires actual persistence, but it's not enabled. Skip it.
     return it.skip;
-  } else if (persistenceEnabled && tags.indexOf(NO_LRU_TAG) !== -1) {
+  } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
     // spec should have a comment explaining why it is being skipped.
     return it.skip;
   } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {

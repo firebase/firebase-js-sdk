@@ -27,7 +27,7 @@ describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
   specTest(
     'Contents of query are cleared when listen is removed.',
-    ['no-lru'],
+    ['eager-gc'],
     'Explicitly tests eager GC behavior',
     () => {
       const query = Query.atPath(path('collection'));
@@ -228,7 +228,7 @@ describeSpec('Listens:', [], () => {
   // This would only happen when we use a resume token, but omitted for brevity.
   specTest(
     'Will gracefully handle watch stream reverting snapshots (with restart)',
-    ['no-memory-persistence'],
+    ['durable-persistence'],
     () => {
       const query = Query.atPath(path('collection'));
       const docAv1 = doc('collection/a', 1000, { v: 'v1000' });
@@ -572,7 +572,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Omits global resume tokens for a short while',
-    ['no-memory-persistence'],
+    ['durable-persistence'],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -601,7 +601,7 @@ describeSpec('Listens:', [], () => {
 
   specTest(
     'Persists global resume tokens if the snapshot is old enough',
-    ['no-memory-persistence'],
+    ['durable-persistence'],
     () => {
       const initialVersion = 1000;
       const minutesLater = 5 * 60 * 1e6 + initialVersion;
