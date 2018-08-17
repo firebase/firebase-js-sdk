@@ -24,20 +24,25 @@ import { SpecStep } from './spec_test_runner';
 // Disables all other tests; useful for debugging. Multiple tests can have
 // this tag and they'll all be run (but all others won't).
 const EXCLUSIVE_TAG = 'exclusive';
+// Explicit per-platform disable flags.
+const NO_WEB_TAG = 'no-web';
+const NO_ANDROID_TAG = 'no-android';
+const NO_IOS_TAG = 'no-ios';
 // The remaining tags specify features that must be present to run a given test
 // Multi-client related tests (which imply persistence).
 const MULTI_CLIENT_TAG = 'multi-client';
 const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
-const JAVASCRIPT_TAG = 'javascript';
 const KNOWN_TAGS = [
   BENCHMARK_TAG,
   EXCLUSIVE_TAG,
   MULTI_CLIENT_TAG,
+  NO_WEB_TAG,
+  NO_ANDROID_TAG,
+  NO_IOS_TAG,
   EAGER_GC_TAG,
-  DURABLE_PERSISTENCE_TAG,
-  JAVASCRIPT_TAG
+  DURABLE_PERSISTENCE_TAG
 ];
 
 // TOOD(mrschmidt): Make this configurable with mocha options.
@@ -74,7 +79,9 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
-  if (!persistenceEnabled && tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1) {
+  if (tags.indexOf(NO_WEB_TAG) >= 0) {
+    return it.skip;
+  } else if (!persistenceEnabled && tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1) {
     // Test requires actual persistence, but it's not enabled. Skip it.
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {

@@ -87,7 +87,7 @@ describeSpec('Remote store:', [], () => {
   // tests exclude backoff entirely.
   specTest(
     'Handles user changes while offline (b/74749605).',
-    ['javascript'],
+    ['no-android', 'no-ios'],
     () => {
       const query = Query.atPath(path('collection'));
       return (
