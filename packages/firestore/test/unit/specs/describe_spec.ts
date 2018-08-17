@@ -81,7 +81,10 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 function getTestRunner(tags, persistenceEnabled): Function {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     return it.skip;
-  } else if (!persistenceEnabled && tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1) {
+  } else if (
+    !persistenceEnabled &&
+    tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
+  ) {
     // Test requires actual persistence, but it's not enabled. Skip it.
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
