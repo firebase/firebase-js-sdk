@@ -418,10 +418,6 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.persistence = await this.initPersistence(this.serializer);
-    await this.init();
-  }
-
-  private async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
     this.sharedClientState = this.getSharedClientState();
@@ -872,13 +868,14 @@ abstract class TestRunner {
   }
 
   private async doRestart(): Promise<void> {
-    // Reinitialize everything, except the persistence.
+    // Reinitialize everything.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
+    await this.persistence.shutdown(/* deleteData= */ false);
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
-    await this.queue.enqueue(() => this.init());
+    await this.queue.enqueue(() => this.start());
   }
 
   private async doApplyClientState(state: SpecClientState): Promise<void> {
