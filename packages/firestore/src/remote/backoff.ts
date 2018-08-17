@@ -31,6 +31,8 @@ const LOG_TAG = 'ExponentialBackoff';
 export class ExponentialBackoff {
   private currentBaseMs: number;
   private timerPromise: CancelablePromise<void> | null = null;
+  /** The last backoff attempt, as epoch milliseconds. */
+  private lastAttemptTime = Date.now();
 
   constructor(
     /**
@@ -92,18 +94,36 @@ export class ExponentialBackoff {
 
     // First schedule using the current base (which may be 0 and should be
     // honored as such).
-    const delayWithJitterMs = this.currentBaseMs + this.jitterDelayMs();
+    const desiredDelayWithJitterMs = Math.floor(
+      this.currentBaseMs + this.jitterDelayMs()
+    );
+
+    // Guard against lastAttemptTime being in the future due to a clock change.
+    const delaySoFarMs = Math.max(0, Date.now() - this.lastAttemptTime);
+
+    // Guard against the backoff delay already being past.
+    const remainingDelayMs = Math.max(
+      0,
+      desiredDelayWithJitterMs - delaySoFarMs
+    );
+
     if (this.currentBaseMs > 0) {
       log.debug(
         LOG_TAG,
-        `Backing off for ${delayWithJitterMs} ms ` +
-          `(base delay: ${this.currentBaseMs} ms)`
+        `Backing off for ${remainingDelayMs} ms ` +
+          `(base delay: ${this.currentBaseMs} ms, ` +
+          `delay with jitter: ${desiredDelayWithJitterMs} ms, ` +
+          `last attempt: ${delaySoFarMs} ms ago)`
       );
     }
+
     this.timerPromise = this.queue.enqueueAfterDelay(
       this.timerId,
-      delayWithJitterMs,
-      op
+      remainingDelayMs,
+      () => {
+        this.lastAttemptTime = Date.now();
+        return op();
+      }
     );
 
     // Apply backoff factor to determine next delay and ensure it is within
