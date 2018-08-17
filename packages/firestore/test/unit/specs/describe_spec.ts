@@ -37,7 +37,7 @@ const KNOWN_TAGS = [
   MULTI_CLIENT_TAG,
   EAGER_GC_TAG,
   DURABLE_PERSISTENCE_TAG,
-  JAVASCRIPT_TAG,
+  JAVASCRIPT_TAG
 ];
 
 // TOOD(mrschmidt): Make this configurable with mocha options.
@@ -74,10 +74,7 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(tags, persistenceEnabled): Function {
-  if (
-    !persistenceEnabled &&
-    tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
-  ) {
+  if (!persistenceEnabled && tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1) {
     // Test requires actual persistence, but it's not enabled. Skip it.
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
