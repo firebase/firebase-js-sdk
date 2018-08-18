@@ -25,10 +25,7 @@ const LOG_TAG = 'OnlineStateTracker';
 
 // To deal with transient failures, we allow multiple stream attempts before
 // giving up and transitioning from OnlineState.Unknown to Offline.
-// TODO(mikelehen): This used to be set to 2 as a mitigation for b/66228394.
-// @jdimond thinks that bug is sufficiently fixed so that we can set this back
-// to 1. If that works okay, we could potentially remove this logic entirely.
-const MAX_WATCH_STREAM_FAILURES = 1;
+const MAX_WATCH_STREAM_FAILURES = 2;
 
 // To deal with stream attempts that don't succeed or fail in a timely manner,
 // we have a timeout for OnlineState to reach Online or Offline.
