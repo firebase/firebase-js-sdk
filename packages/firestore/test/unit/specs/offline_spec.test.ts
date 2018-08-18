@@ -23,60 +23,56 @@ import { spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Offline:', [], () => {
-  specTest(
-    'Empty queries are resolved if client goes offline',
-    ['no-android', 'no-ios'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      return (
-        spec()
-          .userListens(query)
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .expectEvents(query, {
-            fromCache: true,
-            hasPendingWrites: false
-          })
-          // no further events
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .watchStreamCloses(Code.UNAVAILABLE)
-      );
-    }
-  );
+  specTest('Empty queries are resolved if client goes offline', [], () => {
+    const query = Query.atPath(path('collection'));
+    return (
+      spec()
+        .userListens(query)
+        // second error triggers event
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .expectEvents(query, {
+          fromCache: true,
+          hasPendingWrites: false
+        })
+        // no further events
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+    );
+  });
 
-  specTest(
-    'A successful message delays offline status',
-    ['no-android', 'no-ios'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      return (
-        spec()
-          .userListens(query)
-          .watchAcks(query)
-          // first error triggers unknown state
-          .watchStreamCloses(Code.UNAVAILABLE)
-          // second error triggers offline state
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .expectEvents(query, {
-            fromCache: true,
-            hasPendingWrites: false
-          })
-          // no further events
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .watchStreamCloses(Code.UNAVAILABLE)
-      );
-    }
-  );
+  specTest('A successful message delays offline status', [], () => {
+    const query = Query.atPath(path('collection'));
+    return (
+      spec()
+        .userListens(query)
+        .watchAcks(query)
+        // first error triggers unknown state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        // getting two more errors triggers offline state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .expectEvents(query, {
+          fromCache: true,
+          hasPendingWrites: false
+        })
+        // no further events
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+    );
+  });
 
   specTest(
     'Removing all listeners delays "Offline" status on next listen',
-    ['eager-gc', 'no-android', 'no-ios'],
+    ['eager-gc'],
     'Marked as no-lru because when a listen is re-added, it gets a new target id rather than reusing one',
     () => {
       const query = Query.atPath(path('collection'));
       return (
         spec()
           .userListens(query)
-          // error triggers offline state
+          // getting two errors triggers offline state
+          .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query, {
             fromCache: true,
@@ -87,9 +83,10 @@ describeSpec('Offline:', [], () => {
           // If the next (already scheduled) connection attempt fails, we'll move
           // to unknown since there are no listeners, and stop trying to connect.
           .watchStreamCloses(Code.UNAVAILABLE)
-          // Suppose sometime later we listen again, it should take one failure
+          // Suppose sometime later we listen again, it should take two failures
           // before we get cached data.
           .userListens(query)
+          .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query, {
             fromCache: true,
@@ -99,62 +96,56 @@ describeSpec('Offline:', [], () => {
     }
   );
 
-  specTest(
-    'Queries revert to fromCache=true when offline.',
-    ['no-android', 'no-ios'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 1000, { key: 'a' });
-      return (
-        spec()
-          .userListens(query)
-          .watchAcksFull(query, 1000, docA)
-          .expectEvents(query, { added: [docA] })
-          // first error triggers unknown state
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .restoreListen(query, 'resume-token-1000')
-          // second error triggers offline state and fromCache: true
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .expectEvents(query, { fromCache: true })
-          // Going online and getting a CURRENT message triggers fromCache: false
-          .watchAcksFull(query, 1000)
-          .expectEvents(query, { fromCache: false })
-      );
-    }
-  );
+  specTest('Queries revert to fromCache=true when offline.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        // first error triggers unknown state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .restoreListen(query, 'resume-token-1000')
+        // getting two more errors triggers offline state and fromCache: true
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .expectEvents(query, { fromCache: true })
+        // Going online and getting a CURRENT message triggers fromCache: false
+        .watchAcksFull(query, 1000)
+        .expectEvents(query, { fromCache: false })
+    );
+  });
 
-  specTest(
-    'Queries with limbo documents handle going offline.',
-    ['no-android', 'no-ios'],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 1000, { key: 'a' });
-      const limboQuery = Query.atPath(docA.key.path);
-      return (
-        spec()
-          .userListens(query)
-          .watchAcksFull(query, 1000, docA)
-          .expectEvents(query, { added: [docA] })
-          .watchResets(query)
-          // No more documents
-          .watchCurrents(query, 'resume-token-1001')
-          .watchSnapshots(1001)
-          // docA will now be in limbo (triggering fromCache=true)
-          .expectLimboDocs(docA.key)
-          .expectEvents(query, { fromCache: true })
-          // first error triggers unknown state
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .restoreListen(query, 'resume-token-1001')
-          // second error triggers offline state.
-          .watchStreamCloses(Code.UNAVAILABLE)
-          .watchAcksFull(query, 1001)
-          .watchAcksFull(limboQuery, 1001)
-          // Limbo document is resolved. No longer from cache.
-          .expectEvents(query, { removed: [docA], fromCache: false })
-          .expectLimboDocs()
-      );
-    }
-  );
+  specTest('Queries with limbo documents handle going offline.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const limboQuery = Query.atPath(docA.key.path);
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docA)
+        .expectEvents(query, { added: [docA] })
+        .watchResets(query)
+        // No more documents
+        .watchCurrents(query, 'resume-token-1001')
+        .watchSnapshots(1001)
+        // docA will now be in limbo (triggering fromCache=true)
+        .expectLimboDocs(docA.key)
+        .expectEvents(query, { fromCache: true })
+        // first error triggers unknown state
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .restoreListen(query, 'resume-token-1001')
+        // getting two more errors triggers offline state.
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchStreamCloses(Code.UNAVAILABLE)
+        .watchAcksFull(query, 1001)
+        .watchAcksFull(limboQuery, 1001)
+        // Limbo document is resolved. No longer from cache.
+        .expectEvents(query, { removed: [docA], fromCache: false })
+        .expectLimboDocs()
+    );
+  });
 
   specTest('OnlineState timeout triggers offline behavior', [], () => {
     const query = Query.atPath(path('collection'));
@@ -193,15 +184,16 @@ describeSpec('Offline:', [], () => {
   specTest(
     'New queries return immediately with fromCache=true when offline due to ' +
       'stream failures.',
-    ['no-android', 'no-ios'],
+    [],
     () => {
       const query1 = Query.atPath(path('collection'));
       const query2 = Query.atPath(path('collection2'));
       return (
         spec()
           .userListens(query1)
-          // After failure, we mark the client offline and trigger an empty
+          // 2 Failures should mark the client offline and trigger an empty
           // fromCache event.
+          .watchStreamCloses(Code.UNAVAILABLE)
           .watchStreamCloses(Code.UNAVAILABLE)
           .expectEvents(query1, { fromCache: true })
 
