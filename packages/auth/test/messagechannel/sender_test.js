@@ -133,6 +133,45 @@ function testSender_send_ackTimeout() {
 }
 
 
+function testSender_send_ackTimeout_longTimeout() {
+  var eventId = '12345678';
+  var eventType = 'myEvent';
+  var data = {'a': 1, 'b': 2};
+  var expectedRequest = {
+    'eventType': eventType,
+    'eventId': eventId,
+    'data': data
+  };
+
+  var messageChannel = createMockMessageChannel(mockControl);
+  var postMessage = mockControl.createFunctionMock('postMessage');
+  var initializeMessageChannel = mockControl.createMethodMock(
+      fireauth.messagechannel.utils, 'initializeMessageChannel');
+  var generateEventId = mockControl.createMethodMock(
+      fireauth.messagechannel.utils, 'generateEventId');
+  initializeMessageChannel().$returns(messageChannel).$once();
+  generateEventId().$returns(eventId).$once();
+  messageChannel.port1.start().$once();
+  postMessage(expectedRequest, [messageChannel.port2]).$does(function() {
+    // Simulate long ACK timeout.
+    clock.tick(fireauth.messagechannel.TimeoutDuration.LONG_ACK);
+  }).$once();
+  messageChannel.port1.close().$once();
+  mockControl.$replayAll();
+
+  var sender = new fireauth.messagechannel.Sender({
+    'postMessage': postMessage
+  });
+  return sender.send(eventType, data, true)
+      .then(fail)
+      .thenCatch(function(error) {
+        assertEquals(
+            fireauth.messagechannel.Error.UNSUPPORTED_EVENT,
+            error.message);
+      });
+}
+
+
 function testSender_send_invalidResponse() {
   var eventId = '12345678';
   var eventType = 'myEvent';
@@ -276,6 +315,75 @@ function testSender_send_completionSuccess() {
     'postMessage': postMessage
   });
   return sender.send(eventType, data)
+      .then(function(result) {
+        assertEquals(expectedSuccessResponse, result);
+        sender.close();
+        // Second call should do nothing.
+        sender.close();
+        // Connection should not be available anymore.
+        return sender.send(eventType, data).then(fail, function(error) {
+          assertEquals(
+              fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE,
+              error.message);
+        });
+      });
+}
+
+
+function testSender_send_completionSuccess_longTimeout() {
+  var eventId = '12345678';
+  var eventType = 'myEvent';
+  var data = {'a': 1, 'b': 2};
+  var expectedRequest = {
+    'eventType': eventType,
+    'eventId': eventId,
+    'data': data
+  };
+  var expectedSuccessResponse = [{
+    'fulfilled': true,
+    'value': {
+      'c': 3,
+      'd': 4
+    }
+  }];
+
+  var messageChannel = createMockMessageChannel(mockControl);
+  var postMessage = mockControl.createFunctionMock('postMessage');
+  var initializeMessageChannel = mockControl.createMethodMock(
+      fireauth.messagechannel.utils, 'initializeMessageChannel');
+  var generateEventId = mockControl.createMethodMock(
+      fireauth.messagechannel.utils, 'generateEventId');
+  initializeMessageChannel().$returns(messageChannel).$once();
+  generateEventId().$returns(eventId).$once();
+  messageChannel.port1.start().$once();
+  postMessage(expectedRequest, [messageChannel.port2]).$does(function() {
+    var event1 = new goog.events.Event('message');
+    var event2 = new goog.events.Event('message');
+    event1.data = {
+      'eventId': eventId,
+      'eventType': eventType,
+      'status': 'ack'
+    };
+    event2.data = {
+      'eventId': eventId,
+      'eventType': eventType,
+      'status': 'done',
+      'response': expectedSuccessResponse
+    };
+    // Simulate successful ACK and DONE responses.
+    // Long timeout should be applied.
+    clock.tick(fireauth.messagechannel.TimeoutDuration.LONG_ACK - 1);
+    messageChannel.port1.dispatchEvent(event1);
+    clock.tick(fireauth.messagechannel.TimeoutDuration.COMPLETION - 1);
+    messageChannel.port1.dispatchEvent(event2);
+  }).$once();
+  messageChannel.port1.close().$once();
+  mockControl.$replayAll();
+
+  var sender = new fireauth.messagechannel.Sender({
+    'postMessage': postMessage
+  });
+  return sender.send(eventType, data, true)
       .then(function(result) {
         assertEquals(expectedSuccessResponse, result);
         sender.close();

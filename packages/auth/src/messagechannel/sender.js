@@ -98,12 +98,15 @@ fireauth.messagechannel.Sender = function(postMessager) {
  * @param {string} eventType The event type identifying the message. This is
  *     used to help the receiver handle this message.
  * @param {?Object=} opt_data The optional data to send along the message.
+ * @param {?boolean=} opt_useLongTimeout Whether long timeout should be used
+ *     for ACK responses.
  * @return {!goog.Promise<!Array<{fulfilled: boolean,
  *                                value: (*|undefined),
  *                                reason: (*|undefined)}>>} A promise that
  *     resolves with the receiver responses.
  */
-fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
+fireauth.messagechannel.Sender.prototype.send = function(
+    eventType, opt_data, opt_useLongTimeout) {
   var self = this;
   var eventId;
   var data = opt_data || {};
@@ -115,6 +118,10 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
     return goog.Promise.reject(fireauth.messagechannel.createError_(
         fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE));
   }
+  var ackTimeout =
+      !!opt_useLongTimeout ?
+      fireauth.messagechannel.TimeoutDuration.LONG_ACK :
+      fireauth.messagechannel.TimeoutDuration.ACK;
   var messageChannel =
       fireauth.messagechannel.utils.initializeMessageChannel();
   return new goog.Promise(function(resolve, reject) {
@@ -132,7 +139,7 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
         // Timeout after some time.
         reject(fireauth.messagechannel.createError_(
             fireauth.messagechannel.Error.UNSUPPORTED_EVENT));
-      }, fireauth.messagechannel.TimeoutDuration.ACK);
+      }, ackTimeout);
       onMessage = function(event) {
         // Process only the expected events that match current event ID.
         if (event.data['eventId'] !== eventId) {

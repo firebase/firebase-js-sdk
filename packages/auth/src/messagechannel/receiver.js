@@ -49,8 +49,8 @@ fireauth.messagechannel.Receiver = function(eventTarget) {
    */
   this.eventHandlers_ = {};
   /**
-   * @const@private {function(!Event)} The internal 'message' event handler used
-   *     to reroute the request to corresponding subscribed handlers.
+   * @const @private {function(!Event)} The internal 'message' event handler
+   *     used to reroute the request to corresponding subscribed handlers.
    */
   this.messageEventHandler_ = goog.bind(this.handleEvent_, this);
 };
