@@ -53,8 +53,8 @@ fireauth.messagechannel.Status = {
  * @enum {number}
  */
 fireauth.messagechannel.TimeoutDuration = {
-  ACK: 20,
-  COMPLETION: 500
+  ACK: 50,
+  COMPLETION: 3000
 };
 
 

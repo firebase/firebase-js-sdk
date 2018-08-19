@@ -88,8 +88,8 @@ function testSender_messageChannelUnsupported() {
       .then(fail)
       .thenCatch(function(error) {
         assertEquals(
-            error.message,
-            fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE);
+            fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE,
+            error.message);
       });
 }
 
@@ -117,6 +117,7 @@ function testSender_send_ackTimeout() {
     // Simulate ACK timeout.
     clock.tick(fireauth.messagechannel.TimeoutDuration.ACK);
   }).$once();
+  messageChannel.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
@@ -126,8 +127,8 @@ function testSender_send_ackTimeout() {
       .then(fail)
       .thenCatch(function(error) {
         assertEquals(
-            error.message,
-            fireauth.messagechannel.Error.UNSUPPORTED_EVENT);
+            fireauth.messagechannel.Error.UNSUPPORTED_EVENT,
+            error.message);
       });
 }
 
@@ -161,6 +162,7 @@ function testSender_send_invalidResponse() {
     };
     messageChannel.port1.dispatchEvent(event);
   }).$once();
+  messageChannel.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
@@ -170,8 +172,8 @@ function testSender_send_invalidResponse() {
       .then(fail)
       .thenCatch(function(error) {
         assertEquals(
-            error.message,
-            fireauth.messagechannel.Error.INVALID_RESPONSE);
+            fireauth.messagechannel.Error.INVALID_RESPONSE,
+            error.message);
       });
 }
 
@@ -207,6 +209,7 @@ function testSender_send_completionTimeout() {
     // Simulate completion response timing out.
     clock.tick(fireauth.messagechannel.TimeoutDuration.COMPLETION);
   }).$once();
+  messageChannel.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
@@ -216,8 +219,8 @@ function testSender_send_completionTimeout() {
       .then(fail)
       .thenCatch(function(error) {
         assertEquals(
-            error.message,
-            fireauth.messagechannel.Error.TIMEOUT);
+            fireauth.messagechannel.Error.TIMEOUT,
+            error.message);
       });
 }
 
@@ -278,13 +281,11 @@ function testSender_send_completionSuccess() {
         sender.close();
         // Second call should do nothing.
         sender.close();
-        // Start should not be able to restart the connection.
-        sender.start();
         // Connection should not be available anymore.
         return sender.send(eventType, data).then(fail, function(error) {
           assertEquals(
-              error.message,
-              fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE);
+              fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE,
+              error.message);
         });
       });
 }
@@ -333,14 +334,12 @@ function testSender_send_completionError() {
     clock.tick(fireauth.messagechannel.TimeoutDuration.COMPLETION - 1);
     messageChannel.port1.dispatchEvent(event2);
   }).$once();
+  messageChannel.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
     'postMessage': postMessage
   });
-  sender.start();
-  // Second call should be ignored.
-  sender.start();
   return sender.send(eventType, data)
       .then(function(result) {
         assertEquals(expectedErrorResponse, result);
@@ -394,6 +393,7 @@ function testSender_send_closedConnection() {
     clock.tick(fireauth.messagechannel.TimeoutDuration.COMPLETION);
   }).$once();
   messageChannel.port1.close().$once();
+  messageChannel.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
@@ -402,8 +402,8 @@ function testSender_send_closedConnection() {
   return sender.send(eventType, data)
       .then(fail, function(error) {
         assertEquals(
-            error.message,
-            fireauth.messagechannel.Error.TIMEOUT);
+            fireauth.messagechannel.Error.TIMEOUT,
+            error.message);
       });
 }
 
@@ -455,16 +455,22 @@ function testSender_send_multipleMessages() {
   }];
 
   var messageChannel = createMockMessageChannel(mockControl);
+  var messageChannel2 = createMockMessageChannel(mockControl);
+  var messageChannel3 = createMockMessageChannel(mockControl);
   var postMessage = mockControl.createFunctionMock('postMessage');
   var initializeMessageChannel = mockControl.createMethodMock(
       fireauth.messagechannel.utils, 'initializeMessageChannel');
   var generateEventId = mockControl.createMethodMock(
       fireauth.messagechannel.utils, 'generateEventId');
   initializeMessageChannel().$returns(messageChannel).$once();
+  initializeMessageChannel().$returns(messageChannel2).$once();
+  initializeMessageChannel().$returns(messageChannel3).$once();
   generateEventId().$returns(eventId1).$once();
-  generateEventId().$returns(eventId2).$once();
-  generateEventId().$returns(eventId3).$once();
   messageChannel.port1.start().$once();
+  generateEventId().$returns(eventId2).$once();
+  messageChannel2.port1.start().$once();
+  generateEventId().$returns(eventId3).$once();
+  messageChannel3.port1.start().$once();
   // First event.
   postMessage(expectedRequest1, [messageChannel.port2]).$does(function() {
     var event1 = new goog.events.Event('message');
@@ -484,7 +490,7 @@ function testSender_send_multipleMessages() {
     messageChannel.port1.dispatchEvent(event2);
   }).$once();
   // Second event.
-  postMessage(expectedRequest2, [messageChannel.port2]).$does(function() {
+  postMessage(expectedRequest2, [messageChannel2.port2]).$does(function() {
     var event1 = new goog.events.Event('message');
     var event2 = new goog.events.Event('message');
     event1.data = {
@@ -498,11 +504,11 @@ function testSender_send_multipleMessages() {
       'status': 'done',
       'response': expectedSuccessResponse2
     };
-    messageChannel.port1.dispatchEvent(event1);
-    messageChannel.port1.dispatchEvent(event2);
+    messageChannel2.port1.dispatchEvent(event1);
+    messageChannel2.port1.dispatchEvent(event2);
   }).$once();
   // Third event.
-  postMessage(expectedRequest3, [messageChannel.port2]).$does(function() {
+  postMessage(expectedRequest3, [messageChannel3.port2]).$does(function() {
     var event1 = new goog.events.Event('message');
     var event2 = new goog.events.Event('message');
     event1.data = {
@@ -516,9 +522,12 @@ function testSender_send_multipleMessages() {
       'status': 'done',
       'response': expectedSuccessResponse3
     };
-    messageChannel.port1.dispatchEvent(event1);
-    messageChannel.port1.dispatchEvent(event2);
+    messageChannel3.port1.dispatchEvent(event1);
+    messageChannel3.port1.dispatchEvent(event2);
   }).$once();
+  messageChannel.port1.close().$once();
+  messageChannel2.port1.close().$once();
+  messageChannel3.port1.close().$once();
   mockControl.$replayAll();
 
   var sender = new fireauth.messagechannel.Sender({
@@ -539,3 +548,4 @@ function testSender_send_multipleMessages() {
         assertEquals(expectedSuccessResponse3, results[2]);
       });
 }
+
