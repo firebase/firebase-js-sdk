@@ -101,7 +101,7 @@ class TestClass {
 // since it is an untyped language. These tests are not exhaustive as that would
 // be extremely tedious, but we do try to hit every error template at least
 // once.
-apiDescribe('Validation:', persistence => {
+apiDescribe.only('Validation:', persistence => {
   describe('FirestoreSettings', () => {
     validationIt(persistence, 'validates options', db => {
       // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
@@ -980,7 +980,7 @@ function expectFieldPathToFail(
       'Function DocumentSnapshot.get() called with invalid data. ' + reason
     );
 
-    const db =  snapshot.ref.firestore;
+    const db = snapshot.ref.firestore;
 
     // Query filter / order fields.
     const coll = db.collection('test-collection');
