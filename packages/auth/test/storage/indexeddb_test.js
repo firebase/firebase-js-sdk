@@ -43,6 +43,7 @@ var containsObjectStore;
 var deleted;
 
 
+
 function setUp() {
   mockControl = new goog.testing.MockControl();
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
@@ -429,6 +430,7 @@ function testReceiverSubscribed_noWorkerGlobalScope() {
 function testReceiverSubscribed_externalChange_notYetProcessed() {
   var listener1 = goog.testing.recordFunction();
   var subscribedCallback;
+  var pingCallback;
   var workerGlobalScope = {};
   var getWorkerGlobalScope = mockControl.createMethodMock(
       fireauth.util, 'getWorkerGlobalScope');
@@ -441,6 +443,57 @@ function testReceiverSubscribed_externalChange_notYetProcessed() {
       .$does(function(eventType, callback) {
         subscribedCallback = callback;
       }).$once();
+  receiver.subscribe('ping', ignoreArgument)
+      .$does(function(eventType, callback) {
+        pingCallback = callback;
+      }).$once();
+  mockControl.$replayAll();
+
+  manager = getDefaultFireauthManager();
+  manager.addStorageListener(listener1);
+  return manager.get('abc').then(function(value) {
+    // Simulate ping response at this point.
+    pingCallback('https://www.example.com', {});
+    assertNull(value);
+    // Simulate external indexedDB change.
+    db.store['firebaseLocalStorage'] = {
+      'abc': {'fbase_key': 'abc', 'value': 'def'}
+    };
+    return subscribedCallback('https://www.example.com', {'key': 'abc'});
+  }).then(function(response) {
+    // Confirm sync completed. Status true returned to confirm the key was
+    // processed.
+    assertObjectEquals({'keyProcessed': true}, response);
+    // Listener should trigger with expected argument.
+    assertEquals(1, listener1.getCallCount());
+    assertArrayEquals(['abc'], listener1.getLastCall().getArgument(0));
+    return manager.get('abc');
+  }).then(function(value) {
+    assertEquals('def', value);
+  });
+}
+
+
+function testReceiverSubscribed_externalChange_notYetProcessed_pingTimeout() {
+  // Confirm ping timeout does not affect the flow. This is mostly used for
+  // optimization for slow browsers.
+  var listener1 = goog.testing.recordFunction();
+  var subscribedCallback;
+  var workerGlobalScope = {};
+  var getWorkerGlobalScope = mockControl.createMethodMock(
+      fireauth.util, 'getWorkerGlobalScope');
+  var receiver = mockControl.createStrictMock(fireauth.messagechannel.Receiver);
+  var getInstance = mockControl.createMethodMock(
+      fireauth.messagechannel.Receiver, 'getInstance');
+  getWorkerGlobalScope().$returns(workerGlobalScope).$atLeastOnce();
+  getInstance(workerGlobalScope).$returns(receiver);
+  receiver.subscribe('keyChanged', ignoreArgument)
+      .$does(function(eventType, callback) {
+        subscribedCallback = callback;
+      }).$once();
+  // Simulate no response to ping. This means short timeout will be used by
+  // sender.
+  receiver.subscribe('ping', ignoreArgument).$once();
   mockControl.$replayAll();
 
   manager = getDefaultFireauthManager();
@@ -469,6 +522,7 @@ function testReceiverSubscribed_externalChange_notYetProcessed() {
 function testReceiverSubscribed_externalChange_alreadyProcessed() {
   var listener1 = goog.testing.recordFunction();
   var subscribedCallback;
+  var pingCallback;
   var workerGlobalScope = {};
   var getWorkerGlobalScope = mockControl.createMethodMock(
       fireauth.util, 'getWorkerGlobalScope');
@@ -481,11 +535,17 @@ function testReceiverSubscribed_externalChange_alreadyProcessed() {
       .$does(function(eventType, callback) {
         subscribedCallback = callback;
       }).$once();
+  receiver.subscribe('ping', ignoreArgument)
+      .$does(function(eventType, callback) {
+        pingCallback = callback;
+      }).$once();
   mockControl.$replayAll();
 
   manager = getDefaultFireauthManager();
   manager.addStorageListener(listener1);
   return manager.set('abc', 'def').then(function() {
+    // Simulate ping response at this point.
+    pingCallback('https://www.example.com', {});
     return subscribedCallback('https://www.example.com', {'key': 'abc'});
   }).then(function(response) {
     // Confirm sync completed but key not processed since no change is detected.
@@ -500,12 +560,13 @@ function testReceiverSubscribed_externalChange_alreadyProcessed() {
 
 
 function testSender_writeOperations_serviceWorkerControllerUnavailable() {
-  var getServiceWorkerController = mockControl.createMethodMock(
-      fireauth.util, 'getServiceWorkerController');
+  var getActiveServiceWorker = mockControl.createMethodMock(
+      fireauth.util, 'getActiveServiceWorker');
   var sender = mockControl.createStrictMock(fireauth.messagechannel.Sender);
   var senderConstructor = mockControl.createConstructorMock(
       fireauth.messagechannel, 'Sender');
-  getServiceWorkerController().$returns(null).$atLeastOnce();
+  getActiveServiceWorker()
+      .$returns(goog.Promise.resolve(null)).$atLeastOnce();
   // No sender initialized.
   senderConstructor(ignoreArgument).$never();
   sender.send(ignoreArgument).$never();
@@ -531,45 +592,71 @@ function testSender_writeOperations_serviceWorkerControllerAvailable() {
   var serviceWorkerController = {};
   var getServiceWorkerController = mockControl.createMethodMock(
       fireauth.util, 'getServiceWorkerController');
-
-  getServiceWorkerController().$returns(serviceWorkerController).$atLeastOnce();
+  var getActiveServiceWorker = mockControl.createMethodMock(
+      fireauth.util, 'getActiveServiceWorker');
   var sender = mockControl.createStrictMock(fireauth.messagechannel.Sender);
   var senderConstructor = mockControl.createConstructorMock(
       fireauth.messagechannel, 'Sender');
+  var resolvePing;
+  getActiveServiceWorker()
+      .$returns(goog.Promise.resolve(serviceWorkerController)).$atLeastOnce();
   // Successful set event.
   senderConstructor(ignoreArgument).$returns(sender);
-  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
-    status.push(0);
-    return goog.Promise.resolve([
-      {
-        'fulfilled': true,
-        'value': {'keyProcessed': true}
-      }
-    ]);
+  sender.send('ping', null, true).$does(function(eventType, data) {
+    return new goog.Promise(function(resolve, reject) {
+      resolvePing = resolve;
+    });
   }).$once();
-  // Successful remove event.
-  senderConstructor(ignoreArgument).$returns(sender);
-  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
-    status.push(1);
-    return goog.Promise.resolve([
-      {
-        'fulfilled': true,
-        'value': {'keyProcessed': true}
-      }
-    ]);
-  }).$once();
+  // Short timeout used as ping response not yet received.
+  getServiceWorkerController().$returns(serviceWorkerController).$once();
+  sender.send('keyChanged', {'key': 'abc'}, false)
+      .$does(function(eventType, data) {
+        status.push(0);
+        return goog.Promise.resolve([
+          {
+            'fulfilled': true,
+            'value': {'keyProcessed': true}
+          }
+        ]);
+      }).$once();
+      // Successful remove event.
+  // Short timeout used as ping response not yet received.
+  getServiceWorkerController().$returns(serviceWorkerController).$once();
+  sender.send('keyChanged', {'key': 'abc'}, false)
+      .$does(function(eventType, data) {
+        // Simulate ping resolved at this point.
+        resolvePing([
+          {
+            'fulfilled': true,
+            'value': ['keyChanged']
+          }
+        ]);
+        status.push(1);
+        return goog.Promise.resolve([
+          {
+            'fulfilled': true,
+            'value': {'keyProcessed': true}
+          }
+        ]);
+      }).$once();
+  // Long timeout used as ping response has been resolved.
   // Failing set event.
-  senderConstructor(ignoreArgument).$returns(sender);
-  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
-    status.push(2);
-    return goog.Promise.reject(new Error('unsupported_event'));
-  }).$once();
+  getServiceWorkerController().$returns(serviceWorkerController).$once();
+  sender.send('keyChanged', {'key': 'abc'}, true)
+      .$does(function(eventType, data) {
+        status.push(2);
+        return goog.Promise.reject(new Error('unsupported_event'));
+      }).$once();
   // Failing remove event.
-  senderConstructor(ignoreArgument).$returns(sender);
-  sender.send('keyChanged', {'key': 'abc'}).$does(function(eventType, data) {
-    status.push(3);
-    return goog.Promise.reject(new Error('invalid_response'));
-  }).$once();
+  getServiceWorkerController().$returns(serviceWorkerController).$once();
+  sender.send('keyChanged', {'key': 'abc'}, true)
+      .$does(function(eventType, data) {
+        status.push(3);
+        return goog.Promise.reject(new Error('invalid_response'));
+      }).$once();
+  // Simulate the active service worker changed for some reason. No send
+  // requests sent anymore.
+  getServiceWorkerController().$returns({}).$once();
   mockControl.$replayAll();
 
   manager = getDefaultFireauthManager();
@@ -610,5 +697,13 @@ function testSender_writeOperations_serviceWorkerControllerAvailable() {
     // Get shouldn't trigger.
     assertArrayEquals([0, 1, 2, 3], status);
     assertNull(value);
+    return manager.set('abc', 'ghi');
+  }).then(function() {
+    // This shouldn't trigger sender anymore since active service worker
+    // changed.
+    assertArrayEquals([0, 1, 2, 3], status);
+    return manager.get('abc');
+  }).then(function(value) {
+    assertEquals('ghi', value);
   });
 }
