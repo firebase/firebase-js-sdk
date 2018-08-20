@@ -163,30 +163,42 @@ function testWrapMethodWithArgumentVerifier_static_oneArg_invalid() {
   });
 }
 
-
 function testExportPrototypeProperties() {
   var obj  = {
-    originalProp: 10
+    originalProp: 10,
+    originalProp2: 12
   };
   fireauth.exportlib.exportPrototypeProperties(obj, {
     originalProp: {
       name: 'newProp',
       arg: fireauth.args.number('newProp')
+    },
+    originalProp2: {
+      name: 'newProp2',
+      arg: fireauth.args.number('newProp2')
     }
   });
 
   assertEquals(10, obj.originalProp);
   assertEquals(10, obj['newProp']);
+  assertEquals(12, obj.originalProp2);
+  assertEquals(12, obj['newProp2']);
 
   // Changing the new property should update the old.
   obj['newProp'] = 20;
+  obj['newProp2'] = 5;
   assertEquals(20, obj.originalProp);
   assertEquals(20, obj['newProp']);
+  assertEquals(5, obj.originalProp2);
+  assertEquals(5, obj['newProp2']);
 
   // Changing the old property should update the new.
   obj.originalProp = 30;
+  obj.originalProp2 = 4;
   assertEquals(30, obj.originalProp);
   assertEquals(30, obj['newProp']);
+  assertEquals(4, obj.originalProp2);
+  assertEquals(4, obj['newProp2']);
 
   // Check argument validation.
   assertThrows(function() {
@@ -195,7 +207,6 @@ function testExportPrototypeProperties() {
   // Previous value should remain.
   assertEquals(30, obj['newProp']);
 }
-
 
 /**
  * Tests that exportPrototypeProperties works when run on an object prototype.

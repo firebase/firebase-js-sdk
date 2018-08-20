@@ -1470,3 +1470,22 @@ fireauth.util.getWorkerGlobalScope = function() {
   return fireauth.util.isWorker() ? /** @type {!WorkerGlobalScope} */ (self) :
       null;
 };
+
+/**
+ * @return {!goog.Promise<?ServiceWorker>} A promise that resolves with the
+ *     service worker. This will resolve only when a service worker becomes
+ *     available. If no service worker is supported, it will resolve with null.
+ */
+fireauth.util.getActiveServiceWorker = function() {
+  if (navigator && navigator.serviceWorker) {
+    return goog.Promise.resolve()
+        .then(function() {
+          return navigator.serviceWorker.ready;
+        })
+        .then(function(registration) {
+          return /** @type {?ServiceWorker} */ (registration.active || null);
+        });
+  }
+  return goog.Promise.resolve(/** @type {?ServiceWorker} */ (null));
+};
+
