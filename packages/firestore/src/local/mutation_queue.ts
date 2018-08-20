@@ -197,21 +197,17 @@ export interface MutationQueue extends GarbageSource {
   ): PersistencePromise<MutationBatch[]>;
 
   /**
-   * Removes the given mutation batches from the queue. This is useful in two
+   * Removes the given mutation batch from the queue. This is useful in two
    * circumstances:
    *
-   * + Removing applied mutations from the head of the queue
-   * + Removing rejected mutations from anywhere in the queue
-   *
-   * In both cases, the array of mutations to remove must be a contiguous range
-   * of batchIds. This is most easily accomplished by loading mutations with
-   * getAllMutationBatchesThroughBatchId()
+   * + Removing an applied mutation from the head of the queue
+   * + Removing a rejected mutation from anywhere in the queue
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
    */
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void>;
 
   /**
