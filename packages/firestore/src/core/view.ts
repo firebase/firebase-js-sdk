@@ -33,6 +33,7 @@ import {
   SyncState,
   ViewSnapshot
 } from './view_snapshot';
+import { SnapshotVersion } from './snapshot_version';
 
 export type LimboDocumentChange = AddedLimboDocument | RemovedLimboDocument;
 export class AddedLimboDocument {
@@ -56,6 +57,13 @@ export interface ViewDocumentChanges {
   needsRefill: boolean;
 
   mutatedKeys: DocumentKeySet;
+
+  /**
+   * The version that triggered the change event (e.g. the commit version of an
+   * acknowledged write or the version of the global snapshot sent to us by
+   * Watch). Can be `SnapshotVersion.MIN` if no version is applicable.
+   */
+  snapshotVersion: SnapshotVersion;
 }
 
 export interface ViewChange {
@@ -82,6 +90,18 @@ export class View {
   private limboDocuments = documentKeySet();
   /** Document Keys that have local changes */
   private mutatedKeys = documentKeySet();
+  /**
+   * The first snapshot version that Watch has sent us during the lifetime of
+   * of this view. Any document edited after will have `hasPendingWrites` set
+   * until Watch catches up.
+   */
+  private firstSnapshotVersion = SnapshotVersion.MIN;
+  /**
+   * The last snapshot version that this view has been synced with. Used to
+   * ignore events if the Write and the Watch stream send us update out of
+   * order.
+   */
+  private lastSnapshotVersion = SnapshotVersion.MIN;
 
   constructor(
     private query: Query,
@@ -105,12 +125,15 @@ export class View {
    * need to go back to the local cache for more results. Does not make any
    * changes to the view.
    * @param docChanges The doc changes to apply to this view.
+   * @param snapshotVersion The snapshot version that triggered the doc changes
+   *        or SnapshotVersion.MIN if no version is known.
    * @param previousChanges If this is being called with a refill, then start
    *        with this set of docs and changes instead of the current view.
    * @return a new set of docs, changes, and refill flag.
    */
   computeDocChanges(
     docChanges: MaybeDocumentMap,
+    snapshotVersion: SnapshotVersion,
     previousChanges?: ViewDocumentChanges
   ): ViewDocumentChanges {
     const changeSet = previousChanges
@@ -124,6 +147,10 @@ export class View {
       : this.mutatedKeys;
     let newDocumentSet = oldDocumentSet;
     let needsRefill = false;
+
+    if (this.firstSnapshotVersion === SnapshotVersion.MIN) {
+      this.firstSnapshotVersion = snapshotVersion;
+    }
 
     // Track the last doc in a (full) limit. This is necessary, because some
     // update (a delete, or an update moving a doc past the old limit) might
@@ -153,51 +180,89 @@ export class View {
           );
           newDoc = this.query.matches(newDoc) ? newDoc : null;
         }
-        if (newDoc) {
-          newDocumentSet = newDocumentSet.add(newDoc);
-          if (newDoc.hasLocalMutations) {
-            newMutatedKeys = newMutatedKeys.add(key);
-          } else {
-            newMutatedKeys = newMutatedKeys.delete(key);
-          }
-        } else {
-          newDocumentSet = newDocumentSet.delete(key);
-          newMutatedKeys = newMutatedKeys.delete(key);
-        }
+
+        let changeApplied = false;
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.isEqual(newDoc.data);
-          if (
-            !docsEqual ||
-            oldDoc.hasLocalMutations !== newDoc.hasLocalMutations
-          ) {
-            // only report a change if document actually changed
-            if (docsEqual) {
-              changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
-            } else {
-              changeSet.track({ type: ChangeType.Modified, doc: newDoc });
-            }
+          const docsChanged = !oldDoc.data.isEqual(newDoc.data);
 
-            if (
-              lastDocInLimit &&
-              this.query.docComparator(newDoc, lastDocInLimit) > 0
-            ) {
-              // This doc moved from inside the limit to after the limit.
-              // That means there may be some doc in the local cache that's
-              // actually less than this one.
-              needsRefill = true;
+          if (docsChanged) {
+            // We suppress the initial change event for a document that was
+            // modified as part of write acknowledgment (e.g. when the value of
+            // a server transform is applied) as Watch will send us the same
+            // document again.
+            // By suppressing the event, we only raise two user visible events
+            // (one with `hasPendingWrites` and the final state of the document)
+            // instead of three (one with `hasPendingWrites`, the modified
+            // document with `hasPendingWrites` and the final state of the
+            // document).
+            const shouldWaitForRemoteVersion =
+              newDoc.hasPendingWrites(this.firstSnapshotVersion) &&
+              oldDoc.hasLocalMutations &&
+              !newDoc.hasLocalMutations;
+
+            if (!shouldWaitForRemoteVersion) {
+              changeSet.track({
+                type: ChangeType.Modified,
+                doc: newDoc
+              });
+              changeApplied = true;
+
+              if (
+                lastDocInLimit &&
+                this.query.docComparator(newDoc, lastDocInLimit) > 0
+              ) {
+                // This doc moved from inside the limit to after the limit.
+                // That means there may be some doc in the local cache that's
+                // actually less than this one.
+                needsRefill = true;
+              }
             }
+          } else if (
+            oldDoc.hasPendingWrites(this.firstSnapshotVersion) !==
+            newDoc.hasPendingWrites(this.firstSnapshotVersion)
+          ) {
+            changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
+            changeApplied = true;
           }
         } else if (!oldDoc && newDoc) {
-          changeSet.track({ type: ChangeType.Added, doc: newDoc });
+          // We don't have a document in cache if we have received a write
+          // acknowledgement for a document update that has no base version. In
+          // order to show a document to the user that doesn't include our local
+          // edit, we hold new documents until Watch has sent us a version that
+          // contains the update.
+          const snapshotWentBackInTime =
+            !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
+            snapshotVersion.compareTo(this.lastSnapshotVersion) < 0;
+
+          if (!snapshotWentBackInTime) {
+            changeSet.track({ type: ChangeType.Added, doc: newDoc });
+            changeApplied = true;
+          }
         } else if (oldDoc && !newDoc) {
           changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
+          changeApplied = true;
+
           if (lastDocInLimit) {
             // A doc was removed from a full limit query. We'll need to
             // requery from the local cache to see if we know about some other
             // doc that should be in the results.
             needsRefill = true;
+          }
+        }
+
+        if (changeApplied) {
+          if (newDoc) {
+            newDocumentSet = newDocumentSet.add(newDoc);
+            if (newDoc.hasPendingWrites(this.firstSnapshotVersion)) {
+              newMutatedKeys = newMutatedKeys.add(key);
+            } else {
+              newMutatedKeys = newMutatedKeys.delete(key);
+            }
+          } else {
+            newDocumentSet = newDocumentSet.delete(key);
+            newMutatedKeys = newMutatedKeys.delete(key);
           }
         }
       }
@@ -218,7 +283,8 @@ export class View {
       documentSet: newDocumentSet,
       changeSet,
       needsRefill,
-      mutatedKeys: newMutatedKeys
+      mutatedKeys: newMutatedKeys,
+      snapshotVersion
     };
   }
 
@@ -260,6 +326,10 @@ export class View {
     const syncStateChanged = newSyncState !== this.syncState;
     this.syncState = newSyncState;
 
+    if (docChanges.snapshotVersion !== SnapshotVersion.MIN) {
+      this.lastSnapshotVersion = docChanges.snapshotVersion;
+    }
+
     if (changes.length === 0 && !syncStateChanged) {
       // no changes
       return { limboChanges };
@@ -297,6 +367,7 @@ export class View {
           documentSet: this.documentSet,
           changeSet: new DocumentChangeSet(),
           mutatedKeys: this.mutatedKeys,
+          snapshotVersion: this.lastSnapshotVersion,
           needsRefill: false
         },
         /* updateLimboDocuments= */ false
@@ -323,7 +394,9 @@ export class View {
     // doesn't know that it's part of the query. So don't put it in limbo.
     // TODO(klimt): Ideally, we would only consider changes that might actually
     // affect this specific query.
-    if (this.documentSet.get(key)!.hasLocalMutations) {
+    if (
+      this.documentSet.get(key)!.hasPendingWrites(this.firstSnapshotVersion)
+    ) {
       return false;
     }
     // Everything else is in limbo.
@@ -409,8 +482,11 @@ export class View {
   ): ViewChange {
     this._syncedDocuments = remoteKeys;
     this.limboDocuments = documentKeySet();
-    const docChanges = this.computeDocChanges(localDocs);
-    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
+    const docChanges = this.computeDocChanges(
+      localDocs,
+      this.lastSnapshotVersion
+    );
+    return this.applyChanges(docChanges, true);
   }
 
   /**

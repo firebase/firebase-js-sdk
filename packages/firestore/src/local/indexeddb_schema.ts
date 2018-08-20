@@ -24,6 +24,12 @@ import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { LocalSerializer } from './local_serializer';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { IndexedDbTransaction } from './indexeddb_persistence';
+import { DatabaseId } from '../core/database_info';
 
 /**
  * Schema Version for the Web client:
@@ -35,8 +41,9 @@ import { SnapshotVersion } from '../core/snapshot_version';
  *    to limbo resolution. Addresses
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
+ * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
 
 /**
  * Performs database creation and schema upgrades.
@@ -47,6 +54,7 @@ export const SCHEMA_VERSION = 4;
  */
 export function createOrUpgradeDb(
   db: IDBDatabase,
+  databaseId: DatabaseId,
   txn: SimpleDbTransaction,
   fromVersion: number,
   toVersion: number
@@ -92,6 +100,10 @@ export function createOrUpgradeDb(
       createClientMetadataStore(db);
       createRemoteDocumentChangesStore(db);
     });
+  }
+
+  if (fromVersion < 5 && toVersion >= 5) {
+    p = p.next(() => removeAcknowledgedMutations(db, databaseId, txn));
   }
 
   return p;
@@ -295,6 +307,65 @@ function upgradeMutationBatchSchemaAndMigrateData(
   });
 }
 
+function removeAcknowledgedMutations(
+  db: IDBDatabase,
+  databaseId: DatabaseId,
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
+    DbMutationQueue.store
+  );
+  const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    DbMutationBatch.store
+  );
+
+  const serializer = new LocalSerializer(
+    new JsonProtoSerializer(databaseId, {
+      useProto3Json: true
+    })
+  );
+
+  const indexedDbTransaction = new IndexedDbTransaction(txn);
+
+  return queuesStore.loadAll().next(queues => {
+    let p = PersistencePromise.resolve();
+    for (const queue of queues) {
+      p = p.next(() => {
+        const mutationQueue = new IndexedDbMutationQueue(
+          queue.userId,
+          serializer
+        );
+
+        const range = IDBKeyRange.bound(
+          [queue.userId, BATCHID_UNKNOWN],
+          [queue.userId, queue.lastAcknowledgedBatchId]
+        );
+
+        return mutationsStore
+          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .next(dbBatches => {
+            let removeP = PersistencePromise.resolve();
+            for (const dbBatch of dbBatches) {
+              assert(
+                dbBatch.userId === queue.userId,
+                `Cannot process batch ${dbBatch.batchId} from unexpected user`
+              );
+              const batch = serializer.fromDbMutationBatch(dbBatch);
+              removeP = removeP.next(() =>
+                mutationQueue.removeMutationBatch(indexedDbTransaction, batch)
+              );
+            }
+            return removeP;
+          })
+          .next(() =>
+            mutationQueue.performConsistencyCheck(indexedDbTransaction)
+          );
+      });
+    }
+    return p;
+  });
+}
+
 /**
  * An object to be stored in the 'documentMutations' store in IndexedDb.
  *
@@ -386,7 +457,14 @@ export class DbRemoteDocument {
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: api.Document | null
+    public document: api.Document | null,
+    /**
+     * For documents that were written to the remote document store based on
+     * a write acknowledgment, the commit version of the write. This is used
+     * to determine if the document is 'dirty' (the commit version is higher
+     * then the last version sent to us by Watch).
+     */
+    public commitVersion?: DbTimestamp
   ) {}
 }
 

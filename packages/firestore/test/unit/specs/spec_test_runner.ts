@@ -84,7 +84,6 @@ import { Deferred, sequence } from '../../../src/util/promise';
 import {
   deletedDoc,
   deleteMutation,
-  doc,
   filter,
   key,
   orderBy,
@@ -93,7 +92,8 @@ import {
   setMutation,
   TestSnapshotVersion,
   version,
-  expectFirestoreError
+  expectFirestoreError,
+  mutatedDoc
 } from '../../util/helpers';
 import {
   ClientId,
@@ -108,6 +108,11 @@ import {
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
+import {
+  INDEXEDDB_TEST_DATABASE_ID,
+  INDEXEDDB_TEST_DATABASE_INFO,
+  INDEXEDDB_TEST_DATABASE_NAME
+} from '../local/persistence_test_helpers';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -424,8 +429,7 @@ abstract class TestRunner {
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
-      garbageCollector,
-      this.sharedClientState
+      garbageCollector
     );
 
     this.connection = new MockConnection(this.queue);
@@ -715,10 +719,15 @@ abstract class TestRunner {
         });
       });
     } else if (watchEntity.doc) {
-      const [key, version, data] = watchEntity.doc;
-      const document = data
-        ? doc(key, version, data)
-        : deletedDoc(key, version);
+      const document = watchEntity.doc.value
+        ? mutatedDoc(
+            watchEntity.doc.key,
+            watchEntity.doc.remoteVersion,
+            watchEntity.doc.commitVersion,
+            watchEntity.doc.value,
+            watchEntity.doc.options
+          )
+        : deletedDoc(watchEntity.doc.key, watchEntity.doc.remoteVersion);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1135,11 +1144,17 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const options = change.splice(3);
-    const docOptions: DocumentOptions = {
-      hasLocalMutations: options.indexOf('local') !== -1
+    const options = change.options || { hasLocalMutations: false };
+    return {
+      type,
+      doc: mutatedDoc(
+        change.key,
+        change.remoteVersion,
+        change.commitVersion || 0,
+        change.value,
+        options
+      )
     };
-    return { type, doc: doc(change[0], change[1], change[2], docOptions) };
   }
 }
 
@@ -1162,12 +1177,11 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
       this.platform,
-      IndexedDbTestRunner.TEST_DB_NAME,
+      INDEXEDDB_TEST_DATABASE_NAME,
       this.clientId,
       this.user
     );
@@ -1177,7 +1191,7 @@ class IndexedDbTestRunner extends TestRunner {
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
     const persistence = new IndexedDbPersistence(
-      IndexedDbTestRunner.TEST_DB_NAME,
+      INDEXEDDB_TEST_DATABASE_INFO,
       this.clientId,
       this.platform,
       this.queue,
@@ -1189,9 +1203,7 @@ class IndexedDbTestRunner extends TestRunner {
   }
 
   static destroyPersistence(): Promise<void> {
-    return SimpleDb.delete(
-      IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE
-    );
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
   }
 }
 
@@ -1487,11 +1499,13 @@ export interface SpecQuery {
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [
-  string,
-  TestSnapshotVersion,
-  JsonObject<AnyJs> | null
-];
+export interface SpecDocument {
+  key: string;
+  remoteVersion: TestSnapshotVersion;
+  commitVersion?: TestSnapshotVersion;
+  value: JsonObject<AnyJs> | null;
+  options?: DocumentOptions;
+}
 
 export interface SpecExpectation {
   query: SpecQuery;
@@ -1538,7 +1552,8 @@ async function writePrimaryClientToIndexedDb(
   clientId: ClientId
 ): Promise<void> {
   const db = await SimpleDb.openOrCreate(
-    IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
+    INDEXEDDB_TEST_DATABASE_ID,
+    INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
     createOrUpgradeDb
   );

@@ -37,7 +37,7 @@ export class Transaction {
   constructor(private datastore: Datastore) {}
 
   private recordVersion(doc: MaybeDocument): void {
-    let docVersion = doc.version;
+    let docVersion = doc.remoteVersion;
     if (doc instanceof NoDocument) {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
       docVersion = SnapshotVersion.forDeletedDoc();

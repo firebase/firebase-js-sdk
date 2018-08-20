@@ -197,7 +197,12 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             this.getEntry(transaction, key).next(maybeDoc => {
               changedDocs = changedDocs.insert(
                 key,
-                maybeDoc || new NoDocument(key, SnapshotVersion.forDeletedDoc())
+                maybeDoc ||
+                  new NoDocument(
+                    key,
+                    SnapshotVersion.forDeletedDoc(),
+                    SnapshotVersion.MIN
+                  )
               );
             })
           );

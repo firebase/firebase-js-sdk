@@ -35,6 +35,7 @@ import {
   documentUpdates,
   path
 } from '../../util/helpers';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 describe('EventManager', () => {
   // tslint:disable-next-line:no-any mock object.
@@ -232,7 +233,10 @@ describe('QueryListener', () => {
     const view = new View(query, documentKeySet());
     const snap1 = applyDocChanges(view).snapshot!;
 
-    const changes = view.computeDocChanges(documentUpdates());
+    const changes = view.computeDocChanges(
+      documentUpdates(),
+      SnapshotVersion.MIN
+    );
     const snap2 = view.applyChanges(changes, true, ackTarget()).snapshot!;
 
     eventListenable.onViewSnapshot(snap1); // no event
@@ -256,7 +260,10 @@ describe('QueryListener', () => {
     const view = new View(query, documentKeySet());
     const snap1 = applyDocChanges(view, doc1).snapshot!;
 
-    const changes = view.computeDocChanges(documentUpdates());
+    const changes = view.computeDocChanges(
+      documentUpdates(),
+      SnapshotVersion.MIN
+    );
     const snap2 = view.applyChanges(changes, true, ackTarget(doc1)).snapshot!;
     const snap3 = applyDocChanges(view, doc2).snapshot!;
 
@@ -370,11 +377,20 @@ describe('QueryListener', () => {
     });
 
     const view = new View(query, documentKeySet());
-    const changes1 = view.computeDocChanges(documentUpdates(doc1));
+    const changes1 = view.computeDocChanges(
+      documentUpdates(doc1),
+      SnapshotVersion.MIN
+    );
     const snap1 = view.applyChanges(changes1, true).snapshot!;
-    const changes2 = view.computeDocChanges(documentUpdates(doc2));
+    const changes2 = view.computeDocChanges(
+      documentUpdates(doc2),
+      SnapshotVersion.MIN
+    );
     const snap2 = view.applyChanges(changes2, true).snapshot!;
-    const changes3 = view.computeDocChanges(documentUpdates());
+    const changes3 = view.computeDocChanges(
+      documentUpdates(),
+      SnapshotVersion.MIN
+    );
     const snap3 = view.applyChanges(changes3, true, ackTarget(doc1, doc2))
       .snapshot!;
 
@@ -411,9 +427,15 @@ describe('QueryListener', () => {
     });
 
     const view = new View(query, documentKeySet());
-    const changes1 = view.computeDocChanges(documentUpdates(doc1));
+    const changes1 = view.computeDocChanges(
+      documentUpdates(doc1),
+      SnapshotVersion.MIN
+    );
     const snap1 = view.applyChanges(changes1, true).snapshot!;
-    const changes2 = view.computeDocChanges(documentUpdates(doc2));
+    const changes2 = view.computeDocChanges(
+      documentUpdates(doc2),
+      SnapshotVersion.MIN
+    );
     const snap2 = view.applyChanges(changes2, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
@@ -451,7 +473,10 @@ describe('QueryListener', () => {
     const listener = queryListener(query, events);
 
     const view = new View(query, documentKeySet());
-    const changes1 = view.computeDocChanges(documentUpdates());
+    const changes1 = view.computeDocChanges(
+      documentUpdates(),
+      SnapshotVersion.MIN
+    );
     const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
@@ -477,7 +502,10 @@ describe('QueryListener', () => {
     const listener = queryListener(query, events);
 
     const view = new View(query, documentKeySet());
-    const changes1 = view.computeDocChanges(documentUpdates());
+    const changes1 = view.computeDocChanges(
+      documentUpdates(),
+      SnapshotVersion.MIN
+    );
     const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Offline);

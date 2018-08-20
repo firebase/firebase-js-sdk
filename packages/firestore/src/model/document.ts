@@ -31,7 +31,8 @@ export class Document {
 
   constructor(
     readonly key: DocumentKey,
-    readonly version: SnapshotVersion,
+    readonly remoteVersion: SnapshotVersion,
+    readonly commitVersion: SnapshotVersion,
     readonly data: ObjectValue,
     options: DocumentOptions
   ) {
@@ -51,11 +52,30 @@ export class Document {
     return this.data.value();
   }
 
+  hasPendingWrites(baseSnapshotVersion: SnapshotVersion): boolean {
+    if (this.hasLocalMutations) {
+      return true;
+    }
+
+    // If the document was committed after Watch has delivered the base
+    // snapshot, we raise `hasPendingWrites` as long as the local commit version
+    // remains higher than the version sent to us by Watch.
+    if (
+      !baseSnapshotVersion.isEqual(SnapshotVersion.MIN) &&
+      this.commitVersion.compareTo(baseSnapshotVersion) >= 0
+    ) {
+      return this.commitVersion.compareTo(this.remoteVersion) > 0;
+    }
+
+    return false;
+  }
+
   isEqual(other: Document | null | undefined): boolean {
     return (
       other instanceof Document &&
       this.key.isEqual(other.key) &&
-      this.version.isEqual(other.version) &&
+      this.remoteVersion.isEqual(other.remoteVersion) &&
+      this.commitVersion.isEqual(other.commitVersion) &&
       this.data.isEqual(other.data) &&
       this.hasLocalMutations === other.hasLocalMutations
     );
@@ -63,7 +83,7 @@ export class Document {
 
   toString(): string {
     return (
-      `Document(${this.key}, ${this.version}, ${this.data.toString()}, ` +
+      `Document(${this.key}, ${this.remoteVersion}, ${this.data.toString()}, ` +
       `{hasLocalMutations: ${this.hasLocalMutations}})`
     );
   }
@@ -89,21 +109,26 @@ export class Document {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument {
-  constructor(readonly key: DocumentKey, readonly version: SnapshotVersion) {}
+  constructor(
+    readonly key: DocumentKey,
+    readonly remoteVersion: SnapshotVersion,
+    readonly commitVersion: SnapshotVersion
+  ) {}
 
   toString(): string {
-    return `NoDocument(${this.key}, ${this.version})`;
+    return `NoDocument(${this.key}, ${this.remoteVersion})`;
   }
 
   isEqual(other: NoDocument): boolean {
     return (
       other &&
-      other.version.isEqual(this.version) &&
+      other.remoteVersion.isEqual(this.remoteVersion) &&
+      other.commitVersion.isEqual(this.commitVersion) &&
       other.key.isEqual(this.key)
     );
   }
 
-  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
+  static compareByKey(d1: NoDocument, d2: NoDocument): number {
     return DocumentKey.comparator(d1.key, d2.key);
   }
 }

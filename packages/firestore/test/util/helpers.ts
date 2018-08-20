@@ -111,24 +111,57 @@ export function ref(dbIdStr: string, keyStr: string): DocumentKeyReference {
 
 export function doc(
   keyStr: string,
-  ver: TestSnapshotVersion,
+  remoteVersion: TestSnapshotVersion,
   json: JsonObject<AnyJs>,
   options: DocumentOptions = {
     hasLocalMutations: false
   }
 ): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  return new Document(
+    key(keyStr),
+    version(remoteVersion),
+    version(0),
+    wrapObject(json),
+    options
+  );
+}
+
+export function mutatedDoc(
+  keyStr: string,
+  remoteVersion: TestSnapshotVersion,
+  commitVersion: TestSnapshotVersion,
+  json: JsonObject<AnyJs>,
+  options: DocumentOptions = {
+    hasLocalMutations: false
+  }
+): Document {
+  return new Document(
+    key(keyStr),
+    version(remoteVersion),
+    version(commitVersion),
+    wrapObject(json),
+    options
+  );
 }
 
 export function deletedDoc(
   keyStr: string,
-  ver: TestSnapshotVersion
+  remoteVersion: TestSnapshotVersion,
+  commitVersion: TestSnapshotVersion = 0
 ): NoDocument {
-  return new NoDocument(key(keyStr), version(ver));
+  return new NoDocument(
+    key(keyStr),
+    version(remoteVersion),
+    version(commitVersion)
+  );
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+  return new NoDocument(
+    key(keyStr),
+    SnapshotVersion.forDeletedDoc(),
+    SnapshotVersion.MIN
+  );
 }
 
 export function wrap(value: AnyJs): FieldValue {
@@ -161,8 +194,8 @@ export function keys(
   return keys;
 }
 
-export function path(path: string): ResourcePath {
-  return new ResourcePath(splitPath(path, '/'));
+export function path(path: string, offset?: number): ResourcePath {
+  return new ResourcePath(splitPath(path, '/'), offset);
 }
 
 export function field(path: string): FieldPath {
@@ -270,7 +303,7 @@ export function docAddedRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return aggregator.createRemoteEvent(doc.remoteVersion);
 }
 
 export function docUpdateRemoteEvent(
@@ -294,7 +327,7 @@ export function docUpdateRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return aggregator.createRemoteEvent(doc.remoteVersion);
 }
 
 export function updateMapping(
@@ -446,7 +479,11 @@ export function documentUpdates(
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+        new NoDocument(
+          docOrKey,
+          SnapshotVersion.forDeletedDoc(),
+          SnapshotVersion.MIN
+        )
       );
     }
   }
@@ -460,7 +497,10 @@ export function applyDocChanges(
   view: View,
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
-  const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
+  const changes = view.computeDocChanges(
+    documentUpdates(...docsOrKeys),
+    SnapshotVersion.MIN
+  );
   return view.applyChanges(changes, true);
 }
 

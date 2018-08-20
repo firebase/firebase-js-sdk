@@ -847,21 +847,21 @@ export class SpecBuilder {
   }
 
   private static docToSpec(doc: MaybeDocument): SpecDocument {
-    const data = doc instanceof Document ? doc.data.value() : null;
-    const localMutations =
-      doc instanceof Document ? doc.hasLocalMutations : false;
-
-    const spec: SpecDocument = [
-      SpecBuilder.keyToSpec(doc.key),
-      doc.version.toMicroseconds(),
-      data
-    ];
-
-    if (localMutations) {
-      spec.push('local');
+    if (doc instanceof Document) {
+      return {
+        key: SpecBuilder.keyToSpec(doc.key),
+        remoteVersion: doc.remoteVersion.toMicroseconds(),
+        commitVersion: doc.commitVersion.toMicroseconds(),
+        value: doc.data.value(),
+        options: { hasLocalMutations: doc.hasLocalMutations }
+      };
+    } else {
+      return {
+        key: SpecBuilder.keyToSpec(doc.key),
+        remoteVersion: doc.remoteVersion.toMicroseconds(),
+        value: null
+      };
     }
-
-    return spec;
   }
 
   private static keyToSpec(key: DocumentKey): string {

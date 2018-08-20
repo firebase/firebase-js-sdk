@@ -53,16 +53,6 @@ export class TestMutationQueue {
       .then(batches => batches.length);
   }
 
-  getHighestAcknowledgedBatchId(): Promise<BatchId> {
-    return this.persistence.runTransaction(
-      'getHighestAcknowledgedBatchId',
-      false,
-      txn => {
-        return this.queue.getHighestAcknowledgedBatchId(txn);
-      }
-    );
-  }
-
   acknowledgeBatch(
     batch: MutationBatch,
     streamToken: ProtoByteString
@@ -126,18 +116,6 @@ export class TestMutationQueue {
     );
   }
 
-  getAllMutationBatchesThroughBatchId(
-    batchId: BatchId
-  ): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction(
-      'getAllMutationBatchesThroughBatchId',
-      false,
-      txn => {
-        return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
-      }
-    );
-  }
-
   getAllMutationBatchesAffectingDocumentKey(
     documentKey: DocumentKey
   ): Promise<MutationBatch[]> {
@@ -178,14 +156,10 @@ export class TestMutationQueue {
     );
   }
 
-  removeMutationBatches(batches: MutationBatch[]): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeMutationBatches',
-      true,
-      txn => {
-        return this.queue.removeMutationBatches(txn, batches);
-      }
-    );
+  removeMutationBatch(batch: MutationBatch): Promise<void> {
+    return this.persistence.runTransaction('removeMutationBatch', true, txn => {
+      return this.queue.removeMutationBatch(txn, batch);
+    });
   }
 
   collectGarbage(gc: GarbageCollector): Promise<DocumentKeySet> {

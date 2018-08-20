@@ -17,9 +17,14 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  ALL_STORES,
   createOrUpgradeDb,
+  DbDocumentMutation,
+  DbDocumentMutationKey,
   DbMutationBatch,
   DbMutationBatchKey,
+  DbMutationQueue,
+  DbMutationQueueKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTarget,
@@ -35,17 +40,18 @@ import {
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { DatabaseId } from '../../../src/core/database_info';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { PersistenceSettings } from '../../../src/api/database';
-
-const INDEXEDDB_TEST_DATABASE_PREFIX = 'schemaTest/';
-const INDEXEDDB_TEST_DATABASE =
-  INDEXEDDB_TEST_DATABASE_PREFIX + IndexedDbPersistence.MAIN_DATABASE;
+import { path } from '../../util/helpers';
+import {
+  INDEXEDDB_TEST_DATABASE_ID,
+  INDEXEDDB_TEST_DATABASE_INFO,
+  INDEXEDDB_TEST_DATABASE_NAME
+} from './persistence_test_helpers';
 
 function withDb(
   schemaVersion,
@@ -53,13 +59,14 @@ function withDb(
 ): Promise<void> {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
-      INDEXEDDB_TEST_DATABASE,
+      INDEXEDDB_TEST_DATABASE_NAME,
       schemaVersion
     );
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
       createOrUpgradeDb(
         db,
+        INDEXEDDB_TEST_DATABASE_ID,
         new SimpleDbTransaction(request.transaction),
         event.oldVersion,
         schemaVersion
@@ -87,18 +94,16 @@ async function withCustomPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const partition = new DatabaseId('project');
-  const serializer = new JsonProtoSerializer(partition, {
+  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
     useProto3Json: true
   });
-
   const queue = new AsyncQueue();
   const platform = new TestPlatform(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
   const persistence = new IndexedDbPersistence(
-    INDEXEDDB_TEST_DATABASE_PREFIX,
+    INDEXEDDB_TEST_DATABASE_INFO,
     clientId,
     platform,
     queue,
@@ -157,9 +162,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return;
   }
 
-  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   it('can install schema version 1', () => {
     return withDb(1, async db => {
@@ -259,23 +264,23 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
   it('can upgrade from schema version 3 to 4', () => {
     const testWrite = { delete: 'foo' };
-    const testMutations = [
+    const testMutations: DbMutationBatch[] = [
       {
         userId: 'foo',
         batchId: 0,
-        localWriteTime: 1337,
+        localWriteTimeMs: 1337,
         mutations: []
       },
       {
         userId: 'foo',
         batchId: 1,
-        localWriteTime: 1337,
+        localWriteTimeMs: 1337,
         mutations: [testWrite]
       },
       {
         userId: 'foo',
         batchId: 42,
-        localWriteTime: 1337,
+        localWriteTimeMs: 1337,
         mutations: [testWrite, testWrite]
       }
     ];
@@ -320,6 +325,148 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       })
     );
   });
+
+  it('can upgrade from schema version 4 to 5', () => {
+    // This test creates a database with schema version 4 that has two users,
+    // both of which have acknowledged mutations that haven't yet been removed
+    // from IndexedDb (heldWriteAcks). Schema version 5 removed heldWriteAcks,
+    // and as such these mutations are deleted.
+    const testWriteFoo = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/foo'
+      }
+    };
+    const testWriteBar = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/bar'
+      }
+    };
+    const testWriteBaz = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/baz'
+      }
+    };
+    const testWritePending = {
+      update: {
+        name: 'projects/test-project/databases/(default)/documents/docs/pending'
+      }
+    };
+    const testMutations: DbMutationBatch[] = [
+      // User 'foo' has two acknowledged mutations and one that is pending.
+      {
+        userId: 'foo',
+        batchId: 1,
+        localWriteTimeMs: 1337,
+        mutations: [testWriteFoo]
+      },
+      {
+        userId: 'foo',
+        batchId: 2,
+        localWriteTimeMs: 1337,
+        mutations: [testWriteFoo]
+      },
+      // User 'bar' has one acknowledged mutation and one that is pending.
+      {
+        userId: 'bar',
+        batchId: 3,
+        localWriteTimeMs: 1337,
+        mutations: [testWriteBar, testWriteBaz]
+      },
+      {
+        userId: 'bar',
+        batchId: 4,
+        localWriteTimeMs: 1337,
+        mutations: [testWritePending]
+      },
+      {
+        userId: 'foo',
+        batchId: 5,
+        localWriteTimeMs: 1337,
+        mutations: [testWritePending]
+      }
+    ];
+
+    return withDb(4, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+        const mutationBatchStore = txn.store<
+          DbMutationBatchKey,
+          DbMutationBatch
+        >(DbMutationBatch.store);
+        const documentMutationStore = txn.store<
+          DbDocumentMutationKey,
+          DbDocumentMutation
+        >(DbDocumentMutation.store);
+        const mutationQueuesStore = txn.store<
+          DbMutationQueueKey,
+          DbMutationQueue
+        >(DbMutationQueue.store);
+        // Manually populate the mutation queue and create all indicies.
+        let p = PersistencePromise.resolve();
+        for (const testMutation of testMutations) {
+          p = p.next(() => mutationBatchStore.put(testMutation));
+          for (const write of testMutation.mutations) {
+            p = p.next(() => {
+              const resourcePath = path(write.update.name, 5);
+              const indexKey = DbDocumentMutation.key(
+                testMutation.userId,
+                resourcePath,
+                testMutation.batchId
+              );
+              return documentMutationStore.put(
+                indexKey,
+                DbDocumentMutation.PLACEHOLDER
+              );
+            });
+          }
+        }
+        p = p.next(() =>
+          PersistencePromise.waitFor([
+            mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
+            mutationQueuesStore.put(new DbMutationQueue('bar', 3, '')),
+            mutationQueuesStore.put(new DbMutationQueue('empty', -1, ''))
+          ])
+        );
+        return p;
+      });
+    }).then(() =>
+      withDb(5, db => {
+        expect(db.version).to.be.equal(5);
+
+        const sdb = new SimpleDb(db);
+        return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+          const mutationBatchStore = txn.store<
+            DbMutationBatchKey,
+            DbMutationBatch
+          >(DbMutationBatch.store);
+          const documentMutationStore = txn.store<
+            DbDocumentMutationKey,
+            DbDocumentMutation
+          >(DbDocumentMutation.store);
+          const mutationQueuesStore = txn.store<
+            DbMutationQueueKey,
+            DbMutationQueue
+          >(DbMutationQueue.store);
+          // Verify that all but the two pending mutations have been cleared
+          // by the migration.
+          let p = mutationBatchStore.count().next(count => {
+            expect(count).to.deep.equal(2);
+          });
+          p = p.next(() =>
+            documentMutationStore.count().next(count => {
+              expect(count).to.equal(2);
+            })
+          );
+          p = p.next(() =>
+            mutationQueuesStore.count().next(count => {
+              expect(count).to.equal(3);
+            })
+          );
+          return p;
+        });
+      })
+    );
+  });
 });
 
 describe('IndexedDb: canActAsPrimary', () => {
@@ -330,7 +477,8 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   async function clearPrimaryLease(): Promise<void> {
     const simpleDb = await SimpleDb.openOrCreate(
-      INDEXEDDB_TEST_DATABASE,
+      INDEXEDDB_TEST_DATABASE_ID,
+      INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
       createOrUpgradeDb
     );
@@ -344,10 +492,10 @@ describe('IndexedDb: canActAsPrimary', () => {
   }
 
   beforeEach(() => {
-    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE);
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
   });
 
-  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   const visible: VisibilityState = 'visible';
   const hidden: VisibilityState = 'hidden';
@@ -456,9 +604,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
     return;
   }
 
-  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE));
+  after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   it('rejects access when synchronization is disabled', () => {
     return withPersistence('clientA', async db1 => {

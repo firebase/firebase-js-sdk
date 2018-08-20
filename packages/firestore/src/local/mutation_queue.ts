@@ -43,15 +43,6 @@ export interface MutationQueue extends GarbageSource {
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 
   /**
-   * Returns the highest batchId that has been acknowledged. If no batches have
-   * been acknowledged or if there are no batches in the queue this can return
-   * BATCHID_UNKNOWN.
-   */
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId>;
-
-  /**
    * Acknowledges the given batch.
    */
   acknowledgeBatch(
@@ -121,24 +112,6 @@ export interface MutationQueue extends GarbageSource {
   ): PersistencePromise<MutationBatch[]>;
 
   /**
-   * Finds all mutations with a batchId less than or equal to the given batchId.
-   *
-   * Generally the caller should be asking for the next unacknowledged batchId
-   * and the number of acknowledged batches should be very small when things are
-   * functioning well.
-   *
-   * @param batchId The batch to search through.
-   *
-   * @return an Array containing all batches with matching batchIds.
-   */
-  // TODO(mcg): This should really return an enumerator and the caller should be
-  // adjusted to only loop through these once.
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch[]>;
-
-  /**
    * Finds all mutation batches that could possibly affect the given
    * document key. Not all mutations in a batch will necessarily affect the
    * document key, so when looping through the batch you'll need to check that
@@ -204,14 +177,11 @@ export interface MutationQueue extends GarbageSource {
    * + Removing rejected mutations from anywhere in the queue
    *
    * In both cases, the array of mutations to remove must be a contiguous range
-   * of batchIds. This is most easily accomplished by loading mutations with
-   * getAllMutationBatchesThroughBatchId()
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
+   * of batchIds.
    */
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void>;
 
   /**

@@ -523,14 +523,18 @@ export class JsonProtoSerializer {
     return {
       name: this.toName(document.key),
       fields: this.toFields(document.data),
-      updateTime: this.toTimestamp(document.version.toTimestamp())
+      updateTime: this.toTimestamp(document.remoteVersion.toTimestamp())
     };
   }
 
-  fromDocument(document: api.Document): Document {
+  fromDocument(
+    document: api.Document,
+    commitVersion: SnapshotVersion
+  ): Document {
     return new Document(
       this.fromName(document.name!),
       this.fromVersion(document.updateTime!),
+      commitVersion,
       this.fromFields(document.fields || {}),
       { hasLocalMutations: false }
     );
@@ -576,9 +580,17 @@ export class JsonProtoSerializer {
     assertPresent(doc.found!.name, 'doc.found.name');
     assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found!.name!);
-    const version = this.fromVersion(doc.found!.updateTime!);
+    const remoteVersion = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, { hasLocalMutations: false });
+    return new Document(
+      key,
+      remoteVersion,
+      /*commitVersion=*/ SnapshotVersion.MIN,
+      fields,
+      {
+        hasLocalMutations: false
+      }
+    );
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -591,8 +603,12 @@ export class JsonProtoSerializer {
       'Tried to deserialize a missing document without a read time.'
     );
     const key = this.fromName(result.missing!);
-    const version = this.fromVersion(result.readTime!);
-    return new NoDocument(key, version);
+    const remoteVersion = this.fromVersion(result.readTime!);
+    return new NoDocument(
+      key,
+      remoteVersion,
+      /*commitVersion=*/ SnapshotVersion.MIN
+    );
   }
 
   fromMaybeDocument(result: api.BatchGetDocumentsResponse): MaybeDocument {
@@ -642,7 +658,7 @@ export class JsonProtoSerializer {
             document: {
               name: this.toName(doc.key),
               fields: this.toFields(doc.data),
-              updateTime: this.toVersion(doc.version)
+              updateTime: this.toVersion(doc.remoteVersion)
             },
             targetIds: watchChange.updatedTargetIds,
             removedTargetIds: watchChange.removedTargetIds
@@ -653,7 +669,7 @@ export class JsonProtoSerializer {
         return {
           documentDelete: {
             document: this.toName(doc.key),
-            readTime: this.toVersion(doc.version),
+            readTime: this.toVersion(doc.remoteVersion),
             removedTargetIds: watchChange.removedTargetIds
           }
         };
@@ -721,11 +737,19 @@ export class JsonProtoSerializer {
       );
       const entityChange = change.documentChange!;
       const key = this.fromName(entityChange.document!.name!);
-      const version = this.fromVersion(entityChange.document!.updateTime!);
+      const remoteVersion = this.fromVersion(
+        entityChange.document!.updateTime!
+      );
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {
-        hasLocalMutations: false
-      });
+      const doc = new Document(
+        key,
+        remoteVersion,
+        /*commitVersion=*/ SnapshotVersion.MIN,
+        fields,
+        {
+          hasLocalMutations: false
+        }
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -739,10 +763,14 @@ export class JsonProtoSerializer {
       assertPresent(change.documentDelete!.document, 'documentDelete.document');
       const docDelete = change.documentDelete!;
       const key = this.fromName(docDelete.document!);
-      const version = docDelete.readTime
+      const remoteVersion = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
         : SnapshotVersion.forDeletedDoc();
-      const doc = new NoDocument(key, version);
+      const doc = new NoDocument(
+        key,
+        remoteVersion,
+        /*commitVersion=*/ SnapshotVersion.MIN
+      );
       const removedTargetIds = docDelete.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
     } else if (hasTag(change, type, 'documentRemove')) {

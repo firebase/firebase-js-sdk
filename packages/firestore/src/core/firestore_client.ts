@@ -61,6 +61,7 @@ import {
 import { AutoId } from '../util/misc';
 import { PersistenceSettings } from '../api/database';
 import { assert } from '../util/assert';
+import { SnapshotVersion } from './snapshot_version';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -293,9 +294,7 @@ export class FirestoreClient {
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
-    const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
-    );
+
     // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
@@ -303,7 +302,7 @@ export class FirestoreClient {
 
     return Promise.resolve().then(() => {
       const persistence: IndexedDbPersistence = new IndexedDbPersistence(
-        storagePrefix,
+        this.databaseInfo,
         this.clientId,
         this.platform,
         this.asyncQueue,
@@ -322,6 +321,9 @@ export class FirestoreClient {
         );
       }
 
+      const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
+        this.databaseInfo
+      );
       this.sharedClientState = settings.experimentalTabSynchronization
         ? new WebStorageSharedClientState(
             this.asyncQueue,
@@ -360,8 +362,7 @@ export class FirestoreClient {
         this.localStore = new LocalStore(
           this.persistence,
           user,
-          this.garbageCollector,
-          this.sharedClientState
+          this.garbageCollector
         );
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
@@ -503,7 +504,8 @@ export class FirestoreClient {
 
         const view = new View(query, remoteKeys);
         const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
-          docs
+          docs,
+          SnapshotVersion.MIN
         );
         return view.applyChanges(
           viewDocChanges,

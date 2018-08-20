@@ -69,12 +69,6 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.highestAcknowledgedBatchId);
-  }
-
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
@@ -204,28 +198,6 @@ export class MemoryMutationQueue implements MutationQueue {
     );
   }
 
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch[]> {
-    const count = this.mutationQueue.length;
-
-    let endIndex = this.indexOfBatchId(batchId);
-    if (endIndex < 0) {
-      endIndex = 0;
-    } else if (endIndex >= count) {
-      endIndex = count;
-    } else {
-      // The endIndex is in the queue so increment to pull everything in the
-      // queue including it.
-      endIndex++;
-    }
-
-    return PersistencePromise.resolve(
-      this.getAllLiveMutationBatchesBeforeIndex(endIndex)
-    );
-  }
-
   getAllMutationBatchesAffectingDocumentKey(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
@@ -328,73 +300,45 @@ export class MemoryMutationQueue implements MutationQueue {
     return result;
   }
 
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void> {
-    const batchCount = batches.length;
-    assert(batchCount > 0, 'Should not remove mutations when none exist.');
-
-    const firstBatchId = batches[0].batchId;
-    const queueCount = this.mutationQueue.length;
-
     // Find the position of the first batch for removal. This need not be the
     // first entry in the queue.
-    const startIndex = this.indexOfExistingBatchId(firstBatchId, 'removed');
+    const batchIndex = this.indexOfExistingBatchId(batch.batchId, 'removed');
     assert(
-      this.mutationQueue[startIndex].batchId === firstBatchId,
+      this.mutationQueue[batchIndex].batchId === batch.batchId,
       'Removed batches must exist in the queue'
     );
-
-    // Check that removed batches are contiguous (while excluding tombstones).
-    let batchIndex = 1;
-    let queueIndex = startIndex + 1;
-    while (batchIndex < batchCount && queueIndex < queueCount) {
-      const batch = this.mutationQueue[queueIndex];
-      if (batch.isTombstone()) {
-        queueIndex++;
-        continue;
-      }
-
-      assert(
-        batch.batchId === batches[batchIndex].batchId,
-        'Removed batches must be contiguous in the queue'
-      );
-      batchIndex++;
-      queueIndex++;
-    }
 
     // Only actually remove batches if removing at the front of the queue.
     // Previously rejected batches may have left tombstones in the queue, so
     // expand the removal range to include any tombstones.
-    if (startIndex === 0) {
-      for (; queueIndex < queueCount; queueIndex++) {
+    if (batchIndex === 0) {
+      let queueIndex = 1;
+      for (; queueIndex < this.mutationQueue.length; queueIndex++) {
         const batch = this.mutationQueue[queueIndex];
         if (!batch.isTombstone()) {
           break;
         }
       }
-      const length = queueIndex - startIndex;
-      this.mutationQueue.splice(startIndex, length);
+      this.mutationQueue.splice(0, queueIndex);
     } else {
-      // Mark the tombstones
-      for (let i = startIndex; i < queueIndex; i++) {
-        this.mutationQueue[i] = this.mutationQueue[i].toTombstone();
-      }
+      this.mutationQueue[batchIndex] = this.mutationQueue[
+        batchIndex
+      ].toTombstone();
     }
 
     let references = this.batchesByDocumentKey;
-    for (const batch of batches) {
-      const batchId = batch.batchId;
-      for (const mutation of batch.mutations) {
-        const key = mutation.key;
-        if (this.garbageCollector !== null) {
-          this.garbageCollector.addPotentialGarbageKey(key);
-        }
-
-        const ref = new DocReference(key, batchId);
-        references = references.delete(ref);
+    for (const mutation of batch.mutations) {
+      const key = mutation.key;
+      if (this.garbageCollector !== null) {
+        this.garbageCollector.addPotentialGarbageKey(key);
       }
+
+      const ref = new DocReference(key, batch.batchId);
+      references = references.delete(ref);
     }
     this.batchesByDocumentKey = references;
     return PersistencePromise.resolve();

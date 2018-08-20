@@ -91,6 +91,7 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
@@ -1226,7 +1227,8 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
   get metadata(): firestore.SnapshotMetadata {
     return new SnapshotMetadata(
-      this._document !== null && this._document.hasLocalMutations,
+      this._document !== null &&
+        this._document.hasPendingWrites(SnapshotVersion.MIN),
       this._fromCache
     );
   }

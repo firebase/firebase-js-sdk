@@ -70,12 +70,17 @@ export class MutationBatch {
       (${this.mutations.length}) and mutation results length
       (${mutationResults.length}).`
     );
-
     for (let i = 0; i < this.mutations.length; i++) {
       const mutation = this.mutations[i];
       if (mutation.key.isEqual(docKey)) {
         const mutationResult = mutationResults[i];
-        maybeDoc = mutation.applyToRemoteDocument(maybeDoc, mutationResult);
+        const commitVersion =
+          mutationResult.version || batchResult.commitVersion;
+        maybeDoc = mutation.applyToRemoteDocument(
+          maybeDoc,
+          commitVersion,
+          mutationResult
+        );
       }
     }
     return maybeDoc;

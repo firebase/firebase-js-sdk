@@ -24,6 +24,7 @@ import {
 } from '../../../src/local/simple_db';
 import { ResourcePath } from '../../../src/model/path';
 import { path } from '../../util/helpers';
+import { INDEXEDDB_TEST_DATABASE_ID } from './persistence_test_helpers';
 
 let db: SimpleDb;
 const sep = '\u0001\u0001';
@@ -39,10 +40,15 @@ describe('EncodedResourcePath', () => {
   beforeEach(() => {
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
-          db.createObjectStore('test');
-          return PersistencePromise.resolve();
-        });
+        return SimpleDb.openOrCreate(
+          INDEXEDDB_TEST_DATABASE_ID,
+          dbName,
+          1,
+          db => {
+            db.createObjectStore('test');
+            return PersistencePromise.resolve();
+          }
+        );
       })
       .then(simpleDb => {
         db = simpleDb;
