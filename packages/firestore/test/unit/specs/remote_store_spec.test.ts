@@ -67,7 +67,7 @@ describeSpec('Remote store:', [], () => {
       .expectEvents(query, { added: [doc4] }); // This should work now.
   });
 
-  specTest('Cleans up watch state correctly', ['no-android', 'no-ios'], () => {
+  specTest('Cleans up watch state correctly', [], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/a', 1000, { key: 'a' });
     return (
@@ -77,7 +77,6 @@ describeSpec('Remote store:', [], () => {
         // Close before we get an ack, this should reset our pending
         // target counts.
         .watchStreamCloses(Code.UNAVAILABLE)
-        .expectEvents(query, { fromCache: true })
         // This should work now.
         .watchAcksFull(query, 1001, doc1)
         .expectEvents(query, { added: [doc1] })
@@ -98,7 +97,6 @@ describeSpec('Remote store:', [], () => {
           // close the stream (this should trigger retry with backoff; but don't
           // run it in an attempt to reproduce b/74749605).
           .watchStreamCloses(Code.UNAVAILABLE, { runBackoffTimer: false })
-          .expectEvents(query, { fromCache: true })
 
           // Because we didn't let the backoff timer run and restart the watch
           // stream, there will be no active targets.
