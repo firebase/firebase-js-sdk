@@ -473,46 +473,44 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return PersistencePromise.waitFor(promises).next(() => results);
   }
 
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void> {
     const mutationStore = mutationsStore(transaction);
     const indexTxn = documentMutationsStore(transaction);
     const promises: Array<PersistencePromise<void>> = [];
 
-    for (const batch of batches) {
-      const range = IDBKeyRange.only(batch.batchId);
-      let numDeleted = 0;
-      const removePromise = mutationStore.iterate(
-        { range },
-        (key, value, control) => {
-          numDeleted++;
-          return control.delete();
-        }
-      );
-      promises.push(
-        removePromise.next(() => {
-          assert(
-            numDeleted === 1,
-            'Dangling document-mutation reference found: Missing batch ' +
-              batch.batchId
-          );
-        })
-      );
-      for (const mutation of batch.mutations) {
-        const indexKey = DbDocumentMutation.key(
-          this.userId,
-          mutation.key.path,
-          batch.batchId
+    const range = IDBKeyRange.only(batch.batchId);
+    let numDeleted = 0;
+    const removePromise = mutationStore.iterate(
+      { range },
+      (key, value, control) => {
+        numDeleted++;
+        return control.delete();
+      }
+    );
+    promises.push(
+      removePromise.next(() => {
+        assert(
+          numDeleted === 1,
+          'Dangling document-mutation reference found: Missing batch ' +
+            batch.batchId
         );
-        this.removeCachedMutationKeys(batch.batchId);
-        promises.push(indexTxn.delete(indexKey));
-        if (this.garbageCollector !== null) {
-          this.garbageCollector.addPotentialGarbageKey(mutation.key);
-        }
+      })
+    );
+    for (const mutation of batch.mutations) {
+      const indexKey = DbDocumentMutation.key(
+        this.userId,
+        mutation.key.path,
+        batch.batchId
+      );
+      promises.push(indexTxn.delete(indexKey));
+      if (this.garbageCollector !== null) {
+        this.garbageCollector.addPotentialGarbageKey(mutation.key);
       }
     }
+    this.removeCachedMutationKeys(batch.batchId);
     return PersistencePromise.waitFor(promises);
   }
 

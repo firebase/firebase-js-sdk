@@ -302,11 +302,11 @@ export class LocalStore {
         }
       })
       .next(ackedBatches => {
-        if (ackedBatches.length > 0) {
-          return this.mutationQueue.removeMutationBatches(txn, ackedBatches);
-        } else {
-          return PersistencePromise.resolve();
-        }
+        let p = PersistencePromise.resolve();
+        ackedBatches.forEach(batch => {
+          p = p.next(() => this.mutationQueue.removeMutationBatch(txn, batch));
+        });
+        return p;
       });
   }
 
@@ -979,16 +979,17 @@ export class LocalStore {
     batches: MutationBatch[]
   ): PersistencePromise<DocumentKeySet> {
     let affectedDocs = documentKeySet();
+
+    let p = PersistencePromise.resolve();
     for (const batch of batches) {
       for (const mutation of batch.mutations) {
         const key = mutation.key;
         affectedDocs = affectedDocs.add(key);
       }
+      p = p.next(() => this.mutationQueue.removeMutationBatch(txn, batch));
     }
 
-    return this.mutationQueue
-      .removeMutationBatches(txn, batches)
-      .next(() => affectedDocs);
+    return p.next(() => affectedDocs);
   }
 
   private applyWriteToRemoteDocuments(
