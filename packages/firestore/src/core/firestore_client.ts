@@ -293,9 +293,7 @@ export class FirestoreClient {
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     this.garbageCollector = new NoOpGarbageCollector();
-    const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
-    );
+
     // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
     const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
       useProto3Json: true
@@ -303,7 +301,7 @@ export class FirestoreClient {
 
     return Promise.resolve().then(() => {
       const persistence: IndexedDbPersistence = new IndexedDbPersistence(
-        storagePrefix,
+        this.databaseInfo,
         this.clientId,
         this.platform,
         this.asyncQueue,
@@ -322,6 +320,9 @@ export class FirestoreClient {
         );
       }
 
+      const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
+        this.databaseInfo
+      );
       this.sharedClientState = settings.experimentalTabSynchronization
         ? new WebStorageSharedClientState(
             this.asyncQueue,

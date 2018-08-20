@@ -108,6 +108,11 @@ import {
   SCHEMA_VERSION
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
+import {
+  INDEXEDDB_TEST_DATABASE_ID,
+  INDEXEDDB_TEST_DATABASE_INFO,
+  INDEXEDDB_TEST_DATABASE_NAME
+} from '../local/persistence_test_helpers';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -1162,12 +1167,11 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
       this.platform,
-      IndexedDbTestRunner.TEST_DB_NAME,
+      INDEXEDDB_TEST_DATABASE_NAME,
       this.clientId,
       this.user
     );
@@ -1177,7 +1181,7 @@ class IndexedDbTestRunner extends TestRunner {
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
     const persistence = new IndexedDbPersistence(
-      IndexedDbTestRunner.TEST_DB_NAME,
+      INDEXEDDB_TEST_DATABASE_INFO,
       this.clientId,
       this.platform,
       this.queue,
@@ -1189,9 +1193,7 @@ class IndexedDbTestRunner extends TestRunner {
   }
 
   static destroyPersistence(): Promise<void> {
-    return SimpleDb.delete(
-      IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE
-    );
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
   }
 }
 
@@ -1538,7 +1540,8 @@ async function writePrimaryClientToIndexedDb(
   clientId: ClientId
 ): Promise<void> {
   const db = await SimpleDb.openOrCreate(
-    IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
+    INDEXEDDB_TEST_DATABASE_ID,
+    INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
     createOrUpgradeDb
   );

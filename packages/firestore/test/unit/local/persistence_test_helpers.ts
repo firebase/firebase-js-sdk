@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
@@ -46,6 +46,26 @@ export const TEST_PERSISTENCE_PREFIX =
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';
 
+/** The Database ID used by most tests that access IndexedDb. */
+export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
+
+/** The DatabaseInfo used by most tests that access IndexedDb. */
+export const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
+  INDEXEDDB_TEST_DATABASE_ID,
+  'PersistenceTestHelpers',
+  'host',
+  /*ssl=*/ false
+);
+
+/**
+ * The database name used by tests that access IndexedDb. To be used in
+ * conjunction with `INDEXEDDB_TEST_DATABASE_INFO` and
+ * `INDEXEDDB_TEST_DATABASE_ID`.
+ */
+export const INDEXEDDB_TEST_DATABASE_NAME =
+  IndexedDbPersistence.buildStoragePrefix(INDEXEDDB_TEST_DATABASE_INFO) +
+  IndexedDbPersistence.MAIN_DATABASE;
+
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
  * any previous contents if they existed.
@@ -62,13 +82,12 @@ export async function testIndexedDbPersistence(
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
-  const partition = new DatabaseId('project');
-  const serializer = new JsonProtoSerializer(partition, {
+  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
     useProto3Json: true
   });
   const platform = PlatformSupport.getPlatform();
   const persistence = new IndexedDbPersistence(
-    prefix,
+    INDEXEDDB_TEST_DATABASE_INFO,
     clientId,
     platform,
     queue,

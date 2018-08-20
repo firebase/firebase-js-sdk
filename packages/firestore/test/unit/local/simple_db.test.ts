@@ -25,6 +25,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+import { DatabaseId } from '../../../src/core/database_info';
 
 chai.use(chaiAsPromised);
 
@@ -86,7 +87,7 @@ describe('SimpleDb', () => {
   beforeEach(() => {
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
+        return SimpleDb.openOrCreate(new DatabaseId(dbName), dbName, 1, db => {
           const objectStore = db.createObjectStore('users', { keyPath: 'id' });
           objectStore.createIndex('age-name', ['age', 'name'], {
             unique: false
