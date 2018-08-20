@@ -316,14 +316,14 @@ export class MemoryMutationQueue implements MutationQueue {
     // Previously rejected batches may have left tombstones in the queue, so
     // expand the removal range to include any tombstones.
     if (batchIndex === 0) {
-      let queueIndex = 1;
-      for (; queueIndex < this.mutationQueue.length; queueIndex++) {
-        const batch = this.mutationQueue[queueIndex];
+      let endIndex = 1;
+      for (; endIndex < this.mutationQueue.length; endIndex++) {
+        const batch = this.mutationQueue[endIndex];
         if (!batch.isTombstone()) {
           break;
         }
       }
-      this.mutationQueue.splice(0, queueIndex);
+      this.mutationQueue.splice(0, endIndex);
     } else {
       this.mutationQueue[batchIndex] = this.mutationQueue[
         batchIndex

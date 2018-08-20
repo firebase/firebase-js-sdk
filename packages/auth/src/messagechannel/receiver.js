@@ -43,14 +43,14 @@ fireauth.messagechannel.Receiver = function(eventTarget) {
   this.eventTarget_ = eventTarget;
   /**
    * @const @private {!Object.<string,
-   *                    !Array<function(string, *):!goog.Promise<*>|void>>}
+   *                    !Array<function(string, *):!goog.Promise<?>|void>>}
    *     This is the event type to handlers hash map. It is used to hold the
    *     corresponding handlers for specified events.
    */
   this.eventHandlers_ = {};
   /**
-   * @const@private {function(!Event)} The internal 'message' event handler used
-   *     to reroute the request to corresponding subscribed handlers.
+   * @const @private {function(!Event)} The internal 'message' event handler
+   *     used to reroute the request to corresponding subscribed handlers.
    */
   this.messageEventHandler_ = goog.bind(this.handleEvent_, this);
 };
@@ -180,7 +180,7 @@ fireauth.messagechannel.Receiver.prototype.handleEvent_ = function(event) {
 /**
  * Subscribes to events of the specified type.
  * @param {string} eventType The event type to listen to.
- * @param {function(string, *):!goog.Promise<*>|void} handler The async callback
+ * @param {function(string, *):!goog.Promise<?>|void} handler The async callback
  *     function to run when the event is triggered.
  */
 fireauth.messagechannel.Receiver.prototype.subscribe =
@@ -199,7 +199,7 @@ fireauth.messagechannel.Receiver.prototype.subscribe =
  * Unsubscribes the specified handler from the specified event. If no handler
  * is specified, all handlers are unsubscribed.
  * @param {string} eventType The event type to unsubscribe from.
- * @param {?function(string, *):!goog.Promise<*>|void=} opt_handler The
+ * @param {?function(string, *):!goog.Promise<?>|void=} opt_handler The
  *     callback function to unsubscribe from the specified event type. If none
  *     is specified, all handlers are unsubscribed.
  */

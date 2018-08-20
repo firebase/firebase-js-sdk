@@ -487,12 +487,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
         mutation.key.path,
         batch.batchId
       );
-      this.removeCachedMutationKeys(batch.batchId);
       promises.push(indexTxn.delete(indexKey));
       if (this.garbageCollector !== null) {
         this.garbageCollector.addPotentialGarbageKey(mutation.key);
       }
     }
+    this.removeCachedMutationKeys(batch.batchId);
     return PersistencePromise.waitFor(promises);
   }
 
