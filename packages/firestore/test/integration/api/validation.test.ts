@@ -980,7 +980,7 @@ function expectFieldPathToFail(
       'Function DocumentSnapshot.get() called with invalid data. ' + reason
     );
 
-    const db =  snapshot.ref.firestore;
+    const db = snapshot.ref.firestore;
 
     // Query filter / order fields.
     const coll = db.collection('test-collection');
