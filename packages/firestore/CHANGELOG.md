@@ -1,4 +1,8 @@
-# 0.7.0 (Unreleased)
+# Unreleased
+- [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
+  Expo platform (#1138).
+
+# 0.7.0
 - [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
   documents from cache.
 - [changed] Prepared the persistence layer to allow shared access from multiple
