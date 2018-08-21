@@ -301,13 +301,11 @@ export class LocalStore {
           return PersistencePromise.resolve([]);
         }
       })
-      .next(ackedBatches => {
-        let p = PersistencePromise.resolve();
-        ackedBatches.forEach(batch => {
-          p = p.next(() => this.mutationQueue.removeMutationBatch(txn, batch));
-        });
-        return p;
-      });
+      .next(ackedBatches =>
+        PersistencePromise.forEach(ackedBatches, batch =>
+          this.mutationQueue.removeMutationBatch(txn, batch)
+        )
+      );
   }
 
   /* Accept locally generated Mutations and commit them to storage. */
@@ -979,17 +977,15 @@ export class LocalStore {
     batches: MutationBatch[]
   ): PersistencePromise<DocumentKeySet> {
     let affectedDocs = documentKeySet();
-
-    let p = PersistencePromise.resolve();
     for (const batch of batches) {
       for (const mutation of batch.mutations) {
         const key = mutation.key;
         affectedDocs = affectedDocs.add(key);
       }
-      p = p.next(() => this.mutationQueue.removeMutationBatch(txn, batch));
     }
-
-    return p.next(() => affectedDocs);
+    return PersistencePromise.forEach(batches, batch =>
+      this.mutationQueue.removeMutationBatch(txn, batch)
+    ).next(() => affectedDocs);
   }
 
   private applyWriteToRemoteDocuments(

@@ -369,14 +369,12 @@ export class IndexedDbPersistence implements Persistence {
               client => activeClients.indexOf(client) === -1
             );
           })
-          .next(() => {
+          .next(() =>
             // Delete metadata for clients that are no longer considered active.
-            let p = PersistencePromise.resolve();
-            inactiveClients.forEach(inactiveClient => {
-              p = p.next(() => metadataStore.delete(inactiveClient.clientId));
-            });
-            return p;
-          })
+            PersistencePromise.forEach(inactiveClients, inactiveClient =>
+              metadataStore.delete(inactiveClient.clientId)
+            )
+          )
           .next(() => {
             // Retrieve the minimum change ID from the set of active clients.
 

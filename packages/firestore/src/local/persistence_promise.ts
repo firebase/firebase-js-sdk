@@ -205,4 +205,15 @@ export class PersistencePromise<T> {
       return results;
     });
   }
+
+  static forEach<T>(
+    elements: T[],
+    callback: (T) => PersistencePromise<void>
+  ): PersistencePromise<void> {
+    let p = PersistencePromise.resolve();
+    for (const element of elements) {
+      p = p.next(() => callback(element));
+    }
+    return p;
+  }
 }
