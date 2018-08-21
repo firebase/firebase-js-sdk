@@ -204,18 +204,15 @@ export class IndexedDbPersistence implements Persistence {
   private queryCache: IndexedDbQueryCache;
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
 
-  private readonly persistenceKey: string;
-
   constructor(
-    private readonly databaseInfo: DatabaseInfo,
+    private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
     synchronizeTabs: boolean
   ) {
-    this.persistenceKey = IndexedDbPersistence.buildStoragePrefix(databaseInfo);
-    this.dbName = this.persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.window = platform.window;
@@ -247,7 +244,7 @@ export class IndexedDbPersistence implements Persistence {
     return SimpleDb.openOrCreate(
       this.dbName,
       SCHEMA_VERSION,
-      new SchemaConverter(this.databaseInfo.databaseId)
+      new SchemaConverter(this.serializer)
     )
       .then(db => {
         this.simpleDb = db;

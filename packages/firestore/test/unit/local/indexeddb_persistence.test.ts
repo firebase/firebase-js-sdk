@@ -49,15 +49,16 @@ import { PersistenceSettings } from '../../../src/api/database';
 import { path } from '../../util/helpers';
 import {
   INDEXEDDB_TEST_DATABASE_ID,
-  INDEXEDDB_TEST_DATABASE_INFO,
-  INDEXEDDB_TEST_DATABASE_NAME
+  INDEXEDDB_TEST_DATABASE_NAME,
+  INDEXEDDB_TEST_SERIALIZER,
+  TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 
 function withDb(
   schemaVersion,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
-  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID);
+  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_SERIALIZER);
 
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
@@ -98,13 +99,14 @@ async function withCustomPersistence(
   const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
     useProto3Json: true
   });
+
   const queue = new AsyncQueue();
   const platform = new TestPlatform(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
   const persistence = new IndexedDbPersistence(
-    INDEXEDDB_TEST_DATABASE_INFO,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
     queue,
@@ -400,20 +402,17 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         // Manually populate the mutation queue and create all indicies.
         return PersistencePromise.forEach(testMutations, testMutation => {
           return mutationBatchStore.put(testMutation).next(() => {
-            return PersistencePromise.forEach(
-              testMutation.mutations,
-              write => {
-                const indexKey = DbDocumentMutation.key(
-                  testMutation.userId,
-                  path(write.update.name, 5),
-                  testMutation.batchId
-                );
-                return documentMutationStore.put(
-                  indexKey,
-                  DbDocumentMutation.PLACEHOLDER
-                );
-              }
-            );
+            return PersistencePromise.forEach(testMutation.mutations, write => {
+              const indexKey = DbDocumentMutation.key(
+                testMutation.userId,
+                path(write.update.name, 5),
+                testMutation.batchId
+              );
+              return documentMutationStore.put(
+                indexKey,
+                DbDocumentMutation.PLACEHOLDER
+              );
+            });
           });
         }).next(() =>
           // Populate the mutation queues' metadata
@@ -478,7 +477,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = await SimpleDb.openOrCreate(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID)
+      new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

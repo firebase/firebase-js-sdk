@@ -27,9 +27,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { LocalSerializer } from './local_serializer';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { IndexedDbTransaction } from './indexeddb_persistence';
-import { DatabaseId } from '../core/database_info';
 
 /**
  * Schema Version for the Web client:
@@ -49,15 +47,7 @@ export const SCHEMA_VERSION = 4;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
-  private readonly serializer: LocalSerializer;
-
-  constructor(private databaseId: DatabaseId) {
-    this.serializer = new LocalSerializer(
-      new JsonProtoSerializer(this.databaseId, {
-        useProto3Json: true
-      })
-    );
-  }
+  constructor(private readonly serializer: LocalSerializer) {}
 
   /**
    * Performs database creation and schema upgrades.

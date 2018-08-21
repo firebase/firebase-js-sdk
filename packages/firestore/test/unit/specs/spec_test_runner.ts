@@ -109,9 +109,9 @@ import {
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
 import {
-  INDEXEDDB_TEST_DATABASE_ID,
-  INDEXEDDB_TEST_DATABASE_INFO,
-  INDEXEDDB_TEST_DATABASE_NAME
+  INDEXEDDB_TEST_DATABASE_NAME,
+  INDEXEDDB_TEST_SERIALIZER,
+  TEST_PERSISTENCE_PREFIX
 } from '../local/persistence_test_helpers';
 
 class MockConnection implements Connection {
@@ -1171,7 +1171,7 @@ class IndexedDbTestRunner extends TestRunner {
     return new WebStorageSharedClientState(
       this.queue,
       this.platform,
-      INDEXEDDB_TEST_DATABASE_NAME,
+      TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.user
     );
@@ -1181,7 +1181,7 @@ class IndexedDbTestRunner extends TestRunner {
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
     const persistence = new IndexedDbPersistence(
-      INDEXEDDB_TEST_DATABASE_INFO,
+      TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.platform,
       this.queue,
@@ -1542,7 +1542,7 @@ async function writePrimaryClientToIndexedDb(
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID)
+    new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
