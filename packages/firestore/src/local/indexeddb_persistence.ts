@@ -26,12 +26,12 @@ import { IndexedDbQueryCache } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
-  createOrUpgradeDb,
   DbClientMetadataKey,
   DbClientMetadata,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
+  SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
@@ -204,18 +204,15 @@ export class IndexedDbPersistence implements Persistence {
   private queryCache: IndexedDbQueryCache;
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
 
-  private readonly persistenceKey: string;
-
   constructor(
-    private readonly databaseInfo: DatabaseInfo,
+    private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
     synchronizeTabs: boolean
   ) {
-    this.persistenceKey = IndexedDbPersistence.buildStoragePrefix(databaseInfo);
-    this.dbName = this.persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.window = platform.window;
@@ -245,10 +242,9 @@ export class IndexedDbPersistence implements Persistence {
     assert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(
-      this.databaseInfo.databaseId,
       this.dbName,
       SCHEMA_VERSION,
-      createOrUpgradeDb
+      new SchemaConverter(this.serializer)
     )
       .then(db => {
         this.simpleDb = db;

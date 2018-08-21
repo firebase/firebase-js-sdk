@@ -18,7 +18,6 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ALL_STORES,
-  createOrUpgradeDb,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -33,6 +32,7 @@ import {
   DbTargetKey,
   DbTimestamp,
   SCHEMA_VERSION,
+  SchemaConverter,
   V1_STORES,
   V3_STORES,
   V4_STORES
@@ -49,14 +49,17 @@ import { PersistenceSettings } from '../../../src/api/database';
 import { path } from '../../util/helpers';
 import {
   INDEXEDDB_TEST_DATABASE_ID,
-  INDEXEDDB_TEST_DATABASE_INFO,
-  INDEXEDDB_TEST_DATABASE_NAME
+  INDEXEDDB_TEST_DATABASE_NAME,
+  INDEXEDDB_TEST_SERIALIZER,
+  TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 
 function withDb(
   schemaVersion,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
+  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_SERIALIZER);
+
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
       INDEXEDDB_TEST_DATABASE_NAME,
@@ -64,9 +67,8 @@ function withDb(
     );
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      createOrUpgradeDb(
+      schemaConverter.createOrUpgrade(
         db,
-        INDEXEDDB_TEST_DATABASE_ID,
         new SimpleDbTransaction(request.transaction),
         event.oldVersion,
         schemaVersion
@@ -97,13 +99,14 @@ async function withCustomPersistence(
   const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
     useProto3Json: true
   });
+
   const queue = new AsyncQueue();
   const platform = new TestPlatform(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
   const persistence = new IndexedDbPersistence(
-    INDEXEDDB_TEST_DATABASE_INFO,
+    TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
     queue,
@@ -324,7 +327,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   it('can upgrade from schema version 4 to 5', () => {
     // This test creates a database with schema version 4 that has two users,
     // both of which have acknowledged mutations that haven't yet been removed
-    // from IndexedDb (heldWriteAcks). Schema version 5 removed heldWriteAcks,
+    // from IndexedDb ("heldWriteAcks"). Schema version 5 removes heldWriteAcks,
     // and as such these mutations are deleted.
     const testWriteFoo = {
       update: {
@@ -397,15 +400,12 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbMutationQueue
         >(DbMutationQueue.store);
         // Manually populate the mutation queue and create all indicies.
-        let p = PersistencePromise.resolve();
-        for (const testMutation of testMutations) {
-          p = p.next(() => mutationBatchStore.put(testMutation));
-          for (const write of testMutation.mutations) {
-            p = p.next(() => {
-              const resourcePath = path(write.update.name, 5);
+        return PersistencePromise.forEach(testMutations, testMutation => {
+          return mutationBatchStore.put(testMutation).next(() => {
+            return PersistencePromise.forEach(testMutation.mutations, write => {
               const indexKey = DbDocumentMutation.key(
                 testMutation.userId,
-                resourcePath,
+                path(write.update.name, 5),
                 testMutation.batchId
               );
               return documentMutationStore.put(
@@ -413,16 +413,15 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 DbDocumentMutation.PLACEHOLDER
               );
             });
-          }
-        }
-        p = p.next(() =>
+          });
+        }).next(() =>
+          // Populate the mutation queues' metadata
           PersistencePromise.waitFor([
             mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
             mutationQueuesStore.put(new DbMutationQueue('bar', 3, '')),
             mutationQueuesStore.put(new DbMutationQueue('empty', -1, ''))
           ])
         );
-        return p;
       });
     }).then(() =>
       withDb(5, db => {
@@ -442,6 +441,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             DbMutationQueueKey,
             DbMutationQueue
           >(DbMutationQueue.store);
+
           // Verify that all but the two pending mutations have been cleared
           // by the migration.
           let p = mutationBatchStore.count().next(count => {
@@ -452,6 +452,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               expect(count).to.equal(2);
             })
           );
+
+          // Verify that we still have one metadata entry for each existing
+          // queue
           p = p.next(() =>
             mutationQueuesStore.count().next(count => {
               expect(count).to.equal(3);
@@ -472,10 +475,9 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   async function clearPrimaryLease(): Promise<void> {
     const simpleDb = await SimpleDb.openOrCreate(
-      INDEXEDDB_TEST_DATABASE_ID,
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      createOrUpgradeDb
+      new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

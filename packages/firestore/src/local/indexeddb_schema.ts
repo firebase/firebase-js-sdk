@@ -21,15 +21,13 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SimpleDbTransaction } from './simple_db';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import { LocalSerializer } from './local_serializer';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { IndexedDbTransaction } from './indexeddb_persistence';
-import { DatabaseId } from '../core/database_info';
 
 /**
  * Schema Version for the Web client:
@@ -41,72 +39,122 @@ import { DatabaseId } from '../core/database_info';
  *    to limbo resolution. Addresses
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
- * 5. Removal of held write acks.
+ * 5. Removal of held write acks (not yet active).
  */
 export const SCHEMA_VERSION = 5;
 
-/**
- * Performs database creation and schema upgrades.
- *
- * Note that in production, this method is only ever used to upgrade the schema
- * to SCHEMA_VERSION. Different values of toVersion are only used for testing
- * and local feature development.
- */
-export function createOrUpgradeDb(
-  db: IDBDatabase,
-  databaseId: DatabaseId,
-  txn: SimpleDbTransaction,
-  fromVersion: number,
-  toVersion: number
-): PersistencePromise<void> {
-  assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
-    'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
-  );
+/** Performs database creation and schema upgrades. */
+export class SchemaConverter implements SimpleDbSchemaConverter {
+  constructor(private readonly serializer: LocalSerializer) {}
 
-  if (fromVersion < 1 && toVersion >= 1) {
-    createPrimaryClientStore(db);
-    createMutationQueue(db);
-    createQueryCache(db);
-    createRemoteDocumentCache(db);
-  }
+  /**
+   * Performs database creation and schema upgrades.
+   *
+   * Note that in production, this method is only ever used to upgrade the schema
+   * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+   * and local feature development.
+   */
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void> {
+    assert(
+      fromVersion < toVersion &&
+        fromVersion >= 0 &&
+        toVersion <= SCHEMA_VERSION,
+      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+    );
 
-  // Migration 2 to populate the targetGlobal object no longer needed since
-  // migration 3 unconditionally clears it.
-
-  let p = PersistencePromise.resolve();
-  if (fromVersion < 3 && toVersion >= 3) {
-    // Brand new clients don't need to drop and recreate--only clients that
-    // potentially have corrupt data.
-    if (fromVersion !== 0) {
-      dropQueryCache(db);
+    if (fromVersion < 1 && toVersion >= 1) {
+      createPrimaryClientStore(db);
+      createMutationQueue(db);
       createQueryCache(db);
+      createRemoteDocumentCache(db);
     }
-    p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+
+    // Migration 2 to populate the targetGlobal object no longer needed since
+    // migration 3 unconditionally clears it.
+
+    let p = PersistencePromise.resolve();
+    if (fromVersion < 3 && toVersion >= 3) {
+      // Brand new clients don't need to drop and recreate--only clients that
+      // potentially have corrupt data.
+      if (fromVersion !== 0) {
+        dropQueryCache(db);
+        createQueryCache(db);
+      }
+      p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+    }
+
+    if (fromVersion < 4 && toVersion >= 4) {
+      if (fromVersion !== 0) {
+        // Schema version 3 uses auto-generated keys to generate globally unique
+        // mutation batch IDs (this was previously ensured internally by the
+        // client). To migrate to the new schema, we have to read all mutations
+        // and write them back out. We preserve the existing batch IDs to guarantee
+        // consistency with other object stores. Any further mutation batch IDs will
+        // be auto-generated.
+        p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+      }
+
+      p = p.next(() => {
+        createClientMetadataStore(db);
+        createRemoteDocumentChangesStore(db);
+      });
+    }
+
+    if (fromVersion < 5 && toVersion >= 5) {
+      p = p.next(() => this.removeAcknowledgedMutations(txn));
+    }
+
+    return p;
   }
 
-  if (fromVersion < 4 && toVersion >= 4) {
-    if (fromVersion !== 0) {
-      // Schema version 3 uses auto-generated keys to generate globally unique
-      // mutation batch IDs (this was previously ensured internally by the
-      // client). To migrate to the new schema, we have to read all mutations
-      // and write them back out. We preserve the existing batch IDs to guarantee
-      // consistency with other object stores. Any further mutation batch IDs will
-      // be auto-generated.
-      p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
-    }
+  private removeAcknowledgedMutations(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
+      DbMutationQueue.store
+    );
+    const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+      DbMutationBatch.store
+    );
 
-    p = p.next(() => {
-      createClientMetadataStore(db);
-      createRemoteDocumentChangesStore(db);
+    const indexedDbTransaction = new IndexedDbTransaction(txn);
+    return queuesStore.loadAll().next(queues => {
+      return PersistencePromise.forEach(queues, queue => {
+        const mutationQueue = new IndexedDbMutationQueue(
+          queue.userId,
+          this.serializer
+        );
+        const range = IDBKeyRange.bound(
+          [queue.userId, BATCHID_UNKNOWN],
+          [queue.userId, queue.lastAcknowledgedBatchId]
+        );
+
+        return mutationsStore
+          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .next(dbBatches => {
+            return PersistencePromise.forEach(dbBatches, dbBatch => {
+              assert(
+                dbBatch.userId === queue.userId,
+                `Cannot process batch ${dbBatch.batchId} from unexpected user`
+              );
+              const batch = this.serializer.fromDbMutationBatch(dbBatch);
+              return mutationQueue.removeMutationBatch(
+                indexedDbTransaction,
+                batch
+              );
+            });
+          })
+          .next(() =>
+            mutationQueue.performConsistencyCheck(indexedDbTransaction)
+          );
+      });
     });
   }
-
-  if (fromVersion < 5 && toVersion >= 5) {
-    p = p.next(() => removeAcknowledgedMutations(db, databaseId, txn));
-  }
-
-  return p;
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -304,65 +352,6 @@ function upgradeMutationBatchSchemaAndMigrateData(
     );
 
     return PersistencePromise.waitFor(writeAll);
-  });
-}
-
-function removeAcknowledgedMutations(
-  db: IDBDatabase,
-  databaseId: DatabaseId,
-  txn: SimpleDbTransaction
-): PersistencePromise<void> {
-  const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
-    DbMutationQueue.store
-  );
-  const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
-    DbMutationBatch.store
-  );
-
-  const serializer = new LocalSerializer(
-    new JsonProtoSerializer(databaseId, {
-      useProto3Json: true
-    })
-  );
-
-  const indexedDbTransaction = new IndexedDbTransaction(txn);
-
-  return queuesStore.loadAll().next(queues => {
-    let p = PersistencePromise.resolve();
-    for (const queue of queues) {
-      p = p.next(() => {
-        const mutationQueue = new IndexedDbMutationQueue(
-          queue.userId,
-          serializer
-        );
-
-        const range = IDBKeyRange.bound(
-          [queue.userId, BATCHID_UNKNOWN],
-          [queue.userId, queue.lastAcknowledgedBatchId]
-        );
-
-        return mutationsStore
-          .loadAll(DbMutationBatch.userMutationsIndex, range)
-          .next(dbBatches => {
-            let removeP = PersistencePromise.resolve();
-            for (const dbBatch of dbBatches) {
-              assert(
-                dbBatch.userId === queue.userId,
-                `Cannot process batch ${dbBatch.batchId} from unexpected user`
-              );
-              const batch = serializer.fromDbMutationBatch(dbBatch);
-              removeP = removeP.next(() =>
-                mutationQueue.removeMutationBatch(indexedDbTransaction, batch)
-              );
-            }
-            return removeP;
-          })
-          .next(() =>
-            mutationQueue.performConsistencyCheck(indexedDbTransaction)
-          );
-      });
-    }
-    return p;
   });
 }
 
