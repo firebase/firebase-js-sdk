@@ -61,7 +61,7 @@ export class DocumentWatchChange {
      * The new document or NoDocument if it was deleted. Is null if the
      * document went out of view without the server sending a new document.
      */
-    public newDoc: Document | NoDocument | null
+    public newDoc: MaybeDocument | null
   ) {}
 }
 
