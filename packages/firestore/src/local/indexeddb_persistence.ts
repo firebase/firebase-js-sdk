@@ -26,12 +26,12 @@ import { IndexedDbQueryCache } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
-  createOrUpgradeDb,
   DbClientMetadataKey,
   DbClientMetadata,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
+  SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
@@ -241,7 +241,11 @@ export class IndexedDbPersistence implements Persistence {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     assert(this.window !== null, "Expected 'window' to be defined");
 
-    return SimpleDb.openOrCreate(this.dbName, SCHEMA_VERSION, createOrUpgradeDb)
+    return SimpleDb.openOrCreate(
+      this.dbName,
+      SCHEMA_VERSION,
+      new SchemaConverter(this.serializer)
+    )
       .then(db => {
         this.simpleDb = db;
       })
