@@ -398,24 +398,24 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbMutationQueue
         >(DbMutationQueue.store);
         // Manually populate the mutation queue and create all indicies.
-        let p = PersistencePromise.resolve();
-        for (const testMutation of testMutations) {
-          p = p.next(() => mutationBatchStore.put(testMutation));
-          for (const write of testMutation.mutations) {
-            p = p.next(() => {
-              const indexKey = DbDocumentMutation.key(
-                testMutation.userId,
-                path(write.update.name, 5),
-                testMutation.batchId
-              );
-              return documentMutationStore.put(
-                indexKey,
-                DbDocumentMutation.PLACEHOLDER
-              );
-            });
-          }
-        }
-        p = p.next(() =>
+        return PersistencePromise.forEach(testMutations, testMutation => {
+          return mutationBatchStore.put(testMutation).next(() => {
+            return PersistencePromise.forEach(
+              testMutation.mutations,
+              write => {
+                const indexKey = DbDocumentMutation.key(
+                  testMutation.userId,
+                  path(write.update.name, 5),
+                  testMutation.batchId
+                );
+                return documentMutationStore.put(
+                  indexKey,
+                  DbDocumentMutation.PLACEHOLDER
+                );
+              }
+            );
+          });
+        }).next(() =>
           // Populate the mutation queues' metadata
           PersistencePromise.waitFor([
             mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
@@ -423,7 +423,6 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             mutationQueuesStore.put(new DbMutationQueue('empty', -1, ''))
           ])
         );
-        return p;
       });
     }).then(() =>
       withDb(5, db => {
