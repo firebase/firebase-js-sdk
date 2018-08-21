@@ -349,7 +349,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(result => {
         this.sharedClientState.addPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
-        return this.emitNewSnapsAndNotifyLocalStore(result.changes);
+        return this.emitNewSnapsAndNotifyLocalStore(
+          result.changes,
+          SnapshotVersion.MIN
+        );
       })
       .then(() => {
         return this.remoteStore.fillWritePipeline();
@@ -459,7 +462,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             }
           }
         );
-        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
+        return this.emitNewSnapsAndNotifyLocalStore(
+          changes,
+          remoteEvent.snapshotVersion,
+          remoteEvent
+        );
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -505,7 +512,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('rejectListens()');
 
     // PORTING NOTE: Multi-tab only.
-    this.sharedClientState.updateQueryState(targetId, 'rejected', err);
+    this.sharedClientState.updateQueryState(
+      targetId,
+      SnapshotVersion.MIN,
+      'rejected',
+      err
+    );
 
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
@@ -552,6 +564,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   async applyBatchState(
     batchId: BatchId,
+    snapshotVersion: SnapshotVersion,
     batchState: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {
@@ -585,7 +598,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       fail(`Unknown batchState: ${batchState}`);
     }
 
-    await this.emitNewSnapsAndNotifyLocalStore(documents);
+    await this.emitNewSnapsAndNotifyLocalStore(documents, snapshotVersion);
   }
 
   applySuccessfulWrite(
@@ -604,7 +617,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        return this.emitNewSnapsAndNotifyLocalStore(changes);
+        return this.emitNewSnapsAndNotifyLocalStore(
+          changes,
+          mutationBatchResult.commitVersion
+        );
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -621,8 +637,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .rejectBatch(batchId)
       .then(changes => {
-        this.sharedClientState.updateMutationState(batchId, 'rejected', error);
-        return this.emitNewSnapsAndNotifyLocalStore(changes);
+        this.sharedClientState.updateMutationState(
+          batchId,
+          SnapshotVersion.MIN,
+          'rejected',
+          error
+        );
+        return this.emitNewSnapsAndNotifyLocalStore(
+          changes,
+          SnapshotVersion.MIN
+        );
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -759,6 +783,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   private async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
+    snapshotVersion: SnapshotVersion,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
@@ -796,6 +821,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
                 if (this.isPrimary) {
                   this.sharedClientState.updateQueryState(
                     queryView.targetId,
+                    snapshotVersion,
                     viewChange.snapshot.fromCache ? 'not-current' : 'current'
                   );
                 }
@@ -860,7 +886,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         result.removedBatchIds,
         result.addedBatchIds
       );
-      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
+      await this.emitNewSnapsAndNotifyLocalStore(
+        result.affectedDocuments,
+        SnapshotVersion.MIN
+      );
     }
 
     await this.remoteStore.handleCredentialChange();
@@ -973,6 +1002,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   async applyTargetState(
     targetId: TargetId,
+    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
@@ -994,6 +1024,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           );
           return this.emitNewSnapsAndNotifyLocalStore(
             changes,
+            snapshotVersion,
             synthesizedRemoteEvent
           );
         }
