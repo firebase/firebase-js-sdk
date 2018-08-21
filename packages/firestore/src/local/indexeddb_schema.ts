@@ -134,40 +134,35 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     const indexedDbTransaction = new IndexedDbTransaction(txn);
     return queuesStore.loadAll().next(queues => {
-      let p = PersistencePromise.resolve();
-      for (const queue of queues) {
-        p = p.next(() => {
-          const mutationQueue = new IndexedDbMutationQueue(
-            queue.userId,
-            this.serializer
-          );
-          const range = IDBKeyRange.bound(
-            [queue.userId, BATCHID_UNKNOWN],
-            [queue.userId, queue.lastAcknowledgedBatchId]
-          );
+      return PersistencePromise.forEach(queues, queue => {
+        const mutationQueue = new IndexedDbMutationQueue(
+          queue.userId,
+          this.serializer
+        );
+        const range = IDBKeyRange.bound(
+          [queue.userId, BATCHID_UNKNOWN],
+          [queue.userId, queue.lastAcknowledgedBatchId]
+        );
 
-          return mutationsStore
-            .loadAll(DbMutationBatch.userMutationsIndex, range)
-            .next(dbBatches => {
-              let removeP = PersistencePromise.resolve();
-              for (const dbBatch of dbBatches) {
-                assert(
-                  dbBatch.userId === queue.userId,
-                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
-                );
-                const batch = this.serializer.fromDbMutationBatch(dbBatch);
-                removeP = removeP.next(() =>
-                  mutationQueue.removeMutationBatch(indexedDbTransaction, batch)
-                );
-              }
-              return removeP;
-            })
-            .next(() =>
-              mutationQueue.performConsistencyCheck(indexedDbTransaction)
-            );
-        });
-      }
-      return p;
+        return mutationsStore
+          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .next(dbBatches => {
+            return PersistencePromise.forEach(dbBatches, dbBatch => {
+              assert(
+                dbBatch.userId === queue.userId,
+                `Cannot process batch ${dbBatch.batchId} from unexpected user`
+              );
+              const batch = this.serializer.fromDbMutationBatch(dbBatch);
+              return mutationQueue.removeMutationBatch(
+                indexedDbTransaction,
+                batch
+              );
+            });
+          })
+          .next(() =>
+            mutationQueue.performConsistencyCheck(indexedDbTransaction)
+          );
+      });
     });
   }
 }

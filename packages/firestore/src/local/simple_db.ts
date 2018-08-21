@@ -22,7 +22,6 @@ import { SCHEMA_VERSION } from './indexeddb_schema';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { Code, FirestoreError } from '../util/error';
-import { DatabaseId } from '../core/database_info';
 
 const LOG_TAG = 'SimpleDb';
 

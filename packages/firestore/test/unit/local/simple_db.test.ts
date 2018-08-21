@@ -28,7 +28,6 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
-import { DatabaseId } from '../../../src/core/database_info';
 
 chai.use(chaiAsPromised);
 
