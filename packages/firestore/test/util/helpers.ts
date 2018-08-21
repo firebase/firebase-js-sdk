@@ -317,10 +317,7 @@ export function updateMapping(
     modifiedDocuments = modifiedDocuments.add(k);
   });
   removed.forEach(docOrKey => {
-    const k =
-      docOrKey instanceof Document || docOrKey instanceof NoDocument
-        ? docOrKey.key
-        : key(docOrKey);
+    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
     removedDocuments = removedDocuments.add(k);
   });
 
