@@ -102,10 +102,10 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import {
-  createOrUpgradeDb,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
+  SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
 import {
@@ -1540,10 +1540,9 @@ async function writePrimaryClientToIndexedDb(
   clientId: ClientId
 ): Promise<void> {
   const db = await SimpleDb.openOrCreate(
-    INDEXEDDB_TEST_DATABASE_ID,
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    createOrUpgradeDb
+    new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID)
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

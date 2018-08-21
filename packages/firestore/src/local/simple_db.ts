@@ -26,6 +26,15 @@ import { DatabaseId } from '../core/database_info';
 
 const LOG_TAG = 'SimpleDb';
 
+export interface SimpleDbSchemaConverter {
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void>;
+}
+
 /**
  * Provides a wrapper around IndexedDb with a simplified interface that uses
  * Promise-like return values to chain operations. Real promises cannot be used
@@ -36,16 +45,9 @@ const LOG_TAG = 'SimpleDb';
 export class SimpleDb {
   /** Opens the specified database, creating or upgrading it if necessary. */
   static openOrCreate(
-    databaseId: DatabaseId,
     name: string,
     version: number,
-    runUpgrade: (
-      db: IDBDatabase,
-      databaseId: DatabaseId,
-      txn: SimpleDbTransaction,
-      fromVersion: number,
-      toVersion: number
-    ) => PersistencePromise<void>
+    schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
     assert(
       SimpleDb.isAvailable(),
@@ -90,14 +92,14 @@ export class SimpleDb {
         // we wrap that in a SimpleDbTransaction to allow use of our friendlier
         // API for schema migration operations.
         const txn = new SimpleDbTransaction(request.transaction);
-        runUpgrade(db, databaseId, txn, event.oldVersion, SCHEMA_VERSION).next(
-          () => {
+        schemaConverter
+          .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
+          .next(() => {
             debug(
               LOG_TAG,
               'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
             );
-          }
-        );
+          });
       };
     }).toPromise();
   }

@@ -19,6 +19,7 @@ import * as EncodedResourcePath from '../../../src/local/encoded_resource_path';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
   SimpleDb,
+  SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
@@ -28,6 +29,18 @@ import { INDEXEDDB_TEST_DATABASE_ID } from './persistence_test_helpers';
 
 let db: SimpleDb;
 const sep = '\u0001\u0001';
+
+class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void> {
+    db.createObjectStore('test');
+    return PersistencePromise.resolve();
+  }
+}
 
 describe('EncodedResourcePath', () => {
   if (!SimpleDb.isAvailable()) {
@@ -41,13 +54,9 @@ describe('EncodedResourcePath', () => {
     return SimpleDb.delete(dbName)
       .then(() => {
         return SimpleDb.openOrCreate(
-          INDEXEDDB_TEST_DATABASE_ID,
           dbName,
           1,
-          db => {
-            db.createObjectStore('test');
-            return PersistencePromise.resolve();
-          }
+          new EncodedResourcePathSchemaConverter()
         );
       })
       .then(simpleDb => {

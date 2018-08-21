@@ -18,7 +18,6 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ALL_STORES,
-  createOrUpgradeDb,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -33,6 +32,7 @@ import {
   DbTargetKey,
   DbTimestamp,
   SCHEMA_VERSION,
+  SchemaConverter,
   V1_STORES,
   V3_STORES,
   V4_STORES
@@ -57,6 +57,8 @@ function withDb(
   schemaVersion,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
+  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID);
+
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
       INDEXEDDB_TEST_DATABASE_NAME,
@@ -64,9 +66,8 @@ function withDb(
     );
     request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      createOrUpgradeDb(
+      schemaConverter.createOrUpgrade(
         db,
-        INDEXEDDB_TEST_DATABASE_ID,
         new SimpleDbTransaction(request.transaction),
         event.oldVersion,
         schemaVersion
@@ -481,10 +482,9 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   async function clearPrimaryLease(): Promise<void> {
     const simpleDb = await SimpleDb.openOrCreate(
-      INDEXEDDB_TEST_DATABASE_ID,
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      createOrUpgradeDb
+      new SchemaConverter(INDEXEDDB_TEST_DATABASE_ID)
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
