@@ -594,8 +594,11 @@ export class Transaction implements firestore.Transaction {
         const doc = docs[0];
         if (doc instanceof NoDocument) {
           return new DocumentSnapshot(this._firestore, ref._key, null, false);
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot(this._firestore, ref._key, doc, false);
+        } else {
+          fail('MaybeDocument is neither Document nor NoDocument');
         }
-        return new DocumentSnapshot(this._firestore, ref._key, doc, false);
       });
   }
 
