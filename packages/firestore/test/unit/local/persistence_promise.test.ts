@@ -213,4 +213,13 @@ describe('PersistencePromise', () => {
       })
       .toPromise();
   });
+
+  it('executes forEach in order', async () => {
+    let result = '';
+    await PersistencePromise.forEach(['a', 'b', 'c'], el => {
+      result += el;
+      return PersistencePromise.resolve();
+    }).toPromise;
+    expect(result).to.equal('abc');
+  });
 });
