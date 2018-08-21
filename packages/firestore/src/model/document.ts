@@ -26,16 +26,37 @@ export interface DocumentOptions {
   hasLocalMutations: boolean;
 }
 
-export class Document {
-  readonly hasLocalMutations: boolean;
-
+/**
+ * The result of a lookup for a given path may be an existing document or a
+ * marker that this document does not exist at a given version.
+ */
+export abstract class MaybeDocument {
   constructor(
     readonly key: DocumentKey,
     readonly remoteVersion: SnapshotVersion,
-    readonly commitVersion: SnapshotVersion,
+    readonly commitVersion: SnapshotVersion
+  ) {}
+
+  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
+    return DocumentKey.comparator(d1.key, d2.key);
+  }
+}
+
+/**
+ * Represents a document in Firestore with a key, version, data and whether the
+ * data has local mutations applied to it.
+ */
+export class Document extends MaybeDocument {
+  readonly hasLocalMutations: boolean;
+
+  constructor(
+    key: DocumentKey,
+    remoteVersion: SnapshotVersion,
+    commitVersion: SnapshotVersion,
     readonly data: ObjectValue,
     options: DocumentOptions
   ) {
+    super(key, remoteVersion, commitVersion);
     this.hasLocalMutations = options.hasLocalMutations;
   }
 
@@ -88,10 +109,6 @@ export class Document {
     );
   }
 
-  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
-    return DocumentKey.comparator(d1.key, d2.key);
-  }
-
   static compareByField(field: FieldPath, d1: Document, d2: Document): number {
     const v1 = d1.field(field);
     const v2 = d2.field(field);
@@ -108,12 +125,14 @@ export class Document {
  * Version is set to 0 if we don't point to any specific time, otherwise it
  * denotes time we know it didn't exist at.
  */
-export class NoDocument {
+export class NoDocument extends MaybeDocument {
   constructor(
-    readonly key: DocumentKey,
-    readonly remoteVersion: SnapshotVersion,
-    readonly commitVersion: SnapshotVersion
-  ) {}
+    key: DocumentKey,
+    remoteVersion: SnapshotVersion,
+    commitVersion: SnapshotVersion
+  ) {
+    super(key, remoteVersion, commitVersion);
+  }
 
   toString(): string {
     return `NoDocument(${this.key}, ${this.remoteVersion})`;
@@ -127,14 +146,4 @@ export class NoDocument {
       other.key.isEqual(this.key)
     );
   }
-
-  static compareByKey(d1: NoDocument, d2: NoDocument): number {
-    return DocumentKey.comparator(d1.key, d2.key);
-  }
 }
-
-/**
- * A union type representing either a full document or a deleted document.
- * The NoDocument is used when it doesn't exist on the server.
- */
-export type MaybeDocument = Document | NoDocument;
