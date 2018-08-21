@@ -18,7 +18,10 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import { expect } from 'chai';
-import { SimpleDb } from '../../../src/local/simple_db';
+import {
+  SimpleDb,
+  SimpleDbSchemaConverter
+} from '../../../src/local/simple_db';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import {
@@ -56,6 +59,24 @@ function isIndexedDbMock(): boolean {
   return process.env.USE_MOCK_PERSISTENCE === 'YES';
 }
 
+class TestSchemaConverter implements SimpleDbSchemaConverter {
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void> {
+    const objectStore = db.createObjectStore('users', { keyPath: 'id' });
+    objectStore.createIndex('age-name', ['age', 'name'], {
+      unique: false
+    });
+
+    // A store that uses arrays as keys.
+    db.createObjectStore('docs');
+    return PersistencePromise.resolve();
+  }
+}
+
 describe('SimpleDb', () => {
   if (!SimpleDb.isAvailable()) {
     console.warn('Skipping SimpleDb tests due to lack of indexedDB support.');
@@ -86,16 +107,7 @@ describe('SimpleDb', () => {
   beforeEach(() => {
     return SimpleDb.delete(dbName)
       .then(() => {
-        return SimpleDb.openOrCreate(dbName, 1, db => {
-          const objectStore = db.createObjectStore('users', { keyPath: 'id' });
-          objectStore.createIndex('age-name', ['age', 'name'], {
-            unique: false
-          });
-
-          // A store that uses arrays as keys.
-          db.createObjectStore('docs');
-          return PersistencePromise.resolve();
-        });
+        return SimpleDb.openOrCreate(dbName, 1, new TestSchemaConverter());
       })
       .then(simpleDb => {
         db = simpleDb;
