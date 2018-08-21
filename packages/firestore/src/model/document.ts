@@ -26,7 +26,20 @@ export interface DocumentOptions {
   hasLocalMutations: boolean;
 }
 
-export class Document {
+/**
+ * The result of a lookup for a given path may be an existing document or a
+ * marker that this document does not exist at a given version.
+ */
+export abstract class MaybeDocument {
+  readonly key: DocumentKey;
+  readonly version: SnapshotVersion;
+}
+
+/**
+ * Represents a document in Firestore with a key, version, data and whether the
+ * data has local mutations applied to it.
+ */
+export class Document implements MaybeDocument {
   readonly hasLocalMutations: boolean;
 
   constructor(
@@ -68,7 +81,7 @@ export class Document {
     );
   }
 
-  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
+  static compareByKey(d1: Document, d2: Document): number {
     return DocumentKey.comparator(d1.key, d2.key);
   }
 
@@ -88,7 +101,7 @@ export class Document {
  * Version is set to 0 if we don't point to any specific time, otherwise it
  * denotes time we know it didn't exist at.
  */
-export class NoDocument {
+export class NoDocument implements MaybeDocument {
   constructor(readonly key: DocumentKey, readonly version: SnapshotVersion) {}
 
   toString(): string {
@@ -102,14 +115,4 @@ export class NoDocument {
       other.key.isEqual(this.key)
     );
   }
-
-  static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
-    return DocumentKey.comparator(d1.key, d2.key);
-  }
 }
-
-/**
- * A union type representing either a full document or a deleted document.
- * The NoDocument is used when it doesn't exist on the server.
- */
-export type MaybeDocument = Document | NoDocument;
