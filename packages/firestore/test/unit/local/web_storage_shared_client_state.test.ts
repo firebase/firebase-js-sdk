@@ -47,13 +47,6 @@ import * as objUtils from '../../../src/util/obj';
 import { targetIdSet } from '../../../src/model/collections';
 import { SortedSet } from '../../../src/util/sorted_set';
 
-/**
- * The tests assert that the lastUpdateTime of each row in LocalStorage gets
- * updated. We allow a 0.1s difference in update time to account for processing
- * and locking time in LocalStorage.
- */
-const GRACE_INTERVAL_MS = 100;
-
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 const TEST_ERROR = new FirestoreError('internal', 'Test Error');
@@ -198,8 +191,9 @@ describe('WebStorageSharedClientState', () => {
     // client. If we directly relied on LocalStorage listeners, we would not
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
-      expect(type).to.equal('storage');
-      localStorageCallbacks.push(callback);
+      if (type === 'storage') {
+        localStorageCallbacks.push(callback);
+      }
     };
     window.removeEventListener = () => {};
 
@@ -234,14 +228,7 @@ describe('WebStorageSharedClientState', () => {
       )
     );
 
-    expect(Object.keys(actual)).to.have.members([
-      'lastUpdateTime',
-      'activeTargetIds'
-    ]);
-    expect(actual.lastUpdateTime)
-      .to.be.a('number')
-      .greaterThan(Date.now() - GRACE_INTERVAL_MS)
-      .and.at.most(Date.now());
+    expect(Object.keys(actual)).to.have.members(['activeTargetIds']);
     expect(actual.activeTargetIds)
       .to.be.an('array')
       .and.have.members(activeTargetIds);
@@ -287,7 +274,7 @@ describe('WebStorageSharedClientState', () => {
     it('with an acknowledged batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'acknowledged');
+      sharedClientState.updateMutationState(0, 'acknowledged');
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -295,7 +282,7 @@ describe('WebStorageSharedClientState', () => {
     it('with a rejected batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.trackMutationResult(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateMutationState(0, 'rejected', TEST_ERROR);
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -313,7 +300,7 @@ describe('WebStorageSharedClientState', () => {
         const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
         expect(actual.state).to.equal(queryTargetState);
 
-        const expectedMembers = ['state', 'lastUpdateTime'];
+        const expectedMembers = ['state'];
         if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
           expect(actual.error.code).to.equal(err.code);
@@ -350,7 +337,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
     });
 
@@ -358,9 +345,9 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'not-current');
+      sharedClientState.updateQueryState(0, 'not-current');
       assertTargetState(0, 'not-current');
-      sharedClientState.trackQueryUpdate(0, 'current');
+      sharedClientState.updateQueryState(0, 'current');
       assertTargetState(0, 'current');
     });
 
@@ -368,8 +355,18 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.trackQueryUpdate(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateQueryState(0, 'rejected', TEST_ERROR);
       assertTargetState(0, 'rejected', TEST_ERROR);
+    });
+
+    it('garbage collects entry', () => {
+      sharedClientState.addLocalQueryTarget(0);
+      sharedClientState.updateQueryState(0, 'current');
+      assertTargetState(0, 'current');
+      sharedClientState.removeLocalQueryTarget(0);
+      assertTargetState(0, 'current');
+      sharedClientState.clearQueryState(0);
+      expect(localStorage.getItem(targetKey(0))).to.be.null;
     });
   });
 
@@ -761,7 +758,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'not-current'
           ).toLocalStorageJSON()
         );
@@ -779,7 +775,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'current'
           ).toLocalStorageJSON()
         );
@@ -797,7 +792,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(1),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'rejected',
             TEST_ERROR
           ).toLocalStorageJSON()
@@ -821,7 +815,6 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            new Date(),
             'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );

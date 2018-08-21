@@ -178,14 +178,10 @@ export class TestMutationQueue {
     );
   }
 
-  removeMutationBatches(batches: MutationBatch[]): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeMutationBatches',
-      true,
-      txn => {
-        return this.queue.removeMutationBatches(txn, batches);
-      }
-    );
+  removeMutationBatch(batch: MutationBatch): Promise<void> {
+    return this.persistence.runTransaction('removeMutationBatch', true, txn => {
+      return this.queue.removeMutationBatch(txn, batch);
+    });
   }
 
   collectGarbage(gc: GarbageCollector): Promise<DocumentKeySet> {

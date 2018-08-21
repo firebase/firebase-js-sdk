@@ -146,9 +146,9 @@ export class FirestoreClient {
    */
   start(persistenceSettings: PersistenceSettings): Promise<void> {
     // We defer our initialization until we get the current user from
-    // setUserChangeListener(). We block the async queue until we got the
-    // initial user and the initialization is completed. This will prevent
-    // any scheduled work from happening before initialization is completed.
+    // setChangeListener(). We block the async queue until we got the initial
+    // user and the initialization is completed. This will prevent any scheduled
+    // work from happening before initialization is completed.
     //
     // If initializationDone resolved then the FirestoreClient is in a usable
     // state.
@@ -163,7 +163,7 @@ export class FirestoreClient {
     const persistenceResult = new Deferred<void>();
 
     let initialized = false;
-    this.credentials.setUserChangeListener(user => {
+    this.credentials.setChangeListener(user => {
       if (!initialized) {
         initialized = true;
 
@@ -172,7 +172,7 @@ export class FirestoreClient {
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
-          return this.handleUserChange(user);
+          return this.handleCredentialChange(user);
         });
       }
     });
@@ -353,6 +353,7 @@ export class FirestoreClient {
    * implementation is available in this.persistence.
    */
   private initializeRest(user: User): Promise<void> {
+    debug(LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -420,11 +421,11 @@ export class FirestoreClient {
       });
   }
 
-  private handleUserChange(user: User): Promise<void> {
+  private handleCredentialChange(user: User): Promise<void> {
     this.asyncQueue.verifyOperationInProgress();
 
-    debug(LOG_TAG, 'User Changed: ' + user.uid);
-    return this.syncEngine.handleUserChange(user);
+    debug(LOG_TAG, 'Credential Changed. Current user: ' + user.uid);
+    return this.syncEngine.handleCredentialChange(user);
   }
 
   /** Disables the network connection. Pending operations will not complete. */
@@ -445,10 +446,10 @@ export class FirestoreClient {
         options && options.purgePersistenceWithDataLoss
       );
 
-      // `removeUserChangeListener` must be called after shutting down the
+      // `removeChangeListener` must be called after shutting down the
       // RemoteStore as it will prevent the RemoteStore from retrieving
       // auth tokens.
-      this.credentials.removeUserChangeListener();
+      this.credentials.removeChangeListener();
     });
   }
 

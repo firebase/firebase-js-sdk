@@ -315,6 +315,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
+        this.sharedClientState.clearQueryState(queryView.targetId);
         this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
@@ -504,7 +505,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('rejectListens()');
 
     // PORTING NOTE: Multi-tab only.
-    this.sharedClientState.trackQueryUpdate(targetId, 'rejected', err);
+    this.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
@@ -620,7 +621,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .rejectBatch(batchId)
       .then(changes => {
-        this.sharedClientState.trackMutationResult(batchId, 'rejected', error);
+        this.sharedClientState.updateMutationState(batchId, 'rejected', error);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
@@ -793,7 +794,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             ).then(() => {
               if (viewChange.snapshot) {
                 if (this.isPrimary) {
-                  this.sharedClientState.trackQueryUpdate(
+                  this.sharedClientState.updateQueryState(
                     queryView.targetId,
                     viewChange.snapshot.fromCache ? 'not-current' : 'current'
                   );
@@ -847,22 +848,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     );
   }
 
-  handleUserChange(user: User): Promise<void> {
+  async handleCredentialChange(user: User): Promise<void> {
+    const userChanged = !this.currentUser.isEqual(user);
     this.currentUser = user;
-    return this.localStore
-      .handleUserChange(user)
-      .then(result => {
-        // TODO(multitab): Consider calling this only in the primary tab.
-        this.sharedClientState.handleUserChange(
-          user,
-          result.removedBatchIds,
-          result.addedBatchIds
-        );
-        return this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
-      })
-      .then(() => {
-        return this.remoteStore.handleUserChange(user);
-      });
+
+    if (userChanged) {
+      const result = await this.localStore.handleUserChange(user);
+      // TODO(multitab): Consider calling this only in the primary tab.
+      this.sharedClientState.handleUserChange(
+        user,
+        result.removedBatchIds,
+        result.addedBatchIds
+      );
+      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
+    }
+
+    await this.remoteStore.handleCredentialChange();
   }
 
   // PORTING NOTE: Multi-tab only

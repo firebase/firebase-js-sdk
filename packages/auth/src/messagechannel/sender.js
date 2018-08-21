@@ -30,6 +30,16 @@ goog.require('goog.Promise');
 goog.require('goog.array');
 
 
+/**
+ * This is the interface defining a MessageChannel/handler pair.
+ *
+ * @typedef {{
+ *   onMessage: function(!Event),
+ *   messageChannel: !MessageChannel
+ * }}
+ */
+fireauth.messagechannel.MessageHandler;
+
 
 /**
  * Helper static function to create messageChannel errors.
@@ -60,17 +70,11 @@ fireauth.messagechannel.Sender = function(postMessager) {
    *     PostMessager.
    */
   this.postMessager_ = postMessager;
+  /** @private {boolean} Whether the connection was closed. */
+  this.closed_ = false;
   /**
-   * @private {?MessageChannel} The messageChannel reference if
-   *     supported.
-   */
-  this.messageChannel_ =
-      fireauth.messagechannel.utils.initializeMessageChannel();
-  /** @private {boolean} Whether the connection was started. */
-  this.started_ = false;
-  /**
-   * @const @private {!Array<function(!Event)>} The list of subscribed message
-   *     handlers.
+   * @const @private {!Array<!fireauth.messagechannel.MessageHandler>} The list
+   *     of subscribed message handlers and their corresponding MessageChannels.
    */
   this.messageHandlers_ = [];
 };
@@ -94,24 +98,38 @@ fireauth.messagechannel.Sender = function(postMessager) {
  * @param {string} eventType The event type identifying the message. This is
  *     used to help the receiver handle this message.
  * @param {?Object=} opt_data The optional data to send along the message.
+ * @param {?boolean=} opt_useLongTimeout Whether long timeout should be used
+ *     for ACK responses.
  * @return {!goog.Promise<!Array<{fulfilled: boolean,
  *                                value: (*|undefined),
  *                                reason: (*|undefined)}>>} A promise that
  *     resolves with the receiver responses.
  */
-fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
+fireauth.messagechannel.Sender.prototype.send = function(
+    eventType, opt_data, opt_useLongTimeout) {
   var self = this;
   var eventId;
   var data = opt_data || {};
   var onMessage;
   var ackTimer;
   var completionTimer;
+  var entry = null;
+  if (this.closed_) {
+    return goog.Promise.reject(fireauth.messagechannel.createError_(
+        fireauth.messagechannel.Error.CONNECTION_UNAVAILABLE));
+  }
+  var ackTimeout =
+      !!opt_useLongTimeout ?
+      fireauth.messagechannel.TimeoutDuration.LONG_ACK :
+      fireauth.messagechannel.TimeoutDuration.ACK;
+  var messageChannel =
+      fireauth.messagechannel.utils.initializeMessageChannel();
   return new goog.Promise(function(resolve, reject) {
     // Send message along with port for reply
-    if (self.messageChannel_) {
+    if (messageChannel) {
       eventId = fireauth.messagechannel.utils.generateEventId();
       // Start the connection if not already started.
-      self.start();
+      messageChannel.port1.start();
       // Handler for receiving message reply from receiver.
       // Blocks promise resolution until service worker detects the change.
       ackTimer = setTimeout(function() {
@@ -121,7 +139,7 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
         // Timeout after some time.
         reject(fireauth.messagechannel.createError_(
             fireauth.messagechannel.Error.UNSUPPORTED_EVENT));
-      }, fireauth.messagechannel.TimeoutDuration.ACK);
+      }, ackTimeout);
       onMessage = function(event) {
         // Process only the expected events that match current event ID.
         if (event.data['eventId'] !== eventId) {
@@ -153,8 +171,12 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
               fireauth.messagechannel.Error.INVALID_RESPONSE));
         }
       };
-      self.messageHandlers_.push(onMessage);
-      self.messageChannel_.port1.addEventListener('message', onMessage);
+      entry = {
+        'messageChannel': messageChannel,
+        'onMessage': onMessage
+      };
+      self.messageHandlers_.push(entry);
+      messageChannel.port1.addEventListener('message', onMessage);
       var request = {
         'eventType': eventType,
         'eventId': eventId,
@@ -165,7 +187,7 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
       // receiver or using an outdated version.
       self.postMessager_.postMessage(
           request,
-          [self.messageChannel_.port2]);
+          [messageChannel.port2]);
     } else {
       // No connection available.
       reject(fireauth.messagechannel.createError_(
@@ -174,64 +196,45 @@ fireauth.messagechannel.Sender.prototype.send = function(eventType, opt_data) {
   }).then(function(result) {
     // On completion, remove the message handler. A new one is needed for a
     // new message.
-    self.removeMessageHandler_(onMessage);
+    self.removeMessageHandler_(entry);
     return result;
   }).thenCatch(function(error) {
     // On failure, remove the message handler. A new one is needed for a new
     // message.
-    self.removeMessageHandler_(onMessage);
+    self.removeMessageHandler_(entry);
     throw error;
   });
 };
 
 
 /**
- * @param {function(!Event)} onMessage The message handler to remove.
+ * Removes the onMessage handler for the specified messageChannel.
+ * @param {?fireauth.messagechannel.MessageHandler} messageHandler
  * @private
  */
 fireauth.messagechannel.Sender.prototype.removeMessageHandler_ =
-    function(onMessage) {
-  if (this.messageChannel_) {
-    goog.array.removeAllIf(this.messageHandlers_, function(ele) {
-      return ele == onMessage;
-    });
-    this.messageChannel_.port1.removeEventListener('message', onMessage);
+    function(messageHandler) {
+  if (!messageHandler) {
+    return;
   }
-};
-
-
-/**
- * Removing all subscribed message handlers.
- * @private
- */
-fireauth.messagechannel.Sender.prototype.removeAllMessageHandlers_ =
-    function() {
-  while (this.messageHandlers_.length > 0) {
-    var onMessage = this.messageHandlers_.pop();
-    this.messageChannel_.port1.removeEventListener('message', onMessage);
+  var messageChannel = messageHandler['messageChannel'];
+  var onMessage = messageHandler['onMessage'];
+  if (messageChannel) {
+    messageChannel.port1.removeEventListener('message', onMessage);
+    messageChannel.port1.close();
   }
+  goog.array.removeAllIf(this.messageHandlers_, function(ele) {
+    return ele == messageHandler;
+  });
 };
 
 
 /** Closes the underlying MessageChannel connection. */
 fireauth.messagechannel.Sender.prototype.close = function() {
-  if (this.messageChannel_) {
-    // Any pending event will timeout.
-    this.removeAllMessageHandlers_();
-    // No new messages will be returned.
-    this.messageChannel_.port1.close();
-    this.messageChannel_ = null;
-    this.started_ = false;
+  // Any pending event will timeout.
+  while (this.messageHandlers_.length > 0) {
+    this.removeMessageHandler_(this.messageHandlers_[0]);
   }
+  this.closed_ = true;
 };
 
-
-/** Starts the underlying MessageChannel connection if not already started. */
-fireauth.messagechannel.Sender.prototype.start = function() {
-  // Note that re-connection is not supported. If a connection is closed, a new
-  // sender has to be created.
-  if (this.messageChannel_ && !this.started_) {
-    this.messageChannel_.port1.start();
-    this.started_ = true;
-  }
-};

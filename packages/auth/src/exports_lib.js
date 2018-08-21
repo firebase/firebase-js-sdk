@@ -114,26 +114,43 @@ fireauth.exportlib.exportPrototypeProperties = function(protObj, propMap) {
     if (unobfuscatedPropName === obfuscatedPropName) {
       continue;
     }
+    /**
+     * @this {!Object}
+     * @param {string} obfuscatedPropName The obfuscated property name.
+     * @return {*} The value of the property.
+     */
+    var getter = function(obfuscatedPropName) {
+      return this[obfuscatedPropName];
+    };
+    /**
+     * @this {!Object}
+     * @param {string} unobfuscatedPropName The unobfuscated property name.
+     * @param {string} obfuscatedPropName The obfuscated property name.
+     * @param {!fireauth.args.Argument} expectedArg The expected argument to the
+     *     setter of this property.
+     * @param {*} value The new value of the property.
+     */
+    var setter = function(unobfuscatedPropName, obfuscatedPropName,
+                          expectedArg, value) {
+      // Validate the argument before setting it.
+      fireauth.args.validate(
+          unobfuscatedPropName, [expectedArg], [value], true);
+      this[obfuscatedPropName] = value;
+    };
     // Get the expected argument.
     var expectedArg = propMap[obfuscatedPropName].arg;
     Object.defineProperty(protObj, unobfuscatedPropName, {
       /**
        * @this {!Object}
-       * @return {string} The value of the property.
+       * @return {*} The value of the property.
        */
-      get: function() {
-        return this[obfuscatedPropName];
-      },
+      get: goog.partial(getter, obfuscatedPropName),
       /**
        * @this {!Object}
-       * @param {string} value The new value of the property.
+       * @param {*} value The new value of the property.
        */
-      set: function(value) {
-        // Validate the argument before setting it.
-        fireauth.args.validate(
-            unobfuscatedPropName, [expectedArg], [value], true);
-        this[obfuscatedPropName] = value;
-      },
+      set: goog.partial(setter, unobfuscatedPropName, obfuscatedPropName,
+                        expectedArg),
       enumerable: true
     });
   }

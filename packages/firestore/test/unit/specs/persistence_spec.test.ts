@@ -22,48 +22,56 @@ import { client, spec } from './spec_builder';
 import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Persistence:', [], () => {
-  specTest('Local mutations are persisted and re-sent', [], () => {
-    return spec()
-      .userSets('collection/key1', { foo: 'bar' })
-      .userSets('collection/key2', { baz: 'quu' })
-      .restart()
-      .expectNumOutstandingWrites(2)
-      .writeAcks('collection/key1', 1, { expectUserCallback: false })
-      .writeAcks('collection/key2', 2, { expectUserCallback: false })
-      .expectNumOutstandingWrites(0);
-  });
-
-  specTest('Persisted local mutations are visible to listeners', [], () => {
-    const query = Query.atPath(path('collection'));
-    return (
-      spec()
+  specTest(
+    'Local mutations are persisted and re-sent',
+    ['durable-persistence'],
+    () => {
+      return spec()
         .userSets('collection/key1', { foo: 'bar' })
         .userSets('collection/key2', { baz: 'quu' })
         .restart()
-        // It should be visible to listens.
-        .userListens(query)
-        .expectEvents(query, {
-          added: [
-            doc(
-              'collection/key1',
-              0,
-              { foo: 'bar' },
-              { hasLocalMutations: true }
-            ),
-            doc(
-              'collection/key2',
-              0,
-              { baz: 'quu' },
-              { hasLocalMutations: true }
-            )
-          ],
-          fromCache: true,
-          hasPendingWrites: true
-        })
-    );
-  });
+        .expectNumOutstandingWrites(2)
+        .writeAcks('collection/key1', 1, { expectUserCallback: false })
+        .writeAcks('collection/key2', 2, { expectUserCallback: false })
+        .expectNumOutstandingWrites(0);
+    }
+  );
 
-  specTest('Remote documents are persisted', [], () => {
+  specTest(
+    'Persisted local mutations are visible to listeners',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      return (
+        spec()
+          .userSets('collection/key1', { foo: 'bar' })
+          .userSets('collection/key2', { baz: 'quu' })
+          .restart()
+          // It should be visible to listens.
+          .userListens(query)
+          .expectEvents(query, {
+            added: [
+              doc(
+                'collection/key1',
+                0,
+                { foo: 'bar' },
+                { hasLocalMutations: true }
+              ),
+              doc(
+                'collection/key2',
+                0,
+                { baz: 'quu' },
+                { hasLocalMutations: true }
+              )
+            ],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+      );
+    }
+  );
+
+  specTest('Remote documents are persisted', ['durable-persistence'], () => {
     const query = Query.atPath(path('collection'));
     const doc1 = doc('collection/key', 1000, { foo: 'bar' });
     return spec()
@@ -126,7 +134,7 @@ describeSpec('Persistence:', [], () => {
 
   specTest(
     'Mutation Queue is persisted across uid switches (with restarts)',
-    [],
+    ['durable-persistence'],
     () => {
       return spec()
         .userSets('users/anon', { uid: 'anon' })
