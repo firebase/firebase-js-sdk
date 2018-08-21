@@ -65,6 +65,7 @@ export class RemoteEvent {
    */
   // PORTING NOTE: Multi-tab only
   static createSynthesizedRemoteEventForCurrentChange(
+    snapshotVersion: SnapshotVersion,
     targetId: TargetId,
     current: boolean
   ): RemoteEvent {
@@ -75,8 +76,24 @@ export class RemoteEvent {
       )
     };
     return new RemoteEvent(
-      SnapshotVersion.MIN,
+      snapshotVersion,
       targetChanges,
+      targetIdSet(),
+      maybeDocumentMap(),
+      documentKeySet()
+    );
+  }
+
+  /**
+   * Create a synthesized remote event that is used to apply the commit version
+   * of a successful write to a View.
+   */
+  static createSynthesizedRemoteEventForSuccessfulWrite(
+    snapshotVersion: SnapshotVersion
+  ): RemoteEvent {
+    return new RemoteEvent(
+      snapshotVersion,
+      [],
       targetIdSet(),
       maybeDocumentMap(),
       documentKeySet()

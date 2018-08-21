@@ -38,7 +38,7 @@ import {
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { PlatformSupport } from '../../../src/platform/platform';
-import {SnapshotVersion} from '../../../src/core/snapshot_version';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX =
@@ -91,7 +91,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(
     batchId: BatchId,
-    snapshotVersion:SnapshotVersion,
+    snapshotVersion: SnapshotVersion,
     state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {}
@@ -105,7 +105,7 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   }
   async applyTargetState(
     targetId: TargetId,
-    snapshotVersion:SnapshotVersion,
+    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {}

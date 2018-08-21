@@ -349,10 +349,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(result => {
         this.sharedClientState.addPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
-        return this.emitNewSnapsAndNotifyLocalStore(
-          result.changes,
-          SnapshotVersion.MIN
-        );
+        return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
       .then(() => {
         return this.remoteStore.fillWritePipeline();
@@ -462,11 +459,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             }
           }
         );
-        return this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          remoteEvent.snapshotVersion,
-          remoteEvent
-        );
+        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -583,22 +576,30 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       return;
     }
 
+    let remoteEvent;
+
     if (batchState === 'pending') {
       // If we are the primary client, we need to send this write to the
       // backend. Secondary clients will ignore these writes since their remote
       // connection is disabled.
       await this.remoteStore.fillWritePipeline();
-    } else if (batchState === 'acknowledged' || batchState === 'rejected') {
+    } else if (batchState === 'acknowledged') {
+      remoteEvent = RemoteEvent.createSynthesizedRemoteEventForSuccessfulWrite(
+        snapshotVersion
+      );
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
-      this.processUserCallback(batchId, error ? error : null);
-
+      this.processUserCallback(batchId, null);
+      this.localStore.removeCachedMutationBatchMetadata(batchId);
+    } else if (batchState === 'rejected') {
+      assert(error !== null, 'Error not set for rejected mutation');
+      this.processUserCallback(batchId, error!);
       this.localStore.removeCachedMutationBatchMetadata(batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
     }
 
-    await this.emitNewSnapsAndNotifyLocalStore(documents, snapshotVersion);
+    await this.emitNewSnapsAndNotifyLocalStore(documents, remoteEvent);
   }
 
   applySuccessfulWrite(
@@ -617,9 +618,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForSuccessfulWrite(
+          mutationBatchResult.commitVersion
+        );
         return this.emitNewSnapsAndNotifyLocalStore(
           changes,
-          mutationBatchResult.commitVersion
+          synthesizedRemoteEvent
         );
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
@@ -643,10 +647,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           'rejected',
           error
         );
-        return this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          SnapshotVersion.MIN
-        );
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -779,12 +780,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   private async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
-    snapshotVersion: SnapshotVersion,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
     const docChangesInAllViews: LocalViewChanges[] = [];
     const queriesProcessed: Array<Promise<void>> = [];
+
+    const snapshotVersion = remoteEvent
+      ? remoteEvent.snapshotVersion
+      : SnapshotVersion.MIN;
 
     this.queryViewsByQuery.forEach((_, queryView) => {
       queriesProcessed.push(
@@ -882,10 +886,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         result.removedBatchIds,
         result.addedBatchIds
       );
-      await this.emitNewSnapsAndNotifyLocalStore(
-        result.affectedDocuments,
-        SnapshotVersion.MIN
-      );
+      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
 
     await this.remoteStore.handleCredentialChange();
@@ -1015,12 +1016,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         case 'not-current': {
           const changes = await this.localStore.getNewDocumentChanges();
           const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            snapshotVersion,
             targetId,
             state === 'current'
           );
           return this.emitNewSnapsAndNotifyLocalStore(
             changes,
-            snapshotVersion,
             synthesizedRemoteEvent
           );
         }
