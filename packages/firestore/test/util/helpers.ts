@@ -161,8 +161,8 @@ export function keys(
   return keys;
 }
 
-export function path(path: string): ResourcePath {
-  return new ResourcePath(splitPath(path, '/'));
+export function path(path: string, offset?: number): ResourcePath {
+  return new ResourcePath(splitPath(path, '/'), offset);
 }
 
 export function field(path: string): FieldPath {
