@@ -523,14 +523,18 @@ export class JsonProtoSerializer {
     return {
       name: this.toName(document.key),
       fields: this.toFields(document.data),
-      updateTime: this.toTimestamp(document.version.toTimestamp())
+      updateTime: this.toTimestamp(document.remoteVersion.toTimestamp())
     };
   }
 
-  fromDocument(document: api.Document): Document {
+  fromDocument(
+    document: api.Document,
+    commitVersion: SnapshotVersion
+  ): Document {
     return new Document(
       this.fromName(document.name!),
       this.fromVersion(document.updateTime!),
+      commitVersion,
       this.fromFields(document.fields || {}),
       { hasLocalMutations: false }
     );
@@ -576,9 +580,17 @@ export class JsonProtoSerializer {
     assertPresent(doc.found!.name, 'doc.found.name');
     assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found!.name!);
-    const version = this.fromVersion(doc.found!.updateTime!);
+    const remoteVersion = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, { hasLocalMutations: false });
+    return new Document(
+      key,
+      remoteVersion,
+      /*commitVersion=*/ SnapshotVersion.MIN,
+      fields,
+      {
+        hasLocalMutations: false
+      }
+    );
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -642,7 +654,7 @@ export class JsonProtoSerializer {
             document: {
               name: this.toName(doc.key),
               fields: this.toFields(doc.data),
-              updateTime: this.toVersion(doc.version)
+              updateTime: this.toVersion(doc.remoteVersion)
             },
             targetIds: watchChange.updatedTargetIds,
             removedTargetIds: watchChange.removedTargetIds
@@ -653,7 +665,7 @@ export class JsonProtoSerializer {
         return {
           documentDelete: {
             document: this.toName(doc.key),
-            readTime: this.toVersion(doc.version),
+            readTime: this.toVersion(doc.remoteVersion),
             removedTargetIds: watchChange.removedTargetIds
           }
         };
@@ -721,11 +733,19 @@ export class JsonProtoSerializer {
       );
       const entityChange = change.documentChange!;
       const key = this.fromName(entityChange.document!.name!);
-      const version = this.fromVersion(entityChange.document!.updateTime!);
+      const remoteVersion = this.fromVersion(
+        entityChange.document!.updateTime!
+      );
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {
-        hasLocalMutations: false
-      });
+      const doc = new Document(
+        key,
+        remoteVersion,
+        /*commitVersion=*/ SnapshotVersion.MIN,
+        fields,
+        {
+          hasLocalMutations: false
+        }
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -893,11 +913,14 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromWriteResult(proto: api.WriteResult): MutationResult {
+  private fromWriteResult(
+    proto: api.WriteResult,
+    commitTime: string
+  ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     const version = proto.updateTime
       ? this.fromVersion(proto.updateTime)
-      : null;
+      : this.fromVersion(commitTime);
     let transformResults: fieldValue.FieldValue[] | null = null;
     if (proto.transformResults && proto.transformResults.length > 0) {
       transformResults = proto.transformResults.map(result =>
@@ -907,8 +930,11 @@ export class JsonProtoSerializer {
     return new MutationResult(version, transformResults);
   }
 
-  fromWriteResults(protos: api.WriteResult[] | undefined): MutationResult[] {
-    return (protos || []).map(proto => this.fromWriteResult(proto));
+  fromWriteResults(
+    protos: api.WriteResult[] | undefined,
+    commitTime: string
+  ): MutationResult[] {
+    return (protos || []).map(proto => this.fromWriteResult(proto, commitTime));
   }
 
   private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {

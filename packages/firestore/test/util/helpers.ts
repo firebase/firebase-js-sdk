@@ -109,6 +109,24 @@ export function ref(dbIdStr: string, keyStr: string): DocumentKeyReference {
   return new DocumentKeyReference(dbId, key(keyStr));
 }
 
+export function mutatedDoc(
+  keyStr: string,
+  remoteVersion: TestSnapshotVersion,
+  commitVersion: TestSnapshotVersion,
+  json: JsonObject<AnyJs>,
+  options: DocumentOptions = {
+    hasLocalMutations: false
+  }
+): Document {
+  return new Document(
+    key(keyStr),
+    version(remoteVersion),
+    version(commitVersion),
+    wrapObject(json),
+    options
+  );
+}
+
 export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
@@ -117,7 +135,13 @@ export function doc(
     hasLocalMutations: false
   }
 ): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  return mutatedDoc(
+    keyStr,
+    /* remoteVersion=*/ ver,
+    /* commitVersion=*/ 0,
+    json,
+    options
+  );
 }
 
 export function deletedDoc(
@@ -270,7 +294,7 @@ export function docAddedRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return aggregator.createRemoteEvent(doc.remoteVersion);
 }
 
 export function docUpdateRemoteEvent(
@@ -294,7 +318,7 @@ export function docUpdateRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return aggregator.createRemoteEvent(doc.remoteVersion);
 }
 
 export function updateMapping(

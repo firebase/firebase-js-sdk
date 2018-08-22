@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, path } from '../../util/helpers';
+import { doc, mutatedDoc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -110,7 +110,7 @@ describeSpec('Persistence:', [], () => {
         .userListens(query)
         // Version is 0 since we never received a server version via watch.
         .expectEvents(query, {
-          added: [doc('collection/key', 0, { foo: 'bar' })],
+          added: [mutatedDoc('collection/key', 0, 1000, { foo: 'bar' })],
           fromCache: true
         })
     );

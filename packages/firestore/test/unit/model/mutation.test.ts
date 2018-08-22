@@ -34,6 +34,7 @@ import {
   doc,
   field,
   key,
+  mutatedDoc,
   mutationResult,
   patchMutation,
   setMutation,
@@ -197,9 +198,15 @@ describe('Mutation', () => {
       foo: { bar: '<server-timestamp>' },
       baz: 'baz-value'
     }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
-    const expectedDoc = new Document(key('collection/key'), version(0), data, {
-      hasLocalMutations: true
-    });
+    const expectedDoc = new Document(
+      key('collection/key'),
+      /* remoteVersion=*/ version(0),
+      /* commitVersion=*/ version(0),
+      data,
+      {
+        hasLocalMutations: true
+      }
+    );
 
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
@@ -380,9 +387,10 @@ describe('Mutation', () => {
     );
 
     expect(transformedDoc).to.deep.equal(
-      doc(
+      mutatedDoc(
         'collection/key',
-        0,
+        /* remoteVersion=*/ 0,
+        /* commitVersion=*/ 1,
         { foo: { bar: timestamp.toDate() }, baz: 'baz-value' },
         { hasLocalMutations: false }
       )
@@ -405,9 +413,10 @@ describe('Mutation', () => {
     );
 
     expect(transformedDoc).to.deep.equal(
-      doc(
+      mutatedDoc(
         'collection/key',
-        0,
+        /* remoteVersion=*/ 0,
+        /* commitVersion=*/ 1,
         { array1: [1, 2, 3], array2: ['b'] },
         { hasLocalMutations: false }
       )
@@ -429,7 +438,13 @@ describe('Mutation', () => {
     const setResult = mutationResult(4);
     const setDoc = docSet.applyToRemoteDocument(baseDoc, setResult);
     expect(setDoc).to.deep.equal(
-      doc('collection/key', 0, { foo: 'new-bar' }, { hasLocalMutations: false })
+      mutatedDoc(
+        'collection/key',
+        /* remoteVersion=*/ 0,
+        /* commitVersion=*/ 4,
+        { foo: 'new-bar' },
+        { hasLocalMutations: false }
+      )
     );
   });
 
@@ -440,9 +455,10 @@ describe('Mutation', () => {
     const result = mutationResult(5);
     const patchedDoc = mutation.applyToRemoteDocument(baseDoc, result);
     expect(patchedDoc).to.deep.equal(
-      doc(
+      mutatedDoc(
         'collection/key',
-        0,
+        /* remoteVersion=*/ 0,
+        /* commitVersion=*/ 5,
         { foo: 'new-bar' },
         {
           hasLocalMutations: false
@@ -462,10 +478,11 @@ describe('Mutation', () => {
   }
 
   it('transitions versions correctly', () => {
-    const docV0 = doc('collection/key', 0, {});
+    const docV0Committed = mutatedDoc('collection/key', 0, 7, {});
     const deletedV0 = deletedDoc('collection/key', 0);
 
     const docV3 = doc('collection/key', 3, {});
+    const docV3Committed = mutatedDoc('collection/key', 3, 7, {});
     const deletedV3 = deletedDoc('collection/key', 3);
 
     const set = setMutation('collection/key', {});
@@ -479,15 +496,15 @@ describe('Mutation', () => {
     );
     const transformResult = new MutationResult(version(7), []);
 
-    assertVersionTransitions(set, docV3, mutationResult, docV3);
-    assertVersionTransitions(set, deletedV3, mutationResult, docV0);
-    assertVersionTransitions(set, null, mutationResult, docV0);
+    assertVersionTransitions(set, docV3, mutationResult, docV3Committed);
+    assertVersionTransitions(set, deletedV3, mutationResult, docV0Committed);
+    assertVersionTransitions(set, null, mutationResult, docV0Committed);
 
-    assertVersionTransitions(patch, docV3, mutationResult, docV3);
+    assertVersionTransitions(patch, docV3, mutationResult, docV3Committed);
     assertVersionTransitions(patch, deletedV3, mutationResult, deletedV3);
     assertVersionTransitions(patch, null, mutationResult, null);
 
-    assertVersionTransitions(transform, docV3, transformResult, docV3);
+    assertVersionTransitions(transform, docV3, transformResult, docV3Committed);
     assertVersionTransitions(transform, deletedV3, transformResult, deletedV3);
     assertVersionTransitions(transform, null, transformResult, null);
 

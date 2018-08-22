@@ -17,7 +17,7 @@
 import { Query } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
-import { doc, path } from '../../util/helpers';
+import { doc, mutatedDoc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -69,7 +69,7 @@ describeSpec('Writes:', [], () => {
         })
         .watchSends({ affects: [query] }, docBv2)
         .watchSnapshots(3000)
-        .writeAcks('collection/b', 3000)
+        .writeAcks('collection/b', 2500)
         .expectEvents(query, {
           metadata: [docBv2]
         });
@@ -571,7 +571,7 @@ describeSpec('Writes:', [], () => {
         { foo: 'bar' },
         { hasLocalMutations: true }
       );
-      const doc1b = doc('collection/key', 0, { foo: 'bar' });
+      const doc1b = doc('collection/key', 1000, { foo: 'bar' });
 
       return spec()
         .userListens(query1)
@@ -1251,8 +1251,8 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 0, { k: 'a' });
-      const docB = doc('collection/b', 0, { k: 'b' });
+      const docA = mutatedDoc('collection/a', 0, 1000, { k: 'a' });
+      const docB = mutatedDoc('collection/b', 0, 2000, { k: 'b' });
 
       return client(0)
         .expectPrimaryState(true)

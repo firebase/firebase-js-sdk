@@ -446,7 +446,14 @@ export class DbRemoteDocument {
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: api.Document | null
+    public document: api.Document | null,
+    /**
+     * For documents that were written to the remote document store based on
+     * a write acknowledgment, we store the commit version of the mutation. This
+     * is used to determine if the document is 'dirty' (the commit version is
+     * higher than `document.updateTime`).
+     */
+    public commitVersion?: DbTimestamp
   ) {}
 }
 

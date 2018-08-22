@@ -84,7 +84,6 @@ import { Deferred, sequence } from '../../../src/util/promise';
 import {
   deletedDoc,
   deleteMutation,
-  doc,
   filter,
   key,
   orderBy,
@@ -93,7 +92,8 @@ import {
   setMutation,
   TestSnapshotVersion,
   version,
-  expectFirestoreError
+  expectFirestoreError,
+  mutatedDoc
 } from '../../util/helpers';
 import {
   ClientId,
@@ -720,10 +720,15 @@ abstract class TestRunner {
         });
       });
     } else if (watchEntity.doc) {
-      const [key, version, data] = watchEntity.doc;
-      const document = data
-        ? doc(key, version, data)
-        : deletedDoc(key, version);
+      const document = watchEntity.doc.value
+        ? mutatedDoc(
+            watchEntity.doc.key,
+            watchEntity.doc.remoteVersion,
+            watchEntity.doc.commitVersion,
+            watchEntity.doc.value,
+            watchEntity.doc.options
+          )
+        : deletedDoc(watchEntity.doc.key, watchEntity.doc.remoteVersion);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1140,11 +1145,17 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const options = change.splice(3);
-    const docOptions: DocumentOptions = {
-      hasLocalMutations: options.indexOf('local') !== -1
+    const options = change.options || { hasLocalMutations: false };
+    return {
+      type,
+      doc: mutatedDoc(
+        change.key,
+        change.remoteVersion,
+        change.commitVersion || 0,
+        change.value,
+        options
+      )
     };
-    return { type, doc: doc(change[0], change[1], change[2], docOptions) };
   }
 }
 
@@ -1489,11 +1500,13 @@ export interface SpecQuery {
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [
-  string,
-  TestSnapshotVersion,
-  JsonObject<AnyJs> | null
-];
+export interface SpecDocument {
+  key: string;
+  remoteVersion: TestSnapshotVersion;
+  commitVersion?: TestSnapshotVersion;
+  value: JsonObject<AnyJs> | null;
+  options?: DocumentOptions;
+}
 
 export interface SpecExpectation {
   query: SpecQuery;

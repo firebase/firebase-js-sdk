@@ -730,7 +730,8 @@ export class PersistentWriteStream extends PersistentStream<
       this.backoff.reset();
 
       const results = this.serializer.fromWriteResults(
-        responseProto.writeResults
+        responseProto.writeResults,
+        responseProto.commitTime
       );
       const commitVersion = this.serializer.fromVersion(
         responseProto.commitTime!

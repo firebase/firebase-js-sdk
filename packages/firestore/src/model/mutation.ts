@@ -79,9 +79,10 @@ export class FieldTransform {
 export class MutationResult {
   constructor(
     /**
-     * The version at which the mutation was committed or null for a delete.
+     * The version at which the mutation was committed, either extracted from
+     * the mutation's updateTime or from the backend commit time (for deletes).
      */
-    readonly version: SnapshotVersion | null,
+    readonly version: SnapshotVersion,
     /**
      * The resulting fields returned from the backend after a
      * TransformMutation has been committed. Contains one FieldValue for each
@@ -141,7 +142,7 @@ export class Precondition {
     if (this.updateTime !== undefined) {
       return (
         maybeDoc instanceof Document &&
-        maybeDoc.version.isEqual(this.updateTime)
+        maybeDoc.remoteVersion.isEqual(this.updateTime)
       );
     } else if (this.exists !== undefined) {
       if (this.exists) {
@@ -264,7 +265,7 @@ export abstract class Mutation {
     maybeDoc: MaybeDocument | null
   ): SnapshotVersion {
     if (maybeDoc instanceof Document) {
-      return maybeDoc.version;
+      return maybeDoc.remoteVersion;
     } else {
       return SnapshotVersion.MIN;
     }
@@ -301,8 +302,9 @@ export class SetMutation extends Mutation {
     // document the server has accepted the mutation so the precondition must
     // have held.
 
-    const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(this.key, version, this.value, {
+    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
+    const commitVersion = mutationResult.version;
+    return new Document(this.key, remoteVersion, commitVersion, this.value, {
       hasLocalMutations: false
     });
   }
@@ -318,10 +320,16 @@ export class SetMutation extends Mutation {
       return maybeDoc;
     }
 
-    const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(this.key, version, this.value, {
-      hasLocalMutations: true
-    });
+    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
+    return new Document(
+      this.key,
+      remoteVersion,
+      /*commitVersion=*/ SnapshotVersion.MIN,
+      this.value,
+      {
+        hasLocalMutations: true
+      }
+    );
   }
 
   isEqual(other: Mutation): boolean {
@@ -380,9 +388,10 @@ export class PatchMutation extends Mutation {
       return maybeDoc;
     }
 
-    const version = Mutation.getPostMutationVersion(maybeDoc);
+    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
+    const commitVersion = mutationResult.version;
     const newData = this.patchDocument(maybeDoc);
-    return new Document(this.key, version, newData, {
+    return new Document(this.key, remoteVersion, commitVersion, newData, {
       hasLocalMutations: false
     });
   }
@@ -398,11 +407,17 @@ export class PatchMutation extends Mutation {
       return maybeDoc;
     }
 
-    const version = Mutation.getPostMutationVersion(maybeDoc);
+    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
     const newData = this.patchDocument(maybeDoc);
-    return new Document(this.key, version, newData, {
-      hasLocalMutations: true
-    });
+    return new Document(
+      this.key,
+      remoteVersion,
+      /*commitVersion=*/ SnapshotVersion.MIN,
+      newData,
+      {
+        hasLocalMutations: true
+      }
+    );
   }
 
   isEqual(other: Mutation): boolean {
@@ -492,8 +507,10 @@ export class TransformMutation extends Mutation {
       maybeDoc,
       mutationResult.transformResults!
     );
+    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
+    const commitVersion = mutationResult.version;
     const newData = this.transformObject(doc.data, transformResults);
-    return new Document(this.key, doc.version, newData, {
+    return new Document(this.key, remoteVersion, commitVersion, newData, {
       hasLocalMutations: false
     });
   }
@@ -515,9 +532,15 @@ export class TransformMutation extends Mutation {
       baseDoc
     );
     const newData = this.transformObject(doc.data, transformResults);
-    return new Document(this.key, doc.version, newData, {
-      hasLocalMutations: true
-    });
+    return new Document(
+      this.key,
+      doc.remoteVersion,
+      SnapshotVersion.MIN,
+      newData,
+      {
+        hasLocalMutations: true
+      }
+    );
   }
 
   isEqual(other: Mutation): boolean {

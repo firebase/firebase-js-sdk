@@ -31,7 +31,10 @@ export interface DocumentOptions {
  * marker that this document does not exist at a given version.
  */
 export abstract class MaybeDocument {
-  constructor(readonly key: DocumentKey, readonly version: SnapshotVersion) {}
+  constructor(
+    readonly key: DocumentKey,
+    readonly remoteVersion: SnapshotVersion
+  ) {}
 
   static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
     return DocumentKey.comparator(d1.key, d2.key);
@@ -47,11 +50,12 @@ export class Document extends MaybeDocument {
 
   constructor(
     key: DocumentKey,
-    version: SnapshotVersion,
+    remoteVersion: SnapshotVersion,
+    readonly commitVersion: SnapshotVersion,
     readonly data: ObjectValue,
     options: DocumentOptions
   ) {
-    super(key, version);
+    super(key, remoteVersion);
     this.hasLocalMutations = options.hasLocalMutations;
   }
 
@@ -72,7 +76,8 @@ export class Document extends MaybeDocument {
     return (
       other instanceof Document &&
       this.key.isEqual(other.key) &&
-      this.version.isEqual(other.version) &&
+      this.remoteVersion.isEqual(other.remoteVersion) &&
+      this.commitVersion.isEqual(other.commitVersion) &&
       this.data.isEqual(other.data) &&
       this.hasLocalMutations === other.hasLocalMutations
     );
@@ -80,7 +85,7 @@ export class Document extends MaybeDocument {
 
   toString(): string {
     return (
-      `Document(${this.key}, ${this.version}, ${this.data.toString()}, ` +
+      `Document(${this.key}, ${this.remoteVersion}, ${this.data.toString()}, ` +
       `{hasLocalMutations: ${this.hasLocalMutations}})`
     );
   }
@@ -102,18 +107,18 @@ export class Document extends MaybeDocument {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument extends MaybeDocument {
-  constructor(key: DocumentKey, version: SnapshotVersion) {
-    super(key, version);
+  constructor(key: DocumentKey, remoteVersion: SnapshotVersion) {
+    super(key, remoteVersion);
   }
 
   toString(): string {
-    return `NoDocument(${this.key}, ${this.version})`;
+    return `NoDocument(${this.key}, ${this.remoteVersion})`;
   }
 
   isEqual(other: NoDocument): boolean {
     return (
       other &&
-      other.version.isEqual(this.version) &&
+      other.remoteVersion.isEqual(this.remoteVersion) &&
       other.key.isEqual(this.key)
     );
   }

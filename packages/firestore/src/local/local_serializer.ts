@@ -43,12 +43,12 @@ export class LocalSerializer {
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
     if (remoteDoc.document) {
-      return this.remoteSerializer.fromDocument(remoteDoc.document);
+      const commitTime = this.fromDbTimestamp(remoteDoc.commitVersion);
+      return this.remoteSerializer.fromDocument(remoteDoc.document, commitTime);
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
-      const readTime = remoteDoc.noDocument.readTime;
-      const timestamp = new Timestamp(readTime.seconds, readTime.nanoseconds);
-      return new NoDocument(key, SnapshotVersion.fromTimestamp(timestamp));
+      const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
+      return new NoDocument(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');
     }
@@ -57,16 +57,30 @@ export class LocalSerializer {
   /** Encodes a document for storage locally. */
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
     if (maybeDoc instanceof Document) {
+      const commitVersion = this.toDbTimestamp(maybeDoc.commitVersion);
       const doc = this.remoteSerializer.toDocument(maybeDoc);
-      return new DbRemoteDocument(null, doc);
+      return new DbRemoteDocument(null, doc, commitVersion);
     } else {
       const path = maybeDoc.key.path.toArray();
-      const timestamp = maybeDoc.version.toTimestamp();
-      const readTime = new DbTimestamp(
-        timestamp.seconds,
-        timestamp.nanoseconds
-      );
+      const readTime = this.toDbTimestamp(maybeDoc.remoteVersion);
       return new DbRemoteDocument(new DbNoDocument(path, readTime), null);
+    }
+  }
+
+  private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
+    const timestamp = snapshotVersion.toTimestamp();
+    return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
+  }
+
+  private fromDbTimestamp(dbTimestamp?: DbTimestamp): SnapshotVersion {
+    if (dbTimestamp) {
+      const timestamp = new Timestamp(
+        dbTimestamp.seconds,
+        dbTimestamp.nanoseconds
+      );
+      return SnapshotVersion.fromTimestamp(timestamp);
+    } else {
+      return SnapshotVersion.MIN;
     }
   }
 
@@ -118,11 +132,7 @@ export class LocalSerializer {
 
   /** Decodes a DbTarget into QueryData */
   fromDbTarget(dbTarget: DbTarget): QueryData {
-    const readTime = new Timestamp(
-      dbTarget.readTime.seconds,
-      dbTarget.readTime.nanoseconds
-    );
-    const version = SnapshotVersion.fromTimestamp(readTime);
+    const version = this.fromDbTimestamp(dbTarget.readTime);
     let query: Query;
     if (isDocumentQuery(dbTarget.query)) {
       query = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
@@ -147,11 +157,7 @@ export class LocalSerializer {
         ' may be stored, got ' +
         queryData.purpose
     );
-    const timestamp = queryData.snapshotVersion.toTimestamp();
-    const dbTimestamp = new DbTimestamp(
-      timestamp.seconds,
-      timestamp.nanoseconds
-    );
+    const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
     let queryProto: DbQuery;
     if (queryData.query.isDocumentQuery()) {
       queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);
