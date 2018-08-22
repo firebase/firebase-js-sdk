@@ -100,6 +100,16 @@ fireauth.storage.IndexedDB = function(
   /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.INDEXEDDB;
   /**
+   * @private {?goog.Promise<void>} The pending polling promise for syncing
+   *     unprocessed indexedDB external changes.
+   */
+  this.poll_ = null;
+  /**
+   * @private {?number} The poll timer ID for syncing external indexedDB
+   *     changes.
+   */
+  this.pollTimerId_ = null;
+  /**
    * @private {?fireauth.messagechannel.Receiver} The messageChannel receiver if
    *     running from a serviceworker.
    */
@@ -634,29 +644,30 @@ fireauth.storage.IndexedDB.prototype.startListeners_ = function() {
   var self = this;
   // Stop any previous listeners.
   this.stopListeners_();
-  // Repeat sync every fireauth.storage.IndexedDB.POLLING_DELAY_ ms.
   var repeat = function() {
-    self.poll_ =
-        goog.Timer.promise(fireauth.storage.IndexedDB.POLLING_DELAY_)
-        .then(goog.bind(self.sync_, self))
-        .then(function(keys) {
-          // If keys modified, call listeners.
-          if (keys.length > 0) {
-            goog.array.forEach(
-                self.storageListeners_,
-                function(listener) {
-                  listener(keys);
-                });
-          }
-        })
-        .then(repeat)
-        .thenCatch(function(error) {
-          // Do not repeat if cancelled externally.
-          if (error.message != fireauth.storage.IndexedDB.STOP_ERROR_) {
-            repeat();
-          }
-        });
-    return self.poll_;
+    self.pollTimerId_ = setTimeout(
+        function() {
+          self.poll_ = self.sync_()
+              .then(function(keys) {
+                // If keys modified, call listeners.
+                if (keys.length > 0) {
+                  goog.array.forEach(
+                      self.storageListeners_,
+                      function(listener) {
+                        listener(keys);
+                      });
+                }
+              })
+              .then(function() {
+                repeat();
+              })
+              .thenCatch(function(error) {
+                if (error.message != fireauth.storage.IndexedDB.STOP_ERROR_) {
+                  repeat();
+                }
+              });
+        },
+        fireauth.storage.IndexedDB.POLLING_DELAY_);
   };
   repeat();
 };
@@ -670,5 +681,10 @@ fireauth.storage.IndexedDB.prototype.stopListeners_ = function() {
   if (this.poll_) {
     // Cancel polling function.
     this.poll_.cancel(fireauth.storage.IndexedDB.STOP_ERROR_);
+  }
+  // Clear any pending polling timer.
+  if (this.pollTimerId_) {
+    clearTimeout(this.pollTimerId_);
+    this.pollTimerId_ = null;
   }
 };

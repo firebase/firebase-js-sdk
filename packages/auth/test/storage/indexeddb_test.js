@@ -408,6 +408,43 @@ function testStopListeners() {
   assertEquals(1, listener3.getCallCount());
   assertArrayEquals(
       ['key1', 'key2'], listener3.getLastCall().getArgument(0));
+  db.store['firebaseLocalStorage'] = {
+    'key1': {'fbase_key': 'key1', 'value': 1},
+    'key3': {'fbase_key': 'key3', 'value': 3}
+  };
+  clock.tick(800);
+  // Only listener3 should be called.
+  assertEquals(0, listener1.getCallCount());
+  assertEquals(0, listener2.getCallCount());
+  assertEquals(2, listener3.getCallCount());
+  assertArrayEquals(
+      ['key2', 'key3'], listener3.getLastCall().getArgument(0));
+  // Remove listener3.
+  manager.removeStorageListener(listener3);
+  // Add listener1 again.
+  manager.addStorageListener(listener1);
+  db.store['firebaseLocalStorage'] = {
+    'key1': {'fbase_key': 'key1', 'value': 0},
+    'key3': {'fbase_key': 'key3', 'value': 3},
+    'key4': {'fbase_key': 'key4', 'value': 4}
+  };
+  clock.tick(800);
+  // Only listener1 should be called.
+  assertEquals(1, listener1.getCallCount());
+  assertEquals(0, listener2.getCallCount());
+  assertEquals(2, listener3.getCallCount());
+  assertArrayEquals(
+      ['key1', 'key4'], listener1.getLastCall().getArgument(0));
+  // Remove all listeners.
+  manager.removeAllStorageListeners();
+  db.store['firebaseLocalStorage'] = {
+    'key1': {'fbase_key': 'key1', 'value': 0}
+  };
+  clock.tick(800);
+  // No additional listener should be called.
+  assertEquals(1, listener1.getCallCount());
+  assertEquals(0, listener2.getCallCount());
+  assertEquals(2, listener3.getCallCount());
 }
 
 
