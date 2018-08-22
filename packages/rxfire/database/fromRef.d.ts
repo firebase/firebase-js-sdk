@@ -21,7 +21,4 @@ import { ListenEvent, QueryChange } from './interfaces';
  * @param ref Database Reference
  * @param event Listen event type ('value', 'added', 'changed', 'removed', 'moved')
  */
-export declare function fromRef(
-  ref: database.Query,
-  event: ListenEvent
-): Observable<QueryChange>;
+export declare function fromRef(ref: database.Query, event: ListenEvent): Observable<QueryChange>;
