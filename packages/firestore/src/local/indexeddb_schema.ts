@@ -39,7 +39,7 @@ import { IndexedDbTransaction } from './indexeddb_persistence';
  *    to limbo resolution. Addresses
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
- * 5. Removal of held write acks (not yet active).
+ * 5. Removal of held write acks.
  */
 export const SCHEMA_VERSION = 5;
 
