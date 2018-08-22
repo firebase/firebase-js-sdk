@@ -27,6 +27,9 @@ import {
   withTestDb
 } from '../util/helpers';
 
+const FieldPath = firebase.firestore!.FieldPath;
+const FieldValue = firebase.firestore!.FieldValue;
+
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
@@ -350,7 +353,7 @@ apiDescribe('Validation:', persistence => {
         'a function',
         'a custom TestClass object'
       ];
-      const promises = [];
+      const promises: Array<Promise<void>> = [];
       for (let i = 0; i < badData.length; i++) {
         const error =
           'Data must be an object, but it was: ' + errorDescriptions[i];
@@ -379,7 +382,7 @@ apiDescribe('Validation:', persistence => {
           'Unsupported field value: a function',
           'Unsupported field value: a function (found in field foo.bar)'
         ];
-        const promises = [];
+        const promises: Array<Promise<void>> = [];
         for (let i = 0; i < badData.length; i++) {
           promises.push(
             expectWriteToFail(db, badData[i], errorDescriptions[i])
@@ -407,7 +410,7 @@ apiDescribe('Validation:', persistence => {
       const ref = db.collection('foo').doc();
       const ref2 = db.collection('foo').doc();
 
-      ref
+      return ref
         .set(data)
         .then(() => {
           return ref.firestore
@@ -502,7 +505,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectSetToFail(
           db,
-          { foo: firebase.firestore.FieldValue.delete() },
+          { foo: FieldValue.delete() },
           'FieldValue.delete() cannot be used with set() unless you pass ' +
             '{merge:true} (found in field foo)'
         );
@@ -515,7 +518,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectUpdateToFail(
           db,
-          { foo: { bar: firebase.firestore.FieldValue.delete() } },
+          { foo: { bar: FieldValue.delete() } },
           'FieldValue.delete() can only appear at the top level of your ' +
             'update data (found in field foo.bar)'
         );
@@ -568,7 +571,7 @@ apiDescribe('Validation:', persistence => {
       })
       .then(snapshot => {
         const badFieldPaths = ['', 'foo..baz', '.foo', 'foo.'];
-        const promises = [];
+        const promises: Array<Promise<void>> = [];
         for (const fieldPath of badFieldPaths) {
           const reason =
             `Invalid field path (${fieldPath}). Paths must not be ` +
@@ -598,7 +601,7 @@ apiDescribe('Validation:', persistence => {
             'foo]1',
             'foo[1]'
           ];
-          const promises = [];
+          const promises: Array<Promise<void>> = [];
           for (const fieldPath of badFieldPaths) {
             const reason =
               `Invalid field path (${fieldPath}). Paths must not ` +
@@ -611,9 +614,6 @@ apiDescribe('Validation:', persistence => {
   );
 
   describe('Array transforms', () => {
-    // tslint:disable-next-line:variable-name Type alias can be capitalized.
-    const FieldValue = firebase.firestore.FieldValue;
-
     validationIt(persistence, 'fail in queries', db => {
       const collection = db.collection('test');
       expect(() =>
@@ -749,7 +749,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         const collection = db.collection('collection');
         const query = collection.orderBy(
-          firebase.firestore.FieldPath.documentId()
+          firebase.firestore!.FieldPath.documentId()
         );
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
@@ -845,25 +845,21 @@ apiDescribe('Validation:', persistence => {
       db => {
         const collection = db.collection('test');
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', '')
+          collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it was an empty string.'
         );
         expect(() =>
-          collection.where(
-            firebase.firestore.FieldPath.documentId(),
-            '>=',
-            'foo/bar/baz'
-          )
+          collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it contains a slash.'
         );
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', 1)
+          collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
@@ -871,11 +867,7 @@ apiDescribe('Validation:', persistence => {
         );
 
         expect(() =>
-          collection.where(
-            firebase.firestore.FieldPath.documentId(),
-            'array-contains',
-            1
-          )
+          collection.where(FieldPath.documentId(), 'array-contains', 1)
         ).to.throw(
           "Invalid Query. You can't perform array-contains queries on " +
             'FieldPath.documentId() since document IDs are not arrays.'

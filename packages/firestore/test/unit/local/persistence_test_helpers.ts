@@ -104,7 +104,7 @@ export async function testIndexedDbPersistence(
     platform,
     queue,
     serializer,
-    options.synchronizeTabs
+    !!options.synchronizeTabs
   );
   await persistence.start();
   return persistence;

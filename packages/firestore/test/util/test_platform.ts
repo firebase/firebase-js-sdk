@@ -28,7 +28,7 @@ import { assert, fail } from '../../src/util/assert';
  */
 export class FakeWindow {
   private readonly fakeStorageArea: Storage;
-  private readonly fakeIndexedDb: IDBFactory;
+  private readonly fakeIndexedDb: IDBFactory | null;
 
   private storageListeners: EventListener[] = [];
 
@@ -42,14 +42,15 @@ export class FakeWindow {
       }
     });
     this.fakeIndexedDb =
-      fakeIndexedDb || (typeof window !== 'undefined' && window.indexedDB);
+      fakeIndexedDb ||
+      ((typeof window !== 'undefined' && window.indexedDB) || null);
   }
 
   get localStorage(): Storage {
     return this.fakeStorageArea;
   }
 
-  get indexedDB(): IDBFactory {
+  get indexedDB(): IDBFactory | null {
     return this.fakeIndexedDb;
   }
 
@@ -159,7 +160,7 @@ export class SharedFakeWebStorage {
   }
 
   private getItem(key: string): string | null {
-    return this.data.has(key) ? this.data.get(key) : null;
+    return this.data.has(key) ? this.data.get(key)! : null;
   }
 
   private key(index: number): string | null {

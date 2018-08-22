@@ -319,12 +319,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   enableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient.enableNetwork();
+    return this._firestoreClient!.enableNetwork();
   }
 
   disableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient.disableNetwork();
+    return this._firestoreClient!.disableNetwork();
   }
 
   enablePersistence(settings?: _PersistenceSettings): Promise<void> {
@@ -597,7 +597,7 @@ export class Transaction implements firestore.Transaction {
         } else if (doc instanceof Document) {
           return new DocumentSnapshot(this._firestore, ref._key, doc, false);
         } else {
-          fail('MaybeDocument is neither Document nor NoDocument');
+          throw fail('MaybeDocument is neither Document nor NoDocument');
         }
       });
   }
@@ -1060,8 +1060,8 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot> {
-    validateOptionNames('DocumentReference.get', options, ['source']);
     if (options) {
+      validateOptionNames('DocumentReference.get', options, ['source']);
       validateNamedOptionalPropertyEquals(
         'DocumentReference.get',
         'options',
@@ -1888,11 +1888,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   docChanges(
     options?: firestore.SnapshotListenOptions
   ): firestore.DocumentChange[] {
-    validateOptionNames('QuerySnapshot.docChanges', options, [
-      'includeMetadataChanges'
-    ]);
-
     if (options) {
+      validateOptionNames('QuerySnapshot.docChanges', options, [
+        'includeMetadataChanges'
+      ]);
       validateNamedOptionalType(
         'QuerySnapshot.docChanges',
         'boolean',
@@ -1901,7 +1900,9 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       );
     }
 
-    const includeMetadataChanges = options && options.includeMetadataChanges;
+    const includeMetadataChanges = !!(
+      options && options.includeMetadataChanges
+    );
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
       throw new FirestoreError(
@@ -2030,7 +2031,7 @@ export class CollectionReference extends Query
         'Document path must be a non-empty string'
       );
     }
-    const path = ResourcePath.fromString(pathString);
+    const path = ResourcePath.fromString(pathString!);
     return DocumentReference.forPath(
       this._query.path.child(path),
       this.firestore

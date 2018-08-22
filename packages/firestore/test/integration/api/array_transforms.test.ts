@@ -22,7 +22,7 @@ import { apiDescribe, withTestDoc, withTestDb } from '../util/helpers';
 import { EventsAccumulator } from '../util/events_accumulator';
 
 // tslint:disable-next-line:variable-name Type alias can be capitalized.
-const FieldValue = firebase.firestore.FieldValue;
+const FieldValue = firebase.firestore!.FieldValue;
 
 /**
  * Note: Transforms are tested pretty thoroughly in server_timestamp.test.ts
@@ -170,7 +170,7 @@ apiDescribe('Array Transforms:', persistence => {
       });
 
       await withTestDb(persistence, async db => {
-        const docRef = db.doc(path);
+        const docRef = db.doc(path!);
         await docRef.update({ array: FieldValue.arrayUnion(1, 2) });
 
         // Nothing should be cached since it was an update and we had no base
@@ -196,7 +196,7 @@ apiDescribe('Array Transforms:', persistence => {
       });
 
       await withTestDb(persistence, async db => {
-        const docRef = db.doc(path);
+        const docRef = db.doc(path!);
         await docRef.set(
           { array: FieldValue.arrayUnion(1, 2) },
           { merge: true }

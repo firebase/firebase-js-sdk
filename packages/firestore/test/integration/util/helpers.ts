@@ -179,7 +179,7 @@ export function withTestDbsSettings(
       'test-app-' + appCount++
     );
 
-    const firestore = firebase.firestore(app);
+    const firestore = firebase.firestore!!(app);
     firestore.settings(settings);
 
     let ready: Promise<firestore.FirebaseFirestore>;

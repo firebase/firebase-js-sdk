@@ -328,7 +328,7 @@ export class WebChannelConnection implements Connection {
       WebChannel.EventType.MESSAGE,
       msg => {
         if (!closed) {
-          const msgData = msg.data[0];
+          const msgData = msg!.data[0];
           assert(!!msgData, 'Got a webchannel message without data.');
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward

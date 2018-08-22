@@ -131,7 +131,7 @@ export function specTest(
   let builder: () => SpecBuilder;
   if (typeof commentOrBuilder === 'string') {
     comment = commentOrBuilder;
-    builder = maybeBuilder;
+    builder = maybeBuilder!;
   } else {
     builder = commentOrBuilder;
   }

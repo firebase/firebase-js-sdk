@@ -245,7 +245,7 @@ export class SortedMapIterator<K, V> {
     return this.nodeStack.length > 0;
   }
 
-  peek(): Entry<K, V> {
+  peek(): Entry<K, V> | null {
     if (this.nodeStack.length === 0) return null;
 
     const node = this.nodeStack[this.nodeStack.length - 1];
