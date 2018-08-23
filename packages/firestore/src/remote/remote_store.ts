@@ -119,8 +119,6 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private isPrimary = false;
 
-  private onlineStateTracker: OnlineStateTracker;
-
   constructor(
     /**
      * The local store, used to fill the write pipeline with outbound mutations.
@@ -128,14 +126,8 @@ export class RemoteStore implements TargetMetadataProvider {
     private localStore: LocalStore,
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
-    asyncQueue: AsyncQueue,
-    onlineStateHandler: (onlineState: OnlineState) => void
+    private onlineStateTracker: OnlineStateTracker
   ) {
-    this.onlineStateTracker = new OnlineStateTracker(
-      asyncQueue,
-      onlineStateHandler
-    );
-
     // Create streams (but note they're not started yet).
     this.watchStream = this.datastore.newPersistentWatchStream({
       onOpen: this.onWatchStreamOpen.bind(this),

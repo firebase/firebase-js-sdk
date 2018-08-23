@@ -113,6 +113,7 @@ import {
   INDEXEDDB_TEST_SERIALIZER,
   TEST_PERSISTENCE_PREFIX
 } from '../local/persistence_test_helpers';
+import { OnlineStateTracker } from '../../../src/remote/online_state_tracker';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -454,11 +455,14 @@ abstract class TestRunner {
         OnlineStateSource.SharedClientState
       );
     };
+    const onlineStateTracker = new OnlineStateTracker(
+      this.queue,
+      remoteStoreOnlineStateChangedHandler
+    );
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
-      this.queue,
-      remoteStoreOnlineStateChangedHandler
+      onlineStateTracker
     );
     this.syncEngine = new SyncEngine(
       this.localStore,

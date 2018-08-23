@@ -61,6 +61,7 @@ import {
 import { AutoId } from '../util/misc';
 import { PersistenceSettings } from '../api/database';
 import { assert } from '../util/assert';
+import { OnlineStateTracker } from '../remote/online_state_tracker';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -287,7 +288,7 @@ export class FirestoreClient {
   ): Promise<void> {
     assert(
       settings.enabled,
-      'Should only start IndexedDb persitence with offline persistence enabled.'
+      'Should only start IndexedDb persistence with offline persistence enabled.'
     );
 
     // TODO(http://b/33384523): For now we just disable garbage collection
@@ -384,11 +385,15 @@ export class FirestoreClient {
             OnlineStateSource.SharedClientState
           );
 
+        const onlineStateTracker = new OnlineStateTracker(
+          this.asyncQueue,
+          remoteStoreOnlineStateChangedHandler
+        );
+
         this.remoteStore = new RemoteStore(
           this.localStore,
           datastore,
-          this.asyncQueue,
-          remoteStoreOnlineStateChangedHandler
+          onlineStateTracker
         );
 
         this.syncEngine = new SyncEngine(
