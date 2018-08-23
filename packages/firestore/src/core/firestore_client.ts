@@ -107,7 +107,8 @@ export class FirestoreClient {
      * start processing a new operation while the previous one is waiting for
      * an async I/O to complete).
      */
-    private asyncQueue: AsyncQueue
+    private asyncQueue: AsyncQueue,
+    private offlineTimeoutSeconds: number
   ) {}
 
   /**
@@ -387,6 +388,7 @@ export class FirestoreClient {
 
         const onlineStateTracker = new OnlineStateTracker(
           this.asyncQueue,
+          this.offlineTimeoutSeconds,
           remoteStoreOnlineStateChangedHandler
         );
 

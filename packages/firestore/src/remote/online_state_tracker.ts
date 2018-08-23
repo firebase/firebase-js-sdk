@@ -27,12 +27,6 @@ const LOG_TAG = 'OnlineStateTracker';
 // giving up and transitioning from OnlineState.Unknown to Offline.
 const MAX_WATCH_STREAM_FAILURES = 2;
 
-// To deal with stream attempts that don't succeed or fail in a timely manner,
-// we have a timeout for OnlineState to reach Online or Offline.
-// If the timeout is reached, we transition to Offline rather than waiting
-// indefinitely.
-const ONLINE_STATE_TIMEOUT_MS = 10 * 1000;
-
 /**
  * A component used by the RemoteStore to track the OnlineState (that is,
  * whether or not the client as a whole should be considered to be online or
@@ -71,6 +65,7 @@ export class OnlineStateTracker {
 
   constructor(
     private asyncQueue: AsyncQueue,
+    private offlineTimeoutSeconds: number,
     private onlineStateHandler: (onlineState: OnlineState) => void
   ) {}
 
@@ -91,7 +86,7 @@ export class OnlineStateTracker {
       );
       this.onlineStateTimer = this.asyncQueue.enqueueAfterDelay(
         TimerId.OnlineStateTimeout,
-        ONLINE_STATE_TIMEOUT_MS,
+        this.offlineTimeoutSeconds * 1000,
         () => {
           this.onlineStateTimer = null;
           assert(
@@ -99,7 +94,7 @@ export class OnlineStateTracker {
             'Timer should be canceled if we transitioned to a different state.'
           );
           this.logClientOfflineWarningIfNecessary(
-            `Backend didn't respond within ${ONLINE_STATE_TIMEOUT_MS / 1000} ` +
+            `Backend didn't respond within ${this.offlineTimeoutSeconds} ` +
               `seconds.`
           );
           this.setAndBroadcast(OnlineState.Offline);

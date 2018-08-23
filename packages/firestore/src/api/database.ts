@@ -100,6 +100,13 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
+
+// To deal with stream attempts that don't succeed or fail in a timely manner,
+// we have a timeout for OnlineState to reach Online or Offline.
+// If the timeout is reached, we transition to Offline rather than waiting
+// indefinitely.
+const DEFAULT_OFFLINE_TIMEOUT_SECONDS = 10;
+
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
 
 // enablePersistence() defaults:
@@ -109,6 +116,8 @@ const DEFAULT_SYNCHRONIZE_TABS = false;
 interface PrivateSettings extends firestore.Settings {
   // Can be a google-auth-library or gapi client.
   credentials?: CredentialsSettings;
+
+  offlineTimeout?: number;
 }
 
 /**
@@ -138,6 +147,8 @@ class FirestoreSettings {
   // tslint:disable-next-line:no-any
   credentials?: any;
 
+  offlineTimeoutSeconds: number;
+
   constructor(settings: PrivateSettings) {
     if (settings.host === undefined) {
       if (settings.ssl !== undefined) {
@@ -159,7 +170,8 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshots'
+      'timestampsInSnapshots',
+      'offlineTimeout'
     ]);
 
     validateNamedOptionalType(
@@ -169,6 +181,17 @@ class FirestoreSettings {
       settings.credentials
     );
     this.credentials = settings.credentials;
+
+    validateNamedOptionalType(
+      'settings',
+      'number',
+      'offlineTimeoutSeconds',
+      settings.offlineTimeout
+    );
+    this.offlineTimeoutSeconds = objUtils.defaulted(
+      settings.offlineTimeout,
+      DEFAULT_OFFLINE_TIMEOUT_SECONDS
+    );
 
     validateNamedOptionalType(
       'settings',
@@ -187,6 +210,7 @@ class FirestoreSettings {
       this.host === other.host &&
       this.ssl === other.ssl &&
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
+      this.offlineTimeoutSeconds === other.offlineTimeoutSeconds &&
       this.credentials === other.credentials
     );
   }
@@ -417,7 +441,8 @@ follow these steps, YOUR APP MAY BREAK.`);
       PlatformSupport.getPlatform(),
       databaseInfo,
       this._config.credentials,
-      this._queue
+      this._queue,
+      this._config.settings.offlineTimeoutSeconds
     );
     return this._firestoreClient.start(persistenceSettings);
   }
