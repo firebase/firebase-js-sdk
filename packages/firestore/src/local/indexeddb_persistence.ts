@@ -905,7 +905,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   private markClientZombied(): void {
     try {
-      // TODO(multitab): Garbage Collect Local Storage
       this.window.localStorage.setItem(
         this.zombiedClientLocalStorageKey(this.clientId),
         String(Date.now())

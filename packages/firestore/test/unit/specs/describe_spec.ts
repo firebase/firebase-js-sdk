@@ -45,7 +45,7 @@ const KNOWN_TAGS = [
   DURABLE_PERSISTENCE_TAG
 ];
 
-// TOOD(mrschmidt): Make this configurable with mocha options.
+// TODO(mrschmidt): Make this configurable with mocha options.
 const RUN_BENCHMARK_TESTS = false;
 
 // The format of one describeSpec written to a JSON file.
