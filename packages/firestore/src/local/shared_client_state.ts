@@ -758,12 +758,12 @@ export class WebStorageSharedClientState implements SharedClientState {
     if (event.storageArea === this.storage) {
       debug(LOG_TAG, 'EVENT', event.key, event.newValue);
 
-      if (
-          event.key === this.localClientStorageKey) {
-      error('Received LocalStorage notification for local change. Another client might have garbage-collected our state'
-      );
-      return;
-    }
+      if (event.key === this.localClientStorageKey) {
+        error(
+          'Received LocalStorage notification for local change. Another client might have garbage-collected our state'
+        );
+        return;
+      }
 
       this.queue.enqueueAndForget(async () => {
         if (!this.started) {
