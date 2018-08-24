@@ -508,7 +508,7 @@ export class FirestoreClient {
         return view.applyChanges(
           viewDocChanges,
           /* updateLimboDocuments= */ false
-        ).snapshot;
+        ).snapshot!;
       });
   }
 

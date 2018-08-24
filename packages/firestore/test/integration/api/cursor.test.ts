@@ -26,7 +26,8 @@ import {
   withTestDbs
 } from '../util/helpers';
 
-const Timestamp = firebase.firestore.Timestamp;
+const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 
 apiDescribe('Cursors', persistence => {
   it('can page through items', () => {
@@ -168,7 +169,7 @@ apiDescribe('Cursors', persistence => {
       return Promise.all(sets)
         .then(() => {
           return readerCollection
-            .orderBy(firebase.firestore.FieldPath.documentId())
+            .orderBy(FieldPath.documentId())
             .startAt('b')
             .endBefore('d')
             .get();
@@ -219,7 +220,7 @@ apiDescribe('Cursors', persistence => {
       const query = coll
         .orderBy('sort', 'desc')
         // default indexes reverse the key ordering for descending sorts
-        .orderBy(firebase.firestore.FieldPath.documentId(), 'desc');
+        .orderBy(FieldPath.documentId(), 'desc');
       return query
         .startAt(2)
         .get()

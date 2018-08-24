@@ -221,7 +221,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
     if (this.documentKeysByBatchId[batchId]) {
-      return PersistencePromise.resolve(this.documentKeysByBatchId[batchId]);
+      return PersistencePromise.resolve<DocumentKeySet | null>(
+        this.documentKeysByBatchId[batchId]
+      );
     } else {
       return this.lookupMutationBatch(transaction, batchId).next(batch => {
         if (batch) {
@@ -324,7 +326,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (!mutation) {
-              fail(
+              throw fail(
                 'Dangling document-mutation reference found: ' +
                   indexKey +
                   ' which points to ' +
@@ -454,7 +456,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (mutation === null) {
-              fail(
+              throw fail(
                 'Dangling document-mutation reference found, ' +
                   'which points to ' +
                   batchId

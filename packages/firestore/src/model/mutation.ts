@@ -89,7 +89,7 @@ export class MutationResult {
      *
      * Will be null if the mutation was not a TransformMutation.
      */
-    readonly transformResults: FieldValue[] | null
+    readonly transformResults: Array<FieldValue | null> | null
   ) {}
 }
 
@@ -559,7 +559,7 @@ export class TransformMutation extends Mutation {
    */
   private serverTransformResults(
     baseDoc: MaybeDocument | null,
-    serverTransformResults: FieldValue[]
+    serverTransformResults: Array<FieldValue | null>
   ): FieldValue[] {
     const transformResults = [] as FieldValue[];
     assert(
@@ -571,7 +571,7 @@ export class TransformMutation extends Mutation {
     for (let i = 0; i < serverTransformResults.length; i++) {
       const fieldTransform = this.fieldTransforms[i];
       const transform = fieldTransform.transform;
-      let previousValue: FieldValue = null;
+      let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }
@@ -603,7 +603,7 @@ export class TransformMutation extends Mutation {
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
 
-      let previousValue: FieldValue = null;
+      let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
         previousValue = baseDoc.field(fieldTransform.field) || null;
       }

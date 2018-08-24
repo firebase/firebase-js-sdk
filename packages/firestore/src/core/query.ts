@@ -591,7 +591,8 @@ export class NanFilter extends Filter {
   }
 
   matches(doc: Document): boolean {
-    const val = doc.field(this.field).value();
+    const field = doc.field(this.field);
+    const val = field && field.value();
     return typeof val === 'number' && isNaN(val);
   }
 
@@ -680,7 +681,7 @@ export class Bound {
           docValue !== undefined,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = component.compareTo(docValue);
+        comparison = component.compareTo(docValue!);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;

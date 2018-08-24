@@ -130,8 +130,8 @@ describe('DocumentChange:', () => {
   it('positions are correct for randomly chosen examples', () => {
     const query = Query.atPath(path('c')).addOrderBy(orderBy('sort'));
     for (let run = 0; run < 100; run++) {
-      const initialDocs = [];
-      const updates = [];
+      const initialDocs: Document[] = [];
+      const updates: Array<DocumentKey | Document> = [];
       const numDocs = 100;
       for (let i = 0; i < numDocs; i++) {
         // Skip 20% of the docs
