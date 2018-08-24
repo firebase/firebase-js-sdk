@@ -242,7 +242,7 @@ describe('SortedMap Tests', () => {
       .insert(2, 2)
       .insert(4, 4);
     let next = 5;
-    map.reverseTraversal((key, value) => {
+    map.reverseTraversal(key => {
       expect(key).to.equal(next);
       next--;
       return false;

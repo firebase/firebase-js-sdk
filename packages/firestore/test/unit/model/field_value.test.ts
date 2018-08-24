@@ -196,14 +196,14 @@ describe('FieldValue', () => {
     expect(objValue.field(field('bar'))).to.equal(undefined);
     expect(objValue.field(field('bar.a'))).to.equal(undefined);
 
-    expect(objValue.field(field('foo')).value()).to.deep.equal({
+    expect(objValue.field(field('foo'))!.value()).to.deep.equal({
       a: 1,
       b: true,
       c: 'string'
     });
-    expect(objValue.field(field('foo.a')).value()).to.equal(1);
-    expect(objValue.field(field('foo.b')).value()).to.equal(true);
-    expect(objValue.field(field('foo.c')).value()).to.equal('string');
+    expect(objValue.field(field('foo.a'))!.value()).to.equal(1);
+    expect(objValue.field(field('foo.b'))!.value()).to.equal(true);
+    expect(objValue.field(field('foo.c'))!.value()).to.equal('string');
   });
 
   it('can overwrite existing fields', () => {

@@ -54,7 +54,7 @@ function customDeepEqual(left, right): boolean {
 }
 
 /** The original equality function passed in by chai(). */
-let originalFunction = null;
+let originalFunction: ((r, l) => boolean) | null = null;
 
 export function addEqualityMatcher(): void {
   let isActive = true;
@@ -79,7 +79,7 @@ export function addEqualityMatcher(): void {
               right,
               /*showDiff=*/ true
             );
-          } else {
+          } else if (originalFunction) {
             originalFunction.apply(this, args);
           }
         };

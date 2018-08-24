@@ -71,7 +71,7 @@ apiDescribe('Database transactions', persistence => {
         })
         .then(snapshot => {
           expect(snapshot).to.exist;
-          expect(snapshot.data()['foo']).to.equal('bar');
+          expect(snapshot.data()!['foo']).to.equal('bar');
           return db.runTransaction(async transaction => {
             transaction.delete(doc);
           });
@@ -251,7 +251,7 @@ apiDescribe('Database transactions', persistence => {
                   resolveRead.resolve();
                   return barrier.promise.then(() => {
                     transaction.set(doc, {
-                      count: snapshot.data()['count'] + 1
+                      count: snapshot.data()!['count'] + 1
                     });
                   });
                 });
@@ -275,7 +275,7 @@ apiDescribe('Database transactions', persistence => {
         })
         .then(snapshot => {
           expect(snapshot).to.exist;
-          expect(snapshot.data()['count']).to.equal(8);
+          expect(snapshot.data()!['count']).to.equal(8);
         });
     });
   });
@@ -308,7 +308,7 @@ apiDescribe('Database transactions', persistence => {
                   resolveRead.resolve();
                   return barrier.promise.then(() => {
                     transaction.update(doc, {
-                      count: snapshot.data()['count'] + 1
+                      count: snapshot.data()!['count'] + 1
                     });
                   });
                 });
@@ -332,8 +332,8 @@ apiDescribe('Database transactions', persistence => {
         })
         .then(snapshot => {
           expect(snapshot).to.exist;
-          expect(snapshot.data()['count']).to.equal(8);
-          expect(snapshot.data()['other']).to.equal('yes');
+          expect(snapshot.data()!['count']).to.equal(8);
+          expect(snapshot.data()!['other']).to.equal('yes');
         });
     });
   });
@@ -359,7 +359,7 @@ apiDescribe('Database transactions', persistence => {
             doc,
             'owner.name',
             'Sebastian',
-            new firebase.firestore.FieldPath('is.admin'),
+            new firebase.firestore!.FieldPath('is.admin'),
             true
           );
         })
@@ -449,7 +449,7 @@ apiDescribe('Database transactions', persistence => {
         .catch(err => expect(err).to.exist)
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.data()['count']).to.equal(1234);
+          expect(snapshot.data()!['count']).to.equal(1234);
         });
     });
   });

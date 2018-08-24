@@ -132,7 +132,7 @@ describe('AsyncQueue', () => {
 
   it('can schedule ops in the future', async () => {
     const queue = new AsyncQueue();
-    const completedSteps = [];
+    const completedSteps: number[] = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
@@ -145,7 +145,7 @@ describe('AsyncQueue', () => {
 
   it('Can cancel delayed operations', async () => {
     const queue = new AsyncQueue();
-    const completedSteps = [];
+    const completedSteps: number[] = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     const delayedPromise = queue.enqueueAfterDelay(timerId1, 1, () =>
@@ -167,7 +167,7 @@ describe('AsyncQueue', () => {
 
   it('Can run all delayed operations early', async () => {
     const queue = new AsyncQueue();
-    const completedSteps = [];
+    const completedSteps: number[] = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(4));
@@ -180,7 +180,7 @@ describe('AsyncQueue', () => {
 
   it('Can run some delayed operations early', async () => {
     const queue = new AsyncQueue();
-    const completedSteps = [];
+    const completedSteps: number[] = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(5));
@@ -194,7 +194,7 @@ describe('AsyncQueue', () => {
 
   it('Can drain (non-delayed) operations', async () => {
     const queue = new AsyncQueue();
-    const completedSteps = [];
+    const completedSteps: number[] = [];
     const doStep = (n: number) => defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     queue.enqueueAfterDelay(timerId1, 10000, () => doStep(5));

@@ -101,7 +101,7 @@ function genericMutationQueueTests(): void {
    * has a different batchID.
    */
   async function createBatches(count: number): Promise<MutationBatch[]> {
-    const batches = [];
+    const batches: MutationBatch[] = [];
     for (let i = 0; i < count; i++) {
       const batch = await addMutationBatch();
       batches.push(batch);
@@ -123,7 +123,7 @@ function genericMutationQueueTests(): void {
     holes: number[],
     batches: MutationBatch[]
   ): Promise<MutationBatch[]> {
-    const removed = [];
+    const removed: MutationBatch[] = [];
     for (let i = 0; i < holes.length; i++) {
       const index = holes[i] - i;
       const batch = batches[index];
@@ -346,8 +346,8 @@ function genericMutationQueueTests(): void {
     const batches = await createBatches(10);
     await makeHolesInBatches([2, 6, 7], batches);
 
-    let found = [],
-      expected = [];
+    let found,
+      expected: MutationBatch[] = [];
 
     found = await mutationQueue.getAllMutationBatchesThroughBatchId(
       batches[0].batchId - 1

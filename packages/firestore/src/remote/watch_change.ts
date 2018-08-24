@@ -531,7 +531,7 @@ export class WatchChangeAggregator {
   removeDocumentFromTarget(
     targetId: TargetId,
     key: DocumentKey,
-    updatedDocument?: MaybeDocument
+    updatedDocument: MaybeDocument | null
   ): void {
     if (!this.isActiveTarget(targetId)) {
       return;
@@ -647,7 +647,7 @@ export class WatchChangeAggregator {
     // resend these documents.
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     existingKeys.forEach(key => {
-      this.removeDocumentFromTarget(targetId, key);
+      this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
     });
   }
   /**

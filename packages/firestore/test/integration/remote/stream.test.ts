@@ -63,7 +63,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     let promise: Promise<StreamEventType>;
 
     if (this.pendingCallbacks.length > 0) {
-      const pendingCallback = this.pendingCallbacks.shift();
+      const pendingCallback = this.pendingCallbacks.shift()!;
       promise = Promise.resolve(pendingCallback);
     } else {
       const deferred = new Deferred<StreamEventType>();
@@ -114,7 +114,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
 
   private async resolvePending(actualCallback: StreamEventType): Promise<void> {
     if (this.pendingPromises.length > 0) {
-      const pendingPromise = this.pendingPromises.shift();
+      const pendingPromise = this.pendingPromises.shift()!;
       pendingPromise.resolve(actualCallback);
     } else {
       this.pendingCallbacks.push(actualCallback);

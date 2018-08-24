@@ -447,7 +447,7 @@ export abstract class PersistentStream<
         return this.listener!.onOpen();
       });
     });
-    this.stream.onClose((error: FirestoreError) => {
+    this.stream.onClose((error?: FirestoreError) => {
       dispatchIfNotClosed(() => {
         return this.handleStreamClose(error);
       });
