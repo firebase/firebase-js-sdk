@@ -383,7 +383,7 @@ describe('Mutation', () => {
     ]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
-      mutationResult.version,
+      mutationResult.version!,
       mutationResult
     );
 
@@ -410,7 +410,7 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [null, null]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
-      mutationResult.version,
+      mutationResult.version!,
       mutationResult
     );
 
@@ -440,7 +440,7 @@ describe('Mutation', () => {
     const setResult = mutationResult(4);
     const setDoc = docSet.applyToRemoteDocument(
       baseDoc,
-      setResult.version,
+      setResult.version!,
       setResult
     );
     expect(setDoc).to.deep.equal(
@@ -461,7 +461,7 @@ describe('Mutation', () => {
     const result = mutationResult(5);
     const patchedDoc = mutation.applyToRemoteDocument(
       baseDoc,
-      result.version,
+      result.version!,
       result
     );
     expect(patchedDoc).to.deep.equal(
@@ -485,7 +485,7 @@ describe('Mutation', () => {
   ): void {
     const actual = mutation.applyToRemoteDocument(
       base,
-      mutationResult.version,
+      mutationResult.version!,
       mutationResult
     );
     expect(actual).to.deep.equal(expected);

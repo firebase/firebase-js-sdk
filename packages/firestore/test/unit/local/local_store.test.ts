@@ -232,22 +232,18 @@ class LocalStoreTester {
 
   toContain(doc: MaybeDocument): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore
-        .readDocument(doc.key)
-        .then((result: MaybeDocument) => {
-          expectEqual(result, doc);
-        });
+      return this.localStore.readDocument(doc.key).then(result => {
+        expectEqual(result, doc);
+      });
     });
     return this;
   }
 
   toNotContain(keyStr: string): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore
-        .readDocument(key(keyStr))
-        .then((result: MaybeDocument) => {
-          expect(result).to.be.null;
-        });
+      return this.localStore.readDocument(key(keyStr)).then(result => {
+        expect(result).to.be.null;
+      });
     });
     return this;
   }

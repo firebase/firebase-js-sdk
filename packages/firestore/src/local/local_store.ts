@@ -295,9 +295,12 @@ export class LocalStore {
           .lookupMutationKeys(txn, batchId)
           .next(keys => {
             if (keys) {
-              return this.localDocuments.getDocuments(txn, keys);
+              return this.localDocuments.getDocuments(
+                txn,
+                keys
+              ) as PersistencePromise<MaybeDocumentMap | null>;
             } else {
-              return PersistencePromise.resolve(null);
+              return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
             }
           });
       }
@@ -349,9 +352,9 @@ export class LocalStore {
       return this.mutationQueue
         .lookupMutationBatch(txn, batchId)
         .next((batch: MutationBatch | null) => {
-          assert(batch != null, 'Attempt to reject nonexistent batch!');
-          affectedKeys = batch.keys();
-          return this.mutationQueue.removeMutationBatch(txn, batch);
+          assert(batch !== null, 'Attempt to reject nonexistent batch!');
+          affectedKeys = batch!.keys();
+          return this.mutationQueue.removeMutationBatch(txn, batch!);
         })
         .next(() => {
           return this.mutationQueue.performConsistencyCheck(txn);
@@ -514,7 +517,7 @@ export class LocalStore {
                 'Ignoring outdated watch update for ',
                 key,
                 '. Current version:',
-                existingDoc.remoteVersion,
+                existingDoc!.remoteVersion,
                 ' Watch version:',
                 doc.remoteVersion
               );
@@ -838,7 +841,7 @@ export class LocalStore {
       return this.persistence.runTransaction('Get query data', false, txn => {
         return this.queryCache
           .getQueryDataForTarget(txn, targetId)
-          .next(queryData => queryData.query);
+          .next(queryData => (queryData ? queryData.query : null));
       });
     }
   }

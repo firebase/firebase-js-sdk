@@ -472,7 +472,7 @@ describe('SimpleDb', () => {
   it.skip('Perf', () => {
     return runTransaction(store => {
       const start = new Date().getTime();
-      const promises = [];
+      const promises: Array<PersistencePromise<void>> = [];
       for (let i = 0; i < 1000; ++i) {
         promises.push(store.put({ id: i, name: 'frank', age: i }));
       }
@@ -484,7 +484,7 @@ describe('SimpleDb', () => {
     }).then(() => {
       return runTransaction(store => {
         const start = new Date().getTime();
-        const promises = [];
+        const promises: Array<PersistencePromise<User | null>> = [];
         for (let i = 0; i < 1000; ++i) {
           promises.push(store.get(i));
         }

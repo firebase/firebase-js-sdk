@@ -60,7 +60,7 @@ export function documentReference(path: string): DocumentReference {
 
 export function documentSnapshot(
   path: string,
-  data: JsonObject<AnyJs>,
+  data: JsonObject<AnyJs> | null,
   fromCache: boolean
 ): DocumentSnapshot {
   if (data) {

@@ -153,7 +153,7 @@ async function withMultiClientPersistence(
 function getAllObjectStores(db: IDBDatabase): string[] {
   const objectStores: string[] = [];
   for (let i = 0; i < db.objectStoreNames.length; ++i) {
-    objectStores.push(db.objectStoreNames.item(i));
+    objectStores.push(db.objectStoreNames.item(i)!);
   }
   objectStores.sort();
   return objectStores;
@@ -256,8 +256,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
               .next(() => mutations.get(batchId))
               .next(mutation => {
                 // Mutations should be unaffected.
-                expect(mutation.userId).to.equal(userId);
-                expect(mutation.batchId).to.equal(batchId);
+                expect(mutation!.userId).to.equal(userId);
+                expect(mutation!.batchId).to.equal(batchId);
               });
           }
         );
@@ -565,7 +565,7 @@ describe('IndexedDb: canActAsPrimary', () => {
               thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
 
-              let isPrimary: boolean;
+              let isPrimary: boolean | undefined = undefined;
               await thisPersistence.setPrimaryStateListener(
                 async primaryState => {
                   isPrimary = primaryState;
@@ -586,7 +586,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       persistence.setNetworkEnabled(false);
       await queue.drain();
 
-      let isPrimary: boolean;
+      let isPrimary: boolean | undefined = undefined;
       await persistence.setPrimaryStateListener(async primaryState => {
         isPrimary = primaryState;
       });

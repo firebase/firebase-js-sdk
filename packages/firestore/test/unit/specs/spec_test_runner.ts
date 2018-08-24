@@ -723,7 +723,7 @@ abstract class TestRunner {
         ? mutatedDoc(
             watchEntity.doc.key,
             watchEntity.doc.remoteVersion,
-            watchEntity.doc.commitVersion,
+            watchEntity.doc.commitVersion || 0,
             watchEntity.doc.value,
             watchEntity.doc.options
           )
@@ -1075,7 +1075,7 @@ abstract class TestRunner {
     const expectedQuery = this.parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      expectFirestoreError(actual.error);
+      expectFirestoreError(actual.error!);
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {
@@ -1151,7 +1151,7 @@ abstract class TestRunner {
         change.key,
         change.remoteVersion,
         change.commitVersion || 0,
-        change.value,
+        change.value || {},
         options
       )
     };
@@ -1253,7 +1253,7 @@ export async function runSpec(
     return runners[clientIndex];
   };
 
-  let lastStep = null;
+  let lastStep: SpecStep | null = null;
   let count = 0;
   try {
     await sequence(steps, async step => {
@@ -1466,9 +1466,10 @@ export type SpecClientState = {
  * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export interface SpecWatchFilter extends Array<TargetId[] | string> {
+export interface SpecWatchFilter
+  extends Array<TargetId[] | string | undefined> {
   '0': TargetId[];
-  '1'?: string;
+  '1': string | undefined;
 }
 
 /**
