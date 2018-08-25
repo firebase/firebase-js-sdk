@@ -166,7 +166,7 @@ export class MemoryMutationQueue implements MutationQueue {
     const mutationBatch = this.findMutationBatch(batchId);
     assert(mutationBatch != null, 'Failed to find local mutation batch.');
     return PersistencePromise.resolve(
-      !mutationBatch.isTombstone() ? mutationBatch.keys() : null
+      !mutationBatch!.isTombstone() ? mutationBatch!.keys() : null
     );
   }
 
@@ -190,10 +190,10 @@ export class MemoryMutationQueue implements MutationQueue {
     for (; index < size; index++) {
       const batch = this.mutationQueue[index];
       if (!batch.isTombstone()) {
-        return PersistencePromise.resolve(batch);
+        return PersistencePromise.resolve<MutationBatch | null>(batch);
       }
     }
-    return PersistencePromise.resolve(null);
+    return PersistencePromise.resolve<MutationBatch | null>(null);
   }
 
   getAllMutationBatches(

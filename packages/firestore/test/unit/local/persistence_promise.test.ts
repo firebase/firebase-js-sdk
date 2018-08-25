@@ -178,7 +178,7 @@ describe('PersistencePromise', () => {
       updates.push(
         async(1).next(x => {
           counter = counter + x;
-          return async(undefined);
+          return async<void>(undefined);
         })
       );
     }

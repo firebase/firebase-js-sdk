@@ -29,7 +29,8 @@ import {
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
 
-const Timestamp = firebase.firestore.Timestamp;
+const Timestamp = firebase.firestore!.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -405,7 +406,7 @@ apiDescribe('Queries', persistence => {
       // Ideally this would be descending to validate it's different than
       // the default, but that requires an extra index
       return coll
-        .orderBy(firebase.firestore.FieldPath.documentId())
+        .orderBy(FieldPath.documentId())
         .get()
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([
@@ -426,13 +427,13 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, coll => {
       return coll
-        .where(firebase.firestore.FieldPath.documentId(), '==', 'ab')
+        .where(FieldPath.documentId(), '==', 'ab')
         .get()
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
           return coll
-            .where(firebase.firestore.FieldPath.documentId(), '>', 'aa')
-            .where(firebase.firestore.FieldPath.documentId(), '<=', 'ba')
+            .where(FieldPath.documentId(), '>', 'aa')
+            .where(FieldPath.documentId(), '<=', 'ba')
             .get();
         })
         .then(docs => {
@@ -453,21 +454,13 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, coll => {
       return coll
-        .where(firebase.firestore.FieldPath.documentId(), '==', coll.doc('ab'))
+        .where(FieldPath.documentId(), '==', coll.doc('ab'))
         .get()
         .then(docs => {
           expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
           return coll
-            .where(
-              firebase.firestore.FieldPath.documentId(),
-              '>',
-              coll.doc('aa')
-            )
-            .where(
-              firebase.firestore.FieldPath.documentId(),
-              '<=',
-              coll.doc('ba')
-            )
+            .where(FieldPath.documentId(), '>', coll.doc('aa'))
+            .where(FieldPath.documentId(), '<=', coll.doc('ba'))
             .get();
         })
         .then(docs => {

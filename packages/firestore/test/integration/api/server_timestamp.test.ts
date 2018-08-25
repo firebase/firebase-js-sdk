@@ -24,21 +24,22 @@ import { EventsAccumulator } from '../util/events_accumulator';
 // tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;
 
-const Timestamp = firebase.firestore.Timestamp;
+const Timestamp = firebase.firestore!.Timestamp;
+const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Server Timestamps', persistence => {
   // Data written in tests via set().
   const setData = {
     a: 42,
-    when: firebase.firestore.FieldValue.serverTimestamp(),
-    deep: { when: firebase.firestore.FieldValue.serverTimestamp() }
+    when: FieldValue.serverTimestamp(),
+    deep: { when: FieldValue.serverTimestamp() }
   };
 
   // base and update data used for update() tests.
   const initialData = { a: 42 };
   const updateData = {
-    when: firebase.firestore.FieldValue.serverTimestamp(),
-    deep: { when: firebase.firestore.FieldValue.serverTimestamp() }
+    when: FieldValue.serverTimestamp(),
+    deep: { when: FieldValue.serverTimestamp() }
   };
 
   // A document reference to read and write to.
@@ -225,7 +226,7 @@ apiDescribe('Server Timestamps', persistence => {
       return writeInitialData()
         .then(() =>
           // Change field 'a' from a number type to a server timestamp.
-          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp())
+          docRef.update('a', FieldValue.serverTimestamp())
         )
         .then(() => accumulator.awaitLocalEvent())
         .then(snapshot => {
@@ -243,8 +244,8 @@ apiDescribe('Server Timestamps', persistence => {
         .then(() => docRef.firestore.disableNetwork)
         .then(() => {
           // We set up two consecutive writes with server timestamps.
-          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
-          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', FieldValue.serverTimestamp());
+          docRef.update('a', FieldValue.serverTimestamp());
           return accumulator.awaitLocalEvents(2);
         })
         .then(snapshots => {
@@ -265,9 +266,9 @@ apiDescribe('Server Timestamps', persistence => {
         .then(() => docRef.firestore.disableNetwork)
         .then(() => {
           // We set up three consecutive writes.
-          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', FieldValue.serverTimestamp());
           docRef.update('a', 1337);
-          docRef.update('a', firebase.firestore.FieldValue.serverTimestamp());
+          docRef.update('a', FieldValue.serverTimestamp());
           return accumulator.awaitLocalEvents(3);
         })
         .then(snapshots => {

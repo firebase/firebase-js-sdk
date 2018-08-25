@@ -101,7 +101,7 @@ describe('RemoteEvent', () => {
     existingKeys?: DocumentKeySet;
     changes?: Array<DocumentWatchChange | WatchTargetChange>;
   }): WatchChangeAggregator {
-    const targetIds = [];
+    const targetIds: TargetId[] = [];
 
     if (options.targets) {
       objUtils.forEachNumber(options.targets, targetId => {

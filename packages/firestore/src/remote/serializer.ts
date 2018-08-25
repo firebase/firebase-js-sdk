@@ -959,7 +959,7 @@ export class JsonProtoSerializer {
         }
       };
     } else {
-      fail('Unknown transform: ' + fieldTransform.transform);
+      throw fail('Unknown transform: ' + fieldTransform.transform);
     }
   }
 
@@ -987,7 +987,7 @@ export class JsonProtoSerializer {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
     }
     const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
-    return new FieldTransform(fieldPath, transform);
+    return new FieldTransform(fieldPath, transform!);
   }
 
   toDocumentsTarget(query: Query): api.DocumentsTarget {

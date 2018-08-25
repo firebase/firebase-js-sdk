@@ -59,7 +59,7 @@ apiDescribe('Smoke Test', persistence => {
             return ref1.get();
           })
           .then((doc: firestore.DocumentSnapshot) => {
-            const recv = doc.data();
+            const recv = doc.data()!;
             expect(recv['message']).to.deep.equal(data.message);
             const user = recv['user'];
             // Make sure it looks like a DocumentRef.

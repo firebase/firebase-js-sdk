@@ -67,7 +67,7 @@ export class RemoteDocumentChangeBuffer {
 
     const bufferedEntry = changes.get(documentKey);
     if (bufferedEntry) {
-      return PersistencePromise.resolve(bufferedEntry);
+      return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {
       return this.remoteDocumentCache.getEntry(transaction, documentKey);
     }
